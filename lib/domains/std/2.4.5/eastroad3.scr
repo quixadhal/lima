@@ -1,0 +1,13 @@
+is=room
+
+exits=
+  north:eastroad4.scr
+  south:eastroad2.scr
+  west:sunalley1.scr
+end
+brief=East road
+long=
+  East road runs north-south.
+  Sun alley is to the west.\n
+end
+light=1

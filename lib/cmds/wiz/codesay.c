@@ -28,11 +28,11 @@ private void main(string s) {
     ed_cmd("x");
     s = read_file("/tmp/codesay");
     // fix the fact that indentation uses tabs
-    s = "\n\t" + replace_string(s, "\n", "\n\t");
-    
-#ifdef ZORKMUD
-    this_body()->simple_action("$N $vsay, \"$O\"", punctuate(s));
-#else
-    this_body()->simple_action("$N $vsay: $o", punctuate(s));
-#endif
+    s = "\n\t" + replace_string(s, "\n", "\n\t") + "\n";
+
+    tell(this_user(), "You say:" + s, NO_ANSI | MSG_INDENT);
+    tell_environment(this_body(),
+		     this_body()->query_name() + " says:" + s,
+		     NO_ANSI | MSG_INDENT,
+		     ({ this_body() }));
 }

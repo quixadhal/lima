@@ -1,0 +1,32 @@
+is=object
+primary_id=door
+primary_adj=elevator
+flag=attached
+
+direct_open_obj:
+  check
+    (call container "query_door_open") : "It is already open!\n"
+    (call container "query_moving") : "The door is stuck.\n"
+  end
+
+open_with:
+  action $N $vopen the door.\n
+  call container "open_the_door"
+end
+
+direct_close_obj:
+  check
+    not (call container "query_door_open") : "It is already closed!\n"
+
+close:
+  action $N $vclose the door.\n
+  call container "close_the_door"
+end
+
+---
+string long() {
+    if (environment()->query_state("door"))
+        return "The door is open.\n";
+    else
+        return "The door is closed.\n";
+}

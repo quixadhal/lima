@@ -12,8 +12,8 @@
 void std_handler(string str);
 void do_one_arg(string arg_prompt, function fp, string arg);
 void do_two_args(string arg1_prompt, string arg2_prompt,
-		 function fp, string arg);
-varargs void modal_simple(function input_func, int secure);
+  function fp, string arg);
+varargs void modal_simple(function input_func, mixed prompt, int secure);
 varargs void modal_func(function input_func, mixed prompt_func, int secure);
 
 #ifdef USE_WIZ_POSITION
@@ -28,21 +28,21 @@ varargs void modal_func(function input_func, mixed prompt_func, int secure);
 private nomask void write_user_menu()
 {
     write("Administration Tool: user administration\n"
-	  "\n"
-	  "    n [name]            - nuke a user\n"
-	  "    w [name]            - wiz a user\n"
-	  "    d [name]            - dewiz a user\n"
+      "\n"
+      "    n [name]            - nuke a user\n"
+      "    w [name]            - wiz a user\n"
+      "    d [name]            - dewiz a user\n"
 #ifdef USE_WIZ_POSITION
-	  "    p [name] [position] - give a wizard a position\n"
+      "    p [name] [position] - give a wizard a position\n"
 #endif
-	  "\n"
-	  "    P [days]            - Purge users not logged in within N days\n"
-	  "\n"
-	  "    m                   - main menu\n"
-	  "    q                   - quit\n"
-	  "    ?                   - help\n"
-	  "\n"
-	  );
+      "\n"
+      "    P [days]            - Purge users not logged in within N days\n"
+      "\n"
+      "    m                   - main menu\n"
+      "    q                   - quit\n"
+      "    ?                   - help\n"
+      "\n"
+    );
 }
 
 private nomask void nuke_user(string userid, int skip_save)
@@ -69,12 +69,12 @@ private nomask void nuke_user(string userid, int skip_save)
 
     err = SECURE_D->delete_wizard(userid);
 
-//### deal with clearing privs and stuff
-//### this should be enough, but may need more thought (this was a quicky)
-//### need to set it to something like @disabled so that unguarded() code
-//### in the wiz dir doesn't have priv 1 now.
+    //### deal with clearing privs and stuff
+    //### this should be enough, but may need more thought (this was a quicky)
+    //### need to set it to something like @disabled so that unguarded() code
+    //### in the wiz dir doesn't have priv 1 now.
     SECURE_D->set_protection(WIZ_DIR "/" + userid, 1, -1);
-    
+
     printf("'%s' has been nuked.\n", capitalize(userid));
 }
 
@@ -93,6 +93,12 @@ private nomask void confirm_nuking(string name, string str)
 private nomask void receive_name_for_nuking(string name)
 {
     name = lower_case(name);
+    if( !user_exists( name ))
+    {
+	printf( "%s doesn't exist", capitalize(name));
+	return;
+    }
+
     printf("Are you sure you want to nuke '%s' ? ", capitalize(name));
     modal_simple((: confirm_nuking, name :));
 }
@@ -109,7 +115,7 @@ private nomask void receive_name_for_wiz(string name)
 	if ( !is_directory(WIZ_DIR "/"+name) )
 	{
 	    printf("However, %s/%s doesn't exist.  Creating...\n",
-		   WIZ_DIR, name);
+	      WIZ_DIR, name);
 	    mkdir(WIZ_DIR "/" + name);
 	    SECURE_D->set_protection(WIZ_DIR "/" + name, 1, name + ":");
 	}
@@ -126,7 +132,7 @@ private nomask void receive_name_for_wiz(string name)
 
     printf("'%s' is now a wizard.\n", capitalize(name));
 
-//### switch to an action?
+    //### switch to an action?
     ob = find_user(name);
     if ( ob )
     {
@@ -145,7 +151,7 @@ private nomask void receive_name_for_dewiz(string name)
     if ( adminp(name) )
     {
 	printf("** '%s' is an admin and cannot be dewizzed.\n",
-	       capitalize(name));
+	  capitalize(name));
 	return;
     }
     if ( !SECURE_D->query_is_wizard(name) )
@@ -163,7 +169,7 @@ private nomask void receive_name_for_dewiz(string name)
 
     printf("'%s' is no longer a wizard.\n", capitalize(name));
 
-//### switch to an action?
+    //### switch to an action?
     ob = find_user(name);
     if ( ob )
     {
@@ -179,7 +185,7 @@ private nomask void receive_position_for_wiz(string name, string position)
     USER_D->set_variable(lower_case(name), "wiz_position", position);
 
     printf("%s's position has been set to: %s\n",
-	   capitalize(lower_case(name)), position);
+      capitalize(lower_case(name)), position);
 }
 #endif
 
@@ -193,7 +199,7 @@ private nomask void confirm_purge(mixed * times, string str)
     }
 
     foreach ( mixed * info in times )
-	nuke_user(info[1], 1);
+    nuke_user(info[1], 1);
 
     LAST_LOGIN_D->save_me();
 }
@@ -202,11 +208,11 @@ private nomask void receive_days_for_purge(string days)
 {
     int limit = time() - (to_int(days) * SECS_PER_DAY);
     mixed * times = filter(LAST_LOGIN_D->query_times(),
-			   (: $1[0] <= $(limit) :));
+      (: $1[0] <= $(limit) :));
 
     printf("You will nuke %d users that have not logged on after %s.\n"
-	   "Are you sure? ",
-	   sizeof(times), ctime(limit));
+      "Are you sure? ",
+      sizeof(times), ctime(limit));
     modal_simple((: confirm_purge, times :));
 }
 

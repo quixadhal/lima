@@ -161,9 +161,9 @@ private nomask void receive_alias_input(string cmd)
 
 static nomask void begin_alias_menu()
 {
-    if ( !check_privilege(1) )
+    if ( !check_privilege("Mudlib:daemons") )
     {
-	write("Sorry... admin only.\n");
+	write("Sorry... Mudlib:daemons priv-holders only.\n");
 	return;
     }
     modal_func((: receive_alias_input :), PROMPT_ALIAS);

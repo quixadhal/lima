@@ -1,0 +1,22 @@
+is=room
+
+exits=
+  south:plane4.scr
+  north:plane8.scr
+  east:plane9.scr
+  west:plane3.scr
+end
+brief=Ruin
+long=A very old looking ruin. There is no roof, and no door.
+light=1
+objects=
+  wolf=
+    is=monster
+    proper_name=wolf
+    in_room_desc=A wolf
+    long=
+      A grey wolf running around. It has\n
+      some big dangerous teeth.
+    end
+    weapon_class=7
+  end

@@ -1,0 +1,8 @@
+is=monster
+proper_name=wolf
+in_room_desc=A wolf
+long=
+  A grey wolf running around. It has\n
+  some big dangerous teeth.
+end
+weapon_class=7

@@ -27,7 +27,7 @@ int dy(int i) {
     return 0;
 }
 
-void setup() {
+void create() {
     array valid = allocate(4);
     int x, y;
     

@@ -1,0 +1,11 @@
+is=room
+exits=
+  down:mount_pass.scr
+  up:mount_top.scr
+end
+brief=Ravine
+long=
+  You are in a ravine between mountains. It seems to be possible\n
+  to go up from here.
+end
+light=1

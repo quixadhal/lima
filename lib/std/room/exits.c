@@ -7,6 +7,9 @@ private static string array hidden_exits = ({});
 private static mapping exit_msg = ([]);
 private static mapping enter_msg = ([ ]);
 
+    string array standard_directions = ({ "north", "northeast", "northwest", "east", "west", "southwest", "southeast", "south", "up", "down" });
+
+
 void create() {
     base = file_name(this_object());
     base = base[0..strsrch(base, '/', -1)];
@@ -14,7 +17,6 @@ void create() {
 
 string array query_exit_directions(int show_hidden)
 {
-    string array standard_directions = ({ "north", "northeast", "northwest", "east", "west", "southwest", "southeast", "south", "up", "down" });
     string array dirs = keys( exits );
 
     foreach( string dir in standard_directions )
@@ -144,6 +146,9 @@ void set_exits( mapping new_exits )
 //This is the list of exits to NOT be shown to the mortals in the room.
 void set_hidden_exits( string array exits_list ... )
 {
+    if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
+        hidden_exits = standard_directions;
+    else
     hidden_exits = exits_list;
 }
 
@@ -151,6 +156,9 @@ void set_hidden_exits( string array exits_list ... )
 //Make a given exit direction a hidden exit.  See set_hidden_exits
 void add_hidden_exit( string array exits_list ... )
 {
+    if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
+        hidden_exits = standard_directions;
+    else
     hidden_exits += exits_list;
 }
 
@@ -158,6 +166,9 @@ void add_hidden_exit( string array exits_list ... )
 //Make a given exit direction no longer a hidden exit.  See set_hidden_exits
 void remove_hidden_exit( string array exits_list ... )
 {
+    if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
+        hidden_exits = standard_directions;
+    else
     hidden_exits -= exits_list;
 }
 

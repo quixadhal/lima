@@ -9,10 +9,9 @@
 
 inherit CMD;
 
+int deep_scan;
 
 #define PAD "    "
-
-int deep_scan;
 
 // scan the inventory of an object.
 string
@@ -47,7 +46,7 @@ private void main(mixed *arg, mapping flags)
     string objs;
     string itemstr;
 
-    if(flags["d"]) deep_scan = 1;
+    deep_scan = !!flags["d"];
 
     if (!arg[0]) arg[0] = environment(this_body());
     outstr = "Scanning " + file_name( arg[0] ) + ":\n";

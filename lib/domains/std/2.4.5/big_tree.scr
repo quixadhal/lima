@@ -1,0 +1,18 @@
+is=room
+light=1
+brief=Big tree
+long=A big single tree on the plain.
+exits=
+  east:plane7.scr
+  west:giant_path.scr
+end
+objects=
+  obj/rope
+  tree=
+     is=object
+     primary_adj=big
+     primary_id=tree
+     direct_climb_obj:
+         return "There are no low branches.\n"
+  end
+end

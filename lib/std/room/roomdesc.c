@@ -175,36 +175,38 @@ string long_without_object(object o)
 
 //:FUNCTION do_looking
 //print out the description of the current room
-void do_looking(int forced_look)
+varargs void do_looking(int forced_look, object who)
 {
+  if (!who)
+  {
+    who = this_body();
+  }
     // This probably shouldn't be done in a global variable,
     // instead it should be passed to long(), but long does
     // not take args anywhere else...
     this_look_is_forced = forced_look;
 
-    if ( wizardp(this_body()) &&
-        this_body()->query_shell_ob() &&
-	 this_body()->query_shell_ob()->get_variable("show_loc") )
+    if ( wizardp(who) && who->query_link()->query_shell_ob()->get_variable("show_loc") )
     {
-	printf("[%s]\n", file_name(this_object()));
+	tell(who, sprintf("[%s]\n", file_name(this_object())));
     }
 
     if ( query_light() < 1 )
     {
-	write("Someplace dark\nIt is dark here.\n");
+	tell(who, "Someplace dark\nIt is dark here.\n");
 #ifdef ZORKMUD
-	write("You might get eaten by a grue.\n");
+	tell(who, "You might get eaten by a grue.\n");
 #endif
     }
     else
     {
 #ifdef OBVIOUS_EXITS
-	printf("%s [exits: %s]\n", short(), show_exits());
+	tell(who, sprintf("%%^ROOM_SHORT%%^%s%%^RESET%%^ [exits: %s]\n", short(), show_exits()));
 #else
-	printf("%s\n", short());
+	tell(who, sprintf("%%^ROOM_SHORT%%^%s%%^RESET%%^\n", short()));
 #endif
 
-	write(long());
+	tell(who,long());
     }
 }
 

@@ -5,7 +5,7 @@
 inherit OBJ;
 
 void setup() {
-    
+
     set_id("button");
     set_long("The button probably opens up the passage you came through to get here.\n");
     set_in_room_desc("You see a button on the wall, next to the outline of a passage.");
@@ -14,7 +14,15 @@ void setup() {
 
 int press(string n)
 {
-  this_body()->simple_action("$N $vpress the button next to the passage.");
-  environment(this_object())->open_passage();
-  return 1;
+    object wall;
+    wall = present( "wall", environment( this_object()));
+    if( wall->query_closed())
+    {
+	this_body()->simple_action("$N $vpress the button next to the passage.");
+	wall->open_with();
+        call_out( (:present( "wall", environment( this_object()))->close() :), 8);
+    }
+    else
+	this_body()->simple_action("$N $vpress the button, but nothing happens.\n");
+    return 1;
 }

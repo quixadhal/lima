@@ -1,0 +1,18 @@
+This directory is for topics which are asked about on a regular basis, but
+have long, complicated answers which are a real pain to explain each time.
+
+The files in this directory are intended to explain why certain things are
+the way they are in the Lima lib.  The purpose is not always to assert that
+a particular way of doing things is the best or only way of doing things,
+but to let people know that we are aware that there are other ways of doing
+these things, but we have chosen to do them the way we have for a reason.
+
+Please be aware that in many (in fact, most) cases, these issues have
+been discussed to death on here, and in some cases the admins may not
+be particularly interested in continuing the discussion with everyone
+who disagrees, unless they have thought of some new angle or insight.
+
+The name of the directory is important; this is the way we *decided* to
+do certain things.  The fact that these things are decisions implies that
+there are other valid ways of doing these things.  Feel free to implement
+them on your MUD.

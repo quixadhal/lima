@@ -295,12 +295,12 @@ nomask void init_stats()
     class stat_roll_mods mods;
 
     if ( stat_str && !check_previous_privilege(1) )
-	error("* cannot reinitialize statistics\n");
+	error("cannot reinitialize statistics\n");
 
     mods = query_roll_mods();
     if ( mods->str_adjust + mods->agi_adjust + mods->int_adjust +
 	 mods->wil_adjust != 0 )
-	error("*illegal stat adjustment values\n");
+	error("illegal stat adjustment values\n");
 
     stat_str = roll_stat(mods->str_adjust, mods->str_range);
     stat_agi = roll_stat(mods->agi_adjust, mods->agi_range);

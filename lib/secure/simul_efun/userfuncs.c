@@ -41,7 +41,9 @@ varargs nomask object find_body(string str, int even_linkdead)
 
 nomask int wizardp(mixed m)
 {
-    if ( objectp(m) )
+    if ( !m )
+	m = this_user()->query_userid();
+    else if ( objectp(m) )
 	m = m->query_userid();
 
     if ( stringp(m) )
@@ -52,13 +54,33 @@ nomask int wizardp(mixed m)
 
 nomask int adminp(mixed m)
 {
-    if ( objectp(m) )
+    if ( !m )
+	m = this_user()->query_userid();
+    else if ( objectp(m) )
 	m = m->query_userid();
 
     return member_array(m, SECURE_D->query_domain_members("admin")) != -1;
 }
 
+
 nomask int user_exists(string user)
 {
-  return USER_D->user_exists(user);
+    return USER_D->user_exists(user);
+}
+
+
+//:FUNCTION get_user_variable
+// Get a variable value from the current user's shell object.
+nomask mixed get_user_variable(string varname)
+{
+    object shell;
+
+#define UNDEFINED_VALUE	([])[0]
+
+    if ( !this_user() )
+	return UNDEFINED_VALUE;
+    shell = this_user()->query_shell_ob();
+    if ( !shell )
+	return UNDEFINED_VALUE;
+    return shell->get_variable(varname);
 }

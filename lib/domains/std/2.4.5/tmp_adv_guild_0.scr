@@ -1,0 +1,10 @@
+is=object,readable,gettable
+id=list
+getmsg=It is firmly attached to the wall.
+flag=attached
+long=
+  All the quests are listed on the list.
+end
+text=
+  1. Retrieve the Orc slayer from the evil orc shaman, and give it to Leo.
+end

@@ -94,18 +94,25 @@ deep_useful_inv( object ob )
 object get_object(string arg)
 {
     object ob;
-    object* inv;
-    int i;
 
-    if ( !arg ) return 0;
-    if ( arg == "me" ) return this_body();
-    if ( arg == "here" ) return environment(this_body());
-    if ( arg == "shell" ) return this_body()->query_shell_ob();
+    if ( !arg )
+	return 0;
+
+    if ( arg == "me" )
+	return this_body();
+
+    if ( arg == "here" )
+	return environment(this_body());
+
+    if ( arg == "shell" )
+	return this_user()->query_shell_ob();
+
     if ( !(ob = present( arg, this_body())) )
 	if ( environment(this_body()) &&
 	     !(ob = present(arg, environment(this_body()))) )
 	    if ( !(ob = find_body(arg)) )
 		if ( !(ob = load_object(evaluate_path(arg))) )
+		  if (!(ob = load_object(evaluate_path(arg)+".scr")))
 		    return 0;
 
     return ob;

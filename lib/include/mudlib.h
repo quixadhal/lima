@@ -9,6 +9,7 @@
 #include <setbit.h>
 #include <msgtypes.h>
 #include <classes.h>
+#include <lpscript.h>
 
 /*
 ** BODY		main player object (body)
@@ -30,8 +31,6 @@
 **
 ** BASE_OBJ	base class for objects
 ** OBJ		generic objects
-** SPARSE_OBJ	simple do-nothing objects.
-** LESS_SPARSE_OBJ
 ** FURNITURE
 ** MOUNT	
 ** WEAPON	weapons
@@ -102,6 +101,7 @@
 ** ALIASMENU
 ** ANNO_MENU
 ** CORPSE
+** FAKE_ITEM_MGR	manage a set of fake items
 ** HELPSYS	help system
 ** HINT_MENU
 ** IFTP_OB	command object to transfer files between muds via I3
@@ -109,6 +109,7 @@
 ** NNTP_OB
 ** PLAYER_MENU
 ** PLYR_SHELL
+** SIMPLE_OB	an object with simple responses to verbs
 ** TEMP_WORKROOM
 ** WATER	some water
 **
@@ -148,7 +149,7 @@
 #define BASE_ROOM		"/std/base_room"
 #define INDOOR_ROOM		"/std/indoor_room"
 #define OUTDOOR_ROOM		"/std/outdoor_room"
-#define NON_ROOM		"/std/non-room"
+#define NON_ROOM		"/std/non_room"
 #define WATER_ROOM		"/std/water_room"
 #define GRID_SERVER		"/std/grid_server"
 
@@ -167,7 +168,6 @@
 #define HIDDEN_DOOR      "/std/hidden_door"
 #define FURNITURE		"/std/furniture"
 #define GUILD_GUARD          "/std/guild_guard.c"
-#define LESS_SPARSE_OBJ		"/std/less_sparse_obj"
 #define LIVING			"/std/living"
 #define	MENUS			"/std/menu"
 #define MONSTER			"/std/monster"
@@ -175,7 +175,6 @@
 #define OBJ 			"/std/object"
 #define RACE			"/std/race"
 #define SIGN                    "/std/sign"
-#define SPARSE_OBJ		"/std/sparse_obj"
 #define SPELL			"/std/spell"
 #define STOCK_MASTER            "/std/stock_master"
 #define VERB_OB			"/std/verb_ob"
@@ -187,7 +186,7 @@
 #define M_COMPLETE		"/std/modules/m_complete"
 #define M_GLOB		        "/std/modules/m_glob"
 #define M_GRAMMAR		"/std/modules/m_grammar"
-#define M_INPUT			"/std/modules/m_input"
+#define M_INPUT			"/secure/modules/m_input"
 #define M_ITEMS			"/std/modules/m_items"
 #define M_PARSING		"/std/modules/m_parsing"
 #define M_RECONNECT		"/std/modules/m_reconnect"
@@ -214,6 +213,7 @@
 #define M_KNOCKABLE		"/std/modules/m_knockable"
 #define M_LIGHTABLE		"/std/modules/m_lightable"
 #define M_LOCKABLE		"/std/modules/m_lockable"
+#define M_SEARCHABLE		"/std/modules/m_searchable"
 #define M_MESSAGES		"/std/modules/m_messages"
 #define M_MOUNTABLE		"/std/modules/m_mountable"
 #define M_OPENABLE		"/std/modules/m_openable"
@@ -238,38 +238,41 @@
 #define ADMTOOL			"/trans/obj/admtool"
 #define DATAEDIT		"/trans/obj/dataedit"
 
-#define ALIASMENU		"/obj/aliasmenu"
-#define ANNO_MENU		"/obj/annotationmenu"
-#define CORPSE			"/obj/corpse"
-#define HELPSYS			"/obj/helpsys"
-#define HINT_MENU		"/obj/hintmenu"
-#define IFTP_OB			"/obj/iftp_ob"
-#define NEWSREADER		"/obj/newsreader"
-#define NNTP_OB			"/obj/nntp"
-#define PLAYER_MENU		"/obj/plmenu"
-#define PLYR_SHELL		"/obj/pshell"
-#define TEMP_WORKROOM		"/obj/tworkroom"
-#define WATER			"/obj/water"
+#define ALIASMENU		"/obj/mudlib/aliasmenu"
+#define ANNO_MENU		"/obj/mudlib/annotationmenu"
+#define CORPSE			"/obj/mudlib/corpse"
+#define FAKE_ITEM_MGR		"/obj/mudlib/fake_item_mgr"
+#define HELPSYS			"/obj/mudlib/helpsys"
+#define HINT_MENU		"/obj/mudlib/hintmenu"
+#define IFTP_OB			"/obj/mudlib/iftp_ob"
+#define NEWSREADER		"/obj/mudlib/newsreader"
+#define NNTP_OB			"/obj/mudlib/nntp"
+#define PLAYER_MENU		"/obj/mudlib/plmenu"
+#define PLYR_SHELL		"/obj/mudlib/pshell"
+#define SIMPLE_OB		"/obj/mudlib/simple_ob"
+#define TEMP_WORKROOM		"/obj/mudlib/tworkroom"
+#define WATER			"/obj/mudlib/water"
 
 #define M_ACCESS		"/secure/modules/m_access"
 #define M_FILE			"/secure/modules/m_file"
 #define M_DAEMON_DATA           "/secure/modules/m_daemon_data"
 
-#define CMD			"/secure/obj/cmd"
-#define MAILBOX			"/secure/obj/mailbox"
-#define MAILER			"/secure/obj/mailers/mailer"
-#define SOCKET			"/secure/obj/socket"
+#define CMD			"/obj/secure/cmd"
+#define MAILBOX			"/obj/secure/mailbox"
+#define MAILER_DIR		"/obj/secure/mailers"
+#define MAILER			MAILER_DIR "/mailer"
+#define SOCKET			"/obj/secure/socket"
 
-#define SHELL		 	"/secure/obj/shell"
-#define M_ALIAS			"/secure/obj/shell/alias"
-#define M_HISTORY	   	"/secure/obj/shell/history"
-#define M_SCROLLBACK		"/secure/obj/shell/scrollback"
-#define M_SHELLFUNCS		"/secure/obj/shell/shellfuncs"
+#define SHELL		 	"/obj/secure/shell"
+#define M_ALIAS			"/obj/secure/shell/alias"
+#define M_HISTORY	   	"/obj/secure/shell/history"
+#define M_SCROLLBACK		"/obj/secure/shell/scrollback"
+#define M_SHELLFUNCS		"/obj/secure/shell/shellfuncs"
 
 /* used by 'wish';  M_GETOPT also used in CMD_D */
-#define M_GETOPT		"/secure/obj/shell/getopt"
-#define M_PROMPT		"/secure/obj/shell/prompt"
-#define M_SHELLVARS 		"/secure/obj/shell/shellvars"
+#define M_GETOPT		"/obj/secure/shell/getopt"
+#define M_PROMPT		"/obj/secure/shell/prompt"
+#define M_SHELLVARS 		"/obj/secure/shell/shellvars"
 
 // These next few are 'high level' inheritables and probably should have
 // their own dir.

@@ -1,0 +1,25 @@
+is=room
+light=1
+brief=The attic
+objects=
+  obj/elevator_door.scr("attic")
+  obj/elevator_call_button.scr("attic")
+end
+exits=
+  west:elevator.scr
+end
+long=
+  This is the attic above the church.\n
+  There is a door to the west.
+end
+state[lamp_on]=\nThe lamp beside the elevator is lit.\n
+can_go_west:
+  check
+    not (call "/domains/std/2.4.5/elevator.scr" "query_open_at" "attic") : "The door is closed.\n"
+
+---
+void arrived() {
+    if (query_state("lamp"))
+        tell_from_inside(this_object(), "The lamp on the button beside the elevator goes out.\n");
+    clear_room_state("lamp");
+}

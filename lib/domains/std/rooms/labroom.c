@@ -4,9 +4,6 @@ inherit INDOOR_ROOM;
 
 void setup(int x, int y, int north, int east, int south, int west) {
     string array dirs = ({ });
-    
-
-    printf("[%c%c%c%c]\n", north, east, south, west);
 
     if (north == ' ') {
 	add_exit("north", __DIR__ + "labyrinth/" + x + "," + (y-1));
@@ -26,6 +23,7 @@ void setup(int x, int y, int north, int east, int south, int west) {
     }
     set_brief("Labyrinth");
     set_long("You are in a small corridor in a large labyrinth.  Passages lead " + format_list(dirs)+".\n");
+    set_default_exit( "Cold stone bars your way.\n");
 }
      
 	    

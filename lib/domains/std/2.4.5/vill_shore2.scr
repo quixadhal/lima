@@ -1,0 +1,12 @@
+is=room
+
+exits=
+  west: jetty.scr
+  east: jetty2.scr
+end
+brief=Village shore
+long=
+  The village shore. A jetty leads out to the east. To the north some stairs\n
+  leads down to the north beach. A road starts to the west\n
+end
+light=1

@@ -1,0 +1,18 @@
+is=room
+objects=
+  /domains/lpscript/harry.scr
+exits=
+  west:vill_road1.scr
+  east:vill_shore.scr
+  south:adv_guild.scr
+  down:station.scr
+  north:shop.scr
+end
+brief=Village road
+long=
+  A long road going through the village. There are stairs going down.\n
+  The road continues to the west. To the north is the shop, and to the\n
+  south is the adventurers guild. The road runs towards the shore to\n
+  the east.
+end
+light=1

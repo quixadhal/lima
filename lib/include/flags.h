@@ -1,5 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#ifndef __FLAGS_H__
+#define __FLAGS_H__
+
 /*
 ** flags.h
 **
@@ -19,8 +22,6 @@
 **  void assign_flag(int which, int state)	set or clear a flag
 **  int get_flags(int set_key)			return a whole flag set
 */
-#ifndef __FLAGS_H__
-#define __FLAGS_H__
 
 
 /*

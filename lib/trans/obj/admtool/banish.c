@@ -13,15 +13,17 @@
 #include <mudlib.h>
 #include <security.h>
 
+inherit CLASS_BANISH_DATA;
+
 void std_handler(string str);
 void do_one_arg(string arg_prompt, function fp, string arg);
 void do_two_args(string arg1_prompt, string arg2_prompt,
                  function fp, string arg);
-varargs void modal_simple(function input_func, int secure);
+varargs void modal_simple(function input_func, mixed prompt, int secure);
 varargs void modal_func(function input_func, mixed prompt_func, int secure);
 void receive_banish_input(string);
 
-#define PROMPT_BANISH     "(AdmTool:banish)   [LlBbUunmq?] > "
+#define PROMPT_BANISH     "(AdmTool:banish) [LlBbUunmq?] > "
 
 private nomask void write_banish_menu()
 {
@@ -29,12 +31,11 @@ private nomask void write_banish_menu()
 	  "\n"
 	  "    L                   - list banished names\n"
 	  "    l                   - list banished sites\n"
-	  "    B <name> <reason>   - banish a name\n"
-	  "    b <name> <reason>   - banish a site\n"
-	  "    U <name>            - unbanish a name\n"
-	  "    u <name>            - unbanish a site\n"
-	  "    n <name>            - Nuke and Pave a user\n"
-	  
+	  "    B [name] [reason]   - banish a name\n"
+	  "    b [name] [reason]   - banish a site\n"
+	  "    U [name]            - unbanish a name\n"
+	  "    u [name]            - unbanish a site\n"
+	  "    n [name]            - Nuke and Pave a user   [admin]\n"
 	  "\n"
 	  "    m        - main menu\n"
 	  "    q        - quit\n"
@@ -45,15 +46,29 @@ private nomask void write_banish_menu()
 
 private nomask void receive_banish_name(string name, string reason)
 {
-        BANISH_D->banish_name(name, reason ? reason : "(None given)");
-        write("Done.\n");
+    if ( reason == "" )
+    {
+	write("Aborted.  The reason is required.\n");
+    }
+    else
+    {
+	BANISH_D->banish_name(name, reason);
+	write("Done.\n");
+    }
 }
 
 
 private nomask void receive_banish_site(string name, string reason)
 {
-        BANISH_D->banish_site(name, reason ? reason : "(None given)");
-        write("Done.\n");
+    if ( reason == "" )
+    {
+	write("Aborted.  The reason is required.\n");
+    }
+    else
+    {
+	BANISH_D->banish_site(name, reason);
+	write("Done.\n");
+    }
 }
 
 private nomask void pave_user(string userid, int skip_save)
@@ -87,6 +102,7 @@ private nomask void pave_user(string userid, int skip_save)
     SECURE_D->set_protection(WIZ_DIR "/" + userid, 1, -1);
     
     printf("'%s' has been nuked.\n", capitalize(userid));
+
     BANISH_D->banish_name(userid, "Nuked and paved over.");
 }
 
@@ -106,10 +122,21 @@ private nomask void confirm_paving(string name, string str)
 private nomask void receive_name_for_paving(string name)
 {
     name = lower_case(name);
-    printf("Are you sure you want to nuke '%s' ? ", capitalize(name));
-    modal_simple((: confirm_paving, name :));
+    modal_simple((: confirm_paving, name :),
+		 sprintf("Are you sure you want to nuke '%s' ? ",
+			 capitalize(name)));
 }
 
+private nomask void show_banishes(string header, class banish_data *list)
+{
+    string result = header + "\n" + repeat_string("-", 73) + "\n";
+
+    foreach ( class banish_data b in list )
+    {
+	result += sprintf("%-20s : %s\n", b->item, b->reason);
+    }
+    more(result);
+}
 
 private nomask void receive_banish_input(mixed str)
 {
@@ -119,13 +146,12 @@ private nomask void receive_banish_input(mixed str)
 
     switch ( str )
     {
-
     case "L":
-        more(implode(BANISH_D->show_banishes()[0],", "));
+	show_banishes("Banished names", BANISH_D->show_banishes()[0]);
         break;
 
     case "l":
-        more(implode(BANISH_D->show_banishes()[1],", "));  
+	show_banishes("Banished sites", BANISH_D->show_banishes()[1]);
         break;
 
     case "B":
@@ -153,11 +179,17 @@ private nomask void receive_banish_input(mixed str)
         break;
         
     case "n":
-		do_one_arg("Who should be nuked and paved? ",
-		   (: receive_name_for_paving :),
-		   arg);
+	if ( !check_privilege(1) )
+	{
+	    write("Sorry... only admins can use this.\n");
+	}
+	else
+	{
+	    do_one_arg("Who should be nuked and paved? ",
+		       (: receive_name_for_paving :),
+		       arg);
+	}
 	break;
-
 
     case "?":
         write_banish_menu();
@@ -171,12 +203,11 @@ private nomask void receive_banish_input(mixed str)
 
 static nomask void begin_banish_menu()
 {
-    if ( !check_privilege(1) )
+    if ( !check_privilege("Mudlib:daemons") )
     {
-	write("Sorry... admin only.\n");
+	write("Sorry... Mudlib:daemons priv-holders only.\n");
 	return;
     }
     modal_func((: receive_banish_input :), PROMPT_BANISH);
     write_banish_menu();
 }
-

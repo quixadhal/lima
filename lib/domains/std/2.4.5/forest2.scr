@@ -1,0 +1,20 @@
+is=room
+
+objects=
+  troll=
+    is=monster
+    proper_name=troll
+    max_hp=100
+    weapon_class=12
+    in_room_desc=A troll
+    long=It is a nasty troll that look very aggressive.
+    money=500
+  end
+
+exits=
+  east:clearing.scr
+  west:slope.scr
+end
+brief=In a forest
+long=You are in a big forest.
+light=1

@@ -3,6 +3,7 @@
 #include <mudlib.h>
 inherit ROOM;
 
+
 void setup() {
     set_brief("Attic");
     set_long("This is the attic of the wizard hall.  Not much here yet :-)");

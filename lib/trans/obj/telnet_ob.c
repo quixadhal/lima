@@ -219,7 +219,7 @@ void init_telnet()
     if(owner) 
 	return;
     owner = this_body();
-    control_char = this_body()->query_shell_ob()->get_variable("telnet_char") ||
+    control_char = get_user_variable("telnet_char") ||
     "/";
     modal_push((: handle_input :), "# ");
 }
@@ -325,7 +325,7 @@ private nomask void handle_command(string cmd)
 	return;
 
     case "close" :
-	if(!active_session_name)
+	if(!active_session_name || active_session == -1)
 	{
 	    write("Nothing to close.\n");
 	    return;

@@ -1,0 +1,9 @@
+is=room
+
+exits=
+  east:forest9.scr
+  west:forest12.scr
+end
+brief=Deep forest
+long=You are in the deep forest.
+light=1

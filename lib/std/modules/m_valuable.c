@@ -15,3 +15,9 @@ int query_value()
 {
     return object_value;
 }
+
+mapping lpscript_attributes() {
+    return ([
+	"value" : ({ LPSCRIPT_INT, "setup", "set_value" }),
+    ]);
+}

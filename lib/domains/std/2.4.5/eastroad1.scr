@@ -1,0 +1,9 @@
+is=room
+
+exits=
+  north:eastroad2.scr
+  south:vill_shore.scr
+end
+brief=East road
+long=East road runs north-south.
+light=1

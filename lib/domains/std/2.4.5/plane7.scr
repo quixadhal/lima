@@ -1,0 +1,11 @@
+is=room
+
+exits=
+  south:plane5.scr
+  north:plane10.scr
+  east:plane3.scr
+  west:big_tree.scr
+end
+brief=A large open plain
+long=A large open plain. There is a big tree to the west.
+light=1

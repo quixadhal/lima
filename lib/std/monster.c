@@ -9,22 +9,50 @@
 
 #include "combat.h"
 
-#if COMBAT_STYLE == COMBAT_SIMPLE
-inherit __DIR__ "monster/simple";
-#elif COMBAT_STYLE == COMBAT_TRADITIONAL
-inherit __DIR__ "monster/traditional";
-#elif COMBAT_STYLE == COMBAT_COMPLEX
-#error COMBAT_COMPLEX not written yet
-inherit __DIR__ "monster/complex";
+inherit LIVING;
+inherit M_DAMAGE_SOURCE;
+
+inherit __DIR__ "monster/behaviors";
+inherit __DIR__ "monster/death";
+inherit __DIR__ "monster/hit_points";
+inherit __DIR__ "monster/target";
+inherit __DIR__ "monster/wield";
+
+#ifdef USE_BODYSLOTS
+inherit __DIR__ "monster/bodyslots";
+#endif
+
+#ifdef COMBAT_USES_HEARTBEATS
+inherit __DIR__ "monster/heart_beat";
 #else
+inherit __DIR__ "monster/non_heart_beat";
+#endif
+
+#if COMBAT_STYLE == COMBAT_SIMPLE
+# define COMBAT_MODULE simple
+# define S_COMBAT_MODULE "simple"
+#elif COMBAT_STYLE == COMBAT_TRADITIONAL
+# define COMBAT_MODULE traditional
+# define S_COMBAT_MODULE "traditional"
+#elif COMBAT_STYLE == COMBAT_COMPLEX
+# error COMBAT_COMPLEX not written yet
+# define COMBAT_MODULE complex
+# define S_COMBAT_MODULE "complex"
+#endif
+
+#ifndef COMBAT_MODULE
 #error Improperly specified COMBAT_STYLE in /include/config_combat.h
 #endif
+
+
+inherit __DIR__ "monster/combat/" S_COMBAT_MODULE ;
 
 #ifdef USE_BODYSLOTS
 object get_random_clothing();
 #else
 static object* armors = ({ });
 #endif
+
 
 //:FUNCTION start_fight
 //Add someone to the list of people we are attacking.  If we were already
@@ -152,5 +180,63 @@ mixed direct_kill_liv_with_obj(object ob)
 void mudlib_setup()
 {
   ::mudlib_setup();
+  COMBAT_MODULE::mudlib_setup();
   set_max_capacity(VERY_LARGE*3);
+}
+
+mapping lpscript_attributes() {
+    return ( living::lpscript_attributes() +
+	     m_damage_source::lpscript_attributes() +
+	     ([
+		 "max_hp" : ({ LPSCRIPT_INT, "setup", "set_max_hp" }),
+		 ])
+	     );
+}
+
+void remove() {
+#ifndef COMBAT_USES_HEARTBEATS
+    non_heart_beat::remove();
+#endif
+    m_damage_source::remove();
+    living::remove();
+}
+
+int query_ghost()
+{
+    return hit_points::query_ghost();
+}
+
+string diagnose() {
+    string ret;
+    
+    if (query_ghost())
+	return "$N $vare dead.  Other than that, things are going well for $n.\n";
+
+    if (query_asleep())
+	ret = "$N $vare asleep.\n";
+    else if (query_stunned())
+	ret = "$N $vare stunned.\n";
+    else
+	ret = "";
+
+    switch (query_hp() * 100 / query_max_hp()) {
+    case 0..10:
+	return ret + "$N $vare about to die.\n";
+    case 11..25:
+	return ret + "$N $vare in very bad shape.\n";
+    case 26..50:
+	return ret + "$N $vare badly wounded.\n";
+    case 51..75:
+	return ret + "$N $vare wounded.\n";
+    case 76..85:
+	return ret + "$N $vare lightly wounded.\n";
+    case 86..95:
+	return ret + "$N $vare a bit hurt, but nothing serious.\n";
+    case 96..99:
+	return ret + "$N $vare a bit roughed up.\n";
+    case 100:
+	return ret + "$N $vare in perfect health.\n";
+    default:
+	error("query_hp() out of bounds.\n");
+    }
 }

@@ -1,0 +1,38 @@
+is=living,actor
+proper_name=Leo the Archwizard
+in_room_desc=Leo the Archwizard
+long=Leo the Archwizard:
+id=leo,archwizard
+
+greet:
+  $who = call who "query_name"
+  !say Welcome, $who.
+end
+
+nocastle:
+  !say I no longer give out castles.
+
+trigger[*hello*]:
+  lcall "greet"
+
+trigger[*hi*]:
+  lcall "greet"
+
+trigger[*Hi*]:
+  lcall "greet"
+
+trigger[*give*castle*]:
+  lcall "nocastle"
+
+trigger[*want*castle*]:
+  lcall "nocastle"
+
+periodic[5 to 100]:
+  !smile
+
+#orc slayer stuff; run off of receive_object:
+#        if (!ob || !call_other(ob, "id", "orc slayer"))
+#            return;
+#        respond("Leo says: Well done. You have fullfilled this quest.\n");
+#        call_other(from, "set_quest", "orc_slayer");
+#        destruct(ob);

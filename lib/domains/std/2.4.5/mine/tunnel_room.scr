@@ -1,0 +1,11 @@
+is=room
+objects=
+  hobgoblin=
+    is=monster
+    primary_id=hobgoblin
+    weapon_class=9
+    long=This hobgoblin looks really nasty.
+  end
+exits=south:tunnel5.scr
+brief=small room
+long=A small room with rough cut walls.

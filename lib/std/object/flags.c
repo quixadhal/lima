@@ -12,29 +12,27 @@
 ** found in /include/flags.h.  See that header for more info.
 **
 ** Flag sets default to zero-values that WILL be saved/restored.
-** The configure_set() function may be used to alter the persistence
-** of a set and optionally define a set of closures to use to
-** access the flag values.  The get_closure closure should return
-** all 32 bits of a set.  The set_closure closure will be passed
-** all 32 bits.  secure_closure should return 1 to prevent setting
-** a flag (in which case set_closure will not be evaluated).
-** change_closure is invoked after any flag has been changed.  It
-** will be called after set_closure (if provided).
+** The configure_set() function may be used to define a function
+** that is invoked after any flag has been changed.
 **
-** Typical use of the closures are to provide security, alternate
-** storage mechanisms, or responses to changes in the flags.  0 may
-** be supplied for any closure to indicate default behavior.
-**
-** 29-Sep-94  Deathblade  Created.
+** 961209  Deathblade  Trimmed back unneeded functionality.
+** 940929  Deathblade  Created.
 */
 
 #include <flags.h>
 
+// #define WONKY__USE_CLASS
+
+#ifdef WONKY__USE_CLASS
+private class flag_set_info
+{
+    int is_non_persistent;
+    function change_func;
+}
+#endif
+
 /*
-** Defines the sets of flags.  These are keyed with an integer
-** and map to an array of three elements: a flag indicating
-** whether the flags are non-persistent and two (optional)
-** closures that are used to get/set flag values.
+** Defines the sets of flags.  Maps a set key to a flag_set_info.
 */
 private static mapping flag_sets;
 
@@ -60,17 +58,27 @@ private void init_vars()
 //Any 'get' function for the flag set is also used.
 nomask int get_flags(int set_key)
 {
+#ifdef WONKY__USE_CLASS
+    class flag_set_info set_info;
+#else
     mixed * set_info;
+#endif
 
     if ( !flag_sets ) init_vars();
 
     set_info = flag_sets[set_key];
     if ( !set_info )
-	set_info = ({ 0, 0, 0, 0, 0 });
+#ifdef WONKY__USE_CLASS
+	set_info = new(class flag_set_info);
+#else
+	set_info = ({ 0, 0 });
+#endif
 
-    if ( set_info[3] )
-	return evaluate(set_info[3]);
+#ifdef WONKY__USE_CLASS
+    if ( set_info->is_non_persistent )
+#else
     if ( set_info[0] )
+#endif
 	return non_persist_flags[set_key];
     return persist_flags[set_key];
 }
@@ -84,7 +92,11 @@ nomask int get_flags(int set_key)
 private void set_flags(int which, int state)
 {
     int set_key;
+#ifdef WONKY__USE_CLASS
+    class flag_set_info set_info;
+#else
     mixed * set_info;
+#endif
     int value;
 
     if ( !flag_sets ) init_vars();
@@ -92,13 +104,11 @@ private void set_flags(int which, int state)
     set_key = FlagSet(which);
     set_info = flag_sets[set_key];
     if ( !set_info )
-	set_info = flag_sets[set_key] = ({ 0, 0, 0, 0, 0 });
-
-    /*
-    ** Use the secure_closure if provided
-    */
-    if ( set_info[1] && evaluate(set_info[1], which, state) )
-	return;
+#ifdef WONKY__USE_CLASS
+	set_info = flag_sets[set_key] = new(class flag_set_info);
+#else
+	set_info = flag_sets[set_key] = ({ 0, 0 });
+#endif
 
     value = get_flags(set_key);
     if ( state )
@@ -110,42 +120,45 @@ private void set_flags(int which, int state)
     ** Use the set_closure if provided; otherwise, set the flags
     ** in the appropriate in the appropriate mapping.
     */
-    if ( set_info[4] )
-	evaluate(set_info[4], value);
-    else if ( set_info[0] )
+#ifdef WONKY__USE_CLASS
+    if ( set_info->is_non_persistent )
+#else
+    if ( set_info[0] )
+#endif
 	non_persist_flags[set_key] = value;
     else
 	persist_flags[set_key] = value;
 
     /*
-    ** Call the change_closure
+    ** Call the change notification function
     */
-    if ( set_info[2] )
-	evaluate(set_info[2], which, state);
+#ifdef WONKY__USE_CLASS
+    if ( set_info->change_func )
+	evaluate(set_info->change_func, which, state);
+#else
+    if ( set_info[1] )
+	evaluate(set_info[1], which, state);
+#endif
 }
 
 //:FUNCTION configure_set
-//configure_set allows one to specify functions to be called to control
-//access to a set of flags, as well as do things when a flag is accessed,
-//set, or changed.
+//configure_set allows one to specify whether a flag set is persistent,
+//and a function that can be called when a flag changes.
 varargs nomask void configure_set(
   int set_key,
-  int non_persistent,
-  function secure_closure,
-  function change_closure,
-  function get_closure,
-  function set_closure
+  int is_non_persistent,
+  function change_func
 )
 {
     if ( !flag_sets ) init_vars();
 
-    flag_sets[set_key] = ({
-	non_persistent,
-	secure_closure,
-	change_closure,
-	get_closure,
-	set_closure
-	});
+#ifdef WONKY__USE_CLASS
+    flag_sets[set_key] = new(class flag_set_info,
+			     is_non_persistent : is_non_persistent,
+			     change_func : change_func);
+#else
+    flag_sets[set_key] = ({ is_non_persistent, change_func });
+#endif
 }
 
 //:FUNCTION test_flag

@@ -1,0 +1,29 @@
+
+To really do this subject justice would take many, many pages, but for
+now we will settle for a short overview.
+
+Lima does not use add_action() at all; it uses verbs instead.
+Absolutely nothing remotely similar to add_action() exists in the lib.
+It is completely impossible for a room or object to add new commands
+to the game.
+
+The reason for this is consistency.  With the Lima lib, things work
+the same everywhere, making things much easier to understand.  Of
+course, many things may not do anything interesting; however they
+should at least give a reasonable error message.  For example, if
+there is anything in the MUD that can be twisted, it makes more sense
+for EVERYTHING to be able to be twisted, and simply do nothing,
+instead of each object which can be twisted having to completely
+reimplementing the concept.
+
+The add_action() way of doing things leads to lots of code
+duplication, and in many cases poor parsing since the person writing
+the command is more interested in getting it to work for him than
+doing any sort of general parsing; in many cases the person in
+question is an area coder with little mudlib experience anyway.  As
+anyone who has worked extensively with add_action() knows, bringing
+any two such objects into close proximity often results in complete
+disasters, and rarely even succeeds in generating the correct error
+message for most commands.
+
+-Beek

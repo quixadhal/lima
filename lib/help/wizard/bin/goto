@@ -1,4 +1,6 @@
-The goto command is a simple meathod
+$$ see: wizz, trans
+
+The goto command is a simple method
 of teleportation which can move you either
 to a specific room or to whatever room 
 a certain player is in.
@@ -15,4 +17,3 @@ If the room is not in your current directory,
 directory/filename format should be used.
 
 	goto /wiz/azy/workroom.c
-

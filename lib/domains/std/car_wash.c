@@ -4,14 +4,12 @@
 
 inherit ROOM;
 
-/*
 mixed receive_object( object target, string relation )
 {
     if( target->is_living())
 	return "It'd be best to wait until you're out of the car wash before exiting";
     return 1;
 }
-*/
 
 
 void setup()

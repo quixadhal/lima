@@ -1,0 +1,34 @@
+is= living,actor
+
+variables=norecurse
+name= Butthead
+gender= male
+proper_name= Butthead
+in_room_desc= Butthead is here, scoping for chicks.
+long= His body odor prevents you from getting to close.
+
+trigger[*laughs.]:
+  if not $norecurse
+    $norecurse = 1
+    lcall "start"
+  end
+end
+
+start:
+  $beavis = find "beavis" here
+  if not $beavis
+    $beavis = new "/domains/lpscript/beavis.scr"
+    call $beavis "move" here
+  end
+  delay 2
+  !say Beavis knows how to play an instrument.
+  !say he plays the skin flute.
+  !huhuh
+  call $beavis "insulted"
+end
+
+insulted:
+  delay 2
+  !kick beavis in the nads
+  $norecurse = 0
+end

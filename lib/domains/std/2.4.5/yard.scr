@@ -1,0 +1,51 @@
+is=room
+
+exits=
+  south: vill_road1.scr
+  east: pub2.scr
+end
+brief=Small yard
+long=A small yard surrounded by houses.
+light=1
+
+#FIXME support this
+objects=
+  knife=
+    is=weapon,valuable
+    primary_id=knife
+    weapon_class=5
+    value=8
+    weight=2
+  end
+  beggar=
+    is=monster
+    proper_name=beggar
+    in_room_desc=A beggar
+    id=beggar
+    long=A really filthy looking poor beggar.
+    max_hp=30
+    trigger[* gives *]:
+      !say Thank you.
+      nexttrigger
+    end
+    trigger[* gives you * coins.]:
+      if (lcall "query_money") > 12
+        !east
+        !buy beer
+        !drink beer
+        !west
+      end
+    end
+  end
+end
+
+periodic[1 to 99]:
+#FIXME: check if under attack
+  oneof
+    !say Please, give money to a poor beggar!
+    !say Why can't I find any money ?
+    !say Beggar says: two coins please !
+  end
+end
+
+#FIXME 20% "!say Why do you do this to me ?\n" while attacked

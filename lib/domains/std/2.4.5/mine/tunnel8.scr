@@ -1,0 +1,8 @@
+is=room
+light=0
+exits=
+  up:tunnel3.scr
+  down:tunnel9.scr
+end
+brief=Shaft
+long=In a shaft going straight down.

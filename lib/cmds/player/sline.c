@@ -8,25 +8,28 @@ inherit CMD;
  
 private void main( string arg )
 {
-    if( !arg )
+    if ( !arg )
     {
-        if( this_body()->query_shell_ob()->get_variable( "status" ))
+        if ( get_user_variable("status") )
             arg = "off";
-        else arg = "on";
+        else
+	    arg = "on";
     }
 
-    switch( arg )
+    switch ( arg )
     {
-        case "on":
-            this_body()->query_shell_ob()->set_variable( "status", 1 );
-            this_body()->update_status_line();
-            break;
-        case "off":
-            this_body()->query_shell_ob()->unset_variable( "status" );
-            this_body()->remove_status_line();
-            break;
-        default:
-            out( "Use \"sline on\", \"sline off\", or just \"sline\" to toggle.\n");
+    case "on":
+	this_user()->query_shell_ob()->set_variable("status", 1);
+	this_body()->update_status_line();
+	break;
+
+    case "off":
+	this_user()->query_shell_ob()->unset_variable("status");
+	this_body()->remove_status_line();
+	break;
+
+    default:
+	out("Use \"sline on\", \"sline off\", or just \"sline\" to toggle.\n");
     }
 }
 

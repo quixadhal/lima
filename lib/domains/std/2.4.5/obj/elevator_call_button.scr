@@ -1,0 +1,15 @@
+is=object
+variables=where
+flag=attached
+primary_adj=elevator
+primary_id=button
+
+setup[string w]:
+  lpc
+    _where = w
+
+press:
+  call "/domains/std/2.4.5/elevator.scr" "call_elevator" $where
+  call container "set_room_state" "lamp"
+  ok
+end

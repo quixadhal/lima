@@ -102,8 +102,10 @@ private nomask void do_more(mixed arg) {
     int x;
     string tmp;
 
-    if (arg == -1)
-      destruct(this_object());
+    if (arg == -1) {
+	destruct(this_object());
+	return;
+    }
     if (arg)
 	switch(arg[0]) {
 	case '?':

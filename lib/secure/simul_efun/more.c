@@ -4,19 +4,17 @@
 
 object this_body();
 varargs void tell(object, string, int);
+mixed get_user_variable(string varname);
 
-private nomask int default_num() {
-    object ob;
-    int t;
+private nomask int default_num()
+{
+    int t = get_user_variable("MORE");
     int num = 20;
 
-    if (this_body() && (ob = this_body()->query_shell_ob())
-	&& (t = ob->get_variable("MORE"))) {
-	if (stringp(t)) 
-	    t = to_int(t);
-	if (t)
-	    num = t;
-    }
+    if ( stringp(t) )
+	t = to_int(t);
+    if ( t )
+	num = t;
     return num;
 }
 

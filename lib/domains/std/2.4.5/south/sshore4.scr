@@ -1,0 +1,16 @@
+is=room
+light=1
+brief=The shore of Crescent Lake
+long=
+  You are standing on the shore of Crescent Lake, a beautiful and\n
+  clear lake. Out in the centre of the lake stands the Isle\n
+  of the Magi.\n
+  A trail leads into the forest to the east.\n
+  The shore of Crescent Lake continues north and south\n
+end
+
+exits=
+  north:sshore3.scr
+  south:sshore5.scr
+  east:sforst12.scr
+end

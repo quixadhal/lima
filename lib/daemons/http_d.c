@@ -16,11 +16,18 @@
  *      * Support for multiple arguments to cgis
  *      * Support for large (larger than max buffer size) files
  *      * Better Error handling (only 404 so far ;) )
+ *
+ * Jan 20, 1996 Myth@Icon of Sin
+ *  o Added a write callback function for large files.
+ *
  */
 
 #include <socket.h>
-#include <net/http_d.h>
+#include <http_d.h>
+#include <log.h>
+#include <ports.h>
 
+private static mapping sending=([]);
 private static object http_sock;
 
 // figures out what is being requested, and how to get there
@@ -49,8 +56,41 @@ private nomask string convert_to_actual_path(string path) {
     return file;
 }
 
+private buffer write_callback(object socket) {
+ string file;
+ int i1,i2,i3;
+
+ if (!sending[socket]) {
+  socket->remove();
+  return allocate_buffer(0);
+ }
+
+ file=sending[socket][0];
+ i1=sending[socket][1];
+
+ i2=HTTP_BLOCK_SIZE;
+
+ i3=file_size(file);
+
+ // In case the file gets deleted in the middle of a transfer.
+ if (i3<0) {
+  socket->remove();
+  return allocate_buffer(0);
+ }
+
+ if (i1+i2>file_size(file)) {
+  i2=file_size(file)-i1;
+  map_delete(sending,socket);
+ } else {
+  sending[socket]=({file,i1+i2});
+ }
+
+ return read_buffer(file,i1,i2);
+}
+
 private nomask void http_read(object socket, buffer data) {
     string ver, file, extention, args, request;
+    int i1;
 
     if (!data) return;
     // initial connect
@@ -63,6 +103,7 @@ private nomask void http_read(object socket, buffer data) {
         return;
     sscanf(file, "%s?=%s", file, args);
     file = convert_to_actual_path(file);
+
     if ( file_size(file) < 1 ) {
         socket->send("<title>404 Not found</title><h1>404 Not found<h1>"+
                      "<p>The requested URL was not found\n");
@@ -86,10 +127,12 @@ private nomask void http_read(object socket, buffer data) {
 	    socket->send(result+"\n");
        	    socket->remove();
 	    break;
-    	default:
-            socket->send(read_buffer(file+"."+extention));
-	    socket->remove();
-	    break;
+
+        default:
+            sending[socket]=({ file+"."+extention,0});
+            socket->set_write_callback( (:write_callback:) );
+            socket->send(write_callback(socket));
+            break;
     }
 }
 
@@ -103,7 +146,7 @@ nomask void remove() {
 
 nomask void create() {
     string ret;
-    ret = catch(http_sock = new(SOCKET, SKT_STYLE_LISTEN_B, HTTP_PORT, 
+    ret = catch(http_sock = new(SOCKET, SKT_STYLE_LISTEN_B, PORT_HTTP, 
                                 (: http_read :), (: http_close :)));
     if ( ret ) {
         if ( http_sock ) {

@@ -22,7 +22,7 @@
 /* ! will give you problems since it's used as input escape. */
 #define HISTORY_CHAR		'%'
 
-#define EVERYTHING_SAVES		/* Note: if you define this, you have to
+#define EVERYTHING_SAVES	/* Note: if you define this, you have to
 				   modify the lib to save the correct vars */
 
 #define OBVIOUS_EXITS		/* show obvious exits when looking (top) */
@@ -31,6 +31,8 @@
 #define DEFAULT_LIGHT_LEVEL	1	/* a room's default light */
 
 #define EVERYONE_HAS_A_PLAN
+#undef PLAYER_INFO_IS_PUBLIC	/* are names email addrs avail to I3 and
+				   players via finger? */
 
 #define PLAYERS_START_WHERE_THEY_QUIT
 
@@ -56,6 +58,19 @@
 #ifndef USE_SIZE  // Mass and Size do the same thing, so you can only use 1
 # define USE_MASS
 #endif
+
+/*
+** This is the "maximum" skill level that players are compared against.
+** Their evaluation percentage will be computed as a total of all their
+** skill values relative to this value.  This value should be somewhere
+** between 0 and /std/body/skills.c::MAX_SKILL_VALUE * <number of skills>.
+** Typically, it wouldn't change but a mud that is just starting out might
+** adjust this (causing a reevaluation of everybody) if a number of players
+** are reaching or exceeding this value (which is quite legal).  This value
+** is simply an aid for players to measure progress against (setting it to
+** the maximum would mean that players wouldn't really ever budge anywhere).
+*/
+#define EVALUATION_SKILL_LEVEL	50000
 
 #undef NO_NEW_PLAYERS			/* disallow character creation */
 #define LOGIN_NAME_WAIT		300	/* seconds to wait for a name */
@@ -96,7 +111,6 @@
 
 // Whether anon ftp users can *put* files.  Only works if ALLOW_ANON_FTP is
 // defined.
-
 #undef ANON_CAN_PUT
 
 

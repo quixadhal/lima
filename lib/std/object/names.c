@@ -11,6 +11,8 @@ private string primary_id, primary_adj;
 private static mixed internal_short;
 /* unique objects are refered to as 'the' instead of 'a' */
 private static int unique;
+/* ... As are plural objects (eg: stairs) */
+private static int plural;
 /*
  * proper_name: Proper_name should only be set for objects who should not
  *     be refered to as "a xxx" or "the xxx"
@@ -60,6 +62,21 @@ int query_unique()
 {
     return unique;
 }
+
+//:FUNCTION
+//Plural objects are referred to as "the", not "a"
+void set_plural( int x )
+{
+    plural = x;
+}
+
+//:FUNCTION
+//Return the value of plural
+int query_plural()
+{
+    return plural;
+}
+
 
 string calculate_extra() {
     //:HOOK extra_short
@@ -136,7 +153,7 @@ string a_short() {
     if(!is_visible())
 	return invis_name();
 
-    if (unique) return the_short();
+    if (plural || unique) return the_short();
     if (!proper_name) return add_article(short());
     return evaluate(proper_name);
 }

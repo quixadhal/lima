@@ -1,0 +1,27 @@
+is=room
+brief=A maze
+long=
+  In a maze.\n
+  There are four obvious exits: north, south, west and east.
+end
+exits=
+  north:maze1.scr
+  east:maze1.scr
+  west:maze1.scr
+  south:maze1.scr
+end
+setup:
+#one exit (at random) leads to maze 3; this means they will bounce
+#back and forth between maze1 and maze2, with equal probabilities of
+#going to the well or maze 3.
+  oneof
+    lpc
+      add_exit("north", "maze3");
+    lpc
+      add_exit("south", "maze3");
+    lpc
+      add_exit("east", "maze3");
+    lpc
+      add_exit("west", "maze3");
+  end
+end

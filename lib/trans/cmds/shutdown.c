@@ -5,39 +5,45 @@
 **                         shutdown daemon.
 **
 **  960614 - Alexus adds timed shutdown daemon support
+**  961215, Deathblade: removed time stamping (let LOG_D do it)
 */
+
 #include <log.h>
+
+#define THE_BIG_GUY	"Gamedriver"
+#define tell_all(s)	tell(users(), (s))
 
 inherit CMD;
 
-static void do_shutdown(string s)
+private void do_shutdown(string s)
 {
-    if (!check_privilege(1)) {
+    if ( !check_privilege(1) )
+    {
 	LOG_D->log(LOG_SHUTDOWN,
-		   sprintf("do_shutdown() failed due to insufficient privilege (possibly due to being called directly) at %s\n", ctime(time())));
+		   "do_shutdown() failed: insufficient privilege\n");
 	return;
     }
     
-    LOG_D->log(LOG_SHUTDOWN,
-      sprintf("SHUTDOWN executed at %s [%s]\n",
-        ctime(time()), s));
+    LOG_D->log(LOG_SHUTDOWN, sprintf("SHUTDOWN performed [%s]\n", s));
 
-    foreach (object ob in users())
+    foreach ( object ob in users() )
 	catch(ob->quit());
  
     unguarded(1, (: shutdown :));
 }
 
-private void count_down(int num, string s) {
-    if(!num)
+private void count_down(int num, string s)
+{
+    if ( !num )
     {
-	tell(users(), "Gamedriver tells you: Game shutting down immediately!\n");
+	tell_all(THE_BIG_GUY " tells you: Game shutting down immediately!\n");
 	do_shutdown(s);
 	return;
     }
-    tell(users(), "Gamedriver tells you: Shutdown in " + M_GRAMMAR->number_of(num, "minute") + ".\n");
+
+    tell_all(THE_BIG_GUY " tells you: Shutdown in " + M_GRAMMAR->number_of(num, "minute") + ".\n");
     num--;
-    call_out("count_down", 60, num, s);
+    call_out((: count_down, num, s :), 60);
 }
 
 private void main(mixed *args, mapping flags)
@@ -47,7 +53,7 @@ private void main(mixed *args, mapping flags)
 
     if ( !check_privilege(1) )
     {
-	outf("You must think your an Administrator, don't you?\n");
+	out("You must think you're an Administrator, don't you?\n");
 	return;
     }
 
@@ -56,13 +62,13 @@ private void main(mixed *args, mapping flags)
     // handle cancelation checking first!
     if(flags["c"]) {
 	if (remove_call_out("do_shutdown") == -1) {
-	    write("There is no shutdown in progress.\n");
+	    out("There is no shutdown in progress.\n");
 	    return;
 	}
 	LOG_D->log(LOG_SHUTDOWN,
-		   sprintf( "Shutdown cancelled %s by %s [%s]\n",
-			    ctime(time()), this_body()->query_name(), s));
-	tell(users(), "Gamedriver tells you: Shutdown has been cancelled.\n");
+		   sprintf("Shutdown cancelled by %s [%s]\n",
+			    this_body()->query_name(), s));
+	tell_all(THE_BIG_GUY " tells you: Shutdown has been cancelled.\n");
 	return;
     }
 
@@ -70,17 +76,18 @@ private void main(mixed *args, mapping flags)
     // just start the shutdown daemon.
     if(flags["t"]) {
         LOG_D->log(LOG_SHUTDOWN,
-		   sprintf("Shutdown started %s by %s [%s]\n",
-			   ctime(time()), this_body()->query_name(), s));
+		   sprintf("Shutdown started by %s [%s]\n",
+			   this_body()->query_name(), s));
 	num = to_int(flags["t"]);
 	count_down(num, s);
-	write("Shutdown started.\n");
+	out("Shutdown started.\n");
 	return;
     }
+
     LOG_D->log(LOG_SHUTDOWN,
 	       sprintf("Immediate shutdown requested by %s\n",
 		       this_user()->query_userid()));
-    tell(users(), "Gamedriver tells you: Game shutting down immediately!\n");
+    tell_all(THE_BIG_GUY " tells you: Game shutting down immediately!\n");
     do_shutdown(s);
 }
 

@@ -1,0 +1,12 @@
+is=room
+
+exits=
+  west:plane11.scr
+  south:plane8.scr
+end
+brief=A large open plain
+long=
+  A large open plain. There is a mountain to the north,\n
+  but it is to steep to climb.
+end
+light=1

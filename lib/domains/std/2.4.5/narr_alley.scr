@@ -1,0 +1,16 @@
+is= room
+
+exits=
+  north:vill_road1.scr
+  east:bank.scr
+  south:post.scr
+  down:well.scr
+end
+item[well]=
+  You look down the well, but see only darkness.\n
+  There are some iron handles on the inside.
+end
+
+brief=Narrow alley
+long=A narrow alley. There is a well in the middle.
+light=1

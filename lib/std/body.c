@@ -26,11 +26,6 @@
 inherit MONSTER;
 inherit M_ACCESS;
 inherit M_SMARTMOVE;
-inherit M_INPUT;
-
-#ifdef USE_STATS
-inherit M_BODY_STATS;
-#endif
 
 #ifndef EVERYTHING_SAVES
 private inherit M_SAVE; // don't want people calling load_from_string()
@@ -51,8 +46,6 @@ inherit __DIR__ "body/naming";
 #ifdef USE_STATUS_LINE
 inherit __DIR__ "body/status_line";
 #endif
-
-
 #ifdef USE_SKILLS
 inherit __DIR__ "body/skills";
 #endif
@@ -68,22 +61,25 @@ inherit __DIR__ "body/wiz_position";
 #ifdef USE_GUILDS
 inherit __DIR__ "body/guilds";
 #endif
+#ifdef USE_STATS
+inherit M_BODY_STATS;
+#endif
 
 // Global variables --
 private string reply;
 private string array channel_list = ({ });
 private string plan;
 private static object link;
-private static int catching_scrollback;
 private mixed saved_items;
 
 // interfaces for other objects to manipulate our global variables
 
 //:FUNCTION query_link
 //Return our link object
-nomask object query_link(){  return link; }
-
-
+nomask object query_link()
+{
+    return link;
+}
 
 
 #ifdef EVERYONE_HAS_A_PLAN
@@ -162,30 +158,6 @@ write( "\n" );
     }
 }
 
-private nomask void finish_enter_game()
-{
-
-    CHANNEL_D->deliver_emote("announce", query_name(),
-      sprintf("enters %s.", mud_name()));
-
-    /* move the body.  make sure this comes before the simple_action */
-    if ( !move_to_start() )
-    {
-	write("Uh-oh, you have no environment.\n");
-	return;
-    }
-
-    /* we don't want other people to get the extra newlines */
-    write("\n");
-    if(is_visible())
-	simple_action("$N $venter "+mud_name()+".");
-    write("\n");
-
-    CHANNEL_D->register_channels(channel_list);
-
-    do_game_command("look");
-}
-
 nomask void su_enter_game(object where)
 {
     init_cmd_hook();
@@ -202,52 +174,68 @@ nomask void su_enter_game(object where)
     move(where);
 }
 
-void enter_game(int is_new)
+void enter_game(int state)
 {
-    init_cmd_hook();
-    if ( is_new && wizardp(link) )
-    {
-	write("\n"
-	  "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
-	  "Doing: wiz /on\n"
-	  "Doing: chan news /on   (you'll see when new news is posted.)\n"
-	  "Doing: gossip /on\n"
-	  "Doing: newbie /on\n"
-	  "Doing: announce /on\n"
-	  "\n");
+    switch (state) {
+    case 1:
+	/* new user */
+	if (wizardp(link)) {
+	    write("\n"
+		  "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
+		  "Doing: wiz /on\n"
+		  "Doing: chan news /on   (you'll see when new news is posted.)\n"
+		  "Doing: gossip /on\n"
+		  "Doing: newbie /on\n"
+		  "Doing: announce /on\n"
+		  "\n");
+	    
+	    /* these will be registered later */
+	    channel_list = ({ "wiz", "news", "gossip",
+			      "newbie", "announce" });
+	    
+	    /* So the hapless new wizard doesn't get spammed. */
+	    set_ilog_time(time());
+	} else {
+	    write("\n"
+		  "Tuning in the newbie channel for you.  (newbie /on)\n"
+		  "Tuning in the gossip channel for you.  (gossip /on)\n"
+		  "\n");
 
-	/* these will be registered later */
-	channel_list = ({ "wiz", "news", "gossip",
-	  "newbie", "announce" });
+	    /* these will be registered later */
+	    channel_list = ({ "gossip", "newbie" });
+	}
+	/* FALLTHROUGH */   
+    case 0:
+	/* existing user */
+	init_cmd_hook();
+	CHANNEL_D->deliver_emote("announce", query_name(),
+				 sprintf("enters %s.", mud_name()));
+	/* move the body.  make sure this comes before the simple_action */
+	if ( !move_to_start() ) {
+	    write("Uh-oh, you have no environment.\n");
+	} else {
+	    /* we don't want other people to get the extra newlines */
+	    write("\n");
+	    if(is_visible())
+		simple_action("$N $venter "+mud_name()+".");
+	    write("\n");
+	}
+	CHANNEL_D->register_channels(channel_list);
 
-	/* So the hapless new wizard doesn't get spammed. */
-	set_ilog_time(time());
-    }
-    else if ( is_new )
-    {
-	write("\n"
-	  "Tuning in the newbie channel for you.  (newbie /on)\n"
-	  "Tuning in the gossip channel for you.  (gossip /on)\n"
-	  "\n");
-
-	/* these will be registered later */
-	channel_list = ({ "gossip", "newbie" });
-    }
-
-    if ( wizardp(link) )
-    {
-	DID_D->dump_did_info(query_ilog_time(),
-	  ({ "",
-	    "Changes since you last logged in",
-	    "********************************",
-	    "" }),
-	  0,
-	  (: finish_enter_game :));
-	set_ilog_time(time());
-    }
-    else
-    {
-	finish_enter_game();
+	if ( wizardp(link) ) {
+	    DID_D->dump_did_info(query_ilog_time(),
+				 ({ "",
+					"Changes since you last logged in",
+					"********************************",
+					"" }),
+				 0,
+				 (: enter_game, 2 :));
+	    set_ilog_time(time());
+	    return;
+	}
+	/* FALLTHROUGH */
+    case 2:
+	do_game_command("look");
     }
 }
 
@@ -343,14 +331,11 @@ void net_dead()
 {
     //### add security here?
 
-    if(is_visible())
+    if ( is_visible() )
 	simple_action("$N $vhave gone link-dead.");
 
     CHANNEL_D->deliver_emote("announce", query_name(),
-      sprintf("has gone link-dead.", mud_name()));
-
-    if ( link && link->query_shell_ob()->get_variable("save_scrollback") )
-	catching_scrollback = 1;
+			     sprintf("has gone link-dead.", mud_name()));
 }
 
 //:FUNCTION reconnect
@@ -364,15 +349,11 @@ void reconnect(object new_link)
 	simple_action("$N $vhave reconnected.");
 
     CHANNEL_D->deliver_emote("announce", query_name(),
-      sprintf("has reconnected.", mud_name()));
-
-    catching_scrollback = 0;
-    if ( link->query_shell_ob() )
-	link->query_shell_ob()->end_scrollback();
+			     sprintf("has reconnected.", mud_name()));
 }
 
 //:FUNCTION die
-//This function si called when we die :-)
+//This function is called when we die :-)
 void die()
 {
     if ( wizardp(link) )
@@ -420,14 +401,16 @@ int id(string arg)
     return ::id(arg);
 }
 
-int stat_me()
+string stat_me()
 {
-    write(short()+"\n");
-    write("Userid: " + query_userid() + "\n");
-    ::stat_me();
+    string result = short() + "\n" +
+	"Userid: " + query_userid() + "\n" +
+	::stat_me();
+
     if ( link )
-	link->stat_me();
-    return 1;
+	result += link->stat_me();
+
+    return result;
 }
 
 private void create(string userid)
@@ -448,42 +431,17 @@ private void create(string userid)
 #endif
 
     /*
-    ** Both sets of flags can only be set by this_object() -- this
-    ** restriction is imposed by using the secure_closure feature
-    ** of the flag handling code.  The second set (PLAYER_NP_FLAGS)
-    ** is non-persistent (not saved).
+    ** Make some of the flags non-persistent (they won't be saved).
     */
-    /* Beek - note: this first check uses this_body() and hence is
-	      completely bogus. */
-    configure_set(PLAYER_FLAGS, 0,
-      (: this_object() != this_body() :) );
-    configure_set(PLAYER_NP_FLAGS, 1,
-      (: this_object() != this_body() ||
-	($2 && $1 == 97 && previous_object() != find_object("/bin/player/_inactive")) :) 
-    );
+    configure_set(PLAYER_NP_FLAGS, 1);
 
     set_long( (: our_description :) );
     naming_create(userid);
 
     unguarded(1, (: restore_object, USER_PATH(userid), 1 :));
 
-
     // up to the player
     set_attack_speed(0);
-
-    //### transition stuff for upgrading old channel data
-    if ( (idx = member_array("plyr_news", channel_list)) != -1 )
-	channel_list[idx] = "news";
-    if ( (idx = member_array("plyr_gossip", channel_list)) != -1 )
-	channel_list[idx] = "gossip";
-    if ( (idx = member_array("plyr_newbie", channel_list)) != -1 )
-	channel_list[idx] = "newbie";
-    if ( (idx = member_array("wiz_wiz", channel_list)) != -1 )
-	channel_list[idx] = "wiz";
-    if ( (idx = member_array("wiz_errors", channel_list)) != -1 )
-	channel_list[idx] = "errors";
-    if ( (idx = member_array("wiz_announce", channel_list)) != -1 )
-	channel_list[idx] = "announce";
 }
 
 
@@ -530,20 +488,6 @@ nomask object query_body()
     return this_object();
 }
 
-nomask object query_shell_ob()
-{
-    return link && link->query_shell_ob();
-}
-
-nomask array query_failures()
-{
-    return link->query_failures();
-}
-
-nomask void clear_failures()
-{
-    return link->clear_failures();
-}
 
 /* verb interaction */
 mixed indirect_give_obj_to_liv(object ob, object liv) {
@@ -574,10 +518,10 @@ int ob_state()
 
 void force_look()
 {
-    environment(this_object())->do_looking();
+    environment(this_object())->do_looking(1,this_object());
 }
 
-// Called when our inventory destructs.  If we don't move, we get dested too.
+// Called when our environment destructs.  If we don't move, we get dested too.
 void move_or_destruct(object suggested_dest) {
     mixed err;
     object dested_env = environment();
@@ -618,11 +562,25 @@ int to_hit_base() {
     return 50 - query_agi();
 }
 
+int damage_bonus() {
+    return fuzzy_divide(query_str(), 10);
+}
+
 void refresh_stats() {
     m_bodystats::refresh_stats();
 }
 
 #endif /* USE_STATS */
+
+#ifdef USE_SKILLS
+
+int hit_skill()
+{
+//### change to something based on skill...
+    return fuzzy_divide(query_agi(), 2);
+}
+
+#endif /* USE_SKILLS */
 
 /*
 ** These are overrides from our ancestor (MONSTER)
@@ -639,11 +597,11 @@ string in_room_desc() { return base_in_room_desc() + query_idle_string(); }
 
 class combat_result array negotiate_result(class combat_result array result)
 {
-    result = ::negotiate_result(result);
+    result = (class combat_result array)::negotiate_result(result);
 
     /*
     ** See if we have disarmed the opponent by using our 'combat/disarm'
-    ** skill.  Apply appropriate training, too.
+    ** skill.  Note that testing the skill will also train it.
     */
     //### where's a better place to put this?
     //### ack. we should be caching our aggregate_skill()
@@ -655,13 +613,6 @@ class combat_result array negotiate_result(class combat_result array result)
 	result = ({ new(class combat_result,
 	    special : RES_DISARM,
 	    message : "!disarm") }) + result;
-
-	learn_skill("combat/disarm", 10);
-    }
-    else
-    {
-	//### learning too fast? make this a 1 in N chance?
-	learn_skill("combat/disarm", 1);
     }
 
     return result;
@@ -671,9 +622,9 @@ class combat_result array negotiate_result(class combat_result array result)
 
 int allow(string what)
 {
-  if(this_body() == this_object())
-  {
-    return 1;
-  }
-  return 0;
+    if ( this_body() == this_object() )
+    {
+	return 1;
+    }
+    return 0;
 }

@@ -1,3 +1,5 @@
+$$ see: feelings, random, semote
+
 USAGE:	adverbs [pattern]
 
 Without an argument, shows all adverbs that you can use in soul commands.
@@ -17,7 +19,3 @@ For example:
 will translate to: 'smile flatly'.
 
 But: 'smile fl*' will not, because 'flirtingly' also starts with fl.
-
-See also:  feelings
-
-

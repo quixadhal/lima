@@ -1,0 +1,16 @@
+is=room
+light=1
+exits=
+  east:vill_green.scr
+  west:wild1.scr
+end
+brief=Humpbacked bridge
+long=An old humpbacked bridge
+objects=
+  stick=
+    is=torch
+    primary_id=stick
+    fuel=500
+    weight=1
+  end
+end

@@ -1,0 +1,13 @@
+is=room
+
+light=1
+brief=Village green
+long=
+  You are at an open green place south of the village church.\n
+  You can see a road further to the east.\n
+end
+exits=
+  north: church.scr
+  west: hump.scr
+  east: vill_track.scr
+end

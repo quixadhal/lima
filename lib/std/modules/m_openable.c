@@ -13,6 +13,7 @@
 #include <hooks.h>
 
 mixed call_hooks(string, int);
+void add_save(array);
 
 /*
 ** From OBJ::description
@@ -41,7 +42,7 @@ void set_closed(int x) {
   
   closed = x; 
   hook_state("extra_short", "open", !closed);
-hook_state( "extra_short", "closed", closed);
+  hook_state( "extra_short", "closed", closed);
 
   remove_adj("closed", "open");
   if (closed)
@@ -145,12 +146,19 @@ int is_open()
 
 /* Verb interaction */
 mixed direct_open_obj(object ob) {
+    object where = environment(this_object());
+
+  if(where != this_body() && where != environment(this_body()) )
+      return "#You do not have that.\n";
     if (!query_closed())
       return "It is already open.\n";
     return 1;
 }
 
 mixed direct_close_obj(object ob) {
+   object where = environment(this_object());
+   if (where != this_body() && where!= environment(this_body()) )
+    return "#You do not have that.\n";
     if (query_closed())
         return "It is already closed.\n";
     return 1;
@@ -166,9 +174,15 @@ string extra_long_stuff()
 // You should do this, or call set_closed() when you create an openable,
 // so that the proper adjective gets initialized.
 void internal_setup() {
-
+    add_save(({ "closed" }));
     set_closed(1);
     
     add_hook("extra_long", (: extra_long_stuff :));
     add_hook("prevent_look_in", (: closed ? "It is closed.\n" : (mixed)1 :));
+}
+
+mapping lpscript_attributes() {
+    return ([ 
+	"closed" : ({ LPSCRIPT_INT, "setup", "set_closed" }),
+    ]);
 }

@@ -1,0 +1,9 @@
+is=room
+
+exits=up:vill_road2.scr
+brief=Central point
+long=
+  This is the central point. A lot of traffic seems to have passed through\n
+  here. If you just wait long enough, some transport might pick you up.
+end
+light=1

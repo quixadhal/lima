@@ -1,0 +1,55 @@
+is=room
+light=1
+brief=Village church
+objects=
+  clock=
+    is=object
+    flag=attached
+    primary_id=clock
+    variables=last_reset
+    setup:
+      lpc
+        _last_reset = time();
+    reset:
+      lpc
+        _last_reset = time();
+    long:
+      lpc
+        return "The clock shows " + convert_time(uptime()) + "\n" + "Time since reset is " + convert_time(time() - _last_reset) + "\n";
+  end
+  obj/elevator_door.scr("church")
+  obj/elevator_call_button.scr("church")
+end
+item[pit]=
+  In the middle of the church is a deep pit.\n
+  It was used for sacrifice in the old times, but nowadays\n
+  it is only left for tourists to look at.\n
+end
+long=
+  You are in the local village church.\nThere is a huge pit in the center,\n
+  and a door in the west wall. There is a button beside the door.\n
+  This church has the service of reviving ghosts. Dead people come\n
+  to the church and pray.\n
+  There is a clock on the wall.\n
+  There is an exit to south.\n
+end
+state[lamp_on]=\nThe lamp beside the elevator is lit.\n
+exits=
+  west:elevator.scr
+  south:vill_green.scr
+end
+objects=
+  obj/elevator_door.scr("church")
+  obj/elevator_call_button.scr("church")
+end
+can_go_west:
+  check
+    not (call "/domains/std/2.4.5/elevator.scr" "query_open_at" "church") : "The door is closed.\n"
+
+#FIXME: add pray
+---
+void arrived() {
+    if (query_state("lamp"))
+        tell_from_inside(this_object(), "The lamp on the button beside the elevator goes out.\n");
+    clear_room_state("lamp");
+}

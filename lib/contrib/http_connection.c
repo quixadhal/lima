@@ -6,7 +6,7 @@
  * (1) add the following line to the driver config file:
  *     external_port_2 : binary 2080
  * 
- * (2) move this file to /obj/http_connection.c
+ * (2) move this file to /obj/mudlib/http_connection.c
  *
  * (3) disable /daemons/http_d.c
  *
@@ -15,10 +15,12 @@
  *         object ob;
  *         string ret;
  *
- *         if (port == HTTP_PORT)
- *             return new("/obj/http_connection");
+ *         if (port == PORT_HTTP)
+ *             return new("/obj/mudlib/http_connection");
  *
  *         // rest of connect()
+ *
+ * (5) add #include <ports.h> to the top of master.c
  *
  */ 
 
@@ -42,29 +44,8 @@
  *      * Better Error handling (only 404 so far ;) )
  */
 
-/*
- * Instructions for use:
- *
- * (1) add the following line to the driver config file:
- *     external_port_2 : binary 2080
- * 
- * (2) move this file to /obj/http_connection.c
- *
- * (3) disable /daemons/http_d.c
- *
- * (2) add the following to the top of connect() in master.c:
- *     object connect(int port) {
- *         object ob;
- *         string ret;
- *
- *         if (port == HTTP_PORT)
- *             return new("/obj/http_connection");
- *
- *         // rest of connect()
- *
- */ 
-
-#include <net/http_d.h>
+#include <ports.h>
+#include <http_d.h>
 
 // figures out what is being requested, and how to get there
 private nomask string convert_to_actual_path(string path) {

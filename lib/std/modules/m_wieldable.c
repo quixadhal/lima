@@ -10,13 +10,12 @@
 ** 12-Dec-94 Converted to modules approach.  Deathblade.
 ** 22-Oct-95 Beek separated out the combat stuff into M_DAMAGE_SOURCE, since
 **           we don't want living objects to have the verb interaction
+** 961216, Deathblade: added related skill for the weapon.
 */
 
 inherit M_DAMAGE_SOURCE;
 
 void hook_state(string, mixed, int);
-
-void mark_wielded_by(object);
 
 static function move_hook = (: unwield_me :);
 
@@ -29,6 +28,11 @@ int valid_wield()
 string query_wield_message()
 {
     return "$N $vwield a $o.\n";
+}
+
+string query_unwield_message()
+{
+   return "$N $vunwield a $o.\n";
 }
 
 void mark_wielded_by(object which)
@@ -44,9 +48,25 @@ mixed ob_state()
     return query_wielded_by();
 }
 
+void do_remove()
+{
+   unwield_me();
+}
 int direct_wield_obj()
 {
     object who = owner(this_object());
-    if (who && who != this_body()) return 0;
+
+    if (who && who != this_body())
+	return 0;
+
     return 1;
+}
+
+int direct_remove_obj()
+{
+    object who = owner(this_object());
+
+    if(who && who != this_body())
+      return 0;
+  return 1;
 }

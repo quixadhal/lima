@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 object this_body();
+mixed get_user_variable(string varname);
 
 //:FUNCTION cannonical_form
 //Change object path names to standard form, stripping the trailing .c, if
@@ -78,6 +79,27 @@ walk_dir( string path, function func, mixed arg )
 }
 
 
+//:FUNCTION canonical_path
+//Strip out all "." and ".." forms from a path.  Remove double slashes.
+//Ensure the path has a leading slash.
+string canonical_path(string path)
+{
+    string *parts = explode(path, "/") - ({ "", "." });
+    int idx;
+
+    while ( (idx = member_array("..", parts)) != -1 )
+    {
+	if ( idx > 1 )
+	    parts = parts[0..idx-2] + parts[idx+1..];
+	else if ( idx == 0 )
+	    parts = parts[1..];
+	else
+	    parts = parts[2..];
+    }
+
+    return "/" + implode(parts, "/");
+}
+
 
 /*
  * string evaluate_path(string path);
@@ -96,16 +118,17 @@ private string array
 wiz_dir_parts = explode(WIZ_DIR, "/") - ({ "", "." });
 
 varargs
-string evaluate_path(string path, string prepend) {
+string evaluate_path(string path, string prepend)
+{
     string *tree;
     int idx;
 
     if (!path || path[0] != '/') {
 	if (this_body())
-	    path = this_body()->query_shell_ob()->get_variable("pwd")
+	    path = get_user_variable("pwd")
 		+ "/" + path;
-     else if(prepend) 
-	path = prepend + "/" + path;
+	else if(prepend) 
+	    path = prepend + "/" + path;
 	else {
 	    string lname = file_name(previous_object());
 	    int tmp = strsrch(lname, "/", -1);
@@ -140,12 +163,6 @@ string
 join_path( string dir, string file ){
     if(dir[<1] != '/') return dir+"/"+file;
     return dir+file;
-}
-
-int
-is_source( string path )
-{
-    return is_file(path) && strlen(path)>1 && path[<2..] == ".c";
 }
 
 mapping

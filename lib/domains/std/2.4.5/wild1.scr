@@ -1,0 +1,12 @@
+is=room
+
+brief=Wilderness
+long=
+  You are in the wilderness outside the village.\n
+  There is a big forest to the west.
+end
+light=1
+exits=
+  east: hump.scr
+  west: forest1.scr
+end

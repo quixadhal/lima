@@ -16,9 +16,6 @@ mapping		info;
 #define size(x) (info[x] ? info[x][0] : 0)
 #define is_dir(x) (size(x) == -2)
 
-// for those who like their screens looking like Christmas trees
-#undef XMAS
-
 // We don't do this for everyone to save LOTS of processing.
 private string
 make_ansi_string(string file, string path)
@@ -26,11 +23,11 @@ make_ansi_string(string file, string path)
   string fname = path + file;
 
   if(is_dir(fname))
-    return ansi("%^BOLD%^%^MAGENTA%^" + file + "%^RESET%^%^WHITE%^");
+    return "%^LS_DIR%^" + file + "%^RESET%^";
   if(info[fname] && sizeof(info[fname]) == 3 &&
      intp(info[fname][2]) && info[fname][2])
-    return ansi("%^BOLD%^%^YELLOW%^" + file + "%^RESET%^%^WHITE%^");
-  return ansi("%^BOLD%^%^CYAN%^" + file + "%^RESET%^");
+    return "%^LS_LOADED%^" + file + "%^RESET%^";
+  return "%^LS_DEFAULT%^" + file + "%^RESET%^";
 }
 
 private string
@@ -77,18 +74,14 @@ private int do_ls(mixed argv, mapping flags)
   int           uses_ansi;
 
   if(!argv[0])
-    argv[0] = glob(evaluate_path("./*"));
+    argv[0] = glob(evaluate_path("./*")); /* C-mode */
   else
     argv[0] = decompose(map(argv[0], (:is_directory($1) ?
 			  glob(path_join($1, "*")) : $1 :)));
 
-#ifdef XMAS
-  uses_ansi = i_use_ansi();
-#else
-  uses_ansi = 0;
-#endif
+  uses_ansi = get_user_variable("colour-ls");
 
-  if(uses_ansi || flags["l"] || flags["s"] || !flags["p"])
+  if (uses_ansi || flags["l"] || flags["s"] || !flags["p"])
     {
       info = ([]);
       foreach(item in argv[0]) {
@@ -124,18 +117,17 @@ private int do_ls(mixed argv, mapping flags)
 	  outarr = map_ls_arrays((: (size($2)+1024)/1024 + " " + $1 :),
 				 outarr, fullpatharr);
 
-      if(!flags["p"])
+      if(!flags["p"] && !uses_ansi)
 	outarr = map_ls_arrays((: is_dir($1) ? $2+"/" :
 				info[$1] ? info[$1][2] ? $2+"*" : $2 :
 				$2+"?":), fullpatharr,
 			       outarr);
 
       if(end_of_pipeline())
-	out(ansi(sprintf("%%^BOLD%%^%%^WHITE%%^%s%%^RESET%%^:\n%-#79s\n\n", 
-			     path, implode(outarr, "\n"))));
+	  out("%^LS_HEADING%^" + path + "%^RESET%^:\n" +
+	      colour_table(outarr, this_user()->query_screen_width()));
       else
-	out(ansi(sprintf("%%^BOLD%%^%%^WHITE%%^%s%%^RESET%%^:\n%s\n\n",
-			 path, implode(outarr,"\n"))));
+	  out(implode(outarr, "\n"));
     }
   if (!sizeof(get_output()))
     {

@@ -12,7 +12,7 @@ void remove();
 
 void report_login_failures();
 
-varargs void modal_simple(function input_func, int secure);
+varargs void modal_simple(function input_func, mixed prompt, int secure);
 
 void set_privilege(mixed priv);		// from M_ACCESS
 mixed unguarded(mixed priv, function fp);
@@ -108,19 +108,15 @@ private nomask void incarnate(int is_new, string bfn)
     run_login_script();
 
     if ( is_new )
+    {
+#ifdef USE_STATS
+        this_body()->init_stats();
+#endif
 	body->save_me();
+    }
 }
 
-static nomask void existing_user_enter_game()
-{
-    remove_call_out();	/* all call outs */
-
-    write("\n"+read_file(MOTD_FILE));
-
-    report_login_failures();
-
-    incarnate(0, 0);
-}
+void sw_body_handle_existing_logon(int);
 
 private nomask void rcv_try_to_boot(object who, string answer)
 {
@@ -129,14 +125,14 @@ private nomask void rcv_try_to_boot(object who, string answer)
 	who->receive_private_msg("You are taken over by yourself, or something.\n");
 	who->quit();
 
-	existing_user_enter_game();
+	sw_body_handle_existing_logon(1);
 	return;
     }
     if (answer == "n" )
     {
 	if ( wizardp(query_userid()) )
 	{
-	    existing_user_enter_game();
+	    sw_body_handle_existing_logon(1);
 	    return;
 	}
 
@@ -148,51 +144,51 @@ private nomask void rcv_try_to_boot(object who, string answer)
     modal_simple((: rcv_try_to_boot, who :));
 }
 
-/*
-** Okay... an existing user is ready for their body.  Look for other
-** users currently connected with this userid.  Those other users may
-** be interactive or link-dead.  Do the right thing...
-*/
-static nomask void existing_user_ready()
-{
-    object * users;
-    string * ids;
-    int idx;
-    object the_user;
-
+static nomask void sw_body_handle_existing_logon(int enter_now) {
     remove_call_out();	/* all call outs */
 
-    /* adjust the privilege of the user ob */
-    if ( adminp(query_userid()) )
-	set_privilege(1);
-    else
-	set_privilege(query_userid());
+    if (!enter_now) {
+        /*
+	** Okay... an existing user is ready for their body.  Look for other
+	** users currently connected with this userid.  Those other users may
+	** be interactive or link-dead.  Do the right thing...
+	*/
+	object * users;
+	string * ids;
+	int idx;
+	object the_user;
 
-    /* check for link-deadedness */
-    users = children(USER_OB) - ({ this_object() });
-    ids = users->query_userid();
-    if ( (idx = member_array(query_userid(), ids)) == -1 )
-    {
-	existing_user_enter_game();
-	return;
-    }
-    if ( !interactive(the_user = users[idx]) )
-    {
-	if ( body = the_user->query_body() )
-	{
-	    the_user->steal_body();
-	    start_shell();
-	    body->reconnect(this_object());
-	}
+	/* adjust the privilege of the user ob */
+	if ( adminp(query_userid()) )
+	    set_privilege(1);
 	else
-	{
-	    existing_user_enter_game();
+	    set_privilege(query_userid());
+
+	/* check for link-deadedness */
+	users = children(USER_OB) - ({ this_object() });
+	ids = users->query_userid();
+	if ( (idx = member_array(query_userid(), ids)) != -1 ) {
+	    if ( !interactive(the_user = users[idx]) ) {
+		if ( body = the_user->query_body() ) {
+		    the_user->steal_body();
+		    start_shell();
+		    body->reconnect(this_object());
+		    return;
+		}
+	    } else {
+		write("\nYou are already logged in!\nThrow yourself off?  ");
+		modal_simple((: rcv_try_to_boot, the_user :));
+		return;
+	    }
 	}
-	return;
     }
 
-    write("\nYou are already logged in!\nThrow yourself off?  ");
-    modal_simple((: rcv_try_to_boot, the_user :));
+    write("\n"+read_file(MOTD_FILE));
+
+    report_login_failures();
+    BIRTHDAY_D->report();
+    
+    incarnate(0, 0);
 }
 
 /* when a user reconnects, this is used to steal the body back */
@@ -210,7 +206,7 @@ nomask void steal_body()
 ** A new character has been created and all inputs have been entered.
 ** Do a bit of additional work and go for a body.
 */
-static nomask void new_user_ready()
+static nomask void sw_body_handle_new_logon()
 {
     remove_call_out();	/* all call outs */
 

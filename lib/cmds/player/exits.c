@@ -17,13 +17,8 @@ private void main( string message )
     case 0:
 	out("You can't see any exits.\n");
 	return;
-    case 1:
-	str += exits[0];
-	break;
     default:
-	str += implode( exits[0..<2], ", " );
-	str += " and ";
-	str += exits[<1];
+    str += format_list(exits);
     }
     str += ".\n";
     out( str );

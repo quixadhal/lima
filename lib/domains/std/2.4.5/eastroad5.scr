@@ -1,0 +1,12 @@
+is= room
+
+exits=
+  south:eastroad4.scr
+  west:inn.scr
+end
+brief=East road
+long=
+  East road runs south from here.\n
+  To the west lies the Eastroad Inn.
+end
+light=1

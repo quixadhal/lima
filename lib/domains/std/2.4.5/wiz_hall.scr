@@ -1,0 +1,39 @@
+is=room
+
+brief=wizards hall
+long=
+  You are in the hall of the wizards.\n
+  There is a door to the west and a shimmering field to the north.\n
+end
+state[lamp_on]=\nThere is a lit lamp beside the elevator.\n
+light=1
+objects=
+  obj/leo.scr
+  obj/elevator_door.scr("wiz hall")
+  obj/elevator_call_button.scr("wiz hall")
+end
+exits=
+  west:elevator.scr
+  north:quest_room.scr
+end
+can_go_west:
+  check
+    not (call "/domains/std/2.4.5/elevator.scr" "query_open_at" "wiz hall") : "The door is closed.\n"
+
+---
+mixed can_go_north() {
+    if (!wizardp(this_body()))
+	return "A magic force stops you.\n";
+    return 1;
+}
+
+mixed do_go_north() {
+  write("You wriggle through the force field...\n");
+  return 0;
+}
+
+void arrived() {
+    if (query_state("lamp"))
+        tell_from_inside(this_object(), "The lamp on the button beside the elevator goes out.\n");
+    clear_room_state("lamp");
+}

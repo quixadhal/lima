@@ -1,3 +1,4 @@
+$$ see: m_messages, msg
 
 USAGE:  review  or review < msg >
 
@@ -19,5 +20,3 @@ menter: [$N $vappear in a puff of smoke.] You appear in a puff of smoke.
 :
 
 **** note at this time there appears to be no way to chagne your default msgs, it disappeared somewhere :).  
-
-:q

@@ -10,34 +10,36 @@
  * attacking, not you.  Some of the names in this are a bit backwards compat,
  * though.
  */
-private int wield_bonus;
-private string wield_type = "blow";
+private int to_hit_bonus;
+private string damage_kind = "blow";
 private object wielded_by;
 
-static mapping def_combat_messages;
-mapping combat_messages = ([]);
+private static mapping def_combat_messages;
+private mapping combat_messages = ([]);
 
 mixed adjust_my_result(mixed result)
 {
     return result;
 }
 
-int query_wield_bonus(object target)
+int query_to_hit_bonus(object target)
 {
-    return wield_bonus;
+    return to_hit_bonus;
 }
 
-void set_wield_bonus(int x) {
-    wield_bonus = x;
-}
-
-string query_wield_type()
+void set_to_hit_bonus(int x)
 {
-    return wield_type;
+    to_hit_bonus = x;
 }
 
-void set_wield_type(string str) {
-    wield_type = str;
+string query_damage_kind()
+{
+    return damage_kind;
+}
+
+void set_damage_kind(string str)
+{
+    damage_kind = str;
 }
 
 int is_weapon()
@@ -45,11 +47,14 @@ int is_weapon()
     return 1;
 }
 
-void unwield_me() {
-    if (wielded_by) wielded_by->unwield();
+void unwield_me()
+{
+    if ( wielded_by )
+	wielded_by->unwield();
 }
 
-void remove() {
+void remove()
+{
     unwield_me();
 }
 
@@ -105,3 +110,23 @@ int query_weapon_class() {
     return weapon_class;
 }
 #endif
+
+#ifdef USE_SKILLS
+private string skill_used = "combat/unarmed";
+
+string query_skill_used()
+{
+    return skill_used;
+}
+void set_skill_used(string new_skill_used)
+{
+    skill_used = new_skill_used;
+}
+#endif
+
+mapping lpscript_attributes() {
+    return ([
+        "weapon_class" : ({ LPSCRIPT_INT, "setup", "set_weapon_class" }),
+        "skill_used" : ({ LPSCRIPT_STRING, "setup", "set_skill_used" }),
+    ]);
+}

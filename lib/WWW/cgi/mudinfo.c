@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <net/http_d.h>
+#include <ports.h>
 
 private string lobotomize (string s)
 {
@@ -66,7 +66,7 @@ string main (string pattern)
     foreach (mudname in sort_array (keys (mudlist), 1))
     {
       ret += sprintf ("<a href=http://%s:%d/cgi/mudinfo.c?=%s>%s</a><br>",
-		      __HOST__, HTTP_PORT, mudname, mudname);
+		      __HOST__, PORT_HTTP, mudname, mudname);
     }
     return ret + "</em></font>";
   }

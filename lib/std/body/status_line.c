@@ -20,18 +20,17 @@ void update_status_line()
     p = SAVE + HOME + LIM + REVERSE + " " +
     ljust( environment( this_object())->query_light()?environment(this_object())->get_brief():"Darkness", this_user()->query_screen_width() - 10) +
     rjust( this_object()->query_score()+"/" + QUEST_D->total_points() + " ", 10) +
-    RESET + TOP + 
-RESTORE;
+    RESET + TOP + RESTORE;
     tell(this_object(), p, NO_WRAP);
 }
 
 int has_status_line()
 {
-    return( (this_object()) && (this_object()->query_shell_ob()) && (this_object()->query_shell_ob()->get_variable( "status" ) != 0));
+    return get_user_variable("status") != 0;
 }
 
 
 void remove_status_line()
 {
-    write( SAVE + HOME + FULL + RESTORE );
+    write(SAVE + HOME + FULL + RESTORE);
 }

@@ -1,0 +1,4 @@
+is=room
+light=0
+brief=Dead end
+exits=east:tunnel21.scr

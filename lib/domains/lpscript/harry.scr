@@ -1,0 +1,96 @@
+is= living,actor
+
+name= Harry
+gender= male
+proper_name= Harry the affectionate
+in_room_desc= Harry the affectionate
+id= dude
+long= Harry has an agreeable look.
+
+periodic[2 to 10]:
+  oneof
+    !say What are you waiting for?
+    !say Hello there!
+    !say I don't like winter.
+    !say I don't like snow.
+    !say I don't like rain.
+    !say Who are you?
+    !say Why do you look like that?
+    !say What are you doing here?
+    !say Nice weather, isn't it?
+    !smile
+    !lsfbog
+    !ack
+    !rock
+  end
+end
+
+trigger[*]:
+  if (who notequal me)
+    nexttrigger
+
+trigger[* smiles.]:
+  !smile
+
+trigger[* has left the game.]:
+  !say Why did $1 quit the game ?
+
+trigger[* gets *.]:
+  !say Why did $1 take $2 ?
+
+trigger[* drops *.]:
+  !say Why did $1 drop $2 ?
+
+trigger[* kicks you.]:
+  !kick $1
+
+trigger[* kisses you.]:
+  !blush
+
+trigger[* nods.]:
+  !nod solemnly
+  !think did I miss something?
+end
+
+trigger[* laughs.]:
+  !say Did I miss a joke?
+
+trigger[* chuckles.]:
+  !smirk
+
+trigger[* boggles.]:
+  !bog
+
+trigger[* enters.]:
+  !say Hi $1, nice to see you !
+
+trigger[* leaves *.]:
+  !go $2
+
+trigger[* says: *yes*]:
+  !say I disagree
+
+trigger[* says: *no*]:
+  !say I disagree
+
+trigger[* says: *shut up*]:
+  !say Why do you want me to shut up?
+
+trigger[* says: *hello*]:
+  !say Pleased to meet you!
+
+trigger[* says: *LPC*]:
+  !turing $1
+
+trigger[* says: *stay here*]:
+  !say Ok then.
+
+trigger[* says: *not follow*]:
+  !say Ok then.
+
+trigger[* says: *get lost*]:
+  !say Ok then $1.
+
+trigger[* says: *.]:
+  if (chance 20)
+    !say Why do you say '$2' ???

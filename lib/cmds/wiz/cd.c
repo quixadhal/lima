@@ -13,17 +13,7 @@ private void main(mixed *arg)
 	    fname = "/help";
     }
     
-    this_body()->query_shell_ob()->set_pwd(fname);
+    this_user()->query_shell_ob()->set_pwd(fname);
 
     outf("new cwd: %s\n", fname);
-}
-
-int help()
-{
-write("Usage: cd [directory]\n"
-"Most file commands assume you're talking about your current working "
-"directory, if you do not specify a full path.  This command sets your "
-"current directory.  If no argument is given,  your home directory will "
-"become your current working dir.  See also, ls, pwd, ed.\n"
-);
 }

@@ -1,0 +1,74 @@
+is= room
+area= wiz_area
+brief= Grand Hall
+long=
+  The Grand Hall, the meeting place for Lima Wizards, is a large room with
+  polished wooden floorboards, and rough hewn beams overhead. A narrow flight
+  of stairs lead upwards, their top splashed by flickering blue light, while
+  an equally narrow flight leads downwards into the gloom. Two rocky passages
+  leave the room. The northwest one is warm and sulfurous, while the south
+  passage smells faintly malodorous, as though something had died in the
+  recent past.
+
+  A low doorway in the east wall allows access to the example room, a glowing
+  portal in the north wall leads to the mortal start area, and to the west is
+  the quiet room.  Its door is currently 
+end
+
+state[oak_door_off]= closed.
+state[oak_door_on]= open.
+
+exits=
+  east: example_room1
+  south: monster_room
+  west: quiet_room
+  northwest: lava_room
+end
+
+default_exit= Walking through walls is painful.  Try a more pleasant direction.
+
+objects=
+  /std/stairs("/domains/lpscript/attic.scr", "/domains/std/shop", 1)
+  magic_torch.scr
+  large_oak_door.scr("west")
+  portal.scr
+end
+
+setup:
+  if (container)
+    $door = find "door" container
+    if not (call $door "query_closed")
+      call $door "do_on_open"
+  end
+end
+
+can_go_up:
+  check
+    call here "is_vehicle" : "Try walking.\n"
+
+do_go_up:
+  !climb up stairs
+  ok
+end
+
+can_go_down:
+  check
+    call here "is_vehicle" : "Try walking.\n"
+
+do_go_down:
+  !climb down stairs
+  ok
+end
+
+can_go_north:
+  ok
+
+do_go_north:
+  !enter portal
+  ok
+end
+
+sound:
+  write "This is an example sound.  Only you are getting this message, so I guess you're hearing voices"
+  ok
+end

@@ -1,0 +1,10 @@
+is=room
+
+exits=
+  west:deep_forest1.scr
+  east:plane11.scr
+  south:plane10.scr
+end
+brief=A large open plain
+long=A large open plain. There is a forest to the west
+light=1

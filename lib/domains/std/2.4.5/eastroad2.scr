@@ -1,0 +1,9 @@
+is=room
+
+exits=
+  north:eastroad3.scr
+  south:eastroad1.scr
+end
+brief=East road
+long=East road runs north-south.
+light=1

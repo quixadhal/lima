@@ -51,3 +51,9 @@ int direct_enter_obj()
 {
   return 1;
 }
+
+mapping lpscript_attributes() {
+    return ([
+	"look_in_desc" : ({ LPSCRIPT_STRING, "setup", "set_look_in_desc" })
+    ]);
+}

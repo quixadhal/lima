@@ -10,7 +10,7 @@
 #include <mudlib.h>
 #include <security.h>
 
-void new_user_ready();
+void sw_body_handle_new_logon();
 
 object query_body();
 
@@ -27,6 +27,12 @@ varargs void modal_func(function input_func,
     );
 void modal_pop();
 
+/* states */
+#define GENDER_QUERY		0
+#define GOT_GENDER		1
+#define GOT_EMAIL		2
+#define GOT_REAL_NAME		3
+#define GOT_URL			4
 
 private string 	email;
 private string 	real_name;
@@ -83,87 +89,74 @@ nomask string query_url()
     return url;
 }
 
+static nomask varargs
+void userinfo_handle_logon(int state, mixed extra, string arg) {
+    switch (state) {
+    case GENDER_QUERY:
+	modal_push((: userinfo_handle_logon, GOT_GENDER, 0 :),
+		   "Are you male or female? ");
+	break;
+	
+    case GOT_GENDER:
+	arg = lower_case(arg);
+	if (arg == "y" || arg == "yes") {
+	    write("Ha, ha, ha. Which one are you?\n");
+	    return;
+	}
+	if (arg == "n" || arg == "no") {
+	    write("Well, which one would you have liked to be, then?\n");
+	    return;
+	}
+	if ( arg == "f" || arg == "female")
+	    n_gen = 2;
+	else if (arg != "m" && arg != "male") {
+	    write("I've never heard of that gender.  Please try again.\n");
+	    return;
+	} else
+	    n_gen = 1;
 
-/*
-** Character creation functions: gather user info
-**
-** Initiate with a call to begin_info_collection()
-*/
+	write("\n"
+	      "The following info is only seen by you and administrators\n"
+	      "  if you prepend a # to your response.\n"
+	      "\n"
+	      "You cannot gain wizard status without valid responses to these questions:\n"
+	    );
 
-private nomask void done_with_inputs()
-{
-    /*
-    ** Done with this series of inputs
-    */
-    modal_pop();
+	modal_func((: userinfo_handle_logon, GOT_EMAIL, 0 :),
+		   "Your email address: ");
+	break;
+	
+    case GOT_EMAIL:
+	email = arg;
+	
+	modal_func((: userinfo_handle_logon, GOT_REAL_NAME, 0 :),
+		   "Your real name: ");
+	break;
+	
 
-    /*
-    ** Let's move on to introducing the character to the mud.
-    */
-    if ( file_size(NEW_PLAYER) <= 0 )
-    {
-	new_user_ready();
-	return;
+    case GOT_REAL_NAME:
+	real_name = arg;
+	
+	modal_func((: userinfo_handle_logon, GOT_URL, 0 :),
+		   "Your home page address (if any): ");
+	break;
+
+    case GOT_URL:
+	url = arg;
+
+	/*
+	** Done with this series of inputs
+	*/
+	modal_pop();
+
+	/*
+	** Let's move on to introducing the character to the mud.
+	*/
+	if ( file_size(NEW_PLAYER) <= 0 ) {
+	    sw_body_handle_new_logon();
+	    return;
+	}
+
+	more_file(NEW_PLAYER, 0, (: sw_body_handle_new_logon :));
     }
-
-    more_file(NEW_PLAYER, 0, (: new_user_ready :));
-}
-
-private nomask void rcv_url(string s)
-{
-    url = s;
-    done_with_inputs();
-}
-
-private nomask void rcv_real_name(string str)
-{
-    real_name = str;
-    modal_func((: rcv_url :), "Your home page address (if any): ");
-}
-
-
-private nomask void rcv_email_address(string str)
-{
-    email = str;
-
-    modal_func((: rcv_real_name :), "Your real name: ");
-}
-
-private nomask void rcv_gender(string arg)
-{
-    arg = lower_case(arg);
-    if (arg == "y" || arg == "yes")
-    {
-	write("Ha, ha, ha. Which one are you?\n");
-	return;
-    }
-    if (arg == "n" || arg == "no")
-    {
-	write("Well, which one would you have liked to be, then?\n");
-	return;
-    }
-    if ( arg == "f" || arg == "female")
-	n_gen = 2;
-    else if (arg != "m" && arg != "male")
-    {
-	write("I've never heard of that gender.  Please try again.\n");
-	return;
-    }
-    else
-	n_gen = 1;
-
-
-    write("\n"
-	  "The following info is only seen by you and administrators\n"
-	  "  if you prepend a # to your response.\n"
-	  "\n"
-	  "You cannot gain wizard status without valid responses to these questions:\n"
-	);
-
-    modal_func((: rcv_email_address :), "Your email address: ");
-}
-
-static nomask void begin_info_collection()
-{
-    modal_push((: rcv_gender :), "Are you male or female? ");
 }

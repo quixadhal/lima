@@ -1,0 +1,5 @@
+is=room
+light=0
+exits=south:tunnel12.scr
+brief=Tunnel
+long=End of the tunnel.

@@ -28,6 +28,13 @@ void setup()
     set_long("This is a very large safe");
     set_max_capacity(LARGE);
     set_strength_vs_magic(0);
+    set_strength_vs_picking(100);
     set_objects (( [ "/domains/std/example_scroll.c" : 1 ] ));
 }
 
+
+mapping lpscript_attributes()
+{
+    return m_gettable::lpscript_attributes() +
+	m_openable::lpscript_attributes();
+}

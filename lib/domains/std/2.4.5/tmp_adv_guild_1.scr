@@ -1,0 +1,10 @@
+is=book,gettable
+flag=attached
+id=book
+getmsg=The book is attached to the chain.
+in_room_desc=a book on a chain
+long=
+  There is a book hanging on a chain from the wall.\n
+  The title is: 'ADVENTURING'.
+end
+text=/domains/std/2.4.5/book_text

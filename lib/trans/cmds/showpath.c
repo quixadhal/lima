@@ -10,7 +10,7 @@ inherit CMD;
 
 private void main() 
 {
-    string * paths = this_body()->query_shell_ob()->query_path();
+    string * paths = this_user()->query_shell_ob()->query_path();
 
     out("Your current path is: " + implode(paths, (: $1 + ", " + $2 :)) + "\n");
 }

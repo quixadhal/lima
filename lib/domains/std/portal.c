@@ -4,10 +4,10 @@ inherit PORTAL;
 
 void setup ()
 {
-  set_in_room_desc ("Rust's test portal is here.");
-  set_long ("It looks like a portal.");
-  add_adj ("test","rust's");
-  add_id ("portal");
-  set_destination ("/domains/std/room3");
-  set_look_in_desc ("You can vaguely make out some other room.");
+    set_flag( ATTACHED );
+    set_long( "It's a glowing portal, set into the northern wall.");
+    add_adj( "glowing", "northern", "north" );
+    set_id( "portal" );
+    set_destination( START );
+    set_look_in_desc( "You can vaguely see a sandy beach.");
 }

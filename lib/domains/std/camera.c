@@ -1,9 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-// Written by Rust.
-// I wrote this? I thought Beek did.
-// I did.  People should be more careful adding attributions if they aren't
-// sure. -Beek
+// Written by Beek.
 
 #include <mudlib.h>
 
@@ -39,7 +36,6 @@ string direct_press_obj(object ob, string name) {
     if (name == "camera")
 	return "Pressing the button is probably a better idea.\n";
 }
-
 */
 
 

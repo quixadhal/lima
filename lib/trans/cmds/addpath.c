@@ -13,7 +13,7 @@ private void main(string * arg)
     string userid = this_user()->query_userid();
     string * paths;
     string item;
-    object shell_ob = this_body()->query_shell_ob();
+    object shell_ob = this_user()->query_shell_ob();
 
     if ( get_privilege(this_user()) && !check_privilege(userid) )
     {
@@ -35,6 +35,6 @@ private void main(string * arg)
     shell_ob->set_variable("path", paths);
 
     out(implode(paths,
-			(: $1 + $2[0..<2] + ", " :),
+			(: $1 + ($2[<1] == '/' ? $2[0..<2] : $2) + ", " :),
 			"Your path is now: ")[0..<3] + "\n");
 }

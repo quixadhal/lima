@@ -1,0 +1,30 @@
+is=room
+light=1
+brief=A small storage room
+long=
+  You are in a small and dusty storage room.\n
+  You can see the shop through the opening to the east.
+end
+exits=east:shop.scr
+
+---
+/* FIXME */
+init(arg)
+{
+	object	ob;
+	int	does_exist;
+
+	if(this_player()) {
+		if(
+			!present("tech_quicktyper", this_player())
+			&&
+			!present("tech_quicktyper", this_object())
+		) {
+			/* it does no exist */
+			ob = clone_object("obj/quicktyper");
+			move_object(ob, this_object());
+		}
+	}
+	::init(arg);
+}
+

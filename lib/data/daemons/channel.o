@@ -1,2 +1,2 @@
 #/daemons/channel_d.c
-permanent_channels ([])
+permanent_channels (["errors":1,"wiz":1,"admin":2,"news":0,"gossip":0,"newbie":0,"announce":1,])

@@ -130,83 +130,94 @@ mixed insert( mixed 	to_insert,
 string parse_ref(string ref)
 {
 // If the first thing is a period, we can ignore it.
-  string s = ref[0] == '.' ? ref[1..] : ref;
-  string result;
-  string noun;
-  string* pieces = explode(s,":");
+    string s = ref[0] == '.' ? ref[1..] : ref;
+    string result;
+    string noun;
+    string* pieces = explode(s,":");
 
-  noun = pieces[0];
-  pieces = pieces[1..];
-  switch(noun)
+    noun = pieces[0];
+    pieces = pieces[1..];
+    switch ( noun )
     {
     case "me":
-      result = "this_body()";
-      break;
+	result = "this_body()";
+	break;
+
     case "here":
-      result = "environment(this_body())";
-      break;
+	result = "environment(this_body())";
+	break;
+
     default:
-      if(find_body(noun))
-	result = "find_body(\""+noun+"\")";
-      else if(load_object(evaluate_path(noun)))
-	result = "find_object(evaluate_path(\""+noun+"\"))";
-      else return ref;
+	if ( find_body(noun) )
+	    result = "find_body(\""+noun+"\")";
+	else if ( load_object(evaluate_path(noun)) )
+	    result = "find_object(evaluate_path(\""+noun+"\"))";
+	else
+	    return ref;
     }
-  foreach(noun in pieces)
+
+    foreach ( noun in pieces )
     {
-      switch(noun) {
-      case "shell":
-	result = sprintf("(%s->query_shell_ob() || %s)", result, result);
-	break;
-      case "link":
-	result = sprintf("(%s->query_link())",result);
-	break;
-      default:
-	result = sprintf("present(\"%s\",%s)", noun, result);
-	break;
-      }
-      
+	switch ( noun )
+	{
+	case "shell":
+	    result = sprintf("(%s->query_shell_ob() || %s)", result, result);
+	    break;
+
+	case "link":
+	    result = sprintf("(%s->query_link())",result);
+	    break;
+
+	default:
+	    result = sprintf("present(\"%s\",%s)", noun, result);
+	    break;
+	}
     }
     return result;
 }
 
 object parse_ref_into_obj(string ref)
 {
-  string 	s = ref[0] == '.' ? ref[1..] : ref;
-  object 	result;
-  string 	noun;
-  string	*pieces = explode(s,":");
+    string 	s = ref[0] == '.' ? ref[1..] : ref;
+    object 	result;
+    string 	noun;
+    string	*pieces = explode(s,":");
 
-  noun = pieces[0];
-  pieces = pieces[1..];
-  switch(noun)
+    noun = pieces[0];
+    pieces = pieces[1..];
+    switch ( noun )
     {
     case "me":
-      result = this_body();
-      break;
+	result = this_body();
+	break;
+
     case "here":
-      result = environment(this_body());
-      break;
+	result = environment(this_body());
+	break;
+
     default:
-      if(find_body(noun))
-	result = find_body(noun);
-      else if(!(result = load_object(evaluate_path(noun))))
-	return 0;
+	if ( find_body(noun) )
+	    result = find_body(noun);
+	else if ( !(result = load_object(evaluate_path(noun))) )
+	    return 0;
     }
-  foreach(noun in pieces)
+
+    foreach ( noun in pieces )
     {
-      switch(noun) {
-      case "shell":
-	result = result->query_shell_ob() || result;
-	break;
-      case "link":
-	result = result->query_link();
-	break;
-      default:
-	result = present(noun, result);
-	break;
-      }
-      
+	switch ( noun )
+	{
+	case "shell":
+	    result = result->query_shell_ob() || result;
+	    break;
+
+	case "link":
+	    result = result->query_link();
+	    break;
+
+	default:
+	    result = present(noun, result);
+	    break;
+	}
     }
     return result;
 }
@@ -340,17 +351,6 @@ mixed* decompose( mixed* org )
 	} else i++;
     }
     return org;
-}
-
-
-//:FUNCTION len
-//returns the length of any aggregate type, be it the
-//length of a string, the number of elements in an array, or
-//the number of entries in a mapping.
-
-int 
-len( mixed f ){
-    return sizeof(f);
 }
 
 
@@ -558,9 +558,17 @@ string implode_by_arr(string array arr1, string array arr2)
 }
 
 /* This one by cowl. */
+/* Cleaned up, optimized, and extended by Beek */
+/* 
+ * type 0 = 3 hours 5 minutes 32 seconds
+ * type 1 = 3h5m32s
+ * type 2 = 3h
+ * type 3 = 3h 5m 32s
+ */
 string convert_time(int sec, int type) {
     int weeks, days, hours, minutes, seconds;
     string ret;
+
     minutes=sec/60;
     seconds=sec-(minutes*60);
     hours=minutes/60;
@@ -569,29 +577,40 @@ string convert_time(int sec, int type) {
     hours=hours-(days*24);
     weeks=days/7;
     days=days-(weeks*7);
+
     ret = "";
-    if (!type)
-    {
-        if(weeks) ret += sprintf("%d week%s ", weeks,
-              (weeks == 1) ? "" : "s");
-        if(days) ret += sprintf("%d day%s ", days,
-              (days == 1) ? "" : "s");
-        if(hours) ret += sprintf("%d hour%s ", hours,
-              (hours == 1) ? "" : "s");
-        if(minutes) ret += sprintf("%d minute%s ", minutes,
-              (minutes == 1) ? "" : "s");
-        ret += sprintf("%s%d second%s",
-          (sizeof(ret)) ? "and " : "",
-          seconds,
-          (seconds == 1) ? "" : "s");
-    }
-    else 
-    {
+    switch (type) {
+    case 0:
+        if(weeks) ret += M_GRAMMAR->number_of(weeks, "week") + " ";
+        if(days) ret += M_GRAMMAR->number_of(days, "day") + " ";
+        if(hours) ret += M_GRAMMAR->number_of(hours, "hour") + " ";
+        if(minutes) ret += M_GRAMMAR->number_of(minutes, "minute") + " ";
+	if (seconds && ret != "") ret += "and ";
+	if (seconds) ret += M_GRAMMAR->number_of(seconds, "second") + " ";
+	ret = ret[0..<2];
+	break;
+    case 1:
         if (weeks) ret += weeks+"w"; 
         if (days) ret += days+"d";
         if (hours) ret += hours+"h";
         if (minutes) ret += minutes+"m";
         if (seconds) ret += seconds+"s";
+	break;
+    case 2:
+        if (weeks) { ret += weeks+"w"; break; }
+        if (days) { ret += days+"d"; break; }
+        if (hours) { ret += hours+"h"; break; }
+        if (minutes) { ret += minutes+"m"; break; }
+        if (seconds) { ret += seconds+"s"; break; }
+	break;
+    case 3:
+        if (weeks) ret += weeks+"w ";
+        if (days) ret += days+"d ";
+        if (hours) ret += hours+"h ";
+        if (minutes) ret += minutes+"m ";
+        if (seconds) ret += seconds+"s ";
+	ret = ret[0..<2];
+	break;
     }
     return ret;
 }

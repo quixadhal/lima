@@ -25,7 +25,7 @@ private void main(mixed *arg, mapping flags) {
     string temp;
     int n,deep_up;
     string file;
-    object shell_ob = this_body()->query_shell_ob();
+    object shell_ob = this_user()->query_shell_ob();
 
 // This is a quick hack to make update accept cfile*
     if(arg[0] && !stringp(arg[0]))
@@ -46,35 +46,31 @@ private void main(mixed *arg, mapping flags) {
     file = evaluate_path(file);
     if (shell_ob) shell_ob->set_cwf( file );
     sscanf(file, "%s.c", file);
-    if (file_size(file+".c")==-1) {
-	outf("update: no such file.\n");
-	return 0;
-    }
+    // DO NOT check if the file exists.  It's really bad for virtual objects.
     if(file_size(file) == -2 && file_size(file+".c") < 0 )
     {
 	outf("update: file is a directory.\n");
 	return 0;
     }
     if(file_size(file+".c") && shell_ob)  shell_ob->set_cwf(file+".c");
-    obs = 0;
-    if (ob = find_object(file)) {
-	obs = all_inventory(ob);
-	for (n = 0; n < sizeof(obs); n++)
-	{
-	    if (obs[n]->query_link() && interactive(obs[n]->query_link()))
-		obs[n]->move(VOID_ROOM);
-	    else {
-		destruct(obs[n]);
-	    }
-	}
+    obs = ({});
+    if ((ob = find_object(file)) && ob != find_object(VOID_ROOM)) {
+	obs = filter(all_inventory(ob), function(object ob) 
+		     {
+			 object link = ob->query_link();
+			 if (link && interactive(link)) {
+			     ob->move(VOID_ROOM);
+			     return 1;
+			 }
+			 destruct(ob);
+			 return 0;
+		     } );
     }
-    if (file[<2..<1] != ".c") file += ".c";
+    if (file[<2..<1] != ".c" && file[<4..<1] != ".scr") file += ".c";
     if (do_update(file,deep_up) < time())
         out(file + ": No update necessary.\n");
 
-    for (n=0; n<sizeof(obs); n++) {
-	if (obs[n]) obs[n]->move(file);
-    }
+    obs->move(file);
 }
 
 int do_update(string file, int deep)

@@ -1,0 +1,11 @@
+is=room
+
+exits=
+  south:plane1.scr
+  north:plane3.scr
+  east:plane4.scr
+  west:plane5.scr
+end
+brief=A large open plain
+long=A large open plain, extending in all directions.
+light=1

@@ -1,0 +1,17 @@
+is=room
+objects=
+  giant=
+    is=monster
+    proper_name=giant
+    in_room_desc=A giant
+    weapon_class=20
+    armor_class=2
+  end
+
+exits=
+  east:giant_path.scr
+  west:giant_conf.scr
+end
+brief=Lair of the Giant
+long=There are mountains all around you.
+light=1

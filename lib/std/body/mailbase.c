@@ -12,7 +12,7 @@
 private string		default_mailer;
 
 private static string *	valid_mailers = ({
-    "/secure/obj/mailers/standard", "/secure/obj/mailers/Mh"
+    MAILER_DIR "/standard", MAILER_DIR "/Mh"
 });
 
 /*

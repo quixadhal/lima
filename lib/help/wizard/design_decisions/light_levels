@@ -1,0 +1,15 @@
+In the Lima mudlib, zero is dark, and anything positive is light.  Exactly
+how bright anything is is completely ignored.  As long as there is a light
+source in the room, you can see; if there isn't, you can't.
+
+Much more complex systems are indeed possible.  In fact, it is not
+particularly hard to do something more complex since almost all of the
+code involved is in /std/object/light (most of the rest is in
+/std/object/move and /std/container).
+
+The rationale for *not* doing it is that it doing a *good* job of
+implementing a complex multi-level light system isn't particularly
+simple, and in our opinion adds little to the game.  For that reason,
+we've gone with something simple, yet functional.
+
+-Beek

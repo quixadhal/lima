@@ -1,0 +1,10 @@
+is=room
+
+exits=
+  west:orc_vall.scr
+  east:forest2.scr
+  south:forest3.scr
+end
+brief=A slope
+long=The forest gets light here, and slopes down to the west.
+light=1

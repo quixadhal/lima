@@ -528,15 +528,16 @@ nomask void oob_debug_close()
     }
 }
 
-static void stat_me()
+static string stat_me()
 {
     class oob_info *info_list;
+    string result;
 
-    write("\nOOB TCP SOCKET: ");
+    result = "\nOOB TCP SOCKET: ";
     if ( oob_socket )
-	oob_socket->stat_me();
+	result += oob_socket->stat_me();
     else
-	write("<none>\n");
+	result += "<none>\n";
 
     info_list = clean_array(values(oob_socket_map) + values(oob_mudname_map));
 
@@ -545,16 +546,18 @@ static void stat_me()
 	int idle = time() - info->activity_time;
 
 	if ( !info->remote_mudname )
-	    printf("Unknown incoming connection.  Idle %d seconds.\n", idle);
+	    result += sprintf("Unknown incoming connection.  Idle %d seconds.\n", idle);
 	else if ( info->we_originated )
-	    printf("-> %s: %s.  Idle %d seconds.\n",
-		   info->remote_mudname, info->state, idle);
+	    result += sprintf("-> %s: %s.  Idle %d seconds.\n",
+			      info->remote_mudname, info->state, idle);
 	else
-	    printf("<- %s: %s.  Idle %d seconds.\n",
-		   info->remote_mudname, info->state, idle);
+	    result += sprintf("<- %s: %s.  Idle %d seconds.\n",
+			      info->remote_mudname, info->state, idle);
     }
 
-    printf("OOB cleanup is%s running.\n", oob_cleanup_running ? "" : " not");
+    result += sprintf("OOB cleanup is%s running.\n", oob_cleanup_running ? "" : " not");
+
+    return result;
 }
 
 static nomask void oob_shutdown()

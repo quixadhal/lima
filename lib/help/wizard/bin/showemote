@@ -1,3 +1,4 @@
+$$ see: feelings, m_messages, addemote, rmemote, stupidemote, targetemote
 
 USAGE:  showemote (soul)
 
@@ -9,5 +10,3 @@ USAGE:  showemote (soul)
 "LIV" -> $N $vkick $t.
 "LIV LIV" -> "$N $vjump up in the air and $vkick $n1 and $n2 simultaneously.
 "LIV STR" -> $N $vkick $t $o.
- 
-see also: feelings, addemote, messages, rmemote

@@ -45,9 +45,9 @@ create() {
 }
 
 
-int stat_me() {
-    write("Number of feelings: " + sizeof(emotes) + "\n");
-    return 1;
+string stat_me()
+{
+    return "Number of feelings: " + sizeof(emotes) + "\n";
 }
 
 int
@@ -185,7 +185,7 @@ mixed * internal_get_soul(string verb, string rule,
 	    }
 	    result[1][i] = compose_message(who[i], tmp, who, args...);
 	}
-	//### tmp fix
+//### tmp fix
     result[1][sizeof(result[1])-1] = compose_message(0, stringp(soul) ? soul : soul[1], who, args...);
 	    }
 
@@ -203,64 +203,63 @@ mixed * internal_get_soul(string verb, string rule,
 	return result;
     }
 
-    varargs mixed *
-    get_soul(string verb, string rule, mixed *args)
-    {
-	return internal_get_soul(verb, rule, args, 0);
-    }
+varargs mixed *
+get_soul(string verb, string rule, mixed *args)
+{
+    return internal_get_soul(verb, rule, args, 0);
+}
 
-    varargs mixed *
-    get_imud_soul(string verb, string rule, mixed args...)
-    {
-	return internal_get_soul(verb, rule, args, 1);
-    }
+varargs mixed *
+get_imud_soul(string verb, string rule, mixed args...)
+{
+    return internal_get_soul(verb, rule, args, 1);
+}
 
+mixed
+list_emotes()
+{
+    return keys( emotes );
+}
 
-    mixed
-    list_emotes()
-    {
-	return keys( emotes );
-    }
-
-    string *
-    emote_apropos(string str) {
-	int num_verbs, num_rules;
-	int i, j;
-	string *verbs, *rules;
-	mapping rules_for_verb;
-	mixed data;
-	string *found;
-
-	found = ({});
-	verbs = keys(emotes);
-	num_verbs = sizeof(verbs);
-	for (i=0; i<num_verbs; i++) {
-	    rules_for_verb = emotes[verbs[i]];
-	    rules = keys(rules_for_verb);
-	    num_rules = sizeof(rules);
-	    for (j=0; j<num_rules; j++) {
-		data = rules_for_verb[rules[j]];
-		if (pointerp(data)) {
-		    if (strsrch(lower_case(data[0]), lower_case(str)) != -1 || 
-		      strsrch(lower_case(data[1]), lower_case(str)) != -1)
-			found += ({ verbs[i] + " " + rules[j] });
-		}
-		else {
-		    if (strsrch(lower_case(data), lower_case(str)) != -1)
-			found += ({ verbs[i] + " " + rules[j] });
-		}
+string *
+emote_apropos(string str) {
+    int num_verbs, num_rules;
+    int i, j;
+    string *verbs, *rules;
+    mapping rules_for_verb;
+    mixed data;
+    string *found;
+    
+    found = ({});
+    verbs = keys(emotes);
+    num_verbs = sizeof(verbs);
+    for (i=0; i<num_verbs; i++) {
+	rules_for_verb = emotes[verbs[i]];
+	rules = keys(rules_for_verb);
+	num_rules = sizeof(rules);
+	for (j=0; j<num_rules; j++) {
+	    data = rules_for_verb[rules[j]];
+	    if (pointerp(data)) {
+		if (strsrch(lower_case(data[0]), lower_case(str)) != -1 || 
+		    strsrch(lower_case(data[1]), lower_case(str)) != -1)
+		    found += ({ verbs[i] + " " + rules[j] });
+	    }
+	    else {
+		if (strsrch(lower_case(data), lower_case(str)) != -1)
+		    found += ({ verbs[i] + " " + rules[j] });
 	    }
 	}
-	return found;
     }
+    return found;
+}
 
 
-    private string get_completion(string s)
-    {
-	string * completions;
-
-	completions = complete(s, adverbs);
-	switch(sizeof(completions))
+private string get_completion(string s)
+{
+    string * completions;
+    
+    completions = complete(s, adverbs);
+    switch(sizeof(completions))
 	{
 	case 0:
 	    write("Can't find a match for '" + s + "*'.\n");
@@ -271,105 +270,105 @@ mixed * internal_get_soul(string verb, string rule,
 	    write("Can't find a unique match.\nFound: " + implode(completions, ", ") + "\n");
 	    return 0;
 	}
-    }
+}
 
-    /*
-    ** Interface with parsing functions.  We use the "wild" card functions
-    ** so that we don't have to support a gazillion can/do type actions.
-    */
-    int livings_are_remote() { return 1; }
+/*
+** Interface with parsing functions.  We use the "wild" card functions
+** so that we don't have to support a gazillion can/do type actions.
+*/
+int livings_are_remote() { return 1; }
 
-    mixed can_verb_wrd(string verb, string wrd) 
-    {
-	return member_array(wrd, adverbs) != -1 || member_array('*', wrd) != -1;
-    }
+mixed can_verb_wrd(string verb, string wrd) 
+{
+    return member_array(wrd, adverbs) != -1 || member_array('*', wrd) != -1;
+}
 
-    mixed can_verb_rule(string verb, string rule)
-    {
-	if (!emotes[verb]) return;
-	return !undefinedp(emotes[verb][rule]);
-    }
+mixed can_verb_rule(string verb, string rule)
+{
+    if (!emotes[verb]) return;
+    return !undefinedp(emotes[verb][rule]);
+}
 
-    mixed direct_verb_rule(string verb, string rule) 
-    {
-	return !undefinedp(emotes[verb][rule]);
-    }
+mixed direct_verb_rule(string verb, string rule) 
+{
+    return !undefinedp(emotes[verb][rule]);
+}
 
-    mixed indirect_verb_rule(string verb, string rule) 
-    {
-	return !undefinedp(emotes[verb][rule]);
-    }
+mixed indirect_verb_rule(string verb, string rule) 
+{
+    return !undefinedp(emotes[verb][rule]);
+}
 
-    void do_verb_rule(string verb, string rule, mixed args...)
-    {
-	mixed soul;
-
-	soul = get_soul(verb, rule, args);
-	if (!soul) return;
-	if ( sizeof(soul[0]) == 2 &&
-	  !immediately_accessible(soul[0][1]))
+void do_verb_rule(string verb, string rule, mixed args...)
+{
+    mixed soul;
+    
+    soul = get_soul(verb, rule, args);
+    if (!soul) return;
+    if ( sizeof(soul[0]) == 2 &&
+	 !immediately_accessible(soul[0][1]))
 	{
 	    soul[1][0] = "*" + soul[1][0];
 	    soul[1][1] = "*" + soul[1][1];
 	    inform(soul[0], soul[1], 0);
 	}
-	else
+    else
 	{
 	    inform(soul[0], soul[1], environment(this_body()));
 	}
+    
+    return; 
+}
 
-	return; 
-    }
+mixed *parse_soul(string str) {
+    mixed result;
+    mixed soul;
+    
+    result = parse_my_rules(this_body(), str, 0);
+    if (!result) return 0;
+    if( intp(result) || stringp(result)) return 0;
+    soul = get_soul(result[0], result[1], result[2..]);
+    if (!soul) return 0;
+    return soul;
+}
 
-    mixed *parse_soul(string str) {
-	mixed result;
-	mixed soul;
+mixed *parse_imud_soul(string str) {
+    mixed result;
+    mixed soul;
+    
+    result = parse_my_rules(this_body(), str, 0);
+    if (!result) return 0;
+    if( intp(result) || stringp(result)) return 0;
+    
+    soul = get_imud_soul(result...);
+    if (!soul) return 0;
+    return soul;
+}
 
-	result = parse_my_rules(this_body(), str, 0);
-	if (!result) return 0;
-	if( intp(result) || stringp(result)) return 0;
-	soul = get_soul(result[0], result[1], result[2..]);
-	if (!soul) return 0;
-	return soul;
-    }
-
-    mixed *parse_imud_soul(string str) {
-	mixed result;
-	mixed soul;
-
-	result = parse_my_rules(this_body(), str, 0);
-	if (!result) return 0;
-	if( intp(result) || stringp(result)) return 0;
-
-	soul = get_imud_soul(result...);
-	if (!soul) return 0;
-	return soul;
-    }
-
-    void set_adverbs(string* mods)
-    {
-	if(!arrayp(mods)) error("bad arg type");
-	adverbs = mods;
-	unguarded(1, (: save_object, SAVE_FILE :));
-    }
+void set_adverbs(string* mods)
+{
+    if(!arrayp(mods)) error("bad arg type");
+    adverbs = mods;
+    unguarded(1, (: save_object, SAVE_FILE :));
+}
 
 
-    string* get_adverbs(){
-	return adverbs;
-    }
+string* get_adverbs(){
+    return adverbs;
+}
 
-    void add_adverb(string adverb)
-    {
-	if(!stringp(adverb)) error("bad arg type");
-	adverbs += ({adverb});
-	unguarded(1, (: save_object, SAVE_FILE :));
-    }
+void add_adverb(string adverb)
+{
+    if(!stringp(adverb)) error("bad arg type");
+    adverbs += ({adverb});
+    unguarded(1, (: save_object, SAVE_FILE :));
+}
 
-    void remove_adverb(string adverb)
-    {
-	adverbs -= ({adverb});
-	unguarded(1, (: save_object, SAVE_FILE :));
-    }
+void remove_adverb(string adverb)
+{
+    adverbs -= ({adverb});
+    unguarded(1, (: save_object, SAVE_FILE :));
+}
 
 
    

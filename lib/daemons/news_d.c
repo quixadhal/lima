@@ -28,10 +28,11 @@
  *
  * 941224, Deathblade: GUElib conversion
  * 950707, Rust: added system_post on July 7, 1995
- * 950724, Rust: added the restrict_group() interface on July 24, 1995.
  * ??????, Beek: modified the system to be automatic based on group prefixes.
  * 950811, Deathblade: converted to classes. added remove_post().
  * 9606xx, Ohara: added move_post() and reply_post.
+ * 961205, Ohara: added change_subject at DB's grovel^H^H^H^H^H^Hrequest.
+
  * 
  */
 
@@ -61,8 +62,9 @@ private mapping archive_info = ([ ]);
 
 private static mapping restrictions = 
 ([
-  "wiz" : (: wizardp :),
-  "admin" : (: adminp :)
+  "wiz" : ({ (: wizardp :), (: wizardp :) }),
+  "admin" : ({ (: adminp :), (: adminp :) }),
+  "." : ({ 0, (: adminp :) }),
 ]);
 
 #define is_group(x) (member_array(x,get_groups()) != -1)
@@ -76,7 +78,7 @@ nomask void save_me()
 {
     unguarded(1, (: save_object, SAVE_FILE :));
     foreach (string key in keys(recent_changes))
-	recent_changes[key] = ([]);
+    recent_changes[key] = ([]);
     save_recent();
 }
 
@@ -144,11 +146,11 @@ private nomask void convert_news()
 #define MSG_POSTER	5
 
 	    msg = new(class news_msg,
-		      time : post[MSG_TIME],
-		      thread_id : post[MSG_THREAD],
-		      subject : post[MSG_SUBJECT],
-		      poster : post[MSG_POSTER],
-		      body : post[MSG_MESSAGE]);
+	      time : post[MSG_TIME],
+	      thread_id : post[MSG_THREAD],
+	      subject : post[MSG_SUBJECT],
+	      poster : post[MSG_POSTER],
+	      body : post[MSG_MESSAGE]);
 	    msg->userid		= lower_case(msg->poster);
 
 	    contents[id] = msg;
@@ -162,7 +164,7 @@ private nomask void convert_news()
 nomask void create()
 {
     string rec;
-    
+
     set_privilege(1);
     if ( clonep(this_object()) )
     {
@@ -181,10 +183,10 @@ nomask void create()
     if (!recent_changes) {
 	recent_changes = ([]);
 	foreach (string key in keys(data))
-	    recent_changes[key] = ([]);
+	recent_changes[key] = ([]);
     } else {
 	int changed = 0;
-	
+
 	foreach (string key, mixed value in recent_changes) {
 	    if (value == "#removed#") {
 		map_delete(data, key);
@@ -217,7 +219,7 @@ private nomask int get_new_id(string group)
     int id = data[group]["next_id"]++;
 
     recent_changes[group]["next_id"] = data[group]["next_id"];
-    
+
     return id;
 }
 
@@ -238,11 +240,11 @@ nomask int post(string group, string subject, string message)
     if (!data[group]) return 0;
     post_id = get_new_id(group);
     msg = new(class news_msg,
-	      time : time(),
-	      thread_id : post_id,
-	      subject : subject,
-	      userid : this_user()->query_userid(),
-	      body : message);
+      time : time(),
+      thread_id : post_id,
+      subject : subject,
+      userid : this_user()->query_userid(),
+      body : message);
     msg->poster          = capitalize( msg->userid );
 
     data[group][post_id] = msg;
@@ -262,18 +264,18 @@ varargs nomask int system_post(string group,
     int post_id;
     class news_msg msg;
 
-//### need to think on this. I don't think we want to require priv 1
-//### ... especially since even *this* object doesn't have that.  And
-//### just checking the previous object is a no-no.
+    //### need to think on this. I don't think we want to require priv 1
+    //### ... especially since even *this* object doesn't have that.  And
+    //### just checking the previous object is a no-no.
     //    if ( get_privilege(previous_object()) != 1 )
     //	return 0;
     if ( !data[group] )
 	return 0;
     post_id = get_new_id(group);
     msg = new(class news_msg,
-	      time : time(),
-	      thread_id : post_id,
-	      subject : subject);
+      time : time(),
+      thread_id : post_id,
+      subject : subject);
     if ( poster )
     {
 	msg->poster = poster;
@@ -342,11 +344,11 @@ nomask int followup(string group, int id, string message)
     id = ((class news_msg)data[group][id])->thread_id;
 
     msg = new(class news_msg,
-	      time : time(),
-	      thread_id : id, /* link to original thread_id */
-	      subject : subject,
-	      userid : this_user()->query_userid(),
-	      body : message);
+      time : time(),
+      thread_id : id, /* link to original thread_id */
+      subject : subject,
+      userid : this_user()->query_userid(),
+      body : message);
     msg->poster       = capitalize( msg->userid );
 
     data[group][post_id] = msg;
@@ -380,14 +382,14 @@ nomask void remove_post(string group, int id)
     class news_msg msg;
 
     if ( !data[group] )
-        return;
+	return;
 
     msg = data[group][id];
     if ( !msg || !msg->body )
 	return;
 
-      if ((this_user() && !adminp(this_user()) && msg->userid != this_user()->query_userid()) &&
-        (msg->userid != base_name(previous_object())))
+    if ((this_user() && !adminp(this_user()) && msg->userid != this_user()->query_userid()) &&
+      (msg->userid != base_name(previous_object())))
     {
 	error("* illegal attempt to remove post\n");
     }
@@ -419,15 +421,42 @@ nomask string * get_groups()
     // expensive
     ret = filter(keys(data), function(string group)
       {
-	  // this will be "" if there is no '.'
-	  string prefix = group[0..member_array('.', group) - 1];
-	  function f = restrictions[prefix];
-	  if (!f) return 1;
+	  array a;
+	  string prefix;
+	  function f;
+	  int i = member_array('.', group, 1) - 1;
+	  if( i == -2) i = sizeof(group);
+
+	  prefix = group[0..i];
+	  a = restrictions[prefix];
+
+	  if( !sizeof(a)) return 1;
+	  f = a[0];
+    if(!f) return 1;
 	  return evaluate(f, this_user());
       }
     );
     return sort_array(ret, 1);
 }
+
+nomask int query_write_to_group( string group )
+{
+    function f;
+    array a;
+
+    string prefix;
+    int i = member_array('.', group, 1) - 1;
+    if( i == -2) i = sizeof(group);
+
+    prefix = group[0..i];
+
+    a = restrictions[prefix];
+    if( !sizeof(a)) return 1;
+    f = a[1];
+    if( !f) return 1;
+    return evaluate(f, this_user());
+}
+
 
 nomask int get_group_last_id(string group)
 {
@@ -526,6 +555,11 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
 	write( "Same group. Post not moved.\n");
 	return;
     }
+    if( query_write_to_group( to_group ))
+    {
+	write( "You don't have permission to move posts to " + to_group + "\n");
+	return;
+    }
     new_id = get_new_id(to_group);
     msg->body = "(Originally in " + curr_group + ")\n" + msg->body;
     data[to_group][new_id] = msg;
@@ -538,3 +572,25 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
 void remove() {
     save_me();
 }
+
+
+nomask void change_header( string group, int id, string header )
+{
+    class news_msg msg;
+    object tu = this_user();
+
+    msg = data[group][id];
+    if( !adminp( tu) && tu->query_userid() != msg->userid)
+    {
+	write( "You cannot change the subjects of posts that don't belong to you\n");
+    }
+    else if( sizeof( header ))
+	((class news_msg)data[group][id])->subject = header;
+    else
+	write( "Subject not changed.\n");
+    save_recent();
+    return;
+}
+
+
+

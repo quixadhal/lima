@@ -1,4 +1,4 @@
-
+$$ see: m_digger
 
 
 M_DIGGABLE
@@ -43,12 +43,6 @@ Other functions:
            If you wish you may overload any of thses functions to stop
            that action from happening.
 
-NOTES:
-
-   See also: M_DIGGER.
-
      
 
 Last updated: Wednesday, April 24, 1996.
-
-     

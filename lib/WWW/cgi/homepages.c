@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <net/http_d.h>
+#include <http_d.h>
 
 string main() {
     string *wizards;

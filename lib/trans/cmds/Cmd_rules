@@ -14,6 +14,7 @@ findfile -u	[str]
 force		user str*
 grep -inv	str [file|dir*]
 in		obj str*
+listeners	[str|obj]
 loadall		dir
 ls -npsl	[file|dir*]
 mkdir		fname

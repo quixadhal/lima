@@ -8,11 +8,7 @@ inherit CMD;
 
 private void main()
 {
-    object ob = this_body()->query_shell_ob();
-
     outf("Dir:  %s\nFile: %s\n",
-	   ob->get_variable("pwd") || "NONE",
-	   ob->get_variable("cwf") || "NONE");
+	 get_user_variable("pwd") || "NONE",
+	 get_user_variable("cwf") || "NONE");
 }
-
-              

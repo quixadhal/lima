@@ -198,7 +198,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 1.0a2",
+			      "Lima 1.0a3",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -351,16 +351,18 @@ private nomask void rcv_oob_req(string orig_mud, string orig_user,
     */
 }
 
-int stat_me()
+string stat_me()
 {
-    write("\nROUTER SOCKET: ");
+    string result = "\nROUTER SOCKET: ";
+
     if ( router_socket )
-	router_socket->stat_me();
+	result += router_socket->stat_me();
     else
-	write("<none>\n");
+	result += "<none>\n";
 
-    m_reconnect::stat_me();
-    oob::stat_me();
+    result +=
+	m_reconnect::stat_me() +
+	oob::stat_me();
 
-    return 1;
+    return result;
 }

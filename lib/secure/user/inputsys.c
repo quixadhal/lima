@@ -187,10 +187,7 @@ if (sizeof(modal_stack)==1) modal_stack=({ }); else
 	evaluate(info->return_to_func);
 }
 
-varargs nomask void modal_func(function input_func,
-			       mixed prompt,
-			       int secure
-			       )
+varargs nomask void modal_func(function input_func, mixed prompt, int secure)
 {
     modal_stack[<1]->input_func = input_func;
     if ( prompt )
@@ -206,8 +203,8 @@ static nomask void modal_recapture()
     if ( !(info = get_top_handler(1)) )
 	return;
 
-    /* auto-pop (modal_simple()) and char handlers don't have prompts */
-    if ( info->input_type == INPUT_NORMAL && info->prompt )
+    /* char handlers don't have prompts */
+    if ( info->input_type != INPUT_CHAR_MODE && info->prompt )
     {
 	prompt = evaluate(info->prompt);
 	if ( prompt )
@@ -236,9 +233,9 @@ static nomask void modal_recapture()
 ** NOTE: for multiple inputs, the standard push/pop is encouraged
 ** for efficiency reasons.
 */
-varargs nomask void modal_simple(function input_func, int secure)
+varargs nomask void modal_simple(function input_func, mixed prompt, int secure)
 {
-    push_handler(input_func, 0, secure, 0, INPUT_AUTO_POP);
+    push_handler(input_func, prompt, secure, 0, INPUT_AUTO_POP);
 }
 
 /*
@@ -283,7 +280,8 @@ private nomask void dispatch_modal_input(mixed str)
 {
     class input_info info;
 
-    if (str[0] == '!') {
+    if( str[0] == '!')
+    {
 	/* Dispatch ! escapes */
 	dispatch_to_bottom(str[1..]);
     } else {
@@ -354,13 +352,13 @@ nomask void force_me(string str)
 }
 
 
-int stat_me()
+string stat_me()
 {
     if ( check_previous_privilege(1) )
     {
-	printf("INPUT STACK:\n%O\n", modal_stack);
-	return 1;
+	return sprintf("INPUT STACK:\n%O\n", modal_stack);
     }
+    return "";
 }
 
 static nomask void clear_input_stack()

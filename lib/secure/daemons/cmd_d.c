@@ -10,7 +10,6 @@
 
 //  cmd_d.c written by Rust (John Viega, rust@virginia.edu) for the Lima mudlib, July 1995.
 
-#include <mudlib.h>
 #include <security.h>
 
 #define PLURAL		1
@@ -85,6 +84,7 @@ private void parse_verb_defs(string dir, string filecontents)
 			      cmd);
 	}
 	pathmap[cmd] = new(class proto_info);
+//### gross.
 	((class proto_info)pathmap[cmd])->proto_string = 
 	    replace_string( replace_string( replace_string( replace_string 
 							    (replace_string (replace_string( implode (words," "),
@@ -179,6 +179,16 @@ varargs void cache(string* paths)
     map(paths,(:cache_dir:));
 }
 
+int is_command(object o) {
+    mixed ret;
+    
+    if (function_exists("call_main") != CMD)
+	return 0;
+    if ((ret = o->not_a_cmd()) && (ret == 1 || ret == file_name(o)))
+	return 0;
+    return 1;
+}
+
 // This one won't match commands not in your path.  For players, mainly...
 varargs mixed find_cmd_in_path(string cmd, string* path)
 {
@@ -199,7 +209,7 @@ varargs mixed find_cmd_in_path(string cmd, string* path)
 	   is_file(dir+cmd+".c") &&
 	   o = load_object(dir+cmd))
 	{ 
-	    if(function_exists("call_main",o) != CMD)
+	    if (is_command(o))
 		return -1;
 	    return ({ o, dir, cmd });
 	}
@@ -218,7 +228,7 @@ varargs mixed find_cmd(string cmd, string* path)
     if (member_array('/', cmd) != -1) {
 	s = evaluate_path(cmd);
 	if(o = load_object(s)) {
-	    if(function_exists("call_main",o) == CMD) {
+	    if (is_command(o)) {
 		mixed tmp = split_path(s);
 		dir = tmp[0];
 		s = tmp[1];
@@ -259,7 +269,7 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 	switch (sizeof(matches)) {
 	case 1:
 	    if ((cmd_obj = load_object(matches[0])) &&
-		function_exists("call_main", cmd_obj) == CMD) {
+		is_command(cmd_obj)) {
 		mixed tmp = split_path(matches[0]);
 		this_path = tmp[0];
 		cmd_name = tmp[1][0..<3];
@@ -395,108 +405,131 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 
 private mixed parse_arg(int this_arg, mixed argv)
 {
-    int		hits;
-    mixed	untrimmed_argv;
-    array	result, string_result;
+  int		hits;
+  mixed	untrimmed_argv;
+  array	result = ({});
+  array       string_result;
     
-    untrimmed_argv = argv;
+  untrimmed_argv = argv;
 
-    if(stringp(argv)) {
-	argv = trim_spaces(argv);
+  if(stringp(argv)) {
+    argv = trim_spaces(argv);
 
-	if (this_arg & IS_PATH) {
-	    string path = evaluate_path(argv);
+    if (this_arg & IS_PATH) {
+      string path = evaluate_path(argv);
 
-	    result = glob(path);
+      result = glob(path);
 
-	    if (!sizeof(result) && (this_arg & IS_OBFILE)) {
-		object ob = get_object(argv);
-		if (ob)
-		    result = ({ base_name(ob) + ".c" });
+      if((this_arg & IS_CFILE))
+	{
+	  result = filter(result, (:!is_directory($1):));
+	}
+      if (!sizeof(result) && (this_arg & IS_OBFILE)) {
+	object ob = get_object(argv);
+	if (ob)
+	  {
+	    string bname = base_name(ob);
+	    if(is_file(bname + ".c"))
+	      result = ({ bname + ".c" });
+	    else
+	      {
+		if(is_file(bname + ".scr"))
+		  result = ({bname + ".scr"});
+	      }
+	  }
+      }
+      if (!sizeof(result) && (this_arg & IS_CFILE))
+	{
+	  int ix = strsrch(path, ".", -1);
+	  string extension = path[ix+1..];
+
+	  if(extension != "c" && extension != "scr")
+	    {
+	      result = glob(path + ".c") + glob(path + ".scr");
 	    }
+	}
 
-	    if (!sizeof(result) && (this_arg & IS_CFILE) &&
-		(strlen(path) <= 2 || path[<2..] != ".c"))
-		result = glob(path + ".c");
+      if ((this_arg & IS_FILE) && !(this_arg & IS_DIR))
+	result = filter(result, (: is_file :));
 
-	    if ((this_arg & IS_FILE) && !(this_arg & IS_DIR))
-		result = filter(result, (: is_file :));
+      if ((this_arg & IS_DIR) && !(this_arg & IS_FILE))
+	result = filter(result, (: is_directory :));
 
-	    if ((this_arg & IS_DIR) && !(this_arg & IS_FILE))
-		result = filter(result, (: is_directory :));
-
-	    if (!sizeof(result) && (this_arg & IS_FNAME)) {
-		if (is_directory(base_path(path)))
-		    result = ({ path });
-	    }
+      if (!sizeof(result) && (this_arg & IS_FNAME)) {
+	if (is_directory(base_path(path)))
+	  result = ({ path });
+      }
 	    
-	    if (!sizeof(result))
-		result = 0;
-	    else {
-		result = ({ this_arg & FILE_FLAGS, result });
-		hits++;
-	    }
-	}
-
-	if (this_arg & STR) {
-	    string_result = ({ STR, ({ untrimmed_argv }) });
-	    hits++;
-	}
-    }
-
-    if (this_arg & IS_OBJECT)
-    {
-	object ob;
-
-	if(stringp(argv))
-	    ob = get_object(argv);
-	else if (objectp(argv))
-	    ob = argv;
-	else
-	    ob = 0;
-
-	if((this_arg & ONLY_USER) && ob && !ob->query_link())
-	    ob = 0;
-
-	if(ob) {
-	    result = ({ this_arg & (IS_OBJECT | ONLY_USER), ({ ob }) });
-	    hits++;
-	}
-    }
-
-    if (this_arg & NUM)
-    {
-	int tmp;
-	
-	if (intp(argv))
-	{
-	    result = ({ NUM, ({ argv }) });
-	    hits++;
-	}
-	else if (sscanf(argv,"%d",tmp))
-	{
-	    result = ({ NUM, ({ tmp }) });
-	    hits++;
-	}
-    }
-
-    if(!hits)
-    { 
-	if (this_arg & IS_PATH)
-	    return -3;
-	else
-	    return -1;
+      if (!sizeof(result))
+	result = 0;
+      else {
+	result = ({ this_arg & FILE_FLAGS, result });
+	hits++;
+      }
     }
 
     if (this_arg & STR) {
-	if (hits == 1)
-	    result = string_result; // use string hit
-	else
-	    hits--; // discard string hit
+      string_result = ({ STR, ({ untrimmed_argv }) });
+      hits++;
+    }
+  }
+
+  if (this_arg & IS_OBJECT)
+    {
+      object ob;
+
+      if(stringp(argv))
+	ob = get_object(argv);
+      else if (objectp(argv))
+	ob = argv;
+      else
+	ob = 0;
+
+      if((this_arg & ONLY_USER) && ob && !ob->query_link())
+	ob = 0;
+
+      if(ob) {
+	result = ({ this_arg & (IS_OBJECT | ONLY_USER), ({ ob }) });
+	hits++;
+      }
     }
 
-    if(hits > 1)
-	return -2;
+  if (this_arg & NUM)
+    {
+      int tmp;
+	
+      if (intp(argv))
+	{
+	  result = ({ NUM, ({ argv }) });
+	  hits++;
+	}
+      else if (sscanf(argv,"%d",tmp))
+	{
+	  result = ({ NUM, ({ tmp }) });
+	  hits++;
+	}
+    }
 
-    return result;
+  if(!hits)
+    { 
+      if (this_arg & IS_PATH)
+	return -3;
+      else
+	return -1;
+    }
+
+  if (this_arg & STR) {
+    if (hits == 1)
+      result = string_result; // use string hit
+    else
+      hits--; // discard string hit
+  }
+
+  if(hits > 1)
+    return -2;
+
+  return result;
 }
+
+
+

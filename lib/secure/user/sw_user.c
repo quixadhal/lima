@@ -20,7 +20,7 @@ varargs void switch_body(string new_body_fname, int permanent);
 
 void register_failure(string addr);
 
-void modal_simple(function input_func, int secure);
+void modal_simple(function input_func, mixed prompt, int secure);
 
 void set_privilege(mixed priv);		// from M_ACCESS
 varargs mixed unguarded(mixed priv, function code);
@@ -129,6 +129,7 @@ nomask void switch_user(string str, string new_body)
 
     printf("switching to: '%s'\n", new_userid);
 
-    write("Password: ");
-    modal_simple((: confirm_valid_su, old_userid, new_userid, new_body :), 1);
+    modal_simple((: confirm_valid_su, old_userid, new_userid, new_body :),
+		 "Password: ",
+		 1);
 }

@@ -46,9 +46,9 @@ varargs mixed move(mixed dest, string where)
     mixed err;
     int light;
 
-//:HOOK prevent_drop
-//A yes/no/error type hook that can be used to prevent the object from being
-//moved out of it's environment.  The error value is discarded.    
+    //:HOOK prevent_drop
+    //A yes/no/error type hook that can be used to prevent the object from being
+    //moved out of it's environment.  The error value is discarded.    
     err = call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
     if (err == 0) err = MOVE_PREVENTED;
     if (stringp(err)) return err;
@@ -59,19 +59,22 @@ varargs mixed move(mixed dest, string where)
     if (!objectp(dest)) return MOVE_NO_DEST;
 
     if (dest->is_in(this_object()))
-       return "You can't move an object inside itself.\n";
+	return "You can't move an object inside itself.\n";
     env=environment();
     if (env) {
-        ret = env->release_object( this_object() );
-        if (ret == 0) ret = MOVE_NOT_RELEASED;
-        if (stringp(ret)) return ret;
+	ret = env->release_object( this_object() );
+	if (ret == 0) ret = MOVE_NOT_RELEASED;
+	if (stringp(ret)) return ret;
     }
     ret = dest->receive_object( this_object(), where );
     if (ret == 0) ret = MOVE_NOT_RECEIVED;
     if (stringp(ret)) {
 	if( env )
+    {
+        env->reinsert_object(this_object(), where);
 	    env->update_capacity();
-        return ret;
+    }
+	return ret;
     }
 
     last_location=env;
@@ -81,18 +84,18 @@ varargs mixed move(mixed dest, string where)
 
     move_object(dest);
 #ifdef USE_STATUS_LINE
-if( this_object()->has_status_line())
-    call_out( (: this_object()->update_status_line() :), 0);
+    if( this_object()->has_status_line())
+	call_out( (: this_object()->update_status_line() :), 0);
 
     ret = all_inventory( this_object());
     foreach( tmp in ret )
     {
-            if( tmp->has_status_line()) tmp->update_status_line();
+	if( tmp->has_status_line()) tmp->update_status_line();
     }
 #endif
 
-//:HOOK move
-//Called when an object moves.  The return value is ignored.
+    //:HOOK move
+    //Called when an object moves.  The return value is ignored.
     call_hooks("move", HOOK_IGNORE);
 
     /* requery light just in case a hook changed it (e.g. a sword stopped
@@ -105,13 +108,13 @@ if( this_object()->has_status_line())
      * a chance to do what it wants
      */
 
-//:HOOK object_left
-//Called when an object leaves an that object.  The return value is ignored.
-//The object moving is passed as the first arg.
+    //:HOOK object_left
+    //Called when an object leaves an that object.  The return value is ignored.
+    //The object moving is passed as the first arg.
 
-//:HOOK object_arrived
-//Called when an object arrives in an object.  The return value is ignored.
-//The object moving is passed as the first arg.
+    //:HOOK object_arrived
+    //Called when an object arrives in an object.  The return value is ignored.
+    //The object moving is passed as the first arg.
 
     if (env) env->call_hooks("object_left", HOOK_IGNORE, 0, this_object());
     dest->call_hooks("object_arrived", HOOK_IGNORE, 0, this_object());

@@ -62,10 +62,10 @@ nomask varargs void destruct(object ob, mixed arg) {
 	    catch(ob->remove(arg));
     } else {
 	// self destruct; presumably from non_object or some similar base
-        ob = previous_object();
+	ob = previous_object();
     }
     if (ob)
-        efun::destruct(ob);
+	efun::destruct(ob);
 }
 
 //:FUNC shutdown
@@ -76,7 +76,7 @@ nomask void shutdown()
     if ( check_privilege(1) )
 	efun::shutdown();
     else
-        error("Insufficient privilege to shut down.\n");
+	error("Insufficient privilege to shut down.\n");
 }
 
 //:FUNC query_snoop
@@ -103,36 +103,37 @@ varargs nomask mixed snoop(mixed snoopee)
 {
     object result;
 
-   if(snoopee && snoopee->query_body() && !snoopee->query_body()->
-	test_flag(F_SNOOPABLE)
-      && !check_privilege(1)) {
-	write("Failed.\n");
-	return 0;
+    if (snoopee) {
+	object body = snoopee->query_body();
+	
+	if (body && !body->test_flag(F_SNOOPABLE) && !check_privilege(1)) {
+	    write("Failed (permission denied).\n");
+	    return 0;
+	}
+	if (efun::query_snoop(snoopee)) {
+	    write("Busy.\n");
+	    return 0;
+	}
+	result = efun::snoop(this_user(), snoopee);
+	if(result && adminp(snoopee))
+	    tell(snoopee,sprintf("%s starts to snoop you!\n",
+				 this_body()->query_name()));
+    } else {
+	if (!efun::query_snooping(this_user())) {
+	    write("Not snooping.\n");
+	    return 0;
+	}
+
+	foreach (object u in users()) {
+	    if (efun::query_snoop(u) == this_user() && adminp(u))
+		tell(u, "You are no longer being snooped.\n");
+	}
+	result = efun::snoop(this_user());
     }
-    if (snoopee && efun::query_snoop(snoopee)) {
-	write("Busy.\n");
-	return 0;
-    }
-    if(!snoopee) {
-	object targ;
-	object* u;
-	int i;
-	u = users();
-	i = sizeof(u); while(i--)
-	    if(efun::query_snoop(u[i]) == this_user())
-		targ = u[i];
-	if(adminp(targ))
-	    tell(targ,"You are no longer being snooped.\n");
-    }
-    result = snoopee ? efun::snoop(this_user(), snoopee)
-    : efun::snoop(this_user());
     if (!result) {
 	write("Failed.\n");
     } else {
 	write("Ok.\n");
-	if(adminp(snoopee))
-	    tell(snoopee,sprintf("%s starts to snoop you!\n",
-		this_body()->query_name()));
     }
     return result;
 }

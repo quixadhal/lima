@@ -1,0 +1,134 @@
+is=moving room
+brief=elevator
+light=1
+
+destinations=
+  church:/domains/std/2.4.5/church.scr
+  attic:/domains/std/2.4.5/attic.scr
+  wiz hall:/domains/std/2.4.5/wiz_hall.scr
+  lima:/domains/std/wizroom
+end
+objects=
+  obj/elevator_internal_door.scr
+end
+
+long=You are in the elevator.  There are four buttons, labeled 'church', 'attic', 'wiz hall', and 'lima'.
+state[door_on]=\nThere is an open door to the east.\n
+state[door_off]=\nThere is an closed door to the east.\n
+
+setup:
+  lpc
+    move_to("church");
+    set_distance("church", "wiz hall", 26);
+    set_distance("attic", "wiz hall", 32);
+    set_distance("lima", "church", 16);
+    set_distance("lima", "attic", 10);
+    set_distance("lima", "wiz hall", 42);
+    set_in_progress((: tell_from_inside, this_object(), "The elevator continues ...\n" :), 1);
+    clear_room_state("door");
+    new(__DIR__ "obj/elevator_button.scr", "church")->move(this_object());
+    new(__DIR__ "obj/elevator_button.scr", "attic")->move(this_object());
+    new(__DIR__ "obj/elevator_button.scr", "wiz hall")->move(this_object());
+    new(__DIR__ "obj/elevator_button.scr", "lima")->move(this_object());
+  end
+
+---
+/* The destinations with their lamps lit */
+array queue = ({});
+int door_closing = 0;
+int query_door_open() { return query_state("door"); }
+
+void move_to(string dest) {
+    if (dest == "lima" || (dest == "attic" && query_where() != "lima") || (dest == "church" && query_where() == "wiz hall")) {
+	tell_from_inside(this_object(), "The elevator jerks upward.\n");
+    } else {
+        tell_from_inside(this_object(), "The elevator starts moving downward.\n");
+    }
+    ::move_to(dest);    
+}
+
+void handle_queue();
+
+void close_the_door() {
+    if (door_closing) {
+       remove_call_out(door_closing);
+       door_closing = 0;
+    }
+    clear_room_state("door");
+    tell_from_inside(query_location(), "The west door closes.\n");
+    handle_queue();
+}
+
+void open_the_door() {
+    set_room_state("door");
+    tell_from_inside(query_location(), "The west door opens.\n");
+}
+
+void automatic_close() {
+    door_closing = 0;    
+    tell_from_inside(this_object(), "The door closes.\n");
+    close_the_door();
+}
+
+void handle_queue() {
+    if (query_in_motion() || !sizeof(queue) || door_closing)
+	return;
+
+    if (query_door_open()) {
+	door_closing = call_out((: automatic_close :), 15);
+        return;
+   }
+
+   move_to(queue[0]);
+}
+
+/* add a destination to the queue. */
+void add_to_queue(string where) {
+    if (member_array(where, queue) != -1)
+	return;
+    queue += ({ where });
+    handle_queue();
+}
+
+void handle_press(string dest) {
+    this_body()->simple_action("$N $vpress the '" + dest + "' button.\n");
+    if (query_where() == dest) {
+        write("You are already there.\n");
+	return;
+    }
+    add_to_queue(dest);
+}
+
+void arrive() {
+    tell_from_inside(this_object(), "The elevator slows down and stops\n");
+    ::arrive();
+    add_exit("east", query_location());
+    queue -= ({ query_where() });
+    tell_from_inside(this_object(), "The door opens.\n");
+    open_the_door();
+    handle_queue();
+}
+
+mixed can_go_east() {
+    if (!query_state("door"))
+       return "The door is closed.\n";
+    return 1;
+}
+
+int query_open_at(string where) {
+  return query_door_open() && query_where() == where;
+}
+
+int
+call_elevator(string where) {
+    string cur = query_where();
+
+    if (where == cur || member_array(where, queue) != -1) {
+	write("Nothing happens.\n");
+	return 0;
+    }
+    this_body()->simple_action("$N $vpress the button, and a little light lamp beside it lights up.\n");
+    add_to_queue(where);
+
+    return 1;
+}

@@ -1,0 +1,12 @@
+is=room
+
+exits=
+  west: vill_green.scr
+  east: vill_road1.scr
+end
+brief=Village track
+long=
+  A track going into the village. The track opens up to a road to the east\n
+  and ends with a green lawn to the west.
+end
+light=1

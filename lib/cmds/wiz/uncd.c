@@ -5,7 +5,7 @@
 inherit CMD;
 
 private void main() {
-    object ob = this_body()->query_shell_ob();
+    object ob = this_user()->query_shell_ob();
     
     ob->swap_pwd();
 

@@ -1,0 +1,9 @@
+is=room
+light=0
+brief=Tunnel
+exits=
+  south:tunnel19.scr
+  west:tunnel21.scr
+  east:tunnel23.scr
+end
+long=Tunnel fork.

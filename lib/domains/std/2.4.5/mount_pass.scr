@@ -1,0 +1,16 @@
+is= room
+
+exits=
+  south:plane11.scr
+  north:mine/tunnel.scr
+  up:ravine.scr
+end
+brief=Mountain pass
+long=
+  You are in a pass going into the mountain with a steep slope\n
+  upwards to the north.\n
+  However, the path is barred.\n
+  There is a tunnel entrance to the north.\n
+  It might be possible to climb up, though
+end
+light=1

@@ -12,7 +12,7 @@ private void main(string * arg)
 {
     string path = arg[0] + "/";
     string * paths;
-    object shell_ob = this_body()->query_shell_ob();
+    object shell_ob = this_user()->query_shell_ob();
 
     paths = shell_ob->query_path();
 

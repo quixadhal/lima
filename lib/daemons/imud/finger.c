@@ -8,6 +8,8 @@
 
 #include <daemons.h>
 
+inherit CLASS_FINGER;
+
 void send_to_mud(string type, string mudname, mixed * message);
 void send_to_user(string type, string mudname, string username,
 		  mixed * message);
@@ -24,9 +26,9 @@ static nomask void rcv_finger_req(string orig_mud, string orig_user,
 				  string targ_user, mixed * message)
 {
     object p;
-    string * info;
+    class finger info;
 
-    info = FINGER_D->get_raw_data(message[0]);
+    info = FINGER_D->get_finger_data(message[0]);
     if ( !info )
     {
 	return_error(orig_mud, orig_user, "unk-user",
@@ -34,7 +36,18 @@ static nomask void rcv_finger_req(string orig_mud, string orig_user,
     }
     else
     {
-	send_to_user("finger-reply", orig_mud, orig_user, info);
+	mixed * packet = ({
+	    info->visname,
+	    info->title,
+	    info->real_name,
+	    info->email,
+	    info->last_login ? ctime(info->last_login) : 0,
+	    info->idle,
+	    info->connect_from,
+	    info->level,
+	    info->plan,
+	});
+	send_to_user("finger-reply", orig_mud, orig_user, packet);
     }
 }
 

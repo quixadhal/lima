@@ -16,7 +16,10 @@ private string		read_text;
 void
 set_text( string t )
 {
-    read_text = t;
+    if (t[0] == '/' && file_size(t))
+	read_text = read_file(t);
+    else
+	read_text = t;
 }
 
 string
@@ -89,10 +92,9 @@ void set_entry_synonyms(mapping s)
     synonyms = s;
 }
 
-
-
-
-
-
-
+mapping lpscript_attributes() {
+    return ([
+        "text" : ({ LPSCRIPT_STRING, "setup", "set_text" }),
+    ]);
+}
 

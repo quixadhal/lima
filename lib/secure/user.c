@@ -29,21 +29,6 @@ inherit __DIR__ "user/shell";
 private string		userid;
 
 
-/*
-//### hack variable :-)... used for upgrading existing data
-//###
-//### 0: original format
-//### 1: fixed body_fname; was unknown whether "proper"
-//### 2: renamed "name" variable to "userid"
-//### 3: fixed crypt() to use a real salt (FORTHCOMING)
-*/
-
-//### temp: upgrading file
-private int		data_version = 2;
-//### old variable
-private string		name;
-
-
 nomask string query_userid()
 {
     /*
@@ -86,29 +71,7 @@ static nomask void save_me()
 
 static nomask void restore_me(string some_userid, int preserve_vars)
 {
-//### always "read" this variable
-    data_version = 0;
-
     unguarded(1, (: restore_object, LINK_PATH(some_userid), preserve_vars :));
-
-//### upgrade old files
-    if(query_body_fname() == "/std/player")
-        set_body_fname(BODY);
-    if ( data_version == 0 )
-    {
-	if ( !query_body_fname() )
-	    set_body_fname(BODY);
-	data_version = 1;
-    }
-    if ( data_version == 1 )
-    {
-	if ( !userid )
-	{
-	    userid = name;
-	    name = 0;
-	}
-	data_version = 2;
-    }
 }
 
 private nomask void net_dead()

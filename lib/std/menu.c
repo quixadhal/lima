@@ -54,9 +54,7 @@ class menu {
 
 static void goto_menu(MENU);
 static void display_current_menu();
-static void return_to_current_menu();
 static void prompt_then_return();
-private int finish_completion(int);
 
 
 MENU 	current_menu, previous_menu;
@@ -442,12 +440,6 @@ goto_menu_silently(MENU m)
 }
 
 static void
-return_to_current_menu()
-{
-  modal_func((: parse_menu_input :), (: get_current_prompt :));
-}
-
-static void
 goto_previous_menu()
 {
   MENU swap;
@@ -544,93 +536,79 @@ display_current_menu()
 }
 
 
+private void finish_completion(
+    function completion_callback,
+    string *cur_choices,
+    string input
+    )
+{
+    int i;
 
+    if(input == "")
+	return;
 
-string* 	cur_choices;
-function 	completion_callback;
+    if(input == "r")
+    {
+	goto_menu(current_menu);
+	return;
+    }
+
+    if((i = to_int(input)) < 1 || i > sizeof(cur_choices))
+    {
+	write("Invalid choice.\n");
+	return;
+    }
+
+    evaluate(completion_callback, cur_choices[i-1]);
+    need_refreshing = 1;
+}
+
 
 varargs static void 
 complete_choice(string input, string* choices, function f)
 {
-  string* 	matches;
-  int		i;
-  string	output;
+    string* 	matches;
+    int		i;
+    string	output;
 
-  if(input)
-    matches = M_REGEX->insensitive_regexp(cur_choices, 
-					M_GLOB->translate(input,1));
-  else matches = choices;
+    if(input)
+	matches = M_REGEX->insensitive_regexp(choices, 
+					      M_GLOB->translate(input, 1));
+    else
+	matches = choices;
 
-  switch(sizeof(matches))
+    switch(sizeof(matches))
     {
     case 0:
-      write("Invalid selection.\n");
-      return;
+	write("Invalid selection.\n");
+	break;
+
     case 1:
-      evaluate(f, matches[0]);
-      return;
+	evaluate(f, matches[0]);
+	break;
+
     default:
-      output = "Select choice by number\n"
-	       "-----------------------\n";
-      for(i=1; i<= sizeof(matches); i++)
-	  output += sprintf("%=3d)  %s\n", i, matches[i-1]);
-      modal_func((: finish_completion :),
-		 "[Enter number or r to return to menu] ");
-      // Don't do this before the modal_func I'll bet...
-      more(output);
-      completion_callback = f;
-      cur_choices = matches;	
-      return;
+	output = "Select choice by number\n"
+	    "-----------------------\n";
+	for(i=1; i<= sizeof(matches); i++)
+	    output += sprintf("%=3d)  %s\n", i, matches[i-1]);
+	modal_simple((: finish_completion, f, matches :),
+		     "[Enter number or r to return to menu] ");
+	more(output);
+	break;
     }
 }
 
 
-private int
-finish_completion(string input)
+static void get_input_then_call(function thencall, string prompt)
 {
-  int i;
-  if(input == "")
-    return;
-  if(input == "r")
-    {
-      modal_func((: parse_menu_input :), (: get_current_prompt :));
-      goto_menu(current_menu);
-      return;
-    }
-  if((i = to_int(input)) < 1 || i > sizeof(cur_choices))
-    {
-      write("Invalid choice.\n");
-      return;
-    }
-  // Put this before the evaluate so that the callback can change things.
-  modal_func((: parse_menu_input :), (: get_current_prompt :));
-  evaluate(completion_callback, cur_choices[i-1]);
-  cur_choices = 0;
-  completion_callback = 0;
-  need_refreshing = 1;
-}
-
-//### probably should be static too
-void
-receive_string(function thencall, string input)
-{
-  // order here is important!  prompt_then_return() won't work
-  // from your callback if the evaluate() goes first.
-  modal_func((: parse_menu_input :), (: get_current_prompt :));
-  evaluate(thencall, input);
-}
-
-static void
-get_input_then_call(function thencall, string prompt)
-{
-    modal_func((: receive_string, thencall :), prompt);
+    input_one_arg(prompt, thencall);
 }
   
-static void 
-prompt_then_return()
+static void prompt_then_return()
 {
-    modal_func((: return_to_current_menu :),
-	       "[Hit enter to return to menu] ");
+    /* just ignore the input... */
+    modal_simple((: 0 :), "[Hit enter to return to menu] ");
 }
 
 //### probably should be static too

@@ -1,0 +1,20 @@
+is= living,actor
+
+name= Beavis
+gender= male
+proper_name= Beavis
+in_room_desc= Beavis mills about, periodically scratching his nads.
+long= His body odor prevents you from getting too close.
+
+insulted:
+  delay 2
+  !slut butthead
+  $butthead = find "butthead" here
+  call $butthead "insulted"
+end
+
+trigger[* kicks you in the nads.]:
+  !scream in pain!
+
+introduce:
+  action $N $vstroll out of the shadows, laughing about $p nads.

@@ -1,14 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-private string lobotomize (string s)
-{
-  s = lower_case (s);
-  return s;
-  //  s = replace_string (s, "[","\\[");
-  //  return replace_string (s, "]","\\]");
-}
+inherit M_GLOB;
+inherit M_REGEX;
 
-private string get_mudlib (string s)
+private string get_mudlib(string s)
 {
   switch (s[0..3])
     {
@@ -25,82 +20,74 @@ private string get_mudlib (string s)
     }
 }
 
-private string mail_link (string s)
+private string get_driver(string s)
+{
+  switch (s[0..4])
+    {
+    case "MudOS":
+      return "<a href=http://ie.imaginary.com/~beek/mudos>" + s + "</a>";
+    default:
+      return s;
+    }
+}
+
+private string mail_link(string s)
 {
   if (s == "unknown")
     {
       return s;
     }
 
-  return sprintf ("<a href=mailto:%s>%s</a>", s, s);
+  return sprintf("<a href=mailto:%s>%s</a>", s, s);
 }
 
-string main (string pattern) 
+string main(string pattern) 
 {
   string	ret = "";
-  mapping	mudlist	= IMUD_D->query_mudlist ();
-  mapping	upmuds;
-  int		nummuds = sizeof (mudlist);
-  string	mudname;
-  mixed array	data;
+  mapping	mudlist	= IMUD_D->query_mudlist();
+  int		nummuds = sizeof(mudlist);
+  string array  muds = keys(mudlist);
+  array 	data;
+  string array  matches;
+  array         arg;
 
-  if (!pattern)
+  if ( !pattern )
+    matches = muds;
+  else
     {
-      pattern = "*";
+      matches = insensitive_regexp(muds, "^" + translate(pattern));
+      if ( !sizeof(matches) )
+	{
+	  return "<h3>No muds match your pattern.</h3>";
+ 	}
     }
   
-  pattern = lower_case (pattern);
-  pattern = M_GLOB->translate (pattern);
-  mudlist = filter_mapping (mudlist, (: regexp (lobotomize($1), $(pattern)) :));
-  /*  if (!sizeof (mudlist))
-    {
-      return sprintf ("<h3>No muds out of %d match your pattern.<h3>", nummuds);
-    }
-    */
-  
-  upmuds  = filter_mapping (mudlist, (: $2[0] == -1 :));
+  matches = filter_array(matches, (: $(mudlist)[$1][0] == -1 :));
+  ret += sprintf("<TABLE BORDER=5><caption><h2>There are currently "+
+		  sizeof(matches)+" muds UP out of "+
+		  sizeof(mudlist)+ " muds on the I3:"+
+		  "</h2></caption>"+
+		  "<TR><TH>Mud Name</TH><TH>Mudlib</TH><TH>Server</TH>"+
+		  "<TH>Type</TH>"+
+		  "<TH>Mud Status</TH><TH>Admin contact</TH></TR>");
 
-  if (!sizeof (upmuds))
+   foreach ( string mudname in sort_array(matches, 1) )
     {
-      return "<h3>No muds match your pattern.</h3>";
+      data = mudlist[mudname];
+      ret += sprintf("<TR><TD><font size=+2><em>"+
+		      "<a href=telnet://%s:%d>%s</a></em>"+
+		      "</font></TD><TD>%s</TD><TD>%s</TD><TD>%s"+
+		      "</TD><TD>%s</TD>"
+		      "<TD>%s</TD></TR>",
+		      data[1], 
+		      data[2], 
+		      mudname, 
+		      get_mudlib(data[6]), 
+		      get_driver(data[7]), 
+		      data[8], 
+		      data[9],
+		      mail_link(data[10]));
     }
-
-  mudlist = filter_mapping (mudlist, (: $2[0] != -1 :));
-
-  if (sizeof (upmuds))
-    {
-      ret += sprintf ("<TABLE BORDER=5><caption><h2>Currently on the I3:</h2></caption>"
-		      "<TR><TH>Mud Name</TH><TH>Mudlib</TH><TH>Server</TH><TH>Type</TH>"
-		      "<TH>Mud Status</TH><TH>Admin contact</TH></TR>");
-      foreach (mudname in sort_array (keys (upmuds), 1))
-	{
-	  data = upmuds[mudname];
-	  ret += sprintf ("<TR><TD><font size=+2><em><a href=telnet://%s:%d>%s</a></em>"
-			  "</font></TD><TD>%s</TD><TD>%s</TD><TD>%s</TD><TD>%s</TD>"
-			  "<TD>%s</TD></TR>",
-			  data[1], data[2], mudname, get_mudlib (data[6]), 
-			  data[7], data[8], data[9],
-			  mail_link (data[10]));
-	}
-	ret += "</TABLE><p><p>";
-    }
-  /*  
-  if (sizeof (mudlist))
-    {
-      ret += sprintf ("<TABLE BORDER=5><caption><h2>Not Connected (may be down):<h2></caption>"
-		      "<TR><TH>Mud Name</TH><TH>Mudlib</TH><TH>Server</TH><TH>Type</TH>"
-		      "<TH>Mud Status</TH><TH>Admin contact</TH></TR>");
-      foreach (mudname in sort_array (keys (mudlist), 1))
-	{
-	  data = mudlist[mudname];
-	  ret += sprintf ("<TR><TD><font size=+2><em><a href=telnet://%s:%d>%s</a></em>"
-			  "</font></TD><TD>%s</TD><TD>%s</TD><TD>%s</TD><TD>%s</TD>"
-			  "<TD><a href=mailto:%s>%s</a></TD></TR>",
-			  data[1], data[2], mudname, data[6], data[7], data[8], data[9],
-			  data[10], data[10]);
-	}
-	ret += "</TABLE>";
-    }
-    */
-  return ret;
+   ret += "</TABLE><p><p>";
+   return ret;
 }

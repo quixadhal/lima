@@ -1,2 +1,3 @@
 #/daemons/money_d.c
-money (["Felbar":({130,(["copper":"copper circon","silver":"silver circon","platinum":"platinum centron","gold":"golden circon",]),}),"Armstet":({61,([]),}),"Armstest":({100,([]),}),"Tharanian":({100,(["copper":"zorkmid","silver":"silvercrown","platinum":"platinum royal","gold":"golden falcon","steel":"steelbeek",]),}),])
+rates (["silver":10000,"electrum":1000,"gold":100000,"platinum":1000000,"copper":100,"dollar":1000,])
+areas ([])

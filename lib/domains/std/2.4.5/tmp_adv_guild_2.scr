@@ -1,0 +1,7 @@
+is=object,gettable
+getmsg=The chain is secured to the wall.
+id=chain
+flag=attached
+long=
+  The chain is secured to the wall.
+end

@@ -35,7 +35,7 @@ private void main()
 	case 81..90: rank = "complete and utter player";break;
 	case 91..99: rank = "veteran player";break;
 	default:
-	  if(pts < 0 ) rank = "blundering buffon";
+	  if(pts < 0 ) rank = "blundering buffoon";
 	  else rank = "Dungeon Master";
     }
     if(total)

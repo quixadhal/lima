@@ -1,0 +1,38 @@
+is= secret door
+
+primary_id= door
+primary_adj= large oak
+adj= large,oak
+long= It is about 10 feet tall, and very beautiful.
+closed= 1
+
+do_on_open:
+  call here "set_room_state" "oak_door"
+
+do_on_close:
+  call here "clear_room_state" "oak_door"
+
+setup[string dir]:
+  lpc
+    add_hook( "open", (: do_on_open :));
+    add_hook( "close", (: do_on_close :));
+    setup_door("large oak door", dir)
+  end
+
+---
+mixed do_on_close();
+mixed do_on_open();
+
+void update_sibling()
+{
+    object sibling = get_sibling();
+    // Needed for initial load ...\
+    if( !sibling )
+	return;
+
+    // Magic ...
+    if( is_open())
+	sibling->do_on_open();
+    else sibling->do_on_close();
+    ::update_sibling();
+}

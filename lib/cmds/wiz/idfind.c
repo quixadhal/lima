@@ -13,6 +13,7 @@
 inherit CMD;
 
 mapping envs;
+    string argo;
 
 private void main(string arg)
 {
@@ -20,10 +21,12 @@ private void main(string arg)
 
     if( !arg )
     {
-        write( "Idfind what?\n");
-return;
-}
-    obs = objects( (: $1->id( "arg" ) :));
+	write( "Idfind what?\n");
+	return;
+    }
+
+    argo = arg;
+    obs = objects( (: $1->id( argo ) :));
 
     envs = ([ ]);
     map_array(obs, (: envs[$1] = environment($1) :));

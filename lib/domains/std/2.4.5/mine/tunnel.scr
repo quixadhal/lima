@@ -1,0 +1,22 @@
+is=room
+light=1
+brief=Mine entrance
+exits=
+  south:../mount_pass.scr
+  north:tunnel2.scr
+end
+objects=
+  sign=
+    id=sign,pole
+    is=object,readable
+    flag=attached
+    long=
+      WARNING !!\n\n
+      The mines are closed due to risk of falling rock.
+    end
+    text=
+      WARNING !!\n\n
+      The mines are closed due to risk of falling rock.
+    end
+  end
+end

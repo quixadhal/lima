@@ -3,6 +3,9 @@
 //  _shout.c
 // Mars@ZorkMUD  4-24-94
 
+// 961216, Deathblade: noted that the only original line in this file is
+//                     the header. :-)  Go Mars!
+
 #include <mudlib.h>
 inherit CMD;
 inherit M_GRAMMAR;

@@ -1,5 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <bodyslots.h>
 inherit ARMOR;
 
 void setup() {
@@ -7,4 +8,7 @@ void setup() {
     set_id("shirt", "chainmail");
     set_armor_class(4);
     set_resist("blade", 2); // a little better against blades
+#ifdef USE_BODYSLOTS
+  set_slot(TORSO);
+#endif
 }

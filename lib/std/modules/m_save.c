@@ -47,8 +47,9 @@ varargs string save_to_string(int recursep) {
     string var;
     mapping map = ([]);
 
+//### setting a property based on a function arg?  Gross.
     if (recursep)
-      set_save_recurse (1);
+      set_save_recurse(1);
 
     tmpsaved  = decompose(map(saved, (: functionp($1) ? evaluate($1, "saving") : $1 :)));
     tmpsaved -= ({0});
@@ -57,7 +58,7 @@ varargs string save_to_string(int recursep) {
 
     map["#base_name#"] = base_name(this_object());
     if (save_recurse)
-	map["#inventory#"] = deep_inventory( this_object())->save_to_string() - ({ 0 });
+	map["#inventory#"] = all_inventory()->save_to_string(1) - ({ 0 });
 
     return save_variable(map);
 }

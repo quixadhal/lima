@@ -19,9 +19,8 @@ private void main(string arg)
     out(mud_name() + " has no player skills, sorry.\n");
 #else
 
-    class skill * skills = this_body()->get_skills();
-    string name;
-    class skill skill;
+    mapping skills = this_body()->get_skills();
+    string * names = sort_array(keys(skills), 1);
 
     if ( sizeof(skills) == 0 )
     {
@@ -29,11 +28,16 @@ private void main(string arg)
 	return;
     }
 
-    out("Your skills are:\n");
-    foreach ( name, skill in skills )
+    outf("%-20s %8s  %8s\n%*'-'s\n", "Skill", "Points", "Training", 50, "");
+
+    foreach ( string name in names )
     {
-	outf("%20s: %5d  %5d\n",
-	     name, skill->skill_points, skill->training_points);
+	class skill skill = skills[name];
+	string * parts = explode(name, "/");
+	string name2 = repeat_string("   ", sizeof(parts)-1) + parts[<1];
+	
+	outf("%-20s %8d  %8d\n",
+	     name2, skill->skill_points, skill->training_points);
     }
 
 #endif /* USE_SKILLS */

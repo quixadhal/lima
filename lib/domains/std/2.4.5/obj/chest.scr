@@ -1,0 +1,9 @@
+is=container,openable,valuable
+id=chest
+long=A chest that seems to be of a high value.
+value=200
+weight=8
+
+setup[int money]:
+   lpc
+       new("/std/coins", money, "gold")->move(this_object())

@@ -1,0 +1,11 @@
+is=room
+
+exits=
+  south:plane6.scr
+  north:mount_pass.scr
+  east:plane13.scr
+  west:plane12.scr
+end
+brief=A large open plain
+long=A large open plain, There is a mountain to the north.
+light=1

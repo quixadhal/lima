@@ -48,7 +48,7 @@ int disk_usage(string path, int level) {
 private void main(mixed* arg)
 {
     if (!arg[0])
-	arg[0] = this_body()->query_shell_ob()->get_variable("pwd");
+	arg[0] = get_user_variable("pwd");
 
     disk_usage(arg[0],0);
 }

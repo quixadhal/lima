@@ -1,0 +1,24 @@
+is=room
+brief=A maze
+long=
+  In a maze.\n
+  There are four obvious exits: north, south, west and east.
+end
+exits=
+  north:maze3.scr
+  east:../well.scr
+  west:../well.scr
+  south:maze2.scr
+end
+setup:
+  oneof
+    lpc
+      add_exit("north", "maze5");
+    lpc
+      add_exit("south", "maze5");
+    lpc
+      add_exit("east", "maze5");
+    lpc
+      add_exit("west", "maze5");
+  end
+end

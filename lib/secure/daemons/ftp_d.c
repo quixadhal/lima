@@ -9,13 +9,22 @@
 ** Seems to want some other command to work for some weird reason,
 ** and this FTPD won't do it, let me know and I'll add it in.
 **
+** Myth@Icon of Sin - Jan 19, 1997
+**  o Fixed STOR:
+**    o ascii: removed \r's
+**    o binary: added a fileposition flag
+**  o Added the SYST command.
+**  o Added line checking to the read callback.
+**  o Fixed send so that larger files can be handled without difficulty.
+**
 */
 
 #include <socket.h>
 #include <assert.h>
 #include <log.h>
-#include <net/ftp_d.h>
 #include <clean_up.h>
+#include <ftp_d.h>
+#include <ports.h>
 
 inherit M_ACCESS;
 
@@ -38,14 +47,16 @@ private static mapping dispatch =
   "port" : (: FTP_CMD_port :),
   "noop" : (: FTP_CMD_noop :),
   "dele" : (: FTP_CMD_dele :),
+  "syst" : (: FTP_CMD_syst :),
 ]);
 
 private object sock;
 
+private mixed outfile=([]);
+
 #ifdef ALLOW_ANON_FTP
 private static string array anon_logins = ({"anonymous", "ftp"});
 #endif
-
 
 private void FTPLOGF(string format, string array args...)
 {
@@ -81,7 +92,6 @@ private void FTP_handle_idlers()
       if(info->idleTime > MAX_IDLE_TIME+60)
 	{
 	  FTPLOGF("%s idled out at %s.\n", info->user, ctime(time()));
-	  map_delete(sessions, info->cmdPipe);
 	  destruct(info->cmdPipe);
 	}
     }
@@ -119,9 +129,10 @@ private void FTP_write(object socket)
 
 private void FTP_read(object socket, string data)
 {
-  string		cmd, arg;
+  string                cmd, arg;
   class ftp_session	thisSession;
   function		dispatchTo;
+  int i;
 
   /* If there is no data, it's a new connection. */
   if (!data)
@@ -130,9 +141,19 @@ private void FTP_read(object socket, string data)
       FTP_addSession(socket);
       return;
     }
-  data = trim_spaces(data);
+
   thisSession = sessions[socket];
   thisSession->idleTime = 0;
+
+  if (!thisSession->command) thisSession->command="";
+
+  data=replace_string(data,"\r","");
+  thisSession->command+=data;
+  if ((i=strsrch(thisSession->command,"\n"))==-1) return;
+  data=thisSession->command[0..i-1];
+  thisSession->command=thisSession->command[i+1..];
+
+  thisSession->command=trim_spaces(thisSession->command);
 
   /* get the command and argument. */
   if (!sscanf(data, "%s %s", cmd, arg))
@@ -191,9 +212,8 @@ private void FTP_close(object socket)
 
 private void create()
 {
-    set_privilege(1);
-    sock = new(SOCKET, SKT_STYLE_LISTEN, FTP_PORT, (: FTP_read :),
-	       (: FTP_close :));
+  sock = new(SOCKET, SKT_STYLE_LISTEN, PORT_FTP, (: FTP_read :),
+	     (: FTP_close :));
 }
 
 private void FTP_DATA_read(object socket, mixed text)
@@ -205,10 +225,12 @@ private void FTP_DATA_read(object socket, mixed text)
   switch(info->binary)
     {
     case 0:
+      text=replace_string(text,"\r","");
       unguarded(info->priv, (:write_file($(info->targetFile), $(text)):));
       return;
     case 1:
-      unguarded(info->priv, (:write_buffer($(info->targetFile), 0, $(text)):));
+      unguarded(info->priv, (:write_buffer($(info->targetFile), $(info->filepos), $(text)):));
+      info->filepos+=sizeof(text);
       return;
     default:
       ENSURE(0);
@@ -270,8 +292,8 @@ private void FTP_CMD_pass(class ftp_session info, string arg)
       info->connected = 1;
       info->priv = 0;
       info->pwd = ANON_PREFIX;
-      FTPLOGF("Anomymous login from %s at %s (email = %s).\n", 
-	      info->cmdPipe->address()[0], ctime(time()), arg);
+      FTPLOGF("Anomymous login from %s (email = %s)\n", 
+	      info->cmdPipe->address()[0], arg);
       return;
     }
 #endif
@@ -294,8 +316,8 @@ private void FTP_CMD_pass(class ftp_session info, string arg)
     }
   info->cmdPipe->send(sprintf("230 User %s logged in.\n", info->user));
   info->connected = 1;
-  FTPLOGF("%s connected from %s at %s.\n", capitalize(info->user), 
-	      info->cmdPipe->address()[0], ctime(time()));
+  FTPLOGF("%s connected from %s.\n", capitalize(info->user), 
+	      info->cmdPipe->address()[0]);
 
   if(adminp(info->user))
     {
@@ -306,10 +328,6 @@ private void FTP_CMD_pass(class ftp_session info, string arg)
       info->priv = info->user;
     }
   info->pwd = join_path(WIZ_DIR,info->user);
-  if(!is_directory(info->pwd))
-    {
-      info->pwd = FTP_DIR;
-    }
   return;
 }
 
@@ -452,8 +470,8 @@ private void FTP_CMD_list(class ftp_session info, string arg)
       return;
     }
 
-  output = map(files, (:sprintf("%=9s %s %s", $1[1] == -2 ? "/" : 
-				sprintf("%d", $1[1]), ctime($1[2])[4..], $1[0])
+  output = map(files, (:sprintf("%s %=9s %s %s", $1[1] == -2 ? "drwxrwsr-x" : "-rwxrw-r--",
+         $1[1] == -2 ? "/" : sprintf("%d", $1[1]), ctime($1[2])[4..], $1[0])
 		       :));
   info->cmdPipe->send("150 Opening ascii mode data connection for file list\n");
   info->dataPipe->send(implode(output, "\r\n")+"\r\n");
@@ -465,6 +483,7 @@ private void FTP_CMD_retr(class ftp_session info, string arg)
   string	target_file;
   string	strToSend;
   buffer	bufToSend;
+  int           i;
 
   NEEDS_ARG();
   
@@ -497,38 +516,27 @@ private void FTP_CMD_retr(class ftp_session info, string arg)
   switch(info->binary)
     {
     case 0:	
-      strToSend = unguarded(info->priv, 
-			    (:replace_string(read_file($(target_file)),"\n",
-					     "\r\n"):));
-      if(!strToSend)
-	{
-	  info->cmdPipe->send(sprintf("550 %s: Permission denied.\n",
-				      target_file));
-	  destruct(info->dataPipe);
-	  return;
-	}
+      i=file_size(target_file);
       FTPLOGF("%s GOT %s.\n", capitalize(info->user), target_file);
+
+      outfile[info->dataPipe]=({target_file,0,0,info->cmdPipe});
+      info->dataPipe->set_write_callback((: FTP_CMD_retr_callback :));
+
       info->cmdPipe->send(sprintf("150 Opening ascii mode data connection for "
-				  "%s (%d bytes).\n", target_file, 
-				  strlen(strToSend)));
-      info->dataPipe->send(strToSend);
+				  "%s (%d bytes).\n", target_file, i));
+
+      info->dataPipe->send(FTP_CMD_retr_callback(info->dataPipe));
       break;
     case 1:
-      bufToSend = unguarded(info->priv, (:read_buffer($(target_file)):));
-      if(!bufToSend)
-	{
-	  info->cmdPipe->send(sprintf("550 %s: Permission denied.\n",
-				      target_file));
-	  destruct(info->dataPipe);
-	  return;
-	}
-      FTPLOGF("%s GOT %s.\n", capitalize(info->user), target_file);
-      info->cmdPipe->send(sprintf("150 Opening binary mode data connection "
-				  "for %s (%d bytes).\n", target_file, 
-				  file_size(target_file)));
+      i=file_size(target_file);
 
-      /* Check to make sure there's a valid data port here. */
-      info->dataPipe->send(bufToSend);
+      outfile[info->dataPipe]=({target_file,1,0,info->cmdPipe});
+      info->dataPipe->set_write_callback((: FTP_CMD_retr_callback :));
+
+      info->cmdPipe->send(sprintf("150 Opening binary mode data connection "
+				  "for %s (%d bytes).\n", target_file, i));
+
+      info->dataPipe->send(FTP_CMD_retr_callback(info->dataPipe));
       break;
     default:
       ENSURE(0);
@@ -589,6 +597,9 @@ private void FTP_CMD_stor(class ftp_session info, string arg)
       return;
     }
   FTPLOGF("%s PUT %s.\n", capitalize(info->user), arg);
+
+  // Reset the file position flag.
+  info->filepos=0;
   info->cmdPipe->send(sprintf("150 Opening %s mode data connection for %s.\n",
 			      info->binary ? "binary" : "ascii",
 			      arg));
@@ -715,9 +726,14 @@ void remove()
 	  destruct(item->dataPipe);
 	}
     }
-    destruct(sock);
+
+  destruct(sock);
 
   remove_call_out("FTP_handle_idlers");
+}
+
+int clean_up() {
+ return 0;
 }
 
 string array list_users()
@@ -726,8 +742,30 @@ string array list_users()
 				((class ftp_session)$1)->user : "(login)" :));
 }
 
+private void FTP_CMD_syst(class ftp_session info, string arg) {
+ info->cmdPipe->send("215 UNIX Mud Name: "+mud_name()+"\n");
+}
 
-int clean_up()
-{
-  return ASK_AGAIN;
+string FTP_CMD_retr_callback(object ob) {
+ function f;
+ string s;
+ int start,length;
+ mixed ret;
+
+ if (!ob || undefinedp(outfile[ob])) return 0;
+
+ start=outfile[ob][2];
+ length=FTP_BLOCK_SIZE;
+ outfile[ob][2]+=length;
+
+ if (start+length>file_size(outfile[ob][0])) length=file_size(outfile[ob][0])-start;
+
+ ret=read_buffer(outfile[ob][0],start,length);
+
+ if (start+length>=file_size(outfile[ob][0])) {
+  map_delete(outfile,ob);
+  ob->set_write_callback((:FTP_write:));
+ }
+
+ return ret;
 }

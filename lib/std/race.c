@@ -3,6 +3,7 @@
 inherit BODY;
 
 #ifdef USE_STATS
+
 /*
  * Ok, quick explanation:
  *
@@ -43,19 +44,6 @@ int racial_wis_bonus() {
 int racial_cha_bonus() {
 }
 
-/* influence combat :-) */
-int to_hit_base() {
-    return 50 - query_agi();
-}
-
-int hit_skill() {
-    return fuzzy_divide(query_agi(), 2) /* + something based on skill... */;
-}
-
-int damage_bonus() {
-    return fuzzy_divide(query_str(), 10);
-}
-
 nomask int *query_transformation_matrix() {
     if (clonep())
 	return base_name()->query_transformation_matrix();
@@ -76,24 +64,12 @@ nomask int *query_constant_vector() {
 
     return ({ racial_con_bonus(), racial_wis_bonus(), racial_cha_bonus() });
 }
-#else
-// Maybe make these level based ?
-int to_hit_base() {
-    return 50;
-}
 
-int hit_skill() {
-    return 10;
-}
+#endif /* USE_STATS */
 
-int damage_bonus() {
-    return 0;
-}
-#endif
 
 // A default query_race, just in case it is forgotten
-
 string query_race()
 {
-  error("No valid query_race() defined...\n");
+    error("No valid query_race() defined...\n");
 }

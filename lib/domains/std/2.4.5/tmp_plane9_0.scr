@@ -1,0 +1,12 @@
+is=monster
+proper_name=frog
+in_room_desc=A cute little frog
+weapon_class=4
+objects=
+  crown=
+    is=object,valuable
+    primary_adj=iron
+    primary_id=crown
+    value=30
+  end
+end

@@ -1,8 +1,0 @@
-You will be required to make your code portable.  To do this,
-follow the examples in /gue/borphee/* for creating rooms, etc..
-You will need to look at /gue/sys/borphee.h and create a simmilar file.
-
-This is necessary so we can move your code to a central place when
-it is completed... the path names to your objects, rooms and monsters
-will only need to be changed in one central place, instead of all
-over your directory

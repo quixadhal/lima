@@ -1,0 +1,11 @@
+is= room
+
+exits=west:mount_top.scr
+brief=Plateau
+long=
+  You are on a large, open plateau on top of the mountain.\n
+  The view is fantastic in all directions and the clouds\n
+  that rush past above feels so close you could almost\n
+  touch them. The air here is fresh and clean.
+end
+light=1

@@ -1,0 +1,6 @@
+is=room
+
+exits=west:forest4.scr
+brief=Deep forest
+long=You are in the deep forest.
+light=1

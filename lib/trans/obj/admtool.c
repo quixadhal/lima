@@ -16,38 +16,73 @@
 inherit M_ACCESS;
 inherit M_INPUT;
 
-inherit __DIR__ "admtool/user";
-inherit __DIR__ "admtool/i3chan";
 inherit __DIR__ "admtool/security";
 inherit __DIR__ "admtool/domain";
-inherit __DIR__ "admtool/news";
 inherit __DIR__ "admtool/money";
-inherit __DIR__ "admtool/alias";
 inherit __DIR__ "admtool/quest";
-inherit __DIR__ "admtool/banish";
+inherit __DIR__ "admtool/guild";
+inherit __DIR__ "admtool/skill";
 inherit __DIR__ "admtool/group";
+inherit __DIR__ "admtool/misc";
 
-#define PROMPT_MAIN	"(AdmTool:main) [usdcQbinagq?] > "
+inherit __DIR__ "admtool/user";
+inherit __DIR__ "admtool/banish";
+inherit __DIR__ "admtool/i3chan";
+inherit __DIR__ "admtool/news";
+inherit __DIR__ "admtool/alias";
+inherit __DIR__ "admtool/colour";
+
+#define PROMPT_MAIN	"(AdmTool:main) [sdcQGSgMubinaq?] > "
 
 private nomask void receive_main_input(string str);
+private nomask void write_main_menu();
+
+private static mapping menu_options = ([
+    "s" : (: begin_security_menu :),
+    "d" : (: begin_domain_menu :),
+    "c" : (: begin_money_menu :),
+    "Q" : (: begin_quest_menu :),
+    "G" : (: begin_guild_menu :),
+    "S" : (: begin_skill_menu :),
+    "g" : (: begin_group_menu :),
+#ifdef CONFIGURABLE_COLOUR
+    "C" : (: begin_colour_menu :),
+#endif
+    "M" : (: begin_misc_menu :),
+
+    "u" : (: begin_user_menu :),
+    "b" : (: begin_banish_menu :),
+    "i" : (: begin_i3chan_menu :),
+    "n" : (: begin_news_menu :),
+    "a" : (: begin_alias_menu :),
+
+    "?" : (: write_main_menu :),
+    ]);
 
 
 private nomask void write_main_menu()
 {
-    write("Administration Tool\n"
+    write("\n"
+	  "--- Administration Tool ---\n"
 	  "\n"
-	  "    u - user adminstration      [admin]\n"
-	  "    s - security adminstration\n"
-	  "    d - domain adminstration\n"
-	  "    c - currency adminstration\n"	  
-	  "    Q - quest administration\n"
-	  "    b - site/name banishment    [admin]\n"
-	  "    i - Intermud channel admin  [admin]\n"
-	  "    n - news administration     [admin]\n"
-	  "    a - alias administration    [admin]\n"
-	  "    g - group administration\n"
-          "    h - help data rebuild\n"
-           "\n"
+	  "    s - security\n"
+	  "    d - domains\n"
+	  "    c - currencies\n"	  
+	  "    Q - quests\n"
+	  "    G - guilds\n"
+	  "    S - skills\n"
+	  "    g - (mail) groups\n"
+#ifdef CONFIGURABLE_COLOUR
+	  "    C - configurable colours\n"
+#endif
+	  "    M - miscellaneous\n"
+	  "\n"
+	  "    u - users                   [admin]\n"
+	  "    b - site/name banishment    [Mudlib:daemons]\n"
+	  "    i - Intermud channels       [Mudlib:daemons]\n"
+	  "    n - news groups             [Mudlib:daemons]\n"
+	  "    a - global aliases          [Mudlib:daemons]\n"
+	  "\n"
 	  "    q - quit\n"
 	  "    ? - help\n"
 	  "\n"
@@ -79,70 +114,26 @@ static nomask void std_handler(string str)
 
 private nomask void receive_main_input(string str)
 {
-    switch ( str )
-    {
-    case "u":
-	begin_user_menu();
-	break;
-	
-    case "s":
-	begin_security_menu();
-	break;
-	
-    case "d":
-	begin_domain_menu();
-	break;
+    function func = menu_options[str];
 
-    case "Q":
-        begin_quest_menu();
-	break;
-	
-    case "c":
-        begin_money_menu();
-        break;
+    if ( func )
+	evaluate(func);
+    else
+	switch ( str )
+	{
+	case "":
+	    str = "q";
+	    /* FALLTHRU */
 
-    case "b":
-	begin_banish_menu();
-	break;
-
-    case "n":
-	begin_news_menu();
-	break;
-
-    case "a":
-	begin_alias_menu();
-	break;
-
-    case "i":
-	begin_i3chan_menu();
-	break;
-	
-    case "g":
-	begin_group_menu();
-	break;
-
-   case "h":
-        HELP_D->rebuild_data();
-      break;
-
-	
-    case "?":
-	write_main_menu();
-	break;
-
-    case "":
-	str = "q";
-	/* FALLTHRU */
-
-    default:
-	std_handler(str);
-	break;
-    }
+	default:
+	    std_handler(str);
+	    break;
+	}
 }
 
 void create()
 {
-    if (clonep())
+    if ( clonep() )
     {
         if ( file_name(previous_object()) != CMD_OB_ADMTOOL )
 	{
@@ -158,141 +149,25 @@ void create()
 }
 
 static nomask void do_one_arg(string arg_prompt,
+			      function fp,
+			      string arg)
+{
+    input_one_arg(arg_prompt, fp, arg);
+}
+static nomask void do_two_args(string arg1_prompt,
+			       string arg2_prompt,
 			       function fp,
 			       string arg)
 {
-    if ( !arg )
-    {
-	write(arg_prompt);
-	modal_simple(fp);
-	return;
-    }
-
-    evaluate(fp, arg);
+    input_two_args(arg1_prompt, arg2_prompt, fp, arg);
 }
-
-private nomask void rcv_first_of_two(string arg2_prompt,
-				     function fp,
-				     string arg1)
-{
-    string arg2;
-
-    if ( arg1 == "" )
-    {
-	write("Aborted.\n");
-	return;
-    }
-
-    if ( sscanf(arg1, "%s %s", arg1, arg2) == 2 )
-    {
-	evaluate(fp, arg1, arg2);
-    }
-    else
-    {
-	printf(arg2_prompt, arg1);
-	modal_simple((: evaluate, fp, arg1 :));
-    }
-}
-private nomask void rcv_last_of_three(string arg3_prompt,
-				      function fp,
-				      string arg1,string arg2)
-{   
-  string arg3;
-  
-  if ( arg1 == "" )
-    {
-      write("Aborted.\n");
-      return;
-    }
-    if ( sscanf(arg2, "%s %s", arg2, arg3) == 2 )
-    {
-      evaluate(fp, arg1, arg2,arg3);
-    }
-    else
-      {
-	printf(arg3_prompt, arg2);
-	modal_simple((: evaluate, fp, arg1,arg2 :));
-      }
-}
-
-private nomask void rcv_second_of_three(string arg2_prompt,
-					string arg3_prompt,
-					function fp,
-					string arg)
-{
-  string arg1,arg2,arg3;
-  if (sscanf(arg, "%s %s %s", arg1, arg2, arg3 )==3)
-    {
-      evaluate(fp, arg1, arg2,arg3);
-    }
-  else
-    if ( sscanf(arg, "%s %s", arg1, arg2) == 2 )
-      {
-	rcv_last_of_three(arg3_prompt,fp,arg1,arg2);
-      }
-    else
-  {
-    printf(arg2_prompt,arg);
-    modal_simple((: rcv_last_of_three, arg3_prompt,fp,arg:));
-  }
-}
-
-static nomask void do_two_args(string arg1_prompt,
-				string arg2_prompt,
-				function fp,
-				string arg)
-{
-    if ( arg )
-    {
-	string arg2;
-
-	if ( sscanf(arg, "%s %s", arg, arg2) == 2 )
-	{
-	    evaluate(fp, arg, arg2);
-	}
-	else
-	{
-	    rcv_first_of_two(arg2_prompt, fp, arg);
-	}
-    }
-    else
-    {
-	printf(arg1_prompt);
-	modal_simple((: rcv_first_of_two, arg2_prompt, fp :));
-    }
-}
-
 static nomask void do_three_args(string arg1_prompt,
 				 string arg2_prompt,
 				 string arg3_prompt,
 				 function fp,
 				 string arg)
 {
-  string arg1,arg2,arg3;
-  if ( arg )
-    {
-      /* All 3 args */
-      if (sscanf(arg, "%s %s %s", arg1, arg2, arg3 )==3)
-	{
-	  evaluate(fp, arg1, arg2,arg3);
-	}
-      else
-	/* 2 args */
-	if (sscanf(arg, "%s %s", arg1, arg2 )==2)
-	  {
-	    rcv_last_of_three(arg3_prompt,fp,arg1,arg2);
-	  }
-      else
-	{ /* 1 arg */
-	  rcv_second_of_three(arg2_prompt,arg3_prompt,fp,arg);
-	}
-    }
-  else
-    {
-      /* 0 Args */
-      printf(arg1_prompt,arg1);
-      modal_simple((: rcv_second_of_three,arg2_prompt,arg3_prompt,fp :));
-    }
+    input_three_args(arg1_prompt, arg2_prompt, arg3_prompt, fp, arg);
 }
 
 static nomask int write_error(string err)

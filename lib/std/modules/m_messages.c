@@ -53,7 +53,7 @@ void clear_messages() {
 }
 
 string *query_msg_types() {
-    return keys(messages) + keys(def_messages);
+    return clean_array(keys(messages) + keys(def_messages));
 }
 
 //:FUNCTION compose_message
@@ -217,6 +217,8 @@ varargs string *action(object *who, mixed msg, array obs...) {
     return res;
 }
 
+//### This now always indents continuation lines.  Might want a flag at the
+//### end to enable or disable that.
 //:FUNCTION inform
 //Given an array of participants, and an array of messages, and either an
 //object or array of objects, deliver each message to the appropriate
@@ -229,11 +231,11 @@ void inform(object *who, string *msgs, mixed others) {
     for (i=0; i<sizeof(who); i++) {
         if (done[who[i]]) continue;
         done[who[i]]++;
-	tell(who[i], msgs[i]);
+	tell(who[i], msgs[i], MSG_INDENT);
     }
     if (pointerp(others))
     {
-	map_array(others - who, (: tell($1, $(msgs[<1])) :));
+	map_array(others - who, (: tell($1, $(msgs[<1]), MSG_INDENT) :));
     }
     else if (others)
     {

@@ -51,7 +51,7 @@ int direct_swim_in_obj(object ob)
 
 array query_verb_info()
 {
-    return ({ ({ "", "in OBJ", }),({  }) });
+    return ({ ({ "", "in OBJ", }),({ "dive" }) });
 
 }
 

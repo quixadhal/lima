@@ -1,0 +1,14 @@
+is=room
+
+exits=
+  west: vill_track.scr
+  north: yard.scr
+  south: narr_alley.scr
+  east: vill_road2.scr
+end
+brief=Village road
+long=
+  A long road going east through the village. The road narrows to a\n
+  track to the west. There is an alley to the north and the south.
+end
+light=1

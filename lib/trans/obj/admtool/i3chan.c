@@ -9,7 +9,7 @@
 #include <mudlib.h>
 
 void std_handler(string str);
-varargs void modal_simple(function input_func, int secure);
+void do_one_arg(string arg_prompt, function fp, string arg);
 varargs void modal_func(function input_func, mixed prompt_func, int secure);
 
 #define PROMPT_I3CHAN	"(AdmTool:i3chan) [larmq?] > "
@@ -20,8 +20,8 @@ private nomask void write_i3chan_menu()
     write("Administration Tool: Intermud channel administration\n"
 	  "\n"
 	  "    l        - list owned channels\n"
-	  "    a        - add owned channel\n"
-	  "    r <name> - remove owned channel\n"
+	  "    a [name] - add owned channel\n"
+	  "    r [name] - remove owned channel\n"
 	  "\n"
 	  "    m        - main menu\n"
 	  "    q        - quit\n"
@@ -52,36 +52,23 @@ private nomask void list_channels()
 		   :)));
 }
 
-private nomask void rcv_channel_type(string channel_name, string str)
+private nomask void rcv_add_channel(string channel_name)
 {
-    if ( str == "" )
+    channel_name = lower_case(trim_spaces(channel_name));
+    if ( channel_name == "" )
 	return;
 
-}
-
-private nomask void rcv_channel_name(string str)
-{
-    str = lower_case(trim_spaces(str));
-
-    if ( str == "" )
-	return;
-
-    if ( IMUD_D->query_chanlist()[str] )
+    if ( IMUD_D->query_chanlist()[channel_name] )
     {
 	write("** That channel already exists.\n");
 	return;
     }
 
-    IMUD_D->add_channel(str);
+//### need to get a channel type...
+    IMUD_D->add_channel(channel_name);
 }
 
-private nomask void add_channel()
-{
-    write("New channel name? ");
-    modal_simple((: rcv_channel_name :));
-}
-
-private nomask void remove_channel(string channel_name)
+private nomask void rcv_remove_channel(string channel_name)
 {
     mapping chanlist = IMUD_D->query_chanlist();
 
@@ -97,9 +84,9 @@ private nomask void remove_channel(string channel_name)
 
 private nomask void receive_i3chan_input(string str)
 {
-    string name;
+    string arg;
 
-    sscanf(str, "%s %s", str, name);
+    sscanf(str, "%s %s", str, arg);
 
     switch ( str )
     {
@@ -108,11 +95,11 @@ private nomask void receive_i3chan_input(string str)
 	break;
 
     case "a":
-	add_channel();
+	do_one_arg("New channel name? ", (: rcv_add_channel :), arg);
 	break;
 
     case "r":
-	remove_channel(name);
+	do_one_arg("Channel name to remove? ", (: rcv_remove_channel :), arg);
 	break;
 
     case "?":
@@ -127,9 +114,9 @@ private nomask void receive_i3chan_input(string str)
 
 static nomask void begin_i3chan_menu()
 {
-    if ( !check_privilege(1) )
+    if ( !check_privilege("Mudlib:daemons") )
     {
-	write("Sorry... admin only.\n");
+	write("Sorry... Mudlib:daemons priv-holders only.\n");
 	return;
     }
     modal_func((: receive_i3chan_input :), PROMPT_I3CHAN);

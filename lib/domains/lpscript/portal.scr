@@ -1,0 +1,11 @@
+is= portal
+
+flag= attached
+long= It's a glowing portal, set into the northerm wall.
+adj= glowing, northern, north
+primary_id= portal
+look_in_desc= You can vaguely see a sandy beach.
+
+setup:
+  lpc
+    set_destination(START)

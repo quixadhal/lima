@@ -1,0 +1,18 @@
+is=monster
+proper_name=beggar
+in_room_desc=A beggar
+id=beggar
+long=A really filthy looking poor beggar.
+max_hp=30
+trigger[* gives *]:
+  !say Thank you.
+  nexttrigger
+end
+trigger[* gives you * coins.]:
+  if (lcall "query_money") > 12
+    !east
+    !buy beer
+    !drink beer
+    !west
+  end
+end

@@ -1,0 +1,18 @@
+is=room
+light=1
+brief=A small grove on the shore of the Isle of the Magi
+long=
+  You are standing in a small grove on the shore of the Isle of the Magi\n
+  All of the trees here are either diseased, dead or heavily mutated\n
+  The shoreline continues southeast from here, as well as heading northwest\n
+  to Focus Point.\n
+  The grove continues to the north.\n
+  To the east, you can see an old disused well, and beyond that, on top\n
+  of the hill, stands the ruined tower of Arcanarton\n
+end
+exits=
+  north:sislnd11.scr
+  east:sislnd17.scr
+  southeast:sislnd8.scr
+  northwest:sislnd10.scr
+end

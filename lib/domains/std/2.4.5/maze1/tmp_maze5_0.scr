@@ -1,0 +1,6 @@
+is=armor,valuable
+primary_id=armor
+primary_adj=leather
+armor_class=3
+value=110
+weight=3

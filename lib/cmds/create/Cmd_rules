@@ -1,0 +1,5 @@
+newroom		fname
+describeroom	
+setbrief	str*
+addobject	file
+addexit		str fname

@@ -1,0 +1,12 @@
+is= room
+
+brief= Attic
+long= This is the attic of the wizard hall.  Not much here yet :-)
+
+exits=
+  down: wizroom.scr
+
+objects=
+  /std/stairs(0, "/domains/lpscript/wizroom.scr")
+  magic_flame.scr
+end

@@ -47,6 +47,7 @@ private void main( mixed *arg)
 	    target_name ), 0, ({ target, this_body() }) );
     }
 
+    target->force_look();
     return;
 }
 

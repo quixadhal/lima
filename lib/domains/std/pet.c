@@ -92,7 +92,7 @@ void setup() {
     mapping m;
     string name;
     
-    master = this_user();
+    master = this_body();
     if (file = read_file("/wiz/" + master->query_name() + "/.petrc"))
 	m = parse_file(file);
     else 

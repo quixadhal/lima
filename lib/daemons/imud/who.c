@@ -30,6 +30,8 @@ static nomask void rcv_who_req(string orig_mud, string orig_user,
 			     string visname = user->query_userid();
 			     string title = 0;
 
+                             if (!(body->is_visible())) return ([])[0];
+
 			     if ( body )
 			     {
 				 visname = body->query_name();
@@ -66,8 +68,8 @@ static nomask void rcv_who_reply(string orig_mud, string orig_user,
 
         s = sprintf("[%s] %d users connected\n%s\n", orig_mud, sizeof(message[0]), repeat_string("-", 78));
 	s += implode(map_array(message[0],
-			       (: sprintf("%-15s%-5O%s",
-					  $1[0], $1[1], $1[2]) :)), "\n");
+			       (: sprintf("%-15s%-10s%s",
+					  $1[0], convert_time(to_int($1[1]), 3), $1[2]) :)), "\n");
 	s += "\n" + repeat_string("-", 78) + "\n";
 	tell(p, s);
     }

@@ -2415,6 +2415,7 @@ expr4:
 			yyerror("Illegal index for mapping.");
 		    case TYPE_ANY:
 			$$->type = TYPE_ANY;
+			break;
 		    case TYPE_STRING:
 		    case TYPE_BUFFER:
 			$$->type = TYPE_NUMBER;

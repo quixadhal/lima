@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 private int num_eats;
-private mixed eat_action;
+private mixed eat_action = "$N $veat $o";
 private mixed last_eat_action;
 
 string the_short();
@@ -27,6 +27,11 @@ void set_num_eats(int num) {
 }
 
 mixed direct_bite_obj() {
+object who= environment(this_object());
+
+ZBUG( ({ who, this_body(), environment(this_body()) }) );
+if(  who != this_body() && who != environment(this_body()) )
+   return "#You don't have that.\n";
     if (!num_eats)
 	return capitalize(the_short()) + " is gone.\n";
 
@@ -42,7 +47,7 @@ void eat_it() {
 	action = eat_action;
 
     if (stringp(action))
-	write(action);
+this_body()->simple_action(action, this_object());
     else
 	evaluate(action);
 	

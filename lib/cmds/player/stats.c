@@ -24,19 +24,20 @@
 #include <mudlib.h>
 #include <config.h>
 
+#define SEP_MAJOR	(repeat_string("-=", 38) + "-\n")
+#define SEP_MINOR	(repeat_string("-", 77) + "\n")
+
 inherit CMD;
 
 private void main(string arg)
 {
-#ifndef USE_STATS
-    out(mud_name() + " has no player statistics, sorry.\n");
-#else
-
     string name;
+    string e_info;
     string * guilds;
     string g_info;
+    string r_info;
 
-    outf("%76'-='s-\n", "");
+    out(SEP_MAJOR);
 
 #ifdef USE_TITLES
     name = this_body()->query_title();
@@ -45,7 +46,13 @@ private void main(string arg)
 #endif
     outf("%s  (%s)\n", name, wizardp(this_user()) ? "Wizard" : "Mortal");
 
-    outf("%76'-='s-\n", "");
+    out(SEP_MAJOR);
+
+#ifdef USE_SKILLS
+    e_info = sprintf("Eval: %d%%", this_body()->query_evaluation());
+#else
+    e_info = 0;
+#endif
 
     guilds = this_body()->guilds_belong();
     if ( guilds )
@@ -59,35 +66,46 @@ private void main(string arg)
     }
     else
     {
-	g_info = "";
+	/* guilds not being used */
+	g_info = 0;
     }
-//### get the eval here...
-    outf("Eval: %d   %s\n",
-	 1, g_info);
-//### xp, advancement info
-    out("<< xp, advancement info goes here >>\n");
-    outf("Align: %s\n",
-	 "Neutral");
 
-    outf("%77'-'s\n", "");
+    if ( e_info && g_info )
+	outf("%s  %s\n", e_info, g_info);
+    else if ( e_info )
+	out(e_info + "\n");
+    else if ( g_info )
+	out(g_info + "\n");
+
+    out(SEP_MINOR);
+
+#ifdef USE_RACES
+    r_info = "Race: " + capitalize(this_body()->query_race());
+#else
+    r_info = "";
+#endif
 
     outf("Hp: %d (%d)   Sp: %d (%d)   %20s\n",
 	 this_body()->query_hp(), this_body()->query_max_hp(),
 	 1, 1,
-	 "Race: " + (capitalize(this_body()->query_race()) || "none"));
+	 r_info);
+
+#ifdef USE_STATS
+    this_body()->refresh_stats();
+
+//### show pure stats here, too?
     outf("Basic:   Str: %-3d   Agi: %-3d  Int: %-3d  Wil: %-3d\n",
 	   this_body()->query_str(), this_body()->query_agi(),
 	   this_body()->query_int(), this_body()->query_wil());
     outf("Derived: Con: %-3d   Wis: %-3d  Cha: %-3d\n",
 	   this_body()->query_con(), this_body()->query_wis(),
 	   this_body()->query_cha());
+#endif
 
-    outf("%77'-'s\n", "");
+    out(SEP_MINOR);
 
 //### other misc stats (e.g. sober, poison, wimpy, etc)
     out("<< other misc data: sober, poison, cash, etc >>\n");
 
-    outf("%76'-='s-\n", "");
-
-#endif
+    out(SEP_MAJOR);
 }

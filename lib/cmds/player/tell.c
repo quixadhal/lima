@@ -20,11 +20,11 @@ private void main(string arg)
 {
     string user;
     string host;
-    string tmp;
-    string * words;
+    mixed tmp;
+    string array words;
     string muds;
-    string * previous_matches;
-    string * matches;
+    string array previous_matches;
+    string array matches;
     int i, j;
     string mystring;
     string deststring;
@@ -36,7 +36,7 @@ private void main(string arg)
 	return;
     }
 
-    if(sscanf(arg,"%s@%s", user, tmp) == 2){
+    if(sscanf(arg,"%s@%s", user, tmp) == 2) {
 	muds = IMUD_D->query_up_muds();
 	words = explode(tmp, " ");
 	j = sizeof(words);
@@ -73,8 +73,15 @@ private void main(string arg)
 
 	    if( arg[0] == ';' || arg[0] == ':' )
 	    {
-		mixed *soul_ret;
+		array soul_ret;
+		
 		arg = arg[1..];
+
+		// Heuristic: check for a use of a targetted emote with no
+		// arguments, and do the Right Thing.
+		if ((tmp = SOUL_D->query_emote(arg)) && tmp["LIV"])
+		    arg += " " + user + "@" + host;
+
 		soul_ret = SOUL_D->parse_imud_soul(arg);
 		if(!soul_ret)  {
 		    IMUD_D->do_emoteto(host, user, arg);
@@ -115,9 +122,15 @@ private void main(string arg)
 
     if( arg[0] == ':' || arg[0] == ';' )
     {
-	mixed *soul_ret;
+	array soul_ret;
 	int tindex;
+
 	arg = arg[1..];
+	// Heuristic: check for a use of a targetted emote with no
+	// arguments, and do the Right Thing.
+	if ((tmp = SOUL_D->query_emote(arg)) && tmp["LIV"])
+	    arg += " " + user;
+
 	soul_ret = SOUL_D->parse_soul(arg);
 	if(!soul_ret)  {
 	    mystring = sprintf("You emote to %s: %s %s\n", who == this_body() ? "yourself" : who->query_name(), this_body()->query_name(),arg);

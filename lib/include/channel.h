@@ -9,9 +9,13 @@
 #ifndef __CHANNEL_H__
 #define __CHANNEL_H__
 
+#define CHANNEL_TYPE_NORMAL	0
+#define CHANNEL_TYPE_IMUD	1
 
-#define CHANNEL_WIZ_ONLY	0x01
-#define CHANNEL_ADMIN_ONLY	0x02
 
+#define CHANNEL_WIZ_ONLY	0x0001
+#define CHANNEL_ADMIN_ONLY	0x0002
+
+#define CHANNEL_PERMANENT	0x1000
 
 #endif /* __CHANNEL_H__ */

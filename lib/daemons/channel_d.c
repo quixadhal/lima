@@ -33,7 +33,7 @@
 ** 05-Nov-94. Created. Deathblade.
 */
 
-#define CHANNEL_FORMAT "%%^CHANNEL%%^[%s]%%^RESET%%^ %s\n"
+#define CHANNEL_FORMAT(chan) (chan[0..4] == "imud_" ? "%%^CHANNEL_IMUD%%^[%s]%%^RESET%%^ %s\n" : "%%^CHANNEL%%^[%s]%%^RESET%%^ %s\n")
 
 #include <mudlib.h>
 #include <security.h>
@@ -298,7 +298,7 @@ nomask void deliver_string(string channel_name, string str)
 nomask void deliver_channel(string channel_name, string str)
 {
     deliver_string(channel_name,
-		   sprintf(CHANNEL_FORMAT,
+		   sprintf(CHANNEL_FORMAT(channel_name),
 			   user_channel_name(channel_name),
 			   str));
 }
@@ -353,7 +353,7 @@ nomask void deliver_tell(string channel_name,
 
     deliver_data(channel_name, sender_name, "tell", message);
     deliver_string(channel_name,
-		   sprintf(CHANNEL_FORMAT,
+		   sprintf(CHANNEL_FORMAT(channel_name),
 			   user_channel_name(channel_name),
 			   sender_name + ": " + punctuate(message)));
 }
@@ -376,7 +376,7 @@ nomask void deliver_emote(string channel_name,
 
     deliver_data(channel_name, sender_name, "emote", message);
     deliver_string(channel_name,
-		   sprintf(CHANNEL_FORMAT, 
+		   sprintf(CHANNEL_FORMAT(channel_name), 
 			   user_channel_name(channel_name),
 			   sender_name + " " + punctuate(message)));
 }
@@ -395,7 +395,7 @@ nomask void deliver_soul(string channel_name, mixed * soul)
     user_channel_name = user_channel_name(channel_name);
     soul = ({ soul[0] }) +
 	({ map_array(soul[1],
-		     (: sprintf(CHANNEL_FORMAT, $(user_channel_name), $1[0..<2]) :))
+		     (: sprintf(CHANNEL_FORMAT($(channel_name)), $(user_channel_name), $1[0..<2]) :))
        });
 
     deliver_raw_soul(channel_name, soul);
@@ -410,7 +410,7 @@ nomask void deliver_notice(string channel_name,
 			   string message)
 {
     deliver_string(channel_name,
-		   sprintf(CHANNEL_FORMAT, 
+		   sprintf(CHANNEL_FORMAT(channel_name), 
 			   user_channel_name(channel_name),
 			   "(" + message + ")"));
 }
@@ -542,9 +542,25 @@ nomask object * query_listeners(string channel_name)
     return 0;
 }
 
-nomask mapping query_permanent()
+/*
+** query_flags()
+**
+** Return the flags for a particular channel.  0 is returned for unknown
+** channels.
+*/
+nomask int query_flags(string channel_name)
 {
-    return copy(permanent_channels);
+    class channel_info ci = info[channel_name];
+    int flags;
+
+    if ( !ci )
+	return 0;
+
+    flags = ci->flags;
+    if ( !undefinedp(permanent_channels[channel_name]) )
+	flags |= CHANNEL_PERMANENT;
+
+    return flags;
 }
 
 /*

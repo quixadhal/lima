@@ -1,0 +1,39 @@
+variables=where
+is=object
+primary_id=door
+primary_adj=elevator
+flag=attached
+
+direct_open_obj:
+  check
+    (call "/domains/std/2.4.5/elevator.scr" "query_where") notequal $where : "You can't when the elevator isn't here.\n"
+    (call "/domains/std/2.4.5/elevator.scr" "query_door_open") : "It is already open!\n"
+  end
+
+direct_close_obj:
+  check
+    not (call "/domains/std/2.4.5/elevator.scr" "query_door_open") : "It is already closed!\n"
+
+setup[int w]:
+  lpc
+    _where = w
+
+---
+string long() {
+    if ("/domains/std/2.4.5/elevator.scr"->query_open_at(_where))
+        return "The door is open.\n";
+    else
+        return "The door is closed.\n";
+}
+
+void open_with() {
+  this_body()->simple_action("$N $vopen the west door.\n");
+  "/domains/std/2.4.5/elevator.scr"->set_room_state("door", "open");
+  tell_from_inside("/domains/std/2.4.5/elevator.scr", "The door opens.\n");
+}
+
+void close() {
+  this_body()->simple_action("$N $vclose the west door.\n");
+  "/domains/std/2.4.5/elevator.scr"->clear_room_state("door", "open");
+  tell_from_inside("/domains/std/2.4.5/elevator.scr", "The door closes.\n");
+}

@@ -1,0 +1,6 @@
+is=room
+exits=south:tunnel26.scr
+brief=Dead end
+long=End of tunnel.
+light=0
+

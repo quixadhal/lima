@@ -241,6 +241,8 @@ void make_objects_if_needed()
 
     inv = all_inventory();
     foreach (file, value in objects) {
+	if (file[0] != '/')
+	    file = base_path(file_name(this_object())) + file;
 	file = cannonical_form(file);
 
 	if (intp(value)) {
@@ -276,7 +278,9 @@ void make_objects_if_needed()
 	num -= tally;
 	for (int j = 0; j < num; j++)
 	{
-	    ret = new(file, rest...)->move(this_object(), "#CLONE#");
+	    object ob = new(file, rest...);
+	    if (!ob) error("Couldn't find file '" + file + "' to clone!\n");
+	    ret = ob->move(this_object(), "#CLONE#");
 	    if ( ret != MOVE_OK )
 	    {
 		error("Initial clone failed for '" + file +"': " + ret + "\n");
@@ -412,8 +416,6 @@ void update_capacity()
 /* verb interaction */
 mixed direct_get_obj(object ob, string name) {
     if (this_object() == environment(this_body())) {
-	if (this_object()->get_item_desc(name))
-	    return "That doesn't seem possible.\n";
 	return "#You're in it!\n";
     }
     return ::direct_get_obj(ob);
@@ -441,11 +443,18 @@ mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
 }
 
 mixed indirect_get_obj_from_obj(object ob1, object ob2) {
+    object tmp;
+
     if(main_prep == "in")  {
 	if (this_object()->query_closed()) {
 	    return capitalize(the_short())+" is closed.\n";
 	}
     }
+    tmp = ob1;
+    while (tmp = environment(tmp)) {
+        if (tmp == ob2) break;
+    }
+    if (!tmp) return capitalize(ob1->the_short()) + " is not " + main_prep + " " + the_short()+ "\n";
     return 1;
 }
 
@@ -570,12 +579,13 @@ void resync_visibility()
 	adjust_light(-contained_light);
 }
 
-int stat_me()
+string stat_me()
 {
-    write("Container capacity: "+query_capacity()+"/"+max_capacity+"\n");
-    write("main_prep: " + main_prep + "\n");
-    write("It contains:\n"+ show_contents() + "\n");
-    return ::stat_me();
+    return
+	"Container capacity: "+query_capacity()+"/"+max_capacity+"\n" +
+	"main_prep: " + main_prep + "\n" +
+	"It contains:\n"+ show_contents() + "\n" +
+	::stat_me();
 }
 
 // If this is called, clean_up in /std/object has decided we might be
@@ -588,4 +598,11 @@ int destruct_if_useless() {
             return ASK_AGAIN;
     }
     return ::destruct_if_useless();
+}
+
+mapping lpscript_attributes() {
+    return ::lpscript_attributes() + ([
+        "objects" : ({ LPSCRIPT_OBJECTS }),
+        "capacity" : ({ LPSCRIPT_INT, "setup", "set_max_capacity" }),
+    ]);
 }

@@ -1,3 +1,4 @@
+$$ see: m_messages, review
 
 USAGE:  msg (message type) [clear] [message]
 
@@ -19,5 +20,3 @@ msg clone $N $vreach back to $p workroom and $vgrab $o.
 
      Next time you use clone, you will see the above message.
      If you do the above again you will add another message.
-
-SEE ALSO:  messages, review

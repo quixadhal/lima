@@ -54,10 +54,10 @@ static nomask void rcv_locate_reply(string orig_mud, string orig_user,
 	msg = sprintf("[locate] %s has been found on %s",
 		      message[1], message[0]);
 	if ( message[3] )
-	    msg += sprintf(" (idle for %d seconds, status is: %s)",
-			   message[2], message[3]);
+	    msg += sprintf(" (idle: %s, status is: %s)",
+			   convert_time(message[2], 2), message[3]);
 	else
-	    msg += sprintf(" (idle for %d seconds)", message[2]);
+	    msg += sprintf(" (idle: %s)", convert_time(message[2], 2));
     
 	tell(p, msg + ".\n", MSG_INDENT);
     }

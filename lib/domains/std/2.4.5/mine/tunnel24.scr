@@ -1,0 +1,8 @@
+is=room
+light=0
+exits=
+  west:tunnel23.scr
+  down:tunnel25.scr
+end
+brief=Tunnel
+long=The tunnel slopes steeply down a hole here.

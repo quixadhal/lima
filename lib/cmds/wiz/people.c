@@ -28,7 +28,7 @@ object array b = bodies() - ({ 0 });
     }
     else
     {
-	tmp=this_body()->query_shell_ob()->get_variable("people_flags");
+	tmp=get_user_variable("people_flags");
 	if (tmp)
 	    args=explode(tmp,"");
 	else

@@ -16,7 +16,7 @@
 # comment this out and rm or move the file if you don't want an internal 
 # web server.
 #/daemons/http_d
-/secure/daemons/ftp_d
-/daemons/chanlog_d
-/daemons/memcheck_d
+#/secure/daemons/ftp_d
+#/daemons/chanlog_d
+#/daemons/memcheck_d
 /secure/daemons/imail_d

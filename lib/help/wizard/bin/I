@@ -1,3 +1,4 @@
+$$ see: didlog
 
 USAGE:  I <string>
 
@@ -11,5 +12,3 @@ When logging in next time you will see:
 
 Wed Aug 23 17:48:49 1995: Zifnab started adding help files for some wiz
     cmds
-
-see also: didlog

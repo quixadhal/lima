@@ -1,0 +1,21 @@
+is=object
+variables=dest
+flag=attached
+primary_adj=elevator
+primary_id=button
+
+setup[string d]:
+  lpc
+    _dest = d;
+    add_adj(d);
+  end
+
+press:
+  call container "handle_press" $dest
+  ok
+end
+
+---
+string long() {
+  return "The button is marked '" + _dest + "'\n";
+}

@@ -1,3 +1,4 @@
+$$ see: feelings, m_messages, rmemote, showemote, stupidemote, targetemote
  
 USAGE:  addemote (verb)
 
@@ -33,6 +34,3 @@ gives:
 me: You kick Rust hard.
 rust: Beek kicks you hard (ouch!).
 room: Beek kicks Rust hard (how mean).
-
-SEE ALSO: messages, rmemote, showemote
-

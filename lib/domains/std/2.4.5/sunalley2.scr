@@ -1,0 +1,5 @@
+is=room
+exits=east:sunalley1.scr
+brief=Sun alley
+long=Sun alley runs east from here.
+light=1

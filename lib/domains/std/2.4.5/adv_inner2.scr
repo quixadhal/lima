@@ -1,0 +1,16 @@
+is=room
+
+exits=north:adv_inner.scr
+brief=The LPC board
+long=
+  This is the LPC discussion room.\n
+  Only wizards can access this room.\n
+end
+light=1
+
+---
+#undef EXTRA_RESET
+#define EXTRA_RESET\
+    if (!arg) {\
+	 move_object(clone_object("obj/wiz_bull_board2"), this_object()); \
+    }

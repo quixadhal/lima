@@ -1,0 +1,34 @@
+is=room
+light=0
+brief=The bottom of the well
+long=
+  You are standing at the bottom of the well, about thirty feet below the\n
+  surface. Bones lie strwen about in a random fashion, many of them broken\n
+  or shattered.\n
+  \tThe only way out is the way in, back up the ladder.
+end
+exits=
+  up:sislnd17.scr
+end
+objects=
+  wyrm=
+    is=monster
+    proper_name=wyrm
+    max_hp=350
+    in_room_desc=The Wyrm of Arcanarton
+    long=
+      The giant undead dragon you see before you is the result of one of\n
+      Arcanarton's magic experiments.
+    end
+    weapon_class=25
+#    armor_class=7
+    objects=
+      jem=
+        is=object,valuable
+        primary_id=diamond
+        id=gem,jem
+        value=1000
+      end
+    end
+  end
+end

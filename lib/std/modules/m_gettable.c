@@ -157,7 +157,8 @@ int direct_pick_up_obj()
   return 1;
 }
 
-//To answer your question, in order to set error messages for
-//get/drop, though I agree with your first point.
-
-// -Beek
+mapping lpscript_attributes() {
+    return ([
+        "getmsg" : ({ LPSCRIPT_STRING, "setup", "set_getmsg" }),
+    ]);
+}

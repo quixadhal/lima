@@ -16,31 +16,33 @@ inherit M_ACCESS;
 ** many names can map to a single file.
 */
 private static mapping legal_logs = ([
-    LOG_AUTODOC		: DIR_LOG "/AUTODOC",
+    LOG_AUTODOC		: DIR_LOG "/autodoc",
     LOG_BANISH		: DIR_LOG "/banishes",
-    LOG_BUG		: DIR_LOG "/BUGS",
+    LOG_BUG		: DIR_LOG "/bugs",
     LOG_CHANNEL		: DIR_LOG "/chanlog",
     LOG_FORCE		: DIR_LOG "/forces",
     LOG_FTP		: DIR_LOG "/ftp",
-    LOG_HELP_MISS	: DIR_LOG "/HELP_MISS",
+    LOG_HELP_MISS	: DIR_LOG "/help_miss",
     LOG_I3_ERROR	: DIR_LOG "/i3_errors",
-    LOG_IDEA		: DIR_LOG "/IDEAS",
+    LOG_IDEA		: DIR_LOG "/ideas",
     LOG_LOGIN		: DIR_LOG "/logins",
-    LOG_LOGIN_FAILURE	: DIR_LOG "/LOGIN_FAIL",
+    LOG_LOGIN_FAILURE	: DIR_LOG "/login_fail",
     LOG_MAIL_ERROR	: DIR_LOG "/mail_errs",
     LOG_QUEST		: DIR_LOG "/quests",
     LOG_QUIT            : DIR_LOG "/logins",
-    LOG_SHUTDOWN	: DIR_LOG "/SHUTDOWN",
+    LOG_SHUTDOWN	: DIR_LOG "/shutdown",
     LOG_SNOOP		: DIR_SECURE_LOG "/snoops",
     LOG_SOCKET		: DIR_LOG "/socket",
-    LOG_TODO		: DIR_LOG "/TODOS",
-    LOG_TYPO		: DIR_LOG "/TYPOS",
+    LOG_TODO		: DIR_LOG "/todos",
+    LOG_TYPO		: DIR_LOG "/typos",
     LOG_WALL		: DIR_LOG "/walls",
     LOG_FTP		: DIR_LOG "/ftp",
 ]);
 
 private static string * timestamps = ({
+    LOG_BANISH,
     LOG_CHANNEL,
+    LOG_SHUTDOWN,
 });
 
 void create() {

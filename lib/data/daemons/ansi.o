@@ -1,0 +1,2 @@
+#/daemons/ansi_d.c
+defaults (["NEWS_POSTER":"none","LS_LOADED":"yellow","TELL":"bold","CHANNEL":"green","LS_HEADING":"bold","MORE":"bold","ROOM_EXIT":"magenta","LS_DEFAULT":"cyan","ROOM_SHORT":"none","LS_DIR":"magenta","NEWS_TIME":"none","CHANNEL_IMUD":"channel","NEWS_SUBJECT":"bold",])

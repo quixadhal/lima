@@ -7,22 +7,20 @@
 */
 
 #include <mudlib.h>
-#define PROMPT_NEWS     "(AdmTool:news)   [larmq?] > "
 
 void std_handler(string str);
-varargs void modal_simple(function input_func, int secure);
+void do_one_arg(string arg_prompt, function fp, string arg);
 varargs void modal_func(function input_func, mixed prompt_func, int secure);
-void receive_news_input(string);
 
-#define PROMPT_NEWS     "(AdmTool:news)   [larmq?] > "
+#define PROMPT_NEWS     "(AdmTool:news) [larmq?] > "
 
 private nomask void write_news_menu()
 {
     write("Administration Tool: news administration\n"
 	  "\n"
 	  "    l        - list newsgroups\n"
-	  "    a        - add a newsgroup\n"
-	  "    r <name> - remove a newsgroup\n"
+	  "    a [name] - add a newsgroup\n"
+	  "    r [name] - remove a newsgroup\n"
 	  "\n"
 	  "    m        - main menu\n"
 	  "    q        - quit\n"
@@ -45,39 +43,32 @@ private nomask void list_newsgroups()
 
 }
 
-private nomask void rcv_newsgroup_name(string str)
+private nomask void rcv_add_newsgroup(string str)
 {
     str = lower_case(trim_spaces(str));
-
     if ( str == "" )
 	return;
 
-    if ( member_array(str,NEWS_D->get_groups()) != -1)
+    if ( member_array(str, NEWS_D->get_groups()) != -1 )
     {
 	write("** That group already exists.\n");
 	return;
     }
     NEWS_D->add_group(str);
     printf("** Group '%s' added.\n", str);
-    modal_func((:receive_news_input:), PROMPT_NEWS);
 }
 
-private nomask void add_newsgroup()
-{
-    write("New group name? ");
-    modal_simple((: rcv_newsgroup_name :));
-}
-
-private nomask void remove_newsgroup(string group_name)
+private nomask void rcv_remove_newsgroup(string group_name)
 {
     string* grouplist = NEWS_D->get_groups();
     
-    if(!group_name)
-      {
+    if ( !group_name )
+    {
 	write("** no group name supplied.\n");
 	return;
-      }
-    group_name = lower_case(group_name);
+    }
+
+    group_name = lower_case(trim_spaces(group_name));
     if ( member_array(group_name, grouplist) == -1 )
     {
 	write("** That newsgroup does not exist.\n");
@@ -90,9 +81,9 @@ private nomask void remove_newsgroup(string group_name)
 
 private nomask void receive_news_input(string str)
 {
-    string name;
+    string arg;
 
-    sscanf(str, "%s %s", str, name);
+    sscanf(str, "%s %s", str, arg);
 
     switch ( str )
     {
@@ -101,11 +92,13 @@ private nomask void receive_news_input(string str)
 	break;
 
     case "a":
-	add_newsgroup();
+	do_one_arg("New newsgroup name? ", (: rcv_add_newsgroup :), arg);
 	break;
 
     case "r":
-	remove_newsgroup(name);
+	do_one_arg("Remove which newsgroup? ",
+		   (: rcv_remove_newsgroup :),
+		   arg);
 	break;
 
     case "?":
@@ -120,9 +113,9 @@ private nomask void receive_news_input(string str)
 
 static nomask void begin_news_menu()
 {
-    if( !check_privilege(1) )
+    if( !check_privilege("Mudlib:daemons") )
     {
-	write("Sorry... admin only.\n");
+	write("Sorry... Mudlib:daemons priv-holders only.\n");
 	return;
     }
     modal_func((: receive_news_input :), PROMPT_NEWS);

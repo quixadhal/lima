@@ -4,7 +4,8 @@
 ** base_obj.c -- base for the object classes
 **
 ** This is an object with the very most basic features.  It shouldn't be
-** used directly.  Use OBJ, SPARSE_OBJ, or LESS_SPARSE_OBJ instead.
+** used directly.  Use OBJ (and its subclasses) or use add_item() in the
+** M_ITEMS module (typically in a ROOM or NON_ROOM).
 **
 ** 960121, Deathblade: created
 */
@@ -14,6 +15,7 @@ inherit __DIR__ "object/names";
 inherit __DIR__ "object/description";
 inherit __DIR__ "object/flags";
 inherit __DIR__ "object/non_object";
+inherit __DIR__ "object/vsupport";
 
 
 void create()
@@ -23,15 +25,15 @@ void create()
 }
 
 //:FUNCTION stat_me
-//write() some debugging info about the state of the object
-int stat_me() 
+//return some debugging info about the state of the object
+string stat_me() 
 {
-    write("Short: "+short()+"\n");
-    write("IDs: "+implode(parse_command_id_list(),", ")+"\n");
-    write("Plurals: "+implode(parse_command_plural_id_list(),", ")+"\n");
-    write("Adjectives: "+implode(parse_command_adjectiv_id_list(),", ")+"\n");
-    write("Long: \n"+long());
-    return 1;
+    return
+	"Short: "+short()+"\n" +
+	"IDs: "+implode(parse_command_id_list(),", ")+"\n" +
+	"Plurals: "+implode(parse_command_plural_id_list(),", ")+"\n" +
+	"Adjectives: "+implode(parse_command_adjectiv_id_list(),", ")+"\n" +
+	"Long: \n"+long() + "\n";
 }
 
 /*

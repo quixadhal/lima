@@ -1,0 +1,14 @@
+is=room
+
+exits=
+  east:forest1.scr
+  west:forest2.scr
+  north:plane1.scr
+end
+brief=Clearing
+long=
+  A small clearing. There are trees all around you.\n
+  However, the trees are sparse to the north.
+end
+light=1
+

@@ -11,6 +11,7 @@
 */
 
 #include <mudlib.h>
+#include <dirs.h>
 
 inherit M_DAEMON_DATA;
 
@@ -31,12 +32,10 @@ private mapping topics;
 */
 private mapping restrict;
 
-#define BASE_DIR	"/help/"
-
 private static int	pending_count;
 private static object	initiator;
 
-private static array	ignore = ({ BASE_DIR "autodoc/FIXME/" });
+private static array	ignore = ({ DIR_HELP "/autodoc/FIXME/" });
 
 nomask void process_dir(string path);
 
@@ -65,7 +64,8 @@ private void process_file(string path, string file)
 
     pathname = path + file;
 
-    if ( file_size(pathname) == 0 ) {
+    if ( file_size(pathname) == 0 )
+    {
         write("Warning: '" + pathname + "' contains nothing.\n");
         return;
     }
@@ -73,10 +73,11 @@ private void process_file(string path, string file)
     {
 	pathname += "/";
 	/* Ack. Avoid execution cost errors. */
-	call_out((: process_dir :), 0, pathname);
+	call_out((: process_dir :), 1, pathname);
 	++pending_count;
     }
 
+    file = lower_case(file);
     if ( topics[file] )
 	topics[file] += ({ pathname });
     else
@@ -85,10 +86,11 @@ private void process_file(string path, string file)
 
 nomask void process_dir(string path)
 {
-    if (member_array(path, ignore) != -1)
-	return;
-    
-    map_array(get_dir(path + "*"), (: process_file, path :));
+    if ( member_array(path, ignore) == -1 )
+    {
+	map_array(get_dir(path + "*"), (: process_file, path :));
+    }
+
     if ( !--pending_count )
     {
 	save_me();
@@ -118,13 +120,13 @@ nomask void rebuild_data()
     topics = ([ ]);
     restrict = ([ ]);
 
-    lines = explode(read_file("/help/_restrict"), "\n");
+    lines = explode(read_file(DIR_HELP "/_restrict"), "\n");
     map_array(lines, (: f_restrict :));
 
-    dirs = filter(get_dir("/help/*"), (: $(restrict)[$1] != 99 :));
+    dirs = filter(get_dir(DIR_HELP "/*"), (: $(restrict)[$1] != 99 :));
 
     pending_count = 0;
-    map_array(dirs, (: process_file, "/help/" :));
+    map_array(dirs, (: process_file, DIR_HELP "/" :));
 }
 
 nomask void create()
@@ -149,7 +151,7 @@ nomask string * find_topic(string name)
 
     if ( !this_body() )
 	return 0;
-    result = topics[name];
+    result = topics[lower_case(name)];
     if ( !result )
 	return 0;
 

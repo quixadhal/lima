@@ -1,0 +1,253 @@
+Preliminary LPScript specificiation:
+
+intro:
+   conventions:
+      This document is hierachical, however to avoid the need for frequent
+      renumbering, the levels have names, not numbers.  For example, this
+      section should be refered to as [intro.conventions].  It may also be
+      useful to specify the revision of the document; revisions are specified
+      by the date they were created.  This revision is [LPscript 20.dec.96].
+
+   history:
+      LPscript was first designed by Tim Hollebeek (Beek) November, 1996, as a
+      simpler format that LPC for writing objects on LPmuds.  The language is
+      still in flux at this point, and even the name is not guaranteed to
+      remain the same.
+
+      However, this document is being written in an attempt to explain the
+      goals of the LPscript language, and make the language less of a moving
+      target for those attempting to provide tools to work with the language.
+
+   goals:
+      LPscript is designed to be easy to use and extensible.  As such it is
+      *not* designed to be mudlib neutral in the way that LPC is.  However,
+      mudlibs that include similar concepts are encouraged to make their
+      dialects as compatible as possible.  The goal is that the *syntax*
+      should be uniform everywhere, and the meaning of various attributes/
+      functions/etc should be the same whenever the underlying functionality
+      is the same and/or compatible.
+
+   compat: Levels of compatibility
+      syntax:
+         Anything not explicitly marked with a certain level of compatibility
+         is required of *all* implementations.  Specifically, no part of the
+         syntax is optional; it is required that the lexical conventions of
+         LPscript be the same everywhere.  This means that any LPscript
+         can at least read any LPscript source file and break it down into
+         its components, even if it does not understand each component
+	 individually.
+
+      required:
+         Language elements specified as "required" are understood by all
+         LPscript compilers.  As stated in 1.2.1, all elements are required
+         unless stated otherwise.  This specifier is used to emphasize this
+         requirement in sections where many or most of the elements are not
+         required.
+
+      suggested:
+         Language elements specified as suggested are likely to be useful
+         to all implementations, but can be ignored by minimal implementations.
+
+      optional:
+         Language elements specified as optional are likely to be of interest
+         only to implementations that support a specific type of functionality.
+         Often, the type functionality will be specified in brackets; see 
+         Appendix A for explanations of each type of functionality.
+         This is to help identify groups of features which are best viewed
+         as part of a single unit, despite being scattered throughout the
+         specification
+
+      expected:
+         Behavior specified as expected suggests the motivation and/or possible
+         use of specific behavior and features, but implementations are not
+         limited to such, nor are required to attempt to support such behavior.
+         Such sections merely exist to point out the reason for certain rules
+         where not obvious.
+
+      constraint:
+         The implementation must issue an error message if the constraint is
+         not satisfied.
+
+syntax:
+   terms:
+      indentation:
+
+   source:
+      LPscript compilers view source files as a series of lines of text
+   comment:
+      completely blank lines, or lines beginning with a '#' character, are
+      ignored.  For the purpose of the rest of this section, their presence
+      in the source file is irrelevant in all contexts.
+   grouping:
+      order:
+         lines are parsed from first to last.
+      toplevel:
+         a toplevel line is at indentation level 0
+      value:
+        lines at indentation levels greater than 0 are considered to be the
+        'value' corresponding to a given toplevel line.  A toplevel line may
+        have no value.
+      constraints:
+        . The first line shall be a toplevel line
+        . If a the value of a top level line contains more than one line,
+          it must end with an 'end' toplevel line at indentation level 0
+        . an 'end' keyword at indentation level 0 is optional after a one
+          line value
+      optional_end:
+         the 'end' keyword is ignored at the top level, except when required
+         by the constraints mentioned above
+   end:
+      the parsing is ended by either an end of file condition, or a line
+      containing only three dashes ("---").  If not ended by an end of file
+      condition, the remainder of the file should be copied into the output
+      verbatim.
+
+toplevel:
+   A valid toplevel line will be of one of the following forms:
+   basic:
+      attribute:
+         if the line contains a '=', then the line is an attribute definition
+      function:
+         if the line contains a ':', then the line is a function definition
+      parts:
+         The part before the recognized character will be refered to as the
+         'name'; the part after the recognized character will be refered to
+         as the 'argument'
+      parameter:
+         If the last character of the name is ']' and the name contains
+         '[', the the part inside the brackets will be refered to as the
+         parameter, and the name will only be the part before the brackets
+      ambiguous:
+         if multiple interpretations of the line are possible, an error must be
+         reported.
+   constraints:
+      . The name shall start with an upper or lowercase letter, and contain
+        only upper and lowercase letters or digits or underscores.
+      . either the argument or the value may be nonempty, but not both.
+        When an argument exists, it shall be treated as the value of that
+        toplevel line
+      . the value of a function shall be a valid block
+
+blocks:
+   intro:
+      In all cases, a block will follow a keyword (possibly with arguments)
+   body:
+      a block consists of either:
+      (1) a single line at an indentation greater than that of the keyword
+          introducing the block
+      (2) a series of lines at an indentation greater than that of the keyword
+          introducing the block
+      the block must be terminated by the keyword 'end' at the same indentation
+      as the keyword introducing the block, except in case (1), where it is
+      optional
+
+attributes:
+  required:
+     is:
+        // handle_is
+  kinds:
+     
+  extensible:
+     The parsing of any particular attribute or function may cause new
+     attributes and/or functions to be recognized further down in the source
+     file.  In particular, it is expected that the 'is' attribute will
+     add additional attributes and functions.
+
+functions:
+   conventions:
+
+   required:
+      setup:
+         // handle_setup   
+   suggested:
+      periodic:
+         // handle_periodic
+   optional[triggers]:
+      trigger:
+         // handle_trigger
+   additional:
+
+keywords:
+   conventions:
+      // explain arg et al
+   required:
+      call: (arg)
+         the call keyword is exactly the same as a 'call' expression, except
+         that the value is discarted.
+      lcall: (arg)
+         the call keyword is exactly the same as a 'call' expression, except
+         that the value is discarted.
+      return: (arg)
+         the return keyword terminates the current function, and returns the
+         value of 'arg' to the calling function
+   suggested:
+      oneof: (block)
+         //handle_oneof
+      if: (arg and block)
+         the 'if' keyword evaluates its argument, and executes the block if
+         the argument evaluates to a nonzero value.
+      write: (arg)
+         sends the value of its argument to the current player.
+      lpc: (block)
+      delay: (arg)
+   optional[actions]:
+      action:
+         // handle_action
+   optional[triggers]:
+      nexttrigger: (none)
+         // fixme
+   optional[parser]:
+      check: (block) 
+         // handle_check
+      ok: (none)
+         the 'ok' keyword terminates the current routine, and returns TRUE (1)
+         to the caller
+
+expressions:
+   literal:
+      (1) any string of decimal digits
+      (2) '$' followed by a string of upper or lowercase letters, digits, or
+          underscores.  In this case, the string of characters must be a
+          previously defined variable
+      (3) '"', followed by any sequence of characters up to the next '"';
+          except that '"' is ignored when preceded by '\'.
+   extensible:
+      other literals may be defined.
+   suggested:
+      (who, me, here, container)
+   basic:
+      a basic expression is any of the following:
+      (1) a literal
+      (2) '(' followed by a subexpression followed by ')'
+
+   prefix_ops:
+      required:
+         not:
+
+      suggested:
+         chance:
+            interprets the value of it's argument as an integer percent.
+            Returns true that percent of the time, and false otherwise.
+         call:
+
+         lcall:
+
+         find:
+
+         new:
+
+   infix_ops:
+      notequal:
+
+   assignment:
+
+   complex:
+      (1) a basic expression
+      (2) a prefix_op followed by a basic expression
+
+   subexpression:
+      (1) a complex expression
+      (2) a complex expression, followed by an infix_op, then a subexpression
+ 
+   valid:
+     a valid expression is a subexpression with nothing following it

@@ -11,7 +11,7 @@ private void main( mixed *arg ) {
     int size = sizeof( arg[0]);
 
     if( !size )
-	arg[0] = this_body()->query_shell_ob()->get_variable( "cwf" );
+	arg[0] = get_user_variable( "cwf" );
     o = new(arg[0]);
     if( !o )
     {

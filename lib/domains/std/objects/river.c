@@ -13,23 +13,19 @@ void setup()
 set_flag(ATTACHED);
 }
 
-mixed swim()
+    mixed swim( string verb )
 {
 
-  this_body()->simple_action("$N $vswim around in the water a bit.\n"
+    if( present("wall", environment(this_object()))->query_closed())
+    this_body()->simple_action( "$N $v" + verb + " around the water for a while.");
+else
+  this_body()->simple_action("$N $v" + verb + " around in the water a bit.\n"
 			     "The cave floor quivers a bit as $n "
 			     "$vclamber out.");
-  call_out((: environment(this_object())->open_passage() :), 3);
+  call_out((: present("wall", environment(this_object()))->open_with( ) :), 1);
+call_out((: present("wall", environment(this_object()))->close() :), 8);
   return 1;
 }
 
-mixed wade()
-{
-  this_body()->simple_action("$N $vwade around in the water a bit. \n"
-			     "The cave floor quivers a bit as $n "
-			     "$vclamber out.");
-  call_out((: environment(this_object())->open_passage() :), 3);
-  return 1;
-}
 
 

@@ -1,3 +1,4 @@
+$$ see: feelings, m_messages, addemote, rmemote, showemote, stupidemote
 
 USAGE:  targetemote
 
@@ -13,5 +14,3 @@ Lets look at what was created by that command
 "OBJ" -> $N $vswim at $o.
 "STR" -> $N $vswim $o.
 "" -> $N $vswim.
-
-SEE ALSO: showemote, rmemote, addemote, stupidemote

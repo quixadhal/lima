@@ -30,17 +30,12 @@ void update_translations() {
     /* defaults; we take advantage of the fact that mapping addition
      * chooses the second when there is an overlap.
      */
-    colours = ([
-	"ROOM_EXIT" : "magenta",
-	"TELL" : "bold",
-	"CHANNEL" : "green",
-	"MORE" : "bold",
-	]) + colours;
+    colours = ANSI_D->defaults() + colours;
 #endif
     if (query_shell_ob()->get_variable("ansi"))
-	translations = M_ANSI->query_translations()[0];
+	translations = ANSI_D->query_translations()[0];
     else
-	translations = M_ANSI->query_translations()[1];
+	translations = ANSI_D->query_translations()[1];
 #ifdef CONFIGURABLE_COLOUR
     translations = copy(translations);
     foreach (string code, string value in colours) {

@@ -1,10 +1,5 @@
 
-
-
-
-
 Setting the Id
-
 
 Your object needs to be identified by an id/ids.
 This allows the player to interact with
@@ -17,55 +12,8 @@ following function in your objects create().
 The player can now refer to your object using any
 of the above ids.
  
-
 Tips:
 
    Try to use any id that a player may use.
    Don't use caps.
 
-
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-l

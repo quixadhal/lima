@@ -226,13 +226,15 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     }
     else if( arg == "/clear" )
     {
-	if( adminp( tb ) || tb = ci->moderator )
+	if ( adminp(tb) || tb = ci->moderator )
 	{
 	    ci->history = ({});
-	    write( "Channel cleared.\n");
+	    write("Channel cleared.\n");
 	}
 	else
-	    error( "Illegal attempt to clear channel " + user_channel_name + " by " + capitalize( this_body()->query_userid()) + ".");
+	    error("Illegal attempt to clear channel " +
+		  user_channel_name + " by " +
+		  capitalize(this_body()->query_userid()) + ".");
     }
     else if ( cmd_moderation(channel_name, arg) )
     {
@@ -245,7 +247,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	{
 	    printf("You are not the speaker on '%s'.\n", user_channel_name);
 	}
-	else if ( channel_type == 1 )
+	else if ( channel_type == CHANNEL_TYPE_IMUD )
 	{
 	    mixed * soul;
 	    string the_soul;

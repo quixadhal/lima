@@ -27,6 +27,8 @@ stdin_grep(string pattern, mapping flags, string stdin)
         bits |= 1;
   if(flags["v"])
         bits |= 2;
+
+  pattern = translate(pattern);
   lines = regexp(explode(stdin, "\n"),pattern, bits);
   if(!sizeof(lines))
     {  
@@ -73,6 +75,7 @@ main(mixed argv, mapping flags, string stdin)
 
     if(flags["i"])
 	pattern = insensitive_pattern(pattern);
+    pattern = translate(pattern);
     foreach(file in argv[1])
     {
 	if(file_size(file) < 1)

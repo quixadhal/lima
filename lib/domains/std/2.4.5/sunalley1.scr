@@ -1,0 +1,8 @@
+is=room
+exits=
+  west:sunalley2.scr
+  east:eastroad3.scr
+end
+brief=Sun alley
+long=Sun alley runs east-west.
+light=1

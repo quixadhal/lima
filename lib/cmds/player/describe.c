@@ -61,8 +61,8 @@ nomask void begin_describing()
 
 void create()
 {
-  ::create();
-  no_redirection();
+    ::create();
+    no_redirection();
 }
 
 private void main(string s)

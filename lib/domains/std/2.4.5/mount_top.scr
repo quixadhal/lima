@@ -1,0 +1,13 @@
+is=room
+
+exits=
+  down:ravine.scr
+  east:mount_top2.scr
+end
+
+brief=Top of mountain
+long=
+  You are on top of a mountain. There is a small plateau to the\n
+  east.
+end
+light=1

@@ -1,0 +1,20 @@
+is=room
+
+exits=
+  east:wild1.scr
+  west:clearing.scr
+end
+brief=In a forest
+long=You are in a big forest.
+light=1
+
+objects=
+  jacket=
+    is=armor,valuable
+    primary_adj=leather
+    primary_id=jacket
+    long=A worn but sturdy leather jacket.\nOn the back is a lot of rivets making the pattern of a star.
+    value=50
+    weight=2
+    armor_class=2
+  end

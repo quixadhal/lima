@@ -6,24 +6,23 @@
 // This is very OO.  Use it correctly or die. :)
 // Basically you can override stat_me() using inheritance.
 // 
-// stat_me() {
-//  ::stat_me();
+// string stat_me() {
+//  string result = ::stat_me();
 //  if (this_user()->query_userid()=="beek") {
-//    write("Debug info: i = "+i);
+//    result += "Debug info: i = "+i + "\n";
 //  }
+//  return result;
 // }
 
 #include <mudlib.h>
 inherit CMD;
 
-private void main(mixed *arg) {
-    if (!arg[0]->stat_me()) {
-	outf("No information available for %O.\n", arg[0]);
-	return;
-    }
-    return;
-}
+private void main(mixed *arg)
+{
+    string result = arg[0]->stat_me();
 
-int help() {
-    write("Syntax: stat <object>\n\nGives you vital information about ANY object.\n");
+    if ( !result )
+	outf("No information available for %O.\n", arg[0]);
+    else
+	out(result);
 }

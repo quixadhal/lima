@@ -70,9 +70,7 @@ static nomask void trigger_reconnect(string key)
 }
 
 
-int stat_me()
+string stat_me()
 {
-    printf("\nRETRY INFO\n%O\n", retry_info);
-
-    return 1;
+    return sprintf("\nRETRY INFO\n%O\n", retry_info);
 }

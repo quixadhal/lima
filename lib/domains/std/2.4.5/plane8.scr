@@ -1,0 +1,9 @@
+is=room
+
+exits=
+  north:plane13.scr
+  west:plane6.scr
+  south:ruin.scr
+end
+brief=A large open plain
+long=A large open plain.

@@ -4,6 +4,7 @@
 #define __DAEMONS_H__
 
 #define ALIAS_D		"/daemons/alias_d"
+#define ANSI_D		"/daemons/ansi_d"
 #define ANNOTATION_D    "/daemons/annotation_d"
 #define BANISH_D	"/daemons/banish_d"
 #define CHANLOG_D	"/daemons/chanlog_d"
@@ -29,6 +30,7 @@
 #define WEATHER_D	"/daemons/weather_d"
 #define SKILL_D		"/daemons/skill_d"
 #define SHUTDOWN_D	"/daemons/shutdown_d"
+#define BIRTHDAY_D	"/daemons/birthday_d"
 
 #define CMD_D		"/secure/daemons/cmd_d"
 #define FINGER_D	"/secure/daemons/finger_d"

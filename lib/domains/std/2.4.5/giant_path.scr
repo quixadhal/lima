@@ -1,0 +1,12 @@
+is=room
+
+exits=
+  east:big_tree.scr
+  west:giant_lair.scr
+end
+brief=A path
+long=
+  You are on a path going in east/west direction. There are some\n
+  VERY big footsteps here.
+end
+light=1

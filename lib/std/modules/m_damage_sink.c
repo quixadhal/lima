@@ -58,3 +58,8 @@ int is_armor()
     return 1;
 }
 
+mapping lpscript_attributes() {
+    return ([
+        "armor_class" : ({ LPSCRIPT_INT, "setup", "set_armor_class" }),
+    ]);
+}

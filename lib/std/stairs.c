@@ -3,22 +3,16 @@
 inherit OBJ;
 inherit M_CLIMBABLE;
 
-int plural_flag;
-
-void set_plural() {
-    plural_flag = 1;
-    set_unique(1); // plural
-}
 
 mixed direct_get_obj( object ob ) {
-    if (plural_flag)
+    if( query_plural())
 	return "#Try climbing them instead.\n";
     else
 	return "#Try climbing it instead.\n";
 }
 
 static void setup_messages(string name, mixed up_dest, mixed down_dest) {
-    if (plural_flag) {
+    if (query_plural()) {
 	add_id_no_plural(name);
 
 	if (up_dest) {
@@ -53,7 +47,7 @@ static void setup_messages(string name, mixed up_dest, mixed down_dest) {
 
 // Separated from create() so that objects can overload this separately
 void more_create(mixed up_dest, mixed down_dest, int attached) {
-    set_plural();
+    set_plural(1);
     setup_messages("stairs", up_dest, down_dest);
 }
 

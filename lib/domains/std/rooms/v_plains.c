@@ -29,7 +29,6 @@ static private string * my_descriptions = ({
 
 void create()
 {
-
 ZBUG("in_set_up");
     use_data_file(DATA_FILE);
     set_brief("Plains");

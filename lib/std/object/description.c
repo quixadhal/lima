@@ -50,7 +50,7 @@ string get_base_long()
 
     res = evaluate(long);
     if (!res)
-	return "You see nothing special about " + the_short() + "\n";
+	return "You see nothing special about " + the_short() + ".\n";
 
     return res;
 }
@@ -148,7 +148,7 @@ static void set_in_room_desc( string arg )
 
 void set_plural_in_room_desc( string arg ){ plural_in_room_desc = arg; }
 
-string query_posessive(){  return "its"; }
+string query_possessive(){  return "its"; }
 
 //:FUNCTION
 //set the untouched description of the object.  This is the way the object

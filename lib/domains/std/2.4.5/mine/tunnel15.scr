@@ -1,0 +1,8 @@
+is=room
+light=0
+exits=
+  east:tunnel16.scr
+  west:tunnel14.scr
+end
+brief=Tunnel
+long=In the tunnel into the mines.

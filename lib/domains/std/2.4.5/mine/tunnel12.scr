@@ -1,0 +1,8 @@
+is=room
+light=0
+brief=Tunnel
+exits=
+  south:tunnel11
+  north:tunnel13
+end
+long=In the tunnel into the mines.

@@ -1,0 +1,38 @@
+
+When there are two possible valid interpretations for a noun, the Lima
+Mudlib *always* prints an error stating that there is an ambiguity.
+This is different from the behavior of many MUDs, although it is
+similar to most text adventure games (which the developers of this lib
+believe were, in general, higher quality than the average MUD).
+Note that an error message is *not* generated in cases where there are
+two possible objects but only one makes sense.  
+
+For example, if someone in the room is holding a sword, and there is a
+sword on the ground, 'get sword' will correctly figure out which sword
+was probably meant.  Why is the sword in the persons hand considered at
+all?  Because in the case where there *isn't* a sword on the ground, you
+get a much better error message than the "There is no sword here" which
+would otherwise be generated.
+
+The case most people complain about is "look at orc" with two orcs in the
+room.  In our opinion, if you really want to look at either orc, but don't
+care which, you should say so.  There are a number of ways of doing this:
+"look at first orc", "look at 1st orc", "look at any orc", "look at a orc",
+etc.
+
+[Note: support for 'a' and 'any' was added in v22.1a10, so v22.1 beta
+ versions and v22.1, as well as all later drivers, support it.  Earlier
+ ones support 'first' and '1st' but not 'a' and 'any']
+
+In our opinion, warning about ambiguities is a *good* thing.  Arbitrarily
+picking the first object can be very bad, as anyone who has played MUDs
+extensively knows.  For example, most players have accidentally sold the
+wrong object, due to having both a buckler and a shield in their inventory,
+and not realizing that the buckler can also be called a shield.
+
+Lastly, on a well written MUD, the number of objects which are simply
+generic copies of each other with no noticeable differences should be
+rare anyway.
+
+-Beek
+

@@ -1,0 +1,19 @@
+light=1
+brief=The shore of Crescent Lake
+long=
+  You are standing on the shore of Crescent Lake, a beautiful and\n
+  clear lake. Out in the centre of the lake stands the Isle\n
+  of the Magi.\n
+  A trail leads into the forest to the north.\n
+  The shore of Crescent Lake continues northeast and northwest\n
+  To the southeast, a stone bridge used to cross over to the\n
+  Isle of the Magi, but it has fallen into the lake, making the\n
+  crossing to the island impossible by that means.  However, you can\n
+  make out the faint outline of a magical bridge its place.
+end
+exits=
+  north:sforst46.scr
+  northeast:sshore27.scr
+  northwest:sshore25.scr
+  southeast:sislnd1.scr
+end

@@ -15,7 +15,7 @@ int	expand_vars;
 
 void set_expand_vars(int i)
 {
-  expand_vars = i;
+    expand_vars = i;
 }
 
 int is_variable(string name);
@@ -23,20 +23,20 @@ private mixed check_for_nuggets(string array args);
 
 private void cmd_rehash()
 {
-  CMD_D->cache(map(path,(:evaluate_path:)));
-  write("Okay.\n");
+    CMD_D->cache(map(path,(:evaluate_path:)));
+    write("Okay.\n");
 }
 
 private mixed evaluate_code(mixed code)
 {
     string dir;
-    
+
     code = reg_assoc(code,({"\\$[a-zA-Z0-9]+"}),({0}))[0];
-    
+
     code = 
-	map(code, (: (strlen($1) > 1 && $1[0] == '$' && is_variable($1[1..]))  ?
-		   "(this_body()->query_shell_ob()->get_variable(\""+$1[1..]+"\"))" :
-		   $1 :));
+    map(code, (: (strlen($1) > 1 && $1[0] == '$' && is_variable($1[1..]))  ?
+	"(get_user_variable(\""+$1[1..]+"\"))" :
+	$1 :));
     code = implode(code, "");
 
     // don't chop access
@@ -89,7 +89,7 @@ string query_path() {
 private void fix_path()
 {
     set_variable("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
-			       CMD_DIR_PLAYER "/"}));
+	CMD_DIR_PLAYER "/", CMD_DIR_CREATE "/"}));
     printf("Ok, your path is fixed.\n");
 }
 
@@ -120,7 +120,7 @@ static void prepare_shell()
     ::prepare_shell();
 
     set_if_undefined("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
-				   CMD_DIR_PLAYER "/"}));
+	CMD_DIR_CREATE "/", CMD_DIR_PLAYER "/"}));
     set_if_undefined("pwd", "/");
     set_if_undefined("cwf", 0);
 
@@ -132,7 +132,7 @@ static void prepare_shell()
 
     add_variable_hook("path", (: set_path :));
 }
-    
+
 string query_shellname()
 {
     return "wish (Lima wizard shell) v. 0.9";
@@ -165,7 +165,7 @@ varargs static void execute_command(string array argv, string original_input)
     if(sizeof(argv) > 1)
 	argv = argv[0..0] + map(argv[1..], (: expand_if_variable($1,1) :));
 
-    
+
     // In some shells, this is the hook for doing username completion,
     // globbing, flag pre-parsing, etc...  In others, it's used to execute
     // code encased in ` `'s.
@@ -176,24 +176,24 @@ varargs static void execute_command(string array argv, string original_input)
 
     if(wizardp(this_user()))
 	argv = map(argv, 
-		   (: (stringp($1)) ? replace_string($1,"\\`","`") :  $1 :));
+	  (: (stringp($1)) ? replace_string($1,"\\`","`") :  $1 :));
 
     // check for if this is a variable setting.
     if(sizeof(argv) > 2 && argv[1] == "=" && strlen(argv[0]) > 1 &&
-       argv[0][0] == '$')
+      argv[0][0] == '$')
     {
 	if(sizeof(argv) == 3)
 	    set_variable(argv[0][1..],expand_if_variable(argv[2]));
 	else
 	    set_variable(argv[0][1..], implode_by_arr(map(argv[2..], 
-						   (: expand_if_variable :)),
-					       implode_info[2..]));
+		  (: expand_if_variable :)),
+		implode_info[2..]));
 	return;
     }
 
     // Expand variables
     if(expand_vars)
-      argv = map(argv, (: expand_if_variable :));
+	argv = map(argv, (: expand_if_variable :));
 
     // ### wtf is this?
     // Hmm, I might undo this one...  the only reason this is here is to 
@@ -211,8 +211,8 @@ varargs static void execute_command(string array argv, string original_input)
 
     orig_argv = argv;
     virgin_input = implode_by_arr(map(orig_argv[1..], 
-	     (:stringp($1)?$1:sprintf("%O",$1):)), implode_info[1..])[1..];
-    
+	(:stringp($1)?$1:sprintf("%O",$1):)), implode_info[1..])[1..];
+
     nugget_info = check_for_nuggets(argv);
     argv = nugget_info[0];
     stdin_info = nugget_info[1];
@@ -220,48 +220,48 @@ varargs static void execute_command(string array argv, string original_input)
     remaining_implode_info = implode_info[sizeof(argv)..];
     implode_info = implode_info[1..(sizeof(argv)-1)]+({""});
     if(sizeof(implode_info) && (implode_info[0][0..0] == " "))
-      implode_info[0] = implode_info[0][1..];
+	implode_info[0] = implode_info[0][1..];
 
 
     /* find and execute the given command */
     cmd_info = CMD_D->smart_arg_parsing(argv, path, implode_info);
     if ( !intp(cmd_info) )
     {
-      if(strlen(virgin_input) == strlen(original_input))
-	virgin_input = "";
-      while(1)
+	if(strlen(virgin_input) == strlen(original_input))
+	    virgin_input = "";
+	while(1)
 	{
-	  mixed tmp2;
-	  cmd_info = cmd_info[0]->call_main(cmd_info[2], cmd_info[1], 
-					    stdin_info, extra_args,
-					    implode_info, 
-					    remaining_implode_info,
-					    virgin_input);
-	  if(!cmd_info)
-	    return;
-	  stdin_info = cmd_info[1];
-	  implode_info = cmd_info[2];
-	  nugget_info = check_for_nuggets(cmd_info[0]);
-	  argv = nugget_info[0];
-	  extra_args = nugget_info[2];
-	  tmp2 = argv;
-	  if(arrayp(extra_args))
-	    tmp2 += extra_args;
-	  if(!sizeof(tmp2))
+	    mixed tmp2;
+	    cmd_info = cmd_info[0]->call_main(cmd_info[2], cmd_info[1], 
+	      stdin_info, extra_args,
+	      implode_info, 
+	      remaining_implode_info,
+	      virgin_input);
+	    if(!cmd_info)
+		return;
+	    stdin_info = cmd_info[1];
+	    implode_info = cmd_info[2];
+	    nugget_info = check_for_nuggets(cmd_info[0]);
+	    argv = nugget_info[0];
+	    extra_args = nugget_info[2];
+	    tmp2 = argv;
+	    if(arrayp(extra_args))
+		tmp2 += extra_args;
+	    if(!sizeof(tmp2))
 	    {
-	      write("error: pipe to nothing.\n");
-	      return;
+		write("error: pipe to nothing.\n");
+		return;
 	    }
-	  virgin_input = implode_by_arr(tmp2[1..],  
-		       implode_info[(sizeof(implode_info)-sizeof(tmp2))..]);
-	  if(virgin_input[0] == ' ')
-	    virgin_input = virgin_input[1..];
-	  remaining_implode_info = implode_info[sizeof(argv)..];
-	  implode_info = implode_info[1..(sizeof(argv)-1)]+({""});
-	  if(sizeof(implode_info) && (implode_info[0][0..0] == " "))
-	    implode_info[0] = implode_info[0][1..];
-	  cmd_info = CMD_D->smart_arg_parsing(argv,path,implode_info);
-	  if(intp(cmd_info))
+	    virgin_input = implode_by_arr(tmp2[1..],  
+	      implode_info[(sizeof(implode_info)-sizeof(tmp2))..]);
+	    if(virgin_input[0] == ' ')
+		virgin_input = virgin_input[1..];
+	    remaining_implode_info = implode_info[sizeof(argv)..];
+	    implode_info = implode_info[1..(sizeof(argv)-1)]+({""});
+	    if(sizeof(implode_info) && (implode_info[0][0..0] == " "))
+		implode_info[0] = implode_info[0][1..];
+	    cmd_info = CMD_D->smart_arg_parsing(argv,path,implode_info);
+	    if(intp(cmd_info))
 	    {
 		if (sizeof(argv))
 		    printf("error: pipe to %s failed.\n", argv[0]);
@@ -287,7 +287,7 @@ varargs static void execute_command(string array argv, string original_input)
 	printf("Nothing before pipe.\n");
 	return;
     }
-    
+
     if (this_body()) {
 	/* use the parser to try the command */
 	if ( this_body()->do_game_command(original_input) )
@@ -298,8 +298,8 @@ varargs static void execute_command(string array argv, string original_input)
 	if ( channel_name ) {
 	    int chan_type = channel_name[0..4] == "imud_";
 	    CHANNEL_D->cmd_channel(channel_name,
-				   virgin_input,
-				   chan_type);
+	      virgin_input,
+	      chan_type);
 	    return;
 	}
 
@@ -324,7 +324,7 @@ void set_pwd(string fname)
 void swap_pwd() {
     set_pwd(get_variable("lastpwd"));
 }
-    
+
 void set_cwf(string fname)
 {
     set_variable("cwf", fname);
@@ -350,33 +350,33 @@ static nomask string query_save_path(string userid)
 // Support for IO redirection
 private mixed check_for_nuggets(string array args)
 {
-  int		i,j;
-  string array	stdinstuff = 0;
+    int		i,j;
+    string array	stdinstuff = 0;
 
-  i = member_array("<",args);
-  if(i != -1)
+    i = member_array("<",args);
+    if(i != -1)
     {
-      j = i+1;
-      while((j < sizeof(args)) && (args[j] != ">") && (args[j] != ">>")
-	    && (args[j] != "|") && (args[j] != "<")) j++;
-      stdinstuff = args[i+1..(j-1)];
-      args = args[0..(i-1)] + args[j..];
+	j = i+1;
+	while((j < sizeof(args)) && (args[j] != ">") && (args[j] != ">>")
+	  && (args[j] != "|") && (args[j] != "<")) j++;
+	stdinstuff = args[i+1..(j-1)];
+	args = args[0..(i-1)] + args[j..];
     }
 
-  for(i=0;i<sizeof(args);i++)
+    for(i=0;i<sizeof(args);i++)
     {
-      if(stringp(args[i]))
-      switch(args[i])
+	if(stringp(args[i]))
+	    switch(args[i])
 	{
 	case "|":
 	case ">":
 	case ">>":
-	  return ({args[0..(i-1)], stdinstuff, args[i..]});
+	    return ({args[0..(i-1)], stdinstuff, args[i..]});
 	default:
-	  break;
+	    break;
 	}
     }
-  return ({args, stdinstuff, 0});
+    return ({args, stdinstuff, 0});
 }
 
 

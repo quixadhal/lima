@@ -29,13 +29,13 @@ inherit __DIR__ "room/roomdesc";
 private static string area_name;
 
 //:FUNCTION stat_me
-//Writes some debugging info about the object.  Shows the container info,
+//Returns some debugging info about the object.  Shows the container info,
 //as well as the short and exits.
-int stat_me() {
-    printf("Room: %s [ %s ]\n\n",
-      short(), implode(query_exit_directions(1), ", "));
-    container::stat_me();
-    return 1;
+string stat_me()
+{
+    return sprintf("Room: %s [ %s ]\n\n",
+		   short(), implode(query_exit_directions(1), ", ")) +
+	container::stat_me();
 }
 
 //:FUNCTION set_brief
@@ -52,7 +52,7 @@ int can_hold_water()
     return 1;
 }
 
-void create()
+void create(array args...)
 {
     container::create();
     exits::create();
@@ -60,14 +60,27 @@ void create()
     // cloned rooms will already have this stuff happen... We need this
     // because setup() is the way people configure mudlib objects.
     // Almost always, except in the case of rooms, game objects are clones.
-    if( !clonep(this_object()) )
+
+//### Small problem here; some rooms are clones, and this bails for them.
+//### We really need a better way to test if we should call setup().
+//###
+//### Virtual grids, for example, usually depend on cloned rooms working
+//### properly.
+//###
+//### BTW, contrary to the above, it appears this is *NOT* already done for cloned rooms
+  
+#if 0
+    if( !clonep() )
     {
+#endif
 	// initialize the mudlib (default) stuff, then the area coder's
 	mudlib_setup();
 	this_object()->internal_setup();
 
-	setup();
+	setup(args...);
+#if 0
     }
+#endif
 }
 
 void mudlib_setup()
@@ -111,10 +124,45 @@ string get_brief()
     return short();
 }
 
+void possible_light_change(int old_light, int new_light) {
+    if (old_light && !new_light) {
+	tell_from_inside(this_object(), "The room goes dark.\n");
+    } else 
+    if (!old_light && new_light) {
+	tell_from_inside(this_object(), "You can see again.\n");
+    }
+}
+
+void set_light(int x) {
+    int old = query_light();
+
+    ::set_light(x);
+
+    possible_light_change(old, query_light());
+}
+
+void adjust_light(int x) {
+    int old = query_light();
+    
+    ::adjust_light(x);
+
+    possible_light_change(old, query_light());
+}
 
 mixed direct_get_obj( object ob, string name )
 {
     if( this_object() == environment( this_body()))
         return "#A surreal idea.\n";
     return ::direct_get_obj( ob, name );
+}
+
+mapping lpscript_attributes() {
+    return ([
+	"area" : ({ LPSCRIPT_STRING, "setup", "set_area" }),
+	"brief" : ({ LPSCRIPT_STRING, "setup", "set_brief" }),
+	"default_exit" : ({ LPSCRIPT_STRING, "setup", "set_default_exit" }),
+	"exits" : ({ LPSCRIPT_MAPPING, "setup", "set_exits" }),
+        "state" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_state_description(\"" + $1 + "\", \"" + $2[0] + "\")" }) :) }),
+        "item" : ({ LPSCRIPT_SPECIAL, (: ({ "setup", "add_item(\"" + $1[0] + "\", \"" + implode($1[1..], " ") + "\")" }) :) })
+    ]);
 }

@@ -1,0 +1,12 @@
+is= torch,valuable
+adj= magic
+id= torch
+light_msgs= As $n $vlight the $o, it starts burning with a blue flame.
+fuel= -1
+value= 15
+
+setup:
+    lpc
+        set_long( (: "The slender torch is made of wood that seems to sing with vitality.\n" + (query_is_lit() ? "It burns with a strange blue flame.\n" : "") :) );
+        set_source( (: $1->can_light_the_magic_torch() ? (mixed)1 : "It doesn't seem to be the right type of flame.\n" :) );
+    end

@@ -89,7 +89,7 @@ class stat_roll_mods query_roll_mods() {
  */
 void create(string userid) {
     ::create(userid);
-    set_wield_bonus(0);
+    set_to_hit_bonus(0);
 #if COMBAT_STYLE == COMBAT_TRADITIONAL
     set_weapon_class(10);
 #endif

@@ -81,3 +81,11 @@ mixed direct_get_obj(object ob) {
 mixed direct_whisper_liv_str() { return 1; }
 mixed direct_whisper_str_to_liv() { return 1; }
 mixed direct_whisper_to_liv_str() { return 1; }
+
+mapping lpscript_attributes() {
+    return ([
+	"name" : ({ LPSCRIPT_STRING, "setup", "set_name" }),
+	"proper_name" : ({ LPSCRIPT_STRING, "setup", "set_proper_name" }),
+        "gender" : ({ LPSCRIPT_GENDER }),
+    ]);
+}

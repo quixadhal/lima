@@ -153,7 +153,7 @@ string error_handler(mapping mp, int caught)
     string logfile = (caught ? LOG_FILE_CATCH : LOG_FILE_RUNTIME);
     string what = mp["error"];
     string userid;
-    
+
     ret = "---\n" + standard_trace(mp);
     write_file(logfile, ret);
 
@@ -165,6 +165,8 @@ string error_handler(mapping mp, int caught)
     if ( this_user() )
     {
 	userid = this_user()->query_userid();
+	if ( !userid || userid == "" )
+	    userid = "(none)";
 	printf("%sTrace written to %s\n", what, logfile);
 	errors[userid] = mp;
     } else
@@ -465,6 +467,10 @@ string make_path_absolute(string path)
 
 int valid_override(string file, string efun_name)
 {
+    if(file[0] != '/')
+    {
+      return 0;
+    }
     switch (efun_name) {
     case "pluralize":
 	// M_GRAMMAR overrides this
@@ -547,7 +553,7 @@ mixed valid_write(mixed path, object caller, string call_fun)
 
     if (caller == this_object())
 	return 1;
-    path = evaluate_path(path);
+    path = canonical_path(path);
 
     if (SECURE_D->check_privilege(SECURE_D->query_protection(path,1),1))
 	return path;
@@ -569,7 +575,7 @@ mixed valid_read(string path, object caller, string call_fun)
     if (file_name(caller)==SECURE_D && call_fun == "restore_object")
 	return 1;
 
-    path = evaluate_path(path);
+    path = canonical_path(path);
     if (SECURE_D->check_privilege(SECURE_D->query_protection(path,0),0))
 	return path;
 

@@ -1,0 +1,13 @@
+is= object
+
+primary_adj= blue
+primary_id= flame
+id= fire
+in_room_desc= A blue flame hovers in the air in the center of the room.
+long= The air itself seems to burn here, as if by magic.
+
+can_light_the_magic_torch:
+  ok
+
+indirect_light_obj_with_obj:
+  ok

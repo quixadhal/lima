@@ -3,7 +3,9 @@ known bugs (arbitrary meaning we reserve the right to label a bug
 we're never going to fix a feature ;-)
 
 Misc things that should be done soon or the idea discarded:
-- skill examples, combat skills, spell skills, advancement
+- skill examples (and integration w/ lib): combat, spells, misc
+- spell examples: objects, training, books, interaction w/ skills, admin'ing
+- guild examples: training, halls, guards, admin'ing
 - use of parser for commands
 - admtool: wizdir administration
 - msg/review

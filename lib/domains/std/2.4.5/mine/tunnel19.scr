@@ -1,0 +1,9 @@
+is=room
+light=0
+brief=Tunnel
+exits=
+  south:tunnel17
+  north:tunnel22
+end
+brief=Tunnel
+long=The tunnel splits up in a fork forward.

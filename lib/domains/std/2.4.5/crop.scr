@@ -1,0 +1,9 @@
+is=room
+exits=north:vill_shore.scr
+brief=Fields
+long=
+  You are in the middle of the fields where the city grows all its crops.\n
+  A road runs north of here.
+end
+light=1
+

@@ -17,9 +17,9 @@ inherit BASE_OBJ;
 #ifdef USE_SIZE
 inherit __DIR__ "object/size";
 #else
-#ifdef USE_MASS
+# ifdef USE_MASS
 inherit __DIR__ "object/mass";
-#endif
+# endif
 #endif  //USE_SIZE
 
 #ifdef EVERYTHING_SAVES
@@ -30,26 +30,27 @@ inherit __DIR__ "object/light";		/* before non_object */
 inherit __DIR__ "object/properties";
 inherit __DIR__ "object/move";
 inherit __DIR__ "object/visible";
-inherit __DIR__ "object/vsupport";
 inherit __DIR__ "object/hooks";
 inherit __DIR__ "object/msg_recipient";
 
 //:FUNCTION stat_me
-//write() some debugging info about the state of the object
-int stat_me() 
+//return some debugging info about the state of the object
+string stat_me() 
 {
-    ::stat_me();
-    write("Short: "+short()+"\n");
+    string result = ::stat_me() +
+	"Short: "+short()+"\n";
+
 #ifdef USE_SIZE
-    write("Size: "+get_size()+" Light: " + query_light() + "\n");
+    result += "Size: "+get_size()+" Light: " + query_light() + "\n";
 #else
 # ifdef USE_MASS
-    write("Weight: "+query_mass()+"  Light: " + query_light() + "\n");
+    result += "Weight: "+query_mass()+"  Light: " + query_light() + "\n";
 # else
-    write("Light: "+query_light() + "\n");
+    result += "Light: "+query_light() + "\n";
 # endif
 #endif
-    return 1;
+
+    return result;
 }
 
 
@@ -84,7 +85,7 @@ void create(mixed array args...)
 {
     base_obj::create();
     properties::create();
-    configure_set(STD_FLAGS, 0, 0, (: resync_visibility :), 0, 0);
+    configure_set(STD_FLAGS, 0, (: resync_visibility :));
 
     if ( clonep(this_object()) )
     {
@@ -121,7 +122,7 @@ void set_light(int x)
 //### disallow() ...
 int allow(string what)
 {
-  return 1;
+    return 1;
 }
 
 // by default, if we appear to be useless, we are!
@@ -134,17 +135,42 @@ int destruct_if_useless() {
 // is called in objects that haven't had a function call in a while].
 //
 // e.g. environment()->anything, like many libs do, is remarkably stupid.
-int clean_up(int instances) {
+int clean_up(int instances)
+{
     // If we have an environment, we will be destructed when our environment
     // cleans up.  So no need to worry about it ourself.  Note that once
     // we have an environment, we can never lose it, so the driver need not
     // worry about us any more.
-    if (environment()) return NEVER_AGAIN;
+    if ( environment() )
+	return NEVER_AGAIN;
+
     // if we are inherited, or have clones around, we don't want to clean up
     // as that would cause this program to need to be recompiled later.
     // (note: instances is only ever nonzero for blueprints)
     // This may change later, though.
-    if (instances) return ASK_AGAIN;
+    if ( instances )
+	return ASK_AGAIN;
+
     // We don't have an environment.  We appear to be useless!
     return destruct_if_useless();
+}
+
+mapping lpscript_attributes() {
+    return ([
+        "adj" : ({ LPSCRIPT_LIST, "setup", "add_adj" }),
+        "id" : ({ LPSCRIPT_LIST, "setup", "add_id" }),
+        "primary_adj" : ({ LPSCRIPT_STRING, "setup", "set_adj" }),
+        "primary_id" : ({ LPSCRIPT_STRING, "setup", "set_id" }),
+	"in_room_desc" : ({ LPSCRIPT_STRING, "setup", "set_in_room_desc" }),
+	"long" : ({ LPSCRIPT_STRING, "setup", "set_long" }),
+	"flag" : ({ LPSCRIPT_FLAGS }),
+        "light" : ({ LPSCRIPT_INT, "setup", "set_light" }),
+#ifdef USE_MASS
+        "mass" : ({ LPSCRIPT_INT, "setup", "set_mass" }),
+        "weight" : ({ LPSCRIPT_INT, "setup", "set_mass" }),
+#else
+        "mass" : ({ LPSCRIPT_SPECIAL, 0 }),
+        "weight" : ({ LPSCRIPT_SPECIAL, 0 }),
+#endif
+    ]);
 }

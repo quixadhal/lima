@@ -1,0 +1,26 @@
+is=room
+objects=
+  obj/stethoscope
+  frog=
+    is=monster
+    proper_name=frog
+    in_room_desc=A cute little frog
+    weapon_class=4
+    objects=
+      crown=
+        is=object,valuable
+        primary_adj=iron
+        primary_id=crown
+        value=30
+      end
+    end
+  end
+end
+
+exits=west:ruin.scr
+brief=A large open plain.
+long=
+  A large open plain. There is a river to the east,
+  and some kind of building to the west
+end
+light=1

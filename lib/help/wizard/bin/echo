@@ -1,7 +1,8 @@
+$$ see: echoto, echoall
 
 USAGE:  echo (string)
 
-   This command will echo a message to the room exactly as you typed the string.
+  This command will echo a message to the room exactly as you typed the string.
 
 echo You suddenly have a strange urge to kill something.
  
@@ -15,6 +16,3 @@ You suddenly have a strange urge to kill something.
 with players. (i.e. no faked deaths or any other messages of that nature).
 Doing this is a direct violation of the mud policy and is grounds for
 disciniplary (sp???) action.
-
-
-SEE ALSO: echoto, 

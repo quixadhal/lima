@@ -7,18 +7,17 @@ the following conditions are met:
 1) nothing is removed from the headers of the files.  
 
 2) Commercial use of any part of this lib is prohibited, without prior
-consent from the authors of this software.
+   consent from the authors of this software.
 
 3) The name of the mudlib is displayed on your title screen and in any
-relevant intermud communications, unless you have permission
-from the authors.
+   relevant intermud communications, unless you have permission
+   from the authors.
+
+4) Written consent from each author must be provided to use this
+   software in ways otherwise contrary to this licence.
 
 The authors of this software are:
 
 John Viega (rust@virginia.edu)
 Greg Stein (gstein@svpal.org)
 Tim Hollebeek (tim@handel.princeton.edu)
-
-4) Written concent from each author 
-must be provided to use this software in
-ways otherwise contrary to this licence.

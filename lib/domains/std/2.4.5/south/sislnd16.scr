@@ -1,0 +1,15 @@
+is=room
+light=1
+brief=Halfway up the hill on the Isle of the Magi
+long=
+  You are halfway up the hill.\n
+  On top of the hill, to the north, stands the ruins of the tower of\n
+  Arcanarton.\n
+  Paths wind down to the shore of the island to the south, east and west
+end
+exits=
+  north:sislnd18.scr
+  south:sislnd7.scr
+  east:sislnd6.scr
+  west:sislnd8.scr
+end

@@ -40,7 +40,7 @@ varargs void set_locked(string x, string y) {
 
 #ifdef USE_SKILLS
 int strength_vs_magic;
-int resistance_to_picking;
+int strength_vs_picking;
 
 void set_strength_vs_magic(int s)
 {
@@ -52,14 +52,14 @@ int get_strength_vs_magic()
   return strength_vs_magic;
 }
 
-void set_resistance_to_picking(int s)
+void set_strength_vs_picking(int s)
 {
-  resistance_to_picking = s;
+  strength_vs_picking = s;
 }
 
-int get_resistance_to_picking()
+int get_strength_vs_picking()
 {
-  return resistance_to_picking;
+  return strength_vs_picking;
 }
 
 #endif
@@ -111,7 +111,7 @@ mixed pick()
 
 //:HOOK prevent_picking
 //A yes/no/error hook which can prevent an object from being picked
-//open.  However, if your mud uses skills, use set_resistance_to_picking() 
+//open.  However, if your mud uses skills, use set_strength_vs_picking() 
 //instead, unless you're doing something complex.
 
   ex = call_hooks("prevent_picking", HOOK_YES_NO_ERROR);
@@ -125,7 +125,7 @@ mixed pick()
     }
 
 #ifdef USE_SKILLS
-  i = this_body()->test_skill("misc/lockpick", get_resistance_to_picking());
+  i = this_body()->test_skill("misc/lockpick", get_strength_vs_picking());
   if(!i)
   {
     this_body()->simple_action(pick_fail, this_object());

@@ -1,0 +1,63 @@
+is=room
+light=1
+exits=
+  north:vill_road2.scr
+  south:adv_inner.scr
+end
+brief=The adventurers guild
+long=
+  You have to come here when you want to advance your level.\n
+  You can also buy points for a new level.\n
+  There is a list of quests on the wall.\n
+  There is an opening to the south, and some shimmering\n
+  blue light in the doorway.
+end
+objects=
+  list=
+    is=object,readable,gettable
+    id=list
+    getmsg=It is firmly attached to the wall.
+    flag=attached
+    long=
+        All the quests are listed on the list.
+    end
+# Hard coded for the heck of it
+    text=
+        1. Retrieve the Orc slayer from the evil orc shaman, and give it to Leo.
+    end
+  end
+  book=
+    is=book,gettable
+    flag=attached
+    id=book
+    getmsg=The book is attached to the chain.
+    in_room_desc=a book on a chain
+    long=
+      There is a book hanging on a chain from the wall.\n
+      The title is: 'ADVENTURING'.
+    end
+    text=/domains/std/2.4.5/book_text
+  end
+  chain=
+    is=object,gettable
+    getmsg=The chain is secured to the wall.
+    id=chain
+    flag=attached
+    long=
+        The chain is secured to the wall.
+    end
+  end
+end
+
+---
+mixed can_go_south() {
+    if (wizardp(this_user()))
+        return 1;
+    this_body()->other_action("$N $vtry to go through the field, but fails.\n");
+    return "A strong magic force stops you.";
+}
+
+mixed do_go_south() {
+    write("You wriggle through the force field...\n");
+    return 0;
+}

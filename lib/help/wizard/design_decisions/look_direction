@@ -1,0 +1,29 @@
+At one point in the past, Lima did in fact have a "look <direction>" verb,
+which showed the short description of the next room in that direction much
+like many MUDs and mudlibs do.
+
+The problem with this is the output is usually wrong, and often nonsensical:
+
+---
+You are standing in the middle of a large plain.
+
+> look east
+You are standing towards the east side of a large plain.
+There is a small rock here.
+Sunning itself on the small rock is a pretty little lizard.
+---
+
+The first sentence is downright wrong; as is the second.  The last sentence
+implies pretty impressive eyesight, especially if the "scale" of the plain
+is large, like hundreds of feet/room as is typical in an outdoor setting.
+
+Furthermore, exits may twist around, etc, so looking in a particular
+direction may not even be possible!
+
+After much thought, support for that non-feature was removed.  It is
+our general opinion that the "correct" way to do this sort of thing is
+to allow exits (or possibly directions) to have long descriptions so
+people can in fact look in arbitrary directions.  That has not been
+implemented yet, though.
+
+-Beek

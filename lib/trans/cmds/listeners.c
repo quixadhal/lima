@@ -31,42 +31,58 @@ private nomask string fmt_listener(object listener)
     return sprintf("%O", listener);
 }
 
-private void main()
+private void show_one_channel(string channel_name)
 {
-    string * channels = CHANNEL_D->query_channels();
-    mapping permanent = CHANNEL_D->query_permanent();
-    string channel_name;
     object * listeners;
+    int flags;
+    string flagstr = ":";
 
+    listeners = CHANNEL_D->query_listeners(channel_name);
+    if ( !listeners )
+    {
+	out("No such channel: " + channel_name + "\n");
+	return;
+    }
+    listeners -= ({ 0 });
+
+    flags = CHANNEL_D->query_flags(channel_name);
+
+    if ( flags & CHANNEL_WIZ_ONLY )
+	flagstr += " wiz";
+    if ( flags & CHANNEL_ADMIN_ONLY )
+	flagstr += " admin";
+    if ( flags & CHANNEL_PERMANENT )
+	flagstr += " permanent";
+	    
+    out(channel_name + flagstr + "\n    " +
+	implode(map_array(listeners, (: fmt_listener :)), ", ") +
+	"\n\n");
+}
+
+private void show_users_channels(object user)
+{
+    out("*** NOT YET IMPLEMENTED ***\n");
+}
+
+private void main(mixed *argv)
+{
     if ( !check_privilege(1) )
     {
 	out("Sorry, this command is only available to admins.\n");
 	return;
     }
 
-    foreach ( channel_name in channels )
+    if ( argv[0] )
     {
-	string one_channel = "";
-	int flags = permanent[channel_name];
-	string flagstr = ":\n";
-
-	listeners = CHANNEL_D->query_listeners(channel_name) - ({ 0 });
-
-	if ( !undefinedp(flags) )
-	{
-	    if ( flags & CHANNEL_WIZ_ONLY )
-		flagstr = ": wiz permanent\n";
-	    else if ( flags & CHANNEL_ADMIN_ONLY )
-		flagstr = ": admin permanent\n";
-	    else
-		flagstr = ": permanent\n";
-	}
-	    
-	out( channel_name + flagstr + "    " +
-		  implode(map_array(listeners, (: fmt_listener :)), ", ") +
-	    "\n\n");
+	if ( objectp(argv[0]) )
+	    show_users_channels(argv[0]);
+	else
+	    show_one_channel(argv[0]);
     }
-
+    else
+    {
+	map(CHANNEL_D->query_channels(), (: show_one_channel :));
+    }
 }
 
 

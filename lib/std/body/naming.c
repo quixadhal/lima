@@ -66,25 +66,11 @@ string query_idle_string()
     string result = "";
 
     if ( interactive(link) )
-       idle_time = query_idle(link)/60;
-    if ( !idle_time )
+	idle_time = query_idle(link);
+    if ( idle_time < 60 )
       return "";
 
-    // Don't worry about weeks or months :)
-/*
-    if ( idle_time > 24 * 60 )
-        result += " [idle " + number_of(idle_time/(24*60), "day") + "]";
-    else if ( idle_time > 60 )
-        result += " [idle " + number_of(idle_time/60, "hour") + "]";
-    else
-        result += " [idle " + number_of(idle_time, "minute") + "]";
-*/
-    if( idle_time > 24 * 60 )
-        result += " [idle " + idle_time/(24 * 60) + "d" + "]";
-    else if( idle_time > 60 )
-        result += " [idle " + idle_time/60 + "h" + "]";
-    else
-        result += " [idle " + idle_time + "m" + "]";
+    result += " [idle " + convert_time(idle_time, 2) + "]";
 
     return result;
 }

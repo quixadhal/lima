@@ -12,9 +12,14 @@ inherit VERB_OB;
 void do_give_obj_to_liv(object ob, object liv) {
     if (!try_to_acquire(ob))
 	return;
-    this_body()->targetted_action("$N $vgive a $o to $t.\n", liv, ob);
-    //### Need to check the return value
-    ob->move(liv);
+    if( ob->ob_state())
+	write( "You'll need to remove it first.\n");
+    else
+    {
+	this_body()->targetted_action("$N $vgive a $o to $t.\n", liv, ob);
+	//### Need to check the return value
+	ob->move(liv);
+    }
 }
 
 void do_give_obs_to_liv(array info, object liv) {
@@ -25,10 +30,10 @@ void do_give_obs_to_liv(array info, object liv) {
 mixed can_give_wrd_str_to_liv(string amount, string str, object who) {
     int z;
     string s1, s2;
-    
+
     sscanf(amount, "%d%s", z, s1);
     if (s1 != "") return 0;
-    
+
     sscanf(str, "%s %s", s1, s2);
     if (s2) {
 	if (s2 != "coin" && s2 != "coins")
@@ -60,7 +65,7 @@ void do_give_wrd_str_to_liv(string amount, string str, object who)
 array query_verb_info()
 {
     return ({ ({ "OBS to LIV", "WRD STR to LIV" }),
-		   ({ "hand" }) });
+      ({ "hand" }) });
 }
 
 #ifdef OLD_CODE
@@ -90,64 +95,64 @@ int i;
 
 give( rule, stack, input ) {
     switch(rule) {
-	
+
     case 1:
-	
+
 	//  CASE 1 --  HANDLES GIVE WITH NO OTHER COMMNADS
-		//
-		
-		interrogate(input);
+	//
+
+	interrogate(input);
 	return(1);
-	
+
     case 2:
-	
-	
+
+
 	if(this_body() == environment(stack[1]))
-	    
-	    {
-		this_body()->my_action("$N can't see any $o0 here!\n", stack[3]);
-		break;
+
+	{
+	    this_body()->my_action("$N can't see any $o0 here!\n", stack[3]);
+	    break;
+	}
+
+	else
+	{
+	    this_body()->my_action("You're not holding that!\n");
+	    break;
+	}
+
+    case 3:
+
+	if(find_monster_in_room(stack[3]->query_name(),environment(this_body()))) {
+
+	    do_give(stack[1], stack[3]);
+	    break;
+	}
+	else {
+	    this_body()->simple_action("$N $vgive $o0 to $o1.", stack[1], stack[3]);
+	    stack[1]->move(stack[3]);
+	    break;
+
+	}
+    case 4:
+
+	write( "You don't see that here.\n" );
+	break;
+
+    case 5:
+	for ( i = sizeof(stack[1]); i--;) 
+	{
+	    if (environment(stack[1][i]) == this_body() ) {
+		stack[1][i]->move(stack[3]);
+		this_body()->simple_action("$N $vgive $o0 to $o1.", stack[1], stack[3]);
 	    }
+	}
+	break;
 
-	 else
-	 {
-	     this_body()->my_action("You're not holding that!\n");
-	     break;
-	 }
-
-     case 3:
-
-	 if(find_monster_in_room(stack[3]->query_name(),environment(this_body()))) {
-
-	     do_give(stack[1], stack[3]);
-	     break;
-	 }
-	 else {
-	     this_body()->simple_action("$N $vgive $o0 to $o1.", stack[1], stack[3]);
-	     stack[1]->move(stack[3]);
-	     break;
-
-	 }
-     case 4:
-
-	 write( "You don't see that here.\n" );
-	 break;
-
-     case 5:
-	 for ( i = sizeof(stack[1]); i--;) 
-	 {
-	     if (environment(stack[1][i]) == this_body() ) {
-		 stack[1][i]->move(stack[3]);
-		 this_body()->simple_action("$N $vgive $o0 to $o1.", stack[1], stack[3]);
-	     }
-	 }
-	 break;
-
-     case 6:
-	 this_body()->my_action("$N can't give a $o0 to $o1!\n", stack[1],stack[3]);
-	 break;
-     }
-     return(1);
- }
+    case 6:
+	this_body()->my_action("$N can't give a $o0 to $o1!\n", stack[1],stack[3]);
+	break;
+    }
+    return(1);
+}
 
 #endif /* OLD_CODE */

@@ -1,0 +1,6 @@
+is=room
+
+exits=east:plane12.scr
+brief=Deep forest
+long=In the deep forest. The wood lights up to the east.
+light=1

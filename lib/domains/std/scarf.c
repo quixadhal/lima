@@ -12,7 +12,7 @@ void setup() {
     set_adj("red");
     set_id("scarf");
     set_gettable(1);
-#ifdef USE_BODY_SLOTS
+#ifdef USE_BODYSLOTS
     set_slot(TORSO);
 #endif
     set_value(10);

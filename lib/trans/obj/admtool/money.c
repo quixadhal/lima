@@ -5,29 +5,30 @@
 **
 ** 25-Jul-96   Valentino.    Created.
 **  6-Aug-96   Valentino.    Generalized and ported to Da Bean.
+** 961209, Deathblade:       updated for new MONEY_D
 */
 
 #include <daemons.h>
-#define ADMINS "Admin"
+
 void std_handler(string str);
-varargs void modal_simple(function input_func, int secure);
 varargs void modal_func(function input_func, mixed prompt_func, int secure);
 void do_one_arg(string arg_prompt, function fp, string arg);
 void do_two_args(string arg1_prompt, string arg2_prompt,
 		 function fp, string arg);
-void do_three_args(string arg1_prompt, string arg2_prompt,string arg3_prompt,
-		 function fp, string arg);
 
-#define PROMPT_MONEY     "(AdmTool:currency)   [alrxmq?] > "
+#define PROMPT_MONEY     "(AdmTool:currency) [celarmq?] > "
 
 private nomask void write_money_menu()
 {
     write("Administration Tool: currency administration\n"
 	  "\n"
-	  "    a [ar] [mat] [nic] - add a currency name ["+ADMINS+"]\n"
-	  "    l [area]           - list currencies\n"
-	  "    r [area] [materi]  - remove a currency name ["+ADMINS+"]\n"
-	  "    x [area] [amount]  - adjust exchange rate ["+ADMINS+"]\n"
+	  "    c                  - list currencies\n"
+	  "    e [type] [amount]  - set exchange rate              [Mudlib:daemons]\n"
+	  "                         (creates type if needed; set to zero to delete)\n"
+	  "\n"
+	  "    l [area]           - list currencies (in an area)\n"
+	  "    a [type] [area]    - add a current type to an area\n"
+	  "    r [type] [area]    - remove a current type from an area\n"
 	  "\n"
 	  "    m                  - main menu\n"
 	  "    q                  - quit\n"
@@ -36,107 +37,172 @@ private nomask void write_money_menu()
 	  );
 }
 
-varargs private nomask void
-list_cur(string area)
+private nomask void print_currencies(string area, string *types)
 {
-  if (area=="") area=0;
-  if (area && member_array(area,MONEY_D->query_currency_areas())==-1)
+    int first = 1;
+    foreach ( string type in types )
     {
-      write("*** That area is not defined.\n");
-      return;
+	if ( first )
+	{
+	    printf("%-20s %-20s %d\n", area, capitalize(type),
+		   MONEY_D->query_exchange_rate(type));
+	    first = 0;
+	}
+	else
+	{
+	    printf("%-20s %-20s %d\n", "", capitalize(type),
+		   MONEY_D->query_exchange_rate(type));
+	}
     }
-  MONEY_D->stat_me(area,10000);
+    write("\n");
 }
 
-varargs private nomask void
-add_cur(string area,string material,string nickname)
+private nomask void list_currencies_by_area(string area)
 {
-  if (!stringp(nickname) || !stringp(material) || !stringp(nickname))
+    string *types = MONEY_D->query_currency_types();
+    string *areas = MONEY_D->query_currency_areas();
+    string *avail;
+
+    area = lower_case(trim_spaces(area));
+    if ( area == "all" )
+	area = "";
+
+    if ( area != "" && (!areas || member_array(area, areas) == -1) )
     {
-      write("*** Wrong arguments given.\n");
-      return;
+	printf("Area \"%s\" has no currencies.\n", capitalize(area));
+	return;
     }
-  MONEY_D->add_currency(area,material,nickname);
-  write("Added currency successfully.\n");
+
+    printf("%-20s %-20s %s\n%*'-'s\n", "Area", "Currency", "Rate", 73, "");
+    if ( area != "" )
+    {
+	avail = MONEY_D->query_area_currencies(area);
+
+	print_currencies(capitalize(area), avail);
+    }
+    else
+    {
+	foreach ( area in areas )
+	{
+	    avail = MONEY_D->query_area_currencies(area);
+
+	    print_currencies(capitalize(area), avail);
+
+	    /* we want to find unassigned types */
+	    types -= avail;
+	}
+
+	if ( sizeof(types) )
+	{
+	    print_currencies("<unassigned>", types);
+	}
+    }
 }
 
-varargs private nomask void
-adj_ex(string area,int amount)
+private nomask void list_currencies()
 {
-  if (!stringp(area) || !intp(amount))
+    string *types = MONEY_D->query_currency_types();
+
+    if ( sizeof(types) == 0 )
     {
-      write("*** Wrong arguments given.\n");
-      return;
+	write("No currencies are defined.\n");
     }
-  if (MONEY_D->adjust_exchange_rate(area,amount))
-    write("Added currency successfully.\n");
-  else
-    write("Nothing changed.\n");
+    else
+    {
+	printf("%-20s %s\n%*'-'s\n", "Currency", "Rate", 73, "");
+	foreach ( string type in types )
+	{
+	    printf("%-20s %d\n", capitalize(type),
+		   MONEY_D->query_exchange_rate(type));
+	}
+    }
 }
 
-varargs private nomask void
-rem_cur(string area,string material)
+private nomask void set_exchange_rate(string type, string rate)
 {
-  if (!stringp(area) || !stringp(material))
-    {
-      write("*** Wrong arguments given.\n");
-      return;
-    }
-  write("Trying remove.\n");
-  MONEY_D->remove_currency(area,material);
+    int r = to_int(rate);
+
+    type = capitalize(lower_case(trim_spaces(type)));
+    MONEY_D->set_exchange_rate(type, r);
+
+    if ( !r )
+	printf("Currency type \"%s\" has been deleted.\n", type);
+    else
+	printf("Exchange rate for \"%s\" set to %d.\n", type, r);
+}
+
+private nomask void add_area_currency(string area, string type)
+{
+    area = capitalize(lower_case(trim_spaces(area)));
+    type = capitalize(lower_case(trim_spaces(type)));
+    MONEY_D->add_area_currency(area, type);
+    printf("Currency type \"%s\" has been added to area \"%s\".\n", type, area);
+}
+
+private nomask void remove_area_currency(string area, string type)
+{
+    area = capitalize(lower_case(trim_spaces(area)));
+    type = capitalize(lower_case(trim_spaces(type)));
+    MONEY_D->remove_area_currency(area, type);
+    printf("Currency type \"%s\" has been removed from area \"%s\".\n", type, area);
 }
 
 private nomask void receive_money_input(string str)
 {
-  int i;
-  string arg,arg2;
-  
-  sscanf(str,"%s %s",str,arg);
-  switch(str)
+    string arg;
+
+    sscanf(str, "%s %s", str, arg);
+
+    switch ( str )
     {
-    case "?":
-      write_money_menu();
-      break;
-    case "a":
-      if (!adminp(this_body()))
+    case "c":
+	list_currencies();
+	break;
+
+    case "e":
+	if ( !check_privilege("Mudlib:daemons") )
 	{
-	  write("Sorry... "+ADMINS+" only.\n");
-	  return;
+	    write("Sorry, only admins can change currencies.\n");
+	    return;
 	}
-      do_three_args("What area name? ","What material? ","What nickname? ",
-		    (:add_cur:),arg);
-      break;
-    case "r":
-      if (!adminp(this_body()))
-	{
-	  write("Sorry... "+ADMINS+" only.\n");
-	  return;
-	}
-      do_two_args("What area name? ","What material? ",(:rem_cur:),arg);
-      break;
-    case "x":
-      if (!adminp(this_body()))
-	{
-	  write("Sorry... "+ADMINS+" only.\n");
-	  return;
-	}
-      sscanf(arg,"%s %d",arg,i);
-      adj_ex(arg,i);
-      break;
+	do_two_args("What type? ",
+		    "What rate? ",
+		    (: set_exchange_rate :),
+		    arg);
+	break;
+
     case "l":
-      do_one_arg("What area? [default: all] ",(:list_cur:),arg);
-      break;
+	do_one_arg("What area to list? [all] ",
+		   (: list_currencies_by_area :),
+		   arg);
+	break;
+
+    case "a":
+	do_two_args("What area? ",
+		    "Add which type? ",
+		    (: add_area_currency :),
+		    arg);
+	break;
+
+    case "r":
+	do_two_args("What area? ",
+		    "Remove which type? ",
+		    (: remove_area_currency :),
+		    arg);
+	break;
+
+    case "?":
+	write_money_menu();
+	break;
+
     default:
-      std_handler(str);
-      break;
+	std_handler(str);
+	break;
     }
 }
 
 static nomask void begin_money_menu()
 {
-  modal_func((: receive_money_input :), PROMPT_MONEY);
-  write_money_menu();
+    modal_func((: receive_money_input :), PROMPT_MONEY);
+    write_money_menu();
 }
-
-
-

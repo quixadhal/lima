@@ -1,0 +1,12 @@
+is=room
+light=1
+brief=A dimly lit forest
+long=
+  You are in part of a dimly lit forest.\n
+  Trails lead north, south and west
+end
+exits=
+  north:../forest12.scr
+  south:sforst2.scr
+  west:sforst5.scr
+end

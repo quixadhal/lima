@@ -1,0 +1,15 @@
+is=room
+
+exits=
+  west:vill_shore.scr
+  east:vill_shore2.scr
+end
+brief=Road
+long=
+  You are on a road going out of the village. To the east the road widens out\n
+  as it leads down to the shore. To the west lies the city.
+end
+light=1
+---
+#undef EXTRA_RESET
+#define EXTRA_RESET no_castle_flag=1;

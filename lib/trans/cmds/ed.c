@@ -8,7 +8,7 @@ private static mapping locks = ([]);
 
 private nomask void unlock(string fname)
 {
-  map_delete(locks, fname);
+    map_delete(locks, fname);
 }
 
 nomask private void main(string* argv)
@@ -22,7 +22,7 @@ nomask private void main(string* argv)
 
     if ( !fname )
     {
-        fname = this_body()->query_shell_ob()->get_variable("cwf");
+        fname = get_user_variable("cwf");
         if ( !fname )
         {
             out("You have no cwf. Please specify a file.\n");
@@ -40,7 +40,7 @@ nomask private void main(string* argv)
       }
 
     locks[fname] = this_user();
-    this_body()->query_shell_ob()->set_cwf(fname);
+    this_user()->query_shell_ob()->set_cwf(fname);
 
     new(ED_SESSION)->begin_editing(fname, 0, (: unlock($(fname)) :));
 }
