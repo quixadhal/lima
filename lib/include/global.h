@@ -19,7 +19,7 @@
 #define wiz_dir(x)		sprintf(WIZ_DIR"/%s",(x)->query_userid())
 #define un_article(x)		(stringp(x) ?\
 			implode(explode(x," ")-({"a","an","the"})," ") : x)
-#define force_look()		(environment(this_body())->do_looking())
+//#define force_look()		(environment(this_body())->do_looking())
 
 //#define DOC(f,s)	string __DOC_##f () { return s ; }
 #define DOC(f,s)
@@ -32,6 +32,6 @@
 #define BBUG(x) TELL_BUG("rust",(x))
 #define DBBUG(x) TELL_BUG("deathblade",(x))
 #define ZBUG(x) TELL_BUG("zifnab",(x))
-
+#define ZABUG(x) TELL_BUG("zakk", (x))
 
 #endif // __GLOBAL_H__

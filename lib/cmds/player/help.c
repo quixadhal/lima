@@ -5,10 +5,12 @@ inherit CMD;
 
 private void main(string arg)
 {
-    clone_object(HELPSYS)->begin_help(arg);
+    new(HELPSYS)->begin_help(arg);
 }
 
 void player_menu_entry()
 {
-    main("");
+  bare_init();
+  main("");
+  done_outputing();
 }

@@ -9,7 +9,7 @@ inherit CMD;
 #define SYNTAX "USAGE:  treefor <lpc expression>\n"
 
 private void ind(int indent) {
-    printf("%*-' 's", indent, "");
+    outf("%*-' 's", indent, "");
 }
 
 private int dump(mixed *value, int indent, int flag) {
@@ -22,79 +22,79 @@ private int dump(mixed *value, int indent, int flag) {
     switch (value[0]) {
     case "two values":
 	if (flag) {
-	    printf("\n");
+	    outf("\n");
 	    subindent = indent + 4;
 	} else
 	    subindent = indent;
 	
 	if (dump(value[1], subindent, 0))
-	    printf("\n");
+	    outf("\n");
 
 	if (dump(value[2], subindent, 0));
-	    printf("\n");
+	    outf("\n");
 	
 	return 0;
     case "efun":
 	if (!flag)
 	    ind(indent);
-	printf("(efun %O (", value[1]);
+	outf("(efun %O (", value[1]);
 	flag = 1;
 
 	foreach (val in value[2]) {
 	    if (arrayp(val)) {
 		if (flag)
-		    printf(" ");
+		    outf(" ");
 		flag = dump(val, indent + 2, flag);
 	    } else {
 		if (!flag)
 		    ind(indent);
-		printf(" %O", val);
+		outf(" %O", val);
 		flag = 1;
 	    }
 	}
 
 	if (!flag)
 	    ind(indent);
-	printf(" )");
+	outf(" )");
 	flag = 1;
 
 	foreach (val in value[3..]) {
 	    if (arrayp(val)) {
 		if (flag)
-		    printf(" ");
+		    outf(" ");
 		flag = dump(val, indent + 2, flag);
 	    } else {
 		if (!flag)
 		    ind(indent);
-		printf(" %O", val);
+		outf(" %O", val);
 		flag = 1;
 	    }
 	}
 	if (!flag)
 	    ind(indent);
-	printf(")");
+	outf(")");
 	return 1;
     default:
 	if (!flag)
 	    ind(indent);
-	printf("(%O", value[0]);
+	outf("(%O", value[0]);
 	flag = 1;
 
 	foreach (val in value[1..]) {
 	    if (arrayp(val)) {
 		if (flag)
-		    printf(" ");
+		    outf(" ");
 		flag = dump(val, indent + 2, flag);
 	    } else {
 		if (!flag)
 		    ind(indent);
-		printf(" %O", val);
+		outf(" %O", val);
 		flag = 1;
 	    }
 	}
 	if (!flag)
 	    ind(indent);
-	printf(")");
+	outf(")");
 	return 1;
     }
 }
@@ -116,7 +116,7 @@ void main(string str)
     rm(tmp_file);
     if(o = find_object(tmp_file)) destruct(o);
     if(!write_file(tmp_file,initial_write_to_file)) {
-        write("eval: Unable to write to "+tmp_file+". \n");  //shouldn't happen.
+        out("eval: Unable to write to "+tmp_file+". \n");  //shouldn't happen.
             return 0;
     }
     write_file(tmp_file,str+"; };\n");
@@ -128,6 +128,6 @@ void main(string str)
 
     destruct(find_object(tmp_file));
     dump(ret, 0, 0);
-    printf("\n");
+    outf("\n");
     return;
 }

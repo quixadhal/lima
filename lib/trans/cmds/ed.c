@@ -25,7 +25,7 @@ nomask private void main(string* argv)
         fname = this_body()->query_shell_ob()->get_variable("cwf");
         if ( !fname )
         {
-            write("You have no cwf. Please specify a file.\n");
+            out("You have no cwf. Please specify a file.\n");
             return;
         }
     }
@@ -42,5 +42,5 @@ nomask private void main(string* argv)
     locks[fname] = this_user();
     this_body()->query_shell_ob()->set_cwf(fname);
 
-    clone_object(ED_SESSION)->begin_editing(fname, 0, (: unlock($(fname)) :));
+    new(ED_SESSION)->begin_editing(fname, 0, (: unlock($(fname)) :));
 }

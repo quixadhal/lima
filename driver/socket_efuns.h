@@ -40,7 +40,8 @@ typedef struct {
     int w_len;
 } lpc_socket_t;
 
-extern lpc_socket_t lpc_socks[MAX_EFUN_SOCKS];
+extern lpc_socket_t *lpc_socks;
+extern int max_lpc_socks;
 
 #define	S_RELEASE	0x01
 #define	S_BLOCKED	0x02
@@ -52,7 +53,6 @@ extern lpc_socket_t lpc_socks[MAX_EFUN_SOCKS];
 #define S_CLOSE_FP      0x80
 #define S_EXTERNAL	0x100
 
-void init_sockets PROT((void));
 int check_valid_socket PROT((char *, int, object_t *, char *, int));
 void socket_read_select_handler PROT((int));
 void socket_write_select_handler PROT((int));

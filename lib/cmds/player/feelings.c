@@ -15,7 +15,6 @@ private void main(string arg)
     int count;
     string * too_damn_long;
     string * not_too_long;
-    string   str;
 
     list = sort_array(SOUL_D->list_emotes(), 1);
     count = sizeof(list);
@@ -34,15 +33,22 @@ private void main(string arg)
     too_damn_long = filter(list, (: sizeof($1) >= TOO_DAMN_LONG :));
     not_too_long = filter(list, (: sizeof($1) < TOO_DAMN_LONG :));
 
-    str = HEADER + sprintf("%-#79s\n", implode(not_too_long, "\n"));
+    if(end_of_pipeline())
+      out(HEADER + sprintf("%-#79s\n", implode(not_too_long, "\n")));
+    else
+      outf("%s\n", implode(not_too_long, "\n"));
     if ( sizeof(too_damn_long) )
-	str += "\nSouls that are too damn long:\n" +
-	    implode(too_damn_long, "\n") + "\n";
-    str += sprintf(TRAILER, sizeof(list), count, sizeof(list) * 100 / count);
-    more(str);
+    {
+      if(end_of_pipeline())
+	out("\nSouls that are too damn long:\n");
+	out(implode(too_damn_long, "\n") + "\n");
+    }
+    outf(TRAILER, sizeof(list), count, sizeof(list) * 100 / count);
 }
 
 void player_menu_entry(string str)
 {
-    main(str);
+  bare_init();
+  main(str);
+  done_outputing();
 }

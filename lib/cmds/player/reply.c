@@ -8,6 +8,12 @@
 
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string arg)
 {
     string   target;
@@ -15,14 +21,14 @@ private void main(string arg)
 
     if(!arg || arg == "")
       {
-	write("Usage: reply <message>\n");
+	out("Usage: reply <message>\n");
 	return;
       }
     target = this_body()->query_reply();
 
     if( !find_user( target ) && !sscanf( target, "%s@%s", tmp, tmp2 ) )
     { 
-	write( "No target found for reply.\n" );
+	out( "No target found for reply.\n" );
 	return;
     }
 

@@ -6,10 +6,22 @@
 #include <mudlib.h>
 inherit CMD;
 
-private void main( mixed *arg ) {
+void tail(string file, int n)
+{
+  out(implode(explode(read_file(file),"\n")[<n..],"\n"));
+}
+
+private void main( mixed *arg, mapping flags, string stdin ) {
   int i;
+  int n = 10;
+  if(flags["n"]) n = (to_int(flags["n"]) || 10);
+  if(stdin)
+    {
+      out(implode(explode(stdin,"\n")[<n..],"\n"));
+      return;
+    }
   for (i=0; i<sizeof(arg[0]); i++) {
-    tail(arg[0][i]);
+    tail(arg[0][i],n);
   }
 }
 

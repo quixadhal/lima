@@ -1,0 +1,13 @@
+
+Adding Sound to your rooms.
+
+  Add something like the following piece of code to your room, outside of your
+setup().  This will get called by the parser.
+
+
+int sound ()
+{
+  write ("This is an example sound.  Only you are getting this msg, so "
+	 "I guess you're \nhearing voices.\n");
+  return 1; // Let the parser know the listen was successfull
+}

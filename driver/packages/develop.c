@@ -93,8 +93,12 @@ f_debug_info PROT((void))
 	outbuf_addv(&out, "Name %s\n", ob->prog->name);
 	outbuf_addv(&out, "program size %d\n",
 		    ob->prog->program_size);
-	outbuf_addv(&out, "num func's %d (%d) \n", ob->prog->num_functions,
-		    ob->prog->num_functions * sizeof(function_t));
+	outbuf_addv(&out, "runtime function table %d (%d) \n", 
+		    ob->prog->num_functions_total,
+		    ob->prog->num_functions_total * (sizeof(runtime_function_u)+1));
+	outbuf_addv(&out, "compiler function table %d (%d) \n", 
+		    ob->prog->num_functions_defined,
+		    ob->prog->num_functions_defined * sizeof(compiler_function_t));
 	outbuf_addv(&out, "num strings %d\n", ob->prog->num_strings);
 	outbuf_addv(&out, "num vars %d (%d)\n", ob->prog->num_variables,
 		    ob->prog->num_variables * sizeof(variable_t));

@@ -17,7 +17,7 @@ private void main(string * arg)
 
     if ( get_privilege(this_user()) && !check_privilege(userid) )
     {
-	write("Permission denied.\n");
+	out("Permission denied.\n");
 	return;
     }
 
@@ -26,7 +26,7 @@ private void main(string * arg)
     {
 	if ( item == arg[0] )
 	{
-	    write("You have had the path added already\n");
+	    out("You have had the path added already\n");
 	    return;
 	}
     }
@@ -34,7 +34,7 @@ private void main(string * arg)
     paths += ({ arg[0] + "/" });
     shell_ob->set_variable("path", paths);
 
-    write(iwrap(implode(paths,
+    out(iwrap(implode(paths,
 			(: $1 + $2[0..<2] + ", " :),
 			"Your path is now: ")[0..<3]) + "\n");
 }

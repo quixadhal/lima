@@ -56,15 +56,15 @@ void clear_state()
 
 #ifdef DEBUG
 static void report_holes() {
-    if (current_object)
+    if (current_object && current_object->name)
 	debug_message("current_object is %s\n", current_object->name);
-    if (command_giver)
+    if (command_giver && command_giver->name)
 	debug_message("command_giver is %s\n", command_giver->name);
-    if (current_interactive)
+    if (current_interactive && current_interactive->name)
 	debug_message("current_interactive is %s\n", current_interactive->name);
-    if (previous_ob)
+    if (previous_ob && previous_ob->name)
 	debug_message("previous_ob is %s\n", previous_ob->name);
-    if (current_prog)
+    if (current_prog && current_prog->name)
 	debug_message("current_prog is %s\n", current_prog->name);
     if (caller_type)
 	debug_message("caller_type is %s\n", caller_type);
@@ -90,7 +90,7 @@ int parse_command P2(char *, str, object_t *, ob)
     int res;
 
     /* disallow users to issue commands containing ansi escape codes */
-#ifdef NO_ANSI
+#if defined(NO_ANSI) && !defined(STRIP_BEFORE_PROCESS_INPUT)
     char *c;
 
     for (c = str; *c; c++) {
@@ -142,24 +142,13 @@ void backend()
     if (SETJMP(econ.context))
 	restore_context(&econ);
 
-    while (1) {
-	/*
-	 * The call of clear_state() should not really have to be done once
-	 * every loop. However, there seem to be holes where the state is not
-	 * consistent. If these holes are removed, then the call of
-	 * clear_state() can be moved to just before the while() - statement.
-	 * *sigh* /Lars
-	 */
-        /* Well, let's do it and see what happens - Sym */
-#ifdef DEBUG
-	report_holes();
+    while (1) {	
+	/* Has to be cleared if we jumped out of process_user_command() */
 	current_interactive = 0;
-#else
-	clear_state();
-#endif
 	eval_cost = max_cost;
 
-	remove_destructed_objects();
+	if (obj_list_replace || obj_list_destruct)
+	    remove_destructed_objects();
 
 	/*
 	 * shut down MudOS if MudOS_is_being_shut_down is set.
@@ -448,8 +437,7 @@ static void call_heart_beat()
 #endif
 		    eval_cost = max_cost;
 		    /* this should be looked at ... */
-		    call_function(ob->prog,
-				  &ob->prog->functions[ob->prog->heart_beat]);
+		    call_function(ob->prog, ob->prog->heart_beat);
 		    command_giver = 0;
 		    current_object = 0;
 		}

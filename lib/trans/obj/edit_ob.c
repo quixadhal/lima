@@ -132,10 +132,12 @@ private void handle_escape(string str)
 	write("Edit aborted.\n");
 	end_edit(1);
 	return;
+
     case 'r':
 	if(wizardp(this_user()))
 	    buf += read_strings(evaluate_path(str[3..]), 1);
 	return;
+
     case 'w':
 	if(wizardp(this_user()))
 	{
@@ -146,6 +148,7 @@ private void handle_escape(string str)
 		write("Ok.\n");
 	}
 	return;
+
     case 'h':
 	write(
 	  "Help for editor:\n. or **\t\texit editor\n~q\t\tabort edit.\n~h\t\tthis help.\n"+
@@ -154,13 +157,15 @@ private void handle_escape(string str)
 	    write("~w <file>\twrite buffer to specified file.\n~r <file>\tread file into buffer.\n");
 	write("\n\n");
 	return;
+
     case 'p':
         write(build_string() + "\n");
 	return;
+
     case 'e':
 	tmp_file = tmp_fname();
         write_file(tmp_file, build_string());
-	clone_object(ED_SESSION)->begin_editing(tmp_file, 0, (: end_ed :));
+	new(ED_SESSION)->begin_editing(tmp_file, 0, (: end_ed :));
 	return;
     }
 }

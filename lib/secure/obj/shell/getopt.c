@@ -76,13 +76,15 @@ getopt( mixed args, string options )
 //assumes the arg passed is the argument to some unix-like
 //command where ares are space seperated unless enclosed in non-escaped
 //quotes.
-//Returns an array of the arguments.
+//Returns an array of the arguments. and an array of implode info
 
-string* argument_explode(string s)
+mixed* argument_explode(string s)
 {
   string* result = ({});
+  string* implode_info = ({});
   int i, l;
   int waiting_for;
+  int end_of_last_word = -1;
   int beginning_of_word = 0;
 
   l = strlen(s);
@@ -91,7 +93,7 @@ string* argument_explode(string s)
       switch(s[i])
 	{
 	case '\\':
-// This is because all \\'s aren't converted to \ here.
+	  // This is because all \\'s aren't converted to \ here. 
 	  if(i+1 != l && s[i+1] == '\\')
 	    break;
 	  i++;
@@ -103,7 +105,10 @@ string* argument_explode(string s)
 	      waiting_for = s[i];
 	      if(beginning_of_word != i)
 		{
-		  result += ({s[beginning_of_word..i-1]});
+                  implode_info += 
+                    ({s[end_of_last_word+1..beginning_of_word-1]});
+                  end_of_last_word = i-1;
+		  result += ({s[beginning_of_word..end_of_last_word]});
 		}
 	      beginning_of_word = i;
 	      break;
@@ -111,9 +116,72 @@ string* argument_explode(string s)
 	  if(waiting_for != s[i])
 	    continue;
 	  result += ({s[beginning_of_word..i]});
+	  implode_info += 
+	    ({s[(end_of_last_word+1)..(beginning_of_word-1)]});
+	  end_of_last_word = i;
 	  beginning_of_word = i+1;
 	  waiting_for = 0; 
 	  break;
+        case '|':
+          if(waiting_for)
+	    break;
+	  if(beginning_of_word != i)
+	    {
+	      result += ({s[beginning_of_word..i-1],"|"});
+	      implode_info +=({s[end_of_last_word+1..beginning_of_word-1],""});
+	      end_of_last_word = i;
+	      beginning_of_word = i+1;
+	      break;
+	    }
+	  implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
+	  result += ({"|"});
+	  beginning_of_word = i+1;
+	  end_of_last_word = i;
+	  break;
+	case '<':
+	  if(waiting_for)
+	    break;
+	  if(beginning_of_word != i)
+	    {
+	      result += ({s[beginning_of_word..i-1],"<"});
+	      implode_info +=({s[end_of_last_word+1..beginning_of_word-1],""});
+	      end_of_last_word = i;
+	      beginning_of_word = i+1;
+	      break;
+	    }
+	  result += ({"<"});
+	  implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
+	  end_of_last_word = i;
+	  beginning_of_word = i+1;
+	  break;
+	case '>':
+	  if(waiting_for)
+	    break;
+	  if(beginning_of_word != i)
+	    {
+	      implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
+	      result += ({s[beginning_of_word..i-1]});
+	      beginning_of_word = i+1;
+	      end_of_last_word = i;
+	    }	
+	  if(s[i+1] == '>')
+	    {
+	      // Skip the next >
+	      i++;
+	      implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
+	      end_of_last_word = i;
+	      beginning_of_word = i+1;
+	      result += ({">>"});
+	      break;
+	    }
+	  else
+	    {
+	      implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
+	      end_of_last_word = i;
+	      beginning_of_word = i+1;
+	      result += ({">"});
+	      break;
+	    }
 	case ' ':
 	  if(waiting_for)
 	    break;
@@ -122,7 +190,9 @@ string* argument_explode(string s)
 	      beginning_of_word = i+1;
 	      break;
 	    }
+	  implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
 	  result += ({s[beginning_of_word..i-1]});
+	  end_of_last_word = i-1;
 	  beginning_of_word = i+1;
 	  break;
 	default:
@@ -130,9 +200,17 @@ string* argument_explode(string s)
 	}
     }
   if(beginning_of_word < l)
-    result += ({ s[beginning_of_word..] });
+    {
+      implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
+      result += ({ s[beginning_of_word..] });
+      implode_info += ({""});
+    }
+  else
+    {
+      implode_info += ({s[end_of_last_word+1..beginning_of_word-1]});
+    }
 
-  return result;
+  return ({result,implode_info});
 }
 
 //:FUNCTION parse_argument

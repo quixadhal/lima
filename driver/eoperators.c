@@ -16,6 +16,7 @@
 #include "comm.h"
 #endif
 #include "compiler.h"
+#include "simul_efun.h"
 
 INLINE void
 dealloc_funp P1(funptr_t *, fp)
@@ -1088,39 +1089,34 @@ f_switch()
 void
 call_simul_efun P2(unsigned short, index, int, num_arg)
 {
-    function_t *funp;
     extern object_t *simul_efun_ob;
-    extern function_t **simuls;
-
+    compiler_function_t *funp;
+    
     if (current_object->flags & O_DESTRUCTED) {	/* No external calls allowed */
 	pop_n_elems(num_arg);
 	push_undefined();
 	return;
     }
 
+    if (simuls[index].func) {
 #ifdef TRACE
-    if (TRACEP(TRACE_CALL_OTHER)) {
-	do_trace("simul_efun ", simuls[index]->name, "\n");
-    }
+	if (TRACEP(TRACE_CALL_OTHER)) {
+	    do_trace("simul_efun ", simuls[index].func->name, "\n");
+	}
 #endif
-    if (simuls[index]) {
 	/* Don't need to use apply() since we have the pointer directly;
 	 * this saves function lookup.
 	 */
-	if (simul_efun_ob->flags & O_SWAPPED)
-	    load_ob_from_swap(simul_efun_ob);
+	DEBUG_CHECK(simul_efun_ob->flags & O_SWAPPED, "Simulefun object swapped!\n");
 	simul_efun_ob->time_of_ref = current_time;
-	push_control_stack(FRAME_FUNCTION | FRAME_OB_CHANGE, simuls[index]);
+	push_control_stack(FRAME_FUNCTION | FRAME_OB_CHANGE);
 	caller_type = ORIGIN_SIMUL_EFUN;
 	csp->num_local_variables = num_arg;
 	current_prog = simul_efun_ob->prog;
-	funp = setup_new_frame(simuls[index]);
-#ifdef OLD_PREVIOUS_OBJECT_BEHAVIOUR
-	if (current_object != simul_efun_ob)
-#endif
-	    previous_ob = current_object;
+	funp = setup_new_frame(simuls[index].index);
+	previous_ob = current_object;
 	current_object = simul_efun_ob;
-	call_program(current_prog, funp->offset);
+	call_program(current_prog, funp->address);
     } else error("Function is no longer a simul_efun.\n");
 }
 

@@ -6,6 +6,11 @@
 
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
 
 #define USAGE	"Usage:  times <#> <command>\n"
 private void main( mixed * arg)
@@ -18,7 +23,7 @@ private void main( mixed * arg)
 
     if( repeats <= 0 || ( repeats > 10 && !check_privilege(1)) )
     {
-	write( "times:  argument out of range.\n" );
+	out( "times:  argument out of range.\n" );
 	return;
     }
 

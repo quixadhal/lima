@@ -1,21 +1,23 @@
 #ifndef ZORKPARSE_H
 #define ZORKPARSE_H
 
+#include "../include/parser_error.h"
+
 /* Token convention:
- * <0 is a token (OBJ, etc).
- * >=0 is a literal.
+ * >0 is a token (OBJ, etc).
+ * <=0 is a literal.
  */
-#define ERROR_TOKEN          -1
-#define STR_TOKEN	     -2
-#define WRD_TOKEN	     -3
+#define ERROR_TOKEN          1
+#define STR_TOKEN	     2
+#define WRD_TOKEN	     3
 
 #define LIV_MODIFIER         8
 #define VIS_ONLY_MODIFIER    16
 #define PLURAL_MODIFIER	     32
 
-#define ADD_MOD(x, y) (-((-(x)) | (y)))
+#define ADD_MOD(x, y) ((x) | (y))
 
-#define OBJ_A_TOKEN          -4
+#define OBJ_A_TOKEN          4
 #define LIV_A_TOKEN          ADD_MOD(OBJ_A_TOKEN, LIV_MODIFIER)
 #define OBJ_TOKEN	     ADD_MOD(OBJ_A_TOKEN, VIS_ONLY_MODIFIER)
 #define LIV_TOKEN	     ADD_MOD(LIV_A_TOKEN, VIS_ONLY_MODIFIER)
@@ -45,6 +47,11 @@
 #define BV_WHICH(x) ((x) / BPI)
 #define BV_BIT(x) (1 << ((x) % BPI))
 
+typedef struct {
+    unsigned int b[NUM_BITVEC_INTS];
+    short last;
+} bitvec_t;
+
 /* A parse value.  This keeps track of which objects respond to a given
  * word and how.  For example:
  *
@@ -57,9 +64,7 @@
  *   adj:  (ob1)
  */
 typedef struct {
-    unsigned int noun[NUM_BITVEC_INTS];
-    unsigned int plural[NUM_BITVEC_INTS];
-    unsigned int adj[NUM_BITVEC_INTS];
+    bitvec_t noun, plural, adj;
 } parse_val_t;
 
 #define WORD_ALLOCATED 1
@@ -119,7 +124,7 @@ typedef struct special_word_s {
 } special_word_t;
 
 enum sw_enum_s {
-    SW_NONE = 0, SW_ARTICLE, SW_SELF, SW_ORDINAL
+    SW_NONE = 0, SW_ARTICLE, SW_SELF, SW_ORDINAL, SW_ALL, SW_OF, SW_AND
 };
 
 /* Each node holds informations about a given rule.  The handler for the
@@ -164,14 +169,37 @@ typedef struct {
     int mod_legal;
 } token_def_t;
 
-union mu {
-    int number;
-    char *string;
+union parser_error_u {
+    hash_entry_t *noun;
+    struct {
+	int start, end;
+    } str_problem;
+    bitvec_t obs;
+    int ord_error;
+    char *str;
+    struct saved_error_s *parallel;
 };
 
 typedef struct {
-    int token;
-    int first, last;
+    int error_type;
+    union parser_error_u err;
+} parser_error_t;
+
+typedef struct saved_error_s {
+    struct saved_error_s *next;
+    parser_error_t err;
+    int obj;
+} saved_error_t;
+
+union mu {
+    bitvec_t obs;
+    int number;
+};
+
+typedef struct {
+    short token;
+    short first, last;
+    short ordinal;
     union mu val;
 } match_t;
 
@@ -189,6 +217,7 @@ typedef struct {
 
 typedef struct {
     object_t *ob;
+    saved_error_t *parallel;
     sub_result_t res[4];
 } parse_result_t;
 

@@ -14,5 +14,5 @@ inherit CMD;
 private void main() {
    object env;
    env = environment(this_body());
-   printf("%s: [%s]\n",env->short(),file_name(env));
+   outf("%s: [%s]\n",env->short(),file_name(env));
 }

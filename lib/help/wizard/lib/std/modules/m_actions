@@ -1,0 +1,79 @@
+
+
+
+ACTIONS
+
+
+Last Updated: Monday, April 15, 1996
+
+How do I get my monster to use LIMA's 
+really cool emotes, and emotes that I 
+make up.
+
+The answer is by inheriting M_ACTIONS.
+This allows you to have your monster 
+spout off emotes to players, etc.  
+
+To use this option, in your monsters
+setup(), place the followinf function:
+
+   set_actions(chance, action)
+
+The action will happen try and happen every
+5 seconds,  At that time the monster will
+have a 1 in 'chance' probability of doing
+the action.
+
+Action can be a single action or an array
+of actions.  In the case for multiple 
+actions, one is choosen at random if the
+action occurs. 
+
+The following is an example monster's setup()
+that is using using set_actions().
+
+
+void setup()
+{
+    set_name("Harry");
+    set_gender(1);
+    set_proper_name("Harry the affectionate");
+    set_in_room_desc("Harry the affectionate");
+    add_id("dude");
+    set_long("Harry has an agreeable look.");
+    set_actions( 10, ({
+	"say What are you waiting for?",
+	    "say Hello there!",
+	    "say I don't like winter.",
+	    "say I don't like snow.",
+	    "say I don't like rain.",
+	    "say Who are you?",
+	    "say Why do you look like that?",
+	    "say What are you doing here?",
+	    "say Nice weather, isn't it?",
+	    "smile",
+	    "lsfbog",
+	    "ack",
+//      "chan gossip Is this thing on?",
+	    "rock"
+	    }) );
+***  I clipped some this out as it wasnt 
+     relevant to this example.
+}
+
+The important thing to notice out of this
+example is the set_actions().  This one 
+says that every 5 seconds, Harry has a 
+1 in 10 chance of doing one of the array
+of actions.  Also notice notice that it is
+possible to have Harry do an action over
+a public channel, even though it is 
+commented out on Lima Bean.
+
+Scripts
+
+You can also have your monster follow a 
+"script", this is currently bugged and 
+the documentaion will follow later.
+
+

@@ -37,11 +37,10 @@ private void main()
     mapping permanent = CHANNEL_D->query_permanent();
     string channel_name;
     object * listeners;
-    string output = "";
 
     if ( !check_privilege(1) )
     {
-	write("Sorry, this command is only available to admins.\n");
+	out("Sorry, this command is only available to admins.\n");
 	return;
     }
 
@@ -63,11 +62,12 @@ private void main()
 		flagstr = ": permanent\n";
 	}
 	    
-	output += channel_name + flagstr +
+	out( channel_name + flagstr +
 	    iwrap("    " +
 		  implode(map_array(listeners, (: fmt_listener :)), ", ")) +
-	    "\n\n";
+	    "\n\n");
     }
 
-    more(output);
 }
+
+

@@ -3,16 +3,22 @@
 #include <mudlib.h>
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string title)
 {
   if(!title)
     {
-      printf("Your title is: %s\n", this_body()->query_title());
+      outf("Your title is: %s\n", this_body()->query_title());
       return;
     }
   if(strsrch(title,"$N") == -1)
     title = "$N " + title;
   this_body()->set_title(title);
   
-  write("Title changed.\n");
+  out("Title changed.\n");
 }

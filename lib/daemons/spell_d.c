@@ -2,202 +2,201 @@
 
 /* Spell Daemon -- keep track of what spells are valid...
 **
-** This currently keeps track of the dirs that hold spells, 
-** but lets anyone add new dirs at will. 
-** Well, feel free to add security to prevent that.
+** This currently keeps track of the dirs that hold spells and the spells
+** contained in those dirs.
 **
 ** Rust @ lima.imaginary.com
 */
 
-#define SAVE_FILE "/data/daemons/spell_d"
 #include <assert.h>
 #include <security.h>
 #include <commands.h>
 
 inherit M_ACCESS;
 
+#define SAVE_FILE	"/data/daemons/spell_d"
+#define PRIV_REQUIRED	"Mudlib:daemons"
+
 // Save this....
 private string array  spell_dirs = ({});
-// Map the name of the spell to the dir it is in.  Just use the index into
-// the spell dir array, tho...
-// We build this each create.
-private static mapping spell_table = ([]);
 
-private void save_me ()
+// Map the name of the spell to its object name.
+// We build this each create.
+private static mapping spell_table = ([ ]);
+
+
+private void save_me()
 {
-  unguarded (1, (: save_object, SAVE_FILE :));
+    unguarded(1, (: save_object, SAVE_FILE :));
 }
 
-void add_spell_dir (string dir)
+void add_spell_dir(string dir)
 {
-  int	i;
+    int	i;
 
-  ASSERT (dir && is_directory (dir));
-  ASSERT (member_array (dir, spell_dirs) == -1);
-  if (dir[<1] != '/')
+    if ( !check_privilege(PRIV_REQUIRED) )
+	return;
+
+    ENSURE(dir && is_directory(dir));
+    ENSURE(member_array(dir, spell_dirs) == -1);
+    
+    if ( dir[<1] != '/' )
     {
-      dir += "/";
+	dir += "/";
     }
 
-  spell_dirs += ({dir});
-  save_me();
+    spell_dirs += ({ dir });
+    save_me();
 }
 
-void remove_spell_dir (string dir)
+void remove_spell_dir(string dir)
 {
-  if (!check_previous_privilege (1))
-    return;
+    if ( !check_privilege(PRIV_REQUIRED) )
+	return;
 
-  ASSERT (dir && member_array (dir, spell_dirs) != -1);
-  spell_dirs -= ({dir});
+    ENSURE(dir && member_array(dir, spell_dirs) != -1);
+    spell_dirs -= ({ dir });
 }  
 
 // We need to do this due to parser limitations.
-private int valid_spell_name (string spell_name)
+private int valid_spell_name(string spell_name)
 {
-  if (!stringp (spell_name))
-    {
-      return 0;
-    }
-  return regexp (spell_name, "^[a-zA-Z0-9 '-]+$");
+    return stringp(spell_name) && regexp(spell_name, "^[a-zA-Z0-9 '-]+$");
 }
 
-
-private void build_spell_table ()
+private void build_spell_table()
 {
-  // Not necessary, and would be a bad thing if we didn't rebuild the spell
-  // table each time.
-  spell_dirs -= ({0}); 
+    string * bad_dirs = ({ });
 
-  for (int i = 0; i < sizeof (spell_dirs); i++)
+    // Not necessary, and would be a bad thing if we didn't rebuild the spell
+    // table each time.
+    spell_dirs -= ({ 0 }); 
+
+    foreach ( string dir in spell_dirs )
     {
-      string 	dir;
-
-      dir = spell_dirs [i];
-      if (!is_directory (dir))
+	if ( !is_directory(dir) )
 	{
-	  // Dir has been removed
-	  spell_dirs -= ({dir});
-	  save_me ();
-	  continue;
+	    // Dir has been removed
+	    bad_dirs += ({ dir });
+	    continue;
 	}
-      foreach (string file in get_dir (dir+"*.c"))
-	{
-	  string spell_name;
 
-	 if (catch (spell_name = (dir+file)->get_spell_name ()))
-	   continue;
-	  // dir+file->remove();
-	  if (!valid_spell_name (spell_name))
+	foreach ( string file in get_dir(dir + "*.c") )
+	{
+	    string obname = dir + file[0..<3];
+	    string spell_name;
+
+	    if ( catch(spell_name = obname->get_spell_name()) )
+		continue;
+
+	    if ( !valid_spell_name(spell_name) )
 	    {
-	      // log it...
-	      continue;
+		// log it...
+		continue;
 	    }
-	  if (spell_table[spell_name])
+	    if ( spell_table[spell_name] )
 	    {
-	      // log it....
-	      continue;
+		// log it....
+		continue;
 	    }
-	  spell_table[spell_name] = ({i, file});
+	    spell_table[spell_name] = obname;
 	}
     }
-}
 
-string get_spell_file (string spell_name)
-{
-  mixed array 	entry = spell_table [spell_name];
-
-  if (!entry)
+    if ( sizeof(bad_dirs) )
     {
-      return 0;
+	spell_dirs -= bad_dirs;
+	save_me();
     }
-  return spell_dirs[entry[0]] + entry[1];
 }
 
-void create ()
+string get_spell_file(string spell_name)
 {
-  restore_object (SAVE_FILE);
-  build_spell_table ();
+    return spell_table[spell_name];
 }
 
-private nomask string neuter_spell_name (string spell)
+void create()
 {
-  string array	parts = explode (spell, " ");
+    set_privilege(1);
+    restore_object(SAVE_FILE);
+    build_spell_table();
+}
+
+/* strip leading "the/a/an"; strip trailing "spell" */
+private nomask string neuter_spell_name(string spell)
+{
+    string array parts = explode(spell, " ");
   
-  if (sizeof (parts) > 1)
+    if ( sizeof(parts) > 1 )
     {
-      switch (parts[0])
+	switch ( parts[0] )
 	{
 	case "the":
 	case "a":
 	case "an":
-	  parts = parts[1..];
-	  break;
+	    parts = parts[1..];
+	    break;
+	    
 	default:
-	  break;
+	    break;
 	}
     }
-  if ((sizeof (parts) > 1) && (parts [<1] == "spell"))
+    if ( sizeof(parts) > 1 && parts[<1] == "spell" )
     {
-      parts = parts[0..<2];
+	parts = parts[0..<2];
     }
 
-  return implode (parts, " ");
+    return implode(parts, " ");
 }
 
-varargs mixed can_cast_spell (string spell, object target, object tool)
+varargs mixed can_cast_spell(string spell, object target, object tool)
 {
-  string	spell_file;
+    string	spell_file;
 
-  ASSERT (previous_object () == find_object (VERB_OB_CAST));
+    ENSURE(previous_object() == find_object(VERB_OB_CAST));
   
-  spell = neuter_spell_name (spell);
-  spell_file = get_spell_file (spell);
-  if (!spell_file)
+    spell = neuter_spell_name(spell);
+    spell_file = get_spell_file(spell);
+    if (!spell_file)
     {
-      return "You know of no such spell.\n";
+	return "You know of no such spell.\n";
     }
   
-  return spell_file->_can_cast_spell (target, tool);
+    return spell_file->_can_cast_spell(target, tool);
 }
 
-varargs void cast_spell (string spell, object target, object tool)
+varargs void cast_spell(string spell, object target, object tool)
 {
-  string 	spell_file;
+    string 	spell_file;
 
-  ASSERT (previous_object () == find_object (VERB_OB_CAST));
-  spell = neuter_spell_name (spell);
-  spell_file = get_spell_file (spell);
-  ASSERT (spell_file);
-  return spell_file->_cast_spell (target, tool);
+    ENSURE(previous_object() == find_object(VERB_OB_CAST));
+    spell = neuter_spell_name(spell);
+    spell_file = get_spell_file(spell);
+    ENSURE(spell_file);
+    return spell_file->_cast_spell(target, tool);
 }
 
 
-int register_spell ()
+void register_spell()
 {
-  string array	file_info  = split_path (file_name (previous_object ()));
-  string 	spell_name = previous_object ()->get_spell_name ();
-  mixed array   spell_info = spell_table [spell_name];
-  int		dir_index  = member_array (file_info [0], spell_dirs);
+    string spell_name = previous_object()->get_spell_name();
+    string spell_info = spell_table[spell_name];
 
-  ASSERT (spell_name /* You didn't provide a spell name. */);
-  ASSERT (valid_spell_name (spell_name) /* Your spell name wasn't valid. */);
+    ENSURE(spell_name /* You didn't provide a spell name. */);
+    ENSURE(valid_spell_name(spell_name) /* Your spell name wasn't valid. */);
 
-  if (!spell_info) 
+    if ( !spell_info )
     {
-      if (dir_index == -1)
-	{
-	  add_spell_dir (file_info [0]);
-	  return 1;
-	}
-      else
-	{
-	  spell_table [spell_name] = ({ dir_index, file_info[1] });
-	}
+	string obname = file_name(previous_object());
+	string * file_info = split_path(obname);
+	int dir_index = member_array(file_info[0], spell_dirs);
+
+	if ( dir_index == -1 )
+	    error("spell is not in a legal directory\n");
+
+	spell_table[spell_name] = obname;
     }
 
- ASSERT (find_object (get_spell_file (spell_name)) == previous_object() 
-	 /* Some other spell already has this name.*/);
- 
- return 1;
+    ENSURE(find_object(get_spell_file(spell_name)) == previous_object() 
+	   /* Some other spell already has this name.*/);
 }

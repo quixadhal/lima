@@ -47,6 +47,5 @@ void do_tests() {
 	ASSERT(objectp(call[0]));
 	ASSERT(stringp(call[1]));
 	ASSERT(intp(call[2]));
-	ASSERT(intp(call[3]));
     }		   
 }

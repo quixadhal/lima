@@ -16,3 +16,5 @@
 # comment this out and rm or move the file if you don't want an internal web
 # server.
 #/daemons/http_d
+/daemons/chanlog_d
+

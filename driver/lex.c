@@ -87,6 +87,13 @@ static incstate_t *inctop = 0;
 #define MAX_INCLUDE_DEPTH 32
 static int incnum;
 
+/* If more than this is needed, the code needs help :-) */
+#define MAX_FUNCTION_DEPTH 10
+
+static function_context_t function_context_stack[MAX_FUNCTION_DEPTH];
+static int last_function_context;
+function_context_t *current_function_context;
+
 /*
  * The number of arguments stated below, are used by the compiler.
  * If min == max, then no information has to be coded about the
@@ -138,22 +145,22 @@ static keyword_t reswords[] =
     {"mapping", L_BASIC_TYPE, TYPE_MAPPING},
     {"mixed", L_BASIC_TYPE, TYPE_ANY},
     {"new", L_NEW, 0},
-    {"nomask", L_TYPE_MODIFIER, TYPE_MOD_NO_MASK},
+    {"nomask", L_TYPE_MODIFIER, NAME_NO_MASK},
     {"object", L_BASIC_TYPE, TYPE_OBJECT},
     {"parse_command", L_PARSE_COMMAND, 0},
-    {"private", L_TYPE_MODIFIER, TYPE_MOD_PRIVATE},
-    {"protected", L_TYPE_MODIFIER, TYPE_MOD_PROTECTED},
-    {"public", L_TYPE_MODIFIER, TYPE_MOD_PUBLIC},
+    {"private", L_TYPE_MODIFIER, NAME_PRIVATE},
+    {"protected", L_TYPE_MODIFIER, NAME_PROTECTED},
+    {"public", L_TYPE_MODIFIER, NAME_PUBLIC},
     {"return", L_RETURN, 0},
     {"sscanf", L_SSCANF, 0},
-    {"static", L_TYPE_MODIFIER, TYPE_MOD_STATIC},
+    {"static", L_TYPE_MODIFIER, NAME_STATIC},
 #ifdef HAS_STATUS_TYPE
     {"status", L_BASIC_TYPE, TYPE_NUMBER},
 #endif
     {"string", L_BASIC_TYPE, TYPE_STRING},
     {"switch", L_SWITCH, 0},
     {"time_expression", L_TIME_EXPRESSION, 0},
-    {"varargs", L_TYPE_MODIFIER, TYPE_MOD_VARARGS},
+    {"varargs", L_TYPE_MODIFIER, NAME_VARARGS },
     {"void", L_BASIC_TYPE, TYPE_VOID},
     {"while", L_WHILE, 0},
 };
@@ -207,7 +214,6 @@ static void handle_pragma PROT((char *));
 static int cmygetc PROT((void));
 static void refill PROT((void));
 static void refill_buffer PROT((void));
-static INLINE void reset_function_context PROT((void));
 static int exgetc PROT((void));
 static old_func PROT((void));
 static ident_hash_elem_t *quick_alloc_ident_entry PROT((void));
@@ -753,7 +759,7 @@ get_text_block P1(char *, term)
      * free chunks
      */
     for (i = curchunk; i >= 0; i--)
-	FREE(text_line[curchunk]);
+	FREE(text_line[i]);
 
     return res;
 }
@@ -1015,23 +1021,36 @@ static void refill_buffer(){
 	
 static int function_flag = 0;
 
-static INLINE void reset_function_context() {
+INLINE void push_function_context() {
+    function_context_t *fc;
     parse_node_t *node;
 
-    function_context.num_parameters = 0;
-    function_context.num_locals = 0;
+    if (last_function_context == MAX_FUNCTION_DEPTH - 1) {
+	yyerror("Function pointers nested too deep.");
+	return;
+    }
+    fc = &function_context_stack[++last_function_context];
+    fc->num_parameters = 0;
+    fc->num_locals = 0;
     node = new_node_no_line();
     node->l.expr = node;
     node->r.expr = 0;
     node->kind = 0;
-    function_context.values_list = node;
-    function_context.bindable = 0;
+    fc->values_list = node;
+    fc->bindable = 0;
+    fc->parent = current_function_context;
+    
+    current_function_context = fc;
+}
+
+void pop_function_context() {
+    current_function_context = current_function_context->parent;
+    last_function_context--;
 }
 
 static int old_func() {
     add_input(yytext);
-    yylval.context = function_context;
-    reset_function_context();
+    push_function_context();
     return L_FUNCTION_OPEN;
 }
 
@@ -1251,8 +1270,7 @@ int yylex()
 			}
 
 			outp--;
-			yylval.context = function_context;
-			reset_function_context();
+			push_function_context();
 			return L_FUNCTION_OPEN;
 		    }
 			
@@ -1265,11 +1283,12 @@ int yylex()
 	    }
 
 	case '$':
-	    if (function_context.num_parameters < 0) {
-		if (function_context.num_parameters == -2)
-		    yyerror("$var illegal inside anonymous function pointer.");
-		else
-		    yyerror("$var illegal outside of function pointer.");
+	    if (!current_function_context) {
+		yyerror("$var illegal outside of function pointer.");
+		return '$';
+	    }
+	    if (current_function_context->num_parameters == -2) {
+		yyerror("$var illegal inside anonymous function pointer.");
 		return '$';
 	    } else {
 		if (!isdigit(c = *outp++)) {
@@ -1289,8 +1308,8 @@ int yylex()
 		    yyerror("In function parameter $num, num must be >= 1.");
 		else if (yylval.number > 255)
 		    yyerror("only 256 parameters allowed.");
-		else if (yylval.number >= function_context.num_parameters)
-		    function_context.num_parameters = yylval.number + 1;
+		else if (yylval.number >= current_function_context->num_parameters)
+		    current_function_context->num_parameters = yylval.number + 1;
 		return L_PARAMETER;
 	    }
 	case ')':
@@ -1452,25 +1471,46 @@ int yylex()
 
 	    if (*outp++ == '\\'){
 		switch(*outp++){
-		    case 'n': yylval.number = '\n'; break;
-		    case 't': yylval.number = '\t'; break;
-		    case 'r': yylval.number = '\r'; break;
-		    case 'b': yylval.number = '\b'; break;
-		    case 'a': yylval.number = '\x07'; break;
-		    case 'e': yylval.number = '\x1b'; break;
-		    case '\'': yylval.number = '\''; break;
-		    case '\\': yylval.number = '\\'; break;
-		    case '\n':
-			yylval.number = '\n';
-			current_line++;
-			total_lines++;
-			if ((outp = last_nl + 1))
-			    refill_buffer();
-			break;
-		    default: 
-			yywarn("Unknown \\x character.");
-			yylval.number = *(outp - 1);
-		        break;
+		case 'n': yylval.number = '\n'; break;
+		case 't': yylval.number = '\t'; break;
+		case 'r': yylval.number = '\r'; break;
+		case 'b': yylval.number = '\b'; break;
+		case 'a': yylval.number = '\x07'; break;
+		case 'e': yylval.number = '\x1b'; break;
+		case '\'': yylval.number = '\''; break;
+		case '\\': yylval.number = '\\'; break;
+		case '0': case '1': case '2': case '3': case '4': 
+		case '5': case '6': case '7': case '8': case '9':
+		    outp--;
+		    yylval.number = strtol(outp, &outp, 8);
+		    if (yylval.number > 255) {
+			yywarn("Illegal character constant.");
+			yylval.number = 'x';
+		    }
+		    break;
+		case 'x':
+		    if (!isxdigit(*outp)) {
+			yylval.number = 'x';
+			yywarn("\\x must be followed by a valid hex value; interpreting as 'x' instead.");
+		    } else {
+			yylval.number = strtol(outp, &outp, 16);
+			if (yylval.number > 255) {
+			    yywarn("Illegal character constant.");
+			    yylval.number = 'x';
+			}
+		    }
+		    break;
+		case '\n':
+		    yylval.number = '\n';
+		    current_line++;
+		    total_lines++;
+		    if ((outp = last_nl + 1))
+			refill_buffer();
+		    break;
+		default: 
+		    yywarn("Unknown \\ escape.");
+		    yylval.number = *(outp - 1);
+		    break;
 		}
 	    } else {
 		yylval.number = *(outp - 1);
@@ -1537,54 +1577,83 @@ int yylex()
                 register unsigned char *to = scr_tail + 1;
 
                 if ((l = scratch_end - 1 - to) > 255) l = 255;
-                while (l--){
-                    switch(c = *outp++){
-                        case LEX_EOF:
-                            lexerror("End of file in string");
-                            return LEX_EOF;
-
-			case '"':
-                            scr_last = scr_tail + 1;
-                            *to++ = 0;
-                            scr_tail = to;
-                            *to = to - scr_last;
-                            yylval.string = (char *) scr_last;
-                            return L_STRING;
-
-		        case '\n':
-                            current_line++;
-                            total_lines++;
-                            if (outp == last_nl + 1) refill_buffer();
-                            *to++ = '\n';
-                            break;
-
-			case '\\':
-                            /* Don't copy the \ in yet */
-                            switch(*outp++){
-                                case '\n':
-                                    current_line++;
-                                    total_lines++;
-                                    if (outp == last_nl + 1) refill_buffer();
-                                    l++; /* Nothing is copied */
-                                    break;
-				case LEX_EOF:
-                                    lexerror("End of file in string");
-                                    return LEX_EOF;
-				case 'n': *to++ = '\n'; break;
-				case 't': *to++ = '\t'; break;
-				case 'r': *to++ = '\r'; break;
-				case 'b': *to++ = '\b'; break;
-				case 'a': *to++ = '\x07'; break;
-				case 'e': *to++ = '\x1b'; break;
-				case '"': *to++ = '"'; break;
-				case '\\': *to++ = '\\'; break;
-			        default:
-                                    *to++ = *(outp - 1);
-                                    yywarn("Unknown \\x char.");
+                while (l--) {
+                    switch(c = *outp++) {
+		    case LEX_EOF:
+			lexerror("End of file in string");
+			return LEX_EOF;
+			
+		    case '"':
+			scr_last = scr_tail + 1;
+			*to++ = 0;
+			scr_tail = to;
+			*to = to - scr_last;
+			yylval.string = (char *) scr_last;
+			return L_STRING;
+			
+		    case '\n':
+			current_line++;
+			total_lines++;
+			if (outp == last_nl + 1) refill_buffer();
+			*to++ = '\n';
+			break;
+			
+		    case '\\':
+			/* Don't copy the \ in yet */
+			switch(*outp++){
+			case '\n':
+			    current_line++;
+			    total_lines++;
+			    if (outp == last_nl + 1) refill_buffer();
+			    l++; /* Nothing is copied */
+			    break;
+			case LEX_EOF:
+			    lexerror("End of file in string");
+			    return LEX_EOF;
+			case 'n': *to++ = '\n'; break;
+			case 't': *to++ = '\t'; break;
+			case 'r': *to++ = '\r'; break;
+			case 'b': *to++ = '\b'; break;
+			case 'a': *to++ = '\x07'; break;
+			case 'e': *to++ = '\x1b'; break;
+			case '"': *to++ = '"'; break;
+			case '\\': *to++ = '\\'; break;
+			case '0': case '1': case '2': case '3': case '4': 
+			case '5': case '6': case '7': case '8': case '9':
+			{
+			    int tmp;
+			    outp--;
+			    tmp = strtol(outp, &outp, 8);
+			    if (tmp > 255) {
+				yywarn("Illegal character constant in string.");
+				tmp = 'x';
 			    }
-                            break;
-
-			default: *to++ = c;
+			    *to++ = tmp;
+			    break;
+			}
+			case 'x':
+			{
+			    int tmp;
+			    if (!isxdigit(*outp)) {
+				*to++ = 'x';
+				yywarn("\\x must be followed by a valid hex value; interpreting as 'x' instead.");
+			    } else {
+				tmp = strtol(outp, &outp, 16);
+				if (tmp > 255) {
+				    yywarn("Illegal character constant.");
+				    tmp = 'x';
+				}
+				*to++ = tmp;
+			    }
+			    break;
+			}
+			default:
+			    *to++ = *(outp - 1);
+			    yywarn("Unknown \\ escape.");
+			}
+			break;
+		    default:
+			*to++ = c;
 		    }
                 }
 
@@ -1592,8 +1661,8 @@ int yylex()
                 l = MAXLINE - (to - scr_tail);
 
                 yyp = yytext;
-		while (l--){
-		    switch(c = *outp++){
+		while (l--) {
+		    switch(c = *outp++) {
 			case LEX_EOF:
 			    lexerror("End of file in string");
 			    return LEX_EOF;
@@ -1617,32 +1686,61 @@ int yylex()
                             break;
 
 		       case '\\':
-                            /* Don't copy the \ in yet */
-                            switch(*outp++){
-                                case '\n':
-                                    current_line++;
-                                    total_lines++;
-                                    if (outp == last_nl + 1) refill_buffer();
-                                    l++; /* Nothing is copied */
-                                    break;
-                                case LEX_EOF:
-                                    lexerror("End of file in string");
-                                    return LEX_EOF;
-                                case 'n': *yyp++ = '\n'; break;
-                                case 't': *yyp++ = '\t'; break;
-                                case 'r': *yyp++ = '\r'; break;
-                                case 'b': *yyp++ = '\b'; break;
-				case 'a': *yyp++ = '\x07'; break;
-				case 'e': *yyp++ = '\x1b'; break;
-                                case '"': *yyp++ = '"'; break;
-                                case '\\': *yyp++ = '\\'; break;
-                                default:
-                                    *yyp++ = *(outp - 1);
-                                    yywarn("Unknown \\x char.");
-			    }
-                            break;
-
-                        default: *yyp++ = c;
+			   /* Don't copy the \ in yet */
+			   switch(*outp++){
+			   case '\n':
+			       current_line++;
+			       total_lines++;
+			       if (outp == last_nl + 1) refill_buffer();
+			       l++; /* Nothing is copied */
+			       break;
+			   case LEX_EOF:
+			       lexerror("End of file in string");
+			       return LEX_EOF;
+			   case 'n': *yyp++ = '\n'; break;
+			   case 't': *yyp++ = '\t'; break;
+			   case 'r': *yyp++ = '\r'; break;
+			   case 'b': *yyp++ = '\b'; break;
+			   case 'a': *yyp++ = '\x07'; break;
+			   case 'e': *yyp++ = '\x1b'; break;
+			   case '"': *yyp++ = '"'; break;
+			   case '\\': *yyp++ = '\\'; break;
+                           case '0': case '1': case '2': case '3': case '4': 
+			   case '5': case '6': case '7': case '8': case '9':
+			   {
+			       int tmp;
+			       outp--;
+			       tmp = strtol(outp, &outp, 8);
+			       if (tmp > 255) {
+				   yywarn("Illegal character constant in string.");
+				   tmp = 'x';
+			       }
+			       *yyp++ = tmp;
+			       break;
+			   }
+			   case 'x':
+			   {
+			       int tmp;
+			       if (!isxdigit(*outp)) {
+				   *yyp++ = 'x';
+				   yywarn("\\x must be followed by a valid hex value; interpreting as 'x' instead.");
+			       } else {
+				   tmp = strtol(outp, &outp, 16);
+				   if (tmp > 255) {
+				       yywarn("Illegal character constant.");
+				       tmp = 'x';
+				   }
+				   *yyp++ = tmp;
+			       }
+			       break;
+			   }
+			   default:
+			       *yyp++ = *(outp - 1);
+			       yywarn("Unknown \\ escape.");
+			   }
+			   break;
+			   
+		    default: *yyp++ = c;
 		    }
                 }
 	
@@ -1757,8 +1855,7 @@ parse_identifier:
 				if (function_flag){
 				    function_flag = 0;
 				    add_input(yytext);
-				    yylval.context = function_context;
-				    reset_function_context();
+				    push_function_context();
 				    return L_FUNCTION_OPEN;
 				}
 				yylval.number = ihe->sem_value;
@@ -1941,6 +2038,8 @@ void start_new_file P1(int, f)
     }
     yyin_desc = f;
     lex_fatal = 0;
+    last_function_context = -1;
+    current_function_context = 0;
     cur_lbuf = &head_lbuf;
     cur_lbuf->outp = cur_lbuf->buf_end = outp = cur_lbuf->buf + (DEFMAX >> 1);
     *(last_nl = outp - 1) = '\n';

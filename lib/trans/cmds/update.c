@@ -46,12 +46,12 @@ private void main(mixed *arg, mapping flags) {
     this_body()->query_shell_ob()->set_cwf( file );
     sscanf(file, "%s.c", file);
     if (file_size(file+".c")==-1) {
-	printf("update: no such file.\n");
+	outf("update: no such file.\n");
 	return 0;
     }
     if(file_size(file) == -2 && file_size(file+".c") < 0 )
     {
-	printf("update: file is a directory.\n");
+	outf("update: file is a directory.\n");
 	return 0;
     }
     if(file_size(file+".c"))  this_body()->query_shell_ob()->set_cwf(file+".c");
@@ -69,7 +69,7 @@ private void main(mixed *arg, mapping flags) {
     }
     if (file[<2..<1] != ".c") file += ".c";
     if (do_update(file,deep_up) < time())
-        write(file + ": No update necessary.\n");
+        out(file + ": No update necessary.\n");
 
     for (n=0; n<sizeof(obs); n++) {
 	if (obs[n]) obs[n]->move(file);
@@ -112,24 +112,6 @@ int do_update(string file, int deep)
     }
     load_object(file);
     if (file[0] != '/') file = "/" + file; // bug in inherit_list()
-    write(file +": Updated and loaded.\n");
+    out(file +": Updated and loaded.\n");
     return time();
-}
-
-int help()
-{
-    write(wrap(
-	"Usage: update [-rRz] <filename>\n"
-	"The update commands loads or reloads the specefied file.  If no "
-	"argument is given, the last file the wizard was working on is used "
-	"or the environment if there is no such file.  The update command "
-	"only affects the master copy, not any clones that were loaded "
-	"before.\nThe optional flags -r and -R will also update files "
-	"inherited by the file.  update -R will update this object, the "
-	"files that it inherits, any files that _those_ inherit, and so "
-	"on.  update -r just updates the files inherited by the object.  "
-	"update -z is the same as update -R, except that it only updates "
-	"files which are out of date with respect to their source or "
-	"objects they inherit.  Note that #includes are NOT checked.\n"));
-    return 1;
 }

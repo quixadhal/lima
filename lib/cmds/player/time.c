@@ -30,8 +30,8 @@ private void main(string notused)
     string str;
  
     int x;
-   write("Local MUD time       "+ tm2 +". \n");
-   write(mud_name()+" restarted on " + tm4 +". \n \n");
+   out("Local MUD time       "+ tm2 +". \n");
+   out(mud_name()+" restarted on " + tm4 +". \n \n");
     str = mud_name()+ " has been up for ";
     if (x = (tm / WEEK))
     {
@@ -64,5 +64,5 @@ private void main(string notused)
     }
 
     str = str[0..<2] + ".\n";
-    write(str);
+    out(str);
 }

@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+The Brief Description
+
+The brief description should be a couple of words that tell a person very briefly where he is.  The user sees the brief description whenever he enters or otherwise looks at a room.  To set a room's brief description, use set_brief () from the room's create () function:
+
+    set_brief ("Spooky Copse");
+
+Tips:
+
+   Always capitalize all the words of your brief description.
+   Try to pick a description that uniquely describes your room.
+
+
+

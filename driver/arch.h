@@ -56,9 +56,6 @@
 #ifdef SunOS_5
 #define ARCH "Solaris"
 #endif
-#ifdef __386BSD__
-#define ARCH "386bsd"
-#endif
 #ifdef _AUX_SOURCE
 #define ARCH "A/UX"
 #endif
@@ -86,6 +83,10 @@
 #define ARCH "BSDI"
 #endif
 
+#if !defined(ARCH) && defined(__386BSD__)
+#define ARCH "386bsd"
+#endif
+
 #if !defined(ARCH) && defined(ultrix)
 #define ARCH "Ultrix"
 #endif
@@ -93,9 +94,6 @@
 #if !defined(ARCH) && defined(hpux)
 #define ARCH "HP/UX"
 #endif
-
-#ifndef ARCH_H
-#define ARCH_H
 
 #if !defined(ARCH) && defined(sgi)
 #define ARCH "IRIX"
@@ -114,8 +112,7 @@
 #endif
 
 #ifndef ARCH
-#define ARCH "stuf!"
+#define ARCH "unknown architecture"
 #endif
 
-#endif
 #endif

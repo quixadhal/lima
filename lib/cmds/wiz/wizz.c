@@ -47,11 +47,11 @@ private void main( string arg )
 
     if( this_body()->move( WIZ_ROOM ) != MOVE_OK)
     {
-	write( "You remain where you are.\n" );
+      out( "You remain where you are.\n" );
 	return;
     }
-    force_look();
-    printf("You are carried to the wizard lounge on %s!\n", arg );
+    this_body()->force_look();
+    outf("You are carried to the wizard lounge on %s!\n", arg );
     if( name == "Someone" )
 	return;
 

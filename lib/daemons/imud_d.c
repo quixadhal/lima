@@ -37,7 +37,7 @@ inherit __DIR__ "imud/mail";
 
 static private object	router_socket;
 
-private string *	router_list = ({ ({ "*gjs", "205.218.122.131 9000"}) });
+private string *	router_list = ({ ({ "*gjs", "206.151.209.131 9000"}) });
 private int		password;
 
 void rcv_startup_reply(string orig_mud, string orig_user,
@@ -205,7 +205,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 0.9r11 (pre-alpha)",
+			      "Lima 0.9r12 (pre-alpha)",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -309,7 +309,8 @@ private nomask void rcv_startup_reply(string orig_mud, string orig_user,
     ** the specified router.
     */
 //### we need a fail-over mechanism to go to a another (second) router
-    if ( message[0][0][0] != router_list[0][0] )
+    if ( message[0][0][0] != router_list[0][0] ||
+	 message[0][0][1] != router_list[0][1] )
     {
 	/* tell it we'll be gone indefinitely */
 	send_to_router("shutdown", ({ 0 }));

@@ -19,6 +19,7 @@ private static mapping legal_logs = ([
     LOG_AUTODOC		: DIR_LOG "/AUTODOC",
     LOG_BANISH		: DIR_LOG "/banishes",
     LOG_BUG		: DIR_LOG "/BUGS",
+    LOG_CHANNEL		: DIR_LOG "/chanlog",
     LOG_FORCE		: DIR_LOG "/forces",
     LOG_HELP_MISS	: DIR_LOG "/HELP_MISS",
     LOG_I3_ERROR	: DIR_LOG "/i3_errors",
@@ -35,10 +36,17 @@ private static mapping legal_logs = ([
     LOG_SNOOP		: DIR_SECURE_LOG "/snoops",
 ]);
 
+private static string * timestamps = ({
+    LOG_CHANNEL,
+});
+
 void log(string which, string what)
 {
     if ( !legal_logs[which] )
 	error("illegal attempt to log to " + which + "\n");
+
+    if ( member_array(which, timestamps) != -1 )
+	what = ctime(time()) + ": " + what;
 
     unguarded(1, (: write_file, legal_logs[which], what :));
 }

@@ -1,0 +1,70 @@
+
+
+
+
+
+M_MOUNTABLE
+
+M_MOUNTABLE is used to have your object able to be mounted.  A good example
+of this is a horse, or other vehicle that you would ride on.  By default
+an object that is mountable can not be entered.
+
+Functions to call from your setup():
+
+     set_get_on_msg(msg) --  This allows you to set a unique message for getting
+                             on your object.  This message follows the pattern
+                             of the other message $N $vget on $o.
+
+     set_get_off_msg(msg) -- This allows you to set a unique message for getting
+                             off of your object.  This message follows the pattern
+                             of the other message $N $vget off of $o.
+
+Important Functions:
+
+     query_get_off_msg()  -- This function returns the message from set_get_off_msg().
+
+     query_get_on_msg()   -- This functions returns the message from set_get_on_msg().
+
+     handle_exit_msgs()   -- this returns the get_off_msg(), or the default of 
+                                &N $vget off .
+
+     mount_it_already()   -- This function handles the actual moving of the player to 
+                             your object.  If you are already on the object it returns 
+                             an appropriate message.
+
+
+Other Functions:
+           
+    direct_sit_on_obj()   -- By default returns 1.  This may be overloaded in your object.
+
+    sit()                 -- This gets called by the verb handler, and it then calls 
+                             mount_it_already().
+   
+    stand()               -- Returns the ..get_off_msg(), or the default of $N $vget off .
+
+    direct_mount_obj()    -- By default returns 1.  
+
+    mount()               -- This gets called by the verb handler for mount, and it then 
+                             calls mount_it_already().
+
+    get_on()              -- This gets called by the verb handler fot get, and it then calls
+                             mount_it_already().
+
+    direct_dismount()     -- By default reuturns 1.  
+            
+    dismount()            -- This gets called by the verb handler for dismount.  If you are not
+                             on this object return the apropriate message.  otherwise call stand().
+
+    direct_enter_obj()    -- This gets called by the verb handler for enter.  It makes no sense to 
+                             enter mos objects that you would mount, so we return 0 here.  Remember 
+                             that if it makes sense to be able to enter this, overload it.          
+
+    direct_get_on()       -- Returns 1.
+
+    direct_get_off()      -- Returns 1.
+
+
+
+Last Updated: Wednesday, May 01, 1996
+
+

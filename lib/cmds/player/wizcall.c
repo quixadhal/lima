@@ -4,6 +4,11 @@
 
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
 
 private void main(string arg)
 {
@@ -12,14 +17,14 @@ private void main(string arg)
 
     if ( !arg )
     {
-	write("Wizcall what?\n");
+	out("Wizcall what?\n");
 	return;
     }
 
     wizlist = filter_array(users(), (: wizardp :));
     if ( !sizeof(wizlist) )
     {
-	write("You get the feeling no one hears you.\n");
+	out("You get the feeling no one hears you.\n");
 	return;
     }
 
@@ -28,5 +33,5 @@ private void main(string arg)
 				       this_body()->query_name(), arg)));
 
     if ( member_array(this_user(), wizlist) == -1 )
-	printf("You wizcall: %s\n", arg);
+	outf("You wizcall: %s\n", arg);
 }

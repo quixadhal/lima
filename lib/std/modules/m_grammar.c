@@ -17,27 +17,18 @@
 
 string pluralize(string str)
 {
-//### This is wrong ('staff' should be 'staves')
-    if ( str[<2..<1] == "ff" )
-	return str + "s";
-
-    if ( driver_version() == "MudOS v22a18" )
+    if ( driver_version() == "MudOS v22a38" )
     {
-	// nouns ending in a consonant plus y form the plural by changing:
-	// *y -> *ies (gumby -> gumbies)
-	if (strlen(str) > 1) {
-	    if (str[<1] == 'y' && member_array(str[<2], "aeiou") == -1)
-		return str[0..<2]+"ies";
-	    if (str[<1] == 's') return str + "es";
-	}
-
 	switch (str)
 	{
-	case "were": return "was"; // Later drivers have this one
-	case "have": return "has";
-	case "are": return "is";
-	case "have": return "has";
+	case "were": return "was";
+	case "staff": return "staves";
+	case "die": return "dies";
 	}
+	if ( str[<2..<1] == "ff" )	/* e.g. "bluff" */
+	    return str + "s";
+	if ( str[<5..<1] == "penis" )
+	    return str + "es";
     }
 
     switch (str)

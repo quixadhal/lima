@@ -6,11 +6,11 @@ void setup()
 {
   set_adj("lazy");
   set_id("river","water");
-  set_in_room_desc("");
   set_long(wrap(
 "The river is moving rather slowly from east to west.  It isn't very deep;"
 "you won't have any problems fording it if you want to leave north.\n"));
   set_size(TOO_LARGE);
+set_flag(ATTACHED);
 }
 
 mixed swim()

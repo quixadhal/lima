@@ -62,8 +62,8 @@ inherit M_ACCESS;
 // for those files.
 
 private void continue_scan();
-private static array files_to_do, dirs_to_do;
 private int last_time;
+private array files_to_do, dirs_to_do;
 
 void scan_mudlib() {
     printf("Starting scan ...\n");

@@ -6,7 +6,7 @@
  * without args, the default is the current dir
  * 
  * Written by: Gunn @ TMI (01/22/92)
-  * Rust ported it to lima.  Didn't do much to it, tho.
+  * Rust ported it to lima.  Didn't do too much to it, tho.
  *
  */
 
@@ -27,7 +27,7 @@ int disk_usage(string path, int level) {
  total= file_size(path);
  if (total == -1)
    {
-    write("Cannot access: " + path + "\n");
+    out("Cannot access: " + path + "\n");
     return 0;
    }
  if (total == -2)
@@ -40,7 +40,7 @@ int disk_usage(string path, int level) {
        num = sizeof(dir);
        for (i=0; i<num; i++) total += disk_usage(path+"/"+dir[i], level+1);
       }
-    printf("%-10d%-s\n",(1+total/1024), path);
+    outf("%-10d%-s\n",(1+total/1024), path);
    }
  return total;
 }
@@ -52,15 +52,3 @@ private void main(mixed* arg)
 
     disk_usage(arg[0],0);
 }
-
-int help()
-{
- write("du - Disk Usage\n\n");
- write(" Syntax: du [path]\n\n");
- write(" 'du' recursively scans directories, starting from the specified\n" +
-       " path. File sizes are added up, and a total 'K' amount for each\n" +
-       " directory is displayed. If no path is supplied, the current\n" +
-       " directory is used.\n\n");
- return;
-}
-

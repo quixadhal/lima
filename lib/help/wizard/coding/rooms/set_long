@@ -1,0 +1,16 @@
+The Long Description
+
+The long description should be a detailed description of your room.  To set the long description for a room, you use set_long () from your room's create () function.  For example:
+
+    set_long ("Although there is plenty of daylight left, "
+              "you wouldn't know it from within this "
+              "copse.  The trees stare at you intently.");
+
+Tips:
+
+   Make your long descriptions interesting!
+   Don't make them any more than 5 or 6 lines. People want to read good
+   descriptions, but they don't want to read TOO much!
+
+
+

@@ -74,7 +74,7 @@ private void main(mixed argv, mapping flags)
   string	output = "";
   int           uses_ansi;
 
-  if(!sizeof(argv) || !argv[0])
+  if(!argv[0])
     argv[0] = glob(evaluate_path("./*"));
   else
     argv[0] = decompose(map(argv[0], (:is_directory($1) ?
@@ -129,16 +129,21 @@ private void main(mixed argv, mapping flags)
 				$2+"?":), fullpatharr,
 			       outarr);
 
-      output += ansi(sprintf("%%^BOLD%%^%%^WHITE%%^%s%%^RESET%%^:\n%-#79s\n\n", 
-			     path, implode(outarr, "\n")));
+      if(end_of_pipeline())
+	out(ansi(sprintf("%%^BOLD%%^%%^WHITE%%^%s%%^RESET%%^:\n%-#79s\n\n", 
+			     path, implode(outarr, "\n"))));
+      else
+	out(ansi(sprintf("%%^BOLD%%^%%^WHITE%%^%s%%^RESET%%^:\n%s\n\n",
+			 path, implode(outarr,"\n"))));
     }
-  if (!sizeof(output))
-      output = "No matching files.";
-
-  more(output);
+  if (!sizeof(get_output()))
+      out("No matching files.");
 }
 
 nomask int
 valid_resend(string ob) {
     return ob == "/trans/cmds/dir";
 }
+
+
+

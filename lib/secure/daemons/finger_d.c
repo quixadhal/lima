@@ -17,17 +17,28 @@ private nomask string get_level(mixed m)
 mixed * get_raw_data(string who)
 {
     string * info;
+    mixed email;
+mixed real_name;
     mixed * last;
     object user = find_user(who);
 
-//### also fetch title?
+    //### also fetch title?
     info = unguarded(1, (: call_other, USER_D, "query_variable",
-			 who, ({ "real_name", "email",
+	who, ({ "real_name", "email",
 #ifdef EVERYONE_HAS_A_PLAN
-				     "plan",
+	  "plan",
 #endif
-				     }) :));
+	}) :));
 
+    email = info[1];
+    if(email[0] == '#')
+info[1] = 0;
+
+    real_name= info[0];
+    if (real_name[0] == '#')
+info[0] = 0;
+ 
+    info[1] = "(private)";
     last = LAST_LOGIN_D->query_last(who);
     return ({ capitalize(who),
 		  0,

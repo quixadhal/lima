@@ -25,10 +25,10 @@ private void main(string arg)
 	error("Must be an admin to use objpurge.\n");
 
     obs = get_obs(arg);
-    printf("Removing %d objects of class %s\n", sizeof(obs), arg);
+    outf("Removing %d objects of class %s\n", sizeof(obs), arg);
     obs->remove();
 
     obs = filter_array(obs, (: $1 :));  /* remove zeros */
-    printf("Destructing %d objects of class %s\n", sizeof(obs), arg);
+    outf("Destructing %d objects of class %s\n", sizeof(obs), arg);
     map_array(obs, (: destruct :));
 }

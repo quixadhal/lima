@@ -1,280 +1,236 @@
 <DL>
-<DT><em>Mon Jan 22 04:34:54 1996</em>: <strong>Deathblade</strong>
-<DD> added some notes to /include/damage_types.h<p>
-<DT><em>Mon Jan 22 10:08:38 1996</em>: <strong>Beek</strong>
-<DD> added an autodoc help file, so people can't complain they don't understand the format<p>
-<DT><em>Mon Jan 22 11:11:43 1996</em>: <strong>Beek</strong>
-<DD> changed /std/modules/complete not to use regexp (intermud tell doesn't bug on regexp special chars now)<p>
-<DT><em>Mon Jan 22 11:35:29 1996</em>: <strong>Beek</strong>
-<DD> added a few //:FUNCTION lines to various objects<p>
-<DT><em>Mon Jan 22 11:46:55 1996</em>: <strong>Beek</strong>
-<DD> added EVERYTHING_SAVES to config.h; if it's on M_SAVE comes in at OBJECT. The lib would still need to be changed to call add_saved() in the right places, though<p>
-<DT><em>Mon Jan 22 11:53:19 1996</em>: <strong>Beek</strong>
-<DD> removed the old autoload code; anything you have in your inventory that inherits M_SAVE should save and restore with you now.<p>
-<DT><em>Mon Jan 22 14:29:58 1996</em>: <strong>Beek</strong>
-<DD> changed the virtual lookup to take the last cfile whose name corresponds to a directory, whether that directory exists or not.<p>
-<DT><em>Mon Jan 22 14:54:51 1996</em>: <strong>Beek</strong>
-<DD> added /domains/std/rooms/labyrinth as an example of a nontrivial virtual room use (AKA "Yes, you can do things other than parametrized grid" )<p>
-<DT><em>Mon Jan 22 14:57:57 1996</em>: <strong>Beek</strong>
-<DD> :note: The labyrinth is still a bit buggy.<p>
-<DT><em>Mon Jan 22 15:32:45 1996</em>: <strong>Rust</strong>
-<DD> made M_SAVE::save_to_string take recursion as an argument, cause people are forgetting to call set_save_recurse on their own...<p>
-<DT><em>Mon Jan 22 15:39:57 1996</em>: <strong>Rust</strong>
-<DD> maded saved_items non-static, since their whole point is to be persistant ;-) I also made save_recurse static.<p>
-<DT><em>Mon Jan 22 15:43:27 1996</em>: <strong>Rust</strong>
-<DD> made a fix to /std/save::load_from_string that prevented recursive restores from working...<p>
-<DT><em>Mon Jan 22 16:13:26 1996</em>: <strong>Rust</strong>
-<DD> fixed a bug in M_SAVE: If recursion was on, it always moved the object into the previous object. Which moved the body object into the user object. And the user object wouldn't let go.... N<p>
-<DT><em>Mon Jan 22 16:14:36 1996</em>: <strong>Rust</strong>
-<DD> made it so that if you have EVERYTHING_SAVES on, all your objects are there when you quit and come back.<p>
-<DT><em>Mon Jan 22 16:41:54 1996</em>: <strong>Rust</strong>
-<DD> made M_SAVE ignore missing objects. So if an object got moved, or removed, you don't get it back when you restore.<p>
-<DT><em>Tue Jan 23 00:51:54 1996</em>: <strong>Ohara</strong>
-<DD> fixed stairs to have no plurular, so frotz should work on them. Hopefully.<p>
-<DT><em>Tue Jan 23 02:47:35 1996</em>: <strong>Ohara</strong>
-<DD> changed home to tell you that you're going home .. I'm not certain whether I should have changed from a tell_room to an other_action tho.<p>
-<DT><em>Wed Jan 24 03:46:44 1996</em>: <strong>Deathblade</strong>
-<DD> updated the I3 daemon with the ucache and most of the auth services. Added empty response for oob-req. Added response for chan-use-req and channel-t (latter is stubbed).<p>
-<DT><em>Wed Jan 24 08:13:20 1996</em>: <strong>Beek</strong>
-<DD> fixed a bug in /std/object/names.c which caused the primary_id to get set to 'nondescript thing' too early, causing objects which never call set_id, but do call add_id (e.g. the stairs) to be nondescript<p>
-<DT><em>Wed Jan 24 08:47:03 1996</em>: <strong>Beek</strong>
-<DD> changed the shell to only interpret commands as paths if they include at least one '/'. This means that CWD isn't searched; if you want to execute something in your CWD use ./cmd<p>
-<DT><em>Wed Jan 24 09:01:12 1996</em>: <strong>Beek</strong>
-<DD> fixed a few spots that didn't realize find_cmd() could return non-zero, non-object/string results in the case of broken commands<p>
-<DT><em>Wed Jan 24 09:02:03 1996</em>: <strong>Beek</strong>
-<DD> made find_cmd() call find_cmd_in_path() at the end; the code was duplicated, with the exception of a bug that was only fixed in one of the two ...<p>
-<DT><em>Wed Jan 24 09:50:04 1996</em>: <strong>Beek</strong>
-<DD> changed the wiz shell to only do globbing on cmds with /'s in them ...<p>
-<DT><em>Wed Jan 24 10:10:39 1996</em>: <strong>Beek</strong>
-<DD> added some path handling logic, to avoid calling evaluate_path() on every element of the path for every coomand<p>
-<DT><em>Wed Jan 24 10:16:27 1996</em>: <strong>Beek</strong>
-<DD> ripped /std/body/path.c; suprisingly, it was COMPLETELY unused.<p>
-<DT><em>Wed Jan 24 10:23:12 1996</em>: <strong>Beek</strong>
-<DD> :note: use ->query_shell_ob()->query_path() now; it's automagically updated from the "path" var, and is guaranteed to contain absolute paths<p>
-<DT><em>Wed Jan 24 10:26:30 1996</em>: <strong>Beek</strong>
-<DD> finally removed the map(... (: evaluate_path :) ) from find_cmd(), which was what started this entire thing :-)<p>
-<DT><em>Wed Jan 24 10:29:33 1996</em>: <strong>Beek</strong>
-<DD> fixed update -z to not bail if you remove a file that an object inherits<p>
-<DT><em>Wed Jan 24 10:33:07 1996</em>: <strong>Beek</strong>
-<DD> fixed /std/water_room.c (room::create)<p>
-<DT><em>Wed Jan 24 10:51:56 1996</em>: <strong>Beek</strong>
-<DD> fixed showpath to not end in a comma<p>
-<DT><em>Wed Jan 24 11:31:15 1996</em>: <strong>Beek</strong>
-<DD> fixed glob'ed and explicit path commands to work with Cmd_rules; the 'name' was causing it to miss<p>
-<DT><em>Wed Jan 24 11:46:13 1996</em>: <strong>Beek</strong>
-<DD> fearlessly wandered into shell expansion, slew the hideous print ` "" ` -> print `code` bug, and returned alive.<p>
-<DT><em>Wed Jan 24 12:05:32 1996</em>: <strong>Beek</strong>
-<DD> cleaned up lima.bugs again (87 of 1193 remain :-) )<p>
-<DT><em>Wed Jan 24 18:16:41 1996</em>: <strong>Beek</strong>
-<DD> removed can_ functions from a ton of verbs<p>
-<DT><em>Thu Jan 25 01:33:53 1996</em>: <strong>Ohara</strong>
-<DD> notes that the codeboys are slaves to noone but himself. People ordering them to "just fix it" are liable to unpleasantness unless their name happens to be five letters long, begin with "Oh" , and end in "ara" , in which case it better damn well be done ;)<p>
-<DT><em>Thu Jan 25 02:12:45 1996</em>: <strong>Deathblade</strong>
-<DD> fixed the bug where mail didn't receive the proper time on it<p>
-<DT><em>Thu Jan 25 02:33:48 1996</em>: <strong>Deathblade</strong>
-<DD> fixed the login code to contain its own regexp for names rather than relying on the totally non-obvious usage of the banish code to enforce names. Not to mention that a banish.o is NOT shipped with the lib (who knew we had to ship one? :-).<p>
-<DT><em>Thu Jan 25 04:55:36 1996</em>: <strong>Deathblade</strong>
-<DD> began some OOB work; fleshed out the auth service a bit more.<p>
-<DT><em>Thu Jan 25 08:46:22 1996</em>: <strong>Beek</strong>
-<DD> noted that regexp(str, re) is the same as sizeof(regexp( ({ str }), re)), and fixed DB's code :-)<p>
-<DT><em>Thu Jan 25 09:55:58 1996</em>: <strong>Beek</strong>
-<DD> fixed a small type error in actions.c<p>
-<DT><em>Thu Jan 25 09:57:54 1996</em>: <strong>Beek</strong>
-<DD> made some changes to inv_list(); it takes an array of objects now, and depth counting starts at zero again, so the extra 0, 1 isn't needed<p>
-<DT><em>Thu Jan 25 10:02:10 1996</em>: <strong>Beek</strong>
-<DD> fixed inventory_header() to be right for objects that have called set_preposition()<p>
-<DT><em>Thu Jan 25 10:16:02 1996</em>: <strong>Beek</strong>
-<DD> cleaned up some inventory handling a bit more; mostly foreach()ing things, etc<p>
-<DT><em>Thu Jan 25 10:43:54 1996</em>: <strong>Beek</strong>
-<DD> added COMPLEX_CONTAINER<p>
-<DT><em>Fri Jan 26 05:33:57 1996</em>: <strong>Beek</strong>
-<DD> made a number of changes to verbs: 'take' is now a synonym for certain rules of 'get' (but not others; take off != get off); 'carry' is only a synonym for ones that make sense. Also added a small take verb to handle 'take off OBJ'<p>
-<DT><em>Fri Jan 26 05:39:58 1996</em>: <strong>Beek</strong>
-<DD> made 'put down' a synonym for 'drop' and 'put on' an synonym for 'wear'<p>
-<DT><em>Fri Jan 26 05:41:01 1996</em>: <strong>Beek</strong>
-<DD> torched the take verb, and did it as a synonym<p>
-<DT><em>Fri Jan 26 05:42:29 1996</em>: <strong>Beek</strong>
-<DD> changed query_verb_info() syntax slightly [compat tho]; it's now ({ array of rules, syns for those rules, more rules, more syns, etc ... })<p>
-<DT><em>Fri Jan 26 08:09:17 1996</em>: <strong>Beek</strong>
-<DD> added a simple 'ring' verb<p>
-<DT><em>Fri Jan 26 08:28:02 1996</em>: <strong>Beek</strong>
-<DD> fixed the labyrinth to not accept illegal path names<p>
-<DT><em>Fri Jan 26 20:41:46 1996</em>: <strong>Beek</strong>
-<DD> added add_hidden_exit(exit [,exit...]) and remove_hidden_exit()<p>
-<DT><em>Sat Jan 27 04:01:34 1996</em>: <strong>Ohara</strong>
-<DD> added a 'question' command ala bug/idea/typo/todo<p>
-<DT><em>Sun Jan 28 12:06:40 1996</em>: <strong>Beek</strong>
-<DD> fixed a typo that caused combat to error<p>
-<DT><em>Sun Jan 28 12:11:17 1996</em>: <strong>Beek</strong>
-<DD> fixed body::die() to actually make the player a ghost<p>
-<DT><em>Sun Jan 28 12:11:29 1996</em>: <strong>Beek</strong>
-<DD> removed the link switch to ghost body<p>
-<DT><em>Sun Jan 28 12:13:38 1996</em>: <strong>Beek</strong>
-<DD> fixed heal_us() to not allow ressurection<p>
-<DT><em>Sun Jan 28 12:14:30 1996</em>: <strong>Beek</strong>
-<DD> added a reincarnate() function<p>
-<DT><em>Sun Jan 28 12:22:49 1996</em>: <strong>Beek</strong>
-<DD> made the 'go' and 'look' verbs usable by ghosts<p>
-<DT><em>Sun Jan 28 14:46:52 1996</em>: <strong>Beek</strong>
-<DD> made /std/verb_ob's default_checks() use the functions need_to_see(), need_to_be_alive(), and need_to_think() so these can be overloaded separately<p>
-<DT><em>Sun Jan 28 16:15:41 1996</em>: <strong>Rust</strong>
-<DD> made it so that outgoing sockets can only be made by priv 1 objects.<p>
-<DT><em>Sun Jan 28 16:25:56 1996</em>: <strong>Rust</strong>
-<DD> moved the imud_d to /trans<p>
-<DT><em>Sun Jan 28 16:26:08 1996</em>: <strong>Rust</strong>
-<DD> fixed the listing f souls from the player menu<p>
-<DT><em>Sun Jan 28 16:52:55 1996</em>: <strong>Rust</strong>
-<DD> made it so you can change your www home page from the player menu<p>
-<DT><em>Sun Jan 28 17:07:40 1996</em>: <strong>Rust</strong>
-<DD> added the option to test a soul to the player menu.<p>
-<DT><em>Sun Jan 28 17:55:51 1996</em>: <strong>Rust</strong>
-<DD> added an ob_state override to /std/body, which fixes the bug of seeing 2 of yourself on furniture, hopefully.<p>
-<DT><em>Sun Jan 28 18:51:15 1996</em>: <strong>Rust</strong>
-<DD> fixed complex_container to have a different maximum capacity / capacity for each relationship. You now need to call set_max_capacity(value,relation) for each relation.<p>
-<DT><em>Sun Jan 28 19:04:25 1996</em>: <strong>Rust</strong>
-<DD> changed the non-room class (inherited by furniture and vehicles) to inherit complex_container instead of container.<p>
-<DT><em>Sun Jan 28 20:20:08 1996</em>: <strong>Rust</strong>
-<DD> fixed a bunch of bugs. The only important change to take note of is that you can't mail admin, you now have to mail (admin)<p>
-<DT><em>Mon Jan 29 03:10:52 1996</em>: <strong>Deathblade</strong>
-<DD> ifdef'd socket's requirement for privs. IMUD_D creates sockets in call_outs() where the base priv on the call stack is 0. And I'm not about to add some damn unguarded() calls into IMUD_D just to create the socket.<p>
-<DT><em>Mon Jan 29 04:16:41 1996</em>: <strong>Deathblade</strong>
-<DD> pulled the shell handling out of the body in preparation for the body to become low priv (yet the shell needs to remain high priv). The user ob now handles the shell ob.<p>
-<DT><em>Mon Jan 29 04:18:42 1996</em>: <strong>Deathblade</strong>
-<DD> created /data/shells and secured it. /obj/pshell had to move (for now) to /trans/obj/pshell to deal with that security. SHELL now saves into that area (altho the shell's save code is nasty).<p>
-<DT><em>Mon Jan 29 04:19:28 1996</em>: <strong>Deathblade</strong>
-<DD> used a little sed script to copy people's shell data into the new area.<p>
-<DT><em>Mon Jan 29 04:20:59 1996</em>: <strong>Deathblade</strong>
-<DD> cleaned up a bit of the creation/removal/start/stop of the shell.<p>
-<DT><em>Mon Jan 29 04:40:00 1996</em>: <strong>Deathblade</strong>
-<DD> changed /data/shells to /data/wshells. Added /data/pshells. The wizard/player shell data saves in the appropriate dir now. Correct privs are assigned and pshell was moved back to /obj.<p>
-<DT><em>Mon Jan 29 04:41:05 1996</em>: <strong>Deathblade</strong>
-<DD> added a config option: HANDLE_MANY_WIZARDS. If this is set, then /data/wshells should have a to z subdirs (like Lima Bean). In the distribution, this will not be set and all wizard shell data will simply be saved in /data/wshells.<p>
-<DT><em>Mon Jan 29 08:15:41 1996</em>: <strong>Beek</strong>
-<DD> made ghosts show up as "The ghost of ..." in rooms<p>
-<DT><em>Mon Jan 29 13:14:03 1996</em>: <strong>Zifnab</strong>
-<DD> added an example of a simple book in /domains/std<p>
-<DT><em>Tue Jan 30 13:34:27 1996</em>: <strong>Zifnab</strong>
-<DD> added an example of functions in exits (couldnt find one in /domains/std) it is a car wash for DB's camaro :)<p>
-<DT><em>Tue Jan 30 19:01:19 1996</em>: <strong>Robocoder</strong>
-<DD> optimized a teeny weeny 'lil bit o' code in /WWW/cgi/autodoc.c to create the 'upper' string faster<p>
-<DT><em>Wed Jan 31 15:54:40 1996</em>: <strong>Rust</strong>
-<DD> added /domains/std/portal, which is a simple one way portal<p>
-<DT><em>Thu Feb  1 00:43:48 1996</em>: <strong>Ohara</strong>
-<DD> fixed that typo in admtool. Woo Woo :)<p>
-<DT><em>Thu Feb  1 02:28:33 1996</em>: <strong>Deathblade</strong>
-<DD> added auto- "alias" for channels to the wiz and player shells. If the command matches a channel's "public" name (not the internal name), then the rest of the line is used as a channel command.<p>
-<DT><em>Thu Feb  1 02:29:33 1996</em>: <strong>Deathblade</strong>
-<DD> removed the plyr_ prefix from news, newbie, gossip. Auto-rename is done for people at body restore type. Modified NEWS_D to post to "news" .<p>
-<DT><em>Thu Feb  1 02:58:12 1996</em>: <strong>Deathblade</strong>
-<DD> fixed a small typo in the 'listeners' command: admin channels were listed as wiz<p>
-<DT><em>Thu Feb  1 03:01:03 1996</em>: <strong>Deathblade</strong>
-<DD> added all permanent channels to the list that are recognized for auto-aliasing. They will be recognized whether you are listening or not. This allows you to do: newbie /on<p>
-<DT><em>Thu Feb  1 03:02:35 1996</em>: <strong>Deathblade</strong>
-<DD> removed the following channel aliases: wiz, announce, newbie, gossip. They are no longer needed. Until some more work is done on the I3 channels, the aliases will be handy and will remain.<p>
-<DT><em>Thu Feb  1 03:03:23 1996</em>: <strong>Deathblade</strong>
-<DD> updated "help channels" to remove the paragraph talking about aliasing the channel stuff.<p>
-<DT><em>Thu Feb  1 03:08:57 1996</em>: <strong>Deathblade</strong>
-<DD> updated related channel help with the new commands and info on auto-aliasing.<p>
-<DT><em>Thu Feb  1 03:34:36 1996</em>: <strong>Deathblade</strong>
-<DD> renamed wiz_wiz, wiz_announce, and wiz_errors to drop the wiz_ prefix. Auto-renaming installed in the body at restore time. Fixed all lib uses of the channels (body, master, imud_d). adm_admin also happened to be renamed, but the lib doesn't refer to it (except for it being a permanent channel distributed with the lib)<p>
-<DT><em>Fri Feb  2 01:20:25 1996</em>: <strong>Deathblade</strong>
-<DD> fixed a bug in FINGER_D where it assumed wiz_position always exists<p>
-<DT><em>Fri Feb  2 01:22:56 1996</em>: <strong>Deathblade</strong>
-<DD> created Mudlib:socket, make socket.c check for it, and added Mudlib:daemons and Mudlib:objects to the privilege so that daemons and objects can open sockets.<p>
-<DT><em>Fri Feb  2 01:23:34 1996</em>: <strong>Deathblade</strong>
-<DD> updated IMUD_D to use unguarded() when creating its socket :-). I did not update /obj/nntp.c or /trans/obj/telnet_ob.c<p>
-<DT><em>Fri Feb  2 01:26:05 1996</em>: <strong>Deathblade</strong>
-<DD> folded in Harmless's updates to /obj/nntp.c (finally got around to it!)<p>
-<DT><em>Fri Feb  2 19:06:28 1996</em>: <strong>Ohara</strong>
-<DD> updated mail help<p>
-<DT><em>Sat Feb  3 21:12:56 1996</em>: <strong>Ohara</strong>
-<DD> bugfixed scan<p>
-<DT><em>Sat Feb  3 21:30:48 1996</em>: <strong>Ohara</strong>
-<DD> updated the help on force a little :)<p>
-<DT><em>Sun Feb  4 23:33:48 1996</em>: <strong>Deathblade</strong>
-<DD> forgot to mention: rmemote is only available to wizzes with directories<p>
-<DT><em>Sun Feb  4 23:54:54 1996</em>: <strong>Deathblade</strong>
-<DD> just removed /trans/daemons.<p>
-<DT><em>Mon Feb  5 14:14:13 1996</em>: <strong>Rust</strong>
-<DD> added /domains/std/lava_room as an example for someone who was trying to do essentially the same thing<p>
-<DT><em>Mon Feb  5 17:13:02 1996</em>: <strong>Rust</strong>
-<DD> made it so that game objects get setup() called in them when they're cloned. This is a better(tm) place to do the stuff that you normally do in create(). The examples and some of the mudlib will need to be changed accordingly...<p>
-<DT><em>Mon Feb  5 17:14:02 1996</em>: <strong>Rust</strong>
-<DD> wanted to let you know, setup() isn't a compat buster, create() will still work, it just might have extra side effects (like call_outs you didn't expect in monsters, etc... stuff that has always happened...)<p>
-<DT><em>Mon Feb  5 18:02:44 1996</em>: <strong>Rust</strong>
-<DD> added an internal_setup(). Mudlib files which need to initialize data that really shouldn't be in the blueprint object should override it.<p>
-<DT><em>Tue Feb  6 04:11:45 1996</em>: <strong>Deathblade</strong>
-<DD> fixed a small problem in socket.c to clear the fdOwned in the close_callack so it doesn't try to get closed again.<p>
-<DT><em>Tue Feb  6 04:16:10 1996</em>: <strong>Deathblade</strong>
-<DD> worked more on OOB. Framework is getting there. File and mail services still need a bunch of work<p>
-<DT><em>Tue Feb  6 09:17:20 1996</em>: <strong>Yaynu</strong>
-<DD> think a intresting and easy to use monster system on LIMA would be one of the<p>
-<DT><em>Tue Feb  6 21:02:27 1996</em>: <strong>Deathblade</strong>
-<DD> worked with Hanzou@FotD to debug the OOB framework and one of the handlers for the remote directory listing. We now support sending file-list-req and receiving file-list-reply. Awfully limited, but a start. The framework appears to work correctly now.<p>
-<DT><em>Thu Feb  8 20:00:57 1996</em>: <strong>Zifnab</strong>
-<DD> fixed a bug in /std/monster/base/target.c it wasnt loading. just atypo mis placed ;<p>
-<DT><em>Sat Feb 10 14:16:35 1996</em>: <strong>Beek</strong>
-<DD> fixed complex container to use simple_long() instead of ::long() in long(), so the inventory list isn't duplicated<p>
-<DT><em>Sun Feb 11 05:38:25 1996</em>: <strong>Deathblade</strong>
-<DD> updated all the objects in /domains/std to NOT call ::create(). BAD BAD BAD. Whoever updated all the objects to use setup() should have removed those. They cause infinite recursions. 7 meg log files are bad :-).<p>
-<DT><em>Sun Feb 11 05:39:08 1996</em>: <strong>Deathblade</strong>
-<DD> changed the guild masters to override create() rather than setup(). They need to inherit create() with an extra param. No can do when overriding setup().<p>
-<DT><em>Mon Feb 12 01:43:09 1996</em>: <strong>Deathblade</strong>
-<DD> shifted the calling of setup() from create() to do_setup(); create() normally calls it. I added a flag create() to object.c and container.c to skip that call if needed. corpse.c sets the flag so that it can complete its initialization before setup() is called. It then manually calls do_setup()<p>
-<DT><em>Mon Feb 12 02:06:46 1996</em>: <strong>Deathblade</strong>
-<DD> add the skip_setup flag to /std/weapon and call it from /std/sword so that the sword can fully initialize before calling setup(). (sigh)<p>
-<DT><em>Thu Feb 15 12:16:52 1996</em>: <strong>Zifnab</strong>
-<DD> added additional functionality to /std/modules/vendor.c to allow the vendor/shopkeeper to store items away<p>
-<DT><em>Fri Feb 16 01:23:41 1996</em>: <strong>Deathblade</strong>
-<DD> changed container::make_objects_if_needed to work off of file name rather than id since the master ob doesn't have an id as it expects (the master's setup() is never called meaning add_id() is not). Correct way to do this? dunno, but it should prevent endless cloning<p>
-<DT><em>Fri Feb 16 01:25:52 1996</em>: <strong>Deathblade</strong>
-<DD> meant blueprint, not master :-)<p>
-<DT><em>Fri Feb 16 12:24:36 1996</em>: <strong>Zifnab</strong>
-<DD> added examine as a synonym for look<p>
-<DT><em>Fri Feb 16 13:14:31 1996</em>: <strong>Zifnab</strong>
-<DD> added set_relations( "on" ) to /domains/std/horse.c so it would clone, not sure if thats the right fix for it or not<p>
-<DT><em>Tue Feb 20 09:58:40 1996</em>: <strong>Zifnab</strong>
-<DD> fixed /std/monster/simple.c which wouldnt update before<p>
-<DT><em>Wed Feb 21 00:49:32 1996</em>: <strong>Deathblade</strong>
-<DD> fixed news so that you can add/remote groups now. check for ADMTOOL, not CMD_OB_ADMTOOL<p>
-<DT><em>Thu Feb 22 20:33:10 1996</em>: <strong>Rust</strong>
-<DD> re-added a shout override. Why was the old one removed??<p>
-<DT><em>Fri Feb 23 11:48:43 1996</em>: <strong>Zifnab</strong>
-<DD> added a module for wandering monsters /std/modules/wander.c Inherit M_WANDER<p>
-<DT><em>Sat Feb 24 22:39:14 1996</em>: <strong>Ohara</strong>
-<DD> added /history as a synonym for /last to channels.<p>
-<DT><em>Sun Feb 25 23:01:20 1996</em>: <strong>Deathblade</strong>
-<DD> removed the create() override in /std/book.c; no longer needed. Removed the extraneous M_OPENABLE from /domains/std/lima_guide.c; already present in BOOK.<p>
-<DT><em>Sun Feb 25 23:53:17 1996</em>: <strong>Deathblade</strong>
-<DD> fixed /domains/std/picture. On inventory restore, its use of this_body() would bug.<p>
-<DT><em>Mon Feb 26 04:24:58 1996</em>: <strong>Deathblade</strong>
-<DD> got more of the OOB file stuff to work. Outgoing file commands work; incoming connections do not.<p>
-<DT><em>Mon Feb 26 04:42:27 1996</em>: <strong>Ohara</strong>
-<DD> fixed 'get me'<p>
-<DT><em>Mon Feb 26 23:30:40 1996</em>: <strong>Deathblade</strong>
-<DD> said 'eat me'<p>
-<DT><em>Tue Feb 27 01:17:31 1996</em>: <strong>Deathblade</strong>
-<DD> whacked on the I3 finger reply. It deals with the login/out and idle time better now. It still needs some formatting to make it similar to local fingers, though. (combine some code?)<p>
-<DT><em>Wed Feb 28 03:52:54 1996</em>: <strong>Deathblade</strong>
-<DD> changed 'vowels' in /std/modules/messages.c to static so it wouldn't get saved in most obs<p>
-<DT><em>Wed Feb 28 03:55:19 1996</em>: <strong>Deathblade</strong>
-<DD> changed /std/torch to do a set_id( "torch" ) rather than add_id(). torches were coming out as weapons.<p>
-<DT><em>Wed Feb 28 04:21:15 1996</em>: <strong>Deathblade</strong>
-<DD> added mudlib_setup() to the initialization sequence and converted many OBJ subclasses in /std to use it appropriately. There are still some that override create() because they have parameters (which apparently crash the current driver if you try to pass them from create() to setup(), so that isn't done right now).<p>
-<DT><em>Thu Feb 29 00:45:01 1996</em>: <strong>Deathblade</strong>
-<DD> modified /data/players to be Mudlib:std for read/write and /std to be Mudlib:std.<p>
-<DT><em>Tue Mar  5 02:42:01 1996</em>: <strong>Deathblade</strong>
-<DD> completed I3 file transfer. "iftp mudname" is the command to use it. Not very friendly at this point, particularly in error reporting/status, but it works.<p>
-<DT><em>Wed Mar  6 03:48:43 1996</em>: <strong>Deathblade</strong>
-<DD> fixed a small bug in monster.c that was whacking combat. There is still a bug with corpses/going-up-in-smoke; otherwise, monsters stick around and are thought to be ghosts, so combat is ineffective with them.<p>
-<DT><em>Fri Mar  8 13:25:28 1996</em>: <strong>Zifnab</strong>
-<DD> the wolf now follows players again, 2 fixes to it, 1) inherit M_SMARTMOVE 2) the wolf had no light i.e. if i left the room it couldnt see. i did set_light(500), in the wolf and that took care of that<p>
-<DT><em>Sat Mar  9 19:20:48 1996</em>: <strong>Zifnab</strong>
-<DD> removed the set_light() form the wolf, at rassilon's prodding, the wolf no longer follows anything unless hes in a lit room :)<p>
-<DT><em>Mon Mar 11 03:02:52 1996</em>: <strong>Deathblade</strong>
-<DD> renamed the daemons back to xxx_d and followed up with modules becoming m_xxx.<p>
-<DT><em>Tue Mar 12 02:51:12 1996</em>: <strong>Deathblade</strong>
-<DD> modifed IMUD_D to properly handle the I3 router telling it to switch to a new router. Tested against sample redirector "router"<p>
-<DT><em>Tue Mar 12 09:48:25 1996</em>: <strong>Beek</strong>
-<DD> fixed 'go' to not require you to be able to see<p>
+<DT><em>Wed Mar 13 04:57:35 1996</em>: <strong>Deathblade</strong>
+<DD> released 0.9r11. See the ..announcements.. news posting here.<p>
+<DT><em>Thu Mar 14 20:16:54 1996</em>: <strong>Beek</strong>
+<DD> renamed Deathblade "deathblade_d" , and updated all occurances of in the lib. Also, Rust is now "m_rust" .<p>
+<DT><em>Sat Mar 16 07:29:14 1996</em>: <strong>Ohara</strong>
+<DD> fixed a small bug in mail .. when you delete the last message, the count is now correct.<p>
+<DT><em>Mon Mar 18 11:33:02 1996</em>: <strong>Beek</strong>
+<DD> fixed a few bugs in the hitpoint module, and generally cleaned up the interface a bit.<p>
+<DT><em>Tue Mar 19 11:05:36 1996</em>: <strong>Beek</strong>
+<DD> fixed mudinfo to 'deal' with 0s in services lists, since the odds of TMI mudlibs being fixed in the near future is low.<p>
+<DT><em>Wed Mar 20 08:25:44 1996</em>: <strong>Zifnab</strong>
+<DD> added verb support to give money to players, give amount type to foo<p>
+<DT><em>Wed Mar 20 14:10:48 1996</em>: <strong>Beek</strong>
+<DD> #ifdef'd out some debugging code in M_WANDER<p>
+<DT><em>Wed Mar 20 14:54:40 1996</em>: <strong>Beek</strong>
+<DD> added a 'codesay' command; try 'codesay void f(int x) { if (x) { return 1; } return 2; }' or something similar to try it out<p>
+<DT><em>Thu Mar 21 10:49:03 1996</em>: <strong>Zifnab</strong>
+<DD> fixed teh help bug that allowed everyone to see all the help, i.e. wizards seeing admin help , and players seeing it all.<p>
+<DT><em>Sat Mar 23 19:27:50 1996</em>: <strong>Beek</strong>
+<DD> fixed /include/ansi.h to use \e for escape instead of sprintf() [btw, is that file used any more?]<p>
+<DT><em>Mon Mar 25 02:51:29 1996</em>: <strong>Deathblade</strong>
+<DD> installed v22a25 for the next reboot of the mud. It seemed to work fine with r11.<p>
+<DT><em>Tue Mar 26 11:50:04 1996</em>: <strong>Zifnab</strong>
+<DD> fixed the bug of you seeing yourself on the bed complex_container, inventory_recurse(), avoid = ({ }) to avoid = ({ avoid }) approx line 200<p>
+<DT><em>Wed Mar 27 23:28:18 1996</em>: <strong>Ohara</strong>
+<DD> fixed kill to return something sensicle on kill STR since it wasn't doing it.<p>
+<DT><em>Thu Mar 28 02:05:03 1996</em>: <strong>Deathblade</strong>
+<DD> installed Jihad's version of wrap(). It is arg-compatible with the old one: wrap(str, width, indent). iwrap(s) still exists and defaults to standard width wrap, indent of 4. The two uses of iwrap(s, n) have been changed to wrap(s, 0, n).<p>
+<DT><em>Mon Apr  1 04:16:09 1996</em>: <strong>Deathblade</strong>
+<DD> simplified a bit of the spell casting code. Learning/prepping it for skills.<p>
+<DT><em>Tue Apr  2 04:09:55 1996</em>: <strong>Deathblade</strong>
+<DD> added master::parser_error_message(). updated get/drop for OBS. updated vsupport, living, and verb_ob.<p>
+<DT><em>Tue Apr  2 04:10:11 1996</em>: <strong>Deathblade</strong>
+<DD> updated the include files in /include/driver from the v22a25 release.<p>
+<DT><em>Wed Apr  3 14:05:45 1996</em>: <strong>Rust</strong>
+<DD> installed Onyx@Red Dragon's agressive module for monsters. it's M_AGGRESSIVE<p>
+<DT><em>Wed Apr  3 14:44:01 1996</em>: <strong>Rust</strong>
+<DD> fixed the dreaded @ "foo.c" bug.<p>
+<DT><em>Mon Apr  8 10:08:23 1996</em>: <strong>Beek</strong>
+<DD> fixed the error handling in master.c not to bail if the error context included a '%' (this essentially caused Satan's crasher, though I'm not sure why it crashed)<p>
+<DT><em>Mon Apr  8 10:42:25 1996</em>: <strong>Beek</strong>
+<DD> changed /daemons/news_d to pass this_user() as arg 1 when evaluating the restriction function; this means the standard restrictions are simple sefun pointers (to wizardp and adminp respectively).<p>
+<DT><em>Tue Apr  9 05:17:01 1996</em>: <strong>Ohara</strong>
+<DD> wrote ~ohara/status.c .... may not work on all terminals, needs current and max score hooked in, and needs work to fold it in (IE: when score changes, and when Eroom changes) (Hey .. this IS still GUElib right :)<p>
+<DT><em>Tue Apr  9 08:36:16 1996</em>: <strong>Ohara</strong>
+<DD> hooked in the status line .. set status to see it .. having ansi on would help. Works for points, and light and dark rooms .. doesn't currently work for vehicles.<p>
+<DT><em>Tue Apr  9 10:11:58 1996</em>: <strong>Ohara</strong>
+<DD> fixed /std/non-room.c so vehicles work with the status line<p>
+<DT><em>Tue Apr  9 10:41:15 1996</em>: <strong>Ohara</strong>
+<DD> wrote sline which is a nice way of getting the status line on and off (Y'all sick of these reports yet? :)<p>
+<DT><em>Tue Apr  9 10:43:19 1996</em>: <strong>Ohara</strong>
+<DD> shocking eh .. and on a piece of chrome, too :)<p>
+<DT><em>Tue Apr  9 14:35:20 1996</em>: <strong>Ohara</strong>
+<DD> refixed up (surprise) the status line .. it's now in /cmds/verbs/look.c and /std/body.c (plus the points stuff..) Lemme know if there are wierd probs .. I fixed a couple to do with suing - there may be more.<p>
+<DT><em>Wed Apr 10 06:39:13 1996</em>: <strong>Deathblade</strong>
+<DD> updated LOG_D to automatically add timestamps to certain subsets of the logs; currently just channel logging now. Other possibilities might include errors, quests, etc.<p>
+<DT><em>Wed Apr 10 08:15:51 1996</em>: <strong>Zifnab</strong>
+<DD> fixed the groups command, can do group -a foo x x x , foo is group, x is players name. Also do groups -d foo to delete a group foo<p>
+<DT><em>Wed Apr 10 09:53:03 1996</em>: <strong>Beek</strong>
+<DD> changed /std/less_sparse_obj to not go through create() if it isn't a clone; otherwise it ends up moving itself somewhere when loaded.<p>
+<DT><em>Wed Apr 10 10:52:38 1996</em>: <strong>Zifnab</strong>
+<DD> fixed the v_plains bug. (with Rust's help)<p>
+<DT><em>Wed Apr 10 11:11:43 1996</em>: <strong>Zifnab</strong>
+<DD> fixed less_sparse_obj.c (in the case of look at obj), it didnt inherit "/std/object/vsupport.c" , was missing a callback.<p>
+<DT><em>Thu Apr 11 12:32:39 1996</em>: <strong>Zifnab</strong>
+<DD> fied snoop loggin when the snoop failed<p>
+<DT><em>Fri Apr 12 00:33:19 1996</em>: <strong>Deathblade</strong>
+<DD> fixed the reception of emoteto packets. The \n was in the wrong place.<p>
+<DT><em>Sat Apr 13 16:09:54 1996</em>: <strong>Rust</strong>
+<DD> fixed a problem w/ tell@frontier if frontier was an exact name, and there is another mud called frontiers<p>
+<DT><em>Sat Apr 13 22:54:53 1996</em>: <strong>Ohara</strong>
+<DD> is fairly sure he fixed the sline one-line bug .. if not then it's as closed to squelched as it'll be till the client's done ;) <inhales .. VERY deeply><p>
+<DT><em>Sat Apr 13 22:56:23 1996</em>: <strong>Ohara</strong>
+<DD> is fairly sure he fixed the sline one-line bug .. if not then it's as squelched as it'll be till the client gets done ;) <inhales deeply><p>
+<DT><em>Sun Apr 14 03:42:54 1996</em>: <strong>Ohara</strong>
+<DD> fixed the s_line to work correctly when in a moving vehicle.<p>
+<DT><em>Mon Apr 15 22:30:36 1996</em>: <strong>Zifnab</strong>
+<DD> borrowed beeks/jeearr doc on classes from ideaexchange and put it in /help/wizard/coding/classes<p>
+<DT><em>Mon Apr 29 23:50:08 1996</em>: <strong>Deathblade</strong>
+<DD> updated the M_GRAMMAR module per Zifnab's notice that it had fallen out of date a bit.<p>
+<DT><em>Tue Apr 30 02:50:42 1996</em>: <strong>Deathblade</strong>
+<DD> simplified the skill system. No levels, just points. No heirarchical storage of skills, but a simple map of skill to skill info. Nuked skills.h. Reworked (simplified) /std/body/skills.c and /daemons/skill_d.c. Add concept of training_points. More work to do on mgmt and actual use.<p>
+<DT><em>Thu May  2 16:41:09 1996</em>: <strong>Zakk</strong>
+<DD> have more self respect than that<p>
+<DT><em>Thu May  2 22:41:57 1996</em>: <strong>Rust</strong>
+<DD> was alright, for a while,<p>
+<DT><em>Thu May  2 22:41:57 1996</em>: <strong>Rust</strong>
+<DD> could smile, for awhile.<p>
+<DT><em>Fri May  3 13:27:15 1996</em>: <strong>Zakk</strong>
+<DD> changed force_look() from a #define to player->force_look(). (Knew I forgot to didlog something a while back, sorry about the delay.)<p>
+<DT><em>Mon May  6 09:40:59 1996</em>: <strong>Beek</strong>
+<DD> fixed a bad prototype of remove_id in /std/object/visible<p>
+<DT><em>Mon May  6 10:07:54 1996</em>: <strong>Beek</strong>
+<DD> removed an archaic prototype of print_result() from /std/living/state_of_mind and put a FIXME by an old style usage<p>
+<DT><em>Mon May  6 16:58:52 1996</em>: <strong>Beek</strong>
+<DD> fixed /std/container to return "#You're in it!" so 'get all' ignores the room you are in.<p>
+<DT><em>Mon May  6 22:23:29 1996</em>: <strong>Deathblade</strong>
+<DD> updated /daemons/imud/who.c to include the person's title rather than IP address in the returned data.<p>
+<DT><em>Mon May  6 22:26:01 1996</em>: <strong>Deathblade</strong>
+<DD> wanted to point out that that idea was Satan's (so he says :-)<p>
+<DT><em>Mon May  6 22:33:53 1996</em>: <strong>Deathblade</strong>
+<DD> installed Satan's version command (into /cmds/player)<p>
+<DT><em>Tue May  7 11:12:55 1996</em>: <strong>Beek</strong>
+<DD> added the 'memusage' command; it will work as soon as we upgrade to or past v22a32.<p>
+<DT><em>Wed May  8 00:07:24 1996</em>: <strong>Deathblade</strong>
+<DD> fixed the pluralization for words ending in 's'. They should have 'es' appended.<p>
+<DT><em>Sun May 12 11:48:23 1996</em>: <strong>Beek</strong>
+<DD> added a 'sit at OBJ' rule, and made the sit verb pass the preposition used to the sit function<p>
+<DT><em>Mon May 13 21:16:11 1996</em>: <strong>Zifnab</strong>
+<DD> fixed the bug with setup() not getting passed args to it. just a note, if you use new(file), pass it a second arg i.e. new(file,0) the 0 will force setup() to be called<p>
+<DT><em>Tue May 14 01:18:36 1996</em>: <strong>Deathblade</strong>
+<DD> felt like converting clone_object() to new(). So I did.<p>
+<DT><em>Tue May 14 01:42:32 1996</em>: <strong>Deathblade</strong>
+<DD> updated Zifnab's fix a bit more... he fixed the passing of varargs, but the 0 shouldn't have been necessary (it was an old hack). I'm removed the hack and cleaned up some associated code. Return to using new() as normal. Per Zif's change setup() (and now the mudlib_setup()/internal_setup() calls) get the varargs from the new() call.<p>
+<DT><em>Wed May 15 05:31:38 1996</em>: <strong>Beek</strong>
+<DD> fixed direct_wield_obj() to return zero for objects in the inventory of other livings. It will work right as soon as the OBS fixes are in.<p>
+<DT><em>Wed May 15 10:27:42 1996</em>: <strong>Zifnab</strong>
+<DD> fixed a bug with leave being a synonym for exit, ( it bugged when you did a leave str), chagned the synonym to be only used for OBJ<p>
+<DT><em>Wed May 15 11:25:14 1996</em>: <strong>Zifnab</strong>
+<DD> fixed I3 fingers to return (private) if the email is marked as such<p>
+<DT><em>Wed May 15 12:07:53 1996</em>: <strong>Zifnab</strong>
+<DD> made /cmds/verbs/light.c return 0 for need_to_see(), can light all objects in the dark now<p>
+<DT><em>Wed May 15 12:40:09 1996</em>: <strong>Zifnab</strong>
+<DD> realized that real name could be private as well, I3 fingers now return private for name as well<p>
+<DT><em>Wed May 15 18:19:04 1996</em>: <strong>Zifnab</strong>
+<DD> fixed a bug in set_objects(), if you had an array of arguemts to be passed i.e. the door, and you wanted multiple doors the int as the first element of ththe array was being ignored<p>
+<DT><em>Mon May 20 03:28:38 1996</em>: <strong>Rust</strong>
+<DD> added >, >>, < and |. Unfortunately, no commands use them yet... I'll start working on that.<p>
+<DT><em>Mon May 20 04:46:13 1996</em>: <strong>Ohara</strong>
+<DD> remember a time when cpu returned usage of 0.3-0.5 .. now cpu is at 5-6 .. was it out by a factor of 100 (er 0.03-0.05) ..<p>
+<DT><em>Mon May 20 04:47:57 1996</em>: <strong>Ohara</strong>
+<DD> mutters something about discovering what tsh did by testing it on dead.letter ....<p>
+<DT><em>Mon May 20 07:08:36 1996</em>: <strong>Rust</strong>
+<DD> made all commands use stdout when reasonable. stdout goes through more() by default. Nothing besides grep uses stdin yet...<p>
+<DT><em>Mon May 20 07:28:43 1996</em>: <strong>Rust</strong>
+<DD> added a rehash command to the shell, which rehashes all dirs in your path. (No arg). AUTOMATIC_REHASH has left the building, it 's gone.<p>
+<DT><em>Mon May 20 17:23:30 1996</em>: <strong>Deathblade</strong>
+<DD> added a teeny hack to tide us over until I can really fix the underlying problem with command processing.<p>
+<DT><em>Mon May 20 18:54:26 1996</em>: <strong>Rust</strong>
+<DD> fixed all of the munging of spacing.  The only shell problem left, is that there needs to be a way to specify that a command doesn't want anything except backtick stuff to be processed.  I'll get to that one next time.<p>
+<DT><em>Tue May 21 07:45:45 1996</em>: <strong>Beek</strong>
+<DD> fixed a bug in say.c due to: if (!s<p>
+<DT><em>Tue May 21 07:45:55 1996</em>: <strong>Beek</strong>
+<DD> fixed a bug in say.c due to: if (!s \| s =="") { ...<p>
+<DT><em>Tue May 21 08:08:43 1996</em>: <strong>Beek</strong>
+<DD> fixed pipe to read from stdin; this makes it work like UNIX xargs.  e.g."ls | pipe say"<p>
+<DT><em>Tue May 21 08:20:05 1996</em>: <strong>Beek</strong>
+<DD> votes that anyone doing"mudlist | pipe think" should be shot.<p>
+<DT><em>Tue May 21 16:03:16 1996</em>: <strong>Rust</strong>
+<DD> added a v flag to grep, and made a few more commands accept stdin<p>
+<DT><em>Tue May 21 16:14:48 1996</em>: <strong>Rust</strong>
+<DD> added $* support to pipe when reading from stdin, so you can do things like: users<p>
+<DT><em>Tue May 21 16:16:32 1996</em>: <strong>Rust</strong>
+<DD> added $* support to pipe when reading from stdin, so you can do things like: users | grep -v duuk | pipe"tell $* isn't Duuk a hoser?"<p>
+<DT><em>Tue May 21 16:17:00 1996</em>: <strong>Rust</strong>
+<DD> fixed I not to do redirection (lots of commands still need this, eg. tell, emote, etc)<p>
+<DT><em>Tue May 21 16:34:31 1996</em>: <strong>Rust</strong>
+<DD> made all the player commands like tell, say, emote, etc... ignore piping stuff...  you can do this by adding: create(){::create();no_redirection();}<p>
+<DT><em>Tue May 21 17:38:24 1996</em>: <strong>Rust</strong>
+<DD> renamed the pipe command to xargs ;-)<p>
+<DT><em>Tue May 21 19:17:12 1996</em>: <strong>Deathblade</strong>
+<DD> upgraded to v22a36. Let's see how well this works...<p>
+<DT><em>Tue May 21 21:13:46 1996</em>: <strong>Zifnab</strong>
+<DD> added a few help files for rooms, set_exits, add_item, set_objects etc under /help/wizard/coding/rooms//*<p>
+<DT><em>Tue May 21 21:44:15 1996</em>: <strong>Zifnab</strong>
+<DD> added a command to rebuild the help data, helpd for lack of a better name, anyone ff to rename it<p>
+<DT><em>Tue May 21 21:57:08 1996</em>: <strong>Zifnab</strong>
+<DD> at beeks suggestion added an option to admtool to rebuild the help data<p>
+<DT><em>Wed May 22 01:39:41 1996</em>: <strong>Deathblade</strong>
+<DD> rearranged some of the output of the 'stats' command to print out the guilds you belong to.<p>
+<DT><em>Wed May 22 01:39:51 1996</em>: <strong>Deathblade</strong>
+<DD> started on a 'skills' command to print your skill information.<p>
+<DT><em>Wed May 22 14:04:34 1996</em>: <strong>Zifnab</strong>
+<DD> added help for most of the modules.  There are still a few missing and they need a little bit of reformatting.<p>
+<DT><em>Thu May 23 03:03:30 1996</em>: <strong>Rust</strong>
+<DD> made |<> work on channels, an oversight in not touching the chan command last night.<p>
+<DT><em>Thu May 23 03:15:29 1996</em>: <strong>Rust</strong>
+<DD> fixed a stupid typo that caused spaces before a " to get snarfed<p>
+<DT><em>Thu May 23 03:28:58 1996</em>: <strong>Rust</strong>
+<DD> updated pshell to call call_main() correctly in all cases WRT recent changes<p>
+<DT><em>Thu May 23 03:58:35 1996</em>: <strong>Rust</strong>
+<DD> made ROOM point back to indoor_room, and removed /std/room/room<p>
+<DT><em>Thu May 23 22:58:12 1996</em>: <strong>Rust</strong>
+<DD> upgraded us to a38, which fixes the mudlib error handler problem (thx Beek!)<p>
+<DT><em>Thu May 23 23:31:03 1996</em>: <strong>Rust</strong>
+<DD> fixed shell builtin commands to implode properly<p>
+<DT><em>Thu May 23 23:42:49 1996</em>: <strong>Rust</strong>
+<DD> fixed all the commands from the player menu<p>
+<DT><em>Thu May 23 23:57:26 1996</em>: <strong>Rust</strong>
+<DD> tweaked M_GLOB to glob in alphabetical order, not reverse-alphabetical order<p>
+<DT><em>Fri May 24 00:16:52 1996</em>: <strong>Rust</strong>
+<DD> moved the print command outside the shell so it could use stdin and stdout.  Also means long eval results get mored, or can be redirected to a file, etc...<p>
+<DT><em>Fri May 24 00:52:23 1996</em>: <strong>Rust</strong>
+<DD> forgot to mention there's been a wc command for a few days.<p>
+<DT><em>Fri May 24 02:52:01 1996</em>: <strong>Rust</strong>
+<DD> made $ variable expansions disabled by default.  Do @.me->set_expand_vars(1) if you want to change this behaviour back to having foo expand ;-)<p>
+<DT><em>Fri May 24 02:52:58 1996</em>: <strong>Rust</strong>
+<DD> typoed: do @.me:shell->set_expand_vars(1) if you're cool ;-)<p>
+<DT><em>Fri May 24 03:41:13 1996</em>: <strong>Rust</strong>
+<DD> changed map_paths not to reverse the order of files, now ls looks right again<p>
+<DT><em>Fri May 24 05:28:19 1996</em>: <strong>Rust</strong>
+<DD> added a head command, to show the front part of a file, and gave a -n option to it and to tail, which gives how many lines to show (default is 10 for both of them)<p>
+<DT><em>Fri May 24 06:05:28 1996</em>: <strong>Zakk</strong>
+<DD> put in a cut command. Much like your generic unix cut. the -d arg takes regex's.<p>
+<DT><em>Fri May 24 22:27:34 1996</em>: <strong>Ohara</strong>
+<DD> fixed mail to be nice and unspammy on first login<p>
+<DT><em>Sat May 25 10:54:56 1996</em>: <strong>Beek</strong>
+<DD> removed the destruct_env_of() master apply; it was obsoleted back in v20.22 ...<p>
+<DT><em>Sat May 25 10:55:40 1996</em>: <strong>Beek</strong>
+<DD> implemented a proper move_or_destruct() subroutine in /std/body.c; it's also more robust than the old one<p>
+<DT><em>Sat May 25 20:24:21 1996</em>: <strong>Rust</strong>
+<DD> fixed xargs to accept multiple words properly<p>
+<DT><em>Sat May 25 20:25:55 1996</em>: <strong>Rust</strong>
+<DD> added a findfile command that is a lot like linux' locate command.  Hopefully this will help new people find where in the lib a file is... if you know part of the name or path of a file, you can do: findfile blah.  findfile uses a cached database, which you can update w/ the -u flag if and only if you're an admin.<p>
+<DT><em>Sat May 25 20:35:14 1996</em>: <strong>Ohara</strong>
+<DD> fixed news to correctly list number of unread messages. No doubt there will be a faster way than my implimentation. :)<p>
+<DT><em>Sat May 25 20:48:07 1996</em>: <strong>Rust</strong>
+<DD> made xargs take $$ as well as $* as a substitution token, JIC you want an alias that does an xargs (which I do want ;-)<p>
+<DT><em>Sat May 25 20:52:42 1996</em>: <strong>Ohara</strong>
+<DD> fixed news to only display the number of messages that haven't been removed in initial totals ... makes it a little less intimidating for new readers :)<p>
+<DT><em>Sun May 26 19:17:56 1996</em>: <strong>Rust</strong>
+<DD> made spells use setup() and not create()<p>
+<DT><em>Sun May 26 19:18:48 1996</em>: <strong>Rust</strong>
+<DD> fixed the cast verb and the fireball spell, so cast fireball on zifnab works.  However, the combat result isn't prining the message Zifnab screams in pain!<p>
+<DT><em>Sun May 26 19:38:52 1996</em>: <strong>Zifnab</strong>
+<DD> fixed a bug with kill_liv_with_obj<p>
+<DT><em>Sun May 26 23:19:10 1996</em>: <strong>Rust</strong>
+<DD> think I came up w/ a reasonable formula for testing skills...<p>
+<DT><em>Sun May 26 23:58:14 1996</em>: <strong>Rust</strong>
+<DD> added to M_LOCKABLE code to handle magic openings, and picking, including code to test skills if USE_SKILLS is defined.  This is part of a first jab at a skill...<p>
+<DT><em>Mon May 27 00:30:10 1996</em>: <strong>Rust</strong>
+<DD> added a pick verb.<p>
+<DT><em>Tue May 28 01:04:34 1996</em>: <strong>Deathblade</strong>
+<DD> updated us to v22a39<p>
 </DL>

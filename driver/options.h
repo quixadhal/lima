@@ -98,10 +98,11 @@
  */
 #undef DEBUGMALLOC_EXTENSIONS
 
-/* CHECK_MEMORY: defining this (in addition to DEBUGMALLOC) causes the driver
- * to check for memory corruption due to writing before the start or end
- * of a block.  This also adds the check_memory() efun.  Takes a considerable
- * ammount more memory.  Mainly for debugging.
+/* CHECK_MEMORY: defining this (in addition to DEBUGMALLOC and
+ * DEBUGMALLOC_EXTENSIONS) causes the driver to check for memory
+ * corruption due to writing before the start or end of a block.  This
+ * also adds the check_memory() efun.  Takes a considerable ammount
+ * more memory.  Mainly for debugging.  
  */
 #undef CHECK_MEMORY
 
@@ -122,11 +123,23 @@
  */
 #undef HAS_STATUS_TYPE
 
-/* SANE_EXPLODE_STRING: define this if you want to prevent explode_string
- *   from stripping off more than one leading delimeters.  #undef it for the
- *   old behavior.
+/* explode():
+ *
+ * The old behavior (#undef both of the below) strips any number of
+ * delimiters at the start of the string, and one at the end.  So
+ * explode("..x.y..z..", ".") gives ({ "x", "y", "", "z", "" })
+ *
+ * SANE_EXPLODE_STRING strips off at most one leading delimiter, and
+ * still strips off one at the end, so the example above gives
+ * ({ "", "x", "y", "", "z", "" }).
+ *
+ * REVERSIBLE_EXPLODE_STRING overrides SANE_EXPLODE_STRING, and makes
+ * it so that implode(explode(x, y), y) is always x; i.e. no delimiters
+ * are every stripped.  So the example above gives
+ * ({ "", "", "x", "y", "", "z", "", "" }).
  */
 #define SANE_EXPLODE_STRING
+#undef REVERSIBLE_EXPLODE_STRING
 
 /* CAST_CALL_OTHERS: define this if you want to require casting of call_other's;
  *   this was the default behavior of the driver prior to this addition.
@@ -185,6 +198,18 @@
  ****************************************************************************/
 
 /*
+ * Some minor tweaks that make it a bit easier to run code designed to run
+ * on LPmud 3.2/3.2.1.  Currently has the following effects:
+ * 
+ * . m_indices() and m_values() are synonyms for keys() and values(),
+ *   respectively
+ * . map_delete() returns it's first argument
+ * . inherit_list() means deep_inherit_list(), not shallow_inherit_list()
+ * . heart_beat_info() is a synonym for heart_beats()
+ */
+#undef COMPAT_32
+
+/*
  * Keep statistics about allocated strings, etc.  Which can be veiwed with
  * the mud_status() efun.  If this is off, mud_status() and memory_info()
  * ignore allocated strings, but string operations run faster.
@@ -236,12 +261,6 @@
  * other libs for an example.
  */
 #define MUDLIB_ERROR_HANDLER
-
-/* OPTIMIZE_FUNCTION_TABLE_SEARCH: define this if you want the function
- *   table to be sorted for faster lookups (ie binary search).  The flipside
- *   of this is that there is some overhead in maintaining the sorted table.
- */
-#undef OPTIMIZE_FUNCTION_TABLE_SEARCH
 
 /* CONFIG_FILE_DIR specifies a directory in which the driver will search for
  *   config files by default.  If you don't wish to use this define, you may
@@ -309,10 +328,18 @@
  *   (ASCII 27) to be replaced with a space ' ' before the string is passed
  *   to the action routines added with add_action.
  *
+ * STRIP_BEFORE_PROCESS_INPUT allows the location where the stripping is 
+ * done to be controlled.  If it is defined, then process_input() doesn't
+ * see ANSI characters either; if it is undefined ESC chars can be processed
+ * by process_input(), but are stripped before add_actions are called.
+ * Note that if NO_ADD_ACTION is defined, then #define NO_ANSI without
+ * #define STRIP_BEFORE_PROCESS_INPUT is the same as #undef NO_ANSI.
+ *
  * If you anticipate problems with users intentionally typing in ANSI codes
  * to make your terminal flash, etc define this.
  */
 #define NO_ANSI
+#define STRIP_BEFORE_PROCESS_INPUT
 
 /* OPCPROF: define this if you wish to enable OPC profiling. Allows a dump
  *   of the # of times each efun is invoked (via the opcprof() efun).
@@ -347,6 +374,19 @@
  *   usable from within call_out() callbacks.
  */
 #define THIS_PLAYER_IN_CALL_OUT
+
+/* CALLOUT_HANDLES: If this is defined, call_out() returns an integer, which
+ * can be passed to remove_call_out() or find_call_out().  Removing call_outs
+ * by name is still allowed, but is significantly less efficient, and also
+ * doesn't work for function pointers.  This option adds 4 bytes overhead
+ * per callout to keep track of the handle.
+ */
+#define CALLOUT_HANDLES
+
+/* FLUSH_OUTPUT_IMMEDIATELY: Causes output to be written to sockets
+ * immediately after being generated.  Useful for debugging.  
+ */
+#undef FLUSH_OUTPUT_IMMEDIATELY
 
 /* PRIVS: define this if you want object privledges.  Your mudlib must
  *   explicitly make use of this functionality to be useful.  Defining this
@@ -479,6 +519,16 @@
  */
 #undef PACKAGE_EXTERNAL
 
+/* PACKAGE_DB: efuns for external database access */
+#undef PACKAGE_DB
+
+/* If PACKAGE_DB is defined above, you must pick ONE of the following supported
+ * databases
+ */
+#ifdef PACKAGE_DB
+#define MSQL		/* MiniSQL, it's small; it's free */
+#endif
+
 /****************************************************************************
  *                            UID PACKAGE                                   *
  *                            -----------                                   *
@@ -527,6 +577,15 @@
  *  an actual interval of two (2) seconds, etc.]
  */
 #define HEARTBEAT_INTERVAL 2000000
+
+/* 
+ * CALLOUT_CYCLE_SIZE: This is the number of slots in the call_out list.
+ * It should be approximately the average number of active call_outs, or
+ * a few times smaller.  It should also be a power of 2, and also be relatively
+ * prime to any common call_out lengths.  If all this is too confusing, 32
+ * isn't a bad number :-)
+ */
+#define CALLOUT_CYCLE_SIZE 32
 
 /* LARGEST_PRINTABLE_STRING: defines the size of the vsprintf() buffer in
  *   comm.c's add_message(). Instead of blindly making this value larger,
@@ -600,14 +659,13 @@
  * config file.
  */
 /* MAX_LOCAL: maximum number of local variables allowed per LPC function */
-#define MAX_LOCAL 25		/* get_config_int(8)  */
-/* MAX_EFUN_SOCKS: maximum number of efun sockets */
-#define MAX_EFUN_SOCKS 16	/* get_config_int(24) */
+#define CFG_MAX_LOCAL_VARIABLES		25
 
-#define EVALUATOR_STACK_SIZE 1000	/* get_config_int(4)  */
-#define COMPILER_STACK_SIZE 200	/* get_config_int(5)  */
-#define MAX_TRACE 50		/* get_config_int(6)  */
-#define LIVING_HASH_SIZE 256	/* get_config_int(20) */
+#define CFG_EVALUATOR_STACK_SIZE 	1000
+#define CFG_COMPILER_STACK_SIZE		200
+#define CFG_MAX_CALL_DEPTH		50
+/* This must be one of 4, 16, 64, 256, 1024, 4096 */
+#define CFG_LIVING_HASH_SIZE		256
 
 /* NEXT_MALLOC_DEBUG: define this if using a NeXT and you want to enable
  *   the malloc_check() and/or malloc_debug() efuns.  Run the 'man malloc_debug'

@@ -99,10 +99,12 @@ private void main(string arg)
     if( arg == "" )
 	arg = 0;
 
-    write(get_who_string(arg));
+    out(get_who_string(arg));
 }
 
 void player_menu_entry()
 {
-    main(0);
+  bare_init();
+  main(0);
+  done_outputing();
 }

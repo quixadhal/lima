@@ -85,7 +85,9 @@ mixed move_this_monster(int cloned)
 	my_exit = obvious_exits[random_exit];
 	monster_exit = environment(this_object())->query_exit_value(my_exit);
 
+#ifdef DEBUG
 write(my_exit); write(monster_exit);
+#endif
 	new_area = load_object(monster_exit)->get_area();
 	if(new_area == wander_area)
 	{

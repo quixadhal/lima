@@ -13,11 +13,11 @@ private void main() {
     string msg;
     if(!this_body()->is_visible())
     {
-	write("You are already invisible.\n");
+	out("You are already invisible.\n");
 	return;
     }
     this_body()->do_player_message("invis");
-    write("You are now invisible.\n");
+    out("You are now invisible.\n");
     this_body()->set_visibility(0);
 
     FINGER_D->update_me();

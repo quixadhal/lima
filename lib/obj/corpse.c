@@ -1,32 +1,23 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+
 inherit CONTAINER;
 
 string the_name;
 
-mixed ob_state() {
+mixed ob_state()
+{
     return the_name;
 }
 
-void create(string name, string long)
-{
-    the_name = name;
-
-    ::create(1);	/* skip the setup() call */
-    if (!the_name) return;
-    
-    set_long(long || "The lifeless body of " + the_name + " isn't particularly interesting.");
-
-    /* do the setup() call now that we're initialized */
-    do_setup();
-}
-
-//### we need initial args passed to here...
-void mudlib_setup()
+void mudlib_setup(string name, string long)
 {
     ::mudlib_setup();
 
-    if ( !the_name )
+    if ( !name )
 	return;
+
+    the_name = name;
+    set_long(long || "The lifeless body of " + the_name + " isn't particularly interesting.");
 
     set_id("corpse", "body");
     if (the_name[<1] == 's') {
@@ -43,6 +34,7 @@ void mudlib_setup()
     set_preposition("on");
 }
 
-string introduce_contents() {
+string introduce_contents()
+{
     return "On " + the_short() + " you see:\n";
 }    

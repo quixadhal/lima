@@ -4,8 +4,6 @@ When this list is empty, we will release the alpha version of the
 Lima Mudlib.
 
 - skills: examples, combat skills, spell skills, advancement
-- Hook OBS into the mud
-- unique object module
 
 
 Non-features that won't define alpha:
@@ -36,4 +34,3 @@ Future versions:
 - mail unsend
 - Tk interface
 - AMCP
-- >, <, |

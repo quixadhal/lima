@@ -8,10 +8,15 @@
 inherit CMD;
 inherit M_GRAMMAR;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
 
 private void main(string s) {
-    if (!s | s == "") {
-	write("Say what?\n");
+    if (!s || s == "") {
+	out("Say what?\n");
 	return;
     }
 

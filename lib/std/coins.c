@@ -158,9 +158,8 @@ this_object()->add_id(type);
 }
 
 
-void create(int amount, string type)
+void setup(int amount, string type)
 {
-    ::create();
     long_type = type;
     coins[type] = to_int(amount);
 

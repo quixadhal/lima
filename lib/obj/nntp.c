@@ -242,8 +242,8 @@ varargs void create(function callback, string host, mixed port)
     }
     news_host   = host;
     news_port   = port;
-    news_socket = clone_object(SOCKET, SKT_STYLE_CONNECT, host+" "+port,
-			       (: nntp_read_callback :), (: nntp_close_callback :));
+    news_socket = new(SOCKET, SKT_STYLE_CONNECT, host+" "+port,
+		      (: nntp_read_callback :), (: nntp_close_callback :));
 
 }
 

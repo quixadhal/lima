@@ -34,9 +34,7 @@ void set_hp(int x) {
     }
 }
 
-//:FUNCTION reduce_hp
-//DO NOT under pain of banishment, use this to do damage to monsters/players
-static void reduce_hp(int x) {
+private void reduce_hp(int x) {
    hp -= x;
    if (hp <= 0) {
        hp = 0;
@@ -44,34 +42,48 @@ static void reduce_hp(int x) {
    }
 }
 
+private void increase_hp(int x) {
+   if (hp <= 0) return;
+   hp += x;
+   if (hp > max_hp)
+       hp = max_hp;
+}
+
 //:FUNCTION reincarnate
 //Makes us alive again
 void reincarnate() {
     hp = 1;
+    hp_time = time();
+}
+
+//:FUNCTION query_hp
+//Find the current number of hitpoints of a monster
+int query_hp() {
+    if (hp > 0 && time() - hp_time) {
+        increase_hp(fuzzy_divide(time()-hp_time,heal_rate));
+        hp_time = time();
+    }
+    return hp;
 }
 
 //:FUNCTION heal_us
 //Heal us a specified amount, truncating at max_hp
 void heal_us(int amt) {
-    if (hp <= 0) return;
-    hp += amt;
-    if (hp>max_hp) hp = max_hp;
+    query_hp(); // healing since last checked
+    increase_hp(amt);
+}
+
+//:FUNCTION hurt_us
+//Hurt us a specified amt; you probably want to use do_damage() instead
+void hurt_us(int amt) {
+    query_hp(); // healing since last checked
+    reduce_hp(amt);
 }
 
 //:FUNCTION query_max_hp
 //Find the maximum number of hitpoints of a monster
 int query_max_hp() {
     return max_hp;
-}
-
-//:FUNCTION query_hp
-//Find the current number of hitpoints of a monster
-int query_hp() {
-    if (hp)
-        heal_us(fuzzy_divide(time()-hp_time,heal_rate));
-    hp_time = time();
-
-    return hp;
 }
 
 //:FUNCTION query_ghost

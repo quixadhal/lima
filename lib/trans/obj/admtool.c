@@ -11,6 +11,7 @@
 #include <mudlib.h>
 #include <commands.h>
 #include <security.h>
+#include <daemons.h>
 
 inherit M_ACCESS;
 inherit M_INPUT;
@@ -43,7 +44,8 @@ private nomask void write_main_menu()
 	  "    n - news administration     [admin]\n"
 	  "    a - alias administration    [admin]\n"
 	  "    g - group administration\n"
-	  "\n"
+          "    h - help data rebuild\n"
+           "\n"
 	  "    q - quit\n"
 	  "    ? - help\n"
 	  "\n"
@@ -117,6 +119,11 @@ private nomask void receive_main_input(string str)
     case "g":
 	begin_group_menu();
 	break;
+
+   case "h":
+        HELP_D->rebuild_data();
+      break;
+
 	
     case "?":
 	write_main_menu();

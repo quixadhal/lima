@@ -29,9 +29,9 @@ void deallocate_program P1(program_t *, progp)
     total_num_prog_blocks -= 1;
 
     /* Free all function names. */
-    for (i = 0; i < (int) progp->num_functions; i++)
-	if (progp->functions[i].name)
-	    free_string(progp->functions[i].name);
+    for (i = 0; i < (int) progp->num_functions_defined; i++)
+	if (progp->function_table[i].name)
+	    free_string(progp->function_table[i].name);
     /* Free all strings */
     for (i = 0; i < (int) progp->num_strings; i++)
 	free_string(progp->strings[i]);

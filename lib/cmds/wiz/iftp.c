@@ -20,7 +20,7 @@ private void main(string arg)
 
     if ( !arg || arg == "" )
     {
-	write("Usage: iftp mudname\n");
+	out("Usage: iftp mudname\n");
 	return;
     }
     matches = case_insensitive_complete(translate(arg),
@@ -28,7 +28,7 @@ private void main(string arg)
     switch ( sizeof(matches) )
     {
     case 0:
-	printf("No matching mud currently up.\n");
+	out("No matching mud currently up.\n");
 	return;
 
     case 1:
@@ -45,7 +45,7 @@ private void main(string arg)
 	    }
 	if ( !matches )
 	    break;
-	printf("Ambigous.  The following muds might apply: %s\n",
+	outf("Ambigous.  The following muds might apply: %s\n",
 	       implode(matches, ", "));
 	return;
     }

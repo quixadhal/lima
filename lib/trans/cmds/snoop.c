@@ -10,6 +10,7 @@ inherit CMD;
 
 private void main(mixed *arg)
 {
+int rc;
     if ( !arg[0] )
 	snoop();
     else
@@ -22,11 +23,14 @@ private void main(mixed *arg)
 	    msg = "no reason given";
 
 	msg = sprintf("%s snooped %s because: %s\n",
-		      this_user()->query_userid(),
-		      arg[0]->query_link()->query_userid(),
-		      msg);
-	LOG_D->log(LOG_SNOOP, msg);
+	  this_user()->query_userid(),
+	  arg[0]->query_link()->query_userid(),
+	  msg);
 
-	snoop(arg[0]->query_link());
+rc = snoop(arg[0]->query_link());
+if(rc)
+	  {
+	      LOG_D->log(LOG_SNOOP, msg);
+	  }
+      }
     }
-}

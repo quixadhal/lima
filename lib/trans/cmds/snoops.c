@@ -18,7 +18,7 @@ private void main()
 
 	if ( ob )
 	{
-	    printf("%s is snooping %s.\n", 
+	    outf("%s is snooping %s.\n", 
 		   capitalize(user->query_userid()),
 		   capitalize(ob->query_userid()));
 	    flag = 1;
@@ -26,5 +26,5 @@ private void main()
     }
 
     if ( flag == 0 )
-	write("Nobody is being snooped.\n");
+	out("Nobody is being snooped.\n");
 }

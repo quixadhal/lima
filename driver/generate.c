@@ -480,7 +480,7 @@ void optimizer_end_function PROT((void)) {
 }
 
 #ifdef LPC_TO_C
-short generate_function P3(function_t *, f, parse_node_t *, node, int, num) {
+short generate_function P3(compiler_function_t *, cfp, parse_node_t *, node, int, num) {
     short ret;
     
     if (pragmas & PRAGMA_OPTIMIZE) {
@@ -490,7 +490,7 @@ short generate_function P3(function_t *, f, parse_node_t *, node, int, num) {
 	optimizer_end_function();
     }
     if (compile_to_c) {
-	c_start_function(f);
+	c_start_function(cfp->name);
 	c_analyze(node);
 	ret = generate(node);
 	c_end_function();
@@ -498,7 +498,7 @@ short generate_function P3(function_t *, f, parse_node_t *, node, int, num) {
     return ret;
 }
 #else
-short generate_function P3(function_t *, f, parse_node_t *, node, int, num) {
+short generate_function P3(compiler_function_t *, f, parse_node_t *, node, int, num) {
     short ret;
     if (pragmas & PRAGMA_OPTIMIZE) {
 	optimizer_start_function(num);

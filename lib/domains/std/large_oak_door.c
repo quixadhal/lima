@@ -2,7 +2,8 @@
 
 inherit DOOR;
 
-void setup(string dir) {
+void setup(string dir)
+{
     set_id("door");
     set_adj("large oak", "large", "oak");
     set_long("It is about 10 feet tall, and very beautiful.\n");

@@ -49,6 +49,20 @@ void do_get_obj(object ob) {
     get_one(ob, 0);
 }
 
+void do_get_obs(object array info)
+{
+    foreach(mixed ob in info)
+    {
+	if (stringp(ob))
+	    write(ob);
+	else
+	{
+	    write(ob->short() + ": ");
+	    get_one(ob, 0);
+	}
+    }
+}
+
 void do_get_obj_from_obj(object ob1, object ob2) {
     get_one(ob1, 0);
 }
@@ -107,8 +121,6 @@ mixed do_get_wrd_str(string amount, string str)
 
     if (sscanf(amount, "%d", number) == 1)
     {
-
-
 	if(ob = present("coins", environment(this_body())))
 	{
 	    ob->get(number,sentence[0]);
@@ -155,7 +167,6 @@ void do_get_up()
 	    write("You are already standing.\n");
 	}
     }
-
 }
 
 int do_get_off()
@@ -167,8 +178,9 @@ mixed * query_verb_info()
 {
     return 
 	({ 
-	    ({ "OBJ", "WRD STR", "OBS", "OBJ from OBJ", "OBJ out of OBJ",
+	    ({ "WRD STR", "OBJ from OBJ", "OBJ out of OBJ",
 		   "OBJ with OBJ" }), ({ "take", "carry" }),
-	    ({ "up", "off", "off OBJ", "on OBJ" })
+	    ({ "up", "off", "off OBJ", "on OBJ" }), ({ }),
+	    ({ "OBJ", "OBS" }), ({ "pick up" })
 	});
 }

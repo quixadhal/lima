@@ -28,6 +28,20 @@ string* case_insensitive_complete(string partial, string* potentials)
     return filter(potentials, (: lower_case($1[0..$(n)]) == $(partial) :));
 }
 
+//:FUNCTION find_best_match_or_complete
+// same as case_insensitive_complete, but if there is an exact match, 
+// returns only that.
+
+string *find_best_match_or_complete(string partial, string *potentials)
+{
+  string *p = map(potentials,(:lower_case:));
+  int i = member_array(lower_case(partial),p);
+  int n;
+  if(i!=-1)
+    return ({potentials[i]});
+  return case_insensitive_complete(partial,potentials);
+}
+
 //:FUNCTION complete_user
 //given a username that might be partial, returns a
 //user name, or an array of strings on a partial match, or 0 on no match.

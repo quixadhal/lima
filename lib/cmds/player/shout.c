@@ -7,14 +7,19 @@
 inherit CMD;
 inherit M_GRAMMAR;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
 
 private void main(string s) {
     if (!s | s == "") {
-	write("Shout what?\n");
+	out("Shout what?\n");
 	return;
     }
 
-map(users()-({this_user()}), (: tell_object($1, iwrap(sprintf("%s shouts: %s\n", this_body()->query_name(), punctuate($2)))) :), s);
-    write(iwrap("You shout: " + punctuate(s) + "\n"));
-    return;
+    map(users()-({this_user()}), (: tell_object($1, iwrap(sprintf("%s shouts: %s\n", this_body()->query_name(), punctuate($2)))) :), s);
+    out(iwrap("You shout: " + punctuate(s) + "\n"));
 }
+

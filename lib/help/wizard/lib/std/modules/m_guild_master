@@ -1,0 +1,78 @@
+
+
+
+
+
+M_GUILDMASTER
+
+M_GUILDMASTER is inherited by /std/stock_master, when creating a "guild master" you
+should inherit STOC_MASTER. This modules contains all the functions for admitting 
+a new guild member, removing a guild member, etc.
+
+Important Functions:
+
+  The following functions may be overloaded to modify the "standard"
+  reponses/errors for the guild master.  
+ 
+    guildmsg_new_conflict(who, why)  --  Prints a message stating why the player
+                                         may not join the new guild.
+
+    guildmsg_welcome_back(who, why)  --  Prints a message welcoming the player back to 
+                                         a guild he left once before.
+
+    guildmsg_not_member(eho, why)    --  Prints a message informing the player that
+                                         he can't do that, its reserved for guild members of
+                                         X.
+
+    guildmsg_already_member(who)     --  Prints a message informing the player that hs
+                                         is already a member.
+
+    guildmsg_refuse_entry(who, why)  --  Prints a message telling the player that he
+                                         cannot join this guild while a member of guild X.
+
+    guildmsg_welcome(who)            --  Prints a message welcoming the player to his   
+                                         new guild.
+
+    guildmsg_leave_nicely( who)      --  Prints a message bidding the player farewell.  
+                                         This message means the player left the guild
+                                         on good terms, and could possibly return at a 
+                                         later time.
+
+    guildmsg_leave_badly(who)        --  Prints a message telling the player to get out.
+                                         This message means that the player left on less 
+                                         than pleasnat terms.
+
+    guildmsg_leave_as_enemy(who)     --  Prints a message telling the player that he has
+                                         choosen his doom.  PLayer will not be allowed back
+                                         in the guild at all.
+
+-----------------------------------------------------------------------------------------------
+
+    set_which_guild(string)          --  Sets the guild that this object is a guild master for.    
+
+    do_guild_check(who)              --  Checks to see if the player can join this guild.  Is
+                                         it compatible with his other guilds.
+
+    query_which_guild()              --  Return the guild that this object is 'guild master" 
+                                         for.
+
+    recheck_a_member()               --  Check to see if a current member has joined any new 
+                                         guilds that may conflict with his current one.  If he
+                                         has, suspend the current guild, and note the level.  
+                                         this function also unsuspends the guild if the player
+                                         checks out ok.
+
+    add_a_member(who)                --  This function handles the entery for new members.  
+                                         Checks the dependcies on guilds etc, and prints the 
+                                         correct message.
+
+    release_a_member(who)            --  Handles the removal of a guild member, and prints 
+                                         the appropriate messages.
+
+                      
+
+
+
+Last Updated: Friday, April, 26, 1996.
+
+

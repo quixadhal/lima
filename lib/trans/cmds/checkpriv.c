@@ -15,7 +15,7 @@ private void main(mixed arg)
 {
     if ( !arg )
     {
-	write("Usage: checkpriv <privilege>\n");
+	out("Usage: checkpriv <privilege>\n");
 	return;
     }
 
@@ -32,7 +32,7 @@ private void main(mixed arg)
     }
 
     if ( check_privilege(arg) )
-	printf("Verified.  You have privilege '%s'\n", arg + "");
+	outf("Verified.  You have privilege '%s'\n", arg + "");
     else
-	printf("Sorry.  You do not have privilege '%s'\n", arg + "");
+	outf("Sorry.  You do not have privilege '%s'\n", arg + "");
 }

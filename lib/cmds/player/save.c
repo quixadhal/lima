@@ -12,7 +12,7 @@ inherit CMD;
 private void main(string arg)
 {
     this_body()->save_me();
-    write("Saved.\n");
+    out("Saved.\n");
 
     return;
 }

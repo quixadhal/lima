@@ -14,7 +14,7 @@ private void main()
 
     if( wizardp(this_user()) )
     {
-	write("You are an implementor.\n");
+	out("You are an implementor.\n");
     }
 
     pts = this_body()->query_score();
@@ -39,8 +39,8 @@ private void main()
 	  else rank = "Dungeon Master";
     }
     if(total)
-      printf("You have earned %d out of the %d points on %s.\n"
+      outf("You have earned %d out of the %d points on %s.\n"
 	     "This gives you the rank of %s.\n", pts, total, mud_name(), rank );
     else
-      printf("There are no points or anything on %s, so I guess you're doing Ok.\n", mud_name());
+      outf("There are no points or anything on %s, so I guess you're doing Ok.\n", mud_name());
 }

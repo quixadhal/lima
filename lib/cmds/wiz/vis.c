@@ -18,6 +18,6 @@ private void main()
 	this_body()->set_visibility(1);
 	FINGER_D->update_me();
 	this_body()->do_player_message("vis");
-	write("You are now visible.\n");
+	out("You are now visible.\n");
     }
 }

@@ -13,11 +13,11 @@ private void main(){
 
     directions = room->query_exit_directions(1);
     if(!sizeof(directions)) {
-	write("There are no exits to this room.\n");
+	out("There are no exits to this room.\n");
 	return;
     }
 
-    write("Current exits:\n");
+    out("Current exits:\n");
 
     foreach (string dir in directions) {
 	mixed dest;
@@ -27,7 +27,7 @@ private void main(){
 	dest = room->query_exit_value(dir);
 	if (dest) {
 	    if (dest[0] == '#') {
-		printf("%s:  %s", dir, dest);
+		outf("%s:  %s", dir, dest);
 		continue;
 	    } else
 	    if (o = load_object(dest))
@@ -36,7 +36,7 @@ private void main(){
 		Short = "Under construction";
 	} else
 	    Short = "None";
-	printf("%s:  %s (%s)\n", dir, Short, dest);
+	outf("%s:  %s (%s)\n", dir, Short, dest);
     }
 }
 

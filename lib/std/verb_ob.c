@@ -38,9 +38,6 @@ void create()
 
     // backwards compat
     info[0] = map(info[0], (: (stringp($1) ? $1 : ($1 ? "STR" : "") ) :) );
-    // unsupported
-//### necessary any more?
-    info[0] = filter(info[0], (: strsrch($1,"OBS") == -1 :));
     
     if ( !info || !pointerp(info) || !pointerp(info[0]) )
 	throw("bad verb info");

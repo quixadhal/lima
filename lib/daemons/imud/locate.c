@@ -59,6 +59,6 @@ static nomask void rcv_locate_reply(string orig_mud, string orig_user,
 	else
 	    msg += sprintf(" (idle for %d seconds)", message[2]);
     
-	tell_object(p, iwrap(msg + ".\n", 9));
+	tell_object(p, wrap(msg + ".\n", 0, 9));
     }
 }

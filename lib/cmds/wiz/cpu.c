@@ -14,6 +14,6 @@ void main() {
     // time is in msec, convert to sec
     x = (info["utime"] + info["stime"])/1000;
     fraction = x / uptime();    
-    printf("CPU usage: %2.2f%%\n", fraction * 100);
+    outf("CPU usage: %2.2f%%\n", fraction * 100);
 }
 

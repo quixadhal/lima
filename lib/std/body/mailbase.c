@@ -9,8 +9,6 @@
 ** 950706, Deathblade: removed functionality; assumed by mailbox.c
 */
 
-// Beek - mailbox was a two value mapping, butthe second value was never
-//         used ?????
 private string		default_mailer;
 
 private static string *	valid_mailers = ({
@@ -28,9 +26,9 @@ nomask object query_mailer()
     if ( !mailer )
     {
 	if ( default_mailer )
-	    mailer = clone_object(default_mailer);
+	    mailer = new(default_mailer);
 	else
-	    mailer = clone_object(valid_mailers[0]);
+	    mailer = new(valid_mailers[0]);
     }
     return mailer;
 }

@@ -232,6 +232,10 @@ void finish_mudinfo(string mudname)
     printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
 }
  
+void remote_muds()
+{
+    do_cmd( "mudlist" );
+}
 void remote_mudinfo()
 {
    write("Which mud do you want to query?\n");
@@ -372,7 +376,7 @@ add_menu_item(personalmenu, new_menu_item("Set ANSI on/off", (: get_input_then_c
   add_menu_item (remotemenu, main_seperator);
   add_menu_item (remotemenu, new_menu_item("List muds " + mud_name() + 
 					   " knows about", 
-					   (:simple_cmd :), "l", 1));
+                (: simple_cmd :), "l", 1 ));
   add_menu_item (remotemenu, new_menu_item("See who's on another mud",
 					   (:remote_who:), "w"));
   add_menu_item (remotemenu, quit_item);

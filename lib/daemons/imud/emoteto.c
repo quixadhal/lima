@@ -37,8 +37,10 @@ static nomask void rcv_emoteto(string orig_mud, string orig_user,
     }
     else
     {
-	tell_object(p, sprintf("*%s", replace_string(message[1], "$N",
-				sprintf("%s@%s\n", message[0], orig_mud))));
-	p->set_reply(message[0]+"@" + orig_mud);
+	string user = sprintf("%s@%s", message[0], orig_mud);
+	tell_object(p, sprintf("*%s\n",
+			       replace_string(message[1], "$N", user)));
+						       
+	p->set_reply(message[0] + "@" + orig_mud);
     }
 }

@@ -14,5 +14,7 @@ private void main( string who )
 
 void player_menu_entry(string who)
 {
-    main(who);
+  bare_init();
+  main(who);
+  done_outputing();
 }

@@ -136,8 +136,7 @@ map_paths( mixed paths ){
 
     res = ([]);
     paths = map_array( paths, (: split_path :) );
-    i = sizeof(paths);
-    while(i--)
+    for(i=0;i<sizeof(paths);i++)
     {
 	if(undefinedp(res[paths[i][0]])) res[paths[i][0]] = ({ paths[i][1] });
 	else res[paths[i][0]] += ({paths[i][1]});

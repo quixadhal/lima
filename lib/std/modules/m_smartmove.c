@@ -107,6 +107,17 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     return r == MOVE_OK;
 }
 
+//:FUNCTION notify_move
+//Basically do a this_body()->force_look().
+//Seperated out so vehicles could change this
+//without having to override the move_to() function.
+
+void notify_move()
+{
+    this_body()->force_look();
+}
+
+
 //:FUNCTION move_to
 //Move the object to a new location.  Returns 1 if the move was successful,
 //0 otherwise.  The first arg is a filename, the second is the direction
@@ -129,7 +140,7 @@ int move_to(string dest, mixed dir)
 
     if ( where != environment() )
       {
-	force_look();
+	this_object()->notify_move();
 	return 1;
       }
     return 0;

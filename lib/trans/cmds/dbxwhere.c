@@ -18,14 +18,14 @@ main(string str) {
     } else {
 	error = master()->query_error(str);
 	if (!error && !find_body(str) && str != "last") {
-            write("No such player.\n");
+            out("No such player.\n");
             return;
         }
     }
     if (!error) {
-        write("No error.\n");
+        out("No error.\n");
     } else {
-        printf("%s\n", master()->standard_trace(error, 1));
+        outf("%s\n", master()->standard_trace(error, 1));
     }
     return;
 }

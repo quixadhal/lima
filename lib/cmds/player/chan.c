@@ -13,6 +13,13 @@
 
 inherit CMD;
 
+
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string arg)
 {
     string channel_name;
@@ -24,14 +31,14 @@ private void main(string arg)
 
 	channel_list = this_body()->query_channel_list();
 	if ( sizeof(channel_list) == 0 )
-	    write("You are not listening to any channels.\n");
+	    out("You are not listening to any channels.\n");
 	else
 	{
 	    if ( arg != "-d" )
 		channel_list = map(channel_list,
 				   (: NCHANNEL_D->user_channel_name($1) :));
 
-	    write("You are listening to: " +
+	    out("You are listening to: " +
 		  implode(channel_list, ", ") + ".\n");
 	}
 				     

@@ -1,72 +1,41 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <classes.h>
-#include <skills.h>
 
 inherit CLASS_SKILL;
 
 private mapping skills = ([]);
 
 
-void set_skill(string skill, int skillpoints, int level)
+class skill set_skill(string skill, int skill_points, int training_points)
 {
-  string* 	pieces;
-  string 	piece;
-  class skill	current_skill;
-  
-  pieces = explode(skill,"/");
-  current_skill = skills[pieces[0]];
-  if(!current_skill)
+    class skill	cs = skills[skill];
+
+//### does this func need protections?
+
+    if ( !cs )
     {
-      skills[pieces[0]] = new(class skill);
-      ((class skill)skills[pieces[0]])->subskills = ([]);
-      current_skill = skills[pieces[0]];
+	cs = skills[skill] = new(class skill,
+				 skill_points : skill_points,
+				 training_points : training_points);
     }
-  foreach(piece in pieces[1..])
+    else
     {
-      if(!(current_skill->subskills[piece]))
-	{
-	  current_skill->subskills = ([piece: new(class skill)]);
-	  ((class skill)current_skill->subskills[piece])->subskills = ([]);
-	}
-      current_skill = current_skill->subskills[piece];
+	cs->skill_points = skill_points;
+	cs->training_points = training_points;
     }
-    current_skill->skill_points = skillpoints;
-    current_skill->level = level;
+
+    return cs;
 }
 
 
 mapping get_skills()
 {
-  return copy(skills);
+    return copy(skills);
 }
 
 
-class skill get_skill(string skill, mixed value)
+class skill get_skill(string skill)
 {
-  string* 	pieces;
-  string 	piece;
-  class skill	current_skill;
-  int*		higher_levels;
-  int           i;
-  
-  pieces = explode(skill,"/");
-  current_skill = skills[pieces[0]];
-  if(!current_skill)
-    {
-      return 0;
-    }
-  higher_levels = allocate(sizeof(pieces)-1);
-  for(i=1; i < sizeof(pieces); i++)
-    {
-      higher_levels[i-1] = current_skill->level;
-      piece = pieces[i];
-      if(!(current_skill->subskills[piece]))
-	{
-	  return 0;
-	}
-      current_skill = current_skill->subskills[piece];
-    }
-    current_skill->higher_levels = higher_levels;
-    return current_skill;
+    return skills[skill];
 }

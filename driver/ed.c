@@ -649,7 +649,7 @@ static int dowrite P4(int, from, int, to, char *, fname, int, apflg)
     if (ED_BUFFER->write_fn) {
         svalue_t *res;
 
-        push_constant_string(fname);
+        share_and_push_string(fname);
         push_number(0);
         res = safe_apply(ED_BUFFER->write_fn, ED_BUFFER->exit_ob, 2, ORIGIN_DRIVER);
         if (IS_ZERO(res))
@@ -686,7 +686,7 @@ static int dowrite P4(int, from, int, to, char *, fname, int, apflg)
 
 #ifdef OLD_ED
     if (ED_BUFFER->write_fn) {
-        push_constant_string(fname);
+        share_and_push_string(fname);
         push_number(1);
         safe_apply(ED_BUFFER->write_fn, ED_BUFFER->exit_ob, 2, ORIGIN_DRIVER);
     }
@@ -753,7 +753,7 @@ static char *getfn P1(int, writeflg)
     }
 
     if (file[0] != '/') {
-	push_string(file, STRING_MALLOC);
+	copy_and_push_string(file);
 	ret = apply_master_ob(APPLY_MAKE_PATH_ABSOLUTE, 1);
 	if ((ret == 0) || (ret == (svalue_t *)-1) || ret->type != T_STRING)
 	    return NULL;
@@ -1663,6 +1663,7 @@ static void indent P1(char *, buf)
 		    }
 		case LOPERATOR:
 		case LHOOK:
+		case LHOOK2: /* Is this right? */
 		    {
 			/* half indent after ( [ ({ ([ */
 			i += P_SHIFTWIDTH / 2;
@@ -1963,13 +1964,13 @@ static int docmd P1(int, glob)
 	    return CHANGED;
 	/* FALL THROUGH */
     case 'Q':
-	clrbuf();
 	if (*inptr != NL)
 	    return SYNTAX_ERROR;
-	if (P_NLINES > 0)
-	    return LINE_OR_RANGE_ILL;
 	if (glob)
 	    return SYNTAX_ERROR;
+	clrbuf();
+	if (P_NLINES > 0)
+	    return LINE_OR_RANGE_ILL;
 	return (EOF);
 
     case 'r':
@@ -2358,8 +2359,9 @@ void save_ed_buffer P1(object_t *, who)
     current_ed_buffer = who->interactive->ed_buffer;
     current_editor = who;
 
-    push_string(P_FNAME, STRING_SHARED);
+    copy_and_push_string(P_FNAME);
     push_object(who);
+    /* must be safe; we get called by remove_interactive() */
     stmp = safe_apply_master_ob(APPLY_GET_ED_BUFFER_SAVE_FILE_NAME, 2);
     if (stmp && stmp != (svalue_t *)-1) {
 	if (stmp->type == T_STRING) {
@@ -2714,7 +2716,7 @@ void object_save_ed_buffer P1(object_t *, ob)
     current_ed_buffer = find_ed_buffer(ob);
     current_editor = ob;
 
-    push_string(P_FNAME, STRING_SHARED);
+    copy_and_push_string(P_FNAME);
     stmp = apply_master_ob(APPLY_GET_ED_BUFFER_SAVE_FILE_NAME, 1);
     if (stmp && stmp != (svalue_t *)-1) {
 	if (stmp->type == T_STRING) {

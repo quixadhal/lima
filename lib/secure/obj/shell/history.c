@@ -17,6 +17,7 @@
 
 
 object query_owner();
+void   shell_input(mixed input);
 
 private static string* history = ({});
 private static int buffer_size = DEFAULT_HISTORY_BUFFER_SIZE;
@@ -211,11 +212,16 @@ display_history()
       
   
 static string
-history_command(string input)
+history_command(mixed input)
 {
   int cmdnumber;
   int lastcmdnum = command_number;
   string rest;
+
+  if(arrayp(input))
+    {
+      input = chr(HISTORY_CHAR) + implode(input[1..], " ");
+    }
 
   switch(strlen(input))
     {
@@ -276,4 +282,11 @@ query_history()
 
 	return get_ordered_history();
     }
+}
+
+static void cmd_history(string input)
+{
+  mixed stuff = history_command(input);
+  if(stuff)
+    shell_input(stuff);
 }

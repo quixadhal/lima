@@ -24,16 +24,23 @@ private void main(string arg)
     list = regexp(list, arg);
     if ( !list )
     {
-        printf("No adverbs matched '%s'.\n", arg);
+        outf("No adverbs matched '%s'.\n", arg);
         return;
     }
 
-    more(sprintf(HEADER "%-#79s\n" TRAILER, 
+    if(end_of_pipeline())
+      outf(HEADER "%-#79s\n" TRAILER, 
 		 implode(sort_array(list, 1), "\n"),
-		 sizeof(list), count, sizeof(list) * 100 / count));
+		 sizeof(list), count, sizeof(list) * 100 / count);
+    else
+      outf(HEADER "%s\n" TRAILER, implode(sort_array(list, 1), "\n"),
+	   sizeof(list), count, sizeof(list) * 100 / count);
+
 }
 
 void player_menu_entry(string str)
 {
-    main(str);
+  bare_init();
+  main(str);
+  done_outputing();
 }

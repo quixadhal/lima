@@ -14,13 +14,13 @@ private void main( string arg )
     object p;
     if( !arg)
     {
-        write( "You must specify an object's id.\n");
+        out( "You must specify an object's id.\n");
         return;
     }
     p = present( lower_case(arg), environment( this_body()));
     if( !p )
     {
-        write( "Nothing here by that name.\n" );
+        out( "Nothing here by that name.\n" );
     return;
     }
     more_file( base_name( p ) + ".c" );

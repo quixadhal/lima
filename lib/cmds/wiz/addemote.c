@@ -1,4 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+// out(f) isn't very appropriate here...
+
 
 #include <mudlib.h>
 #include <daemons.h>

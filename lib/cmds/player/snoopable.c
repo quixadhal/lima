@@ -12,8 +12,8 @@ inherit CMD;
 private void main(string arg){
   if(!arg || arg == ""){
     if(this_body()->test_flag(F_SNOOPABLE) )
-		write("Joe Wizard can snoop you.\n");
-	else write( "Joe wizard can't snoop you.\n");
+		out("Joe Wizard can snoop you.\n");
+	else out( "Joe wizard can't snoop you.\n");
     return;
   }
   switch(arg){
@@ -21,9 +21,9 @@ private void main(string arg){
                 break;
     case "off": this_body()->clear_flag(F_SNOOPABLE);
                 break;
-    default:    write("Syntax: snoopable (on|off)\n");
+    default:    out("Syntax: snoopable (on|off)\n");
                 return;
   }
-  write("Ok.\n");
+  out("Ok.\n");
   return;
 }

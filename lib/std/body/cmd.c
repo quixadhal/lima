@@ -9,6 +9,7 @@
 #include <commands.h>
 
 object query_link();			// in /std/body.c
+void force_look();			// in /std/body.c
 string move(object location);		// in /std/object/move.c
 mixed expand_if_alias(string input);	// in /std/body/alias.c
 object query_mailer();			// in /std/body/mailbase.c
@@ -65,6 +66,8 @@ varargs nomask int do_game_command(string str, int debug)
 
     if ( stringp(result) )
     {
+     if(debug)
+	return result;
 	write(result);
 	return 1;
     }

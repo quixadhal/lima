@@ -149,7 +149,7 @@ typedef struct object_s {
 #define ROB_CLASS_ERROR 32
 #define ROB_ERROR 63
 
-extern object_t *hashed_living[LIVING_HASH_SIZE];
+extern object_t *hashed_living[CFG_LIVING_HASH_SIZE];
 extern object_t *previous_ob;
 extern int tot_alloc_object;
 extern int tot_alloc_object_size;

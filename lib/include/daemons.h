@@ -27,6 +27,7 @@
 #define TIMER_D		"/daemons/timer_d"
 #define VERB_D		"/daemons/verb_d"
 #define WEATHER_D	"/daemons/weather_d"
+#define SKILL_D        "/daemons/skill_d"
 
 #define CMD_D		"/secure/daemons/cmd_d"
 #define FINGER_D	"/secure/daemons/finger_d"

@@ -24,7 +24,7 @@ private void main( string who )
 	switch ( sizeof(matches) )
 	{
 	case 0:
-	    printf("No matching mud currently up.\n");
+	    outf("No matching mud currently up.\n");
 	    return;
 
 	case 1:
@@ -41,7 +41,7 @@ private void main( string who )
 		}
 	    if ( !matches )
 		break;
-	    printf("Ambigous.  The following muds might apply: %s\n",
+	    outf("Ambigous.  The following muds might apply: %s\n",
 		   implode(matches, ", "));
 	    return;
 	}
@@ -53,10 +53,13 @@ private void main( string who )
 	return;
     }
 
-    write(FINGER_D->get_finger(who));
+    out(FINGER_D->get_finger(who));
 }
 
 nomask int valid_resend(string ob)
 {
     return ob == CMD_OB_FINGER;
 }
+
+
+

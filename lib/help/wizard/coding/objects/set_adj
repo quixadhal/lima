@@ -1,0 +1,20 @@
+
+
+
+
+Setting adjectives
+
+This function allows your objects to have
+more descriptive id's.  These can be used 
+in conjunction with set_id to interact
+with your object.  Place set_adj() in your
+objects create().
+
+    set_adj("dumb","stupid");
+
+
+A player can now refer to your object as 
+dumb xxxx or stupid xxxxx.
+
+
+  

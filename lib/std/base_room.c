@@ -22,6 +22,7 @@
 
 inherit CONTAINER;
 inherit M_ITEMS;
+inherit M_GETTABLE;
 inherit __DIR__ "room/exits";
 inherit __DIR__ "room/roomdesc";
 
@@ -76,13 +77,16 @@ void mudlib_setup()
     set_max_capacity(1000000);
     add_id_no_plural("here");
     add_id("environment");
+    set_getmsg( "A surreal notion.\n");
+    set_gettable( -1 );
+    set_flag( ATTACHED );
 }
 
 //:FUNCTION set_area
 //Used by weather to know which rooms are the same as this one.
 void set_area(string name)
 {
-  area_name = name;
+    area_name = name;
 }
 
 //:FUNCTION set_area
@@ -100,10 +104,18 @@ string query_name ()
 // Conflict resolution
 string long()
 {
-  return roomdesc::long();
+    return roomdesc::long();
 }
 
 string get_brief()
 {
-  return short();
+    return short();
+}
+
+
+mixed direct_get_obj( object ob, string name )
+{
+    if( this_object() == environment( this_body()))
+        return "A surreal idea.\n";
+    return ::direct_get_obj( ob, name );
 }

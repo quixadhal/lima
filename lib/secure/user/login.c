@@ -80,7 +80,7 @@ nomask int matches_password(string str)
 
 nomask void set_password(string str)
 {
-    if ( previous_object() != find_object(CMD_OB_PASSWD) )
+    if ( base_name(previous_object()) != CMD_OB_PASSWD )
 	error("illegal attempt to set a password\n");
 
     password = crypt(str, str);
@@ -387,7 +387,7 @@ private nomask void logon()
  * extensively modified/rewritten more than half of the base mudlib first
  * (intend to modify ... doesn't cut it)
  */
-    printf("%s is running Lima 0.9r11 (pre-alpha) on %s\n\n",
+    printf("%s is running Lima 0.9r12 (pre-alpha) on %s\n\n",
 	   mud_name(), driver_version());
 
 #ifdef ZORKMUD

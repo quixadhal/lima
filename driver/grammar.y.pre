@@ -106,6 +106,11 @@ int yyparse PROT((void));
 
 /*
  * YYTYPE
+ *
+ * Anything with size > 4 is commented.  Sizes assume typical 32 bit
+ * architecture.  This size of the largest element of this union should
+ * be kept as small as possible to optimize copying of compiler stack
+ * elements.
  */
 %union
 {
@@ -116,21 +121,19 @@ int yyparse PROT((void));
     int type;
     struct { short num_arg; char flags; } argument;
     ident_hash_elem_t *ihe;
-    function_context_t context;
     parse_node_t *node;
+    function_context_t *contextp;
     struct {
 	parse_node_t *node;
         char num;
-    } decl;
-    /* same size as function_context_t; any more and we need to expand */
-    struct { 
+    } decl; /* 5 */
+    struct {
 	char num_local;
 	char max_num_locals; 
-	short last_fc_num_params;
 	short context; 
 	short save_current_type; 
 	short save_exact_types;
-    } func_block; 
+    } func_block; /* 8 */
 }
 
 /*
@@ -196,8 +199,6 @@ int yyparse PROT((void));
 /* This holds a flag */
 %type <number> new_arg
 
-/* This holds a saved value of function_context */
-%type <context> L_FUNCTION_OPEN
 %%
 %pragma auto_note_compiler_case_start
 
@@ -238,8 +239,8 @@ inheritance:
 		scratch_free($3);
 		inherit.prog = ob->prog;
 		inherit.function_index_offset =
-		      mem_block[A_FUNCTIONS].current_size /
-		      sizeof (function_t);
+		      mem_block[A_RUNTIME_FUNCTIONS].current_size /
+		      sizeof (runtime_function_u);
 		inherit.variable_index_offset =
 		      mem_block[A_VARIABLES].current_size /
 		      sizeof (variable_t);
@@ -316,7 +317,7 @@ def:
 		$1 |= global_modifiers;
 		/* Handle type checking here so we know whether to typecheck
 		   'argument' */
-		if ($1 & TYPE_MOD_MASK) {
+		if ($1 & ~NAME_TYPE_MOD) {
 %ifdef OLD_TYPE_BEHAVIOR
                     exact_types = 0;
 %else
@@ -349,7 +350,7 @@ def:
 		$<number>$ = NAME_UNDEFINED | NAME_PROTOTYPE;
 		if ($6.flags & ARG_IS_VARARGS) {
 		    $<number>$ |= NAME_TRUE_VARARGS;
-		    $1 |= TYPE_MOD_VARARGS;
+		    $1 |= NAME_VARARGS;
 		}
 		define_new_function($3, $6.num_arg, 0, $<number>$, $1 | $2);
 		/* This is safe since it is guaranteed to be in the
@@ -378,13 +379,15 @@ def:
 		    fun = define_new_function($3, $6.num_arg, 
 					      max_num_locals - $6.num_arg,
 					      $<number>8, $1 | $2);
-		    FUNCTION(fun)->offset = generate_function(FUNCTION(fun), $9, max_num_locals);
+		    if (fun != -1)
+			COMPILER_FUNC(fun)->address =
+			    generate_function(COMPILER_FUNC(fun), $9, max_num_locals);
 		}
 		free_all_local_names();
 	    }
     |   type name_list ';'
 	    {
-		if (!$1) yyerror("Missing type");
+		if (!$1) yyerror("Missing type for global variable declaration");
 	    }
     |   inheritance
     |   type_decl
@@ -400,7 +403,7 @@ modifier_change: type_modifier_list ':'
 member_name:
         optional_star identifier
             {
-		if ((current_type & TYPE_MOD_MASK) == TYPE_VOID)
+		if ((current_type & ~NAME_TYPE_MOD) == TYPE_VOID)
 		    yyerror("Illegal to declare class member of type void.");
 		add_local_name($2, current_type | $1);
 		scratch_free($2);
@@ -430,8 +433,12 @@ type_decl:
 		else {
 		    /* Possibly, this should check if the definitions are
 		       consistent */
-		    char buf[1024];
-		    sprintf(buf,"Illegal to redefine class %s", $3);
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "Illegal to redefine class ");
+		    p = strput(p, end, $3);
 		    yyerror(buf);
 		}
 		ihe->dn.class_num = mem_block[A_CLASS_DEF].current_size / sizeof(class_def_t);
@@ -464,8 +471,13 @@ new_local_name:
       | L_DEFINED_NAME
             {
 		if ($1->dn.local_num != -1) {
-		    char buff[MAXLINE + 30];
-		    sprintf(buff, "Illegal to redeclare local name '%s'", $1->name);
+		    char buff[256];
+		    char *end = EndOf(buff);
+		    char *p;
+		    
+		    p = strput(buff, end, "Illegal to redeclare local name '");
+		    p = strput(p, end, $1->name);
+		    p = strput(p, end, "'");
 		    yyerror(buff);
 		}
 		$$ = scratch_copy($1->name);
@@ -477,8 +489,13 @@ atomic_type:
       | L_CLASS L_DEFINED_NAME
             {
 		if ($2->dn.class_num == -1) {
-		    char buf[MAXLINE + 30];
-		    sprintf(buf, "Undefined class '%s'", $2->name);
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "Undefined class '");
+		    p = strput(p, end, $2->name);
+		    p = strput(p, end, "'");
 		    yyerror(buf);
 		    $$ = TYPE_ANY;
 		} else 
@@ -602,7 +619,7 @@ name_list:
 new_name:
 	optional_star identifier
 	    {
-		if ((current_type & TYPE_MOD_MASK) == TYPE_VOID)
+		if ((current_type & ~NAME_TYPE_MOD) == TYPE_VOID)
 		    yyerror("Illegal to declare global variable of type void.");
 		define_variable($2, current_type | $1 | global_modifiers, 0);
 		scratch_free($2);
@@ -610,22 +627,30 @@ new_name:
     |   optional_star identifier L_ASSIGN expr0
 	    {
 		parse_node_t *expr;
-		int type = (current_type | $1 | global_modifiers) & TYPE_MOD_MASK;
-
-		if ((current_type & TYPE_MOD_MASK) == TYPE_VOID)
-		    yyerror("Illegal to declare global variable of type void.");
+		int type;
+		
 		if ($3 != F_ASSIGN)
 		    yyerror("Only '=' is legal in initializers.");
 
-		switch_to_block(A_INITIALIZER);
-		if (!compatible_types(type, $4->type)) {
-		    char buff[100];
-
-		    sprintf(buff, "Type mismatch %s when initializing %s",
-			  get_two_types(type, $4->type), $2);
-		    yyerror(buff);
+		/* ignore current_type == 0, which gets a missing type error
+		   later anyway */
+		if (current_type) {
+		    type = (current_type | $1 | global_modifiers) & ~NAME_TYPE_MOD;
+		    if ((current_type & ~NAME_TYPE_MOD) == TYPE_VOID)
+			yyerror("Illegal to declare global variable of type void.");
+		    if (!compatible_types(type, $4->type)) {
+			char buff[256];
+			char *end = EndOf(buff);
+			char *p;
+			
+			p = strput(buff, end, "Type mismatch ");
+			p = get_two_types(p, end, type, $4->type);
+			p = strput(p, end, " when initializing ");
+			p = strput(p, end, $2);
+			yyerror(buff);
+		    }
 		}
-
+		switch_to_block(A_INITIALIZER);
 		$4 = do_promotions($4, type);
 
 		CREATE_BINARY_OP(expr, F_VOID_ASSIGN, 0, $4, 0);
@@ -683,15 +708,20 @@ decl_block: block | for | foreach ;
 	    }
     |   optional_star new_local_name L_ASSIGN expr0
 	    {
-		int type = (current_type | $1) & TYPE_MOD_MASK;
+		int type = (current_type | $1) & ~NAME_TYPE_MOD;
 
 		if ($3 != F_ASSIGN)
 		    yyerror("Only '=' is allowed in initializers.");
 		if (!compatible_types($4->type, type)) {
-		    char buff[100];
+		    char buff[256];
+		    char *end = EndOf(buff);
+		    char *p;
+		    
+		    p = strput(buff, end, "Type mismatch ");
+		    p = get_two_types(p, end, type, $4->type);
+		    p = strput(p, end, " when initializing ");
+		    p = strput(p, end, $2);
 
-		    sprintf(buff, "Type mismatch %s when initializing %s",
-			  get_two_types(type, $4->type), $2);
 		    yyerror(buff);
 		}
 		
@@ -722,10 +752,13 @@ decl_block: block | for | foreach ;
 		if ($2 != F_ASSIGN)
 		    yyerror("Only '=' is allowed in initializers.");
 		if (!compatible_types($3->type, type)) {
-		    char buff[100];
-
-		    sprintf(buff, "Type mismatch %s when initializing",
-			  get_two_types(type, $3->type));
+		    char buff[256];
+		    char *end = EndOf(buff);
+		    char *p;
+		    
+		    p = strput(buff, end, "Type mismatch ");
+		    p = get_two_types(p, end, type, $3->type);
+		    p = strput(p, end, " when initializing.");
 		    yyerror(buff);
 		}
 
@@ -798,6 +831,10 @@ statement:
 	    }
     |   L_BREAK ';'
             {
+		if (context & SPECIAL_CONTEXT) {
+		    yyerror("Cannot break out of catch { } or time_expression { }");
+		    $$ = 0;
+		} else
 		if (context & SWITCH_CONTEXT) {
 		    CREATE_CONTROL_JUMP($$, CJ_BREAK_SWITCH);
 		} else
@@ -816,6 +853,9 @@ statement:
 	    }
     |   L_CONTINUE ';'
 	    {
+		if (context & SPECIAL_CONTEXT)
+		    yyerror("Cannot continue out of catch { } or time_expression { }");
+		else
 		if (!(context & LOOP_CONTEXT))
 		    yyerror("continue statement outside loop");
 		CREATE_CONTROL_JUMP($$, CJ_CONTINUE);
@@ -882,8 +922,12 @@ foreach_var: L_DEFINED_NAME
 		    CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, $1->dn.global_num);
 		} else {
 		    char buf[256];
-		    sprintf(buf, "'%s' is not a local or a global variable.",
-			    $1->name);
+		    char *end = EndOf(buf);
+		    char *p;
+
+		    p = strput(buf, end, "'");
+		    p = strput(p, end, $1->name);
+		    p = strput(p, end, "' is not a local or a global variable.");
 		    yyerror(buf);
 		    CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, 0);
 		}
@@ -897,8 +941,12 @@ foreach_var: L_DEFINED_NAME
           | L_IDENTIFIER
             {
 		char buf[256];
-		sprintf(buf, "'%s' is not a local or a global variable.",
-			$1);
+		char *end = EndOf(buf);
+		char *p;
+		
+		p = strput(buf, end, "'");
+		p = strput(p, end, $1);
+		p = strput(p, end, "' is not a local or a global variable.");
 		yyerror(buf);
 		CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, 0);
 		scratch_free($1);
@@ -1180,8 +1228,13 @@ expr0:
 		    !($2 == F_ADD_EQ
 		      && l->type == TYPE_STRING && 
 		      COMP_TYPE(r->type, TYPE_NUMBER))) {
-		    char buf[200];
-		    sprintf(buf, "Bad assignment %s.", get_two_types(l->type, r->type));
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "Bad assignment ");
+		    p = get_two_types(p, end, l->type, r->type);
+		    p = strput(p, end, ".");
 		    yyerror(buf);
 		}
 
@@ -1197,9 +1250,13 @@ expr0:
 		parse_node_t *p1 = $3, *p2 = $5;
 
 		if (exact_types && !compatible_types2(p1->type, p2->type)) {
-		    char buf[200];
-		    sprintf(buf, "Types in ?: do not match %s.", 
-			    get_two_types(p1->type, p2->type));
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "Types in ?: do not match ");
+		    p = get_two_types(p, end, p1->type, p2->type);
+		    p = strput(p, end, ".");
 		    yywarn(buf);
 		}
 
@@ -1226,6 +1283,8 @@ expr0:
 	    }
     |   expr0 '|' expr0
 	    {
+		if (is_boolean($1) && is_boolean($3))
+		    yywarn("bitwise operation on boolean values.");
 		$$ = binary_int_op($1, $3, F_OR, "|");		
 	    }
     |   expr0 '^' expr0
@@ -1235,12 +1294,19 @@ expr0:
     |   expr0 '&' expr0
 	    {
 		int t1 = $1->type, t3 = $3->type;
+		if (is_boolean($1) && is_boolean($3))
+		    yywarn("bitwise operation on boolean values.");
 		if ((t1 & TYPE_MOD_ARRAY) || (t3 & TYPE_MOD_ARRAY)) {
 		    if (t1 != t3) {
 			if ((t1 != TYPE_ANY) && (t3 != TYPE_ANY) &&
 			    !(t1 & t3 & TYPE_MOD_ARRAY)) {
-			    char buf[200];
-			    sprintf(buf, "Incompatible types for & %s.", get_two_types(t1,t3));
+			    char buf[256];
+			    char *end = EndOf(buf);
+			    char *p;
+			    
+			    p = strput(buf, end, "Incompatible types for & ");
+			    p = get_two_types(p, end, t1, t3);
+			    p = strput(p, end, ".");
 			    yyerror(buf);
 			}
 			t1 = TYPE_ANY | TYPE_MOD_ARRAY;
@@ -1251,8 +1317,13 @@ expr0:
     |   expr0 L_EQ expr0
 	    {
 		if (exact_types && !compatible_types2($1->type, $3->type)){
-		    char buf[300];
-		    sprintf(buf, "== always false because of incompatible types %s.",get_two_types($1->type, $3->type));
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "== always false because of incompatible types ");
+		    p = get_two_types(p, end, $1->type, $3->type);
+		    p = strput(p, end, ".");
 		    yyerror(buf);
 		}
 		/* x == 0 -> !x */
@@ -1268,8 +1339,13 @@ expr0:
     |   expr0 L_NE expr0
 	    {
 		if (exact_types && !compatible_types2($1->type, $3->type)){
-		    char buf[300];
-		    sprintf(buf, "!= always true because of incompatible types %s.",get_two_types($1->type, $3->type));
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+
+		    p = strput(buf, end, "!= always true because of incompatible types ");
+		    p = get_two_types(p, end, $1->type, $3->type);
+		    p = strput(p, end, ".");
 		    yyerror(buf);
 		}
                 CREATE_BINARY_OP($$, F_NE, TYPE_NUMBER, $1, $3);
@@ -1282,26 +1358,37 @@ expr0:
 
 		    if (!COMP_TYPE(t1, TYPE_NUMBER) 
 			&& !COMP_TYPE(t1, TYPE_STRING)) {
-			char buf[200];
-			strcpy(buf, "Bad left argument to '");
-			strcat(buf, get_f_name($2));
-			strcat(buf, "' : \"");
-			strcat(buf, get_type_name(t1));
-			strcat(buf, "\"");
+			char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+			p = strput(buf, end, "Bad left argument to '");
+			p = strput(p, end, get_f_name($2));
+			p = strput(p, end, "' : \"");
+			p = get_type_name(p, end, t1);
+			p = strput(p, end, "\"");
 			yyerror(buf);
 		    } else if (!COMP_TYPE(t3, TYPE_NUMBER) 
 			       && !COMP_TYPE(t3, TYPE_STRING)) {
-                        char buf[200];
-                        strcpy(buf, "Bad right argument to '");
-                        strcat(buf, get_f_name($2));
-                        strcat(buf, "' : \"");
-                        strcat(buf, get_type_name(t3));
-                        strcat(buf, "\"");
+                        char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+                        p = strput(buf, end, "Bad right argument to '");
+                        p = strput(p, end, get_f_name($2));
+                        p = strput(p, end, "' : \"");
+                        p = get_type_name(p, end, t3);
+			p = strput(p, end, "\"");
 			yyerror(buf);
 		    } else if (!compatible_types2(t1,t3)) {
-			char buf[300];
-			sprintf(buf, "Arguments to %s do not have compatible types : %s",
-				get_f_name($2), get_two_types(t1, t3));
+			char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+			p = strput(buf, end, "Arguments to ");
+			p = strput(p, end, get_f_name($2));
+			p = strput(p, end, " do not have compatible types : ");
+			p = get_two_types(p, end, t1, t3);
 			yyerror(buf);
 		    }
 		}
@@ -1314,22 +1401,31 @@ expr0:
 
                     if (!COMP_TYPE(t1, TYPE_NUMBER) 
 			&& !COMP_TYPE(t1, TYPE_STRING)) {
-                        char buf[200];
-                        strcpy(buf, "Bad left argument to '<' : \"");
-                        strcat(buf, get_type_name(t1));
-                        strcat(buf, "\"");
+                        char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+			p = strput(buf, end, "Bad left argument to '<' : \"");
+                        p = get_type_name(p, end, t1);
+			p = strput(p, end, "\"");
                         yyerror(buf);
                     } else if (!COMP_TYPE(t3, TYPE_NUMBER)
 			       && !COMP_TYPE(t3, TYPE_STRING)) {
                         char buf[200];
-                        strcpy(buf, "Bad right argument to '<' : \"");
-                        strcat(buf, get_type_name(t3));
-                        strcat(buf, "\"");
+			char *end = EndOf(buf);
+			char *p;
+			
+                        p = strput(buf, end, "Bad right argument to '<' : \"");
+                        p = get_type_name(p, end, t3);
+                        p = strput(p, end, "\"");
                         yyerror(buf);
                     } else if (!compatible_types2(t1,t3)) {
-                        char buf[300];
-                        sprintf(buf, "Arguments to < do not have compatible types : %s",
-                                get_two_types(t1, t3));
+                        char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+			p = strput(buf, end, "Arguments to < do not have compatible types : ");
+			p = get_two_types(p, end, t1, t3);
                         yyerror(buf);
                     }
                 }
@@ -1385,7 +1481,7 @@ expr0:
 				else goto add_error;
 				break;
 			    }
-			    case TYPE_REAL:
+			case TYPE_REAL:
 			    {
 				if (t3 == TYPE_NUMBER) result_type = TYPE_REAL;
 				else if (t3 == TYPE_STRING) result_type = TYPE_STRING;
@@ -1400,9 +1496,12 @@ expr0:
 				}
 add_error:
 				{
-				    char buf[200];
-				    sprintf(buf, "Invalid argument types to '+' %s",
-get_two_types(t1, t3));
+				    char buf[256];
+				    char *end = EndOf(buf);
+				    char *p;
+				    
+				    p = strput(buf, end, "Invalid argument types to '+' ");
+				    p = get_two_types(p, end, t1, t3);
 				    yyerror(buf);
 				    result_type = TYPE_ANY;
 				}
@@ -1541,8 +1640,12 @@ get_two_types(t1, t3));
 		    } else if (t1 & t3 & TYPE_MOD_ARRAY){
 			result_type = TYPE_MOD_ARRAY|TYPE_ANY;
 		    } else {
-			char buf[300];
-			sprintf(buf, "Invalid types to '-' %s", get_two_types(t1, t3));
+			char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+			p = strput(buf, end, "Invalid types to '-' ");
+			p = get_two_types(p, end, t1, t3);
 			yyerror(buf);
 			result_type = TYPE_ANY;
 		    }
@@ -1596,7 +1699,7 @@ get_two_types(t1, t3));
 			    case TYPE_REAL:
 			        result_type = t1;
 				break;
-			    default:
+			default:
 				type_error("Bad argument number 1 to '*'", t1);
 				result_type = TYPE_ANY;
 			}
@@ -1619,8 +1722,12 @@ get_two_types(t1, t3));
 			       (t1 == TYPE_REAL && t3 == TYPE_NUMBER)){
 			result_type = TYPE_REAL;
 		    } else {
-			char buf[300];
-			sprintf(buf, "Invalid types to '*' %s", get_two_types(t1, t3));
+			char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+			p = strput(buf, end, "Invalid types to '*' ");
+			p = get_two_types(p, end, t1, t3);
 			yyerror(buf);
 			result_type = TYPE_ANY;
 		    }
@@ -1672,7 +1779,7 @@ get_two_types(t1, t3));
 			switch(t1){
 			    case TYPE_NUMBER:
 			    case TYPE_REAL:
-			    case TYPE_ANY:
+			case TYPE_ANY:
 			        result_type = t1;
 				break;
 			    default:
@@ -1693,8 +1800,12 @@ get_two_types(t1, t3));
 			       (t1 == TYPE_REAL && t3 == TYPE_NUMBER)) {
 			result_type = TYPE_REAL;
 		    } else {
-			char buf[300];
-			sprintf(buf, "Invalid types to '/' %s", get_two_types(t1, t3));
+			char buf[256];
+			char *end = EndOf(buf);
+			char *p;
+			
+			p = strput(buf, end, "Invalid types to '/' ");
+			p = get_two_types(p, end, t1, t3);
 			yyerror(buf);
 			result_type = TYPE_ANY;
 		    }
@@ -1757,13 +1868,20 @@ get_two_types(t1, t3));
 		$$ = $2;
 		$$->type = $1;
 
-		if (exact_types && $2->type != TYPE_ANY && 
+		if (exact_types &&
+		    $2->type != $1 &&
+		    $2->type != TYPE_ANY && 
 		    $2->type != TYPE_UNKNOWN &&
-		      $1 != TYPE_VOID) {
-		    char tname[100];
-		    char buf[1000];
-		    strcpy(tname, get_type_name($2->type));
-		    sprintf(buf, "Cannot cast %s to %s.", tname, get_type_name($1));
+		    $1 != TYPE_VOID) {
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "Cannot cast ");
+		    p = get_type_name(p, end, $2->type);
+		    p = strput(p, end, "to ");
+		    p = get_type_name(p, end, $1);
+		    yyerror(buf);
 		}
 	    }
     |   L_INC lvalue  %prec L_NOT  /* note lower precedence here */
@@ -1860,7 +1978,7 @@ get_two_types(t1, t3));
                 if (exact_types){
                     switch($1->type){
                         case TYPE_NUMBER:
-                        case TYPE_ANY:
+		    case TYPE_ANY:
                         case TYPE_REAL:
                         {
                             $$->type = $1->type;
@@ -1876,23 +1994,23 @@ get_two_types(t1, t3));
                 } else $$->type = TYPE_ANY;
 	    }
     |   lvalue L_DEC
-	    {
+            {
 		CREATE_UNARY_OP($$, F_POST_DEC, 0, $1);
                 if (exact_types){
                     switch($1->type){
-                        case TYPE_NUMBER:
-                        case TYPE_ANY:
-                        case TYPE_REAL:
-                        {
-                            $$->type = $1->type;
-                            break;
-                        }
+		    case TYPE_NUMBER:
+		    case TYPE_ANY:
+		    case TYPE_REAL:
+		    {
+			$$->type = $1->type;
+			break;
+		    }
 
-                        default:
-                        {
-                            $$->type = TYPE_ANY;
-                            type_error("Bad argument 1 to x--", $1->type);
-                        }
+		    default:
+		    {
+			$$->type = TYPE_ANY;
+			type_error("Bad argument 1 to x--", $1->type);
+		    }
                     }
                 } else $$->type = TYPE_ANY;
 	    }
@@ -1913,9 +2031,13 @@ return:
 	    }
     |   L_RETURN comma_expr ';'
 	    {
-		if (exact_types && !compatible_types($2->type, exact_types & TYPE_MOD_MASK)) {
-		    char buf[1000];
-		    sprintf(buf, "Type of returned value doesn't match function return type %s.", get_two_types($2->type, exact_types & TYPE_MOD_MASK));
+		if (exact_types && !compatible_types($2->type, exact_types & ~NAME_TYPE_MOD)) {
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "Type of returned value doesn't match function return type ");
+		    p = get_two_types(p, end, $2->type, exact_types & ~NAME_TYPE_MOD);
 		    yyerror(buf);
 		}
 		if (IS_NODE($2, NODE_NUMBER, 0)) {
@@ -2087,7 +2209,7 @@ lvalue:
 					flag |= LV_ILLEGAL;
 					break;
 				    }
-				    if (flag & LV_INDEX){
+                                    if (flag & LV_INDEX){
 					yyerror("Can't do indexed lvalue of range lvalue.");
 					flag |= LV_ILLEGAL;
 					break;
@@ -2137,29 +2259,33 @@ expr4:
               int i;
               if ((i = $1->dn.local_num) != -1) {
 		  CREATE_OPCODE_1($$, F_LOCAL, type_of_locals_ptr[i],i & 0xff);
-		  if (function_context.num_parameters >= 0)
-		      function_context.num_locals++;
+		  if (current_function_context)
+		      current_function_context->num_locals++;
               } else
 		  if ((i = $1->dn.global_num) != -1) {
-		      if (function_context.num_parameters != -1)
-			  function_context.bindable = FP_NOT_BINDABLE;
-		      CREATE_OPCODE_1($$, F_GLOBAL, 
-				      VARIABLE(i)->type & TYPE_MOD_MASK, i);
-		      if (VARIABLE(i)->type & TYPE_MOD_HIDDEN) {
-			  char buf[MAXLINE + 30];
-			  
-			  strcpy(buf, "Illegal to use private variable '");
-			  strcat(buf, $1->name);
-			  strcat(buf, "'");
+		      if (current_function_context)
+			  current_function_context->bindable = FP_NOT_BINDABLE;
+                          CREATE_OPCODE_1($$, F_GLOBAL,
+				      VARIABLE(i)->type & ~NAME_TYPE_MOD, i);
+		      if (VARIABLE(i)->type & NAME_HIDDEN) {
+			  char buf[256];
+			  char *end = EndOf(buf);
+			  char *p;
+
+			  p = strput(buf, end, "Illegal to use private variable '");
+			  p = strput(p, end, $1->name);
+			  p = strput(p, end, "'");
 			  yyerror(buf);
 		      }
 		  } else {
-		      char buf[MAXLINE + 30];
+		      char buf[256];
+		      char *end = EndOf(buf);
+		      char *p;
 		      
-		      strcpy(buf, "Undefined variable '");
-		      strcat(buf, $1->name);
-		      strcat(buf, "'");
-		      if (current_number_of_locals < MAX_LOCAL) {
+		      p = strput(buf, end, "Undefined variable '");
+		      p = strput(p, end, $1->name);
+		      p = strput(p, end, "'");
+		      if (current_number_of_locals < CFG_MAX_LOCAL_VARIABLES) {
 			  add_local_name($1->name, TYPE_ANY);
 		      }
 		      CREATE_OPCODE_1($$, F_LOCAL, TYPE_ANY, 0);
@@ -2168,12 +2294,14 @@ expr4:
 	    }
     |   L_IDENTIFIER
             {
-		char buf[MAXLINE + 30];
-    
-                strcpy(buf, "Undefined variable '");
-                strcat(buf, $1);
-                strcat(buf, "'");
-                if (current_number_of_locals < MAX_LOCAL) {
+		char buf[256];
+		char *end = EndOf(buf);
+		char *p;
+		
+		p = strput(buf, end, "Undefined variable '");
+		p = strput(p, end, $1);
+		p = strput(p, end, "'");
+                if (current_number_of_locals < CFG_MAX_LOCAL_VARIABLES) {
                     add_local_name($1, TYPE_ANY);
                 }
                 CREATE_OPCODE_1($$, F_LOCAL, TYPE_ANY, 0);
@@ -2186,32 +2314,28 @@ expr4:
             }
     |   '$' '(' 
             {
-		/* temporarily drop out of function context, for two reasons:
-		   1. $(local var) shouldn't increment local var count
-		   2. $($2) is illegal
-		 */
-		$<number>$ = function_context.num_parameters;
-		function_context.num_parameters = -1;
+		$<contextp>$ = current_function_context;
+		current_function_context = current_function_context->parent;
             }
         comma_expr ')'
             {
 		parse_node_t *node;
 
-		function_context.num_parameters = $<number>3;
+		current_function_context = $<contextp>3;
 
-		if (function_context.num_parameters == -1) {
+		if (!current_function_context || current_function_context->num_parameters == -2) {
 		    /* This was illegal, and error'ed when the '$' token
 		     * was returned.
 		     */
 		    CREATE_ERROR($$);
 		} else {
-		    CREATE_OPCODE_1($$, F_LOCAL, $4->type, 
-				    function_context.values_list->kind++);
+		    CREATE_OPCODE_1($$, F_LOCAL, $4->type,
+				    current_function_context->values_list->kind++);
 
 		    node = new_node_no_line();
 		    node->type = 0;
-		    function_context.values_list->l.expr->r.expr = node;
-		    function_context.values_list->l.expr = node;
+		    current_function_context->values_list->l.expr->r.expr = node;
+		    current_function_context->values_list->l.expr = node;
 		    node->r.expr = 0;
 		    node->v.expr = $4;
 		}
@@ -2365,23 +2489,20 @@ expr4:
     |   L_BASIC_TYPE
             {
 	        if ($1 != TYPE_FUNCTION) yyerror("Reserved type name unexpected.");
-		$<func_block>$.last_fc_num_params = function_context.num_parameters;
 		$<func_block>$.num_local = current_number_of_locals;
 		$<func_block>$.max_num_locals = max_num_locals;
 		$<func_block>$.context = context;
 		$<func_block>$.save_current_type = current_type;
 		$<func_block>$.save_exact_types = exact_types;
-	        if (type_of_locals_ptr + max_num_locals + MAX_LOCAL >= &type_of_locals[type_of_locals_size])
+	        if (type_of_locals_ptr + max_num_locals + CFG_MAX_LOCAL_VARIABLES >= &type_of_locals[type_of_locals_size])
 		    reallocate_locals();
 		deactivate_current_locals();
 		locals_ptr += current_number_of_locals;
 		type_of_locals_ptr += max_num_locals;
 		runtime_locals_ptr += current_number_of_locals;
 		max_num_locals = current_number_of_locals = 0;
-		if (function_context.bindable)
-		    function_context.num_parameters = -2;
-		else
-		    function_context.num_parameters = -3;
+		push_function_context();
+		current_function_context->num_parameters = -1;
 		exact_types = TYPE_ANY;
 		context = 0;
             }
@@ -2409,7 +2530,7 @@ expr4:
 		$$->l.number = (max_num_locals - $4.num_arg);
 		$$->r.expr = $6.node;
 		$$->v.number = $4.num_arg;
-		if (function_context.bindable)
+		if (current_function_context->bindable)
 		    $$->v.number |= 0x10000;
 		free_all_local_names();
 		
@@ -2418,11 +2539,7 @@ expr4:
 		context = $<func_block>2.context;
 		current_type = $<func_block>2.save_current_type;
 		exact_types = $<func_block>2.save_exact_types;
-		if (function_context.num_parameters == -2)
-		    function_context.bindable = FP_NOT_BINDABLE;
-		else
-		    function_context.bindable = 0;
-		function_context.num_parameters = $<func_block>2.last_fc_num_params;
+		pop_function_context();
 		
 		locals_ptr -= current_number_of_locals;
 		type_of_locals_ptr -= max_num_locals;
@@ -2446,12 +2563,14 @@ expr4:
 		case FP_G_VAR:
 		    CREATE_OPCODE_1($$->l.expr, F_GLOBAL, 0, $1 >> 8);
 		    $$->v.number = FP_FUNCTIONAL | FP_NOT_BINDABLE;
-		    if (VARIABLE($$->l.expr->l.number)->type & TYPE_MOD_HIDDEN) {
-		      char buf[MAXLINE + 30];
-		
-		      strcpy(buf, "Illegal to use private variable '");
-		      strcat(buf, VARIABLE($$->l.expr->l.number)->name);
-		      strcat(buf, "'");
+		    if (VARIABLE($$->l.expr->l.number)->type & NAME_HIDDEN) {
+		      char buf[256];
+		      char *end = EndOf(buf);
+		      char *p;
+		      
+		      p = strput(buf, end, "Illegal to use private variable '");
+		      p = strput(p, end, VARIABLE($$->l.expr->l.number)->name);
+		      p = strput(p, end, "'");
 		      yyerror(buf);
 		    }
 		    break;
@@ -2484,9 +2603,12 @@ expr4:
 			}
 			
 			if (!pn) {
-			    char bff[100];
-			    sprintf(bff, "Too many arguments to %s", 
-				    predefs[f].word);
+			    char bff[256];
+			    char *end = EndOf(bff);
+			    char *p;
+			    
+			    p = strput(bff, end, "Too many arguments to ");
+			    p = strput(p, end, predefs[f].word);
 			    yyerror(bff);
 			}
 		    } else if (max_arg != -1 && exact_types) {
@@ -2494,7 +2616,6 @@ expr4:
 			 * Now check all types of arguments to efuns.
 			 */
 			int i, argn, tmp;
-			char buff[100];
 			parse_node_t *enode = $3;
 			argp = &efun_arg_types[predefs[f].arg_index];
 			
@@ -2506,9 +2627,16 @@ expr4:
 				 && argp[i] != 0; i++)
 				;
 			    if (argp[i] == 0) {
-				sprintf(buff, "Bad argument %d to efun %s()",
-					argn+1, predefs[f].word);
-				yyerror(buff);
+				char buf[256];
+				char *end = EndOf(buf);
+				char *p;
+
+				p = strput(buf, end, "Bad argument ");
+				p = strput_int(p, end, argn+1);
+				p = strput(p, end, " to efun ");
+				p = strput(p, end, predefs[f].word);
+				p = strput(p, end, "()");
+				yyerror(buf);
 			    } else {
 				/* this little section necessary b/c in the
 				   case float | int we dont want to do
@@ -2542,10 +2670,10 @@ expr4:
 	    }
     |   L_FUNCTION_OPEN comma_expr ':' ')'
              {
-		 if (function_context.num_locals)
+		 if (current_function_context->num_locals)
 		     yyerror("Illegal to use local variable in functional.");
-		 if (function_context.values_list->r.expr)
-		     function_context.values_list->r.expr->kind = function_context.values_list->kind;
+		 if (current_function_context->values_list->r.expr)
+		     current_function_context->values_list->r.expr->kind = current_function_context->values_list->kind;
 		 
 		 $$ = new_node();
 		 $$->kind = NODE_FUNCTION_CONSTRUCTOR;
@@ -2553,10 +2681,10 @@ expr4:
 		 $$->l.expr = $2;
 		 if ($2->kind == NODE_STRING)
 		     yywarn("Function pointer returning string constant is NOT a function call");
-		 $$->r.expr = function_context.values_list->r.expr;
-		 $$->v.number = FP_FUNCTIONAL + function_context.bindable
-		     + (function_context.num_parameters << 8);
-		 function_context = $1;
+		 $$->r.expr = current_function_context->values_list->r.expr;
+		 $$->v.number = FP_FUNCTIONAL + current_function_context->bindable
+		     + (current_function_context->num_parameters << 8);
+		 pop_function_context();
              }
     |   L_MAPPING_OPEN expr_list3 ']' ')'
 	    {
@@ -2580,9 +2708,15 @@ expr_or_block:
     ;
 
 catch:
-	L_CATCH expr_or_block
+	L_CATCH
+            {
+		$<number>$ = context;
+		context = SPECIAL_CONTEXT;
+	    }
+        expr_or_block
 	    {
-		CREATE_CATCH($$, $2);
+		CREATE_CATCH($$, $3);
+		context = $<number>2;
 	    }
     ;
 
@@ -2622,9 +2756,15 @@ parse_command:
     ;
 
 time_expression:
-	L_TIME_EXPRESSION expr_or_block
+	L_TIME_EXPRESSION 
+            {
+		$<number>$ = context;
+		context = SPECIAL_CONTEXT;
+	    }
+	expr_or_block
 	    {
-		CREATE_TIME_EXPRESSION($$, $2);
+		CREATE_TIME_EXPRESSION($$, $3);
+		context = $<number>2;
 	    }
     ;
 
@@ -2715,8 +2855,13 @@ function_call:
 		parse_node_t *node;
 		
 		if ($4->dn.class_num == -1) {
-		    char buf[MAXLINE + 30];
-		    sprintf(buf, "Undefined class '%s'", $4->name);
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    
+		    p = strput(buf, end, "Undefined class '");
+		    p = strput(p, end, $4->name);
+		    p = strput(p, end, "'");
 		    yyerror(buf);
 		    CREATE_ERROR($$);
 		    node = $5;
@@ -2743,32 +2888,32 @@ function_call:
 	| L_DEFINED_NAME '(' expr_list ')'
 	    {
 	      int f;
-	      function_t *funp;
 
 	      $$ = $3;
 	      if ((f = $1->dn.function_num) != -1) {
-		  if (FUNCTION(f)->type & TYPE_MOD_HIDDEN) {
-		      char buf[MAXLINE + 30];
+		  if (FUNCTION_FLAGS(f) & NAME_HIDDEN) {
+		      char buf[256];
+		      char *end = EndOf(buf);
+		      char *p;
 		      
-		      strcpy(buf, "Illegal to call private function '");
-		      strcat(buf, $1->name);
-		      strcat(buf, "'");
+		      p = strput(buf, end, "Illegal to call private function '");
+		      p = strput(p, end, $1->name);
+		      p = strput(p, end, "'");
 		      yyerror(buf);
 		  }
-		  if (function_context.num_parameters != -1)
-		      function_context.bindable = FP_NOT_BINDABLE;
+		  if (current_function_context)
+		      current_function_context->bindable = FP_NOT_BINDABLE;
 
 		  $$->kind = NODE_CALL_1;
 		  $$->v.number = F_CALL_FUNCTION_BY_ADDRESS;
 		  $$->l.number = f;
-		  funp = FUNCTION(f);
-		  $$->type = validate_function_call(funp, f, $3->r.expr);
+		  $$->type = validate_function_call(f, $3->r.expr);
 	      } else
 	      if ((f=$1->dn.simul_num) != -1) {
 		  $$->kind = NODE_CALL_1;
 		  $$->v.number = F_SIMUL_EFUN;
 		  $$->l.number = f;
-		  $$->type = (SIMUL(f)->type) & TYPE_MOD_MASK;
+		  $$->type = (SIMUL(f)->type) & ~NAME_TYPE_MOD;
 	      } else 
 	      if ((f=$1->dn.efun_num) != -1) {
 		  $$ = validate_efun_call(f, $3);
@@ -2781,31 +2926,33 @@ function_call:
 		 *
 		 * Don't complain, just grok it.
 		 */
-		int f;
-		function_t *funp;
+		int cf, f;
 
-		if (function_context.num_parameters != -1)
-		    function_context.bindable = FP_NOT_BINDABLE;
+		if (current_function_context)
+		    current_function_context->bindable = FP_NOT_BINDABLE;
 		
-		f = define_new_function($1->name, 0, 0, NAME_UNDEFINED, 0);
+		cf = define_new_function($1->name, 0, 0, NAME_UNDEFINED, 0);
+		f = COMPILER_FUNC(cf)->runtime_index;
 		$$->kind = NODE_CALL_1;
 		$$->v.number = F_CALL_FUNCTION_BY_ADDRESS;
 		$$->l.number = f;
 		$$->type = TYPE_ANY; /* just a guess */
-		funp = FUNCTION(f);
 		if (exact_types) {
-		  char buff[100];
-		  char *p = $1->name;
-		  if (*p == ':') p++;
-		  /* prevent some errors; by making it look like an
-		   * inherited function we prevent redeclaration errors
-		   * if it shows up later
-		   */
-		  funp->flags &= ~NAME_UNDEFINED;
-		  funp->flags |= NAME_INHERITED;
-		  funp->type |= TYPE_MOD_VARARGS;
-		  sprintf(buff, "Undefined function %.50s", p);
-		  yyerror(buff);
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
+		    char *n = $1->name;
+		    if (*n == ':') n++;
+		    /* prevent some errors; by making it look like an
+		     * inherited function we prevent redeclaration errors
+		     * if it shows up later
+		     */
+		    FUNCTION_FLAGS(f) &= ~NAME_UNDEFINED;
+		    FUNCTION_FLAGS(f) |= NAME_INHERITED;
+		    COMPILER_FUNC(cf)->type |= NAME_VARARGS;
+		    p = strput(buf, end, "Undefined function ");
+		    p = strput(p, end, n);
+		    yyerror(buf);
 		}
 	      }
 	    }
@@ -2819,11 +2966,10 @@ function_call:
 		  arrange_call_inherited(name + 1, $$);
 	      } else {
 		  int f;
-		  function_t *funp;
 		  ident_hash_elem_t *ihe;
 		  
-		  if (function_context.num_parameters != -1)
-		      function_context.bindable = FP_NOT_BINDABLE;
+		  if (current_function_context)
+		      current_function_context->bindable = FP_NOT_BINDABLE;
 
 		  f = (ihe = lookup_ident(name)) ? ihe->dn.function_num : -1;
 		  $$->kind = NODE_CALL_1;
@@ -2833,13 +2979,11 @@ function_call:
 		       * below made the function name.  The lexer would
 		       * return L_DEFINED_NAME instead.
 		       */
-		      funp = FUNCTION(f);
-
-		      $$->type = validate_function_call(funp, f, $3->r.expr);
+		      $$->type = validate_function_call(f, $3->r.expr);
 		  } else {
 		      f = define_new_function(name, 0, 0, 
 					      NAME_UNDEFINED, 0);
-		      funp = FUNCTION(f);
+		      f = COMPILER_FUNC(f)->runtime_index;
 		  }
 		  $$->l.number = f;
 		  /*
@@ -2847,19 +2991,21 @@ function_call:
 		   * But, don't complain yet about functions defined
 		   * by inheritance.
 		   */
-		  if (exact_types && (funp->flags & NAME_UNDEFINED)) {
-		      char buff[100];
-		      char *p = $1;
-		      if (*p == ':') p++;
+		  if (exact_types && (FUNCTION_FLAGS(f) & NAME_UNDEFINED)) {
+		      char buf[256];
+		      char *end = EndOf(buf);
+		      char *p;
+		      char *n = $1;
+		      if (*n == ':') n++;
 		      /* prevent some errors */
-		      funp->flags &= ~NAME_UNDEFINED;
-		      funp->flags |= NAME_INHERITED;
-		      funp->type |= TYPE_MOD_VARARGS;
-		      sprintf(buff, "Undefined function %.50s", p);
-		      yyerror(buff);
+		      FUNCTION_FLAGS(f) &= ~NAME_UNDEFINED;
+		      FUNCTION_FLAGS(f) |= (NAME_INHERITED | NAME_VARARGS);
+		      p = strput(buf, end, "Undefined function ");
+		      p = strput(p, end, n);
+		      yyerror(buf);
 		  }
-		  if (!(funp->flags & NAME_UNDEFINED))
-		      $$->type = funp->type & TYPE_MOD_MASK;
+		  if (!(FUNCTION_FLAGS(f) & NAME_UNDEFINED))
+		      $$->type = FUNCTION_DEF(f)->type;
 		  else
 		      $$->type = TYPE_ANY;  /* Just a guess */
 	      }
@@ -2918,13 +3064,17 @@ efun_override: L_EFUN L_COLON_COLON identifier {
 
 	$$ = (ihe = lookup_ident($3)) ? ihe->dn.efun_num : -1;
 	if ($$ == -1) {
-	    char buff[100];
-	    sprintf(buff, "Unknown efun: %s", $3);
-	    yyerror(buff);
+	    char buf[256];
+	    char *end = EndOf(buf);
+	    char *p;
+	    
+	    p = strput(buf, end, "Unknown efun: ");
+	    p = strput(p, end, $3);
+	    yyerror(buf);
 	} else {
 	    push_malloced_string(the_file_name(current_file));
-	    push_constant_string($3);
-	    push_constant_string(main_file_name());
+	    share_and_push_string($3);
+	    copy_and_push_string(main_file_name());
 	    res = safe_apply_master_ob(APPLY_VALID_OVERRIDE, 3);
 	    if (!MASTER_APPROVED(res)) {
 		yyerror("Invalid simulated efunction override");
@@ -2940,7 +3090,7 @@ efun_override: L_EFUN L_COLON_COLON identifier {
 	ihe = lookup_ident("clone_object");
 	push_malloced_string(the_file_name(current_file));
 	push_constant_string("clone_object");
-	push_constant_string(main_file_name());
+	copy_and_push_string(main_file_name());
 	res = safe_apply_master_ob(APPLY_VALID_OVERRIDE, 3);
 	if (!MASTER_APPROVED(res)) {
 	    yyerror("Invalid simulated efunction override");

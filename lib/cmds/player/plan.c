@@ -24,10 +24,10 @@ private void main()
 {
 #ifdef EVERYONE_HAS_A_PLAN
 
-    write("Enter your plan, Stan.\n");
+    out("Enter your plan, Stan.\n");
     new(EDIT_OB, EDIT_TEXT, 0, (: set_plan :));
 
 #else
-    write("Sorry, plans are not available.\n");
+    out("Sorry, plans are not available.\n");
 #endif
 }

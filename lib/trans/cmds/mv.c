@@ -10,23 +10,23 @@ private void move_one(string src, string dst, int force)
 
     if ( is_file(dst) && !force )
     {
-	printf("%s already exists.  Move failed.\n", dst);
+	outf("%s already exists.  Move failed.\n", dst);
     }
     else if ( !(contents = read_file(src)) )
     {
-	printf("Could not read %s.  Move failed.\n", src);
+	outf("Could not read %s.  Move failed.\n", src);
     }
     else if ( !write_file(dst, contents, 1) )
     {
-	printf("%s could not be written to.  Move failed.\n", dst);
+	outf("%s could not be written to.  Move failed.\n", dst);
     }
     else if ( !rm(src) )
     {
-	printf("%s couldn't be removed.\n", src);
+	outf("%s couldn't be removed.\n", src);
     }
     else
     {
-	printf("%s moved to %s.\n", src, dst);
+	outf("%s moved to %s.\n", src, dst);
     }
 }
 
@@ -36,7 +36,7 @@ private void main(mixed argv, mapping flags)
   
     if(arrayp(argv[0]) && sizeof(argv[0]) > 1 && !is_directory(argv[1]))
     {
-	printf("mv: files dir, not mv files file\n");
+	outf("mv: files dir, not mv files file\n");
 	return;
     }
     if(sizeof(argv[0]) > 1)

@@ -10,7 +10,7 @@ private void main()
 {
     object ob = this_body()->query_shell_ob();
 
-    printf("Dir:  %s\nFile: %s\n",
+    outf("Dir:  %s\nFile: %s\n",
 	   ob->get_variable("pwd") || "NONE",
 	   ob->get_variable("cwf") || "NONE");
 }

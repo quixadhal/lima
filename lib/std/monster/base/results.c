@@ -15,13 +15,13 @@ void unwield();
 void die();
 void stun();
 void knock_out();
-void reduce_hp(int);
+void hurt_us(int);
 
 static void print_one_result(class combat_result result) {
     string *msgs;
     string message, mess;
     object *combat_who;
-    
+
     if (!result || result->special & RES_NONE) return;
     if (!(mess = result->message)) {
 	if (result->special) {
@@ -40,14 +40,14 @@ static void print_one_result(class combat_result result) {
 	message = query_weapon()->query_combat_message(mess[1..]);
     else
 	message = mess;
-    
+
     if (!message)
     {
 	simple_action("$N $vare puzzled because $n $vhave no message for '"+mess[1..]+"'.\n");
     }
     else
     {
-//### FIXME: This shouldn't be here; it defeats the purpose of caching it.
+	//### FIXME: This shouldn't be here; it defeats the purpose of caching it.
 	combat_who = ({ this_object(), query_target() });
 
 	msgs = action( combat_who, message, query_weapon(), combat_who[1]->query_weapon());
@@ -59,7 +59,7 @@ static void print_one_result(class combat_result result) {
 //Print the result of a round of combat
 void print_result(class combat_result array arg) {
     foreach (mixed tmp in arg)
-        print_one_result(tmp);
+    print_one_result(tmp);
 }
 
 class combat_result array negotiate_result(class combat_result array result) {
@@ -70,7 +70,7 @@ class combat_result array negotiate_result(class combat_result array result) {
 
 static void do_one_result(class combat_result res) {
     int s = res->special;
-    
+
     if (s & RES_NONE)
 	return;
     if (s & RES_DISARM) {
@@ -86,7 +86,7 @@ static void do_one_result(class combat_result res) {
     if (s & RES_KNOCKOUT)
 	knock_out();
 
-    reduce_hp(res->damage);
+    hurt_us(res->damage);
 }
 
 /* This is actually a misnomer.  It does the result of a round.
@@ -95,8 +95,11 @@ static void do_one_result(class combat_result res) {
  */
 //:FUNCTION do_damage
 //Apply a combat result to us.
-void do_damage(class combat_result array arg) {
-    foreach (mixed res in arg)
-	do_one_result(res);
+void do_damage(mixed arg) {
+    if (arrayp(arg))
+	foreach (mixed res in arg)
+    	do_one_result(res);
+    else
+	do_one_result(arg);
 }
 

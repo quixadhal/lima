@@ -1,0 +1,85 @@
+
+Anyway, here is the spec:
+
+The efun interface:
+
+void parse_init()
+
+   This efun alerts the driver that this_object() is an object that the
+   parser should recognize as a 'game' object.  All objects that do not
+   call parse_init() are ignored by the parser.  Nothing is actually
+   done at this time; the internal parser structures for the object are
+   set up, and the object is marked as being a parseable object, and is
+   marked as being in a non-setup state.
+
+   Objects that are not setup will have the parse_* functions called on
+   them *once* at a later point when the driver decides it needs the
+   information for that object.  After that, the driver remembers what
+   the functions returned.  See parse_refresh().
+
+void parse_refresh()
+   
+   Notifies the driver that the result of the parse_* functions may have
+   changed.  Basically, the driver throws away it's saved information and
+   marks the object as not being set up.
+
+void parse_add_rule(string verb, string rule, int flags)
+
+   Adds rule 'rule' for verb 'verb' to the internal parse tables.  Rule
+   is in the form 'OBJ in OBJ'.  'flags' is reserved for future use.
+
+mixed parse_sentence(string input)
+
+   Asks the driver to handle the input string 'input'.  Return values are
+   1 for everything went spiffy, 0 for 'I haven't a clue what the hell that
+   is' and a string error message if 'input' doesn't make sense, but the
+   parser has a good idea what was intended.  parse_sentence("put belboz in
+   trashcan") -> "Belboz vehemently refuses to be put anywhere."; many of
+   these messages are the result of negotiation with the mudlib, altough
+   there are some canned ones (parse_sentence("get foo") -> "There is no
+   foo here.").
+
+   This is by far the most complex one.  The others are bookkeeping/interface
+   more or less.  The algorithm is more or less as follows:
+
+   1. Find the first word and lookup the appropriate verb.
+   2. For each rule for the verb, match it to the remaining input string
+      and attempt to fit parse the sub parts
+      (i.e. for 'belboz in bag' and 'OBJ in OBJ' try to parse 'belboz'
+       and 'bag' as OBJs)
+      -> at this moment, support for OBJ, OBS, and LIV is planned.  Probably
+         more to specified stuff like 'an object I am holding' etc
+   3. The basic algorithm for parsing an object is to first check if
+      the object table has been loaded (from a previous attempt to parse
+      an OBJ rule).  If not, parsing information is loaded from the
+      objects in environment(this_player()).
+   4. The substring is then iterated over, checking the grammatical types
+      of the words, and seeing if it makes sense/matches an object
+   5. Assuming a rule is properly matched (there is a non-ambiguous object
+      that matches each OBJ rule, etc) the parser then attempts to check if
+      the rule make sense.  It calls the following:
+      -> can_verb() in the zorker object
+           e.g. can_look() { if (!light) return "It is dark"; }
+      -> if there is a direct object, ob->can_verb()
+           e.g. ob::can_drop() { return "It appears attached to your hand with super-glue."; }
+      -> if there is an indirect object:
+           do->can_verb_prep(io)
+           io->can_verb_it_prep()
+           e.g. belboz->can_put_in(bag)
+                bag->can_put_it_in(belboz)
+      (also, if 'all' is involved, there is an implicit loop here assuming
+       that here->can_verb_all() gives us permission to use all with that
+       verb.  Maybe handle this in verb flags.  I dunno)
+   6. Actually execute the verb.  verb_obj->do_verb(object io, object do)
+
+There are some details about imprecise matches, error recovery, and error
+priorities which have been left out here for simplicity.  They only improve
+the error messages, not the functionality.
+
+-Beek
+
+if you need any more info, mail me during the week.  I will be stopping in
+occasionally, just won't have time for any heavy work :)
+---
+Tim Hollebeek                   'There will be a better sig when I have time'
+

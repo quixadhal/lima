@@ -9,9 +9,9 @@ private void main(mixed *arg) {
   foreach(dir in arg[0])
     {
       if (rmdir(dir))
-	printf("Removed directory: %s.\n", dir);
+	outf("Removed directory: %s.\n", dir);
       else
-	printf("Failed to remove directory: %s.\n", dir);
+	outf("Failed to remove directory: %s.\n", dir);
     }
  
 }

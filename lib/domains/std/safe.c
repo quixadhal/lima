@@ -27,6 +27,7 @@ void setup()
     set_closed(1);
     set_long("This is a very large safe");
     set_max_capacity(LARGE);
-
+    set_strength_vs_magic(0);
     set_objects (( [ "/domains/std/example_scroll.c" : 1 ] ));
 }
+

@@ -217,7 +217,7 @@ varargs mixed find_cmd(string cmd, string* path)
 }
 
 
-mixed smart_arg_parsing(mixed argv, string* path)
+mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 {
     mixed		resv;
     mixed		info;
@@ -271,7 +271,7 @@ mixed smart_arg_parsing(mixed argv, string* path)
 	    // make it so that all non-strings are converted to strings, since whatever command
 	    // is going to be expecting a string.
 	    argv = map(argv, (: stringp($1) ? $1 : sprintf("%O",$1) :));
-	    return ({cmd_obj, ([]), implode(argv[1..], " ") });
+	    return ({cmd_obj, ([]), implode_by_arr(argv[1..], implode_info) });
 	}
 	else
 	    return ({ cmd_obj, ([]), 0});

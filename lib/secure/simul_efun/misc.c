@@ -5,6 +5,7 @@
 int is_directory(string);
 string evaluate_path(string);
 object find_body(string);
+object this_body();
 
 object *bodies() {
     return users()->query_body();
@@ -126,8 +127,10 @@ mixed insert( mixed 	to_insert,
 }
 
 
-string parse_ref(string s)
+string parse_ref(string ref)
 {
+// If the first thing is a period, we can ignore it.
+  string s = ref[0] == '.' ? ref[1..] : ref;
   string result;
   string noun;
   string* pieces = explode(s,":");
@@ -147,7 +150,7 @@ string parse_ref(string s)
 	result = "find_body(\""+noun+"\")";
       else if(load_object(evaluate_path(noun)))
 	result = "find_object(evaluate_path(\""+noun+"\"))";
-      else return s;
+      else return ref;
     }
   foreach(noun in pieces)
     {
@@ -167,6 +170,46 @@ string parse_ref(string s)
     return result;
 }
 
+object parse_ref_into_obj(string ref)
+{
+  string 	s = ref[0] == '.' ? ref[1..] : ref;
+  object 	result;
+  string 	noun;
+  string	*pieces = explode(s,":");
+
+  noun = pieces[0];
+  pieces = pieces[1..];
+  switch(noun)
+    {
+    case "me":
+      result = this_body();
+      break;
+    case "here":
+      result = environment(this_body());
+      break;
+    default:
+      if(find_body(noun))
+	result = find_body(noun);
+      else if(!(result = load_object(evaluate_path(noun))))
+	return 0;
+    }
+  foreach(noun in pieces)
+    {
+      switch(noun) {
+      case "shell":
+	result = result->query_shell_ob() || result;
+	break;
+      case "link":
+	result = result->query_link();
+	break;
+      default:
+	result = present(noun, result);
+	break;
+      }
+      
+    }
+    return result;
+}
 
 /* eval lets you evaluate a string as an expression.
    exec_code allows you to evaluate a string as LPC code. */
@@ -189,13 +232,12 @@ varargs mixed exec_code(string arg, string dir, string includefile)
 
     if(!stringp(arg))
 	error("Bad type argument 1 to exec_code");
-
     info = reg_assoc(arg, ({"\\.[a-z:/]+"}),({0}))[0];
     for(i=0; i < sizeof(info);i++)
 	{
 	    if(info[i][0] == '.' && strlen(info[i]) > 1 )
 		{
-		    info[i] = parse_ref(info[i][1..]);
+		    info[i] = parse_ref(info[i]);
 		}
 	}
     arg = implode(info,"");
@@ -496,4 +538,21 @@ int fuzzy_divide(int top, int bottom) {
 	return top / bottom + 1;
     else
 	return top / bottom;
+}
+
+string implode_by_arr(string array arr1, string array arr2)
+{
+  string 	res = "";
+  int		i;
+
+  if(sizeof(arr2) != (sizeof(arr1) + 1))
+    error("second arg needs to have 1 more arg than first.\n");
+
+  res += arr2[0];
+  for(i=0;i<sizeof(arr1);i++)
+    {
+      res += arr1[i];
+      res += arr2[i+1];
+    }
+  return res;
 }

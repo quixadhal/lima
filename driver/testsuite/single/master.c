@@ -247,7 +247,7 @@ string privs_file(string f) {
 static void error_handler(mapping map, int flag) {
   object ob;
   string str;
-  
+
   ob = this_interactive() || this_player();
   if (flag) str = "*Error caught\n";
   else str = "";

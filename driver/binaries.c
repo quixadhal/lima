@@ -26,10 +26,6 @@
 #include <direct.h>
 #endif
 
-#ifdef OPTIMIZE_FUNCTION_TABLE_SEARCH
-#include "functab_tree.h"
-#endif
-
 #ifdef BINARIES
 
 static char *magic_id = "MUDB";
@@ -208,10 +204,10 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
     }
 
     /* function names */
-    for (i = 0; i < (int) p->num_functions; i++) {
-	len = SHARED_STRLEN(p->functions[i].name);
+    for (i = 0; i < (int) p->num_functions_defined; i++) {
+	len = SHARED_STRLEN(p->function_table[i].name);
 	fwrite((char *) &len, sizeof len, 1, f);
-	fwrite(p->functions[i].name, sizeof(char), len, f);
+	fwrite(p->function_table[i].name, sizeof(char), len, f);
     }
 
     /* line_numbers */
@@ -232,6 +228,97 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
     fclose(f);
 }				/* save_binary() */
 
+static program_t *comp_prog;
+
+static int compare_compiler_funcs P2(int *, x, int *, y) {
+    char *n1 = comp_prog->function_table[*x].name;
+    char *n2 = comp_prog->function_table[*y].name;
+
+    /* make sure #global_init# stays last */
+    if (n1[0] == '#') {
+	if (n2[0] == '#')
+	    return 0;
+	return 1;
+    }
+    if (n2[0] == '#')
+	return -1;
+    
+    if (n1 < n2)
+	return -1;
+    if (n1 > n2)
+	return 1;
+    return 0;
+}
+
+static void sort_function_table P1(program_t *, prog) {
+    int *temp, *inverse, *sorttmp, *invtmp;
+    int i, num_runtime;
+    int num = prog->num_functions_defined;
+    
+    if (!num) return;
+
+    temp = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
+    for (i = 0; i < num; i++)
+	temp[i] = i;
+
+    comp_prog = prog;
+    quickSort(temp, num, sizeof(int), compare_compiler_funcs);
+
+    inverse = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
+    for (i = 0; i < num; i++) 
+	inverse[temp[i]] = i;
+
+    /* We're not copying, so we have to do the sort in place.  This is a
+     * bit tricky to do based on a permutation table, but can be done.
+     *
+     * Basically, we figure out how to turn the permutation into n swaps.
+     * If anyone has a reference for an algorithm for this, I'd like to
+     * know; I made this one up.  The basic idea is to do a swap, and then
+     * figure out the correct permutation on the remaining n-1 elements.
+     */
+    sorttmp = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
+    invtmp = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
+    for (i = 0; i < num; i++) {
+	sorttmp[i] = temp[i];
+	invtmp[i] = inverse[i];
+    }
+    
+    for (i = 0; i < num - 1; i++) { /* moving n-1 of them puts the last one
+				       in place too */
+	compiler_function_t cft;
+	int where = sorttmp[i];
+
+	if (i == where) /* Already in the right spot */
+	    continue;
+	
+	cft = prog->function_table[i];
+	prog->function_table[i] = prog->function_table[where];
+	DEBUG_CHECK(sorttmp[invtmp[i]] != i, "sorttmp is messed up.");
+	sorttmp[invtmp[i]] = where;
+	invtmp[where] = invtmp[i];
+	prog->function_table[where] = cft;
+    }
+
+    num_runtime = prog->num_functions_total;
+    for (i = 0; i < num_runtime; i++) {
+	if (!(prog->function_flags[i] & NAME_INHERITED)) {
+	    int oldix = prog->offset_table[i].def.f_index;
+	    DEBUG_CHECK(oldix >= num, "Function index out of range");
+	    prog->offset_table[i].def.f_index = inverse[oldix];
+	}
+    }
+
+    if (prog->type_start) {
+	for (i = 0; i < num; i++)
+	    prog->type_start[i] = prog->type_start[temp[i]];
+    }
+
+    FREE(sorttmp);
+    FREE(invtmp);
+    FREE(temp);
+    FREE(inverse);
+}
+
 #define ALLOC_BUF(size) \
     if ((size) > buf_size) { FREE(buf); buf = DXALLOC(buf_size = size, TAG_TEMPORARY, "ALLOC_BUF"); }
 
@@ -243,9 +330,9 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
 #endif
 
 #ifdef LPC_TO_C
-int int_load_binary P2(char *, name, lpc_object_t *, lpc_obj)
+program_t *int_load_binary P2(char *, name, lpc_object_t *, lpc_obj)
 #else
-int int_load_binary P1(char *, name)
+program_t *int_load_binary P1(char *, name)
 #endif
 {
     char file_name_buf[400];
@@ -254,12 +341,11 @@ int int_load_binary P1(char *, name)
     int i, buf_size, ilen;
     time_t mtime;
     short len;
-    program_t *p;
+    program_t *p, *prog;
     object_t *ob;
     struct stat st;
 
     /* stuff from prolog() */
-    prog = 0;
     num_parse_error = 0;
 
     sprintf(file_name, "%s/%s", SAVE_BINARIES, name);
@@ -398,7 +484,7 @@ int int_load_binary P1(char *, name)
 	    free_string(p->name);
 	    FREE(p);
 	    inherit_file = buf;	/* freed elsewhere */
-	    return 1;		/* not 0 */
+	    return 0;
 	}
 	p->inherit[i].prog = ob->prog;
     }
@@ -421,25 +507,15 @@ int int_load_binary P1(char *, name)
 	p->variable_names[i].name = make_shared_string(buf);
     }
 
-#ifdef OPTIMIZE_FUNCTION_TABLE_SEARCH
-    /* function table tree's root */
-    p->tree_r = (unsigned short) 0xffff;
-#endif
-
     /* function names */
-    for (i = 0; i < (int) p->num_functions; i++) {
+    for (i = 0; i < (int) p->num_functions_defined; i++) {
 	fread((char *) &len, sizeof len, 1, f);
 	ALLOC_BUF(len + 1);
 	fread(buf, sizeof(char), len, f);
 	buf[len] = '\0';
-	p->functions[i].name = make_shared_string(buf);
-
-#ifdef OPTIMIZE_FUNCTION_TABLE_SEARCH
-	/* rebuild function table tree */
-	if (!(p->functions[i].flags & NAME_ALIAS))
-	    add_function(p->functions, &p->tree_r, i);
-#endif
+	p->function_table[i].name = make_shared_string(buf);
     }
+    sort_function_table(p);
 
     /* line numbers */
     fread((char *) &len, sizeof len, 1, f);
@@ -488,7 +564,7 @@ int int_load_binary P1(char *, name)
 
     if (comp_flag)
 	debug_message("done.\n");
-    return 1;
+    return prog;
 }				/* load_binary() */
 
 void init_binaries P2(int, argc, char **, argv)

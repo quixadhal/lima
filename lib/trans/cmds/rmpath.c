@@ -18,14 +18,14 @@ private void main(string * arg)
 
     if ( member_array(path, paths) == -1 )
     {
-	write("The path does not exist in your current path\n");
+	out("The path does not exist in your current path\n");
 	return;
     }
 
     paths -= ({ path });
     shell_ob->set_variable("path", paths);
 
-    write(iwrap(implode(paths,
+    out(iwrap(implode(paths,
 			(: $1 + $2[0..<2] + ", " :),
 			"Your path is now: ")[0..<3]) + "\n");
 }

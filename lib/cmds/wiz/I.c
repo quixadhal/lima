@@ -5,18 +5,24 @@
 
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string str) {
     if(!is_directory(wiz_dir(this_body())))
       {
-	write("Sorry, only full wizards may use the I command.\n");
+	out("Sorry, only full wizards may use the I command.\n");
 	return;
       }
     if (!str || str == "") {
-         write("I <whatever you did>\n");
+         out("I <whatever you did>\n");
          return;
     }
     DID_D->someone_did(str);
-    write("Reported.  (Thank you!)\n");
+    out("Reported.  (Thank you!)\n");
     return;
 }
 

@@ -54,13 +54,39 @@ varargs private nomask int get_current_id(string group_name)
     return this_body()->get_news_group_id(group_name) - 1;
 }
 
+
+private int count_unread_messages( string group, int total )
+{
+    int * ids = NEWS_D->get_messages( group );
+    int id;
+    class news_msg msg;
+    int count = 0;
+    int read_thru_id = get_current_id( group );
+
+    if( !total)
+    {
+	ids = filter_array( ids, (: $1 > $(read_thru_id):));
+    }
+    foreach( id in ids )
+    {
+	msg = NEWS_D->get_message( group, id);
+	if( msg->body )
+	{
+	    count++;
+	}
+    }
+    return count;
+}
+
+
 private nomask string format_group_line(string group)
 {
     int last_id;
+    int p = count_unread_messages( group, 1 );
 
     last_id = NEWS_D->get_group_last_id(group);
-    return sprintf("  %-40s (%s, %d unread)",
-      group, number_of(last_id, "msg"), last_id - get_current_id( group ));
+    return sprintf("  %-40s (%d %s, %d unread)",
+    group, p, (!p) ? "message" : "messages", count_unread_messages( group, 0));
 }
 
 private nomask void add_new_groups()
@@ -88,11 +114,12 @@ private nomask void add_new_groups()
 
 private nomask string grp_cmd_prompt()
 {
+    int unread_no = count_unread_messages( current_group, 0);
     return sprintf( "(%s) %d %s unread of %d [q?lLmgprnc] > ",
       current_group,
-      NEWS_D->get_group_last_id(current_group) - get_current_id(),
-      NEWS_D->get_group_last_id(current_group)-get_current_id()>1?"msgs":"msg",
-      NEWS_D->get_group_last_id(current_group)
+      unread_no,
+      unread_no > 1 ? "msgs" : "msg",
+      count_unread_messages( current_group, 1 )
     );
 }
 
@@ -412,8 +439,8 @@ private nomask void followup_with_message()
     }
 
     lines = ({ sprintf("On %s %s wrote post #%d:",
-      intp(msg->time) ? ctime(msg->time) : msg->time,
-      msg->poster, get_current_id()) });
+	intp(msg->time) ? ctime(msg->time) : msg->time,
+	msg->poster, get_current_id()) });
 
     lines += map_array(explode(msg->body, "\n"), (: "> " + $1 :) );
 

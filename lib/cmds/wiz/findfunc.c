@@ -14,8 +14,8 @@ private void main( mixed *arg )
     func = arg[0];
    ret = function_exists(func, target);
    if (ret) {
-      printf("Function defined in %s.\n", ret);
+      outf("Function defined in %s.\n", ret);
    } else {
-      printf("Function not defined in that object.\n");
+      out("Function not defined in that object.\n");
    }
 }

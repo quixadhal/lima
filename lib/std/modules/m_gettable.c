@@ -116,3 +116,13 @@ int is_gettable()
 {
 	return get_response == 1;
 }
+
+mixed can_pick_up_obj()
+{
+  return 1;
+}
+
+int direct_pick_up_obj()
+{
+  return 1;
+}

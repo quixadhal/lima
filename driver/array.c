@@ -174,6 +174,7 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 
 	delimeter = *del;
 
+#ifndef REVERSIBLE_EXPLODE_STRING
 	/*
 	 * Skip leading 'del' strings, if any.
 	 */
@@ -183,11 +184,11 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 	    if (str[0] == '\0') {
 		return null_array();
 	    }
-#ifdef SANE_EXPLODE_STRING
+#  ifdef SANE_EXPLODE_STRING
 	    break;
-#endif
+#  endif
 	}
-
+#endif
 	/*
 	 * Find number of occurences of the delimiter 'del'.
 	 */
@@ -204,10 +205,15 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 	 * or, one more.
 	 */
 	limit = max_array_size;
+#ifdef REVERSIBLE_EXPLODE_STRING
+	num++;
+	limit--;
+#else
 	if (lastdel != (str + slen - 1)) {
 	    num++;
 	    limit--;
 	}
+#endif
 	if (num > max_array_size) {
 	    num = max_array_size;
 	}
@@ -229,6 +235,11 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 	    }
 	}
 
+#ifdef REVERSIBLE_EXPLODE_STRING
+	ret->item[num].type = T_STRING;
+	ret->item[num].subtype = STRING_MALLOC;
+	ret->item[num].u.string = string_copy(beg, "explode_string: last, len == 1");
+#endif
 	/* Copy last occurence, if there was not a 'del' at the end. */
 	if (*beg != '\0') {
 	    ret->item[num].type = T_STRING;
@@ -237,6 +248,7 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 	}
 	return ret;
     }				/* len == 1 */
+#ifndef REVERSIBLE_EXPLODE_STRING
     /*
      * Skip leading 'del' strings, if any.
      */
@@ -246,10 +258,11 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 	if (str[0] == '\0') {
 	    return null_array();
 	}
-#ifdef SANE_EXPLODE_STRING
+#  ifdef SANE_EXPLODE_STRING
 	break;
-#endif
+#  endif
     }
+#endif
 
     /*
      * Find number of occurences of the delimiter 'del'.
@@ -268,9 +281,13 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
      * Compute number of array items. It is either number of delimiters, or,
      * one more.
      */
+#ifdef REVERSIBLE_EXPLODE_STRING
+    num++;
+#else
     if ((slen <= len) || (lastdel != (str + slen - len))) {
 	num++;
     }
+#endif
     if (num > max_array_size) {
 	num = max_array_size;
     }
@@ -297,11 +314,17 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
     }
 
     /* Copy last occurence, if there was not a 'del' at the end. */
+#ifdef REVERSIBLE_EXPLODE_STRING
+    ret->item[num].type = T_STRING;
+    ret->item[num].subtype = STRING_MALLOC;
+    ret->item[num].u.string = string_copy(beg, "explode_string: last, len != 1");
+#else
     if (*beg != '\0') {
 	ret->item[num].type = T_STRING;
 	ret->item[num].subtype = STRING_MALLOC;
 	ret->item[num].u.string = string_copy(beg, "explode_string: last, len != 1");
     }
+#endif
     return ret;
 }
 
@@ -537,44 +560,27 @@ filter_array P2(svalue_t *, arg, int, num_arg)
 	return;
     }
     else {
-	funptr_t *fp;
-	object_t *ob = 0;
-	char *func;
+	char *flags;
+	svalue_t *v;
+	int res = 0, cnt;
+	function_to_call_t ftc;
+	
+	process_efun_callback(1, &ftc, F_FILTER);
 
-	char *flags = new_string(size, "TEMP: filter: flags");
-	svalue_t *extra, *v;
-	int res = 0, cnt, numex = 0;
-
+	flags = new_string(size, "TEMP: filter: flags");
 	push_malloced_string(flags);
 
-	if ((arg+1)->type == T_FUNCTION){
-	    fp = (arg+1)->u.fp;
-	    if (num_arg > 2) extra = arg+2, numex = num_arg - 2;
-	} else {    
-	    func = (arg+1)->u.string;
-	    if (num_arg < 3) ob = current_object;
-	    else {
-		if ((arg+2)->type == T_OBJECT) ob = (arg+2)->u.ob;
-		else if ((arg+2)->type == T_STRING){
-		    if ((ob = find_object(arg[2].u.string)) && !object_visible(ob)) ob = 0;
-		}
-		if (!ob) bad_argument(arg+2, T_STRING | T_OBJECT, 3, F_FILTER);
-		if (num_arg > 3) extra = arg + 3, numex = num_arg - 3;
-	    }
-	}
-
-	for (cnt = 0; cnt < size; cnt++){
+	for (cnt = 0; cnt < size; cnt++) {
 	    push_svalue(vec->item + cnt);
-	    if (numex) push_some_svalues(extra, numex);
-	    v = ob ? apply(func, ob, 1 + numex, ORIGIN_EFUN)
-		: call_function_pointer(fp, 1 + numex);
-	    if (!IS_ZERO(v)){
+	    v = call_efun_callback(&ftc, 1);
+	    if (!IS_ZERO(v)) {
 		flags[cnt] = 1;
 		res++;
-	    } else flags[cnt] = 0;
+	    } else
+		flags[cnt] = 0;
 	}
 	r = allocate_empty_array(res);
-	if (res){
+	if (res) {
 	    while (cnt--) {
 		if (flags[cnt])
 		    assign_svalue_no_free(&r->item[--res], vec->item+cnt);
@@ -672,7 +678,7 @@ void unique_array_error_handler PROT((void)) {
     FREE((char *)unlist);
 }
 
-void f_unique_array PROT((void)){
+void f_unique_array PROT((void)) {
     array_t *v, *ret;
     int size, i, numkeys = 0, *ind, num_arg = st_num_arg;
     svalue_t *skipval, *sv, *svp;
@@ -680,7 +686,7 @@ void f_unique_array PROT((void)){
     unique_t **head, *uptr, *nptr;
     funptr_t *fp = 0;
     char *func;
-
+    
     size = (v = (sp - num_arg + 1)->u.arr)->size;
     if (!size) {
 	if (num_arg == 3) free_svalue(sp--, "f_unique_array");
@@ -930,42 +936,23 @@ map_array P2(svalue_t *, arg, int, num_arg)
     array_t *arr = arg->u.arr;
     array_t *r;
     int size;
-
+    
     if ((size = arr->size) < 1) r = null_array();
     else {
-	funptr_t *fp = 0;
-	int numex = 0, cnt;
-	object_t *ob;
-	svalue_t *extra, *v;
-	char *func;
+	function_to_call_t ftc;
+	int cnt;
+	svalue_t *v;
 
+	process_efun_callback(1, &ftc, F_MAP);
+	    
 	r = allocate_array(size);
 
 	(++sp)->type = T_ARRAY;
 	sp->u.arr = r;
 
-	if (arg[1].type == T_FUNCTION) {
-	    fp = arg[1].u.fp;
-	    if (num_arg > 2) extra = arg + 2, numex = num_arg - 2;
-	}
-	else {
-	    func = arg[1].u.string;
-	    if (num_arg < 3) ob = current_object;
-	    else{
-		if (arg[2].type == T_OBJECT) ob = arg[2].u.ob;
-		else if (arg[2].type == T_STRING){
-		    if ((ob = find_object(arg[2].u.string)) && !object_visible(ob))
-			ob = 0;
-		}
-		if (num_arg > 3) extra = arg + 3, numex = num_arg - 3;
-		if (!ob) error("Bad argument 3 to map_array.\n");
-	    }
-	}
-	    
 	for (cnt = 0; cnt < size; cnt++){
 	    push_svalue(arr->item + cnt);
-	    if (numex) push_some_svalues(extra, numex);
-	    v = fp ? call_function_pointer(fp, numex + 1) : apply(func, ob, 1 + numex, ORIGIN_EFUN);
+	    v = call_efun_callback(&ftc, 1);
 	    if (v) assign_svalue_no_free(&r->item[cnt], v);
 	    else break;
 	}
@@ -1034,9 +1021,7 @@ map_string P2(svalue_t *, arg, int, num_arg)
 }
 #endif
 
-static funptr_t *sort_array_cmp_funp;
-static object_t *sort_array_cmp_ob;
-static char *sort_array_cmp_func;
+static function_to_call_t *sort_array_ftc;
 
 #define COMPARE_NUMS(x,y) (x < y ? -1 : (x > y ? 1 : 0))
 
@@ -1161,13 +1146,7 @@ int sort_array_cmp P2(svalue_t *, p1, svalue_t *, p2) {
     push_svalue(p1);
     push_svalue(p2);
 
-    if (sort_array_cmp_funp){
-	d = call_function_pointer(sort_array_cmp_funp, 2);
-    } else {	
-	if (sort_array_cmp_ob->flags & O_DESTRUCTED)
-	    error("object used by sort_array destructed\n");
-	d = apply(sort_array_cmp_func, sort_array_cmp_ob, 2, ORIGIN_EFUN);
-    }
+    d = call_efun_callback(sort_array_ftc, 2);
 
     if (!d || d->type != T_NUMBER) {
 	return 0;
@@ -1183,43 +1162,38 @@ f_sort_array PROT((void))
     svalue_t *arg = sp - st_num_arg + 1;
     array_t *tmp = arg->u.arr;
     int num_arg = st_num_arg;
-
+    
     check_for_destr(tmp);
-    tmp = copy_array(tmp);
 
-    switch(arg[1].type){
+    switch(arg[1].type) {
 	case T_NUMBER:
         {
-	    tmp = builtin_sort_array(tmp, arg[1].u.number);
+	    tmp = builtin_sort_array(copy_array(tmp), arg[1].u.number);
 	    break;
 	}
 
 	case T_FUNCTION:
+        case T_STRING:
         {
-	    sort_array_cmp_funp = arg[1].u.fp;
+	    /* 
+	     * We use a global to communicate with the comparison function,
+	     * so we have to be careful to make sure we can recurse (the
+	     * callback might call sort_array itself).  For this reason, the
+	     * ftc structure is on the stack, and we just keep a pointer
+	     * to it in a global, being careful to save and restore the old
+	     * value.
+	     */
+	    function_to_call_t ftc, *old_ptr;
+
+	    old_ptr = sort_array_ftc;
+	    sort_array_ftc = &ftc;
+	    process_efun_callback(1, &ftc, F_SORT_ARRAY);
+
+	    tmp = copy_array(tmp);
 	    quickSort((char *) tmp->item, tmp->size, sizeof(tmp->item), sort_array_cmp);
+	    sort_array_ftc = old_ptr;
 	    break;
 	}
-
-	case T_STRING:
-        {
-	    sort_array_cmp_funp = 0;
-	    sort_array_cmp_ob = 0;
-	    sort_array_cmp_func = (arg+1)->u.string;
-	    if (num_arg == 2) {
-		sort_array_cmp_ob = current_object;
-		if (sort_array_cmp_ob->flags & O_DESTRUCTED) sort_array_cmp_ob = 0;
-	    } else if (arg[2].type == T_OBJECT)
-		sort_array_cmp_ob = arg[2].u.ob;
-	    else if (arg[2].type == T_STRING) {
-		sort_array_cmp_ob = find_object(arg[2].u.string);
-		if (sort_array_cmp_ob && !object_visible(sort_array_cmp_ob)) sort_array_cmp_ob = 0;
-	    }
-	    if (!sort_array_cmp_ob) bad_arg(3, F_SORT_ARRAY);
-	    quickSort((char *) tmp->item, tmp->size, sizeof(tmp->item), sort_array_cmp);
-	    break;
-	}
-
     }
     
     pop_n_elems(num_arg);

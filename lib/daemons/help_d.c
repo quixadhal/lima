@@ -160,7 +160,7 @@ nomask string * find_topic(string name)
     return filter_array(result, function(string file, int lvl) {
 	array parts = explode(file, "/");
 	if (sizeof(parts) < 3) return 1;
-	return (lvl >= restrict[parts[2]]);
+	return (lvl >= restrict[parts[1]]);
     }, lvl);
 }
 

@@ -11,8 +11,14 @@ private void main( string str) {
 
   if ( !str )
   {
-    write("Echo what?\n");
+    out("Echo what?\n");
     return;
+  }
+
+  if(!end_of_pipeline())
+  {
+     out(str);
+     return;
   }
 
     tell_room(environment(this_body()), str + "\n", 0, ({ this_body() }));

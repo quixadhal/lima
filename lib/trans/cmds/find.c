@@ -12,7 +12,6 @@ private void
 main(mixed argv, mapping flags)
 {
   string file;
-  string output = "";
   string this_output;
   argv[1] = decompose(map(argv[1], (:is_directory($1) ?
 			  glob($1 + ($1[<1] == '/' ? "*" : "/*")): $1:)));
@@ -26,10 +25,9 @@ main(mixed argv, mapping flags)
 	ed_cmd("n");
       this_output = ed_cmd("1,$g/"+argv[0]+"/p");
       if(this_output && strlen(this_output))
-	output += sprintf("[%s]:\n%s\n\n", file, this_output);
+	outf("[%s]:\n%s\n\n", file, this_output);
       ed_cmd("q");
     }
-  if(!strlen(output))
-    output = "No matches found.\n";
-  more(output);
+  if(!strlen(get_output()))
+    out("No matches found.\n");
 }

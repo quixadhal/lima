@@ -9,17 +9,17 @@ private void main(string str) {
     string rule;
     if ( !is_directory(wiz_dir(this_user())) )
     {
-        write("Sorry, only full wizards can remove emotes.\n");
+        out("Sorry, only full wizards can remove emotes.\n");
         return;
     }
 
     if (!str) {
-	write("rmemote verb\n");
+	out("rmemote verb\n");
 	return;
     }
     sscanf(str, "%s %s", str, rule);
     if (SOUL_D->remove_emote(str, rule))
-	write("Removed.\n");
-    else write("Failed.\n");
+	out("Removed.\n");
+    else out("Failed.\n");
 }
 

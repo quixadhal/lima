@@ -1,0 +1,27 @@
+
+
+
+
+
+M_PARSING
+
+M_PARSING helps interact with the parser.
+
+Important Functions:
+
+    condense_phrase(arr) -- condenses a 3 element array of parser output:
+                            ({object, prep, object}) into a single object or group of objects.
+                            Essentially reduces prepositional phrases, but not super-studly-smart.
+
+    nonsense()           -- Sets the message the user is going to see on failure of
+                            his action to something random along the lines of:  "What a concept!"
+
+    useless(action)      -- Returns a string that randomly adds to the string
+                            action something along the lines of: " is a waste of time".  Eg,
+                            useless("beating the drum")  might return "beating the drum isn't
+                            notably helpful."
+
+
+Last Updated: Wednesday, May 01, 1996
+
+

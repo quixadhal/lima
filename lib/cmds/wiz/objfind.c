@@ -23,5 +23,5 @@ private void main(string arg)
     envs = ([ ]);
     map_array(obs, (: envs[$1] = environment($1) :));
 
-    more(sprintf("%O\n", envs));
+    out(sprintf("%O\n", envs));
 }

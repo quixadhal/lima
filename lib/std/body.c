@@ -23,6 +23,10 @@ inherit MONSTER;
 inherit M_ACCESS;
 inherit M_SMARTMOVE;
 
+#ifdef USE_STATUS_LINE
+inherit M_STATUS_LINE;
+#endif
+
 #ifndef EVERYTHING_SAVES
 private inherit M_SAVE; // don't want people calling load_from_string()
                         // externally
@@ -416,7 +420,7 @@ void die()
     if ( wizardp(link) )
     {
 	if(is_visible())
-	    simple_action("If $n $vwere mortal, $n would now no longer be mortal.\n");
+	    simple_action("If $n $vwas mortal, $n would now no longer be mortal.\n");
 	heal_us(10000);
 	stop_fight();
 	return;
@@ -678,4 +682,43 @@ string inventory_header()
 int ob_state() 
 {
   return -1;
+}
+
+
+void force_look()
+{
+    environment(this_object())->do_looking();
+}
+
+// Called when our inventory destructs.  If we don't move, we get dested too.
+void move_or_destruct(object suggested_dest) {
+    mixed err;
+    object dested_env = environment();
+    mixed destination;
+
+    if ( !query_link() )
+	return;
+
+    // Might want to add another failsafe room on the end of this list
+    // that doesn't inherit room.c and is guaranteed to load/accept people.
+    foreach (destination in ({ suggested_dest, VOID_ROOM, START })) {
+	err = catch {
+	    if (stringp(destination))
+		destination = load_object(destination);
+	    if (destination != dested_env) {
+		err = move(destination);
+		if (stringp(err))
+		    throw(err);
+	    } else
+		throw("Being destructed.\n");
+        };
+        if (destination && !err) {
+            write(dested_env->short() + " being destructed: You have been moved to " + destination->short() + "\n");
+            return;
+        } else {
+	    if (destination)
+		write("Cannot move to " + destination->short() + ": " + err);
+	}
+    }
+    write("Uh oh..., couldn't move you anywhere.  Goodbye.\n");
 }

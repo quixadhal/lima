@@ -12,6 +12,7 @@
                "* and recompile.                                         *\n" \
                FOOTER
 
+static
 void create() {
     string badness = "";
 

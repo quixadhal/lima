@@ -6,22 +6,46 @@ inherit CMD;
 
 // Rust
 
-private void main(mixed *arg) {
+private void main(mixed *arg, mapping flags, string stdin) {
   string file;
   int i;
   string chunk;
 
-  foreach(file in arg[0])
+  if(end_of_pipeline())
     {
-      i = 0;
-      if(!is_file(file))
-	printf("Warning: %s failed.\n", file);
-      else
-	chunk = read_file(file);
-//	while(chunk = read_file(file,i,i+=100))  crashes the driver on large files
-	  write(chunk);
+      if(arg[0])
+	foreach(file in arg[0])
+	  {
+	    i = 0;
+	    if(!is_file(file))
+	      printf("Warning: %s failed.\n", file);
+	    else
+	      chunk = read_file(file);
+	    write(chunk);
+	  }
+	else
+	  {
+	    write(stdin);
+	  }
+	return;
     }
-    return;
+  else
+    {
+      if(arg[0])
+	foreach(file in arg[0])
+	  {
+	    i = 0;
+	    if(!is_file(file))
+	      printf("Warning: cat of %s failed.\n", file);
+	    else
+	      chunk = read_file(file);
+	    out(chunk);
+	  }
+	else
+	  {
+	    out(stdin);
+	  }
+    }
 }
 
 

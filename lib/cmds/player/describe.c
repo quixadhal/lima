@@ -59,6 +59,12 @@ nomask void begin_describing()
 }
 
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string s)
 {
     if ( stringp(s) && strlen(s) )
@@ -68,7 +74,7 @@ private void main(string s)
 	return;
     }
 
-    write("Describe yourself in "+ MAX_DESCRIP_SIZE+" lines or less.\n"
+    out("Describe yourself in "+ MAX_DESCRIP_SIZE+" lines or less.\n"
 	  "Type '.' on a line of it's own when done.\n"
 	  "Type '~q' to abort this description.\n"
 	  "-----------------------------------------\n");

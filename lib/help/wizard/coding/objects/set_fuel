@@ -1,0 +1,18 @@
+
+
+Set_Fuel()
+
+Set_Fuel() takes an integer as an argument.
+That represents the amount of time a 
+light source can stay lit, i.e. eventually
+it will burn out.  In your objects
+create(), have the following function:
+
+     set_fuel(9999)
+
+Also make sure you inherit M_LIGHTABLE, as 
+this is where most of the work for your
+light source is done at.
+
+
+  

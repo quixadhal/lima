@@ -1,0 +1,23 @@
+The area
+
+Let's say you have a monster that you want to wander around, but you don't
+want him to leave your castle.  Well, the castle is a pretty big area.
+We have to tell Lima when we want a room to be in this area. We do this by
+picking a name for our area, for example, "my_castle".  Then, we tell the mud
+that our room is in that area by adding the following code to the room's
+create () function:
+
+    set_area ("my_castle");
+
+Tips:
+
+   Choose a descriptive name for your areas
+   Be consistant!  Your area name shouldn't:
+       
+	  Change spelling
+	  Change case
+	  etc...
+       
+
+
+

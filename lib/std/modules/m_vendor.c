@@ -38,6 +38,7 @@ mixed set_currency_type(string type)
     currency_type = type;
 }
 
+
 mixed query_currency_type()
 {
     return currency_type;

@@ -1,0 +1,39 @@
+
+
+Setup_Door()
+
+The setup for a door is really easy to do.
+Most of the work is done for you by
+inheriting DOOR, in your object.  What you
+need to do is tell the mud a unique name 
+for your door, and what direction/wall it 
+will be on.  This is done by adding the
+following function into your create():
+
+    setup_door("Large Metal Door", dir)
+
+
+dir is an argument that is passed into the 
+door through the create(), your create 
+should look like this 
+
+    void create(string dir) 
+
+
+One other thing that needs to be done is 
+not in the door itself, but in the room 
+that the door will be in.  In order to 
+get the direction to be passed into the 
+create of your door, you must give
+the direction as an argument to 
+set_objects() in the room. As an example
+
+  set_objects((["path_to_my_door":({"west"}) ]) );
+
+
+By doing the above, your door will be 
+in the west wall of the room.
+
+
+
+

@@ -116,7 +116,6 @@
 #  define FREE(x)                 wrappedfree(x)
 #  define REALLOC(x, y)           wrappedrealloc(x, y)
 #  define CALLOC(x, y)            wrappedcalloc(x, y)
-#  define XALLOC(x)               xalloc(x)
 #  define DXALLOC(x, t, d)        xalloc(x)
 #  define DMALLOC(x, t, d)        MALLOC(x)
 #  define DREALLOC(x, y, t, d)    REALLOC(x,y)
@@ -128,7 +127,6 @@
 
 #    define MALLOC(x)               debugmalloc(x, 0, (char *)0)
 #    define DMALLOC(x, t, d)        debugmalloc(x, t, d)
-#    define XALLOC(x)               debugmalloc(x, 0, (char *)0)
 #    define DXALLOC(x, t, d)        debugmalloc(x, t, d)
 #    define FREE(x)                 debugfree(x)
 #    define REALLOC(x,y)            debugrealloc(x,y,0,(char *)0)

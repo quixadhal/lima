@@ -18,7 +18,7 @@ inherit CMD;
 
 private void main(mixed *arg) {
     if (!arg[0]->stat_me()) {
-	printf("No information available for %O.\n", arg[0]);
+	outf("No information available for %O.\n", arg[0]);
 	return;
     }
     return;

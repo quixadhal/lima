@@ -38,6 +38,9 @@ nomask void channel_rcv_soul(string channel_name, mixed * data)
     channel_rcv_string(channel_name, data[1][1]);
 }
 
+void create()
+{
 #ifdef CONF_IN_PROGRESS
-void create() { log_channel("plyr_conf"); }
+    log_channel("plyr_conf");
 #endif
+}

@@ -15,7 +15,7 @@ private void main( mixed *arg)
     target->move( environment( this_body() ) );
     if( environment( target ) == start_place )
     {
-	write( "Trans:  move failed.\n" );
+	out( "Trans:  move failed.\n" );
 	return;
     }
     target_name = target->query_name();
@@ -26,7 +26,7 @@ private void main( mixed *arg)
     if (!(target->query_link() && interactive(target->query_link()) && target_name == "Someone") && start_place)
 	tell_object( start_place , sprintf( "%s dissapears in a puff of smoke.\n",
 	    target_name ) );
-    printf( "You summon %s to you.\n", target_name );
+    outf( "You summon %s to you.\n", target_name );
     tell_object( target, "You are magically transported somewhere.\n" );
 
     if( !( target->query_link() && interactive(target->query_link()) &&

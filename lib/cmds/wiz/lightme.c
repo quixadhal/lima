@@ -6,5 +6,5 @@ inherit CMD;
 private void main( mixed *arg)
 {
     this_body()->set_light(arg[0]);
-  printf("Light set to %i.\n", arg[0]);
+  outf("Light set to %i.\n", arg[0]);
 }

@@ -44,8 +44,7 @@ set_throwable( int g )
     }
 }
 
-mixed
-throw(object target)
+mixed throw(object target)
 {
     object env;
     mixed tmp;
@@ -55,23 +54,21 @@ throw(object target)
     
     env = environment();
     tmp = move(environment(this_body()));
-    if (tmp == 1) {
-
-      if(!target)
+    if (tmp == 1)
+    {
+	if(!target)
 	{
-	  this_body()->simple_action("$N $vthrow a $o.\n", this_object());
-	  return 1;
+	    this_body()->simple_action("$N $vthrow a $o.\n", this_object());
+	    return 1;
 	}
-      else
+	else
 	{
-	  // Add skill stuff here...
-	  this_body()->targetted_action("$N $vthrow a $o at $t.  It bounces off of $p1 head, and lands in front of $p1 feet.\n", target, this_object());
+	    // Add skill stuff here...
+	    this_body()->targetted_action("$N $vthrow a $o at $t.  It bounces off of $p1 head, and lands in front of $p1 feet.\n", target, this_object());
 
-	  return 1;
+	    return 1;
 	}
     }
-
-
 }
 
 int is_throwable()

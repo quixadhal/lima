@@ -66,6 +66,9 @@ void use_data_file(string fname)
     edge_rooms = lines[i..];
 }
 
+void setup()
+{
+}
 object virtual_create(string arg)
 {
     int idx = member_array('/', arg);
@@ -77,6 +80,7 @@ object virtual_create(string arg)
     string exit_w;
     object room;
 
+setup();
     if ( idx == -1 )
 	return 0;
 
@@ -110,6 +114,7 @@ object virtual_create(string arg)
     room->add_exit("east", exit_e);
     room->add_exit("south", exit_s);
     room->add_exit("west", exit_w);
+
 
     return room;
 }

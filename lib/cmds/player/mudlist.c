@@ -13,13 +13,13 @@ inherit M_REGEX;
 ** NOTE: at the moment, the first two elements must specify the "Up"
 **       state and the mud name
 */
-#define INFO_DEFAULT	({ \
-    ({ 0, 2 }), ({ 11, 16 }), \
-    ({ 1, 15 }), ({ 2, 5 }), ({ 5, 15 }), ({ 9, 19 }) })
-
 #define INFO_MUDTYPE	({ \
-    ({ 0, 2 }), ({ 11, 20 }), \
-    ({ 1, 15 }), ({ 2, 5 }), ({ 8, 8 }), ({ 9, 19 }) })
+    ({ 0, 2 }), ({ 11, 18 }), \
+    ({8,8}),({ 1, 15 }), ({ 2, 5 }), ({ 5, 18 })})
+
+#define INFO_DEFAULT	({ \
+    ({ 0, 2 }), ({ 11, 15 }), \
+    ({1, 15}), ({2,5}), ({5, 12}), ({ 9, 17 }) })
 
 
 static private string * headers = ({
@@ -66,7 +66,7 @@ private void main(mixed *arg, mapping flags)
 	matches = insensitive_regexp(muds, "^" + translate(arg[0]));
 	if ( !sizeof(matches) )
 	{
-	    printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
+	    outf("No muds out of %d match that pattern.\n", sizeof(mudlist));
 	    return;
 	}
     }
@@ -77,7 +77,7 @@ private void main(mixed *arg, mapping flags)
 	info = INFO_DEFAULT;
     search_str = flags["s"];
 
-    format = implode(info, (: $1 + sprintf("%%-%ds ", $2[1]) :), "");
+    format = implode(info, (: $1 + sprintf("%%-%ds  ", $2[1]) :), "");
     format[<1] = '\n';
 
     matched = sizeof(matches);
@@ -128,10 +128,12 @@ private void main(mixed *arg, mapping flags)
     output = sprintf("%d matches out of %d muds. %d are UP.\n",
 		     matched, sizeof(mudlist), upcount) + output;
 
-    more(output);
+    out(output);
 }
 
 void player_menu_entry()
 {
-    main(0, 0);
+  bare_init();
+  main(0, 0);
+  done_outputing();
 }

@@ -106,7 +106,7 @@ int press(string name)
   }
 }
 
-void catch_tell(string s)
+void receive_outside_msg(string s)
 {
   if(state)
     transcript += s;

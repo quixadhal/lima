@@ -74,6 +74,44 @@ varargs void dump_did_info(int time, string * header, string pattern,
     more(output, 0, continuation);
 }
 
+varargs string get_did_info(int time, string * header, string pattern,
+			   function continuation)
+{
+    int index;
+    string * output = header;
+    mixed *matches;
+
+    if ( !header )
+	output = ({ "Change Log",
+		    "**********",
+		    "" });
+
+    index = sizeof(did) - 1;
+    while (index > 0 && time < did[index][0])
+	index--;
+
+    /* we went too far back in time. move up one entry. */
+    if ( index )
+	index++;
+
+    if ( index >= sizeof(did) )
+    {
+	if ( continuation )
+	    evaluate(continuation);
+	return;
+    }
+
+    for ( ; index < sizeof(did); index++)
+    {
+	if ( !pattern || regexp(did[index][1], translate(pattern,1)) )
+	    output += explode(iwrap(sprintf("%s: %s",
+					    ctime(did[index][0]),
+					    did[index][1])), "\n") + ({ "" });
+    }
+
+    return implode(output,"\n");
+}
+
 varargs void
 print_changelog_to_file(string file, int time, int show_date)
 {

@@ -124,7 +124,7 @@ mixed direct_kill_liv(object ob) {
     return 1;
 }
 
-mixed direct_kill_liv_with_ob(object ob) {
+mixed direct_kill_liv_with_obj(object ob) {
     return 1;
 }
 

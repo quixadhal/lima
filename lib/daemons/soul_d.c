@@ -41,6 +41,12 @@ create() {
         adverbs = ({});
 }
 
+
+int stat_me() {
+    write("Number of emotes: " + sizeof(emotes));
+    return 1;
+}
+
 int
 add_emote(string verb, mixed rule, string array parts)
 {

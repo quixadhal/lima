@@ -23,9 +23,9 @@ private void main(string arg)
 
     if ( !arg )
     {
-	printf("%s:  (Local Time is: %s)\n%s",
+	outf("%s:  (Local Time is: %s)\n%s",
 	       mud_name(), ctime(time()), DIVIDER);
-	write("Name         IP number                 IP name\n"+DIVIDER);
+	out("Name         IP number                 IP name\n"+DIVIDER);
 
 	foreach ( user in users() )
 	{
@@ -36,11 +36,11 @@ private void main(string arg)
 	    else
 		userid = capitalize(userid);
 
-	    printf("%-12s %-25s %-25s\n",
+	    outf("%-12s %-25s %-25s\n",
 		   userid, query_ip_number(user), query_ip_name(user));
 	}                                      
 	x = sizeof(users());
-	printf("%sCurrently there %s %d player%s.\n",DIVIDER,
+	outf("%sCurrently there %s %d player%s.\n",DIVIDER,
 	       (x>1?"are":"is"),x,(x>1?"s":""));
 	return;
     }
@@ -67,11 +67,11 @@ private void main(string arg)
 	if (str != query_ip_number(userlist[0]))
 	    str += " ("+query_ip_number(userlist[0])+")";
 
-	printf("There %s %d user%s from %s:\n",
+	outf("There %s %d user%s from %s:\n",
 	       (x>1?"are":"is"),x,(x>1?"s":""),str);  
-	printf("%-=78s",implode(n,", ")+".\n");
+	outf("%-=78s",implode(n,", ")+".\n");
     }
     else
-	write("Nobody is connected from that address.\n");
+	out("Nobody is connected from that address.\n");
 }  
  

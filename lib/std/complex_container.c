@@ -200,7 +200,7 @@ varargs string inventory_recurse(int depth, mixed avoid) {
 
     str = "";
     if(!arrayp(avoid))
-      avoid = ({ });
+avoid = ({ avoid });
     obs = all_inventory(this_object()) - avoid;
 
     foreach (object ob in obs) {

@@ -3,6 +3,8 @@
 #ifndef _MAPPING_H
 #define _MAPPING_H
 
+#define MAP_POINTER_HASH(x) (((unsigned int)x) >> 4)
+
 typedef struct mapping_node_s {
     struct mapping_node_s *next;
     svalue_t values[2];

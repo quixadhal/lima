@@ -18,7 +18,7 @@ main(mixed *arg) {
     shadow = new("/secure/shadows/dbxtracer_shadow");
     if (!(shadow->start_shadowing(ob)))
     {
-	write("Failed.\n");
+	out("Failed.\n");
 	destruct(shadow);
     }
     

@@ -20,45 +20,65 @@ inherit CMD;
 private void main(string arg)
 {
 #ifndef USE_STATS
-    write(mud_name() + " has no player statistics, sorry.\n");
+    out(mud_name() + " has no player statistics, sorry.\n");
 #else
 
     string name;
+    string * guilds;
+    string g_info;
 
-    printf("%76'-='s-\n", "");
+    outf("%76'-='s-\n", "");
 
 #ifdef USE_TITLES
     name = this_body()->query_title();
 #else
     name = this_body()->query_name();
 #endif
-    printf("%s  (%s)\n", name, wizardp(this_user()) ? "Wizard" : "Mortal");
+    outf("%s  (%s)\n", name, wizardp(this_user()) ? "Wizard" : "Mortal");
 
-    printf("%76'-='s-\n", "");
+    outf("%76'-='s-\n", "");
 
-    printf("Eval: %d   Guild: %s   Race: %s\n",
-	   1, "Goober", (capitalize(this_body()->query_race() || "none")));
+    guilds = this_body()->guilds_belong();
+    if ( guilds )
+    {
+	if ( sizeof(guilds) > 1 )
+	    g_info = "Guilds: " + implode(guilds, ", ");
+	else if ( sizeof(guilds) == 0 )
+	    g_info = "Guilds: none";
+	else
+	    g_info = "Guild: " + guilds[0];
+    }
+    else
+    {
+	g_info = "";
+    }
+//### get the eval here...
+    outf("Eval: %d   %s\n",
+	 1, g_info);
 //### xp, advancement info
-    write("<< xp, advancement info goes here >>\n");
+    out("<< xp, advancement info goes here >>\n");
+    outf("Align: %s\n",
+	 "Neutral");
 
-    printf("%77'-'s\n", "");
+    outf("%77'-'s\n", "");
 
-    printf("Hp: %d (%d)\nSp: %d (%d)\nAlign: %s\n",
-	   this_body()->query_hp(), this_body()->query_max_hp(),
-	   1, 1, "Neutral");
-    printf("Basic:   Str: %-3d   Agi: %-3d  Int: %-3d  Wil: %-3d\n",
+    outf("Hp: %d (%d)   Sp: %d (%d)   %20s\n",
+	 this_body()->query_hp(), this_body()->query_max_hp(),
+	 1, 1,
+	 "Race: " + (capitalize(this_body()->query_race()) || "none"));
+    outf("Basic:   Str: %-3d   Agi: %-3d  Int: %-3d  Wil: %-3d\n",
 	   this_body()->query_str(), this_body()->query_agi(),
 	   this_body()->query_int(), this_body()->query_wil());
-    printf("Derived: Con: %-3d   Wis: %-3d  Cha: %-3d\n",
+    outf("Derived: Con: %-3d   Wis: %-3d  Cha: %-3d\n",
 	   this_body()->query_con(), this_body()->query_wis(),
 	   this_body()->query_cha());
 
-    printf("%77'-'s\n", "");
+    outf("%77'-'s\n", "");
 
 //### other misc stats (e.g. sober, poison, wimpy, etc)
-    write("<< other misc data: sober, poison, cash, etc >>\n");
+    out("<< other misc data: sober, poison, cash, etc >>\n");
 
-    printf("%76'-='s-\n", "");
+    outf("%76'-='s-\n", "");
 
 #endif
 }

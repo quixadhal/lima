@@ -61,12 +61,12 @@ f_add_action PROT((void))
 
 	for (i = 0; i < n; i++){
 	    if (sv[i].type == T_STRING){
-		add_action(sp-1, sv[i].u.string, flag);
+		add_action(sp-1, sv[i].u.string, flag & 3);
 	    }
 	}
 	free_array((sp--)->u.arr);
     } else {
-	add_action((sp-1), sp->u.string, flag);
+	add_action((sp-1), sp->u.string, flag & 3);
 	free_string_svalue(sp--);
     }
     pop_stack();
@@ -281,13 +281,25 @@ f_call_other PROT((void))
 void
 f_call_out PROT((void))
 {
-    svalue_t *arg;
+    svalue_t *arg = sp - st_num_arg + 1;
+    int num = st_num_arg - 2;
+#ifdef CALLOUT_HANDLES
+    int ret;
 
-    arg = sp - st_num_arg + 1;
     if (!(current_object->flags & O_DESTRUCTED))
-	new_call_out(current_object, arg, arg[1].u.number,
-		     st_num_arg - 3, (st_num_arg >= 3) ? &arg[2] : 0);
-    pop_n_elems(st_num_arg);
+	ret = new_call_out(current_object, arg, arg[1].u.number, num, arg + 2);
+    /* args have been transfered; don't free them;
+       also don't need to free the int */
+    sp -= num + 1;
+    /* the function */
+    free_svalue(sp, "call_out");
+    put_number(ret);
+#else
+    if (!(current_object->flags & O_DESTRUCTED))
+	new_call_out(current_object, arg, arg[1].u.number, num, arg + 2);
+    sp -= num + 1;
+    free_svalue(sp--);
+#endif
 }
 #endif
 
@@ -296,6 +308,25 @@ void
 f_call_out_info PROT((void))
 {
     push_refed_array(get_all_call_outs());
+}
+#endif
+
+#if defined(F_CALL_STACK) || defined(F_ORIGIN)
+char *origin_name P1(int, orig) {
+    /* FIXME: this should use ffs() if available (BSD) */
+    int i = 0;
+    static char *origins[] = {
+	"driver",
+	"local",
+	"call_other",
+	"simul",
+	"call_out",
+	"efun",
+	"function pointer",
+	"functional"
+    };
+    while (orig >>= 1) i++;
+    return origins[i];
 }
 #endif
 
@@ -337,9 +368,13 @@ f_call_stack PROT((void))
 	for (i = 0; i < n; i++) {
 	    ret->item[i].type = T_STRING;
 	    if (((csp - i)->framekind & FRAME_MASK) == FRAME_FUNCTION) {
+		program_t *prog = (i ? (csp-i+1)->prog : current_prog);
+		int index = (csp-i)->fr.table_index;
+		compiler_function_t *cfp = &prog->function_table[index];
+
 		ret->item[i].subtype = STRING_SHARED;
-		ret->item[i].u.string = (csp - i)->fr.func->name;
-		ref_string((csp - i)->fr.func->name);
+		ret->item[i].u.string = cfp->name;
+		ref_string(cfp->name);
 	    } else {
 		ret->item[i].subtype = STRING_CONSTANT;
 		ret->item[i].u.string = (((csp - i)->framekind & FRAME_MASK) == FRAME_CATCH) ? "CATCH" : "<function>";
@@ -347,9 +382,14 @@ f_call_stack PROT((void))
 	}
 	break;
     case 3:
-	for (i = 0; i < n; i++) {
-	    ret->item[i].type = T_NUMBER;
-	    ret->item[i].u.number = (csp - i)->caller_type;
+	ret->item[0].type = T_STRING;
+	ret->item[0].subtype = STRING_CONSTANT;
+	ret->item[0].u.string = origin_name(caller_type);
+	
+	for (i = 1; i < n; i++) {
+	    ret->item[i].type = T_STRING;
+	    ret->item[i].subtype = STRING_CONSTANT;
+	    ret->item[i].u.string = origin_name((csp-i+1)->caller_type);
 	}
 	break;
     }
@@ -377,6 +417,20 @@ f_children PROT((void))
     vec = children(sp->u.string);
     free_string_svalue(sp);
     put_array(vec);
+}
+#endif
+
+#ifdef F_CLASSP
+void
+f_classp PROT((void))
+{
+    if (sp->type == T_CLASS) {
+	free_array(sp->u.arr);
+	*sp = const1;
+    } else {
+	free_svalue(sp, "f_classp");
+	*sp = const0;
+    }
 }
 #endif
 
@@ -818,8 +872,17 @@ f_filter PROT((void))
 void
 f_find_call_out PROT((void))
 {
-    int i = find_call_out(current_object, sp->u.string);
-    free_string_svalue(sp);
+    int i;
+#ifdef CALLOUT_HANDLES
+    if (sp->type == T_NUMBER) {
+	i = find_call_out_by_handle(sp->u.number);
+    } else { /* T_STRING */
+#endif
+	i = find_call_out(current_object, sp->u.string);
+	free_string_svalue(sp);
+#ifdef CALLOUT_HANDLES
+    }
+#endif
     put_number(i);
 }
 #endif
@@ -885,15 +948,15 @@ f_function_profile PROT((void))
 	load_ob_from_swap(ob);
     }
     prog = ob->prog;
-    nf = prog->num_functions;
+    nf = prog->num_functions_defined;
     vec = allocate_empty_array(nf);
     for (j = 0; j < nf; j++) {
 	map = allocate_mapping(3);
-	add_mapping_pair(map, "calls", prog->functions[j].calls);
-	add_mapping_pair(map, "self", prog->functions[j].self
-			 - prog->functions[j].children);
-	add_mapping_pair(map, "children", prog->functions[j].children);
-	add_mapping_shared_string(map, "name", prog->functions[j].name);
+	add_mapping_pair(map, "calls", prog->function_table[j].calls);
+	add_mapping_pair(map, "self", prog->function_table[j].self
+			 - prog->function_table[j].children);
+	add_mapping_pair(map, "children", prog->function_table[j].children);
+	add_mapping_shared_string(map, "name", prog->function_table[j].name);
 	vec->item[j].type = T_MAPPING;
 	vec->item[j].u.map = map;
     }
@@ -1105,9 +1168,9 @@ f_inherits PROT((void))
 }
 #endif
 
-#ifdef F_INHERIT_LIST
+#ifdef F_SHALLOW_INHERIT_LIST
 void
-f_inherit_list PROT((void))
+f_shallow_inherit_list PROT((void))
 {
     array_t *vec;
 
@@ -1350,8 +1413,10 @@ void
 f_map_delete PROT((void))
 {
     mapping_delete((sp - 1)->u.map, sp);
+#ifndef COMPAT_32
     pop_stack();
     free_mapping((sp--)->u.map);
+#endif
 }
 #endif
 
@@ -1544,45 +1609,23 @@ f_message PROT((void))
     int num_arg = st_num_arg;
     svalue_t *args;
 
-    static array_t vtmp1 =
-    {1,
-#ifdef DEBUG
-     1,
-#endif
-     1,
-#ifdef PACKAGE_MUDLIB_STATS
-     {(mudlib_stats_t *) NULL, (mudlib_stats_t *) NULL}
-#endif
-    };
-    static array_t vtmp2 =
-    {1,
-#ifdef DEBUG
-     1,
-#endif
-     1,
-#ifdef PACKAGE_MUDLIB_STATS
-     {(mudlib_stats_t *) NULL, (mudlib_stats_t *) NULL}
-#endif
-    };
-
     args = sp - num_arg + 1;
     switch (args[2].type) {
     case T_OBJECT:
-	vtmp1.item[0].type = T_OBJECT;
-	vtmp1.item[0].u.ob = args[2].u.ob;
-	use = &vtmp1;
+    case T_STRING:
+	use = allocate_empty_array(1);
+	use->item[0] = args[2];
+	args[2].type = T_ARRAY;
+	args[2].u.arr = use;
 	break;
     case T_ARRAY:
 	use = args[2].u.arr;
 	break;
-    case T_STRING:
-	vtmp1.item[0].type = T_STRING;
-	vtmp1.item[0].u.string = args[2].u.string;
-	use = &vtmp1;
-	break;
     case T_NUMBER:
 	if (args[2].u.number == 0) {
-	    /* this is really bad and probably should be rm'ed -Beek */
+	    /* this is really bad and probably should be rm'ed -Beek;
+	     * on the other hand, we don't have a debug_message() efun yet
+	     */
 	    /* for compatibility (write() simul_efuns, etc)  -bobf */
 	    check_legal_string(args[1].u.string);
 	    add_message(command_giver, args[1].u.string);
@@ -1596,9 +1639,10 @@ f_message PROT((void))
     if (num_arg == 4) {
 	switch (args[3].type) {
 	case T_OBJECT:
-	    vtmp2.item[0].type = T_OBJECT;
-	    vtmp2.item[0].u.ob = args[3].u.ob;
-	    avoid = &vtmp2;
+	    avoid = allocate_empty_array(1);
+	    avoid->item[0] = args[3];
+	    args[3].type = T_ARRAY;
+	    args[3].u.arr = avoid;
 	    break;
 	case T_ARRAY:
 	    avoid = args[3].u.arr;
@@ -1608,9 +1652,8 @@ f_message PROT((void))
 	}
     } else
 	avoid = null_array();
-    do_message(&args[0], args[1].u.string, use, avoid, 1);
+    do_message(&args[0], &args[1], use, avoid, 1);
     pop_n_elems(num_arg);
-    return;
 }
 #endif
 
@@ -1758,22 +1801,6 @@ f_notify_fail PROT((void))
 }
 #endif
 
-#ifdef F_NULLP
-void
-f_nullp PROT((void))
-{
-    if (sp->type == T_NUMBER){
-        if (!sp->u.number && (sp->subtype == T_NULLVALUE)) {
-	    sp->subtype = 0;
-            sp->u.number = 1;
-	} else sp->u.number = 0;
-    } else {
-        free_svalue(sp, "f_nullp");
-        *sp = const0;
-    }
-}
-#endif
-
 #ifdef F_OBJECTP
 void
 f_objectp PROT((void))
@@ -1804,20 +1831,7 @@ f_opcprof PROT((void))
 void
 f_origin PROT((void))
 {
-    int i = 0, j;
-    static char *origins[] = {
-	"driver",
-	"local",
-	"call_other",
-	"simul",
-	"call_out",
-	"efun",
-	"function pointer",
-	"functional"
-    };
-    j = caller_type;
-    while (j >>= 1) i++;
-    push_constant_string(origins[i]);
+    push_constant_string(origin_name(caller_type));
 }
 #endif
 
@@ -1862,7 +1876,7 @@ f_previous_object PROT((void))
     int i;
 
     if ((i = sp->u.number) > 0) {
-        if (i >= MAX_TRACE) {
+        if (i >= CFG_MAX_CALL_DEPTH) {
             sp->u.number = 0;
             return;
 	}
@@ -2012,7 +2026,7 @@ f_query_ip_name PROT((void))
     tmp = query_ip_name(st_num_arg ? sp->u.ob : 0);
     if (st_num_arg) free_object((sp--)->u.ob, "f_query_ip_name");
     if (!tmp) *++sp = const0;
-    else push_string(tmp, STRING_MALLOC);
+    else share_and_push_string(tmp);
 }
 #endif
 
@@ -2025,7 +2039,7 @@ f_query_ip_number PROT((void))
     tmp = query_ip_number(st_num_arg ? sp->u.ob : 0);
     if (st_num_arg) free_object((sp--)->u.ob, "f_query_ip_number");
     if (!tmp) *++sp = const0;
-    else push_string(tmp, STRING_MALLOC);
+    else share_and_push_string(tmp);
 }
 #endif
 
@@ -2033,7 +2047,7 @@ f_query_ip_number PROT((void))
 void
 f_query_load_average PROT((void))
 {
-    push_string(query_load_av(), STRING_MALLOC);
+    copy_and_push_string(query_load_av());
 }
 #endif
 
@@ -2084,7 +2098,7 @@ f_query_verb PROT((void))
         push_number(0);
         return;
     }
-    push_string(last_verb, STRING_SHARED);
+    share_and_push_string(last_verb);
 }
 #endif
 
@@ -2265,8 +2279,16 @@ f_remove_call_out PROT((void))
     int i;
 
     if (st_num_arg) {
-	i = remove_call_out(current_object, sp->u.string);
-	free_string_svalue(sp);
+#ifdef CALLOUT_HANDLES
+	if (sp->type == T_STRING) {
+#endif
+	    i = remove_call_out(current_object, sp->u.string);
+	    free_string_svalue(sp);
+#ifdef CALLOUT_HANDLES
+	} else {
+	    i = remove_call_out_by_handle(sp->u.number);
+	}
+#endif
     } else {
 	remove_all_call_out(current_object);
 	i = 0;
@@ -3740,6 +3762,24 @@ f_floatp PROT((void))
     else {
         free_svalue(sp, "f_floatp");
         *sp = const0;
+    }
+}
+#endif
+
+#ifdef F_FLUSH_MESSAGES
+void
+f_flush_messages PROT((void)) {
+    if (st_num_arg == 1) {
+	if (sp->u.ob->interactive)
+	    flush_message(sp->u.ob->interactive);
+	pop_stack();
+    } else {
+	int i;
+	
+	for (i = 0; i < max_users; i++) {
+	    if (all_users[i] && !(all_users[i]->iflags & CLOSING))
+		flush_message(all_users[i]);
+	}
     }
 }
 #endif

@@ -10,6 +10,6 @@ private void main(string str) {
     
     foreach (line in lines) {
         if (line[0..1] != "-1")
-            write(line + "\n");
+            out(line + "\n");
     }
 }

@@ -6,7 +6,7 @@ inherit CMD;
 
 private void main(string* arg) {
   if (mkdir(arg[0]))
-     printf("Ok.\n");
+     outf("Ok.\n");
   else
-     printf("Failed to make directory: %s\n", arg[0]);
+     outf("Failed to make directory: %s\n", arg[0]);
 }

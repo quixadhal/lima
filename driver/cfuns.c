@@ -194,11 +194,9 @@ int c_next_foreach PROT((void)) {
 void c_call_inherited P3(int, inh, int, func, int, num_arg) {
     inherit_t *ip = current_prog->inherit + inh;
     program_t *temp_prog = ip->prog;
-    function_t *funp;
-		
-    funp = &temp_prog->functions[func];
-		
-    push_control_stack(FRAME_FUNCTION, funp);
+    compiler_function_t *funp;
+    
+    push_control_stack(FRAME_FUNCTION);
 
     caller_type = ORIGIN_LOCAL;
     current_prog = temp_prog;
@@ -209,15 +207,15 @@ void c_call_inherited P3(int, inh, int, func, int, num_arg) {
     function_index_offset += ip->function_index_offset;
     variable_index_offset += ip->variable_index_offset;
     
-    funp = setup_inherited_frame(funp);
+    funp = setup_inherited_frame(func);
     csp->pc = pc;
 
-    call_program(current_prog, funp->offset);
+    call_program(current_prog, funp->address);
 }
 
 void c_call P2(int, func, int, num_arg) {
-    function_t *funp;
-
+    compiler_function_t *funp;
+    
     func += function_index_offset;
     /*
      * Find the function in the function table. As the
@@ -225,15 +223,13 @@ void c_call P2(int, func, int, num_arg) {
      * must look in the last table, which is pointed to by
      * current_object.
      */
-    DEBUG_CHECK(func >= current_object->prog->num_functions,
+    DEBUG_CHECK(func >= current_object->prog->num_functions_total,
 		"Illegal function index\n");
     
-    funp = &current_object->prog->functions[func];
-    
-    if (funp->flags & NAME_UNDEFINED)
-	error("Undefined function: %s\n", funp->name);
+    if (current_object->prog->function_flags[func] & NAME_UNDEFINED)
+	error("Undefined function: %s\n", function_name(current_object->prog, func));
     /* Save all important global stack machine registers */
-    push_control_stack(FRAME_FUNCTION, funp);
+    push_control_stack(FRAME_FUNCTION);
     
     caller_type = ORIGIN_LOCAL;
     /* This assigment must be done after push_control_stack() */
@@ -244,10 +240,9 @@ void c_call P2(int, func, int, num_arg) {
      */
     csp->num_local_variables = num_arg + num_varargs;
     num_varargs = 0;
-    function_index_offset = variable_index_offset = 0;
-    funp = setup_new_frame(funp);
+    funp = setup_new_frame(func);
     csp->pc = pc;	/* The corrected return address */
-    call_program(current_prog, funp->offset);
+    call_program(current_prog, funp->address);
 }
 
 void c_efun_return P1(int, args) {
@@ -1342,8 +1337,9 @@ void c_parse_command P1(int, num_arg) {
 }
 
 void c_prepare_catch P1(error_context_t *, econ) {
-    save_context(econ);
-    push_control_stack(FRAME_CATCH, 0);
+    if (!save_context(&econ))
+	error("Can't catch too deep recursion error.\n");
+    push_control_stack(FRAME_CATCH);
 #if defined(DEBUG) || defined(TRACE_CODE)
     csp->num_local_variables = (csp - 1)->num_local_variables;	/* marion */
 #endif

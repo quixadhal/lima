@@ -3,18 +3,20 @@
 // Rust.  This one is for simple items there mainly for ornamentation.
 
 inherit BASE_OBJ;
+inherit __DIR__"object/vsupport.c";
 
 private static mapping msgs = ([]);
 
 varargs void create(mapping long, string array ids, object dest)
 {
+    if (!clonep()) return;
     ::create();
 
     set_attached(1);
     msgs = long;
     if(mapp(msgs))
       {
-	if(msgs["look"])
+if(msgs["look"])
 	  set_long(msgs["look"][<1] == '\n' ? msgs["look"] : 
 		   msgs["look"]+"\n");
 	if(msgs["adjs"])

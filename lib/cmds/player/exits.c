@@ -11,9 +11,9 @@ private void main( string message )
   string array exits = environment(this_body())->query_exit_directions();
   if(!sizeof(exits))
   {
-    write("There aren't any exits that you can see.\n");
+    out("There aren't any exits that you can see.\n");
     return;
   }
-  write(iwrap(implode(environment(this_body())->query_exit_directions(),
+  out(iwrap(implode(environment(this_body())->query_exit_directions(),
 	", ")+".\n"));
 }

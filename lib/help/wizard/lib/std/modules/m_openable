@@ -1,0 +1,88 @@
+
+
+
+
+
+M_OPENABLE
+
+M_OPENABLE is used to give your object basic opening and closing capabilities.
+
+Functions you call from your setup():
+
+    set_closed()   -- This function is where you tell the mudlib whether your object
+                      is open or closed.  This function also does a few more subtle 
+                      things, first is to change the adjective (open, closed) on the door.
+                      Second, is to check the visibility of the players inventory, as that
+                      may have changed.
+
+    
+   set_open_desc() -- This function is the in room description for your object when it is
+                      open.  
+
+   set_closed_desc() -- This function is the in room description for your object when it is 
+                        closed.
+
+
+   set_open_msg()  --  This function is the message players will see when they open your object.
+
+   set_close_msg() -- This function is the message players will see when they close your object.
+
+Important Functions:
+
+   openable()      --  Returns 1.  
+
+   query_closed()  --  Returns 1 if the door is closed, or 0 if its open.
+
+   query_closed_desc()  --  Returns the closed description of the object.
+
+   query_open_desc()    --  Returns the open message fo the object.
+
+   open_with()     --  Is called from the verb handler for open.  This function handles all the
+                       opening functionality for the object.  It also calls 2 hooks, 
+                       the first one is "prevent_open", the second is "open".
+
+   close()         --  Is called from the verb handler for close.  This function handles all the 
+                       closing functionality for the object.  It also calls 2 hooks, 
+                       the first is "prevent_close", and the second is "close",
+
+   is_open()       --  returns 1 is the object is open, 0 if it is closed.
+
+Other Functions:
+
+   direct_open_obj()  --  REturns 1 if the object is not already open.
+
+   direct_close_obj() --  Returns 1 if the object is not already closed.
+
+   internal_setup()   --  Is strictly called by the mudlib.
+
+Hooks:
+
+   "prevent_open"    --  This hook is called from open_with(), and it presents your object with
+                         one last chance to stop itself from being opened.  In order to use this
+                         in your objects setup() you need to place the following
+
+                              add_hook("prevent_open", (: my_open_func :) );
+
+                         when someone tries to open your object, and the process reaches the 
+                         open_with(), this function will be called, return 1 for success, 0
+                         if it fails.
+
+   "prevent_close"   --  This hook is called from close(), and it presents your object with
+                         one last chance to stop itself from being closed.  In order to use this
+                         in your objects setup() you need to place the following
+
+                              add_hook("prevent_close", (: my_close_func :) );
+
+                         when someone tries to close your object, and the process reaches the 
+                         close(), this function will be called, return 1 for success, 0
+                         if it fails.
+
+   "open","close"    --  These hooks get called when someone managed to successfully close 
+                         or open your object.  This gives the object a chance for a unique 
+                         action or to do some other things.
+
+                 
+ 
+Last Updated: Wednesday, May 01, 1996
+
+

@@ -67,7 +67,7 @@ private void parse_dsc_line(string line)
 	path = basic_obs[line[cur_indent..<2]];
 	if ( !path )
 	    path = OBJ;
-	ob = clone_object(path);
+	ob = new(path);
 	ob->move(parent);
 	break;
 

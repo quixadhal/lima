@@ -1,0 +1,48 @@
+
+
+
+
+
+M_CLIMBABLE
+
+This module adds the functionality of climbing to your object.
+By inheriting this module your object becomes climbable.
+
+Functions to place in your setup():
+
+     set_up_destination(string)  -  This supplies the path to the room
+                                    your object leads to.  It is used 
+                                    if the player types climb up foo,
+                                    or climb foo if there is no down 
+                                    destination.
+
+     set_down_destination(string) -  This supplies the path to the room 
+                                     your object leads to.  It is used
+                                     if the player types climb down foo 
+                                     or climb foo and there is no up
+                                     destination.
+
+Important Functions:
+  
+     The following three functions are callbacks for the parser.
+     You can overload these in your object if you have any special
+     circumstances.
+
+     direct_climb_up_obj()   --  By default this checks to see if there is 
+                                 an up destination set.  If not it fails.
+     
+     direct_climb_down_obj() -   By default this checks to see if there is 
+                                 a down destination set.  If not it fails.
+     
+     direct_climb_obj()      -   By default checks to see if there is an up
+                                 or a down destination.
+
+
+     
+
+
+
+Last Updated: Thursday, April 18, 1996
+
+
+

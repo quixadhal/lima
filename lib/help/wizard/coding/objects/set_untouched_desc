@@ -1,0 +1,20 @@
+
+
+
+
+Untouched Descriptions
+
+You want a unique description for when you
+object hasn't been touched yet. Once a 
+player has touched your object this 
+description will no longer be used, then
+set_in_room_description() will be. For this 
+put the following function in your objects 
+create():
+
+   set_untouched_desc("$N is half buried in the sand.")
+
+$N is the objects id.  Please see the help on
+the messages module for more on how that works.
+
+

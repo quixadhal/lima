@@ -89,29 +89,35 @@ dump_prog P3(program_t *, prog, char *, fn, int, flags)
     }
     fputc('\n', f);
     fprintf(f, "FUNCTIONS:\n");
-    fprintf(f, "      name        offset    fio   flags   # locals  # args\n");
-    fprintf(f, "      ----------- ------    ---  -------  --------  ------\n");
-    for (i = 0; i < (int) prog->num_functions; i++) {
+    fprintf(f, "      name                  offset  flags  fio  # locals  # args\n");
+    fprintf(f, "      --------------------- ------ ------- ---  --------  ------\n");
+    for (i = 0; i < prog->num_functions_total; i++) {
 	char sflags[8];
 	int flags;
 
-	flags = prog->functions[i].flags;
-	sflags[6] = '\0';
+	flags = prog->function_flags[i];
 	sflags[0] = (flags & NAME_INHERITED) ? 'i' : '-';
 	sflags[1] = (flags & NAME_UNDEFINED) ? 'u' : '-';
 	sflags[2] = (flags & NAME_STRICT_TYPES) ? 's' : '-';
 	sflags[3] = (flags & NAME_PROTOTYPE) ? 'p' : '-';
 	sflags[4] = (flags & NAME_DEF_BY_INHERIT) ? 'd' : '-';
 	sflags[5] = (flags & NAME_ALIAS) ? 'a' : '-';
-	fprintf(f, "%4d: %-12s %5d  %5d  %7s  %8d  %6d\n",
-		i,
-		prog->functions[i].name,
-		(int)prog->functions[i].offset,
-		prog->functions[i].function_index_offset,
-		sflags,
-		prog->functions[i].num_local,
-		prog->functions[i].num_arg
-	    );
+	sflags[6] = (flags & NAME_TRUE_VARARGS) ? 'v' : '-';
+	sflags[7] = '\0';
+	if (flags & NAME_INHERITED) {
+	    fprintf(f, "%4d: %-20s  %5d  %7s %5d\n",
+		    i, function_name(prog, i),
+		    prog->offset_table[i].inh.offset,
+		    sflags,
+		    prog->offset_table[i].inh.function_index_offset);
+	} else {
+	    fprintf(f, "%4d: %-20s  %5d  %7s      %7d   %5d\n",
+		    i, function_name(prog, i),
+		    prog->offset_table[i].def.f_index,
+		    sflags,
+		    prog->offset_table[i].def.num_arg,
+		    prog->offset_table[i].def.num_local);
+	}
     }
     fprintf(f, "VARIABLES:\n");
     for (i = 0; i < (int) prog->num_variables; i++)
@@ -168,8 +174,8 @@ static char *disassem_string P1(char *, str)
     return buf;
 }
 
-#define FUNS     prog->functions
-#define NUM_FUNS prog->num_functions
+#define NUM_FUNS prog->num_functions_total
+#define NUM_FUNS_D prog->num_functions_defined
 #define VARS     prog->variable_names
 #define NUM_VARS prog->num_variables
 #define STRS     prog->strings
@@ -197,13 +203,13 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 
     if (start == 0) {
 	/* sort offsets of functions */
-	offsets = (short *) malloc(NUM_FUNS * 2 * sizeof(short));
-	for (i = 0; i < (int) NUM_FUNS; i++) {
-	    if (!FUNS[i].offset ||
-		(FUNS[i].flags & (NAME_ALIAS | NAME_INHERITED)))
+	offsets = (short *) malloc(NUM_FUNS_D * 2 * sizeof(short));
+	for (i = 0; i < (int) NUM_FUNS_D; i++) {
+	    if (prog->function_flags[prog->function_table[i].runtime_index]
+		& (NAME_INHERITED | NAME_NO_CODE))
 		offsets[i * 2] = end + 1;
 	    else
-		offsets[i * 2] = FUNS[i].offset;
+		offsets[i * 2] = prog->function_table[i].address;
 	    offsets[i * 2 + 1] = i;
 	}
 #ifdef _SEQUENT_
@@ -211,7 +217,7 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 #else
 	qsort((char *) &offsets[0],
 #endif
-	      NUM_FUNS, sizeof(short) * 2, (int (*) ()) short_compare);
+	      NUM_FUNS_D, sizeof(short) * 2, (int (*) ()) short_compare);
 	next_func = 0;
     } else {
 	offsets = 0;
@@ -221,6 +227,12 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
     pc = code + start;
 
     while ((pc - code) < end) {
+	if ((next_func >= 0) && ((pc - code) >= offsets[next_func])) {
+	    fprintf(f, "\n;; Function %s\n", prog->function_table[offsets[next_func + 1]].name);
+	    next_func += 2;
+	    if (next_func >= ((int) NUM_FUNS_D * 2))
+		next_func = -1;
+	}
 
 	fprintf(f, "%04x: ", (unsigned) (pc - code));
 
@@ -343,7 +355,7 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    COPY_SHORT(&sarg, pc);
 	    pc += 3;
 	    if (sarg < NUM_FUNS)
-		sprintf(buff, "%-12s %5d", FUNS[sarg].name,
+		sprintf(buff, "%-12s %5d", function_name(prog, sarg),
 			(int)sarg);
 	    else
 		sprintf(buff, "<out of range %d>", (int)sarg);
@@ -356,9 +368,9 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    newprog = (prog->inherit + EXTRACT_UCHAR(pc++))->prog;
 	    COPY_SHORT(&sarg, pc);
 	    pc += 3;
-	    if (sarg < newprog->num_functions)
+	    if (sarg < newprog->num_functions_total)
 		sprintf(buff, "%30s::%-12s %5d", newprog->name,
-			newprog->functions[sarg].name, (int) sarg);
+			function_name(newprog, sarg), (int) sarg);
 	    else sprintf(buff, "<out of range in %30s - %d>", newprog->name,
 			 (int) sarg);
 	    break;
@@ -426,7 +438,7 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    break;
 	case F_SIMUL_EFUN:
 	    COPY_SHORT(&sarg, pc);
-	    sprintf(buff, "\"%s\" %d", simuls[sarg]->name, pc[2]);
+	    sprintf(buff, "\"%s\" %d", simuls[sarg].func->name, pc[2]);
 	    pc += 3;
 	    break;
 
@@ -434,7 +446,7 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    switch (EXTRACT_UCHAR(pc++)) {
 	    case FP_SIMUL:
 		LOAD_SHORT(sarg, pc);
-		sprintf(buff, "<simul_efun> \"%s\"", simuls[sarg]->name);
+		sprintf(buff, "<simul_efun> \"%s\"", simuls[sarg].func->name);
 		break;
 	    case FP_EFUN:
 		LOAD_SHORT(sarg, pc);
@@ -443,7 +455,7 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    case FP_LOCAL:
 		LOAD_SHORT(sarg, pc);
 		if (sarg < NUM_FUNS)
-		    sprintf(buff, "<local_fun> %s", FUNS[sarg].name);
+		    sprintf(buff, "<local_fun> %s", function_name(prog, sarg));
 		else
 		    sprintf(buff, "<local_fun> <out of range %d>", (int)sarg);
 		break;
@@ -561,13 +573,6 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    break;
 	}
 	fprintf(f, "%s %s\n", get_f_name(instr), buff);
-
-	if ((next_func >= 0) && ((pc - code) >= offsets[next_func])) {
-	    fprintf(f, "\n;; Function %s\n", FUNS[offsets[next_func + 1]].name);
-	    next_func += 2;
-	    if (next_func >= ((int) NUM_FUNS * 2))
-		next_func = -1;
-	}
     }
 
     if (offsets)

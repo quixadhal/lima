@@ -25,13 +25,13 @@ private void main(string arg)
     bodies = user_obs->query_body() - ({ 0 });
     bodies = sort_array(bodies, (: $1->query_score() > $2->query_score() :));
 
-    write(DIVIDER);
-    printf("%|70s\n", implode(explode(mud_name(),"")," "));
-    printf("%|70s\n", "(PST is: "+ctime(time())+")");
-    write(DIVIDER);
+    out(DIVIDER);
+    outf("%|70s\n", implode(explode(mud_name(),"")," "));
+    outf("%|70s\n", "(PST is: "+ctime(time())+")");
+    out(DIVIDER);
     i = sizeof(bodies);
     if(!i)
-	printf("%-17s%4s     %15s  %s\n","[(*SATAN*)]","none","666.666.666.666","HELL!!!!!");
+	outf("%-17s%4s     %15s  %s\n","[(*SATAN*)]","none","666.666.666.666","HELL!!!!!");
     while ( i-- )
     {
 	string userid;
@@ -60,7 +60,7 @@ private void main(string arg)
 	    if(!o) name = "<"+name+">";
 	}
 //### put "position" in here...
-	printf("%-10s %-13s%4d %c%c %-30s \n",
+	outf("%-10s %-13s%4d %c%c %-30s \n",
 	  adminp(userid) ? "admin" : wizardp(userid) ? "wizard" : "player",
 	  name,
 	  bodies[i] ? bodies[i]->query_score() : 0,
@@ -68,7 +68,7 @@ private void main(string arg)
 	  (bodies[i] && bodies[i]->test_flag(F_IN_EDIT) ? 'E' : ' '),
      where);
 }
-	write(DIVIDER);
+	out(DIVIDER);
 	return;
     }
 

@@ -1,0 +1,34 @@
+
+
+
+
+
+M_SAVE
+
+M_SAVE implements persistence in the mudlib. Persistence being the ability to
+to save items over a reboot.  i.e. inventory, lockers etc.   
+
+Functions you call in your setup():
+
+    add_save()    --   This function is how you tag certain variables to be saved as well.
+                       In other words if you have an object the degrades over time, you would
+                       call add_save() with teh variables as parameters so that the lib knows 
+                       what to save.
+
+Important Functions():
+
+    
+    get_saved()   --  Returns the variables to be saved.
+
+    save_to_string()  --  This function saves the object and its inventory into a string
+                          representation.  Pass this function an integer of 1 if you want the
+                          save to be recursive.
+
+    load_from_string() --  Takes the given string and restores the object to the exact object
+                           it was before save_to_string() was called on it.
+
+ 
+
+Last Updated: Wednesday, May 01, 1996
+
+

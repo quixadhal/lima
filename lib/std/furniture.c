@@ -24,3 +24,4 @@ mixed dismount()
 {
   return 0;
 }
+

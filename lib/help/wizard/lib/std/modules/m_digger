@@ -1,0 +1,43 @@
+
+
+
+
+
+M_DIGGER
+
+M_DIGGER is used to make an object able to be used for digging.
+This module also requires the use of M_INPUT.
+
+Functions you call in your setup():
+
+Important functions:
+  
+   answer_question(input)  --  Allows the player the change to repond to the question
+                               what do you want to dig in?
+
+   do_digging(object)      --  This is where the digging happens.  If you have supply no 
+                               object to dig in, answer_question() is called.  If the
+                               object you want to dig in can't be dug in it will respond
+                               "There is nothing in which to dig here.".
+
+                               If the object is ok to dig in, dig() will be called in that 
+                               object.
+
+Other functions:
+
+    can_dig()
+    can_dig_with_obj()
+    direct_dig_with_obj()
+    indirect_dig_obj_with_obj()
+    indirect_dig_in_obj_with_obj()
+    indirect_dig_up_obj_with_obj() 
+    indirect_dig_out_obj_with_obj()
+    direct_dig_with_obj_in_obj()
+
+The above functions are parser callbacks.  By default all these return 1, 
+meaning that that action can happen.  If you wish to change that defualt
+behavior you may overload these in your object.
+
+ 
+
+Last Updated: Thursday, April 25, 1996

@@ -5,6 +5,9 @@
 #define V_NOSPACE       2
 #define V_FUNCTION      4
 
+/* The end of a static buffer */
+#define EndOf(x) (x + sizeof(x)/sizeof(x[0]))
+
 /*
  * simulate.c
  */
@@ -19,7 +22,6 @@ extern char *inherit_file;
 #ifndef NO_ADD_ACTION
 extern char *last_verb;
 #endif
-extern int num_error;
 extern int tot_alloc_sentence;
 extern int MudOS_is_being_shut_down;
 #ifdef LPC_TO_C
@@ -28,6 +30,8 @@ extern FILE *compilation_output_file;
 extern char *compilation_ident;
 #endif
 
+char *strput PROT((char *, char *, char *));
+char *strput_int PROT((char *, char *, int));
 void debug_fatal PROT1V(char *);
 void fatal PROT1V(char *);
 void error PROT1V(char *);
@@ -68,7 +72,7 @@ void destruct2 PROT((object_t *));
 
 void print_svalue PROT((svalue_t *));
 void do_write PROT((svalue_t *));
-void do_message PROT((svalue_t *, char *, array_t *, array_t *, int));
+void do_message PROT((svalue_t *, svalue_t *, array_t *, array_t *, int));
 void say PROT((svalue_t *, array_t *));
 void tell_room PROT((object_t *, svalue_t *, array_t *));
 void shout_string PROT((char *));

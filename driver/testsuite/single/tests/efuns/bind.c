@@ -1,7 +1,7 @@
 int glob;
 
-#define CANT_BIND(f) ASSERT(catch(bind(f, this_object())))
-#define CAN_BIND(f) ASSERT(bind(f, this_object()))
+#define CANT_BIND(f) ASSERT(catch(bind(f, previous_object())))
+#define CAN_BIND(f) ASSERT(bind(f, previous_object()))
 
 void do_tests() {
     CANT_BIND((: do_tests :));

@@ -22,7 +22,9 @@
 #define SC_FORCE	1
 #define SC_DO_CALLBACK	2
 
-lpc_socket_t lpc_socks[MAX_EFUN_SOCKS];
+lpc_socket_t *lpc_socks = 0;
+int max_lpc_socks = 0;
+
 static int socket_name_to_sin PROT((char *, struct sockaddr_in *));
 static char *inet_address PROT((struct sockaddr_in *));
 
@@ -45,7 +47,7 @@ int check_valid_socket P5(char *, what, int, fd, object_t *, owner,
     info->item[3].u.number = port;
 
     push_object(current_object);
-    push_string(what, STRING_CONSTANT);
+    push_constant_string(what);
     push_refed_array(info);
 
     mret = apply_master_ob(APPLY_VALID_SOCKET, 3);
@@ -53,16 +55,21 @@ int check_valid_socket P5(char *, what, int, fd, object_t *, owner,
 }
 
 /*
- * Initialize the LPC efun socket array
+ * Get more LPC sockets structures if we run out
  */
-void init_sockets()
+int more_lpc_sockets()
 {
     int i;
 
-    debug(8192, ("init_sockets: initializing %d socket descriptor(s)\n",
-		 MAX_EFUN_SOCKS));
-
-    for (i = 0; i < MAX_EFUN_SOCKS; i++) {
+    max_lpc_socks += 10;
+    
+    if (!lpc_socks)
+	lpc_socks = CALLOCATE(10, lpc_socket_t, TAG_SOCKETS, "more_lpc_sockets");
+    else
+	lpc_socks = RESIZE(lpc_socks, max_lpc_socks, lpc_socket_t, TAG_SOCKETS, "more_lpc_sockets");
+    
+    i = max_lpc_socks;
+    while (--i >= max_lpc_socks - 10) {
 	lpc_socks[i].fd = -1;
 	lpc_socks[i].flags = 0;
 	lpc_socks[i].mode = MUD;
@@ -82,6 +89,7 @@ void init_sockets()
 	lpc_socks[i].w_off = 0;
 	lpc_socks[i].w_len = 0;
     }
+    return max_lpc_socks - 10;
 }
 
 /*
@@ -178,14 +186,14 @@ int
 find_new_socket PROT((void)) {
     int i;
     
-    for (i = 0; i < MAX_EFUN_SOCKS; i++) {
+    for (i = 0; i < max_lpc_socks; i++) {
 	if (lpc_socks[i].state != CLOSED) continue;
 	set_read_callback(i, 0);
 	set_write_callback(i, 0);
 	set_close_callback(i, 0);
 	return i;
     }
-    return EENOSOCKS;
+    return more_lpc_sockets();
 }
 
 /*
@@ -280,7 +288,7 @@ socket_bind P2(int, fd, int, port)
     int len;
     struct sockaddr_in sin;
 
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -327,7 +335,7 @@ socket_bind P2(int, fd, int, port)
 int
 socket_listen P2(int, fd, svalue_t *, callback)
 {
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -364,7 +372,7 @@ socket_accept P3(int, fd, svalue_t *, read_callback, svalue_t *, write_callback)
     struct sockaddr_in sin;
     struct hostent *hp;
 
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -460,7 +468,7 @@ socket_accept P3(int, fd, svalue_t *, read_callback, svalue_t *, write_callback)
 int
 socket_connect P4(int, fd, char *, name, svalue_t *, read_callback, svalue_t *, write_callback)
 {
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -532,7 +540,7 @@ socket_write P3(int, fd, svalue_t *, message, char *, name)
     char *buf, *p;
     struct sockaddr_in sin;
 
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -756,9 +764,9 @@ socket_read_select_handler P1(int, fd)
 		    push_number(0);
 		}
 	    } else {
-		push_string(buf, STRING_MALLOC);
+		copy_and_push_string(buf);
 	    }
-	    push_string(addr, STRING_MALLOC);
+	    copy_and_push_string(addr);
 	    debug(8192, ("read_socket_handler: apply\n"));
 	    call_callback(fd, S_READ_FP, 3);
 	    return;
@@ -827,7 +835,7 @@ socket_read_select_handler P1(int, fd)
 	    if (restore_svalue(lpc_socks[fd].r_buf, &value) == 0)
 		*(++sp) = value;
 	    else
-		push_null();
+		push_undefined();
 	    FREE(lpc_socks[fd].r_buf);
 	    lpc_socks[fd].flags |= S_HEADER;
 	    lpc_socks[fd].r_buf = NULL;
@@ -857,7 +865,7 @@ socket_read_select_handler P1(int, fd)
 		    push_number(0);
 		}
 	    } else {
-		push_string(buf, STRING_MALLOC);
+		copy_and_push_string(buf);
 	    }
 	    debug(8192, ("read_socket_handler: apply read callback\n"));
 	    call_callback(fd, S_READ_FP, 2);
@@ -943,7 +951,7 @@ socket_write_select_handler P1(int, fd)
 int
 socket_close P2(int, fd, int, flags)
 {
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -977,7 +985,7 @@ socket_close P2(int, fd, int, flags)
 int
 socket_release P3(int, fd, object_t *, ob, svalue_t *, callback)
 {
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -1012,7 +1020,7 @@ socket_release P3(int, fd, object_t *, ob, svalue_t *, callback)
 int
 socket_acquire P4(int, fd, svalue_t *, read_callback, svalue_t *, write_callback, svalue_t *, close_callback)
 {
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return EEFDRANGE;
     if (lpc_socks[fd].state == CLOSED)
 	return EEBADF;
@@ -1049,7 +1057,7 @@ char *
  */
 int get_socket_address P3(int, fd, char *, addr, int *, port)
 {
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS) {
+    if (fd < 0 || fd >= max_lpc_socks) {
 	addr[0] = '\0';
 	*port = 0;
 	return EEFDRANGE;
@@ -1065,7 +1073,7 @@ int get_socket_address P3(int, fd, char *, addr, int *, port)
 object_t *
        get_socket_owner P1(int, fd)
 {
-    if (fd < 0 || fd >= MAX_EFUN_SOCKS)
+    if (fd < 0 || fd >= max_lpc_socks)
 	return (object_t *) NULL;
     if (lpc_socks[fd].state == CLOSED)
 	return (object_t *) NULL;
@@ -1083,7 +1091,7 @@ assign_socket_owner P2(svalue_t *, sv, object_t *, ob)
 	sv->u.ob = ob;
 	add_ref(ob, "assign_socket_owner");
     } else
-	assign_svalue_no_free(sv, &const0n);
+	assign_svalue_no_free(sv, &const0u);
 }
 
 /*
@@ -1120,7 +1128,7 @@ close_referencing_sockets P1(object_t *, ob)
 {
     int i;
 
-    for (i = 0; i < MAX_EFUN_SOCKS; i++)
+    for (i = 0; i < max_lpc_socks; i++)
 	if (lpc_socks[i].owner_ob == ob && lpc_socks[i].state != CLOSED)
 	    socket_close(i, SC_FORCE);
 }
@@ -1157,7 +1165,7 @@ void dump_socket_status P1(outbuffer_t *, out)
     outbuf_add(out, "Fd    State      Mode       Local Address          Remote Address\n");
     outbuf_add(out, "--  ---------  --------  ---------------------  ---------------------\n");
 
-    for (i = 0; i < MAX_EFUN_SOCKS; i++) {
+    for (i = 0; i < max_lpc_socks; i++) {
 	outbuf_addv(out, "%2d  ", lpc_socks[i].fd);
 
 	switch (lpc_socks[i].state) {

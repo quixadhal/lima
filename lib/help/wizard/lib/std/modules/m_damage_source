@@ -1,0 +1,51 @@
+
+
+
+M_DAMAGE_SOURCE
+
+M_DAMAGE_SOURCE is used for anything a player attacks with, including
+himself.  It controls the combat messages and modifies the result based
+on the target.
+
+Functions you call in your setup():
+
+     set_wield_bonus() --
+
+     set_wield_type()  --
+
+     add_combat_message(type, msg) --  This function allows you to change the
+                              standard messages seen during combat, 
+                              for this particular weapon, and the 'type'
+                              of damage done.
+
+     set_weapon_class(integer) -- This sets the weapon class of a weapon.  The
+                               higher the number the better the weapon.
+
+Other important functions:
+
+     query_wield_bonus() --
+
+     query_wield_type()  --
+
+     query_combat_message(type) --  Returns the combat message for the given
+                                type.
+
+     set_combat_messages(type)  --  Sets the defulat messages for the given
+                                type.
+
+     mark_wielded_by() --
+
+     query_wielded_by() --
+
+     is_weapon()  --            Returns 1 if the object in question is 
+                                a weapon.
+
+     unwield_me() --            Forces the person wielding the object to 
+                                unwield it.
+
+     remove()     --            calls unwield_me().
+
+
+
+Last updated: Wednesday,  April 24, 1996.
+

@@ -309,13 +309,15 @@ locate_out P1(program_t *, prog)
 #ifdef DEBUG
     if (d_flag > 1) {
 	debug_message("locate_out: %lX %lX %lX %lX %lX %lX %lX\n",
-		      prog->program, prog->functions,
+		      prog->program, prog->function_table,
 	     prog->strings, prog->variable_names, prog->inherit,
 		      prog->argument_types, prog->type_start);
     }
 #endif
     prog->program = (char *)DIFF(prog->program, prog);
-    prog->functions = (function_t *)DIFF(prog->functions, prog);
+    prog->function_table = (compiler_function_t *)DIFF(prog->function_table, prog);
+    prog->function_flags = (unsigned short *)DIFF(prog->function_flags, prog);
+    prog->offset_table = (runtime_function_u *)DIFF(prog->offset_table, prog);
     prog->strings = (char **)DIFF(prog->strings, prog);
     prog->variable_names = (variable_t *)DIFF(prog->variable_names, prog);
     prog->inherit = (inherit_t *)DIFF(prog->inherit, prog);
@@ -345,7 +347,9 @@ locate_in P1(program_t *, prog)
     if (!prog)
 	return 0;
     prog->program = ADD(prog->program, prog);
-    prog->functions = (function_t *)ADD(prog->functions, prog);
+    prog->function_table = (compiler_function_t *)ADD(prog->function_table, prog);
+    prog->function_flags = (unsigned short *)ADD(prog->function_flags, prog);
+    prog->offset_table = (runtime_function_u *)ADD(prog->offset_table, prog);
     prog->strings = (char **)ADD(prog->strings, prog);
     prog->variable_names = (variable_t *)ADD(prog->variable_names, prog);
     prog->inherit = (inherit_t *)ADD(prog->inherit, prog);
@@ -358,7 +362,7 @@ locate_in P1(program_t *, prog)
 #ifdef DEBUG
     if (d_flag > 1) {
 	debug_message("locate_in: %lX %lX %lX %lX %lX %lX\n",
-		      prog->program, prog->functions,
+		      prog->program, prog->function_table,
 	     prog->strings, prog->variable_names, prog->inherit,
 		      prog->argument_types, prog->type_start);
     }

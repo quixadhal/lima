@@ -1,0 +1,54 @@
+
+
+
+M_DIGGABLE
+
+
+M_DIGGABLE is an inherit that lets players "dig" in your object.
+This module requires the use of M_INPUT as well, so make sure
+you inherit that also.  
+
+Important functions:
+
+     complete_dig() --  Is called by do_dig_with_object() in 
+                        /cmds/verbs/dig.c.  This functoin checks
+                        to see if you are carrying an object that 
+                        you can dig with.  If so it calls do_digging(),
+                        passing it the object you are digging in,
+                        if not it returns an error message.
+
+     answer_question() --  Modal thingy allowing you to answer the 
+                        question dig with what?
+
+
+     is_diggable()  --  Returns 1 if the object can be dug in.
+
+
+Other functions:
+
+     direct_dig_in_obj()
+     direct_dig_out_obj()
+     direct_dig_up_obj()
+     direct_dig_obj_with_obj()
+     can_dig_in_obj()
+     can_dig_up_obj()
+     can_dog_out_obj()
+     direct_dig_in_obj_with_obj()
+     direct_dig_out_obj_with_obj()
+     direct_dig_obj_up_with_obj()
+     direct_dig_with_obj_in_obj()
+
+           All of the above are parser "callbacks".  In this module
+           they all return 1, which means that those things can happen.
+           If you wish you may overload any of thses functions to stop
+           that action from happening.
+
+NOTES:
+
+   See also: M_DIGGER.
+
+     
+
+Last updated: Wednesday, April 24, 1996.
+
+     

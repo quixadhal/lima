@@ -54,5 +54,5 @@ void do_exit_obj(object ob)
 mixed * query_verb_info()
 {
 //### no do_exit() or do_exit_str() functions
-    return ({ ({ "OBJ", "", "STR" }), ({ "leave", "disembark" }) });
+return ({ ({ "OBJ", "" }), ({ "leave", "disembark" }), ({ "OBJ", "" }) });
 }

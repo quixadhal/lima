@@ -19,6 +19,8 @@ showtree	[str] cfile
 start		[obj]
 timer -r        num [str] [num]
 trans		obj|user
+wc -lw		[file*]
 where		[user*]
 which		str
 msg             str str*
+helpd

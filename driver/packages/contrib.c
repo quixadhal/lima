@@ -46,7 +46,7 @@ void f_named_livings() {
 
     obtab = CALLOCATE(max_array_size, object_t *, TAG_TEMPORARY, "named_livings");
 
-    for (i = 0; i < LIVING_HASH_SIZE; i++) {
+    for (i = 0; i < CFG_LIVING_HASH_SIZE; i++) {
 	for (ob = hashed_living[i]; ob; ob = ob->next_hashed_living) {
 	    if (!(ob->flags & O_ENABLE_COMMANDS))
 		continue;
@@ -264,39 +264,46 @@ void f_copy PROT((void))
 /* flag and extra info by Beek */
 #ifdef F_FUNCTIONS
 void f_functions PROT((void)) {
-    int i, j, num;
+    int i, j, num, index;
     array_t *vec, *subvec;
-    function_t *functions, *funp;
+    runtime_function_u *func_entry;
+    compiler_function_t *funp;
     program_t *prog;
     int flag = (sp--)->u.number;
     unsigned short *types;
-
+    char buf[256];
+    char *end = EndOf(buf);
+    
     if (sp->u.ob->flags & O_SWAPPED) 
 	load_ob_from_swap(sp->u.ob);
     
-    num = sp->u.ob->prog->num_functions;
-    functions = sp->u.ob->prog->functions;
-
+    num = sp->u.ob->prog->num_functions_total;
+    
     vec = allocate_empty_array(num);
     i = num;
     
     while (i--) {
+	prog = sp->u.ob->prog;
+	index = i;
+	func_entry = prog->offset_table + index;
+
+	/* Walk up the inheritance tree to the real definition */
+	while (prog->function_flags[index] & NAME_INHERITED) {
+	    prog = prog->inherit[func_entry->inh.offset].prog;
+	    index = func_entry->inh.function_index_offset;
+	    func_entry = prog->offset_table + index;
+	}
+
+	funp = prog->function_table + func_entry->def.f_index;
+
 	if (flag) {
-	    funp = functions + i;
-	    prog = sp->u.ob->prog;
-
-	    while (funp->flags & NAME_INHERITED) {
-		prog = prog->inherit[funp->offset].prog;
-		funp = &prog->functions[funp->function_index_offset];
-	    }
-
-	    if (prog->type_start && prog->type_start[i] != INDEX_START_NONE)
-		types = &prog->argument_types[prog->type_start[i]];
+	    if (prog->type_start && prog->type_start[index] != INDEX_START_NONE)
+		types = &prog->argument_types[prog->type_start[index]];
 	    else
 		types = 0;
 
 	    vec->item[i].type = T_ARRAY;
-	    subvec = vec->item[i].u.arr = allocate_empty_array(3 + funp->num_arg);
+	    subvec = vec->item[i].u.arr = allocate_empty_array(3 + func_entry->def.num_arg);
 	    
 	    subvec->item[0].type = T_STRING;
 	    subvec->item[0].subtype = STRING_SHARED;
@@ -304,17 +311,19 @@ void f_functions PROT((void)) {
 
 	    subvec->item[1].type = T_NUMBER;
 	    subvec->item[1].subtype = 0;
-	    subvec->item[1].u.number = funp->num_arg;
+	    subvec->item[1].u.number = func_entry->def.num_arg;
 
+	    get_type_name(buf, end, funp->type);
 	    subvec->item[2].type = T_STRING;
 	    subvec->item[2].subtype = STRING_SHARED;
-	    subvec->item[2].u.string = make_shared_string(get_type_name(funp->type));
+	    subvec->item[2].u.string = make_shared_string(buf);
 
-	    for (j = 0; j < funp->num_arg; j++) {
+	    for (j = 0; j < func_entry->def.num_arg; j++) {
 		if (types) {
+		    get_type_name(buf, end, types[j]);
 		    subvec->item[3 + j].type = T_STRING;
 		    subvec->item[3 + j].subtype = STRING_SHARED;
-		    subvec->item[3 + j].u.string = make_shared_string(get_type_name(types[j]));
+		    subvec->item[3 + j].u.string = make_shared_string(buf);
 		} else {
 		    subvec->item[3 + j].type = T_NUMBER;
 		    subvec->item[3 + j].u.number = 0;
@@ -323,7 +332,7 @@ void f_functions PROT((void)) {
 	} else {
 	    vec->item[i].type = T_STRING;
 	    vec->item[i].subtype = STRING_SHARED;
-	    vec->item[i].u.string = ref_string(functions[i].name);
+	    vec->item[i].u.string = ref_string(funp->name);
 	}
     }
     
@@ -340,6 +349,8 @@ void f_variables PROT((void)) {
     variable_t *variables;
     int flag = (sp--)->u.number;
     program_t *prog = sp->u.ob->prog;
+    char buf[256];
+    char *end = EndOf(buf);
     
     if (sp->u.ob->flags & O_SWAPPED)
 	load_ob_from_swap(sp->u.ob);
@@ -357,9 +368,10 @@ void f_variables PROT((void)) {
 	    subvec->item[0].type = T_STRING;
 	    subvec->item[0].subtype = STRING_SHARED;
 	    subvec->item[0].u.string = ref_string(variables[i].name);
+	    get_type_name(buf, end, variables[i].type);
 	    subvec->item[1].type = T_STRING;
 	    subvec->item[1].subtype = STRING_SHARED;
-	    subvec->item[1].u.string = make_shared_string(get_type_name(variables[i].type));
+	    subvec->item[1].u.string = make_shared_string(buf);
 	} else {
 	    vec->item[i].type = T_STRING;
 	    vec->item[i].subtype = STRING_SHARED;
@@ -415,10 +427,19 @@ void
 f_terminal_colour P2( int, num_arg, int, instruction)
 {
     char *instr, *cp, *savestr, *deststr, **parts;
-    int num, i, j, k, *lens;
+    int num, i, j, k, col, space, *lens;
     mapping_node_t *elt, **mtab;
     int tmp;
-    
+    int wrap = 0;
+    int indent = 0;
+
+    if (st_num_arg == 4)
+	indent = (sp--)->u.number;
+    if (st_num_arg >= 3)
+	wrap = (sp--)->u.number;
+    if (indent >= wrap - 1)
+	indent = wrap - 2;
+
     cp = instr = (sp-1)->u.string;
     do {
 	cp = strchr(cp,'%');
@@ -475,67 +496,161 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 	    }
 	}
     }
-    if (strlen(instr))	/* trailing seg, if not delimiter */
+    if (*instr)	/* trailing seg, if not delimiter */
 	parts[num++] = instr;
 
+    /* Could keep track of the lens as we create parts, removing the need
+       for a strlen() below */
     lens = CALLOCATE(num, int, TAG_TEMPORARY, "f_terminal_colour: lens");
 
     /* Do the the pointer replacement and calculate the lengths */
     if ( ( mtab = sp->u.map->table ) ) /* a mapping with values */
     {
+	col = 0;
+	space = 0;
 	for (j = i = 0, k = sp->u.map->table_size; i < num; i++)
 	{
+	    int len;
+	    
 	    if ((cp = findstring(parts[i]))) {
-		tmp = (int)cp;
-		if (tmp < 0) tmp = -tmp;
+		tmp = MAP_POINTER_HASH(cp);
 		for (elt = mtab[tmp & k]; elt; elt = elt->next)
 		    if ( elt->values->type == T_STRING && 
 			(elt->values + 1)->type == T_STRING &&
 			cp == elt->values->u.string)
 			{
-			    cp = parts[i] = (elt->values + 1)->u.string;
+			    parts[i] = (elt->values + 1)->u.string;
+			    /* Negative indicates don't count for wrapping */
+			    len = SVALUE_STRLEN(elt->values + 1);
+			    if (wrap) len = -len;
 			    break;
 			}
+		if (!elt)
+		    len = SHARED_STRLEN(cp);
 	    } else {
-		cp = parts[i];
+		len = strlen(parts[i]);
 	    }
-	    lens[i] = strlen(cp);
-	    j += lens[i];
+	    lens[i] = len;
+	    if (len > 0) {
+		j += len;
+		if (j > max_string_length) {
+		    lens[i] -= j - max_string_length;
+		    j = max_string_length;
+		}
+		if (wrap) {
+		    int z;
+		    char *p = parts[i];
+		    for (z = 0; z < lens[i]; z++) {
+			char c = p[z];
+			if (c == '\n') {
+			    col = 0;
+			} else {
+			    col++;
+			    if (c == ' ')
+				space = col;
+			    if (col == wrap) {
+				if (space) {
+				    col -= space;
+				    space = 0;
+				} else
+				    col = 0;
+			    } else 
+				continue;
+			}
+			/* If we get here, we ended a line */
+			j += indent + 1;
+			col += indent;
+			if (j > max_string_length) {
+			    lens[i] -= (j - max_string_length);
+			    j = max_string_length;
+			    if (lens[i] < z) {
+				/* must have been ok 
+				   or we wouldn't be here */
+				lens[i] = z;
+				break;
+			    }
+			}
+		    }
+		}
+	    } else {
+		j += -len;
+		if (j > max_string_length) {
+		    lens[i] = -(-(lens[i]) - (j - max_string_length));
+		    j = max_string_length;
+		}
+	    }
 	}
     } else {
 	for (j = i = 0; i < num; i++)
 	{
 	    lens[i] = strlen(parts[i]);
 	    j += lens[i];
+	    if (j > max_string_length) {
+		lens[i] -= j - max_string_length;
+		j = max_string_length;
+	    }
 	}
     }
 
-    /* now we have the final string in parts and length in j. let's compose it */
-    if (j > max_string_length) {
-	j = max_string_length;
-	cp = deststr = new_string(j, "f_terminal_colour: deststr");
-	for (j = i = 0; i < num; i++)
-	{
-	    k = lens[i];
-	    if ( (j+k) >= max_string_length )
-	    {
-		strncpy(cp,parts[i], max_string_length-j-k);
-		deststr[max_string_length] = 0;
-		break;
-	    } else {
-		strcpy(cp,parts[i]);
-		j += k;
-		cp += k;
+    /* now we have the final string in parts and length in j. 
+       let's compose it, wrapping if necessary */
+    cp = deststr = new_string(j, "f_terminal_colour: deststr");
+    if (wrap) {
+	/* FIXME */
+	char *tmp = new_string(8192, "f_terminal_colour: wrap");
+	char *pt = tmp;
+	
+	col = 0;
+	space = 0;
+	for (i = 0; i < num; i++) {
+	    int l = lens[i];
+	    char *p = parts[i];
+	    if (l < 0) {
+		memcpy(pt, p, -l);
+		pt += -l;
+		continue;
+	    }
+	    for (k = 0; k < lens[i]; k++) {
+		char c = p[k];
+		*pt++ = c;
+		if (c == '\n') {
+		    col = 0;
+		} else {
+		    int n;
+		    
+		    col++;
+		    if (c == ' ')
+			space = col;
+		    if (col == wrap) {
+			if (space) {
+			    col -= space;
+			    space = 0;
+			} else 
+			    col = 0;
+		    } else
+			continue;
+		    n = (pt - tmp) - col;
+		    memcpy(cp, tmp, n);
+		    cp += n;
+		    memmove(tmp, tmp + n, col);
+		    pt = tmp + col;
+		    *cp++ = '\n';
+		    memset(cp, ' ', indent);
+		    cp += indent;
+		    col += indent;
+		}
 	    }
 	}
+	memcpy(cp, tmp, pt - tmp);
+	cp += pt - tmp;
+	FREE_MSTR(tmp);
     } else {
-	cp = deststr = new_string(j, "f_terminal_colour: deststr");
-	for (i = 0; i < num; i++)
-	{
-	    strcpy(cp,parts[i]);
+	for (i = 0; i < num; i++) {
+	    memcpy(cp, parts[i], lens[i]);
 	    cp += lens[i];
 	}
     }
+    *cp = 0;
     FREE(lens);
     FREE(parts);
     FREE_MSTR(savestr);
@@ -614,6 +729,13 @@ char *pluralize P1(char *, str) {
      * trap the exceptions to the rules below and special cases.
      */
     switch (rel[0]) {
+    case 'A':
+    case 'a':
+	if (!strcasecmp(rel + 1, "re")) {
+	    found = PLURAL_CHOP + 3;
+	    suffix = "is";
+	}
+	break;
     case 'B':
     case 'b':
 	if (!strcasecmp(rel + 1, "us")) {
@@ -694,6 +816,10 @@ char *pluralize P1(char *, str) {
 	break;
     case 'M':
     case 'm':
+	if (!strcasecmp(rel + 1, "ackerel")) {
+	    found = PLURAL_SAME;
+	    break;
+	}
 	if (!strcasecmp(rel + 1, "oose")) {
 	    found = PLURAL_SAME;
 	    break;
@@ -919,14 +1045,14 @@ int file_length P1(char *, file)
   int ret = 0;
   int num;
   char buf[2049];
-  char *p;
+  char *p, *newp;
 
   file = check_valid_path(file, current_object, "file_size", 0);
   
   if (!file) return -1;
   if (stat(file, &st) == -1)
       return -1;
-  if (st.st_mode == S_IFDIR)
+  if (st.st_mode & S_IFDIR)
       return -2;
   if (!(f = fopen(file, "r")))
       return -1;
@@ -934,8 +1060,11 @@ int file_length P1(char *, file)
   do {
       num = fread(buf, 1, 2048, f);
       p = buf - 1;
-      while ((p = memchr(p + 1, '\n', num)))
+      while ((newp = memchr(p + 1, '\n', num))) {
+	  num -= (newp - p);
+	  p = newp;
 	  ret++;
+      }
   } while (!feof(f));
 
   fclose(f);
@@ -979,18 +1108,40 @@ f_upper_case PROT((void))
 
 #ifdef F_REPLACEABLE
 void f_replaceable PROT((void)) {
-    program_t *prog = sp->u.ob->prog;
-    int i, num;
-    function_t *functions;
+    program_t *prog;
+    int i, j, num, numignore;
+    char **ignore;
     
-    num = prog->num_functions;
-    functions = prog->functions;
+    if (st_num_arg == 2) {
+	numignore = sp->u.arr->size;
+	ignore = CALLOCATE(numignore, char *, TAG_TEMPORARY, "replaceable");
+	for (i = 0; i < numignore; i++) {
+	    if (sp->u.arr->item[i].type == T_STRING)
+		ignore[i] = findstring(sp->u.arr->item[i].u.string);
+	    else
+		ignore[i] = 0;
+	}
+	prog = (sp-1)->u.ob->prog;
+    } else {
+	numignore = 1;
+	ignore = CALLOCATE(1, char *, TAG_TEMPORARY, "replaceable");
+	ignore[0] = findstring(APPLY_CREATE);
+	prog = sp->u.ob->prog;
+    }
+    
+    num = prog->num_functions_total;
     
     for (i = 0; i < num; i++) {
-	if (functions[i].flags & (NAME_INHERITED | NAME_NO_CODE)) continue;
-	if (strcmp(functions[i].name, APPLY_CREATE)==0) continue;
-	break;
+	if (prog->function_flags[i] & (NAME_INHERITED | NAME_NO_CODE)) continue;
+	for (j = 0; j < numignore; j++)
+	    if (ignore[j] == prog->function_table[prog->offset_table[i].def.f_index].name)
+		break;
+	if (j == numignore)
+	    break;
     }
+    if (st_num_arg == 2)
+	free_array((sp--)->u.arr);
+    FREE(ignore);
     free_svalue(sp, "f_replaceable");
     put_number(i == num);
 }
@@ -1003,29 +1154,37 @@ void f_program_info PROT((void)) {
     int var_size = 0;
     int inherit_size = 0;
     int prog_size = 0;
-    int hdr_size;
+    int hdr_size = 0;
+    int type_size = 0;
     object_t *ob;
-    int num_pushes[100];
-    int i;
     outbuffer_t out;
-
-    for (i=0; i < 10; i++)
-	num_pushes[i]=0;
+    int i, n;
+    
     for (ob = obj_list; ob; ob = ob->next_all) {
 	if (ob->flags & (O_CLONE|O_SWAPPED)) continue;
 	hdr_size += sizeof(program_t);
 	prog_size += ob->prog->program_size;
-	func_size += ob->prog->num_functions * sizeof(function_t);
+	func_size += ob->prog->num_functions_total * (1+sizeof(runtime_function_u))
+	    + ob->prog->num_functions_defined * sizeof(compiler_function_t);
 	string_size += ob->prog->num_strings * sizeof(char *);
 	var_size += ob->prog->num_variables * sizeof(variable_t);
 	inherit_size += ob->prog->num_inherited * sizeof(inherit_t);
-#if 0
-	walk_program_code(num_pushes, ob->prog);
-#endif
+	type_size += ob->prog->num_functions_defined * sizeof(short);
+	n = 0;
+	for (i = 0; i < ob->prog->num_functions_defined; i++) {
+	    int start;
+	    short *ts = ob->prog->type_start;
+	    if (!ts) continue;
+	    start = ts[i];
+	    if (start == INDEX_START_NONE)
+		continue;
+	    start += ob->prog->offset_table[ob->prog->function_table[i].runtime_index].def.num_arg;
+	    if (start > n)
+		n = start;
+	}
+	type_size += n * sizeof(short);
     }
     outbuf_zero(&out);
-    for (i=0; i <10; i++)
-	outbuf_addv(&out, "%i ", num_pushes[i]);
     
     outbuf_addv(&out, "\nheader size: %i\n", hdr_size);
     outbuf_addv(&out, "code size: %i\n", prog_size);
@@ -1033,6 +1192,7 @@ void f_program_info PROT((void)) {
     outbuf_addv(&out, "string size: %i\n", string_size);
     outbuf_addv(&out, "var size: %i\n", var_size);
     outbuf_addv(&out, "inherit size: %i\n", inherit_size);
+    outbuf_addv(&out, "saved type size: %i\n", type_size);
     
     outbuf_push(&out);
 }
@@ -1051,7 +1211,7 @@ void f_remove_interactive PROT((void)) {
 	free_object(sp->u.ob, "f_remove_interactive");
 	*sp = const0;
     } else {
-        remove_interactive(sp->u.ob);
+        remove_interactive(sp->u.ob, 0);
 	/* It may have been dested */
 	if (sp->type == T_OBJECT)
 	    free_object(sp->u.ob, "f_remove_interactive");
@@ -1088,3 +1248,275 @@ f_query_ip_port PROT((void))
 }
 #endif
 
+/*
+** John Viega (rust@lima.imaginary.com) Jan, 1996
+** efuns for doing time zone conversions.  Much friendlier 
+** than doing all the lookup tables in LPC.
+** most muds have traditionally just used an offset of the 
+** mud time or GMT, and this isn't always correct.
+*/
+
+#ifdef F_ZONETIME
+
+char *
+set_timezone (char * timezone)
+{
+  char put_tz[20];
+  char *old_tz;
+
+  old_tz = getenv("TZ");
+  sprintf (put_tz, "TZ=%s", timezone);
+  putenv (put_tz);
+  tzset ();
+  return old_tz;
+}
+
+void 
+reset_timezone (char *old_tz)
+{
+  int  i = 0;
+  int  env_size = 0;
+  char put_tz[20];
+
+  if (!old_tz)
+    {
+      while (environ[env_size] != NULL)
+        {
+          if (strlen (environ[env_size]) > 3 && environ[env_size][2] == '='
+             && environ[env_size][1] == 'Z' && environ[env_size][0] == 'T')
+            {
+              i = env_size;
+            }
+          env_size++;
+        }
+      if ((i+1) == env_size)
+        {
+          environ[i] = NULL;
+        }
+      else
+        {
+          environ[i] = environ[env_size-1];
+          environ[env_size-1] = NULL;
+        }
+    }
+  else
+    {
+      sprintf (put_tz, "TZ=%s", old_tz);
+      putenv (put_tz);
+    }
+  tzset ();
+}
+
+void 
+f_zonetime PROT((void))
+{
+  char *timezone, *old_tz;
+  char *retv;
+  int  time_val;
+  int  len;
+  
+  time_val   = sp->u.number;
+  pop_stack ();
+  timezone   = sp->u.string;
+  pop_stack ();
+
+  old_tz = set_timezone (timezone);
+  retv = ctime ((time_t *)&time_val);
+  len  = strlen (retv);
+  retv[len-1] = '\0';
+  reset_timezone (old_tz);
+  push_malloced_string (string_copy(retv, "zonetime"));
+  
+}
+#endif
+
+#ifdef F_IS_DAYLIGHT_SAVINGS_TIME
+void
+f_is_daylight_savings_time PROT((void))
+{
+  struct tm *t;
+  int       time_to_check;
+  char      *timezone;
+  char      *old_tz;
+
+  time_to_check = sp->u.number;
+  pop_stack ();
+  timezone = sp->u.string;
+  pop_stack ();
+
+  old_tz = set_timezone (timezone);
+ 
+  t = localtime ((time_t *)&time_to_check);
+
+  push_number ((t->tm_isdst) > 0);
+
+  reset_timezone (old_tz);
+}
+#endif
+
+#ifdef F_DEBUG_MESSAGE
+void f_debug_message PROT((void)) {
+    debug_message("%s\n", sp->u.string);
+    free_string_svalue(sp--);
+}
+#endif
+
+#ifdef F_FUNCTION_OWNER
+void f_function_owner PROT((void)) {
+    object_t *owner = sp->u.fp->hdr.owner;
+    
+    free_funp(sp->u.fp);
+    put_unrefed_object(owner, "f_function_owner");
+}
+#endif
+
+#ifdef F_REPEAT_STRING
+void f_repeat_string PROT((void)) {
+    char *str;
+    int repeat, len;
+    char *ret, *p;
+    int i;
+    
+    repeat = (sp--)->u.number;    
+    if (repeat <= 0) {
+	free_string_svalue(sp);
+	sp->type = T_STRING;
+	sp->subtype = STRING_CONSTANT;
+	sp->u.string = "";
+    } else if (repeat != 1) {
+	str = sp->u.string;
+	len = SVALUE_STRLEN(sp);
+	p = ret = new_string(len * repeat, "f_repeat_string");
+	for (i = 0; i < repeat; i++) {
+	    memcpy(p, str, len);
+	    p += len;
+	}
+	*p = 0;
+	free_string_svalue(sp);
+	sp->type = T_STRING;
+	sp->subtype = STRING_MALLOC;
+	sp->u.string = ret;
+    }
+}
+#endif
+
+#ifdef F_MEMORY_SUMMARY
+static int memory_share PROT((svalue_t *));
+
+static int node_share P3(mapping_t *, m, mapping_node_t *, elt, void *, tp) {
+    int *t = (int *)tp;
+    
+    *t += sizeof(mapping_node_t) - 2*sizeof(svalue_t);
+    *t += memory_share(&elt->values[0]);
+    *t += memory_share(&elt->values[1]);
+
+    return 0;
+}
+
+static int memory_share P1(svalue_t *, sv) {
+    int i, total = sizeof(svalue_t);
+    int subtotal;
+    
+    switch (sv->type) {
+    case T_STRING:
+	switch (sv->subtype) {
+	case STRING_MALLOC:
+	    return total + 
+		(1 + COUNTED_STRLEN(sv->u.string) + sizeof(malloc_block_t))/
+		(COUNTED_REF(sv->u.string));
+	case STRING_SHARED:
+	    return total + 
+		(1 + COUNTED_STRLEN(sv->u.string) + sizeof(block_t))/
+		(COUNTED_REF(sv->u.string));
+	}
+	break;
+    case T_ARRAY:
+    case T_CLASS:
+	/* first svalue is stored inside the array struct, so sizeof(array_t)
+	 * includes one svalue.
+	 */
+	subtotal = sizeof(array_t) - sizeof(svalue_t);
+	for (i = 0; i < sv->u.arr->size; i++)
+	    subtotal += memory_share(&sv->u.arr->item[i]);
+	return total + subtotal/sv->u.arr->ref;
+    case T_MAPPING:
+	subtotal = sizeof(mapping_t);
+	mapTraverse(sv->u.map, node_share, &subtotal);
+	return total + subtotal/sv->u.map->ref;
+    case T_FUNCTION:
+    {
+	svalue_t tmp;
+	tmp.type = T_ARRAY;
+	tmp.u.arr = sv->u.fp->hdr.args;
+
+	if (tmp.u.arr)
+	    subtotal = sizeof(funptr_hdr_t) + memory_share(&tmp) - sizeof(svalue_t);
+	else
+	    subtotal = sizeof(funptr_hdr_t);
+	switch (sv->u.fp->hdr.type) {
+	case FP_EFUN:
+	    subtotal += sizeof(efun_ptr_t);
+	    break;
+	case FP_LOCAL | FP_NOT_BINDABLE:
+	    subtotal += sizeof(local_ptr_t);
+	    break;
+	case FP_SIMUL:
+	    subtotal += sizeof(simul_ptr_t);
+	    break;
+	case FP_FUNCTIONAL:
+	case FP_FUNCTIONAL | FP_NOT_BINDABLE:
+	    subtotal += sizeof(functional_t);
+	    break;
+	}
+	return total + subtotal/sv->u.fp->hdr.ref;
+    }
+    case T_BUFFER:
+	/* first byte is stored inside the buffer struct */
+	return total + (sizeof(buffer_t) + sv->u.buf->size - 1)/sv->u.buf->ref;
+    }
+    return total;
+}
+
+
+/*
+ * The returned mapping is:
+ * 
+ * map["program name"]["variable name"] = memory usage
+ */
+void f_memory_summary PROT((void)) {
+    mapping_t *result = allocate_mapping(8);
+    object_t *ob;
+    svalue_t sv;
+
+    sv.type = T_STRING;
+    sv.subtype = STRING_SHARED;
+
+    for (ob = obj_list; ob; ob = ob->next_all) {
+	svalue_t *entry;
+	mapping_t *map;
+	int i, num;
+	
+	if (ob->flags & O_SWAPPED) 
+	    load_ob_from_swap(ob);
+
+	num = ob->prog->num_variables;
+    
+	sv.u.string = ob->prog->name;
+	entry = find_for_insert(result, &sv, 0);
+	if (entry->type == T_NUMBER) {
+	    entry->type = T_MAPPING;
+	    entry->u.map = allocate_mapping(8);
+	}
+	map = entry->u.map;
+	
+	for (i = 0; i < num; i++) {
+	    int size = memory_share(&ob->variables[i]);
+	    
+	    sv.u.string = ob->prog->variable_names[i].name;
+	    entry = find_for_insert(map, &sv, 0);
+	    entry->u.number += size;
+	}
+    }
+    push_refed_mapping(result);
+}
+#endif

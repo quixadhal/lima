@@ -1,0 +1,25 @@
+
+
+
+
+Unique Objects
+
+This function tells the mudlib that your 
+object is unique.(however at this time
+I don't think that it will stop more
+than one copy from being in the mud).
+What it does do is force the mud to refer 
+to your object as "the xxxx" instead of
+"a xxxx", implying only one exists.  To
+set your object as unique put the 
+following function in your objects
+create().
+
+    set_unique(1)
+
+
+The 1 tells the mud its unique, the
+default is 0.
+
+
+

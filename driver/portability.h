@@ -131,23 +131,28 @@
     || defined(__386BSD__) || defined(apollo) || defined(cray) \
     || defined(SunOS_5) || defined(__bsdi__) || defined(linux)
 
-/*
-Define MEMPAGESIZE to be some value if you wish to use BSDMALLOC _and_ your
-system does not support the getpagesize() system call.  This page size
-should be terms of the number of bytes in a page of system memory (not
-necessarily the same as the hardware page size).  You may be able to
-ascertain the correct value by searching your /usr/include files or
-asking your system adminstrator.
-*/
+/* Define MEMPAGESIZE to be some value if you wish to use BSDMALLOC
+ * _and_ your system does not support the getpagesize() system call.
+ * This page size should be terms of the number of bytes in a page of
+ * system memory (not necessarily the same as the hardware page size).
+ * You may be able to ascertain the correct value by searching your
+ * /usr/include files or asking your system adminstrator.  
+ *
+ * FIXME: configure should check for getpagesize().
+ */
 #if !defined(linux) && !defined(__386BSD__) && !defined(__FreeBSD__) \
 	&& !defined(OSF) && !defined(SunOS_4) && !defined(sgi)
-#if defined(hpux) || defined(SunOS_5)
-#  define MEMPAGESIZE sysconf(_SC_PAGE_SIZE)
-#else
-/* taken from smalloc.c's CHUNK_SIZE */
-#  define MEMPAGESIZE 0x40000
-#endif				/* hpux */
-#endif				/* linux */
+#  ifdef _SC_PAGE_SIZE
+#    define MEMPAGESIZE sysconf(_SC_PAGE_SIZE)
+#  else
+#    ifdef _SC_PAGESIZE
+#      define MEMPAGESIZE sysconf(_SC_PAGESIZE)
+#    else
+       /* taken from smalloc.c's CHUNK_SIZE */
+#      define MEMPAGESIZE 0x40000
+#    endif
+#  endif
+#endif
 
 /* define this if you system is BSD 4.2 (not 4.3) */
 #undef BSD42

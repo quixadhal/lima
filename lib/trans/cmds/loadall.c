@@ -9,7 +9,7 @@ private void main(mixed * args)
     string * files;
     object * obs;
 
-    printf("Attempting to load %s/*.c...  ", args[0]);
+    outf("Attempting to load %s/*.c...  ", args[0]);
 
     /*
     ** Get all the files in the given directory.  If this command is in
@@ -31,7 +31,7 @@ private void main(mixed * args)
     */
     map_array(files, (: load_object($1) :));
 
-    write("Succeeded.\n");
+    out("Succeeded.\n");
 }
 
 

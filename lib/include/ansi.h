@@ -6,7 +6,7 @@
 //
 //	The standard set of ANSI codes for mudlib use.
  
-#define ESC	sprintf("%c", 27)
+#define ESC "\e"
 #define CSI	ESC + "["
  
                 /*  Foreground Colors  */

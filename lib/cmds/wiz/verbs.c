@@ -31,13 +31,13 @@ private void main(string str) {
 		    continue;
 		
 		if (first) {
-		    printf("\n%s: ", verb);
+		    outf("\n%s: ", verb);
 		    first = 0;
 		} else
-		    write(", ");
-		write(rule);
+		    out(", ");
+		out(rule);
 	    }
 	}
     }
-    write("\n");
+    out("\n");
 }

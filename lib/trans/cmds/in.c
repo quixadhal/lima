@@ -4,6 +4,12 @@
 
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(mixed *arg) {
     object old;
     string cmd;
@@ -18,6 +24,6 @@ private void main(mixed *arg) {
     if (old)
 	this_body()->move(old);
     else
-	printf("Could not move back to old room.\n");
+	outf("Could not move back to old room.\n");
     return;
 }

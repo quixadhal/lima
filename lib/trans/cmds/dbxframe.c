@@ -43,7 +43,7 @@ main(string str) {
     int before;
     	
     if (!str || (sscanf(str, "%d", num)==0 && sscanf(str, "%s %d", who, num)==0)) {
-        write("dbxframe [<who>] <frame>\n");
+        out("dbxframe [<who>] <frame>\n");
 	return;
     }
     if (!who) {
@@ -51,25 +51,25 @@ main(string str) {
     } else {
 	frame = master()->query_error(who);
 	if (!frame && !find_body(who) && who != "last") {
-	    write("No such player.\n");
+	    out("No such player.\n");
 	    return;
 	}
     }
     if (!frame) {
-	write("No error.\n");
+	out("No error.\n");
 	return;
     }
     if (num<0 || num>=sizeof(frame["trace"]))
-	return write("No such frame.\n"), 0;
+	return out("No such frame.\n"), 0;
     frame = frame["trace"][num];
 
-    printf("------%s:%i - %s(%s)\n", frame["program"], frame["line"],
+    outf("------%s:%i - %s(%s)\n", frame["program"], frame["line"],
       frame["function"],print_vars(frame["arguments"]));
-    printf("locals: %s\n", print_vars(frame["locals"]));
-    printf("----------------------------------------------------------------\n");
+    outf("locals: %s\n", print_vars(frame["locals"]));
+    outf("----------------------------------------------------------------\n");
 
     before = (frame["line"] > 5 ? 5 : frame["line"] - 1);
-    printf("%s=>%s%s",
+    outf("%s=>%s%s",
       read_file("/"+frame["program"], frame["line"]-before, before),
       read_file("/"+frame["program"], frame["line"], 1),
       read_file("/"+frame["program"], frame["line"]+1, 5));

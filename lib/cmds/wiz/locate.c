@@ -8,5 +8,5 @@ private void main(string* arg)
 
     IMUD_D->do_locate(arg[0]);
 
-    write("Locate query sent.\n");
+    out("Locate query sent.\n");
 }

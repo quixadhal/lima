@@ -34,9 +34,7 @@ int total_mapping_nodes = 0;
 */
 
 static INLINE int node_hash P1(mapping_node_t *, mn) {
-    int x = mn->values[0].u.number;
-    if (x < 0) return -x;
-    return x;
+    return MAP_POINTER_HASH(mn->values[0].u.number);
 }
 
 INLINE int growMap P1(mapping_t *, m)
@@ -360,17 +358,17 @@ restore_hash_string P2(char **, val, svalue_t *, sv)
 INLINE int
 svalue_to_int P1(svalue_t *, v)
 {
-    int x;
-    
     if (v->type == T_STRING && v->subtype != STRING_SHARED) {
 	char *p = make_shared_string(v->u.string);
 	free_string_svalue(v);
 	v->subtype = STRING_SHARED;
 	v->u.string = p;
     }
-    x = v->u.number;
-    if (x < 0) return -x;
-    return x;
+    /* The bottom bits of pointers tend to be bad ... 
+     * Note that this means close groups of numbers don't hash particularly
+     * well, but then one wonders why they aren't using an array ...
+     */
+    return MAP_POINTER_HASH(v->u.number);
 }
 
 int msameval P2(svalue_t *, arg1, svalue_t *, arg2) {
@@ -416,10 +414,7 @@ INLINE void mapping_delete P2(mapping_t *,m, svalue_t *,lv)
 {
 	int i = svalue_to_int(lv) & m->table_size;
 	mapping_node_t **prev = m->table + i, *elt;
-	/*
-	   zero m->elt to prevent all hell from breaking loose if delete is
-	   called while iterating using each().
-	*/
+
 	if ((elt = *prev)) {
 	    do {
 		if (msameval(elt->values, lv)){
@@ -496,9 +491,8 @@ find_for_insert P3(mapping_t *, m, svalue_t *, lv, int, doTheFree)
 	assign_svalue_no_free(newnode->values, lv);
 	/* insert at head of bucket */
 	(*a = newnode)->next = n;
-	(lv = newnode->values + 1)->type = T_NUMBER;
-	lv->subtype = T_NULLVALUE;
-	lv->u.number = 0;
+	lv = newnode->values + 1;
+	*lv = const0u;
 	total_mapping_nodes++;
 	return lv;
 }
@@ -546,37 +540,21 @@ void unique_mapping_error_handler PROT((void))
 void f_unique_mapping PROT((void))
 {
     unique_m_list_t *nlist;
-    funptr_t *fp;
-    object_t *ob = 0;
-    char *func;
-    svalue_t *arg = sp - st_num_arg + 1, *extra, *sv;
+    svalue_t *arg = sp - st_num_arg + 1, *sv;
     unique_node_t **table, *uptr, *nptr;
     array_t *v = arg->u.arr, *ret;
     unsigned short oi, i, numkeys = 0, mask, size;
-    unsigned short num_arg = st_num_arg, numex = 0;
+    unsigned short num_arg = st_num_arg;
     unsigned short nmask;
     mapping_t *m;
     mapping_node_t **mtable, *elt;
     int *ind, j;
-
-    if ((arg+1)->type == T_FUNCTION) {
-        fp = (arg+1)->u.fp;
-        if (num_arg > 2) extra = arg + 2, numex = num_arg - 2;
-    } else {
-        func = (arg+1)->u.string;
-        if (num_arg < 3) ob = current_object;
-        else {
-            if ((arg +2)->type == T_OBJECT) ob = (arg+2)->u.ob;
-            else if ((arg+2)->type == T_STRING){
-                if ((ob = find_object(arg[2].u.string)) && !object_visible(ob)) ob = 0;
-            }
-            if (!ob) bad_argument(arg+2, T_STRING | T_OBJECT, 3, F_UNIQUE_MAPPING);
-            if (num_arg > 3) extra = arg + 3, numex = num_arg - 3;
-        }
-    }
+    function_to_call_t ftc;
+    
+    process_efun_callback(1, &ftc, F_UNIQUE_MAPPING);
 
     size = v->size;
-    if (!size){
+    if (!size) {
         pop_n_elems(num_arg - 1);
         free_array(v);
         sp->type = T_MAPPING;
@@ -584,7 +562,7 @@ void f_unique_mapping PROT((void))
         return;
     }
 
-    if (size > MAP_HASH_TABLE_SIZE){
+    if (size > MAP_HASH_TABLE_SIZE) {
         size |= size >> 1;
         size |= size >> 2;
         size |= size >> 4;
@@ -607,14 +585,13 @@ void f_unique_mapping PROT((void))
     sp->u.error_handler = unique_mapping_error_handler;
 
     size = v->size;
-    while (size--){
+    while (size--) {
         push_svalue(v->item + size);
-        if (numex) push_some_svalues(extra, numex);
-        sv = ob ? apply(func, ob, 1 + numex, ORIGIN_EFUN) : call_function_pointer(fp, 1 + numex);
+	sv = call_efun_callback(&ftc, 1);
         i = (oi = svalue_to_int(sv)) & mask;
         if ((uptr = table[i])) {
             do {
-                if (msameval(&uptr->key, sv)){
+                if (msameval(&uptr->key, sv)) {
                     ind = uptr->indices = RESIZE(uptr->indices, uptr->count+1,
 						 int, 102, "f_unique_mapping:3");
                     ind[uptr->count++] = size;
@@ -622,7 +599,7 @@ void f_unique_mapping PROT((void))
                 }
             } while ((uptr = uptr->next));
         }
-        if (!uptr){
+        if (!uptr) {
             uptr = ALLOCATE(unique_node_t, 103, "f_unique_mapping:4");
             assign_svalue_no_free(&uptr->key, sv);
             uptr->count = 1;
@@ -807,8 +784,7 @@ find_string_in_mapping P2(mapping_t *, m, char *, p)
     mapping_node_t *n;
     
     if (!ss) return &const0u;
-    i = (int)ss;
-    if (i < 0) i = -i;
+    i = MAP_POINTER_HASH(ss);
     n = m->table[i & m->table_size];
     
     while (n) {
@@ -1012,43 +988,23 @@ map_mapping P2(svalue_t *, arg, int, num_arg)
 {
     mapping_t *m = arg->u.map;
     mapping_node_t **a, *elt;
-    int j = m->table_size, numex = 0;
-    svalue_t *ret, *extra;
-    funptr_t *fp;
-    char *func;
-    object_t *ob = 0;
+    int j = m->table_size;
+    svalue_t *ret;
+    function_to_call_t ftc;
+    
+    process_efun_callback(1, &ftc, F_MAP);
 
     m = copyMapping(m);
     (++sp)->type = T_MAPPING;
     sp->u.map = m;
 
-    if ((arg + 1)->type == T_FUNCTION){
-	fp = (arg+1)->u.fp;
-	if (num_arg > 2) extra = arg+2, numex = num_arg - 2;
-    }
-    else {
-	func = (arg + 1)->u.string;
-	if (num_arg < 3) ob = current_object;
-	else {
-	    if ((arg+2)->type == T_OBJECT) ob = (arg+2)->u.ob;
-	    else if ((arg+2)->type == T_STRING){
-		if ((ob = find_object((arg+2)->u.string)) && !object_visible(ob))
-		    ob = 0;
-	    } 
-	    if (!ob)
-		error("Bad argument 3 to map_mapping\n");
-	    if (num_arg > 3) extra = arg +3, numex = num_arg - 3;
-	}
-    }
     a = m->table;
     debug(1,("mapping.c: map_mapping\n"));
     do {
 	for (elt = a[j]; elt ; elt = elt->next){
 	    push_svalue(elt->values);
 	    push_svalue(elt->values+1);
-	    if (numex) push_some_svalues(extra, numex);
-	    ret = ob ? apply(func, ob, 2+numex, ORIGIN_EFUN) 
-		: call_function_pointer(fp, 2+numex);
+	    ret = call_efun_callback(&ftc, 2);
 	    if (ret) assign_svalue(elt->values+1, ret);
 	    else break;
 	}
@@ -1067,12 +1023,12 @@ filter_mapping P2(svalue_t *, arg, int, num_arg)
     mapping_t *m = arg->u.map, *newmap;
     mapping_node_t **a, *elt;
     mapping_node_t **b, *newnode, *n;
-    int j = m->table_size, numex = 0, count = 0, size;
-    svalue_t *ret, *extra;
-    funptr_t *fp;
-    char *func;
-    object_t *ob = 0;
+    int j = m->table_size, count = 0, size;
+    svalue_t *ret;
     unsigned short tb_index;
+    function_to_call_t ftc;
+    
+    process_efun_callback(1, &ftc, F_FILTER);
 
     newmap = allocate_mapping(0);
     (++sp)->type = T_MAPPING;
@@ -1080,35 +1036,15 @@ filter_mapping P2(svalue_t *, arg, int, num_arg)
     b = newmap->table;
     size = newmap->table_size;
 
-    if ((arg + 1)->type == T_FUNCTION){
-	fp = (arg+1)->u.fp;
-	if (num_arg > 2) extra = arg+2, numex = num_arg - 2;
-    }
-    else {
-	func = (arg + 1)->u.string;
-	if (num_arg < 3) ob = current_object;
-	else {
-	    if ((arg+2)->type == T_OBJECT) ob = (arg+2)->u.ob;
-	    else if ((arg+2)->type == T_STRING){
-		if ((ob = find_object((arg+2)->u.string)) && !object_visible(ob))
-		    ob = 0;
-	    } 
-	    if (!ob)
-		error("Bad argument 3 to filter_mapping\n");
-	    if (num_arg > 3) extra = arg +3, numex = num_arg - 3;
-	}
-    }
     a = m->table;
     debug(1,("mapping.c: filter_mapping\n"));
     do {
 	for (elt = a[j]; elt ; elt = elt->next){
 	    push_svalue(elt->values);
 	    push_svalue(elt->values+1);
-	    if (numex) push_some_svalues(extra, numex);
-	    ret = ob ? apply(func, ob, 2+numex, ORIGIN_EFUN) 
-		: call_function_pointer(fp, 2+numex);
+	    ret = call_efun_callback(&ftc, 2);
 	    if (!ret) break;
-	    else if (ret->type != T_NUMBER || ret->u.number){
+	    else if (ret->type != T_NUMBER || ret->u.number) {
 		tb_index = node_hash(elt) & size;
 		b = newmap->table + tb_index;
 		if (!(n = *b) && !(--newmap->unfilled)){

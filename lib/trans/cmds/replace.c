@@ -30,12 +30,12 @@ private void main(mixed* argv, mapping flags)
     }
 
   if(!strlen(output))
-    write("No matches found.\n");
+    out("No matches found.\n");
   else
     {
       if(flags["q"])
-	printf("Done.\n");
+	out("Done.\n");
       else
-	  more(output);
+	  out(output);
     }
 }

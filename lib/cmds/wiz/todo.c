@@ -6,11 +6,17 @@
 
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string str)
 {
     if ( !is_directory(wiz_dir(this_body())) )
     {
-        write("Sorry, only full wizards are allowed to use this command.\n");
+        out("Sorry, only full wizards are allowed to use this command.\n");
         return;
     }
 

@@ -8,6 +8,6 @@ inherit CMD;
 
 private void main(mixed argv)
 {
-  map(argv[0], (: rm($1) ? printf("%s: removed.\n", $1) : 
-		printf("failed to remove: %s\n", $1) :));
+  map(argv[0], (: rm($1) ? outf("%s: removed.\n", $1) : 
+		outf("failed to remove: %s\n", $1) :));
 }

@@ -1,0 +1,49 @@
+
+
+
+
+M_EBTERABLE
+
+
+M_ENTERABLE allows you to make your object enterable.  You can
+also set unique enter/exit messages.  You should also see the
+help in the modules section for messages.
+
+Functions that you call from your setup():
+
+     set_on_enter_msg(msg) --  Allows you to set a unique message
+                               that the players in the room will
+                               see as well as the person entering 
+                               the object.  This message is passed
+                               through the parser, and is in the 
+                               format "$N $vooze coolness as $p $venter the camaro.".
+
+     set_on_exit_msg(msg)  --  Allows you to set a unique message that 
+                               the players in the room will see as well
+                               as the person entering the object. This
+                               message is passed through the parser, and
+                               follows the format of "$N $vooze...".
+
+Important Functions:
+
+     direct_enter_obj()        This group of functions are callbacks from 
+     direct_get_in_obj()   --  the parser, and tell the parser if its ok    
+     direct_exit_obj()         to enter/exit/get in the object in question.
+
+     get_in_obj()          --  Handles the command get in object, this 
+                               function actually calls do_enter().
+     
+     do_enter()            --  Checks to see if you are already in the object, 
+                               if so it tells you that, if not the appropriate
+                               calls are made to move the player into the object.
+
+
+All of the functions in the Important Functions section may be overloaded to 
+modify the default behavior.  
+
+
+
+Last Updated: Friday, April 26, 1996
+    
+                  
+

@@ -37,7 +37,7 @@ static int reserved_size;
 char *reserved_area;		/* reserved for MALLOC() */
 static char *mud_lib;
 
-svalue_t const0, const1, const0u, const0n;
+svalue_t const0, const1, const0u;
 
 double consts[NUM_CONSTS];
 
@@ -129,11 +129,6 @@ int main P2(int, argc, char **, argv)
     const0u.subtype = T_UNDEFINED;
     const0u.u.number = 0;
 
-    /* const0n used by nullp() */
-    const0n.type = T_NUMBER;
-    const0n.subtype = T_NULLVALUE;
-    const0n.u.number = 0;
-
     fake_prog.program_size = 0;
 
     /*
@@ -160,10 +155,10 @@ int main P2(int, argc, char **, argv)
     /*
      * Check the living hash table size
      */
-    if (LIVING_HASH_SIZE != 4 && LIVING_HASH_SIZE != 16 &&
-	LIVING_HASH_SIZE != 64 && LIVING_HASH_SIZE != 256 &&
-	LIVING_HASH_SIZE != 1024 && LIVING_HASH_SIZE != 4096) {
-	fprintf(stderr, "LIVING_HASH_SIZE in options.h must be one of 4, 16, 64, 256, 1024, 4096, ...\n");
+    if (CFG_LIVING_HASH_SIZE != 4 && CFG_LIVING_HASH_SIZE != 16 &&
+	CFG_LIVING_HASH_SIZE != 64 && CFG_LIVING_HASH_SIZE != 256 &&
+	CFG_LIVING_HASH_SIZE != 1024 && CFG_LIVING_HASH_SIZE != 4096) {
+	fprintf(stderr, "CFG_LIVING_HASH_SIZE in options.h must be one of 4, 16, 64, 256, 1024, 4096, ...\n");
 	exit(-1);
     }
 
@@ -206,27 +201,16 @@ int main P2(int, argc, char **, argv)
     init_identifiers();		/* in lex.c */
     init_locals();              /* in compiler.c */
 
-/* disable this for now */
-#if 0
-    /*
-     * We estimate that we will need MAX_USERS + MAX_EFUN_SOCKS + 10 file
-     * descriptors if the maximum number of users were to log in and all LPC
-     * sockets were in use.  This is a pretty close estimate.
-     */
-#ifndef LATTICE
-    dtablesize = MAX_USERS + MAX_EFUN_SOCKS + 10;
-#else
-    /*
-     * Amiga sockets separate from file descriptors
-     */
-    dtablesize = MAX_USERS + MAX_EFUN_SOCKS;
-#endif
-
     /*
      * If our estimate is larger than FD_SETSIZE, then we need more file
      * descriptors than the operating system can handle.  This is a problem
      * that can be resolved by decreasing MAX_USERS, MAX_EFUN_SOCKS, or both.
+     *
+     * Unfortunately, since neither MAX_USERS or MAX_EFUN_SOCKS exist any more,
+     * we have no clue how many we will need.  This code really should be
+     * moved to places where ENFILE/EMFILE is returned.
      */
+#if 0
     if (dtablesize > FD_SETSIZE) {
 	fprintf(stderr, "Warning: File descriptor requirements exceed system capacity!\n");
 	fprintf(stderr, "         Configuration exceeds system capacity by %d descriptor(s).\n",
@@ -403,15 +387,16 @@ int main P2(int, argc, char **, argv)
     }
     if (MudOS_is_being_shut_down)
 	exit(1);
-    if (strlen(DEFAULT_FAIL_MESSAGE))
-	default_fail_message = DEFAULT_FAIL_MESSAGE;
-    else
-	default_fail_message = "What?";
+    if (*(DEFAULT_FAIL_MESSAGE)) {
+	char buf[8192];
+
+	strcpy(buf, DEFAULT_FAIL_MESSAGE);
+	strcat(buf, "\n");
+	default_fail_message = make_shared_string(buf);
+    } else
+	default_fail_message = "What?\n";
 #ifdef PACKAGE_MUDLIB_STATS
     restore_stat_files();
-#endif
-#ifdef PACKAGE_SOCKETS
-    init_sockets();		/* initialize efun sockets           */
 #endif
     preload_objects(e_flag);
 #ifdef SIGFPE
@@ -621,7 +606,7 @@ static void PSIG(sig_fpe)
 
 static void PSIG(sig_usr1)
 {
-    push_string("Host machine shutting down", STRING_CONSTANT);
+    push_constant_string("Host machine shutting down");
     push_undefined();
     push_undefined();
     apply_master_ob(APPLY_CRASH, 3);

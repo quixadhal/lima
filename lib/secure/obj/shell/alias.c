@@ -214,6 +214,8 @@ mixed expand_alias(string* argv)
   string tmp;
   mixed tmp2;
 
+  if(!sizeof(argv))
+     return argv;
   xverb_matches = filter_array(xaliases, (: strsrch($2, $1) == 0 :), argv[0]);
   switch(sizeof(xverb_matches))
     {
@@ -286,7 +288,7 @@ void create()
     }
 }
 
-varargs static void cmd_alias(mixed argv)
+varargs static void cmd_alias(mixed argv, string array implode_info)
 {
     switch(sizeof(argv))
     {
@@ -299,12 +301,19 @@ varargs static void cmd_alias(mixed argv)
     default:
 	if(strlen(argv[1]) > 1 && argv[1][0] == '$')
 	{
+	  if(implode_info)
+	    add_alias(argv[1][1..], implode_by_arr(argv[2..],
+		      implode_info[2..])[1..],0,1);
+	  else
 	    add_alias(argv[1][1..], implode(argv[2..]," "),0,1);
 	    printf("Xverb alias '%s' set to: %s.\n", argv[1][1..], 
 		   ((class alias)aliases[argv[1][1..]])->template);
 	    return;
 	}
-	add_alias(argv[1], implode(argv[2..]," "));
+	if(implode_info)
+	  add_alias(argv[1], implode_by_arr(argv[2..],implode_info[2..])[1..]);
+	else
+	  add_alias(argv[1], implode(argv[2..]," "));
 	printf("Alias '%s' set to: %s.\n", argv[1],
 	       ((class alias)aliases[argv[1]])->template);
     }
@@ -328,3 +337,4 @@ varargs static void cmd_remove_alias(mixed argv)
 	printf("Alias '%s' removed.\n", argv[1]);
     }
 }
+

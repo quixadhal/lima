@@ -3,8 +3,6 @@
 //### This stuff needs to be linked to affect commands.
 private static int stunned, asleep, chance;
 
-void print_result(string);
-
 int query_ghost() {
     return 0;
 }
@@ -57,7 +55,10 @@ mixed check_condition(int urgent) {
 	if (urgent) {
 	    if (random(5)<=chance++) {
 		wake_up();
+//FIXME: print_result takes a class combat_result array now.
+#if 0
 		print_result("wakeup");
+#endif
 	    } else
 		return "You try desparately to wake up, but fail.\n";
 	} else {

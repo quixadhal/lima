@@ -47,7 +47,6 @@
    void perror(char *);
    int system PROT((char *));
    int atoi PROT((const char *));
-   void abort PROT(());
    int setsockopt PROT((int, int, int, char *, int));
    int fseek PROT_STDIO((FILE *, long, int));
    unsigned int alarm PROT((unsigned int));
@@ -71,7 +70,6 @@
 #  endif
 
 #  if !defined(LATTICE) && !defined(sgi)
-     void abort PROT(());
      int fflush PROT_STDIO((FILE *));
      int fclose PROT_STDIO((FILE *));
 #  endif

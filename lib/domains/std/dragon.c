@@ -2,6 +2,7 @@
 
 inherit MONSTER;
 inherit M_BLOCKEXITS;
+inherit M_WANDER;
 
 void setup() {
     object sword;
@@ -14,18 +15,8 @@ void setup() {
     set_long("Getting close enough to see what a dragon is not a good idea.");
 
     set_max_hp(300);
+  set_movement_time(5);
+set_wander_area("wiz_area");
 
 }
 
-mixed take_a_swing(object target)
-{
-    if(random(20)) return ::take_a_swing(target);
-    foreach(target in query_target())
-    {
-	if(target->is_living()) continue;
-	{
-	    write(" just testing foo you got hit");
-   target->do_damage(50, "FIRE");
-   }
-   }
-}

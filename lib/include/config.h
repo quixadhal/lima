@@ -21,7 +21,6 @@
 
 /* ! will give you problems since it's used as input escape. */
 #define HISTORY_CHAR		'%'
-#define AUTOMATIC_REHASH
 
 #define EVERYTHING_SAVES		/* Note: if you define this, you have to
 				   modify the lib to save the correct vars */
@@ -38,6 +37,7 @@
 #define USE_WIZ_POSITION	/* use the "position" scheme for wizzes */
 #define USE_QUESTS		/* quests are not always related to gaming,
 				   so we have a separate config flag */
+#define USE_STATUS_LINE              /* Allow use of Infocom-like Status Line */
 #define USE_GAME_FEATURES	/* use a lot of features related to gaming */
 
 #ifdef USE_GAME_FEATURES	/* pull in a set for gaming features */
@@ -72,7 +72,7 @@
 #define TYPO_NEWSGROUP "reporter.typos"
 #define IDEA_NEWSGROUP "reporter.ideas"
 #define TODO_NEWSGROUP "reporter.todo"
-#define QUESTION_NEWSGROUP "lima.help"
+#define QUESTION_NEWSGROUP "reporter.question"
 
 
 #define BUG_MSG \

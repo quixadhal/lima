@@ -14,7 +14,7 @@ private nomask void handle_piping(string arg)
 {
     if( arg == "**" || arg == ".")
     {
-	write("Done.\n");
+	out("Done.\n");
         modal_pop();
         destruct();
 	return;
@@ -31,8 +31,8 @@ nomask void start_cmd()
         return;
     }
 
-    write("Entering converse mode. Type '**' or '.' to quit.\n");
-    write("-------------------------------------------------\n");
+    out("Entering converse mode. Type '**' or '.' to quit.\n");
+    out("-------------------------------------------------\n");
     modal_push((: handle_piping :),
 #if 0 // Clients can't handle \r without \n well - Beek
                "\r" BLANKLINE "\r" PROMPT "\r"

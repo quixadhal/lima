@@ -22,9 +22,9 @@ void profile_all(function compare) {
     worst = sort_array(worst, compare);
     worst = worst[0..19];
 
-    printf("%-40s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Total");
+    outf("%-40s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Total");
     foreach (item in worst) {
-        printf("%-40s %5i %8i %8i %8i\n",
+        outf("%-40s %5i %8i %8i %8i\n",
                item["name"], item["calls"], item["self"], item["children"],
                item["self"] + item["children"]);
     }
@@ -57,7 +57,7 @@ static void top_ten() {
                 tmp[i] = tmp[j];
                 tmp[j] = foo;
             }
-        printf("%60-O %i\n", tmp[i][0], tmp[i][1]);
+        outf("%60-O %i\n", tmp[i][0], tmp[i][1]);
     }
 }
 #endif
@@ -70,7 +70,7 @@ private void main(string str) {
     function compare;
 
 #ifndef __PROFILE_FUNCTIONS__
-    write("Function profiling not enabled.\n");
+    out("Function profiling not enabled.\n");
     return;
 #else
     if (!str) {
@@ -93,7 +93,7 @@ private void main(string str) {
     obname = evaluate_path(str);
 
     if (!(ob = find_object(obname))) {
-        write("Can't find object " + obname + "\n");
+        out("Can't find object " + obname + "\n");
         return;
     }
 
@@ -101,9 +101,9 @@ private void main(string str) {
     prof = filter(prof, (: $1["calls"] :));
     prof = sort_array(prof, compare);
 
-    printf("%-30s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Total");
+    outf("%-30s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Total");
     foreach (item in prof) {
-        printf("%-30s %5i %8i %8i %8i\n",
+        outf("%-30s %5i %8i %8i %8i\n",
                item["name"], item["calls"], item["self"], item["children"],
                item["self"] + item["children"]);
     }

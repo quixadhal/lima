@@ -9,6 +9,12 @@ inherit M_GRAMMAR;
 
 #define SYNTAX	"Usage: wall <message>\n"
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main( string arg )
 {
     string		broadcast;
@@ -28,5 +34,6 @@ private void main( string arg )
     LOG_D->log(LOG_WALL, broadcast);
 
     shout( broadcast );
+    // Not appropriate to use out() here.
     write(broadcast);
 }

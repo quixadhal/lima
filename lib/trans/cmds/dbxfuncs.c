@@ -48,9 +48,9 @@ private void main(string str) {
         line += (")");
 
         if (where = function_exists(result[0], ob))
-            printf("%-30s(defined in %s)\n", line, where);
+            outf("%-30s(defined in %s)\n", line, where);
         else
-            printf("%s\n", line);
+            outf("%s\n", line);
     }
     return;
 }

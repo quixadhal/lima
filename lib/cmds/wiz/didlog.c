@@ -11,8 +11,7 @@
 
 inherit CMD;
 
-private void main(string str)
-{
+private void main(string str) {
     int ndays;
     string header;
     string pattern;
@@ -31,9 +30,10 @@ private void main(string str)
     else
 	header = sprintf("DID_D report for the past %d days", ndays);
 
-    DID_D->dump_did_info(time() - ndays * 24 * 60 * 60,
+    out(DID_D->get_did_info(time() - ndays * 24 * 60 * 60,
 			 ({ header,
 				sprintf("%*'-'s", sizeof(header), ""),
 				"" }),
-			 pattern);
+			 pattern));
 }
+

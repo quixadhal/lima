@@ -23,22 +23,22 @@ private void main( mixed *arg)
     if (rt == MOVE_OK)
     { 
 	if (prev==env)
-	{ printf("You twitch briefly.\n");
+	{ out("You twitch briefly.\n");
 	    return;
 	}
 	msgs = this_body()->get_player_message("mleave");
 	tell_room(prev, msgs[1]);
 	msgs = this_body()->get_player_message("menter");
 	tell_room(env, msgs[1], 0, ({ this_body() }));
-	force_look();
+	this_body()->force_look();
     }
     else           // failure messages
 	switch(rt)
     {
-    case MOVE_NO_DEST: printf("Goto: Invalid destination.\n"); break;
-    case MOVE_NOT_RELEASED: printf(
+    case MOVE_NO_DEST: out("Goto: Invalid destination.\n"); break;
+    case MOVE_NOT_RELEASED: out(
 	  "Goto: Your surroundings will not let you leave!\n"); break;
-    case MOVE_NOT_ALLOWED: printf(
+    case MOVE_NOT_ALLOWED: out(
 	  "Goto: Your destination will not accept you.\n"); 
     }
 }

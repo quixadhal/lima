@@ -1,0 +1,42 @@
+
+
+
+
+
+M_READABLE
+
+M_READABLE is used to make your object readable. i.e. a book, a sign etc.
+
+Functions to call from your setup():
+
+    set_text( text ) -- This is where you set the text that you wish to have the player read.
+                        
+    set_entries( mapping entries) --  This is where you can set that your "book" has multiple
+                                      pages or entries etc.  "foo" : "The catch all phrase
+                                      people use to describe something."   
+
+
+Important Functions:
+
+    read()         --   This function is called by the verb handler, and only used if there is only
+                        one entry, i.e. set_text was used.
+
+    read_entry()   --   Is used to read a particular entry from the list specified in the 
+                        set_entries() function.
+
+Other Fuctions:
+
+    has_entries()  --   Returns whether or not the object has entries.
+
+    direct_read_obj() --  This function checks to see if   there is readable text (set_text()),
+                          if there is, return 1, other wise if no entries, or entries return an
+                          appropriate message.
+
+    direct_read_str_word_obj()  --  This function checks to see if there are entries, if not 
+                                    return an error message.
+
+
+
+Last Updated: Wednesday, May 01, 1996
+
+

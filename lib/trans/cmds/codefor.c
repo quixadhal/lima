@@ -3,8 +3,15 @@
 //codefor
 //By Beek - derived from eval
 
+
 #include <mudlib.h>
 inherit CMD;
+
+void create()
+{
+  ::create();
+  no_redirection();
+}
 
 #define SYNTAX "USAGE:  codefor <lpc expression>\n"
 
@@ -28,7 +35,7 @@ private void main(string str)
     rm(tmp_file);
     if(o = find_object(tmp_file)) destruct(o);
     if(!write_file(tmp_file,initial_write_to_file)){
-        write("eval: Unable to write to "+tmp_file+". \n");  //shouldn't happen.
+        out("eval: Unable to write to "+tmp_file+". \n");  //shouldn't happen.
             return 0;
     }
     write_file(tmp_file,str+";\n");
@@ -41,7 +48,7 @@ private void main(string str)
     rm( tmp_file );
 
     ret = explode(ret, ";;;  *** Disassembly ***");
-    write(ret[1]);
+    out(ret[1]);
 
     destruct(find_object(tmp_file));
     return;

@@ -13,3 +13,7 @@ void do_light_obj_with_obj(object ob, object with) {
 mixed * query_verb_info() {
     return ({ ({ "OBJ", "OBJ with OBJ" }) });
 }
+int need_to_see()
+{
+    return 0;
+}

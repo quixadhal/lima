@@ -19,7 +19,13 @@ private static string departure_msg;
 // This is really a gerundive, but we'll call it a verb so as not to confuse
 // people.
 private static string primary_verb;
+private static int notify_all = 1;
 
+
+static void set_move_notification(int a)
+{
+    notify_all = a;
+}
 
 static void set_arrival_msg(string s)
 {
@@ -135,6 +141,24 @@ string query_in_room_desc()
 			get_riders_as_string()+"."));
     }
 }
+
+//Override of notify_move() from M_SMARTMOVE so we can tell all
+// the passengers that we moved. (if we want to)
+
+void notify_move()
+{
+    object *inv;
+    object curr;
+    if(!notify_all)
+        return;
+    inv = all_inventory(this_object());
+    foreach(curr in inv)  {
+        if(curr->query_link())
+            curr->force_game_command("look");
+    }
+}
+
+ 
 
 int is_vehicle()
 {

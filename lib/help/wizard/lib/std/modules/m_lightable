@@ -1,0 +1,98 @@
+
+
+
+Page Title
+
+M_LIGHATBLE>
+
+M_LIGHTABLE gives you object the ablitity to be lit, and give off 
+light, thus allowing you to see in the dark.  
+
+Functions you put in your setup():
+
+          
+    set_light_level(int)     --  This function tells the lib "how much" light your object
+                                 gives off.  The higher the number the more light.  You can
+                                 also create a light source that gives off negative light, 
+                                 radiates darkness bu supplying a negative number to this
+                                 function.
+    
+    set_burned_out_msg(msg)  --  This function allows you to set the message for when the 
+                                 a player tried to light a burnt out light source,the default
+                                 is, "The (object) is burned out.".
+
+    set_extinguish_msg(msg)  --  This function allows you to set the message for when the 
+                                 light source is turned off/extinguished.  The default is
+                                 (PLayer) extinguishes a (object).
+
+    set_die_msg(msg)         --  This function allows you to set the message for when the 
+                                 light source burns out.  The default is "The light from the 
+                                 (object) flickers and dies.".
+
+    set_fuel(amount)         --  This function allows you to set how long the torch can stay lit. 
+                                 When the object is lit, a call_out(), is down on that amount, when
+                                 the call_out is executed, the light burns out.
+
+    set_source(f)            --  Sets the source by which this object may be lit.  If f is a 
+                                 string, only objects that have that string as an id may light it.
+                                 If f is 0, anyobject may light it.
+
+        
+Important functions:
+
+    query_lit()              --  Returns 1 if the object is lit, and producing light.
+
+    extinguish()             --  Is called by do_extinguish(), when the player tries to 
+                                 extinguish the object.  This function also looks to call 2 hooks
+                                 in your object the first is "prevent_extinguish", which could stop
+                                 the object from being extinuished if it returns 0 or a string.
+                                 If the prevent extinguish returns 1, turn the light source off.                             
+
+                                 The second hook called is "extinguish" the return value of this hook
+                                 is ignored, The hook gives you a chance to do somethign unique, if 
+                                 you desire.
+                              
+                                     
+    do_extinguish()          --  Calls extinguish(), if the return value is 1 display the 
+                                 set_extinguish_msg(), otherwise print an error message..
+
+                                     
+    check_fuel()             --  Checks to see if there is still fuel in the light source, if not 
+                                 it returns the set_burned_out_msg().
+
+    light()                  --  This function is called by do_light(), and checks to see if its 
+                                 ok to light this object, is there enough fuel etc.  Also calls 
+                                 2 hooks in your object "prevent_light", which gives your object 
+                                 a chance to not let itself be lit, and "light" that lets you
+                                 do a unique action after the light source is lit.
+ 
+    do_light(with)           --  This function handles the lighting of an object.  The first thing
+                                 it does is call light().  If that returns 0 or a string it prints the 
+                                 appropriate error message, if not it prints the appropriate message
+                                 to show the object is lit, either with an item or without an item.
+
+    burn_out()               --  Handles the burning out of the light source.
+
+    direct_light_obj()       --  This function is a parser callback.  It checks to see if a source
+                                 is needed to light the object, if a source is needed  it returns an
+                                 error message.
+                                 
+    direct_extinguish_obj()  --  This function is a parser callback.  It checks to see if the source is
+                                 lit or not.  If the source is not lit, return an error message.
+
+    direct_light_obj_with_obj() --  This function is a parser callback.  It checks to see if the with 
+                                 object is valid if not return appropriate messages.
+
+    indirect_light_obj_with_obj() --This function is a parser callback.  It checks to see if the object
+                                 is lit, if it is the return 1, otherwise return 1.  
+
+                                 *** note that this is called when trying to use this object as a source
+                                 *** to light another light source.
+
+          
+
+
+Last Updated: Friday, April 26, 1996
+
+
+

@@ -3,41 +3,36 @@
 
 inherit SPELL;
 
-void create ()
+void setup()
 {
-  set_spell_name ("test");
-  create_spell ();
+    set_spell_name("test");
 }
 
-void cast_spell (object ob, object reagent)
+void cast_spell(object ob, object reagent)
 {
-
-  if (!ob)
+    if ( !ob )
     {
-      this_body ()->simple_action ("$N $vcast $p test spell.\n");
+	this_body()->simple_action("$N $vcast $p test spell.\n");
     }
-  else
+    else
     {
-      this_body ()->targetted_action ("$N $vcast $p test spell on $t.\n", ob);
+	this_body()->targetted_action("$N $vcast $p test spell on $t.\n", ob);
     }
 }
 
-mixed valid_target (object ob) 
+mixed valid_target(object ob) 
 {
-  return 1;
+    return 1;
 }
 
-mixed valid_reagent (object ob)
+mixed valid_reagent(object ob)
 {
-  return "That wouldn't help the spell any.\n";
+    return "That wouldn't help the spell any.\n";
 }
   
-
-
-int valid_circumstances (object target, object reagent) // returns 1 by default, which
-// isn't what you want.  Which is why you should subclass spell...
+// returns 1 by default, which isn't what you want.  Which is why you
+// should subclass spell...
+int valid_circumstances(object target, object reagent)
 {
-  return wizardp (this_body());
+    return wizardp(this_body());
 }
-
-

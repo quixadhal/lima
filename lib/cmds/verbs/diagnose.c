@@ -25,7 +25,7 @@ void do_diagnose()
     if (check_vision() != 1)
 	write("You can't see.\n");
 
-    my_action(this_body()->diagnose());
+    this_body()->my_action(this_body()->diagnose());
 
     // Deja vu.  Drive the players crazy :-)
     if (random(100) == 0)

@@ -44,4 +44,9 @@ mixed ob_state()
     return query_wielded_by();
 }
 
-int direct_wield_obj() { return 1; }
+int direct_wield_obj()
+{
+    object who = owner(this_object());
+    if (who && who != this_body() && who->is_living()) return 0;
+return 1;
+}

@@ -1,0 +1,49 @@
+
+
+
+Page Title
+
+M_LOCKABLE
+
+M_LOCKABLE is inherited into objects that you want to lock.  
+
+Functions you call in your setup();
+
+     set_locked(key)    --   This function sets what type of key can open your object.
+                             Only objects that have key_type(), set to the same as 
+                             your "key" can open this object.
+
+                             i.e. I have a safe that has set_locked("foobat");
+                             and a key that does key_type("foobar");
+
+                             That key will open my safe, however any key that doesn't
+                             have a key type of "foobar" will not match.
+
+Important Functions:
+
+      
+     unlock()           --   This function is called from the verbs.  It starts the procedure
+                             of unlocking the object, first thing it does is check for an object
+                             in your your inventory or environment that has an id of "key".
+                            
+                             Then it calls unlock_with(ob), passing the key it finds as ob.
+ 
+     unlock_with(ob)    --   This is where the object gets unlocked at.  This function gives your
+                             object one last chance to prevent itself from being unlocked, it calls the
+                             hook "prevent_unlock".  If the key you are using does not match the 
+                             object its trying to unlock it fails.
+
+     lock()/unlock()    --   work the same way, except that the hook is "prevent_lock".
+
+
+     direct_lock_obj()  --   These are parser callbacks that check to see if you have a key near you.
+     direct_ulock_obj() --   if not they fail.
+
+     direct_unlock_with_obj() --  These are parser callbacks, that return 1 by default.
+     direct_lock_with_obj()   -- 
+                   
+
+
+Last Updated: Friday, April 26, 1996
+
+

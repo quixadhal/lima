@@ -69,9 +69,9 @@ static nomask string * format_name_list(string prompt, string * names)
     if ( !names || !sizeof(names) )
 	return ({ });
 
-    return explode(iwrap(prompt + implode(map_array(names, (: capitalize :)),
+    return explode(wrap(prompt + implode(map_array(names, (: capitalize :)),
                                           ", "),
-			 strlen(prompt)),
+			0, strlen(prompt)),
 		   "\n");
 }
 

@@ -1,0 +1,17 @@
+
+Set_Relations()
+
+
+In order to use set_relations you must
+inherit COMPLEX_CONTAINER. Set_realtions()
+tells the mud what relations your 
+container can have. In your objects 
+create():
+
+    set_relations("on"."under");
+
+By doing this you can both put things 
+on and under your container. 
+
+**** NOTE --  You must also use 
+****          set_max_capacity()

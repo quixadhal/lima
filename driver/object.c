@@ -51,7 +51,7 @@ INLINE int svalue_save_size P1(svalue_t *, v)
 	    int size = 0;
 
 	    while ((c = *cp++)) {
-		if (c == '\\' || c == '\"') size++;
+		if (c == '\\' || c == '"') size++;
 		size++;
 	    }
 	    return 3 + size;
@@ -237,7 +237,7 @@ restore_internal_size P3(char **, str, int, is_mapping, int, depth)
     delim = is_mapping ? ':' : ',';
     while ((c = *cp++)) {
 	switch(c){
-	case '\"':
+	case '"':
 	    {
 		while ((c = *cp++) != '"')
 		    if ((c == '\0') || (c == '\\' && !*cp++)){
@@ -348,7 +348,7 @@ restore_size P2(char **, str, int, is_mapping)
 
     while ((c = *cp++)) {
 	switch(c){
-	case '\"':
+	case '"':
 	    {
 		while ((c = *cp++) != '"')
 		    if ((c == '\0') || (c == '\\' && !*cp++)) return 0;
@@ -482,30 +482,89 @@ restore_interior_string P2(char **, val, svalue_t *, sv)
     return 0;
 }
 
-#define PARSE_NUMERIC(X,Y,Z) \
-    { \
-                int res = c - '0'; \
-	\
-                while ((c = *cp++) >= '0' && c <= '9'){ \
-                    res *= 10, res += c - '0'; \
-		} \
-                if (c == '.'){ \
-                    float f1 = 0.0, f2 = 10.0; \
-                    int hh = 0; \
-			\
-                    while ((c = *cp++) >= '0' && c <= '9' && !(++hh & 8)){ \
-                        f1 += (c - '0') / f2; \
-                        f2 *= 10.0; \
-		    } \
-                    if (!hh)  \
-			Z; \
-		    X; \
-		} \
-                else { \
-		    Y; \
-		} \
-                break; \
-    } \
+static int parse_numeric P3(char **, cpp, char, c, svalue_t *, dest) 
+{
+    char *cp = *cpp;
+    int res, neg;
+    
+    if (c == '-') {
+	neg = 1;
+	res = 0;
+	c = *cp++;
+	if (!isdigit(c))
+	    return 0;
+    } else
+      neg = 0;
+    res = c - '0';
+    
+    while ((c = *cp++) && isdigit(c)) {
+	res *= 10;
+	res += c - '0';
+    }
+    if (c == '.') {
+	float f1 = 0.0, f2 = 10.0;
+	int hh = 8;
+	
+	while ((c = *cp++) && isdigit(c) && --hh) {
+	    f1 += (c - '0') / f2;
+	    f2 *= 10.0;
+	}
+	if (hh == 8)
+	    return 0;
+	f1 += res;
+	if (c == 'e') {
+	    int expo = 0;
+	    
+	    if ((c = *cp++) == '+') {
+		while ((c = *cp++) && isdigit(c)) {
+		    expo *= 10;
+		    expo += (c - '0');
+		}
+		f1 *= pow(10.0, expo);
+	    } else if (c == '-') {
+		while ((c = *cp++) && isdigit(c)) {
+		    expo *= 10;
+		    expo += (c - '0');
+		}
+		f1 *= pow(10.0, -expo);
+	    } else
+		return 0;
+	}
+	    
+	dest->type = T_REAL;
+	dest->u.real = (neg ? -f1 : f1);
+	*cpp = cp;
+	return 1;
+    } else if (c == 'e') {
+	int expo = 0;
+	float f1;
+	
+	if ((c = *cp++) == '+') {
+	    while ((c = *cp++) && isdigit(c)) {
+		expo *= 10;
+		expo += (c - '0');
+	    }
+	    f1 = res * pow(10.0, expo);
+	} else if (c == '-') {
+	    while ((c = *cp++) && isdigit(c)) {
+		expo *= 10;
+		expo += (c - '0');
+	    }
+	    f1 = res * pow(10.0, -expo);
+	} else
+	    return 0;
+	
+	dest->type = T_REAL;
+	dest->u.real = (neg ? -f1 : f1);
+	*cpp = cp;
+	return 1;
+    } else {
+	dest->type = T_NUMBER;
+	dest->u.number = (neg ? -res : res);
+	*cpp = cp;
+	return 1;
+    }
+}
 
 INLINE static void add_map_stats P2(mapping_t *, m, int, count)
 {
@@ -527,7 +586,7 @@ restore_mapping P2(char **,str, svalue_t *, sv)
     mapping_t *m;
     svalue_t key, value;
     mapping_node_t **a, *elt, *elt2;
-    register char *cp = *str;
+    char *cp = *str;
     int err;
 
     if (save_svalue_depth) size = sizes[save_svalue_depth-1]; 
@@ -594,20 +653,11 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 	    return 0;
 
 	case '-':
-	    if ((c = *cp++) < '0' || c > '9') {
-		goto key_numeral_error;
-	    }
-	    PARSE_NUMERIC(key.u.real = -(f1+res); key.type = T_REAL,
-			  key.type = T_NUMBER; key.u.number = -res,
-			  goto key_numeral_error)
-		
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-	    {
-		PARSE_NUMERIC(key.u.real = f1+res;key.type = T_REAL,
-			      key.type = T_NUMBER; key.u.number = res,
-			      goto key_numeral_error)
-	    }
+	    if (!parse_numeric(&cp, c, &key))
+		goto key_numeral_error;
+	    break;
 	    
 	default:
 	    goto generic_key_error;
@@ -651,23 +701,12 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 	    }
 	    
 	case '-':
-	    {
-		if ((c = *cp++) < '0' || c > '9') {
-		    goto value_numeral_error;
-		}
-		PARSE_NUMERIC((value.u.real = -(f1+res), value.type = T_REAL),
-			      (value.type = T_NUMBER, value.u.number = -res),
-			      goto value_numeral_error)
-	    }
-	    
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-	    {
-		PARSE_NUMERIC((value.u.real = (f1+res),value.type = T_REAL),
-			      (value.type = T_NUMBER,value.u.number = res),
-			      goto value_numeral_error)
-	    }
-	    
+	    if (!parse_numeric(&cp, c, &value))
+		goto value_numeral_error;
+	    break;
+
 	case ',':
 	    {
 		value.u.number = 0;
@@ -681,7 +720,7 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 
 	/* both key and value are valid, referenced svalues */
 
-	oi = (key.u.number > 0 ? key.u.number : -key.u.number);
+	oi = MAP_POINTER_HASH(key.u.number);
 	i = oi & mask;
 	if ((elt2 = elt = a[i])) {
 	    do {
@@ -753,7 +792,7 @@ restore_class P2(char **, str, svalue_t *, ret)
     char c;
     array_t *v;
     svalue_t *sv;
-    register char *cp = *str;
+    char *cp = *str;
     int err;
 
     if (save_svalue_depth) size = sizes[save_svalue_depth-1];
@@ -804,23 +843,13 @@ restore_class P2(char **, str, svalue_t *, ret)
 	    }
 
 	case '-':
-	    {
-		if ((c = *cp++) < '0' || c > '9') {
-		    err = ROB_NUMERAL_ERROR;
-		    goto error;
-		}
-		PARSE_NUMERIC((sv->u.real = -(f1+res), (sv++)->type = T_REAL),
-			      ((sv++)->u.number = -res),
-			      goto numeral_error)
-	    }
-
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-	    {
-		PARSE_NUMERIC((sv->u.real = (f1+res), (sv++)->type = T_REAL),
-			      ((sv++)->u.number = res),
-			      goto numeral_error)
-	    }
+	    if (parse_numeric(&cp, c, sv))
+		sv++;
+	    else
+		goto numeral_error;
+	    break;
 
 	default:
 	    goto generic_error;
@@ -850,7 +879,7 @@ restore_array P2(char **, str, svalue_t *, ret)
     char c;
     array_t *v;
     svalue_t *sv;
-    register char *cp = *str;
+    char *cp = *str;
     int err;
 
     if (save_svalue_depth) size = sizes[save_svalue_depth-1];
@@ -901,23 +930,13 @@ restore_array P2(char **, str, svalue_t *, ret)
 	    }
 
 	case '-':
-	    {
-		if ((c = *cp++) < '0' || c > '9') {
-		    err = ROB_NUMERAL_ERROR;
-		    goto error;
-		}
-		PARSE_NUMERIC((sv->u.real = -(f1+res), (sv++)->type = T_REAL),
-			      ((sv++)->u.number = -res),
-			      goto numeral_error)
-	    }
-
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-	    {
-		PARSE_NUMERIC((sv->u.real = (f1+res), (sv++)->type = T_REAL),
-			      ((sv++)->u.number = res),
-			      goto numeral_error)
-	    }
+	    if (parse_numeric(&cp, c, sv))
+		sv++;
+	    else
+		goto numeral_error;
+	    break;
 
 	default:
 	    goto generic_error;
@@ -1007,9 +1026,10 @@ INLINE int
 restore_svalue P2(char *, cp, svalue_t *, v)
 {
     int ret;
+    char c;
     
-    switch(*cp++) {
-    case '\"':
+    switch (c = *cp++) {
+    case '"':
 	return restore_string(cp, v);
     case '(':
 	if (*cp == '{') {
@@ -1032,28 +1052,15 @@ restore_svalue P2(char *, cp, svalue_t *, v)
 	return ret;
 	
     case '-':
-	{
-	    char c;
-
-	    if ((c = *cp++) < '0' || (c > '9')) return ROB_NUMERAL_ERROR;
-	    PARSE_NUMERIC((v->type = T_REAL, v->u.real = -f1-res),
-			  (v->type = T_NUMBER, v->u.number = -res),
-			  return ROB_NUMERAL_ERROR);
-	}
-
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-        {
-	    char c = *(cp-1);
-	    PARSE_NUMERIC((v->type = T_REAL, v->u.real = f1+res),
-			  (v->type = T_NUMBER, v->u.number = res),
-			  return ROB_NUMERAL_ERROR);
-	}
-
-    default: {
-	    v->type = T_NUMBER;
-	    v->u.number = 0;
-	}
+	if (!parse_numeric(&cp, c, v))
+	    return ROB_NUMERAL_ERROR;
+	break;
+	
+    default:
+	v->type = T_NUMBER;
+	v->u.number = 0;
     }
 
     return 0;
@@ -1066,10 +1073,11 @@ safe_restore_svalue P2(char *, cp, svalue_t *, v)
 {
     int ret;
     svalue_t val;
-
+    char c;
+    
     val.type = T_NUMBER;
-    switch(*cp++) {
-    case '\"':
+    switch (c = *cp++) {
+    case '"':
 	if ((ret = restore_string(cp, &val))) return ret;
 	break;
     case '(':
@@ -1097,23 +1105,11 @@ safe_restore_svalue P2(char *, cp, svalue_t *, v)
 	}
 	
     case '-':
-	{
-	    char c;
-	    
-	    if ((c = *cp++) < '0' || (c > '9')) return ROB_NUMERAL_ERROR;
-	    PARSE_NUMERIC((val.type = T_REAL, val.u.real = -f1-res),
-			  (val.type = T_NUMBER, val.u.number = -res),
-			  return ROB_NUMERAL_ERROR);
-	}
-	
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-        {
-	    char c = *(cp-1);
-	    PARSE_NUMERIC((val.type = T_REAL, val.u.real = f1+res),
-			  (val.type = T_NUMBER, val.u.number = res),
-			  return ROB_NUMERAL_ERROR);
-	}
+	if (!parse_numeric(&cp, c, &val))
+	    return ROB_NUMERAL_ERROR;
+	break;
 
     default:
 	val.type = T_NUMBER;
@@ -1184,7 +1180,7 @@ restore_object_from_buff P4(object_t *, ob, char *, theBuff, char *, name,
         (void)strncpy(var, buff, space - buff);
         var[space - buff] = '\0';
         p = find_status(var);
-        if (!p || (p->type & TYPE_MOD_STATIC))
+        if (!p || (p->type & NAME_STATIC))
             continue;
 
         v = &sv[p - var_start];
@@ -1278,7 +1274,7 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
 
     i = ob->prog->num_variables;
     while (i--){
-	if (var->type & TYPE_MOD_STATIC) { v++; var++; continue; }
+	if (var->type & NAME_STATIC) { v++; var++; continue; }
 
 	save_svalue_depth = 0;
 	theSize = svalue_save_size(v);
@@ -1399,9 +1395,10 @@ int restore_object P3(object_t *, ob, char *, file, int, noclear)
 
 	i = ob->prog->num_variables; 
 	while (i--) {
-	    if (!((v++)->type & TYPE_MOD_STATIC))
-		assign_svalue(sv++, &const0n);
-	    else sv++;
+	    if (!((v++)->type & NAME_STATIC)) {
+		free_svalue(sv, "restore_object");
+		*sv++ = const0u;
+	    } else sv++;
 	}
     }
     
@@ -1438,27 +1435,8 @@ void restore_variable P2(svalue_t *, var, char *, str)
 
 void tell_npc P2(object_t *, ob, char *, str)
 {
-    push_string(str, STRING_MALLOC);
-    (void) apply(APPLY_CATCH_TELL, ob, 1, ORIGIN_DRIVER);
-}
-
- /* save some space snoop */
-#define ALM_BREAK LARGEST_PRINTABLE_STRING - 10
-
-static void add_long_message P2(object_t *, who, char *, s) {
-    char save;
-    int len;
-
-    len = strlen(s);
-    while (len > ALM_BREAK) {
-	save = s[ALM_BREAK];
-	s[ALM_BREAK] = 0;
-	add_message(who, s);
-	s[ALM_BREAK] = save;
-	s += ALM_BREAK;
-	len -= ALM_BREAK;
-    }
-    add_message(who, s);
+    copy_and_push_string(str);
+    apply(APPLY_CATCH_TELL, ob, 1, ORIGIN_DRIVER);
 }
 
 /*
@@ -1474,19 +1452,16 @@ static void add_long_message P2(object_t *, who, char *, s) {
 void tell_object P2(object_t *, ob, char *, str)
 {
     if (!ob || (ob->flags & O_DESTRUCTED)) {
-	add_long_message(0, str);
+	add_message(0, str);
 	return;
     }
-#ifdef INTERACTIVE_CATCH_TELL
-    tell_npc(ob, str);
-    return;
-#else
-    if (ob->interactive) {
-	add_long_message(ob, str);
-	return;
-    }
-    tell_npc(ob, str);
+    /* if this is on, EVERYTHING goes through catch_tell() */
+#ifndef INTERACTIVE_CATCH_TELL
+    if (ob->interactive)
+	add_message(ob, str);
+    else
 #endif
+	tell_npc(ob, str);
 }
 
 void dealloc_object P2(object_t *, ob, char *, from)
@@ -1580,18 +1555,18 @@ object_t *get_empty_object P1(int, num_var)
     ob->ref = 1;
     ob->swap_num = -1;
     for (i = 0; i < num_var; i++)
-	ob->variables[i] = const0n;
+	ob->variables[i] = const0u;
     return ob;
 }
 
 #ifndef NO_ADD_ACTION
-object_t *hashed_living[LIVING_HASH_SIZE];
+object_t *hashed_living[CFG_LIVING_HASH_SIZE];
 
 static int num_living_names, num_searches = 1, search_length = 1;
 
 static INLINE int hash_living_name P1(char *, str)
 {
-    return whashstr(str, 20) & (LIVING_HASH_SIZE - 1);
+    return whashstr(str, 20) & (CFG_LIVING_HASH_SIZE - 1);
 }
 
 object_t *find_living_object P2(char *, str, int, user)
@@ -1726,13 +1701,11 @@ int shadow_catch_message P2(object_t *, ob, char *, str)
     while (ob->shadowed != 0 && ob->shadowed != current_object)
 	ob = ob->shadowed;
     while (ob->shadowing) {
-	if (function_exists(APPLY_CATCH_TELL, ob)) {
-	    push_constant_string(str);
-	    if (apply(APPLY_CATCH_TELL, ob, 1, ORIGIN_DRIVER))	
-		/* this will work, since we know the */
-		/* function is defined */
-		return 1;
-	}
+	copy_and_push_string(str);
+	if (apply(APPLY_CATCH_TELL, ob, 1, ORIGIN_DRIVER))	
+	    /* this will work, since we know the */
+	    /* function is defined */
+	    return 1;
 	ob = ob->shadowing;
     }
     return 0;
@@ -1759,7 +1732,7 @@ void reload_object P1(object_t *, obj)
 	return;
     for (i = 0; i < (int) obj->prog->num_variables; i++) {
 	free_svalue(&obj->variables[i], "reload_object");
-	obj->variables[i] = const0n;
+	obj->variables[i] = const0u;
     }
 #ifdef PACKAGE_SOCKETS
     if (obj->flags & O_EFUN_SOCKET) {

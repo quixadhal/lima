@@ -1,0 +1,37 @@
+
+
+
+M_DAMAGE_SINK
+
+
+M_DAMAGE_SINK is inherited into /std/armor already.  This is 
+where the amount of damage that a piece of armor prevents is 
+handled at.
+
+Functions to call from your setup():
+
+     set_armor_class(int)  --  Set the protection of a particular
+                               piece of armor.  This function takes
+                               an integer for an argument.  The higher
+                               the integer the "better" the armor.
+
+     set_resist(type, amount)  --  Specifies that for damage of 
+                               type 'type', armor class should be
+                               increased by amount.
+
+Other Functions:
+
+     query_armor_class() --    This function returns the armor class
+                               of a particular piece of armor.  This is
+                               the raw armor class not modified for any 
+                               type of resistance.
+
+     is_armor()  --            Will return 1 if the object is a type of armor.
+
+
+
+Last Updated: Wednesday April 24, 1996.
+
+   
+
+       

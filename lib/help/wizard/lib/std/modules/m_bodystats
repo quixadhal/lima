@@ -1,0 +1,94 @@
+
+
+
+
+
+M_BODYSTATS
+
+This module provides the game body with stats.
+Everything that follows and has a ** next to it was taken directly from the module.
+
+** This module should be inherited into anything requiring physical
+** statistics/characteristics.  Typically, this will be used by a
+** player's body, or an NPC.
+**
+** Stat values have the range: [0,100].  Typical values:
+**
+**	10	Joe Human
+**	20	Newbie Hero (average value at character creation time)
+**	50	Mid-level experience
+**	80	Master/high-level
+**	90	History will remember you
+**	95	Frightening
+**	100	Pure god-like status
+**
+** Statistics have a number of basic values which are "rolled" at
+** character creation time.  These differentiate starting characters
+** from one another.
+**
+**	Strength:	physical stature, power, brute force
+**		Weakling vs. strong/powerful
+**
+**	Agility:	body control, speed, flexibility
+**		Uncoordinated vs. excellent control
+**
+**	Intelligence:	inherent capability for learning
+**		Dumb vs. smart/capable
+**
+**	Willpower:	drive, stamina
+**		Unmotivated vs. driven/fanatical
+**
+** A good number of statistics are derived from the base statistics.
+**
+**	Constitution:	physical/mental stamina, sturdiness
+**		Elf vs. dwarf
+**
+**	Wisdom:		collected knowledge
+**		Naive vs. wise
+**
+**	Charisma:	natural attraction, leadership, persuasion
+**		Nobody vs. great leader/speaker
+**
+** 950813, Deathblade: created.
+
+Important Functions:
+
+    There are a series of query_xxx() functions.  These return the current
+    value of that stat modified for any bonuses, minuses to that stat.
+  
+          query_int() -   returns intelligence.
+          query_str() -   returns str.
+          query_agi() -   returns agility.
+          query_wil() -   returns willpower.
+          query_con() -   returns constitution
+          query_wis() -   returns wisdom
+          query_cha() -   returns charisma
+
+    There are a series of query_xxx_pure() functions.  These return the "pure"
+    stat, in other words with no bonuses or minuses applied to it.
+
+          query_int_pure() 
+          query_str_pure()
+          query_agi_pure()
+          query_wil_pure()
+          query_con_pure() 
+          query_wis_pure()
+          query_cha_pure() 
+  
+    init_stats()    -  This is called once to roll the stats for the first time.
+                       Taking into account the racial modifiers.  Admins may
+                       call this function again if needed.
+
+    refresh_stats() -  This function needs to be called by the mudlib occassionally
+                       to make sure that the stats (especially the derived ones) are kept
+                       up to date and accurate.  During combat this is called once 
+                       a round.
+
+
+            
+    
+
+
+Last Updated: Thursday, April 18, 1996
+
+

@@ -14,9 +14,9 @@ private void main()
     string ex;
 
     if (ex = inv_list(all_inventory(this_body()))) {
-        write("You are carrying:\n" + ex);
+        out("You are carrying:\n" + ex);
     } else {
-	write("You are empty handed.\n");
+	out("You are empty handed.\n");
     }
     return;
 }

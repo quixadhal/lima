@@ -12,5 +12,5 @@ nomask private void main(string str) {
     }
     SOUL_D->add_emote(str, "", "$N $v"+str+".", 0);
     SOUL_D->add_emote(str, "STR", "$N $v"+str+" $o.", 0);
-    write("Added.\n");
+    out("Added.\n");
 }

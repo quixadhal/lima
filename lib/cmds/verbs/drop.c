@@ -34,7 +34,19 @@ void do_drop_obj(object ob)
     drop_one(ob);
 }
 
-
+void do_drop_obs(array info)
+{
+    foreach (mixed item in info)
+    {
+	if (stringp(item))
+	    write(item);
+	else
+	{
+	    write(item->short() + ": ");
+	    drop_one(item);
+	}
+    }
+}
 
 
 mixed do_drop_wrd_str(string amount, string str)
@@ -59,7 +71,7 @@ mixed do_drop_wrd_str(string amount, string str)
 	    }
 	    else
 	    {
-		new(COINS,number,sentence[0])->move(environment(this_body()));
+		new(COINS, number,sentence[0])->move(environment(this_body()));
 	    }
 	    this_body()->simple_action("$N $vdrop "+ number +" "+ sentence[0] +" coins.\n");
 	}
@@ -70,9 +82,5 @@ mixed do_drop_wrd_str(string amount, string str)
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBJ", "OBS", "WRD STR" }), ({ "put down" }) });
-
-    /*
-    ** torch OBJ when OBS matches 1 ob
-    */
+    return ({ ({ "OBS", "WRD STR" }), ({ "put down" }) });
 }

@@ -7,10 +7,11 @@ inherit CMD;
 
 private void main(string arg) {
     if (!arg) {
-	write("Nickname yourself what?\n");
+	out("Nickname yourself what?\n");
 	return;
     }
     
     this_body()->set_nickname(arg);
+    out("Ok.\n");
 }
 

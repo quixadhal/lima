@@ -14,12 +14,12 @@ private void main( mixed * arg )
     else
 	targets = arg[0];
 
-    printf("%-13s%-30s%-s\n","Who","File","Room");
-    write("---------------------------------------------------------------\n");
+    outf("%-13s%-30s%-s\n","Who","File","Room");
+    out("---------------------------------------------------------------\n");
 
     targets = filter(targets->query_body(), (: objectp($1) ? environment($1) : 0 :));
 
-    map_array(targets, (: printf("%-13s%-30s[%-s]\n",
+    map_array(targets, (: outf("%-13s%-30s[%-s]\n",
 				 capitalize($1->query_userid()),
 				 file_name(environment($1)),
 				 environment($1)->short()) :) );

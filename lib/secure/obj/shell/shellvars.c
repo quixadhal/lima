@@ -99,23 +99,24 @@ mixed* substitute_variables(mixed* argv)
 ** this module from a shell command line.
 */
 
-int cmd_unset(string* argv)
+int cmd_unset(string array argv, string array implode_info)
 {
   if(sizeof(argv) != 2)
     {
       printf("Usage: unset variable\n");
       return 1;
     }
-  map_delete(variables, argv[1]);
+  map_delete(variables, implode_by_arr(argv[1..], implode_info[1..]));
   printf("Ok.\n");
   this_object()->save();
   return 1;
 }
 
 
-int cmd_set(string* argv)
+int cmd_set(string array argv, string array implode_info)
 {
   string var, val;
+
   switch(sizeof(argv))
     {
     case 1:
@@ -143,7 +144,7 @@ int cmd_set(string* argv)
       printf("Variable %s set to %O.\n",argv[1],argv[2]);
       return 1;
     default:
-      set_variable(argv[1], implode(argv[2..]," "));
+      set_variable(argv[1], implode_by_arr(argv[2..],implode_info[2..]));
       printf("Variable %s set to %s.\n", 
 	     argv[1], get_variable(argv[1]));
       return 1;

@@ -1,0 +1,17 @@
+
+
+Set_max_capacity()
+
+This function allows you to tell the mud how 
+much room is in your container.  The valid
+values for this function are:  VERY_SMALL, 
+SMALL, MEDIUM, LARGE, VERY_LARGE, TOO_LARGE.
+
+You can also alter these value a little bit
+to make things a little more unique.  i.e.
+MEDIUM * 3.
+
+    set_max_capacity(MEDIUM*3)
+
+
+

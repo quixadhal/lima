@@ -1,0 +1,27 @@
+
+
+
+
+
+
+M_SET
+
+
+ For keeping track of sets of numbers.  See also the set_bit()/test_bit()
+ series of efuns.  The major advantage of this package is that the
+ storage requirements are much lower for sets with many consecutive
+ numbers, or for numbers which are sparsely distributed over a large
+ range.  It isn't particularly efficient speedwise, but it is compact.
+
+ The format is: x-x,y-z ...
+
+Important Functions: 
+ 
+     set_add(string set, int number) 
+     set_remove(string set, int number)
+     set_member(string set, int number)  
+
+
+Last Updated: Wednesday, May 01, 1996
+
+

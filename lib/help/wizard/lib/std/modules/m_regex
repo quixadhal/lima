@@ -1,0 +1,31 @@
+
+
+
+
+
+M_REGEX
+
+M_REGEX ...
+
+Important Functions:
+
+    split(string, regexp) --  returns an array of strings in the orginal
+                              string that don't contain the regular expression.  Like explode()
+                              except allows regular expressions.
+
+    search(string, regexp) --  finds the index of the first occurance of
+	                       regexp in string   Returns -1 on failure
+
+    rsearch(string, regexp) -- finds the index of the last occurance of
+	                       regexp in string    Returns -1 on failure
+
+    sub(string, pattern, replacement) --   replaces the first occurance of
+	                       pattern in string  same as ed:   s/pattern/replacement
+
+    gsub(string, pattern, replacement) --  replaces all occurances of
+	                       pattern in string
+
+
+Last Updated: Wednesday, May 01, 1996
+
+

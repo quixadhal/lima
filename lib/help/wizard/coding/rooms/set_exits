@@ -1,0 +1,18 @@
+Exits
+
+You need to specify the exits from your room, or else no one will ever leave.  The
+simple way to put exits in a room is by calling set_exits in your room's create ()
+function like so:
+
+     set_exit ( (["northeast" : "/domains/std/wizroom",
+                  "southwest" : "#The mountains block your path.", ]) );
+
+The ([ denotes that you're going to start a list of exits.  The exits have two 
+parts.  The part before the colon is the direction, and the part after the colon
+is the destination.  The destination can be a file name, or it could be an error 
+message, if the person can't go in that direction.  Put a # at the front of the 
+error message, if so.  For example, if you try to go southwest, you'd get: 
+
+The mountains block your path.
+
+

@@ -28,12 +28,12 @@ private void main(mixed *arg, mapping flags)
     msg = filter(msg, (: stringp :));
     for (i=0; i<sizeof(msg); i++) {
 	if (debug)
-	    write("["+msg[i]+"]");
+	    out("["+msg[i]+"]");
 	ob_msgs = ob->query_msg(msg[i]);
 	if (!stringp(ob_msgs) && !pointerp(ob_msgs)) continue;
 	if (!pointerp(ob_msgs)) ob_msgs = ({ ob_msgs });
 	for (j=0; j<sizeof (ob_msgs); j++) {
-	    if (debug) write("["+ob_msgs[j]+"]");
+	    if (debug) out("["+ob_msgs[j]+"]");
 	    switch(msg[i]) {
 	    case "miss":
 	    case "mleave":
@@ -55,13 +55,13 @@ private void main(mixed *arg, mapping flags)
 	    default:
 		msgs = action( ({ ob }), ob_msgs[j]);
 	    }
-	    write(msg[i] + ": [" + ob_msgs[j][0..<2] + "] ");
+	    out(msg[i] + ": [" + ob_msgs[j][0..<2] + "] ");
 	    if (ob == this_body()) write(msgs[0]);
-	    else write(msgs[<1]);
+	    else out(msgs[<1]);
 	    flag = 1;
 	}
     }
-    if (!flag) write("No messages.\n");
+    if (!flag) out("No messages.\n");
 }
 
 // so we can use this object as a generic object

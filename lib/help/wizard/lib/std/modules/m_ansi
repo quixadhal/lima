@@ -1,0 +1,35 @@
+
+
+
+M_ANSI
+
+The Lima approach to ansi color is a bit differant than 
+most mudlibs.  We don't pass every string through the ansi 
+module.  We only pass strings through that may have ansi 
+associated with them.  Thus saving the CPU time that is
+wasted on strings that will never have ansi codes in them.
+
+What you need to do is inherit M_ANSI take whatever string 
+that will have the ansi codes in it and pass it to the ansi()
+function in the module.
+
+Important Functions:
+
+    ansi()      - This function gets passed to it the strings
+                  containing the standard %^ ansi codes, and
+                  returns the strings to the users in color
+                  if he has ansi set, and without the %^ codes
+                  if he does not.
+
+    i_use_ansi()-  Checks to see if the player has ansi set on.
+           
+    create()    -  Does the initial creation of the color codes, etc.
+
+      
+
+
+
+Last Updated: Thursday, April 18, 1996
+ 
+
+

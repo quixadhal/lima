@@ -1,0 +1,55 @@
+
+
+M_BLOCKEXITS
+
+Last Updated: Thursday, April 18, 1996
+
+How do I make my monster block certain exits.
+
+Inherit M_BLOCKEXITS in your monster.  This 
+will allow you to block, unblock and 
+customize the actions your monster takes.
+
+The functions that need to be placed in your 
+setup(), inorder to make your monster block
+exits are the following:
+
+   add_block(direction)
+   set_block_action()
+
+add_block() is used to tell the lib what exits 
+to block.  It takes an array of directions as in 
+add_block( ({ "east","west" }) ).  You can also
+enter "all" to block all exits out of the room.
+
+set_block_action() can take many differant types of 
+arguments depending on what you would like to 
+do.
+
+     set_block_action("$N $vblock the exit");
+
+If the argument to set_block_action is a string, 
+that is treated as a targetted action, and will
+display the appropriate messages to the 
+appropriate objects.  
+
+     set_block_action("#string");
+
+If the argument is a string prepended by a #, only 
+the user will see that message.
+
+     set_block_action( (: special_action :) )
+
+If the arguemnt is a function, the appropriate 
+function will be called, in this case special_action()
+and the direction and person will be passed as
+arguments to it.  If this function returns anything
+besides 1, the move will fail (be blocked).
+
+
+     remove_block()
+
+This function will remove a block from an exit, or 
+an array of exits. Remove_block(({"west, "east"})) 
+
+

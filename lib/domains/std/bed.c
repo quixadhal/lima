@@ -13,8 +13,9 @@ void setup()
   set_get_on_msg("$N $vsit on the bed.\n");
   set_get_off_msg("$N $vget off the bed.\n");
   set_long("It's a bed...");
-  set_max_capacity(VERY_LARGE*3);
-  set_preposition("on");
+set_preposition("on");
+set_relations("on","under");
+  set_max_capacity(VERY_LARGE*3, "on");
 }
 
 // Unlike most furniture, you can lie on a bed.  We'll assume you mean sit

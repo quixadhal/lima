@@ -135,6 +135,7 @@ nomask int parse_Mh_cmd(string input)
 {
     string	arg;
 
+ZBUG("FOO");
 //### we need to validate the caller!
 
     if( strlen(input) > 2 && input[1] == ' ' )

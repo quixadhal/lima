@@ -1,0 +1,23 @@
+
+
+
+
+
+M_SMARTMOVE
+
+
+M_SMARTMOVE is a module that provides "smarter" movement for objects, from room to room.
+
+Important Functions:
+
+    move_to()     --   Moves the object to a new location.  Returns 1 if the move was successful, 
+                       0 if not.  The first arg is a filename, second is direction that caused
+                       the movement.
+
+    move_me_there() -- This is the heart of this module.  This is where the actual moving of the
+                       object takes place.  
+
+
+Last Updated: Wednesday, May 01, 1996
+
+

@@ -2,129 +2,151 @@
 
 #include <security.h>
 #include <classes.h>
-#include <skills.h>
-#define SKILL_SAVE_FILE "/data/daemons/skill"
 
-// Beek added some comments, search for *Beek*
-// I like the structure, algorithm, etc.  Just some comments on the imp.
+#define SKILL_SAVE_FILE "/data/daemons/skill_d"
 
 inherit M_ACCESS;
 inherit CLASS_SKILL;
 
 private mapping skills = ([]);
 
+#define TRAINING_FACTOR		10	/* 10% goes to training pts */
+#define PROPAGATION_FACTOR	2	/* half propagates upward */
+#define AGGREGATION_FACTOR	3	/* 3^N of parent skills aggregate into
+					   the specified skill */
 
-void save_me(){
-  unguarded(1,(:save_object, SKILL_SAVE_FILE:));
+
+void save_me()
+{
+    unguarded(1, (: save_object, SKILL_SAVE_FILE :));
 }
 
 private void create()
 {
-  restore_object(SKILL_SAVE_FILE);
+    restore_object(SKILL_SAVE_FILE);
 }
 
 
-int register_skill(string skill, string handler){
-  if(skills[skill])
+int register_skill(string skill, string handler)
+{
+    if ( skills[skill] )
     {
-      return 0;
+	return 0;
     }
 
-  skills[skill] = handler;
-  save_me();
-  return 1;
+    skills[skill]= handler;
+    save_me();
+    return 1;
 }
 
 int remove_skill(string skill)
 {
-  if(!skills[skill])
+    if ( !skills[skill] )
     {
-      return 0;
+	return 0;
     }
-  if(base_name(previous_object()) != skills[skill] && !check_privilege(1))
+    if ( base_name(previous_object()) != skills[skill] && !check_privilege(1) )
     {
-      return 0;
+	return 0;
     }
-  map_delete(skills, skill);
-  return 1;
+    map_delete(skills, skill);
+    return 1;
 }
 
-private int calculate_level(int skillpoints, int level)
+int aggregate_skill(string skill, object skill_user)
 {
-  return skillpoints > points_to_level[level-1] ?
-    level + 1 : level;
+    int total_skill = 0;
+    int coef = 1;
+
+    while ( 1 )
+    {
+	class skill my_skill;
+	int i;
+
+	my_skill = skill_user->get_skill(skill);
+	if ( my_skill )
+	{
+	    total_skill += fuzzy_divide(my_skill->skill_points, coef);
+	}
+
+	coef = coef * AGGREGATION_FACTOR;
+
+	i = strsrch(skill, '/', -1);
+	if ( i == -1 )
+	    break;
+	skill = skill[0..i-1];
+    }
+
+    return total_skill;
 }
 
 varargs void generic_train_skill(string skill, object trainee, int value)
 {
-  class skill my_skill;
-  string* pieces;
-  int i, p;
+    while ( 1 )
+    {
+	class skill my_skill;
+	int i;
 
-  my_skill = trainee->get_skill(skill);
-  if(!my_skill)
-    {
-      trainee->set_skill(skill,0);
-    }
-  pieces = explode(skill,"/");
-  my_skill = trainee->get_skill(pieces[0]);
-  p = pow(2,sizeof(pieces)-1);
-  for(i=1;i<sizeof(pieces);i++)
-    {
-      my_skill->skill_points += fuzzy_divide(value, p);
-      my_skill->level = 
-	calculate_level(my_skill->skill_points, my_skill->level);
-      p/=2;
-      my_skill = (my_skill->subskills)[pieces[i]];
+	my_skill = trainee->get_skill(skill);
+	if ( !my_skill )
+	{
+	    my_skill = trainee->set_skill(skill, 0, 0);
+	}
+
+	my_skill->skill_points += value;
+	my_skill->training_points += value * TRAINING_FACTOR;
+
+	value = fuzzy_divide(value, PROPAGATION_FACTOR);
+
+	i = strsrch(skill, '/', -1);
+	if ( i == -1 )
+	    break;
+	skill = skill[0..i-1];
     }
 }
 
 
-varargs int generic_test_skill(string skill, object skill_user, float opposing_skill)
+varargs int generic_test_skill(string skill,
+			       object skill_user,
+			       int opposing_skill)
 {
-  class skill my_skill;
-  int coef, i;
-  float total_skill;
- 
-  my_skill = skill_user->get_skill(skill);
-  if(!my_skill)
-    return 0;
+    int total_skill;
 
-  total_skill = my_skill->level - opposing_skill;
-  coef = pow(2,sizeof(my_skill->higher_levels));
-  for(i=0;i<sizeof(my_skill->higher_levels);i++)
-    {
-      total_skill += fuzzy_divide(my_skill->higher_levels,coef);
-      coef /= 2;
-    }
-//###I think this is right, but should be checked. -Beek
-    return random(10) - 5 >= total_skill;
+
+    total_skill = aggregate_skill(skill, skill_user);
+
+// Shouldn't testing a skill automatically train it?
+
+//### we now have total_skill vs. opposing_skill... what to do?
+//total_skill should be total_skill/opposing_skill more likely to win than
+//opposing_skill.  So we should pick rand(total_skill+opposing_skill),
+//and if it is >= opposing skill, we win.
+
+    return random(total_skill+opposing_skill) >= opposing_skill;
 }
 
 
 // We can train and test a skill that hasn't been registered.
 // You only have to register special skills.
-varargs
-int train_skill(string skill, object trainee, mixed rest ...){
-  string base_skill = explode(skill, "/")[0];
+varargs void train_skill(string skill, object trainee, mixed rest ...)
+{
+    string base_skill = explode(skill, "/")[0];
 
-  if(!skills[base_skill])
+    if ( !skills[base_skill] )
     {
-      generic_train_skill(skill, trainee, rest ...);
-      return;
+	generic_train_skill(skill, trainee, rest ...);
+	return;
     }
-  skills[base_skill]->train_skill(skill, trainee, rest ...);
+    skills[base_skill]->train_skill(skill, trainee, rest ...);
 }
 
-varargs
-int test_skill(string skill,object skill_user, mixed rest ...){
-  string 	base_skill = explode(skill,"/")[0];
+varargs int test_skill(string skill,object skill_user, mixed rest ...)
+{
+    string base_skill = explode(skill,"/")[0];
 
-  if(!skills[base_skill])
+    if ( !skills[base_skill] )
     {
-      generic_test_skill(skill, skill_user, rest ...);
+	return generic_test_skill(skill, skill_user, rest ...);
     }
-  skills[base_skill]->test_skill(skill, skill_user, rest ...);
+    return skills[base_skill]->test_skill(skill, skill_user, rest ...);
 }
-
-

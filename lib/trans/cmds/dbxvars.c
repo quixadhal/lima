@@ -13,21 +13,21 @@ private void main(string str) {
     function f;
 
     if (!str || sscanf(str, "%s %s", obname, var) != 2) {
-        write("dbxvars <ob> <var>\n");
+        out("dbxvars <ob> <var>\n");
         return;
     }
     
     obname = evaluate_path(obname);
 
     if (!(ob = find_object(obname))) {
-        write("Can't find object " + obname + "\n");
+        out("Can't find object " + obname + "\n");
         return;
     }
 
     vars = regexp(variables(ob), var);
     
     if (!sizeof(vars)) {
-        write("No matches\n");
+        out("No matches\n");
         return;
     }
 
@@ -36,9 +36,9 @@ private void main(string str) {
     */
     f = bind((: fetch_variable :), ob);
 
-    write("Matches:\n");
+    out("Matches:\n");
     foreach (var in vars) {
-        printf("%-20s: %O\n", var, evaluate(f, var));
+        outf("%-20s: %O\n", var, evaluate(f, var));
     }
     return;
 }

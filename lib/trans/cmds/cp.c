@@ -10,19 +10,19 @@ private void copy_one(string src, string dst, int force)
 
     if ( is_file(dst) && !force )
     {
-	printf("%s already exists.  Copy failed.\n", dst);
+	outf("%s already exists.  Copy failed.\n", dst);
     }
     else if ( !(contents = read_file(src)) )
     {
-	printf("Could not read %s.  Copy failed.\n", src);
+	outf("Could not read %s.  Copy failed.\n", src);
     }
     else if ( !write_file(dst, contents, 1) )
     {
-	printf("%s could not be written to.  Copy failed.\n", dst);
+	outf("%s could not be written to.  Copy failed.\n", dst);
     }
     else
     {
-	printf("%s copied to %s.\n", src, dst);
+	outf("%s copied to %s.\n", src, dst);
     }
 }
 
@@ -33,7 +33,7 @@ private void main(mixed argv, mapping flags)
   
     if(sizeof(argv[0]) > 1 && !is_directory(argv[1]))
     {
-	printf("cp: files dir not files file\n");
+	outf("cp: files dir not files file\n");
 	return;
     }
     if(sizeof(argv[0]) > 1)

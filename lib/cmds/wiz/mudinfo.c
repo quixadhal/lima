@@ -14,7 +14,6 @@ private void main(string arg)
     string* matches;
     string  match;
     mixed*  mudinfo;
-    string  output;
 
     if(!arg || arg == "")
     {
@@ -26,46 +25,43 @@ private void main(string arg)
 	printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
 	return;
     }
-    output = "";
     matches = sort_array(matches,1);
     foreach(match in matches)
     {
 	mudinfo = mudlist[match];
-	output += implode(explode(match,"")," ") + "\n";
-	output += "___________________________________\n";
-	output += sprintf("Type: %s\n", mudinfo[8]);
-	output += sprintf("Address: %s %d\n", mudinfo[1], mudinfo[2]);
-	output += sprintf("Current Mudlib: %s\n", mudinfo[5]);
-	output += sprintf("Base Mudlib: %s\n", mudinfo[6]);
-	output += sprintf("Driver: %s\n", mudinfo[7]);
-	output += "Status:  ";
+	out(implode(explode(match,"")," ") + "\n");
+	out("___________________________________\n");
+	out(sprintf("Type: %s\n", mudinfo[8]));
+	out(sprintf("Address: %s %d\n", mudinfo[1], mudinfo[2]));
+	out(sprintf("Current Mudlib: %s\n", mudinfo[5]));
+	out(sprintf("Base Mudlib: %s\n", mudinfo[6]));
+	out(sprintf("Driver: %s\n", mudinfo[7]));
+	out("Status:  ");
 	if(mudinfo[0] == -1)
 	{
-	    output += "Up\n";
+	    out("Up\n");
 	}
 	else if(!mudinfo[0])
 	{
-	    output += "Down\n";
+	    out("Down\n");
 	}
 	else
 	{
-	    output += sprintf("Down (Expected up in %d minutes)\n",
-	      (mudinfo[0]+60)/60);
+	    out(sprintf("Down (Expected up in %d minutes)\n",
+	      (mudinfo[0]+60)/60));
 	}
-	output += sprintf("Open Status: %s\n", mudinfo[9]);
-	output += sprintf("Admin email: %s\n", mudinfo[10]);
-	output += sprintf("TCP Imud port: %d\n", mudinfo[3]);
-	output += sprintf("UDP Imud port: %d\n", mudinfo[4]);
-	output += "Services available: ";
+	out(sprintf("Open Status: %s\n", mudinfo[9]));
+	out(sprintf("Admin email: %s\n", mudinfo[10]));
+	out(sprintf("TCP Imud port: %d\n", mudinfo[3]));
+	out(sprintf("UDP Imud port: %d\n", mudinfo[4]));
+	out("Services available: ");
 	if(!sizeof(mudinfo[11]))
-	    output += "None given\n";
+	    out("None given\n");
 	else
-	    output += implode(sort_array(keys(mudinfo[11]), 1), ", ") + "\n";
+	    out(implode(sort_array(keys(mudinfo[11]) - ({ 0 }), 1), ", ") + "\n");
 	if ( mudinfo[12] )
-	    output += "Other data: " + implode(keys(mudinfo[12]), ", ") + "\n";
-	output += "\n";
+	    out("Other data: " + implode(keys(mudinfo[12]), ", ") + "\n");
+	out("\n");
     }
-
-    more(output);
 }
 

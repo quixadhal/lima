@@ -1,0 +1,17 @@
+
+
+set_arrival_msg()
+            set_departure_msg()
+
+You have this really cool camaro that you 
+would like to have an equally cool message
+for when the camaro enters the room. To 
+change these messages put the following 
+functions in your objects create():
+
+    set_arrival_msg("$N $venters in a cloud of smoking tires." );
+
+This message will now be shown whenever
+the camaro enters the room.
+
+ 

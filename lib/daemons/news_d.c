@@ -55,8 +55,8 @@ private int new_format;
 
 private static mapping restrictions = 
 ([
-	"wiz" : 	(: wizardp(this_user()) :),
-	"admin" : 	(: adminp(this_user()) :)
+    "wiz" : (: wizardp :),
+    "admin" : (: adminp :)
 ]);
 
 nomask void save_me()
@@ -318,7 +318,7 @@ nomask string * get_groups()
 	string prefix = group[0..member_array('.', group) - 1];
 	function f = restrictions[prefix];
 	if (!f) return 1;
-	return evaluate(f);
+return evaluate(f, this_user());
     });
     return sort_array(ret, 1);
 }

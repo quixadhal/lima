@@ -1,3 +1,67 @@
+Thu Apr 11 21:04:27 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b21
+	* fixed a bug in replace_program() which would sometimes zero out
+	  too many/the wrong variables
+
+Sun Mar 10 04:49:28 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b20
+	* removed abort() prototype from lint.h; SunOS defines it as int
+	  abort(), which is very odd since it never returns ...
+	* made a zero return value from domain_file() legal again
+
+Fri Mar  1 12:20:12 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b19
+	* set the telnet flag for anything that responds to telnet queries,
+	  even if it refuses terminal negotiation
+	* fixed debugmalloc compilation problem (had old name for CFG_MAX_EFUN_SOCKS)
+	* fixed crasher in author/domain_file() returning bad types
+
+Thu Feb 22 10:38:57 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b18
+	* Fixed ./build.MudOS to create comptest.o so it exists for the ar
+	  test
+	* tried a new fix for the namespace collision between automatic
+	  options.h defines and include/runtime_config.h; the options.h
+	  names are now in the CFG_* namespace
+	
+Sat Jan 27 16:36:52 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b17
+	* added Quango's patch for the file_length() efun
+	* fixed clear_notify() to not assume this_player(); this means
+	  destructing an interactive no longer cancels notify_fail() messages
+	  for whoever this_player() really is
+	* tidyed up remove_interactive() a bit
+	* fixed include/runtime_config.h to not define some things which
+	  conflict with predefines from options.h
+
+Sat Jan 20 15:03:54 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b16
+	* fixed a crasher in using set_this_player(0) from inside a player
+	  command
+	* fixed a crasher in loading an object while another object was
+	  compiling
+	* fixed compilation on systems where GNU make isn't present; RANLIB
+	  wasn't being passed to the subdirectories
+	* removed the restriction that a non nomask function can't be
+	  overloaded and made nomask
+	
+
+Wed Jan  3 14:24:12 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b15
+	* fixed add_action() to check if it's flag is in the legal range;
+	  prevents crashes when bit 4 is passed, since that is used internally
+	  to mean 'function pointer'
+	* In the parsing package, fixed a crasher on sentences of the form:
+	  "<verb> <valid object> <garbage> prep <valid object>"
+	  when a rule of the form:
+	  "OBJ prep OBJ"
+          existed
+	* When checking includes, include file_incl.h as well to check for
+	  conflicts there.  Fixes a compilation problem on BSDI where
+	  <sys/dirent.h> is _NOT_ protected from multiple inclusion
+	* fixed the 'q' and 'Q' commands to not clear the buffer it there
+	  is a syntax error
+
 Sat Dec 30 20:50:17 EST 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.7b13
 	* Fixes from ngreen@plains.nodak.edu:

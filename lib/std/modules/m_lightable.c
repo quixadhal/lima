@@ -155,4 +155,8 @@ mixed indirect_light_obj_with_obj(object ob, object with) {
     if (is_lit) return 1;
     return capitalize(with->the_short()) + " isn't lit.\n";
 }
+int need_to_see()
+{
+    return 0;
+}
     

@@ -24,14 +24,23 @@ mixed direct_give_obj_to_liv(string rule)
 }
 
 mixed direct_eat_obj(object ob) {
-    //return "I don't think " + ob->the_short() + " would agree with you.\n";
+    //return "I don't think " + this_object()->the_short() + " would agree with you.\n";
  // not sure why the above is here but it seemed to be causing
 //the parser to return it is not alive.
   return 1;
 }
 
+mixed direct_give_wrd_str_to_liv()
+{
+   return 1;
+}
+
+mixed indirect_give_wrd_str_to_liv()
+{
+return 1;
+}
 mixed direct_look_str_obj(string prep, object ob) {
-    return "There is nothing " + prep + " " + ob->the_short() + ".\n";
+    return "There is nothing " + prep + " " + this_object()->the_short() + ".\n";
 }
      
 mixed direct_put_obj_wrd_obj(object ob1, object ob2) {
@@ -41,11 +50,25 @@ mixed direct_put_obj_wrd_obj(object ob1, object ob2) {
 mixed direct_get_obj(object ob)
 {
     if ( environment() == this_body() )
-	return "You already have it!\n";
+	return "#You already have it!\n";
     if ( environment()->is_living() )
-	return "Too bad you're not a skilled pickpocket.\n";
+	return "#Too bad you're not a skilled pickpocket.\n";
     if ( this_object() == this_body() )
-	return "You make an advance on yourself.\n";
+	return "#You make an advance on yourself.\n";
+
+//:HOOK prevent_get
+//A yes/no/error hook called by direct_get_obj() if the standard conditions
+//succeed
+
+    return call_hooks("prevent_get", HOOK_YES_NO_ERROR);
+}
+
+mixed direct_get_obs(object ob)
+{
+    if ( environment() == this_body() || 
+	 (environment() && environment()->is_living()) ||
+	 this_object() == this_body() )
+	return 0;
 
 //:HOOK prevent_get
 //A yes/no/error hook called by direct_get_obj() if the standard conditions
@@ -66,11 +89,9 @@ mixed direct_get_obj_with_obj(object ob1, object ob2) {
     return direct_get_obj(ob1);
 }
 
-mixed direct_sell_obj_to_liv(object ob, object liv) {
-    if (!ob) return 1;
+mixed direct_sell_obj_to_liv(object ob, object liv, mixed foo) {
     if (owner(ob) != this_body())
 	return "You don't have it!\n";
-    if(!ob->query_value()) return "That item has no value!\n";
     return 1;
 }
  
@@ -83,13 +104,20 @@ mixed direct_buy_obj_from_liv(object ob, object liv) {
 mixed direct_drop_obj(object ob)
 {
     if ( environment() != this_body() )
-	return "You don't have it!\n";
+	return "#You don't have it!\n";
 
 
 //:HOOK prevent_drop
 //A yes/no/error hook called by direct_drop_obj() if the standard conditions
 //succeed
 
+    return call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
+}
+
+mixed direct_drop_obs()
+{
+    if (environment() != this_body())
+	return 0;
     return call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
 }
 

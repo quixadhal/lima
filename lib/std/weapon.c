@@ -18,3 +18,7 @@ void remove() {
     object::remove();
     m_wieldable::remove();
 }	    
+int indirect_kill_liv_with_obj()
+{
+  return 1;
+}

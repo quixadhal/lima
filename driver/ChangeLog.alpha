@@ -1,3 +1,431 @@
+Fri May 24 00:30:10 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a39
+	* terminal_colour() now has two more optional args; the 3rd is the
+	  width to wrap at, and the 4th is the indent for lines after the
+	  first
+	* Fixed a crasher in some Too deep recursion errors
+	* Fixed crashers in constructs like while (...){ e = catch { break; } }
+	  Jumping out of a catch block is now illegal.
+	* Fixed a crasher in program_info() when there are objects without
+	  type information loaded
+
+Thu May 23 15:46:10 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a38
+	* YYTYPE's size changed from 10 to 8, which should make the compiler
+	  slightly more efficient.
+	* Fixed a bug in the generation of information to pass to mudlib
+	  error handlers, which would cause an "Illegal array size" error
+	  to be flagged before the error handler was even called.
+	* A few changes to $() notation:
+	  . $() now moves out one level, not all the way out.  So, to use a
+	    local variable in a function from inside a doubly nested function
+	    pointer, one needs to use $($()), e.g.:
+	    string x; function f = (: (: $($(x)) :) :);
+	  . Due to the above change, constructs like $($1) are now legal, and
+	    work as one might expect, e.g.:
+	    function f = (: (: write($($1)) :) :); // The inner function
+				// function pointer writes whatever is passed
+				// as the first arg of the outer one
+	    function g = evaluate(f, "hi"); // creates a function pointer that
+	                                    // writes "hi"
+	  . this isn't really that complex; just remeber the rule "Each $()
+	    temporarily removes one level of (: :) nesting."  Familiarity
+	    with functional programming is also recomended; (: (: :) :)
+	    constructs are function pointers that create and return function
+	    pointers when evaluated, _not_ simply composite functions.
+	  . there is now a limit to function pointer nesting; the default is
+	    10.  (Anyone who needs more is sick, but I thought I'd mention it)
+	  . this also fixes a few crashers in using $() inside doubly nested
+	    function pointers
+
+Mon May 13 23:16:05 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a37
+	* Fixed a crasher in redefined functions
+	* added a STRIP_BEFORE_PROCESS_INPUT option for NO_ANSI
+	* fixed call_out() to pass zero args if zero args were specified,
+	  instead of always passing a first arg of 0.  (Usually, you'd never
+	  notice, but it makes a difference when scheduling call_outs to
+	  efun pointers to efuns which take no arguments)
+	* COMPAT_BUSTER: call_out_info() elements now have only 3 elements,
+	  not 4; this is due to argument handling restructuring, as well
+	  as mild security concerns for reference types.  Maybe an option
+	  will be added to get the arguments at a latter date if it is
+	  desired.
+	* minor tweaks to the cleanup rules in the makefiles to get rid
+	  of a few irrelevant files in the diffs
+	* added Maarten de Jong's documentation on compiling MudOS on
+	  an Amiga using gcc as amiga/README-gcc.
+	* Changed ED_MAXLINE from 512 to 2048
+	* Warning for using | or & when both arguments are "boolean" values
+	  (e.g. the result of !, ==, !=, <, etc)
+
+Mon May 13 00:29:11 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a36
+	* Fixed a crasher in memory_summary() when some objects are swapped.
+	* Fixed a crasher in check_memory() when BINARIES was #undef'd
+	* '\"' -> '"' in rc.c, since the former confuses emacs's hilit19 mode
+	* Better fix for the undefined function problem; the old solution
+	  occasionally didn't work on some systems
+	* Fixed a problem with aliases in the function table that would
+	  sometimes cause ... args not to be handled right
+	* Fixed a crasher involving prototypes preceding inherit statements
+	* program_info() now calculates the overhead of save_types as well
+
+Sat May 11 20:28:19 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a35
+	* Reversed the function table search order in the new call_other 
+	  search code to be consistent with overload search order
+	* fixed a crasher in generated error messages for OBS rules which
+	  have an indirect object
+	* added some entries to the files Bugs and Ideas
+	* load_binary() now sorts the function table so it is in the correct
+	  order again since the order of shared strings is different from
+	  when it was saved
+	* fixed a bug in the apply_low cache code which was accidentally using
+	  'prog', a global, with disastrous consequences when valid_save_binary
+	  was called during the tail end of compilation.  'prog' is no longer
+	  a global, and is returned where needed.
+	* fixed a bug which caused the identifier hash table to become trashed
+	  when a function was used before it was defined
+	* 'make clean' now removes the testsuite's compile error log too
+
+Fri May 10 22:21:39 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a34
+	* moved strput() from the parsing package to the main distribution
+	  so it can be used internally
+	* Changed the building of compiler error messages to use strput(),
+	  avoiding possible buffer overruns.  Normalized the max length of
+	  most compiler error messages to 256 bytes.
+	* Fixed compilation of PROFILE_FUNCTIONS
+	* Fixed a bug introduced last pl that caused the call_other cache
+	  to malfunction
+	* Fixed octal escapes in strings; they were getting omitted
+	* Fixed a crasher in unterminated @ blocks (which, by the way,
+	  had absolutely nothing to do with /V\\age)
+
+Tue May  7 14:23:45 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a33
+	* moved the call to save the ed buffer of a user to before the
+	  call to net_dead()
+	* Rewrote most of the function table handling code.  Memory overhead
+	  is now 15 bytes per function defined and 5 bytes per function
+	  inherited, instead of 14 bytes per function inherited or defined
+	  This cuts function table memory usage about in half on a stock
+	  Lima lib.  YMMV.  Large open MUDs may see larger decreases;
+	  the program_info() efun is a good way to check.
+	* Removed the last traces of OLD_PREVIOUS_OBJECT_BEHAVIOR
+	* The inheritance warning is now a bit clearer, e.g.:
+	  foo() inherited from both /std/foo.c (via /std/bar.c) and 
+	  /std/bazz.c; using the definition in /std/foo.c
+	* Fixed the parsing package to not crash on reference to 'me' when
+	  'me' isn't within sight (admittedly, an odd situation :-) )
+	* Fixed the testsuite to realize call_catck(3) now returns strings
+	* Tables of defined functions are now sorted, so they can be binary
+	  searched; call_other time is now approximately O(m log n) instead
+	  of O(m n) when the cache is missed (m = # of inherits, n = # of 
+	  functions in each)
+	* Removed OPTIMIZE_FUNCTION_TABLE_SEARCH: the new search method
+	  is just as fast with no overhead
+	* added Raistlin's patch for a parser bug that would cause the
+	  verb name to get inserted at the start of the 'real names' section
+	  of parser callbacks
+
+Mon May  6 21:47:59 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a32
+	* Small optimization to arrange_call_inherited()
+	* Small cleanup to C function pointer handling in dumpstat.c
+	* fixed a bug that caused dumpstat.c to ignore the size of array
+	  headers
+	* Fixed the check_memory(1) table to be formatted nicer
+	* removed outdated code from program_info(); also fixed a bug that
+	  caused the header size to be an absurd value
+	* fixed a crasher in function_owner() [ref count bug]
+	* added a memory_summary() contrib efun, which returns a mapping
+	  of with entries: map["program name"]["variable name"]
+	  Each entry contains the number of bytes used by that variable in
+	  all active instances of that program.  The size of shared structures
+	  is divided up evenly between all values that reference it.
+	* Made the parser end of buffer checks a bit easier to maintain
+	* added parse_remove(string verb) which removes all rules for the
+	  verb 'verb' which were added by this_object()
+
+Mon May  6 14:23:47 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a31
+	* Added a FLUSH_OUTPUT_IMMEDIATELY option, which disables buffering
+	  of input.  Useful for debugging.
+	* Parsing package fixes:
+	  . Fixed a bug that caused OBS rules to silently do nothing if
+	    all the possible matches return errors beginning with '#'
+	  . COMPAT_BUSTER: Now, zeros are passed for args that aren't
+	    available yet (i.e. the indirect object in 
+	    direct_foo_obj_bar_obj()).  Also, the arg which is currently
+	    being worked on is now passed again (i.e. the direct object in 
+	    direct_foo_obj_bar_obj())
+	    Summary: "foo sword bar wiggle" would call:
+	    . can_foo_obj_bar_obj(0, 0, "sword", "wiggle")
+	    . direct_foo_obj_bar_obj(OBJ(sword), 0, "sword", "wiggle")
+	    . indirect_foo_obj_bar_obj(OBJ(sword), OBJ(wiggle), "sword", 
+				       "wiggle")
+	    among other things
+	  . Fixed a number of bugs and buglets in disambiguating parses
+	    and generating error messages, especially in cases where all of
+	    the attempts produce nonsense
+
+Sun May  5 14:52:20 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a30
+	* added NAME_TRUE_VARARGS flag to disassembly listings
+	* propagate NAME_TRUE_VARARGS up the inheritance tree to avoid
+	  incorrect argument type errors when #pragma save_types is in use
+	* Parsing package fixes:
+	  . made the maximum tokens per parser rule configurable at the top of
+	    the parsing package [MAX_MATCHES]
+	  . Optimizations to bitvec routines: bitvec_count(), get_single() in
+	    the parser
+	  . Fixed several spots where > MAX_NUM_OBJECTS involved in a parse
+	    would cause crashes
+	  . Fixed strput/strput_words to not write past the end of their buffer
+	    when constructing long strings 
+	  . Fixed a crasher in parse_add_synonym() (though it wouldn't crash
+	    until the synonym or parse_dump() was used)
+
+Thu Apr 25 01:32:46 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a29
+	* fixed a bug that would cause call_outs which were exact
+	  multiples of CALL_OUT_CYCLE to be delayed by one CALL_OUT_CYCLE
+	  (sometimes could happen with call_outs that differed by a small
+	  multiple of 2 from this)
+	* removed an unused local in repeat_string
+	* Fixed the parsing package to not crash when given a line containing
+	  more than 256 words (now it just returns; the limit can be set at
+	  the top of parser.c)
+
+Tue Apr 23 16:58:34 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a28
+	* added a contrib efun: repeat_string(string s, int n) which
+	  essentially does: sprintf("%-*'"+s+"'s", n, ""), but is readable.
+	  e.g. repeat_string("-=", 10) == "-=-=-=-=-=-=-=-"
+	* redesigned call_outs slightly to allow constant time insertion
+	* added a CALLOUT_HANDLES option, which has the following effects:
+	  . call_out returns an int, which can be passed to the following
+	    two efuns:
+	    remove_call_out(int handle)
+	    find_call_out(int handle)
+	  . Note that using the handle is more efficient than using the
+	    ob, function name version
+	
+Tue Apr 16 11:29:13 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a27
+	* updated with respect to v21.7b21
+	* Fixed sort_array to work correctly when called from a sort callback
+
+Sun Mar 10 05:32:19 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a26
+	* updated with respect to v21.7b20
+	* Added Raistlin@IE's fix for a bug in replaceable()'s one argument
+	  case introduced in v22a23 which caused the one argument form to
+	  quit working
+	* Fixed the ARCH define for 386bsd to not override the FreeBSD define
+	* changed "stuf!" -> "unknown architecture", when ARCH cannot
+          be determined
+	* added a classp() efun
+	* added support for \012 octal escapes and \x1e hex escapes in
+	  strings and character constants
+	* added a comment about what the legal values of CFG_LIVING_HASH_SIZE
+	  are
+	* crasher fix in the database package
+	* put a remove_interactive() call back in that accidentally got removed
+	  at one point, which caused the driver to busy loop until a message
+	  was sent to the object whose link had died
+	* two changes to call_stack(3): first, use strings instead of numbers
+	  to be consistent with origin(); second, a bug was fixed which was
+	  reporting the origin of the frame below the indicated frame, not
+	  the frame itself.
+	* fixed compilation on systems that use _SC_PAGE_SIZE, not _SC_PAGESIZE
+
+Mon Mar  4 20:36:27 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a25
+	* updated with respect to v21.7b19
+	* added code to flush message queues when closing connections and
+	  shutting down
+	* added a flush_messages(void | object) efun for manually flushing
+	  message queues (during a long thread of execution, for example)
+	* fixed a bug that would cause some anonymous functions to not
+	  be bindable
+	* fixed a crasher in recursive structures in error traces
+	* fixed a bug in sprintf() column mode that would wrap early if
+	  a fit exactly in the width given
+
+Fri Mar  1 13:33:14 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a24
+	* added Pace@Callandor's patch for REVERSIBLE_EXPLODE_STRING
+	* made PARSE_NUMERIC() into a routine instead of a macro, and
+	  added support for scientific notation so that very large/small
+	  floating point values restore correctly in restore_svalue() and
+	  friends
+
+Mon Feb  5 09:43:36 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a23
+	* updated with respect to v21.7b18
+	* added a 'parallel' target for parallel makes when using gmake
+	* protected process_command against this_player() changing or
+	  being destructed during process_input() and other nasty places
+	* removed the DEBUG_COMM_FREEZE code
+	* made the message queue flushing a bit lazier which should result
+	  in smoother output and larger packet sizes
+	* added Descartes' database package
+	* added heart_beat_info() as a synonym for heart_beats() when
+	  COMPAT_32 is on
+	* replaceable now can be optionally passed a second array argument
+	  which is a list of function names to ignore; if the second arg
+	  is left out, ({ "create" }) is assumed, which gives the old
+	  behavior.
+	* added a function_owner(function) contrib efun.
+	* made #undef PACKAGE_SOCKETS/#define PACKAGE_EXTERNAL compilation
+	  fail more gracefully
+	* fixed a parser callback bug that caused the 'real names' of
+	  omitted args to be omitted too
+	* added an error message for using the debug mode of parse_sentence
+	  when the driver wasn't compiled with DEBUG on
+	* fixed a bug that would cause parse_sentence() to return large
+	  numbers instead of error strings
+	* fixed a typo in the Incorrect argument to type %s error message.
+	* fixed compilation when first_inventory() is disabled.
+
+Sat Feb  3 13:06:23 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a22
+	* fixed seteuid() to pass the correct second arg to valid_seteuid()
+	* fixed the parsing package to not crash if parser_error_message()
+	  doesn't exist
+
+Sun Jan 21 21:29:34 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a21
+	* updated with respect to v21.7b16
+	* The master object and simul_efun object can be updated again when
+	  LPC_TO_C is not defined; patch from d.collins@ic.ac.uk
+	* unified the code handling function pointers/extra args in
+	  various efuns; fixes crashers in rare cases.  Also, sort_array()
+	  now takes additional args which are passed down the the function,
+	  like filter() et al.
+	* Added a check for the /usr/ucbinclude directory in ./build.MudOS;
+	  Solaris needs <sys/rusage.h> from there
+	* Removed push_string() internally; push_constant_string() should
+	  now only be used on string constants.  The following changes
+	  will preserve previous behavior:
+	  . push_string(x, STRING_MALLOC) -> copy_and_push_string(x)
+	  . push_string(x, STRING_SHARED) -> share_and_push_string(x)
+	  . push_string(x, STRING_CONSTANT) -> push_constant_string(x)
+	  . push_constant_string(x) -> share_and_push_string(x)
+	  also, new function: push_shared_string(), which pushes and
+	  references a known shared string.
+	* optimized the PORT_ASCII code a bit, and fixed some problems/loops
+	  in it in the presence of bad input/errors
+	* fixed a bug that would cause message() to send messages/avoid the
+	  wrong people if the target/avoid argument was _not_ an array,
+	  and the function was called during the processing of another
+	  message call whose target/avoid was also not an array
+	* removed XALLOC(), since it isn't used any more
+	* fixed mapping hash distribution and centralized the definition of
+	  it
+	* optimized terminal_colour a bit
+	* optimized present() a bit; also fixed a leak in errors in id()
+	  functions
+	* the message of the message() efun may now be of any type; this
+	  actually was side effect of a fix that makes message() more
+	  efficient :-)
+	* fixed a crasher in sprintf() table mode, when no number of
+	  columns was specified (best fit)
+	* improved the packages/ and mudlib/ dependencies a bit
+	* configure.h is now remade if the information in 'uname -a' changes
+	* no longer log a 'double call to remove_interactive()' if an object
+	  self-destructs in net_dead()
+	* There is no longer a limit on the number of sockets available;
+	  if a limit is wanted it should be enforced in valid_socket()
+	* fixed sprintf() column mode to wrap at the column width, not one
+	  before
+	* added a couple testsuite tests for sprintf table mode
+	* ./build.MudOS now prints an error message if an unknown kind of
+	  build is attempted instead of silently assuming the default
+	* Parser changes:
+	  . Two new restrictions; only one plural token is allowed per rule,
+	    and only two object tokens are allowed per rule.  The second may
+	    disappear after I clean it up a bit.
+	  . fixed a crasher in having more than MAX_NUM_OBJECTS involved in
+	    a parse
+	  . 'all' is now supported, also 'all of ...', 'all red swords', etc
+	  . Cases where more than one object are matches, but only one makes
+	    sense now work
+	  . in callbacks, only objects that have been completely parsed can
+	    be refered to.  This means can_ and direct_ functions can't
+	    reference the direct or indirect objects.  The corresponding
+	    spots in the argument list are missing.
+	  . OBS rules use the _obj_ callbacks, with the exception of do_
+	  . error handling is now up to the master object via the
+	    parser_error_message() apply.  The first argument is a int
+	    indicating the error type.  The second is an object if this
+	    message corresponds to part of a plural match, otherwise it
+	    is zero.  The third and following args depend on the error
+	    type (from include/parser_error.h):
+	    ERR_IS_NOT, ERR_NO_LIVING, ERR_NOT_ACCESSIBLE:
+		the noun used, and then 0/1 depending on whether there
+	        ambiguity
+	    ERR_AMBIG:
+	        an array of objects that might have matched
+	    ERR_ORDINAL:
+	        The number that was refered to
+	    ERR_THERE_IS_NO:
+	        The string that couldn't be matched
+	    ERR_ALLOCATED:
+		The error message returned by the mudlib
+	    ERR_BAD_MULTIPLE:
+	        nothing
+	    [note: if you want more info that you think the parser might
+	     have, let me know]
+	    compat/parser_error.c has a decent approximation of the old
+	    behavior
+	  . do_foo_obs() gets an array of objects and error messages as
+	    the arg corresponding to obs
+	  . Returned error strings which start with '#' are assumed to
+	    be nonsense messages, and aren't counted for the purpose of
+	    ordinals and all.  Useful to prevent 'get all' from printing
+	    an error for yourself and the room, and to keep 'drop first sword'
+	    from counting swords in the room.
+
+Sat Jan 20 15:47:06 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a20
+	* removed process_string() and process_value(); simul_efuns are
+	  availaible in the compat/simuls directory
+	* Fixed a memory leak in new(class foo, bar : baz, ...)
+	* fixed compilation problems in grammar.y.pre, shallow_inherit_list,
+	  object.c
+	* fixed a typo: m_indices() is keys(), not values(); also added
+	  m_delete
+	* pluralization fixes: 'are', 'mackerel'
+	* added Rust's timezone efuns to contrib; turned off by default
+	  since they may not compile everywhere
+
+Wed Jan  3 16:12:50 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a19
+	* updated with respect to v21.7b15
+	* All values which were previously 'null' are now undefined instead;
+	  nullp() is now exactly the same as undefinedp()
+	* added a COMPAT_32 option, which tweaks a few things to allow
+	  some 3.2/3.2.1 code to be ported easier; see options.h for
+	  what changes
+	* shallow_inherit_list() is now the same as inherit_list() [unless
+	  COMPAT_32 is on, in which shallow_inherit_list() is the MudOS
+	  behavior, and inherit_list() becomes deep_inherit_list() ]
+	* error message change: 
+	    Missing type -> Missing type for global variable
+	* Don't raise type mismatch errors for code of the form
+	  'identifier = expr'; 'Missing type for global variable' is good
+	  enough
+	* Don't manually include <sys/resource.h> and <sys/rusage.h> in
+	  interpret.c; trust configure instead
+	* fixed a parser crasher in refering to 'noun', when more than
+	  4 adjectives are possible
+	* Fixed sprintf table mode to not stretch the last line to fit
+	  the field width
+
 Wed Jan  3 14:29:43 EST 1996 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v22a18
 	* fixed some serious flaws in class member lookup introduced in a17

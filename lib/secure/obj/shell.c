@@ -14,7 +14,7 @@ inherit M_SCROLLBACK;
 
 private static object owner;
 
-void execute_command(string * argv, string original_input);
+varargs void execute_command();
 string query_shellname();
 string query_save_path(string userid);
 
@@ -67,7 +67,7 @@ static void shell_input(mixed input)
 {
     mixed argv;
     string original_input;
-
+ 
     if(input == "") return;
     if(input == -1)
     {
@@ -105,14 +105,10 @@ static void shell_input(mixed input)
 
     add_history_item(input);
 
-    // convert input into words
-    argv = evaluate(arg_to_words_func, input);
-    // argv = map(argv, (: trim_spaces :));
-    if (!sizeof(argv))
-	return;
+    argv = explode(input, " ");
 
     // alias expansion... a leading \ ignores alias expansion
-    if(strlen(argv[0]) > 1 && argv[0][0] == '\\')
+    if(sizeof(argv) && (strlen(argv[0]) > 1) && (argv[0][0] == '\\'))
     {
 	argv[0] = argv[0][1..];
     }
@@ -120,12 +116,15 @@ static void shell_input(mixed input)
     {
 	mixed tmp = expand_alias(argv);
 
-	argv = stringp(tmp) ? evaluate(arg_to_words_func, tmp) : tmp;
+	argv = stringp(tmp) ? explode(tmp," ") : tmp;
+
     }
 
-    // We want to do this here so that alias expansion catches for souls.
-    original_input = implode(argv," ");
+      original_input = implode(argv," ");
 
+
+    if (!sizeof(argv))
+	return;
 
     execute_command(argv, original_input);
 }
@@ -171,7 +170,7 @@ static void prepare_shell()
 {
     shell_bind_if_undefined("alias",	(: cmd_alias :));
     shell_bind_if_undefined("unalias",	(: cmd_remove_alias($1,1) :));
-    shell_bind_if_undefined("history",	(: history_command :));
+    shell_bind_if_undefined("history",	(: cmd_history :));
     shell_bind_if_undefined("scrollback", (: cmd_scrollback :));
 //    shell_bind_if_undefined("exit",	(: cmd_exit :));
 }

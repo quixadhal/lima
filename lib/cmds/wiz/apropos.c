@@ -2,6 +2,7 @@
 
 /*
 ** Apropos command that interfaces with the DOC_D.
+** Currently not updated WRT new doc_d
 ** John Viega (rust@virginia.edu)
 **
 ** 15-APR-95 Created.
@@ -11,9 +12,7 @@
 #include <mudlib.h>
 
 inherit CMD;
-
-  /* for iwrap() */
-inherit M_GLOB;
+inherit M_GLOB; /* for translate() */
 
 //:COMMAND
 //Returns information on which mudlib functions contain the
@@ -65,5 +64,5 @@ main(string s)
 
     apropos_info = DOC_D->apropos_function(translate(s,1));
     map_array(sort_array(keys(apropos_info),1), (: add_info_to_output :));
-    more(output);
+    out(output);
 }

@@ -1,0 +1,26 @@
+
+
+set_on_enter_msg()
+            set_on_exit_msg()
+
+You have this really cool camaro that you 
+would like to have an equally cool message
+for when somone enters/exit the camaro. To 
+change these messages put the following 
+functions in your objects create():
+
+    set_on_exit_msg("$N $vooze coolness as $n $vexit the camaro." );
+
+This message will now be shown whenever
+someone exits the camaro.
+
+   set_on_enter_msg("You drool as $N $venter the camaro.");
+
+This message will now be shown whenever
+the someone enters the camaro.
+
+
+
+
+
+

@@ -1,0 +1,18 @@
+
+
+
+
+Long Description
+
+The long description is a detailed description
+of your object that the player sees when they
+look at it.  To set the long description, you 
+need the following function in your object's
+create():
+
+    set_long("This is your objects long"
+             "description.")
+
+
+
+

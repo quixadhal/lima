@@ -1,0 +1,23 @@
+
+        
+Set_closed()
+
+
+You have a door, now how do you tell the
+mud that the door should be closed to 
+start with?  First thing to do is make
+sure that you inherited DOOR, then in
+your objects create(), put the following
+function:
+     
+    set_closed(1)
+
+A 1 in this function closes the door, a 0
+and the door will be open.
+
+
+
+
+
+  
+

@@ -58,7 +58,7 @@ int stat_me()
 // ever go into this function.  This allows an area implementor to
 // simply respond to setup() and not worry about inheriting the
 // function call.
-void setup()
+void setup(mixed array args...)
 {
     /* Overload me! */
 }
@@ -73,33 +73,29 @@ void setup()
 // Note that if the mudlib object overrode create(), then its init
 // code would occur _after_ the area coder's setup() and possibly
 // blow away some of their settings.
-void mudlib_setup()
+void mudlib_setup(mixed array args...)
 {
     /* Overload me! */
 
 }
-void do_setup()
+
+void create(mixed array args...)
 {
+    base_obj::create();
+    properties::create();
+    configure_set(STD_FLAGS, 0, 0, (: resync_visibility :), 0, 0);
+
     if ( clonep(this_object()) )
     {
-	mudlib_setup();
+	mudlib_setup(args...);
 
 	// Use a call_other to avoid a redeclaration warning, since
 	// mostly modules that aren't directly inheriting us will define
         // this function.
-	this_object()->internal_setup(); 
-	setup();
+	this_object()->internal_setup(args...);
+
+	setup(args...);
     }
-}
-
-void create(int skip_setup)
-{
-    ::create();
-    properties::create();
-    configure_set(STD_FLAGS, 0, 0, (: resync_visibility :), 0, 0);
-
-    if ( !skip_setup )
-	do_setup();
 }
 
 

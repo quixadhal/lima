@@ -9,7 +9,7 @@
 #include <mudlib.h>
 #include <security.h>
 #include <log.h>
-
+#include <driver/parser_error.h>
 
 private mapping errors = ([]);
 
@@ -80,7 +80,7 @@ object connect()
     object ob;
     string ret;
 
-    ret = catch(ob = clone_object(get_player_fname()));
+    ret = catch(ob = new(get_player_fname()));
 
 #ifdef DEBUG_CONNECTIONS
     call_out((: debug_connections($(ob)):), 2);
@@ -141,7 +141,7 @@ string error_handler(mapping mp, int caught)
     string ret;
     string logfile = (caught ? LOG_FILE_CATCH : LOG_FILE_RUNTIME);
     string what = mp["error"];
-    
+
     ret = "---\n" + standard_trace(mp);
     write_file(logfile, ret);
 
@@ -252,6 +252,7 @@ private void report_context(string src, int line, string context) {
     if (context == "the end of line")
 	context = "\n";
 
+    context = replace_string(context, "%", "%%");
     if (sscanf(src, "%s" + context + "%s", txt, src) != 2)
 	return;
     len = funky_strlen(txt, pos);
@@ -334,22 +335,6 @@ private int retrieve_ed_setup(object who) {
     return who->query_ed_setup();
 }
 
-void destruct_env_of(object ob)
-{
-    mixed error;
-
-//### needs work to improve speed?
-//### Beek - why?  Is this known to be slow?  Is this still called anyway?
-//###        I don't think so.  Double check.
-    if ( !ob->query_link() )
-	return;
-
-    if ( error = catch(ob->move(VOID_ROOM)) )
-    {
-        write(error);
-    }
-}
-
 int valid_shadow(object ob)
 {
     return (int)ob->query_allow_shadow(previous_object());
@@ -388,6 +373,67 @@ string parse_command_all_word()
 object *parse_command_users()
 {
     return users()->query_body();
+}
+
+string parser_error_message(int kind, object ob, mixed arg, int flag) {
+    string ret;
+    if (ob) 
+	ret = ob->short() + ": ";
+    else
+	ret = "";
+    
+    switch (kind) {
+    case ERR_IS_NOT:
+	if (flag)
+	    return ret + "There is no such " + arg + " here.\n";
+	else
+	    return ret + "There is no " + arg + " here.\n";
+	break;
+    case ERR_NOT_LIVING:
+	if (flag)
+	    return ret + "None of the " + pluralize(arg) + " are alive.\n";
+	else
+	    return ret + "The " + arg + " isn't alive.\n";
+	break;
+    case ERR_NOT_ACCESSIBLE:
+	if (flag)
+	    return ret + "You can't reach them.\n";
+	else
+	    return ret + "You can't reach it.\n";
+	break;
+    case ERR_AMBIG:
+	{
+	    array descs = unique_array(arg, (: $1->the_short() :));
+	    string str;
+	    
+	    if (sizeof(descs) == 1)
+		return ret + "Which " + descs[0][0]->short() + " do you mean?\n";
+	    str = ret + "Do you mean ";
+	    for (int i = 0; i < sizeof(descs); i++) {
+		if (sizeof(descs[i]) > 1)
+		    str += "one of ";
+		str += descs[i][0]->the_short();
+		if (i == sizeof(descs) - 1)
+		    str += " or ";
+		else 
+		    str += ", ";
+	    }
+	    return str + "?\n";
+	}
+	break;
+    case ERR_ORDINAL:
+	if (arg > 1)
+	    return ret + "There are only " + arg + " of them.\n";
+	else
+	    return ret + "There is only one of them.\n";
+	break;
+    case ERR_ALLOCATED:
+	return ret + arg;
+    case ERR_THERE_IS_NO:
+	return ret + "There is no " + arg + " here.\n";
+    case ERR_BAD_MULTIPLE:
+	return ret + "You can't use more than one object at a time with that verb.\n";
+    }
 }
 
 string get_save_file_name(string file, object who)

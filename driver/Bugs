@@ -1,3 +1,213 @@
+If an include file doesn't end in a newline, something screws up in the
+linked buffer code, causing odd compile errors.
+
+-----
+
+RUNTIME_LOADING needs -rdynamic passed in the link on some OS's?
+(reported for a gcc-linux system; possibly a mixed a.out/elf?)
+
+-----
+
+btw.. did you know that the uids behaviour differs slightly from under Amylaar ?
+In simulate.c there is a line that has a comment: /* FIXME - is this correct */
+ - the line above this does something like  target->uid = my->uid
+ Under Amylaar an object _never_ gives away its uid to another object, it always
+ gives its euid. When I moved from Amy it took me a heck of a long time to
+figure out why i was getting all these weird bugs.. then I discovered it and 
+ made the simple patch. 
+ I just thought I'd mention it as you might wanna give Amylaar uid behaviour
+ when COMPAT_32 is defined..
+
+-Pace
+
+-----
+
+The error for new(class undefined_class name, ...) could be better.
+Currently it's a parse error.
+
+-----
+
+It is possible under some circumstances to get two entries for the same function into the function table.  I think it's related to #pragma no_strict_types allowing definitions in cases like the following:
+
+int foo() {
+    bar();
+}
+
+int bar() {
+}
+
+But I can't reproduce it.  It also causes odd inherit warnings like:
+
+room/quest_room.c line 66: Warning convert_number() inherited from both
+room/room.c and room/room.c using the definition in /room/room.c
+
+-----
+
+This gives the wrong error message:
+
+unlock the door with the key
+Trying interpretation: unlock:the:door:with:the:key:
+Trying rule: OBJ with OBJ
+  parse_rule
+    parse_obj:
+    Found noun: door
+      parse_rule
+      Matched literal: with
+        parse_obj:
+        Found noun: key
+          parse_rule
+            we_are_finished
+            Trying can_unlock_obj_with_obj ...
+            Trying can_unlock_obj_word_obj ...
+            Trying can_verb_obj_word_obj ...
+            Trying can_verb_rule ...
+            Trying can_unlock_obj_with_obj ...
+            Return value was: 1
+            Trying direct_unlock_obj_with_obj ...
+            Return value was: 1
+            Trying indirect_unlock_obj_with_obj ...
+            Return value was: 0
+            You can't unlock the thing with that.
+ 
+          exiting parse_rule ...
+        parse_rule
+        exiting parse_rule ...
+        parse_rule
+          we_are_finished
+         Trying can_unlock_obj_with_obj ...
+          Trying can_unlock_obj_word_obj ...
+          Trying can_verb_obj_word_obj ...
+          Trying can_verb_rule ...
+          Trying can_unlock_obj_with_obj ...
+          Return value was: 1
+        exiting parse_rule ...
+      Done trying to match OBJ
+    parse_rule
+    last match to error ...
+    Changing last match.
+      parse_obj:
+      Found noun: key
+        parse_rule
+          we_are_finished
+          Trying can_unlock_obj_with_obj ...
+          Trying can_unlock_obj_word_obj ...
+          Trying can_verb_obj_word_obj ...
+          Trying can_verb_rule ...
+          Trying can_unlock_obj_with_obj ...
+          Return value was: 1
+          Trying indirect_unlock_obj_with_obj ...
+          Return value was: 0
+          You can't unlock the thing with that.
+ 
+        exiting parse_rule ...
+      parse_rule
+      exiting parse_rule ...
+      parse_rule
+
+        we_are_finished
+        Trying can_unlock_obj_with_obj ...
+        Trying can_unlock_obj_word_obj ...
+        Trying can_verb_obj_word_obj ...
+        Trying can_verb_rule ...
+        Trying can_unlock_obj_with_obj ...
+        Return value was: 1
+        Have better match; aborting ...
+      exiting parse_rule ...
+    Done trying to match OBJ
+    parse_rule
+    Matched literal: with
+      parse_obj:
+      Found noun: key
+        parse_rule
+          we_are_finished
+          Trying can_unlock_obj_with_obj ...
+          Trying can_unlock_obj_word_obj ...
+          Trying can_verb_obj_word_obj ...
+          Trying can_verb_rule ...
+          Trying can_unlock_obj_with_obj ...
+          Return value was: 1
+          Trying indirect_unlock_obj_with_obj ...
+          Return value was: 0
+          You can't unlock the thing with that.
+ 
+        exiting parse_rule ...
+      parse_rule
+      exiting parse_rule ...
+      parse_rule
+        we_are_finished
+        Trying can_unlock_obj_with_obj ...
+        Trying can_unlock_obj_word_obj ...
+        Trying can_verb_obj_word_obj ...
+        Trying can_verb_rule ...
+        Trying can_unlock_obj_with_obj ...
+        Return value was: 1
+        Have better match; aborting ...
+      exiting parse_rule ...
+    Done trying to match OBJ
+    parse_rule
+    last match to error ...
+    Literal not found in forward search
+    parse_rule
+    last match to error ...
+    Literal not found in forward search
+    parse_rule
+    Ran out of words to parse.
+  Done trying to match OBJ
+There is no door here.
+
+-----
+
+It still seems possible for regexp(explode(read_file(...), "\n"), ...) to
+crash, but I can't reproduce it.
+
+-----
+
+#pragma optimize bug:
+
+;; Function room_of
+049d: local LV0
+049f: ! 
+04a0: || 0006 (04a7)
+04a3: transfer_local LV0
+04a5: objectp 
+04a6: ! 
+04a7: branch_when_zero 0003 (04ab)
+04aa: return_zero 
+04ab: branch 0007 (04b3)
+04ae: local LV1
+04b0: (void)assign_local LV0
+04b2: break_point 
+04b3: local LV0
+04b5: environment 
+04b7: local_lvalue LV1
+04b9: assign 
+04ba: bbranch_when_non_zero 000d (04ae)
+04bd: transfer_local LV0
+04bf: return 
+04c0: return_zero 
+
+object room_of(object obj) {
+    object ob;
+    if(!obj || !objectp(obj)) return 0;
+    while(ob=environment(obj)) obj=ob;
+    return obj;
+}
+
+-----
+
+@ENDTEXT
+
+
+ENDTEXT, "foo")
+
+incorrectly protects the "'s with \'s, assuming it is inside the text block
+
+-----
+
+call_out() and efuns can be used to call #global_init#
+
+-----
+
 Various efuns which call valid_hide() don't realize it can error, causing
 them to leak if master::valid_hide() throws an error.
 

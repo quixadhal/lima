@@ -49,11 +49,11 @@ private void main(mixed *arg) {
     if (arg[1]) {
 	file = arg[1];
 	func = arg[0];
-	write("Tracing definitions of '" + func + "' in " + file + "\n");
+	out("Tracing definitions of '" + func + "' in " + file + "\n");
     } else {
 	file = arg[0];
 	func = 0;
     }
 
-    write(print_tree(file, func));
+    out(print_tree(file, func));
 }

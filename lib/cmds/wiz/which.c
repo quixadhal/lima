@@ -14,16 +14,16 @@ private void main(string array argv)
 
   if(result == -1)
     {
-      printf("A file with that name exists in your path, but doesn't have a main() function.\n");
+      out("A file with that name exists in your path, but doesn't have a main() function.\n");
       return;
     }
 
   if(!result)
     {
-      printf("No such command found in your path.\n");
+      out("No such command found in your path.\n");
       return;
     }
-  printf("%s is found in: %s\n", argv[0], result[1]);
+  outf("%s is found in: %s\n", argv[0], result[1]);
   return;
 }
 

@@ -17,14 +17,20 @@ private void main()
 
     ulist = users();
     if (sizeof(ulist) <= 0) {
-	write(sprintf("NO ONE LOGGED IN!!!   (not even you!)\n"));
+	out(sprintf("NO ONE LOGGED IN!!!   (not even you!)\n"));
 	return;
     }
     if ((sizeof(ulist)==1) && (ulist[0]==this_user())) {
-	write(sprintf("You are the only person logged in!\n"));
+	out(sprintf("You are the only person logged in!\n"));
 	return;
     }
-    write(wrap(implode(ulist->query_userid(),
+    if(end_of_pipeline())
+      out(wrap(implode(ulist->query_userid(),
 		       (: $1 + " " + ($2 ? $2 : "(login)") :),
 		       "")[1..] + "\n"));
+    else
+      out((implode(ulist->query_userid(),
+		       (: $1 + "\n" + ($2 ? $2 : "(login)") :),
+		       "")[1..] + "\n"));
+
 }

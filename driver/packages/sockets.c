@@ -273,7 +273,7 @@ f_socket_address PROT((void))
 
         if (!sp->u.ob->interactive) {
             free_object(sp->u.ob, "f_socket_address:1");
-            *sp = const0n;
+            *sp = const0u;
             return;
 	}
         tmp = inet_ntoa(sp->u.ob->interactive->addr.sin_addr);

@@ -86,12 +86,12 @@ int fnmatch( string name, string pattern )
 private string* glob1( string dirname, string pattern){
     mixed*	names, result;
     string	name;
-    int		i;
+    int		i,j;
 
     names = get_dir(dirname+"/*");
     result = ({});
-    i = sizeof(names);
-    while(i--){
+    j = sizeof(names);
+    for(i=0;i<j;i++){
 	name = names[i];
 	if(name != "." && name != ".."){
 	    if (fnmatch(name, pattern)){

@@ -13,6 +13,15 @@ void do_kill_liv(object ob)
 	this_body()->start_fight(ob);
 }
 
+void do_kill_liv_with_obj(object liv, object ob)
+{
+     
+    if (liv == this_body())
+       this_body()->commit_suicide();
+    else
+       this_body()->start_fight(liv);
+}
+
 void do_kill() {
     string err;
     
@@ -21,8 +30,13 @@ void do_kill() {
     }
 }
 
+void do_kill_str(string str)
+{
+   write("You don't see that here.\n");
+}
+
 mixed * query_verb_info()
 {
-   return ({ ({ "", "LIV", "LIV with OBJ" }) });
+   return ({ ({ "", "LIV", "LIV with OBJ", "STR" }) });
 }
 

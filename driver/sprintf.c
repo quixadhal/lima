@@ -204,7 +204,7 @@ void sprintf_error P2(int, which, char *, premade) {
 	err = "Error in format string.";
 	break;
     case ERR_INCORRECT_ARG_S:
-	err = "Incorrect argument to type %s.";
+	err = "Incorrect argument to type %%s.";
 	break;
     case ERR_CST_REQUIRES_FS:
 	err = "Column/table mode requires a field size.";
@@ -360,11 +360,11 @@ void svalue_to_string P5(svalue_t *, obj, outbuffer_t *, outbuf, int, indent, in
 	    outbuf_add(outbuf, "(: ");
 	    switch (obj->u.fp->hdr.type) {
 	    case FP_LOCAL | FP_NOT_BINDABLE:
-		outbuf_add(outbuf,
-		       obj->u.fp->hdr.owner->prog->functions[obj->u.fp->f.local.index].name);
+		outbuf_add(outbuf, function_name(obj->u.fp->hdr.owner->prog,
+						 obj->u.fp->f.local.index));
 		break;
 	    case FP_SIMUL:
-		outbuf_add(outbuf, simuls[obj->u.fp->f.simul.index]->name);
+		outbuf_add(outbuf, simuls[obj->u.fp->f.simul.index].func->name);
 		break;
 	    case FP_FUNCTIONAL:
 	    case FP_FUNCTIONAL | FP_NOT_BINDABLE:
@@ -545,8 +545,11 @@ static int add_column P2(cst **, column, int, trailing)
 	if (c == ' ')
 	    space = done;
 	if (++done == col->pres) {
-	    if (space != -1)
-		done = space;
+	    if (space != -1) {
+		c = col_d[done];
+		if (c != '\n' && c != ' ' && c)
+		    done = space;
+	    }
 	    break;
 	}
     }
@@ -1011,19 +1014,37 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 							    * separating spaces */
 				if (!pres)
 				    pres = 1;
+				
+				/* This moves some entries from the right side
+				 * of the table to fill out the last line,
+				 * which makes the table look a bit nicer.
+				 * E.g.
+				 * (n=13,p=6)      (l=3,p=5)
+				 * X X X X X X     X X X X X
+				 * X X X X X X  -> X X X X X
+				 * X               X X X X
+				 *
+				 */
+				len = (n-1)/pres + 1;
+				if (n > pres && n % pres)
+				    pres -= (pres - n % pres) / len;
+			    } else {
+				len = (n-1)/pres + 1;
 			    }
-			    len = n / pres;	/* length of small columns */
-			    if (n < pres)
+			    (*temp)->size = fs / pres;
+			    (*temp)->remainder = fs % pres;
+			    if (n < pres) {
+				/* If we have fewer elements than columns,
+				 * pretend we are dealing with a smaller
+				 * table.
+				 */
+				(*temp)->remainder += (pres - n)*((*temp)->size);
 				pres = n;
-			    if (len * pres < n)
-				len++;
-			    if (len > 1 && n % pres)
-				pres -= (pres - n % pres) / len;
+			    }
+			    
 			    (*temp)->d.tab = CALLOCATE(pres + 1, tab_data_t,
 					     TAG_TEMPORARY, "string_print: 5");
 			    (*temp)->nocols = pres;	/* heavy sigh */
-			    (*temp)->size = fs / pres;
-			    (*temp)->remainder = fs % pres;
 			    (*temp)->d.tab[0].start = TABLE;
 			    if (pres == 1) {
 				(*temp)->d.tab[1].start = TABLE + SVALUE_STRLEN(carg) + 1;
@@ -1039,8 +1060,8 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 					n = 0;
 				    }
 				}
-				if (p1[-1] != '\n' || n)
-				    (*temp)->d.tab[i].start = p1 + 1;
+				for ( ; i <= pres; i++)
+				    (*temp)->d.tab[i].start = ++p1;
 			    }
 			    for (i = 0; i < pres; i++)
 				(*temp)->d.tab[i].cur = (*temp)->d.tab[i].start;

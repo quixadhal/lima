@@ -14,7 +14,7 @@ private void main(string s)
 {
     if ( !check_privilege(1) )
     {
-	printf("Only admins may shut down the game.\n");
+	outf("Only admins may shut down the game.\n");
 	return;
     }
 
@@ -22,16 +22,16 @@ private void main(string s)
     {
     case 0:
     case "":
-	write("You must give a reason to shut the game down.\n");
+	out("You must give a reason to shut the game down.\n");
 	return;
 
     default:
 	if (s[0..3] == "now") {
-	    write("Now is not a reason.\n");
+	    out("Now is not a reason.\n");
 	    return;
 	}
 	if (strsrch(s, "fuck") != -1) {
-	    write("Ask nicely.\n");
+	    out("Ask nicely.\n");
 	    return;
 	}
 	LOG_D->log(LOG_SHUTDOWN,

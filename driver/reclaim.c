@@ -29,7 +29,7 @@ check_svalue P1(svalue_t *, v)
     case T_OBJECT:
 	if (v->u.ob->flags & O_DESTRUCTED) {
 	    free_svalue(v, "reclaim_objects");
-	    *v = const0n;
+	    *v = const0u;
 	    cleaned++;
 	}
 	break;

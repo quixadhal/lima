@@ -145,6 +145,7 @@ nomask void delete_message(int message_key)
 	error("non-existent message\n");
 
     MAIL_D->delete_mail(message_key, owner);
+    if( query_unread_count() < message_index ) message_index--;
     map_delete(mailbox, message_key);
 
     save_me();

@@ -15,10 +15,7 @@ static void create()
   int i;
 
   for(i=0; i < 256; i++){
-// Fix for backspace, This really shouldn't have
-// been necessary!
-//### It isn't.  Why is this here?
-     if(i==8)ascii+=" ";
+     if(i==0)ascii+=" ";
 	ascii += chr(i);
   }
 
@@ -37,6 +34,33 @@ private int strstr(string s, string lookfor, int start)
     return start + x;
 }
 
+
+#define DEFAULT_WIDTH	75
+#define DEFAULT_INDENT	4
+
+//:FUNCTION wrap
+// Wrap function from Jihad @ Lima Bean.  Takes the string to wrap,
+// and optionally a width to wrap it to and optionally an indent for
+// any line after the first.
+varargs string wrap(string str, int width, int indent)
+{
+    if ( !indent )
+        return sprintf("%-=*s", width || DEFAULT_WIDTH, str);
+
+    return sprintf(
+	"%s%-=*s",
+	str[0..indent - 1],
+	(width || DEFAULT_WIDTH) - indent,
+	str[indent..]
+        );
+}
+
+string iwrap(string str)
+{
+    return wrap(str, 0, DEFAULT_INDENT);
+}
+
+#ifdef TRYING_NEW_VERSION
 
 // iwrap.c  (wrap with indent)
 // Peregrin@ZorkMUD           
@@ -147,6 +171,8 @@ wrap( string arg, int width )
     }
     return arg;
 }
+
+#endif /* TRYING_NEW_VERSION */
 
 
 string trim_spaces( string s ){

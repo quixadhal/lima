@@ -1,0 +1,68 @@
+
+
+
+
+
+
+M_ITEMS
+
+M_ITEMS is used for creating "fake objects", what I mean by fake objects
+is scenery things that DO NOT have heavy interaction with players but are
+for scenery.  Rather than make an entire object for objects that are really
+just trivial items, we use M_ITEMS and the add_item() function.
+
+Functions in your setup():
+
+    add_item()     --   This function is where you tell the lib what "fake items"
+                        you want to create, and what verbs they interact with.
+                        Remember that this is only for trivial items, not for
+                        fully interactive, important objects.
+
+                        I figured that an example would be useful here, so I stole
+                        Rust's from the room documentation.
+
+Simple Items 
+
+Simple items should be things that were mentioned in your long description that 
+are just there for decoration.  You can look at them, but anything else you try 
+to do to them will fail.  To make a simple item, call add_item () from your room's
+setup() function (you can do this multiple times in a row):
+
+    add_item ("dust", "There is a lot of it!");
+
+If more than one noun describes the same item, you can do this:
+
+    add_item ("horse", "animal", "mare",
+               "he doesn't look too interesting.")
+
+Other Items 
+
+You can make slightly more interesting objects with add_item ().
+You can give the object adjectives, and make it give error
+messages back other than the default, "That doesn't make any
+sense!" type of message.  For example, to make an old, faded
+sign that you can't read, do the following:
+
+    add_item ("sign", ([ "adjs" : ({ "old", "faded" }),
+              "read" : "The sign is too faded to read.",
+              "look" : "The sign is very faded.",
+              "get"  : "It would probably crumble to dust!",
+                      ]) ); 
+
+However, if you actually want to be able to read the sign, or get the sign,
+you need to make an object for it.
+
+
+*** NOTES
+
+     1)  The LIMA mudlib that we distribute will never allow a function pointer
+         in an add_item() (i.e. "read" : (: my_func :) ).  The reason for that is
+         we removed add_action() for a reason and if we allow a function pointer,
+         there is very little difference between that and an add_action().
+
+
+
+
+Last Updated: Friday, April 26, 1996
+
+

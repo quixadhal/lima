@@ -12,6 +12,13 @@
 
 inherit CMD;
 
+
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string str)
 {
     REPORTER_D->report_something("Typo", str);
@@ -19,5 +26,7 @@ private void main(string str)
 
 void player_menu_entry()
 {
-    main("");
+  bare_init();  
+  main("");
+  done_outputing();
 }

@@ -33,11 +33,11 @@
 **
 ** These sockets are created as:
 **
-**	clone_object(SOCKET, SKT_STYLE_LISTEN,
-**		     int listenport,
-**		     function read_func,
-**		     function close_func
-**		     );
+**	new(SOCKET, SKT_STYLE_LISTEN,
+**	    int listenport,
+**	    function read_func,
+**	    function close_func
+**	    );
 **
 ** When a connection arrives, a new socket object will be cloned for the
 ** connection.  The read_func will be evaluated whenever data arrives,
@@ -56,11 +56,11 @@
 **
 ** These sockets are created as:
 **
-**	clone_object(SOCKET, SKT_STYLE_CONNECT,
-**		     string addr,
-**		     function read_func,
-**		     function close_func
-**		     );
+**	new(SOCKET, SKT_STYLE_CONNECT,
+**	    string addr,
+**	    function read_func,
+**	    function close_func
+**	    );
 */
 
 /*
@@ -68,10 +68,10 @@
 **
 ** These sockets are created as:
 **
-**	clone_object(SOCKET, SKT_STYLE_UDP,
-**		     int listenport,
-**		     function read_func
-**		     );
+**	new(SOCKET, SKT_STYLE_UDP,
+**	    int listenport,
+**	    function read_func
+**	    );
 **
 ** When a connection arrives, a new socket object will be cloned for the
 ** connection.  The read_func will be evaluated whenever data arrives.

@@ -1,0 +1,28 @@
+
+
+
+
+
+
+M_GRAMMAR
+
+M_GRAMMAR contains functions to produce high quality english 
+output.
+
+Important Functions:
+
+     pluralize(noun)    -- This functions takes a noun and pluralizes it.
+                           This function can also in most cases can take 
+                           a verb from a plural format to its singular.
+                           ( i.e. they run, he runs).
+
+     punctuate(sentence)-- This functions adds a . to a sentence if it 
+                           needs one.
+
+     number_of(num,what)--  Handles the common operation of 0 bogs, 
+                            1 bog, 2 bogs etc ..
+
+ 
+
+Last Updated: Friday, April 26, 1996
+

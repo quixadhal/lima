@@ -1,0 +1,23 @@
+
+
+
+
+In Room Description
+
+To give your object an intersting desc
+when in a room you want to use the 
+following function in your objects
+create():
+
+    set_in_room_description("$N $vsit here waiting to be picked up")
+
+The string you supply here can be anything.
+The $N is the objects id, and the $v will show
+the correct form of sit. (see the help on
+the message module for more on how this works.)
+
+
+ 
+ 
+
+

@@ -53,5 +53,5 @@ private void main(mixed *arg, mapping flags)
     outstr = "Scanning " + file_name( arg[0] ) + ":\n";
     objs = scan_object( arg[0], 0 );
     outstr += (objs != "")? objs : "    None\n";
-    write( outstr );
+    out( outstr );
 }

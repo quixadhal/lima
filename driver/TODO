@@ -1,3 +1,34 @@
+f.h
+#define NORTH           "/d/north/"             /* Northlands */
+#define SURFACE          NORTH + "surface/"
+#define HALF             SURFACE + "half/"
+#define HCAVE            HALF + "cave/"   // <--- At some point this should
+#define TUNNEL HCAVE+"gentun
+#define HMON MON+"half/"
+#define HOBJ OBJ+"half/"
+
+f.c
+#include "f.h"
+inherit TUNNEL;
+void setup()
+{
+    set_short("Small Cavern");
+    set_long("A small dark cavern with a low ceiling, lit by a flickering "+
+             "light which streams from an exit to the north. The ground "+
+             "appears to be well trodden but a few stalagmites impede your "+
+             "progress. The echos of dripping water emanate from beyond a "+
+             "small passageway to the east.\n");
+    add_item("stalagmites","Stumpy edifices of rock nose upwards from the "+
+             "cavern floor, making the ground uneven and awkward to tread "+
+             "upon.\n");
+    set_zone("smug");
+    set_light(30);
+    add_exit("north",HCAVE+"sconce");
+    add_exit("east",HCAVE+"tun2");
+    create_new(HMON+"smuggler",1);
+}
+-----
+
 As far as pushing out an a15 before Beek comes back I'm not in
 a hurry as I've got two other crashers that are much more
 frequent. I mailed both to Beek but he didn't have time
@@ -99,3 +130,9 @@ Trying rule:
 
 ---------------
 
+unguarded(1, (: evaluate(bind((: restore_object(ARMDIR+$(file),1) :), $(obj)) )
+:));
+
+------
+
+remove tail

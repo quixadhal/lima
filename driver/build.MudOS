@@ -1,20 +1,25 @@
 #!/bin/sh
 
-case $1 in
-    develop)
-	echo Preparing to build developmental version of MudOS driver ...
-	OPTIMIZE="-Wall -DPEDANTIC -pedantic"
-	DEBUG="-g -DDEBUG"
-        ;;
-    debug)
-	echo Preparing to build debugging version of MudOS driver ...
-	OPTIMIZE=
-	DEBUG="-g -DDEBUG"
-        ;;
-    *)
-	echo Preparing to build standard MudOS driver ...
-        ;;
-esac
+if test $# -ne 0; then
+    case $1 in
+        develop)
+	    echo Preparing to build developmental version of MudOS driver ...
+	    OPTIMIZE="-Wall -DPEDANTIC -pedantic"
+	    DEBUG="-g -DDEBUG"
+            ;;
+        debug)
+	    echo Preparing to build debugging version of MudOS driver ...
+	    OPTIMIZE=
+	    DEBUG="-g -DDEBUG"
+            ;;
+        *)
+	    echo Unknown build type
+	    exit 1
+            ;;
+    esac
+else
+    echo Preparing to build standard MudOS driver ...
+fi
 
 # If this is uncommented, the specified 'make' is used instead of looking for
 # one 
@@ -265,6 +270,11 @@ else
     fi
 fi
 
+cat >comptest.c <<END
+void foo() { }
+END
+$CC -c comptest.c -o comptest.o
+
 #
 # Check if ranlib exists/is needed.  Also check ar.
 #
@@ -334,6 +344,10 @@ case $ARCH in
         ;;    
 esac
 
+if test -d /usr/ucbinclude; then
+    INCLUDE="-I/usr/ucbinclude"
+fi
+
 #
 # check for some missing functions
 #
@@ -359,6 +373,7 @@ if test ! -f a.out; then
     STRFUNCS=strfuncs.o
 fi
 
+CFLAGS="$OSFLAGS $WARN $PROFIL $DEBUG $DEBUG_MACRO $DEBUG_NON_FATAL $STR $PIPE $NEED_OLD_CPP $INCLUDE"
 mkdir $OBJDIR
 
 echo SHELL=/bin/sh >>Makefile.tmp

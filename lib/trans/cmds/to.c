@@ -1,4 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+// This looks like addto??  Read addto's header.
 
 #include <mudlib.h>
 #include <edit.h>

@@ -52,7 +52,7 @@ static char *sources[] = {
     "object table", "config table", "simul_efuns", "sentences", "string table",
     "free swap blocks", "uids", "object names", "predefines", "line numbers",
     "compiler local blocks", "compiled program", "users", "debugmalloc overhead",
-    "heart_beat list", "parser", "input_to", "<#39>", 
+    "heart_beat list", "parser", "input_to", "sockets", 
     "strings", "malloc strings", "shared strings", "function pointers", "arrays",
     "mappings", "mapping nodes", "mapping tables", "buffers", "classes"
 };
@@ -427,7 +427,7 @@ void mark_sockets PROT((void)) {
     int i;
     char *s;
 
-    for (i = 0; i < MAX_EFUN_SOCKS; i++) {
+    for (i = 0; i < max_lpc_socks; i++) {
 	if (lpc_socks[i].flags & S_READ_FP) {
 	    lpc_socks[i].read_callback.f->hdr.extra_ref++;
 	} else 
@@ -694,6 +694,14 @@ void check_all_blocks P1(int, flag) {
 		    EXTRA_REF(BLOCK(all_users[i]->default_err_message.s))++;
 #endif
 	    }
+
+	if (*(DEFAULT_FAIL_MESSAGE)) {
+	  char buf[8192];
+	  
+	  strcpy(buf, DEFAULT_FAIL_MESSAGE);
+	  strcat(buf, "\n");
+	  EXTRA_REF(BLOCK(findstring(buf)))++;
+	}
 	
 #ifdef PACKAGE_UIDS
 	mark_all_uid_nodes();
@@ -805,9 +813,9 @@ void check_all_blocks P1(int, flag) {
 		    for (i = 0; i < (int) prog->num_inherited; i++)
 			prog->inherit[i].prog->extra_ref++;
 		    
-		    for (i = 0; i < (int) prog->num_functions; i++)
-			if (prog->functions[i].name)
-			    EXTRA_REF(BLOCK(prog->functions[i].name))++;
+		    for (i = 0; i < (int) prog->num_functions_defined; i++)
+			if (prog->function_table[i].name)
+			    EXTRA_REF(BLOCK(prog->function_table[i].name))++;
 		    
 		    for (i = 0; i < (int) prog->num_strings; i++)
 			EXTRA_REF(BLOCK(prog->strings[i]))++;
@@ -925,11 +933,11 @@ void check_all_blocks P1(int, flag) {
     
     if (flag & 1) {
 	outbuf_add(&out, "\n\n");
-	outbuf_add(&out, "      source         blks  total\n");
-	outbuf_add(&out, "-------------------- ---- --------\n");
+	outbuf_add(&out, "      source                    blks   total\n");
+	outbuf_add(&out, "------------------------------ ------ --------\n");
 	for (i = 1; i < MAX_CATEGORY; i++) {
 	    if (totals[i])
-		outbuf_addv(&out, "%30s %4d %8d\n", sources[i], blocks[i], totals[i]);
+		outbuf_addv(&out, "%-30s %6d %8d\n", sources[i], blocks[i], totals[i]);
 	    if (i == 5) outbuf_add(&out, "\n");
 	}
     }

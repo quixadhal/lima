@@ -15,21 +15,16 @@
 #
 # Modify these as necessary
 #
-limadir=/home/mud/lima-0.9r11
-searchfor=config.lima
+limadir=/home/mud/lima-0.9r12
+port=7878
 
 #######
-pscmd="ps -x"
-startingcol=21
+netstat="netstat -a -t -n"
+searchfor="$port.*LISTEN"
 startmud=$limadir/etc/startmud
-cutfile=/tmp/keepup.$$
 
-$pscmd | cut -c${startingcol}- > $cutfile
-
-isup=$(grep $searchfor $cutfile)
+isup=$($netstat | grep $searchfor)
 
 if [ ${#isup} -eq 0 ]; then
-$startmud &
+  $startmud &
 fi
-
-rm -f $cutfile

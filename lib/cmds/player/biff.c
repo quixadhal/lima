@@ -24,7 +24,7 @@ nomask private void main(string arg)
 {
     if ( !arg || arg == "" )
     {
-	write("Your biff mail notification flag is " + query_setting() +
+	out("Your biff mail notification flag is " + query_setting() +
 	      ".\n" + USAGE);
 	return;
     }
@@ -40,9 +40,9 @@ nomask private void main(string arg)
 	break;
 
     default:
-	write(USAGE);
+	out(USAGE);
 	return;
     }
 
-    write("Your biff mail notification flag is now " + query_setting() + "\n");
+    out("Your biff mail notification flag is now " + query_setting() + "\n");
 }

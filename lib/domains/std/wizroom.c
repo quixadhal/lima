@@ -20,9 +20,9 @@ set_area("wiz_area");
     ]) );
     set_default_exit( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales, and without foundation.  Exits to the east, south, and\nwest may prove more fruitful.\n");
     set_objects( ([
-//	   STAIRS : ({ "/domains/std/attic" }),
+	   STAIRS : ({ "/domains/std/attic" }),
            "/domains/std/magic_torch" : 1,
-	   "/domains/std/large_oak_door" : ({ "west" }),
+ "/domains/std/large_oak_door" : ({  1, "west" }),
     ]) );
 }
 

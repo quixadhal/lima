@@ -202,14 +202,21 @@ void do_tests() {
     int x;
     mixed *mx;
     string format, shouldbe;
-
+    string hmm;
+    
     while (1) {
 	if (!(mx = make_arg(x++, 1))) break;
 	
 	format = "$" + mx[0] + "^";
 	shouldbe = "$" + mx[1] + "^";
-	printf("%O\n%O\n%O\n---\n", format, shouldbe,
-	       sprintf(format, mx[2..]...));
 	ASSERT2(sprintf(format, mx[2..]...) == shouldbe, shouldbe);
     }
+
+    hmm = sprintf("xxx%#-20.5s\n", "This\nis\na\ntest\nof\nsprintf\ntable\nmode\n");
+    ASSERT2(hmm == "xxxThisa   of  tabl\n   is  testsprimode\n", hmm);
+    hmm = sprintf("xxx%#-'y'20.5s\n", "This\nis\na\ntest\nof\nsprintf\ntable\nmode\n");
+    ASSERT2(hmm == "xxxThisayyyofyytablyyyy\n   isyytestsprimodeyyyy\n", hmm);
+    
+    hmm = sprintf("%#-20s\n", "a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\no\n");
+    ASSERT2(hmm == "a   d   g   j   o\nb   e   h   k   \nc   f   i   l   \n", hmm);
 }

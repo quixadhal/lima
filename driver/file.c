@@ -461,8 +461,8 @@ void smart_log P4(char *, error_file, int, line, char *, what, int, flag)
 	sprintf(buff, "%s line %d: %s%s", error_file, line, what,
 		(pragmas & PRAGMA_ERROR_CONTEXT) ? show_error_context() : "\n");
     
-    push_constant_string(error_file);
-    push_constant_string(buff);
+    share_and_push_string(error_file);
+    copy_and_push_string(buff);
     mret = safe_apply_master_ob(APPLY_LOG_ERROR, 2);
     if (!mret || mret == (svalue_t *)-1) {
 	debug_message("%s", buff);
@@ -751,9 +751,9 @@ char *check_valid_path P4(char *, path, object_t *, call_object, char *, call_fu
 
     if (call_object == 0 || call_object->flags & O_DESTRUCTED)
 	return 0;
-    push_string(path, STRING_MALLOC);
+    copy_and_push_string(path);
     push_object(call_object);
-    push_string(call_fun, STRING_CONSTANT);
+    push_constant_string(call_fun);
     if (writeflg)
 	v = apply_master_ob(APPLY_VALID_WRITE, 3);
     else
@@ -1011,9 +1011,9 @@ static int do_move P3(char *, from, char *, to, int, flag)
 
 void debug_perror P2(char *, what, char *, file) {
     if (file)
-	debug_message("System Error: %s:%s:%s\n", what, file, strerror(errno));
+	debug_message("System Error: %s:%s:%s\n", what, file, port_strerror(errno));
     else
-	debug_message("System Error: %s:%s\n", what, strerror(errno));
+	debug_message("System Error: %s:%s\n", what, port_strerror(errno));
 }
 
 /*

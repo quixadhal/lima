@@ -14,7 +14,7 @@ private void main(mixed *arg)
     
     this_body()->query_shell_ob()->set_pwd(arg[0]);
 
-    printf("new cwd: %s\n", arg[0]);
+    outf("new cwd: %s\n", arg[0]);
 }
 
 int help()

@@ -24,5 +24,5 @@ private void main(mixed args)
 	args[0] = 2;
     counts = filter(counts, (: $2 >= $(args[0]) :));
 
-    more(sprintf("%O\n", counts));
+    out(sprintf("%O\n", counts));
 }

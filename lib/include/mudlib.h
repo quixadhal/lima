@@ -54,6 +54,7 @@
 ** M_COMPLETE	name completion
 ** M_RECONNECT	functions for performing socket reconnects
 ** M_ANSI	functions for using the %^ ansi protocol
+** M_ANSI       function for using the status line (Infocom style header)
 ** M_SAVE	functions to abstract saveing and restoring objects
 **
 ** M_BODY_STATS	statistics (characteristics) for a body (player/NPC)
@@ -80,6 +81,7 @@
 ** M_DIGGABLE   items that you can dig in.
 ** M_BLOCKEXITS
 ** M_BLOCKABLE
+** M_AGGRESSIVE
 ** M_KNOCKABLE
 ** M_VALUABLE	items that are valuable (have value)
 ** M_MOUNTABLE
@@ -150,7 +152,7 @@
 #define GRID_SERVER		"/std/grid_server"
 
 //### temporary
-#define ROOM			"/std/room/room"
+#define ROOM			INDOOR_ROOM
 
 #define VOID_ROOM		"/domains/std/void"
 #define WIZ_ROOM		"/domains/std/wizroom"
@@ -176,6 +178,7 @@
 
 /* for mudlib objects */
 #define M_ANSI          	"/std/modules/m_ansi"
+#define M_STATUS_LINE           "/std/modules/m_status_line"
 #define M_BODY_STATS		"/std/modules/m_bodystats"
 #define M_COMPLETE		"/std/modules/m_complete"
 #define M_GLOB		        "/std/modules/m_glob"
@@ -192,6 +195,7 @@
 /* for area objects */
 #define M_ACTIONS               "/std/modules/m_actions"
 #define M_BLOCKEXITS		"/std/modules/m_blockexits"
+#define M_AGGRESSIVE		"/std/modules/m_aggressive"
 #define M_CLIMBABLE		"/std/modules/m_climbable"
 #define M_DAMAGE_SINK		"/std/modules/m_damage_sink"
 #define M_DAMAGE_SOURCE		"/std/modules/m_damage_source"

@@ -1109,7 +1109,7 @@ static int check_include P2(char *, tag, char *, file) {
 
     printf("Checking for include file <%s> ... ", file);
     ct = fopen("comptest.c", "w");
-    fprintf(ct, "#include \"configure.h\"\n#include \"std_incl.h\"\n#include <%s>\n", file);
+    fprintf(ct, "#include \"configure.h\"\n#include \"std_incl.h\"\n#include \"file_incl.h\"\n#include <%s>\n", file);
     fclose(ct);
     
 #ifdef DEBUG
@@ -1395,6 +1395,19 @@ static void handle_configure() {
 	exit(-1);
     }
     
+    /* PACKAGE_DB stuff */
+    if (lookup_define("MSQL")) {
+	/* -I would be nicer, but we don't have an easy way to set -I paths
+	 * right now 
+	 */
+	if (!(check_include("INCL_LOCAL_MSQL_H", "/usr/local/include/msql.h")
+	      || check_include("INCL_LOCAL_MSQL_MSQL_H", "/usr/local/msql/include/msql.h")
+	      || check_include("INCL_LOCAL_MINERVA_MSQL_H", "/usr/local/Minerva/include/msql.h"))) {
+	    fprintf(stderr, "Cannot find msql.h\n");
+	    exit(-1);
+	}
+    }
+    
     fprintf(yyout, "#define CONFIGURE_VERSION	%i\n", CONFIGURE_VERSION);
 
     close_output_file();
@@ -1432,7 +1445,18 @@ static void handle_configure() {
 
     fprintf(stderr, "Checking for flaky Linux systems ...\n");
     check_linux_libc();
-    
+
+    /* PACKAGE_DB stuff */
+    if (lookup_define("MSQL")) {
+	if (!(check_library("-lmsql") ||
+	      check_library("-L/usr/local/lib -lmsql") ||
+	      check_library("-L/usr/local/msql/lib -lmsql") ||
+	      check_library("-L/usr/local/Minerva/lib -lmsql"))) {
+	    fprintf(stderr, "Cannot find libmsql.a\n");
+	    exit(-1);
+	}
+    }
+
     fprintf(yyout, "\n\n");
     close_output_file();
 #endif

@@ -141,3 +141,8 @@ void remove_hidden_exit( string array exits_list ... )
   hidden_exits -= exits_list;
 }
 
+
+mapping query_exits()
+{
+   return copy(exits);
+}

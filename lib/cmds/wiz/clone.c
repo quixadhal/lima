@@ -9,20 +9,20 @@ inherit CMD;
 private void main( mixed *arg ) {
     object o;
 
-    o = clone_object(arg[0]);
+    o = new(arg[0]);
     if( !o )
     {
-	write("Failed to load file.\n");
+	out("Failed to load file.\n");
 	return;
     }
     this_body()->do_player_message("clone", o);
     if (o->get() != MOVE_OK || o->move(this_body()) != MOVE_OK) {
 	if (o->move(environment(this_body())) != MOVE_OK)
-	    printf("Ok. (It couldn't be moved.)\n");
+	    out("Ok. (It couldn't be moved.)\n");
 	else
-	    printf("Ok. (It is on the ground.)\n");
+	    out("Ok. (It is on the ground.)\n");
     } else
-	printf("Ok. (It is in your inventory.)\n");
+	out("Ok. (It is in your inventory.)\n");
     return;
 }
 

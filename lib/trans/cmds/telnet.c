@@ -23,7 +23,7 @@ private void main()
 {
     if (!check_privilege(1))
     {
-	printf("Only admins may use telnet!\n");
+	out("Only admins may use telnet!\n");
 	return;
     }
     else

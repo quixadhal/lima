@@ -27,6 +27,9 @@ mixed can_look_str(string str) {
 
 void do_look() {
     environment(this_body())->do_looking(1);
+#ifdef USE_STATUS_LINE
+    if( this_body()->has_status_line()) this_body()->update_status_line();
+#endif
 }
 
 void do_look_at_obj(object ob, string name) {

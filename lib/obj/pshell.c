@@ -101,7 +101,7 @@ static void execute_command(string * argv, string original_input)
     if ( sizeof(argv) > 1 )
 	argument = implode(argv[1..], " ");
 
-    winner[0]->call_main(argument);
+    winner[0]->call_main(argument,0,0,0,0,0,argument);
 }
 
 static nomask string query_save_path(string userid)

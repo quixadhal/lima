@@ -10,5 +10,5 @@ private void main( mixed arg)
    value = implode(arg[1], " ");
    if (value == "clear") this_body()->set_msgs(arg[0], ({}));
    else this_body()->add_msg(arg[0], value +"\n");
-   write("Ok.\n");
+   out("Ok.\n");
 }

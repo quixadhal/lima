@@ -8,22 +8,22 @@ inherit M_ANSI;
 private void main(string arg) {
 object forwho;   
 if(!arg){
-    if(i_use_ansi())  write("Ansi is "+
+    if(i_use_ansi())  out("Ansi is "+
         ansi("%^BOLD%^%^MAGENTA%^on.%^RESET%^%^WHITE%^")+"\n");
-    else write("Ansi is off.\n");
+    else out("Ansi is off.\n");
     return;
         }     
     if(!forwho)
       forwho = this_user();
     if(arg != "on" && arg != "off"){
-        write("Usage: ansi <on/off>.\n");
+        out("Usage: ansi <on/off>.\n");
         return;}
     if(arg == "on") {
         this_body()->query_shell_ob()->set_variable( "ansi" , 1);      
-        write("Turning ansi on.\n");
+        out("Turning ansi on.\n");
         return;}
         this_body()->query_shell_ob()->unset_variable( "ansi"); 
-        write("Turning ansi off.\n");
+        out("Turning ansi off.\n");
         return;
 }                                    
  

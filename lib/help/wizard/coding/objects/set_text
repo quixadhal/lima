@@ -1,0 +1,20 @@
+
+
+Set_text()
+
+To make an object have text that is 
+readable, you must inherit M_READABLE, 
+and have the following function in your
+object's create():
+
+    set_text("This is what the player"
+             "will see when they type"
+             "read object.\n")
+
+You can do much more complicated things by inheriting BOOK;
+M_READABLE is for simple objects like a sign etc.  BOOK already inherits 
+ M_READABLE and adds some additional functionality for you.  Please 
+see the as of now non-existant help on the BOOK inheritable.
+
+
+

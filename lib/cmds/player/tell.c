@@ -10,6 +10,12 @@ inherit M_GRAMMAR;
 inherit M_COMPLETE;
 inherit M_ANSI;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
+
 private void main(string arg)
 {
     string user;
@@ -26,7 +32,7 @@ private void main(string arg)
 
     if(!arg)
     {
-	write("Usage: tell <user> <message>\n");
+	out("Usage: tell <user> <message>\n");
 	return;
     }
 
@@ -40,7 +46,7 @@ private void main(string arg)
 	    tmp += " " + words[i];
 	    if(tmp[0] == ' ')
 		tmp = tmp[1..];
-	    matches = case_insensitive_complete(tmp, muds);
+	    matches = find_best_match_or_complete(tmp, muds);
 	    if(!sizeof(matches))
 	    {
 		break;
@@ -51,10 +57,12 @@ private void main(string arg)
 	{
 	    if(sizeof(previous_matches) > 1)
 	    {
-		write("Vague mud name.  could be: " 
-		      + implode(previous_matches, ", ") + "\n");
-		return;
-	    }
+		out("Vague mud name.  could be: " 
+		  + implode(previous_matches, ", ") + "\n");
+		    return;
+            }                
+
+
 	    host = previous_matches[0];
 	    arg  = implode(words[i..], " ");
 	    if(host == mud_name())
@@ -62,12 +70,12 @@ private void main(string arg)
 		main(user+" "+arg);
 		return;
 	    }
-	
+
 	    if(arg[0] == ':')  {
 		arg = arg[1..];
 		IMUD_D->do_emoteto(host, user, arg);
-		printf("You emote to %s@%s: %s %s\n", capitalize(user), host, this_body()->query_name(), arg);
-	    
+		outf("You emote to %s@%s: %s %s\n", capitalize(user), host, this_body()->query_name(), arg);
+
 		return;
 	    }
 	    if(arg[0] == ';')  {
@@ -75,67 +83,67 @@ private void main(string arg)
 		arg = arg[1..];
 		soul_ret = SOUL_D->parse_imud_soul(arg);
 		if(!soul_ret)  {
-		    write("No such soul.\n");
+		    out("No such soul.\n");
 		    return;
 		}
 		IMUD_D->do_emoteto(host,user,soul_ret[1][<1]);
-		printf("*%s", soul_ret[1][0]);
+		outf("*%s", soul_ret[1][0]);
 		return;
 	    }
 	    IMUD_D->do_tell(host, user, arg);
-	    printf("You tell %s@%s: %s\n", capitalize(user), host, arg);
+	    outf("You tell %s@%s: %s\n", capitalize(user), host, arg);
 	    return;
 	}
     }
     if(sscanf(arg, "%s %s", user, arg) != 2)
     {
-	write("Usage: tell <user> <message>\n");
+	out("Usage: tell <user> <message>\n");
 	return;
     }
     who = find_body(lower_case(user));
     if(!who)
     {
-	printf("Couldn't find %s.\n", user);
-        return;
+	outf("Couldn't find %s.\n", user);
+	return;
     }
 
     if (who->query_invis() && !adminp(this_user()) )
     {
-	printf("Couldn't find %s.\n", user);
+	outf("Couldn't find %s.\n", user);
 	return;
     }
     if (!who->query_link() || !interactive(who->query_link()))
     {
-	printf("%s is linkdead.\n", who->query_name());
+	outf("%s is linkdead.\n", who->query_name());
 	return;
     }
-    
+
     if(arg[0] == ':')  {
-        arg = arg[1..];
-        mystring = iwrap(sprintf("You emote to %s: %s %s\n", who == this_body() ? "yourself" : who->query_name(), this_body()->query_name(),arg));
-        deststring = iwrap(sprintf("*%s %s\n", this_body()->query_name(), arg));
+	arg = arg[1..];
+	mystring = iwrap(sprintf("You emote to %s: %s %s\n", who == this_body() ? "yourself" : who->query_name(), this_body()->query_name(),arg));
+	deststring = iwrap(sprintf("*%s %s\n", this_body()->query_name(), arg));
     } else if(arg[0] == ';')  {
-        mixed *soul_ret;
-        int tindex;
-        arg = arg[1..];
-        soul_ret = SOUL_D->parse_soul(arg);
-        if(!soul_ret)  {
-            write("No such soul.\n");
-            return;
-        }
-        mystring = iwrap(sprintf("(tell) %s", soul_ret[1][0]));
-       
-        if((tindex = member_array(who, soul_ret[0])) == -1)  {
-            deststring = iwrap(sprintf("(tell) %s", soul_ret[1][<1]));
-        } else {
-            deststring = iwrap(sprintf("(tell) %s", soul_ret[1][tindex]));
-        }
+	mixed *soul_ret;
+	int tindex;
+	arg = arg[1..];
+	soul_ret = SOUL_D->parse_soul(arg);
+	if(!soul_ret)  {
+	    out("No such soul.\n");
+	    return;
+	}
+	mystring = iwrap(sprintf("(tell) %s", soul_ret[1][0]));
+
+	if((tindex = member_array(who, soul_ret[0])) == -1)  {
+	    deststring = iwrap(sprintf("(tell) %s", soul_ret[1][<1]));
+	} else {
+	    deststring = iwrap(sprintf("(tell) %s", soul_ret[1][tindex]));
+	}
     } else {
 	mystring = iwrap(sprintf("You tell %s: %s\n", who == this_body() ? "yourself" : who->query_name(), arg));
 	deststring = ansi(iwrap("%^BOLD%^" + this_body()->query_name() + " tells you: %^RESET%^" + arg + "\n"), who);
     }
 
-    write(mystring);
+    out(mystring);
     if(who != this_body())
     {
 	who->receive_private_msg(deststring);
@@ -147,4 +155,4 @@ nomask int
 valid_resend(string ob) {
     return ob == "/cmds/player/reply";
 }
- 
+

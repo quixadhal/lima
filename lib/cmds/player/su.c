@@ -34,7 +34,7 @@ private void main(string arg)
 	    dirs = dirs[1..];
 	}
 	if (race[<2..] != ".c") {
-	    write("No such race.\n");
+	    out("No such race.\n");
 	    return;
 	}
     }

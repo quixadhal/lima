@@ -2,6 +2,7 @@
 
 // specification is: spew file str*
 // we will recieve: ({ string, ({ args }) })
+// This is pretty much something you can do w/ <
 
 #include <mudlib.h>
 
@@ -21,14 +22,13 @@ private void main(mixed* arg) {
 
     file = arg[0];
     rest = implode(arg[1]," ");
-    sscanf(rest, "%s | %s", rest, pipe);
     sscanf(rest, "%s %d %d", rest, startln, numlines);
     if(!buf = (numlines ? read_file(file, startln, numlines) :
 	read_file(file, startln))){
 	write("Couldn't find your file.\n");
 	return;
     }
-    if(!pipe) pipe = "say";
+    pipe = "say";
     lines = explode(buf, "\n");
     i = sizeof(lines);
     for(loop = 0; loop<i; loop++){

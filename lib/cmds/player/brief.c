@@ -21,7 +21,7 @@ nomask private void main(string arg)
 {
     if ( !arg || arg == "" )
     {
-	write("Brief mode is " + query_setting() +
+	out("Brief mode is " + query_setting() +
 	      ".\n" + USAGE);
 	return;
     }
@@ -37,9 +37,9 @@ nomask private void main(string arg)
 	break;
 
     default:
-	write(USAGE);
+	out(USAGE);
 	return;
     }
 
-    write("Brief mode is now " + query_setting() + ".\n");
+    out("Brief mode is now " + query_setting() + ".\n");
 }

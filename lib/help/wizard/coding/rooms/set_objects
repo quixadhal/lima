@@ -1,0 +1,33 @@
+
+
+
+
+
+
+
+Objects
+
+If there is an object in another file that you'd like to have be in your room, you can use the set_objects () call from your room's create function to have an object placed there.  This function has an odd syntax.  Here is an example that will create two torches and a bed:
+
+    set_objects ( ([ "/domains/std/magic_torch" : 2,
+                     "/domains/std/bed" : 1,
+                   ]) );
+
+If you need to pass args to your objects setup() function here is how you do it:
+
+    set_objects ( ([ "/domains/std/large_oak_door" : ({ "west" }) ]) );
+
+    This will create a door blocking the west wall of your room.
+
+If you need to pass args and have more than one of the objects in the room, here is an example:
+
+    set_objects ( ([ "/domains/std/foobar" : ({ 3, "west" }) ]) );
+
+    this will create 3 foobars passing each one of them west as an argument.
+
+
+
+
+ 
+
+   

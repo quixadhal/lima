@@ -10,17 +10,22 @@ inherit VERB_OB;
 
 void do_sit_in_obj(object ob1)
 {
-  ob1->sit();
+  ob1->sit("in");
 } 
 
 void do_sit_on_obj(object ob1)
 {
-  ob1->sit();
+  ob1->sit("on");
+}
+
+void do_sit_at_obj(object ob1)
+{
+    ob1->sit("at");
 }
 
 mixed array query_verb_info()
 {
-    return ({ ({ "in OBJ", "on OBJ" }) });
+    return ({ ({ "in OBJ", "on OBJ", "at OBJ" }) });
 }
 
 

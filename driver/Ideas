@@ -1,40 +1,22 @@
-The general solution to error handling is actually quite simple.  I have
-thought about adding it, but never got around to it.
+Variable names shouldn't be copied either.
 
-  1. A new sub-type of int would be created called ERROR.
-  2. A new predicate function would exist called errorp().
-  3. All efuns would return an int/error svalue when an error is
-     detected during efun processing.
-  4. A new mudlib-imported error.h file would exist to define error
-     numbers in terms of #defines (the #defines would be used in both
-     the driver and mudlib code)
-  5. A function (call it perror()) would exist that accepted an error
-     wvalue and returned a printable string.
-  6. All efuns would be converted to use these new error svalues and
-     associated numbers.
+-----
 
-All mudlib code that did things that could error out would either:
+The names of includes which define no code don't have to be saved for
+line number purposes (although they are still needed for binaries; see
+the other note about merging the two lists)
 
-  data = efun(..);
-  if (!data-type-expectedp(data))
-    return;
+-----
 
-or:
+Master applies should be cached like sefuns are.  Currently, APPLY_*
+are string constants so they always miss the call_other cache, making
+master applies slow.  APPLY_CREATE also always misses the cache, but
+it's always going to miss anyway so no problem :-).  Others like APPLY_ID
+etc should be changed to use shared strings so they can hit.
 
-  data = efun(..);
-  if (errorp(data))
-    return;
+-----
 
-return would be replaced with whatever error recovery action would need to
-take place in that context.  Errors could then be trated in an integrated
-fashion throughout the driver/mudlib.
-
-        Cygnus
-
-Comment:
-    Don't forget the perror() efun mentioned in the man page.
-
-### I'm not sure this is the best way to go.  -Beek
+There should be a NO_HEART_BEATS option
 
 -----
 
@@ -275,6 +257,10 @@ foreach (i, j in ({ 1, 2 }), ({ 3, 4, 5 }))
 The handling of || and && is still suboptimal; it tests twice, and does
 a uneccessary pop for expressions like: (x && y); it completely blows it
 on expressions like 1 || 1 || 1;
+
+---
+
+tell_room should be able to take an object as the third arg
 
 ---
 

@@ -67,8 +67,10 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
 }
 
 mixed direct_get_obj(object ob) {
-    if (ob == this_body()) return "You find your presence uplifting.\n";
-    return "I can't do everything.  If you want to pick up another player, try using your social skills.\n";
+    if (ob == this_body())
+	return "You find your presence uplifting.\n";
+
+    return "#I can't do everything.  If you want to pick up another player, try using your social skills.\n";
 }
 
 mixed direct_whisper_liv_str() { return 1; }

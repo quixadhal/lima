@@ -12,7 +12,7 @@ void do_tests() {
     ASSERT(stack[0] == "do_tests");
     ASSERT(sizeof(filter(stack, (: stringp :))) == n);
     stack = call_stack(3);
-    ASSERT(sizeof(filter(stack, (: intp :))) == n);
+    ASSERT(sizeof(filter(stack, (: stringp :))) == n);
     ASSERT(catch(call_stack(-100)));
     ASSERT(catch(call_stack(4)));
 }

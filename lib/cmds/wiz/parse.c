@@ -12,7 +12,7 @@ private void main(string str)
 {
     int flag = 1;
     if (!str) {
-        write("Parse what?\n");
+        out("Parse what?\n");
         return;
     }
 
@@ -22,5 +22,5 @@ private void main(string str)
         str = str[3..];
     }
 
-    this_body()->do_game_command(str, flag);
+    out(this_body()->do_game_command(str, flag));
 }

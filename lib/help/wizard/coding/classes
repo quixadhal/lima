@@ -1,0 +1,194 @@
+Proposal for class documentation.
+
+March 24, 1995
+
+$ This was written by Jeearr, originally.  What you are now reading is the
+$ annotated version.  Any line starting with a '$' was added by me (Beek).
+
+  A class is kind of like a combination between a structure and a datatype.
+It similar to a structure because it uses statements.  It is similar to a
+datatype in that a variable can be declared to represent the type a class
+defines.
+
+----------------
+DEFINING A CLASS
+----------------
+  Classes have a very simple structure.  To define a class one must do the
+following:
+
+    class myclass   {
+      <type> member1;
+      <type> member2;
+      .
+      .
+      .
+      <type> myfunc(arguments)   {
+        normal function stuff here
+      }
+      .
+      .
+      .
+    }
+
+$ Note: member functions aren't implemented yet.
+    
+  One must be very careful about defining two classes with the same name.
+In drivers with early versions of class handling doing this brought about a
+runtime error which was quite confusing (For example one that I got was 
+`Bad assignment rhs (class myclass vs. class myclass)' (This was not the
+exact error and the actual error might be misworded, but the point comes
+accross).  If you receive an error similar to this check to make sure that
+the class is not defined twice, and a file with a class definition is not
+included twice (This error will occur if an object and an object it inherits
+both define the class through the use of the same included file).
+
+  In later versions of the driver with classes, this error has been changed
+to a compile-time error dictating that the class has been re-defined.
+
+$ Note: The reason this happens is that class definitions are copied by
+$ inheritance.  They should be defined in base objects.  They can be
+$ defined in .h files, but this will likely get you into trouble.
+
+--------------------------------------
+DECLARING A VARIABLE WITH A CLASS TYPE
+--------------------------------------
+  To declare a variable of type `myclass' a line similar to the following is
+required:
+
+    class myclass myvar;
+
+-------------------------------------
+INITIALIZING A VARIABLE OF CLASS TYPE
+-------------------------------------
+  Functionality has been added to the new() efun to handle the
+initialization of classes.  new() was used because classes are very similar
+to an object, and can in fact be though of as sub-objects.  A variable of
+type `class myclass' is initialized in the following manner:
+
+    myvar=new(class myclass);
+
+$ Note: ALL class variables must be initialzized before being used.  The
+$ situation is similar to having to set an array to ({}) or a mapping
+$ to ([]).  Classes are also 'linked' in the sense of arrays and mappings,
+$ i.e. the following code:
+$ class foo {
+$     int member;
+$ }
+$
+$ create() {
+$    class foo a, b;
+$    a = new(class foo); a.member = 1;
+$    b = new(class foo); b.member = 2;
+$    a = b; /* the class that used to be in a is freed at this point */
+$    printf("%i\n", a.member);
+$    b.member = 1;
+$    printf("%i\n", a.member);
+$ }
+$
+$ will produce:
+$ 2
+$ 1
+$
+$ this is analogous to the behavior of arrays and mappings.
+    
+------------------------------
+USING A VARIABLE OF CLASS TYPE
+------------------------------
+  Once the variable has been initialized the members of the variable can be
+accessed using the -> operator.  For example to assign a value to `member1'
+one would have a statement similar to the following.
+
+    myvar->member1=<value>;
+    
+  Then to retreive that value
+  
+    testvar=myvar->member1;
+    
+---------
+CLASS FAQ
+---------
+1.) Q: Can I create an array of a class type
+    A: Absolutely.  An array of of a class type is declared in the same manner
+       as a normal array is.  For example:
+       
+         class myclass *myarray;
+         
+       Will create a variable which can contain an array of the class myclass.
+       Accessing the members of the class for each element require indexing
+       the variable just as normal arrays do, but one must be careful to
+       index the variable, and not the member (classes may have array
+       members too).  For example:
+       
+         myarray[i]->member1
+         
+       will access the member `member1' of element `i' of `myarray'.
+
+$ Note: pulling the same trick with a mapping requires a cast:
+$
+$ mapping z;
+$ z["hi"] = new(class foo);
+$ ((class foo)z["hi"])->member = 1;
+$
+$ since the driver has no way of knowing the type of 'z["hi"]'
+       
+2.) Q: Can I have a function which returns a class type.
+    A: Yes, functions which return class types are defined in much the same
+       way as the class variable is:
+       
+         class myclass myfunc(arguments){}
+         
+3.) Q: Can I pass a class variable as a argument to a function.
+    A: Again, yes.  
+    
+         <type> myfunc(class myclass myargument){}
+        
+       The above will pass a variable of type `myclass' to the function
+       `myfunc'.
+       
+4.) Q: What about the `mixed' type.  Will it cover classes?
+    A: Yes, but there is a catch to this one.  A good example of what to do
+       can be shown with the set() function that many MUDs use.  Say we have
+       a function
+       
+         void set(string what,mixed arg1){}
+         
+       If what is "myclass test" and arg1 requires an argument of type
+       `myclass', one MUST typecast `arg1' before using it.  This is done
+       in the same manner as typecasting with any other type.
+       
+         (class myclass)arg1->member1
+
+$ actually, you need ((class myclass)arg1)->member1.  Jeearr's version
+$ casts 'arg1->member1' to a class type, because of the precedence of
+$ casts is fairly low.
+         
+       Failure to do this will result in a run-time error.
+       
+$ A compile time one, actuall
+y.
+
+       Similarly if you are using an array of a class type, and you wish to
+       add an element to the array using +=, you must typecast the
+       element(s) being added to the array as is demonstrated below.
+       
+         myvar+=(class myclass *)({myvar2});
+$ This is not true in current drivers.  I think it was in older drivers
+$ due to a bug in typechecking for classes.
+         
+  Q: Can classes be inherited?
+$ Yes. The question Jeearr meant to answer is:
+$
+$ Q: Can classes inherit other classes?
+    A: No.  This would allow function overloading which is not the direction
+       that the driver developers want to take classes.  It would add
+       immensely to the complexity of the driver and would definitly be
+       nontrivial to implement.
+       
+6.) Q: Can class variables be stored and recalled via
+       save_object()/restore_object()?
+    A: Yes.
+    
+7.) Q: Does sprintf("%O\",myvar)
+ have support?
+    A: Yes.
+    

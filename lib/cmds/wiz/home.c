@@ -12,7 +12,7 @@ mapping homes = ([]);
 object find_home(string name) {
     if (homes[name]) return homes[name];
 
-    homes[name] = clone_object(TEMP_WORKROOM);
+    homes[name] = new(TEMP_WORKROOM);
     homes[name]->set_owner(name);
     return homes[name];
 }
@@ -56,7 +56,7 @@ private void main(string arg)
     home = WIZ_DIR + "/" + arg + "/workroom";
     if ( file_size(home + ".c") <= 0 )
     {
-	write(capitalize(arg) + " does not have a home.\n");
+	out(capitalize(arg) + " does not have a home.\n");
 	return;
     }
 

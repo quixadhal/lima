@@ -6,10 +6,15 @@
 
 inherit CMD;
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
 
-private void main(mixed * arg)
+private void main(string orig_input, mixed * arg)
 {
     string msg = implode(arg[0], " ");
-    write("You echoall: " + msg + "\n");
+    out("You echoall: " + msg + "\n");
     shout(msg + "\n");
 }

@@ -2,22 +2,23 @@ addpath		dir
 addto		fname|file
 at		user str*
 banish -sn	[str] str*
-cat		file*
+cat	        [file*]
 cp -rf		file* fname|dir|file
+cut -f:d:       [file*]
 dataedit	file
 dbxtracer	obj str
 du		[dir]
 ed		[file|fname]
 find -in        str file*
+findfile -u     [str]
 force		user str*
-grep -in	str file*
+grep -inv	str [file*]
 in		obj str*
 loadall		dir
 ls -aslF	[file|dir*]
 mkdir		fname
-more		file*
+more		[file*]
 mv -rf		file* fname|dir|file
-pipe		str
 replace	-qn	str str file*
 rm		file*
 rmdir		dir*
@@ -25,7 +26,10 @@ rmpath		dir
 snoop		[user] [str*]
 spew		file str*
 stat		obj|user
-tail		file*
+tail -n:	[file*]
+head -n:	[file*]
 tsh		file
 times		num str*
 update	-rRz	[cfile*]
+xargs		str*
+

@@ -1,0 +1,28 @@
+
+
+
+
+
+M_KNOCKABLE
+
+M_KNOCKABLE is a very simple module to allow someone to knock on a door.
+The action of knock on door, produces mothing more than a message saying
+that the player knocked on the door.  This function is inherited by DOOR.
+
+At some point there may be an action on the "other side" of the door, so 
+that if you are in the room you would "hear" somebody knock.
+
+Important Functions:
+
+     direct_knock_on_obj()   --  Verb callbacks that return 1 by default
+     direct_knock_at_obj()       you may overload these if you need to.
+
+     knock_knock()           --  This is the function called by the knock verb if all
+                                 the callbacks return 1.  All it does at the moment
+                                 is print a message saying the player knocked on the
+                                 door.
+
+
+
+
+Last Updated: Friday, April 26, 1996

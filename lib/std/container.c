@@ -32,7 +32,7 @@ int container()  { return 1; }
 //same kind as it.  -1 is unique, otherwise if objects will be grouped
 //according to the return value of the function.
 int ob_state() {
-/* if we have an inventory we should be unique */
+    /* if we have an inventory we should be unique */
     if (first_inventory(this_object())) return -1;
     return 0;
 }
@@ -41,21 +41,21 @@ int ob_state() {
 //Returns the amount of mass currently in a container
 int query_capacity()
 {
-  return capacity;
+    return capacity;
 }
 
 #ifdef USE_MASS
 //:FUNCTION query_mass
 int query_mass()
 {
-  return capacity + ::query_mass();
+    return capacity + ::query_mass();
 }
 #endif
 
 #ifdef USE_SIZE
 int query_aggregate_size()
 {
-  return capacity + ::get_size();
+    return capacity + ::get_size();
 }
 #endif
 
@@ -65,9 +65,9 @@ int query_aggregate_size()
 static void
 set_capacity( int c )
 {
-//### what calls this?  Is it needed?
-//### Yes, I think recalc stuff uses this at some point.  Worth checking, tho
-  capacity = c;
+    //### what calls this?  Is it needed?
+    //### Yes, I think recalc stuff uses this at some point.  Worth checking, tho
+    capacity = c;
 }
 
 //:FUNCTION query_max_capacity
@@ -90,16 +90,16 @@ mixed receive_object( object target, string relation )
 
     if( origin() != ORIGIN_LOCAL )
     {
-        /* allow a matching relation or newly cloned objects */
-        if ( relation && !valid_prep(relation) && relation != "#CLONE#" )
-            return "You can't put things " + relation + " that.\n";
+	/* allow a matching relation or newly cloned objects */
+	if ( relation && !valid_prep(relation) && relation != "#CLONE#" )
+	    return "You can't put things " + relation + " that.\n";
     }
 #ifdef USE_SIZE
     x = target->get_size();
 #else
     x=target->query_mass();
 #endif
-//    printf("cap=%O  max=%O  x=%O\n",query_capacity(),max_capacity,x);
+    //    printf("cap=%O  max=%O  x=%O\n",query_capacity(),max_capacity,x);
     if ( (m=(query_capacity())+x) > max_capacity )
     {
 	return MOVE_NO_ROOM;
@@ -140,23 +140,23 @@ string look_in( string relation )
     object* obs;
     string inv;
     mixed ex;
-    
-//:HOOK prevent_look
-//A set of yes/no/error hooks which can prevent looking <relation> OBJ
-//The actual hook is prevent_look_<relation>, so to prevent looking
-//in something use prevent_look_in.
+
+    //:HOOK prevent_look
+    //A set of yes/no/error hooks which can prevent looking <relation> OBJ
+    //The actual hook is prevent_look_<relation>, so to prevent looking
+    //in something use prevent_look_in.
     ex = call_hooks("prevent_look_" + relation, HOOK_YES_NO_ERROR);
     if (!ex) ex = "That doesn't seem possible.";
     if (stringp(ex))
 	return ex;
-    
+
     if (relation && !valid_prep(relation))
-        return "There is nothing there.\n";
+	return "There is nothing there.\n";
 
     inv = inv_list(all_inventory());
     if ( !inv )
 	inv = "  nothing";
-    
+
     return (sprintf( "%s %s you see: \n%s\n",
 	capitalize(main_prep), short(),
 	inv ));
@@ -176,7 +176,7 @@ int inventory_visible()
     if ( !is_visible() )
 	return 0;
 
-//### this should go!! short() should never return 0
+    //### this should go!! short() should never return 0
     if (!short()) return 0;
 
     if ( test_flag(TRANSPARENT) )
@@ -188,9 +188,9 @@ int inventory_visible()
 //:FUNCTION inventory_accessible
 //Return 1 if the contents of this object can be touched, manipulated, etc
 int inventory_accessible() {
-  if (!is_visible()) return 0;
-  if (!short()) return 0;
-  return !this_object()->query_closed();
+    if (!is_visible()) return 0;
+    if (!short()) return 0;
+    return !this_object()->query_closed();
 }
 
 //:FUNCTION inventory_header
@@ -231,7 +231,7 @@ void make_objects_if_needed()
     mixed oids;
     object *inv;
     int ret;
-    
+
     if(!mapp(objects))
 	return;
 
@@ -242,8 +242,16 @@ void make_objects_if_needed()
 	    rest = ({ });
 	} else
 	if (arrayp(value)) {
-	    num = 1;
-	    rest = value;
+	    if(intp(value[0]))
+	    {
+		num = value[0];
+		rest = value - ({ value[0] });
+	    }
+	    else
+	    {
+		num = 1;
+		rest = value;
+	    }
 	} else
 	    continue;
 
@@ -263,13 +271,12 @@ void make_objects_if_needed()
 	    tally = sizeof(filter(inv, (: base_name($1) == $(file) :)));
 	}
 	num -= tally;
-	for (int j = 0; j < num; j++) {
-	  // Temporary till a varargs bug is fixed.
-	  ret = new(file)->move(this_object(), "#CLONE#");
-	  //ret = new(file, rest...)->move(this_object(), "#CLONE#");
-	  if ( ret != MOVE_OK )
+	for (int j = 0; j < num; j++)
+	{
+	    ret = new(file, rest...)->move(this_object(), "#CLONE#");
+	    if ( ret != MOVE_OK )
 	    {
-	      error("Initial clone failed for '" + file +"': " + ret + "\n");
+		error("Initial clone failed for '" + file +"': " + ret + "\n");
 	    }
 	}
     }
@@ -308,8 +315,8 @@ int can_take_from() { return inventory_accessible(); }
 //### this is outdated; should be done in indirect_put_obj_in_obj()
 int can_put_in() {
     if (this_object()->query_closed()) {
-        write(capitalize(the_short())+" is closed.\n");
-        return -1;
+	write(capitalize(the_short())+" is closed.\n");
+	return -1;
     }
     return inventory_accessible();
 }
@@ -345,24 +352,24 @@ varargs string inventory_recurse(int depth, mixed avoid) {
 	obs = all_inventory();
 
     foreach (object ob in obs) {
-        if (!(ob->is_visible())) continue;
-        if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
+	if (!(ob->is_visible())) continue;
+	if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
 	    str += ob->untouched_long()+"\n";
-             if (ob->inventory_visible())
-                 str += ob->inventory_recurse(0, avoid);
-        }
+	    if (ob->inventory_visible())
+		str += ob->inventory_recurse(0, avoid);
+	}
     }
     res = introduce_contents();
     if (tmp = inv_list(obs, 1, depth)) {
-      for (i=0; i<depth; i++) str += "  ";
-      str += res + tmp;
+	for (i=0; i<depth; i++) str += "  ";
+	str += res + tmp;
     }
     return str;
 }
 
 string show_contents()
 {
-  return inventory_recurse();
+    return inventory_recurse();
 }
 
 //:FUNCTION set_preposition
@@ -383,20 +390,20 @@ string query_prep(){ return main_prep; }
 //the env, or if release_object() has been called and recieve_object() bails
 void update_capacity()
 {
-  mixed	masses;
-  int m,i;
+    mixed	masses;
+    int m,i;
 
 #ifdef USE_SIZE
-  masses = all_inventory()->get_size();
+    masses = all_inventory()->get_size();
 #else
-  masses = all_inventory()->query_mass();
+    masses = all_inventory()->query_mass();
 #endif
-  i = sizeof( masses );
+    i = sizeof( masses );
 
-  while( i-- )
-    m += masses[i];
+    while( i-- )
+	m += masses[i];
 
-  set_capacity(m);
+    set_capacity(m);
 }
 
 /* verb interaction */
@@ -404,29 +411,29 @@ mixed direct_get_obj(object ob, string name) {
     if (this_object() == environment(this_body())) {
 	if (this_object()->get_item_desc(name))
 	    return "That doesn't seem possible.\n";
-        return "You're in it!\n";
+	return "#You're in it!\n";
     }
     return ::direct_get_obj(ob);
 }
 
 mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
     if (valid_prep(prep))  {
-        if(prep == "in")  {
-            if (this_object()->query_closed()) {
-                return capitalize(the_short())+" is closed.\n";
-            } 
-        }
+	if(prep == "in")  {
+	    if (this_object()->query_closed()) {
+		return capitalize(the_short())+" is closed.\n";
+	    } 
+	}
 	return 1;
     }                                                   
 
     switch (prep) {
-	case "on":
-	case "in":
-	case "under":
-	case "behind":
-	    return "You can't put anything " + prep + " that.\n";
-	default:
-	    return 0;
+    case "on":
+    case "in":
+    case "under":
+    case "behind":
+	return "You can't put anything " + prep + " that.\n";
+    default:
+	return 0;
     }
 }
 
@@ -447,72 +454,72 @@ mixed direct_look_str_obj(string prep, object ob) {
 
 int contents_can_hear()
 {
-  return 1;
+    return 1;
 }
 
 int internal_sounds_carry()
 {
-  return 1;
+    return 1;
 }
 
 int environment_can_hear()
 {
-  object env = environment();
-  return (internal_sounds_carry() && env && (!env->cant_hear_contents()));
+    object env = environment();
+    return (internal_sounds_carry() && env && (!env->cant_hear_contents()));
 }
 
 // Inside messages propogate upward and downward...
 void receive_inside_msg(string msg, object * exclude, int message_type, 
-			mixed other)
+  mixed other)
 {
-  object env;
-  object array contents;
+    object env;
+    object array contents;
 
-  receive(msg);
+    receive(msg);
 
-  if(contents_can_hear())
+    if(contents_can_hear())
     {
-      contents = all_inventory(this_object());
-      if(arrayp(exclude))
-	contents -= exclude;
-      contents->receive_outside_msg(msg, exclude, message_type, other);
+	contents = all_inventory(this_object());
+	if(arrayp(exclude))
+	    contents -= exclude;
+	contents->receive_outside_msg(msg, exclude, message_type, other);
     }
-  if(environment_can_hear() && (env = environment()) && (!arrayp(exclude) || 
-				   member_array(env, exclude) == -1))
+    if(environment_can_hear() && (env = environment()) && (!arrayp(exclude) || 
+	member_array(env, exclude) == -1))
     {
-      env->receive_inside_msg(msg, arrayp(exclude) ? exclude + 
-			      ({this_object()}) : ({this_object()}), 
-			      message_type, other);
+	env->receive_inside_msg(msg, arrayp(exclude) ? exclude + 
+	  ({this_object()}) : ({this_object()}), 
+	  message_type, other);
     }
 }
 
 // Outside messages propogate downward
 void receive_outside_msg(string msg, object * exclude, int message_type,
-			 mixed other)
+  mixed other)
 {
-  object array contents;
+    object array contents;
 
-  receive(msg);
+    receive(msg);
 
-  if(contents_can_hear())
+    if(contents_can_hear())
     {
-      contents = all_inventory(this_object());
-      if(arrayp(exclude))
-	contents -= exclude;
-      contents->receive_outside_msg(msg, exclude, message_type, other);
+	contents = all_inventory(this_object());
+	if(arrayp(exclude))
+	    contents -= exclude;
+	contents->receive_outside_msg(msg, exclude, message_type, other);
     }
 }
 
 //Remote messages propogate just like an inside message by defauly
 void receive_remote_msg(string msg, object array exclude, int message_type,
-			mixed other)
+  mixed other)
 {
-  receive_inside_msg(msg, exclude, message_type, other);
+    receive_inside_msg(msg, exclude, message_type, other);
 }
 
 void receive_private_msg(string msg, int message_type, mixed other)
 {
-  receive(msg);
+    receive(msg);
 }
 
 /* INTERNAL MUDLIB USAGE!!! NEVER CALL THIS!!! */
@@ -531,7 +538,7 @@ void containee_light_changed(int adjustment)
 void resync_visibility()
 {
     int new_state;
-    
+
     ::resync_visibility();
 
     new_state = inventory_visible();

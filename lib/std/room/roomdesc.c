@@ -2,6 +2,7 @@
 
 #include <playerflags.h>
 
+
 private static string remote_desc;
 private static string array room_state = ({});
 private static mapping room_state_extra_longs = ([]);
@@ -89,6 +90,7 @@ varargs string show_objects(object except)
       {
 	obs -= ({except});
       }
+
     n = sizeof(obs);
     user_show = "";
     obj_show = "";
@@ -173,7 +175,6 @@ string long_without_object(object o)
 		   get_extra_long(),
 		   show_objects(o));
 #endif
-  
 }
 
 //:FUNCTION do_looking
@@ -186,6 +187,7 @@ void do_looking(int forced_look)
     this_look_is_forced = forced_look;
 
     if ( wizardp(this_body()) &&
+        this_body()->query_shell_ob() &&
 	 this_body()->query_shell_ob()->get_variable("show_loc") )
     {
 	printf("[%s]\n", file_name(this_object()));
@@ -236,6 +238,5 @@ void set_remote_desc(string s)
 {
     remote_desc = s;
 }
-
 
 

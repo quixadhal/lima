@@ -6,15 +6,25 @@ inherit CMD;
 inherit M_GRAMMAR;
 
 
+void create()
+{
+  ::create();
+  no_redirection();
+}
 
-private void main( string message )
+private void main(string message, mapping flags, string stdin, mixed impl)
 {
     string name;
 
     if ( !message )
     {
-	write("Emote what?\n");
-	return;
+        if(stdin)
+	  message = stdin;
+	else
+	  {
+	    write("Emote what?\n");
+	    return;
+	  }
     }
 
     name = this_body()->query_name();
@@ -23,7 +33,7 @@ private void main( string message )
     else
         message = punctuate(name + message) + "\n";
 
-    write(iwrap("You emote: " + message));
+    out(iwrap("You emote: " + message));
     tell_room(environment(this_body()),
 	      iwrap(message), 0,
 	      ({ this_body() }) );

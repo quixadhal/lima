@@ -11,7 +11,7 @@ private void main( mixed *arg ) {
     start = environment(this_body());
     targ = environment(arg[0]);
     if(!targ){
-	write("Your target has no environment.\n");
+	out("Your target has no environment.\n");
 	return;
     }
     this_body()->move( targ );

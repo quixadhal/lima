@@ -23,5 +23,5 @@ private void main(mixed * args, mapping flags)
 	    channel_name = "plyr_" + channel_name;
     }
 
-    write(TIMER_D->add_timer(args[0], flags["r"], channel_name, args[2]));
+    out(TIMER_D->add_timer(args[0], flags["r"], channel_name, args[2]));
 }

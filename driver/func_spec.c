@@ -38,7 +38,11 @@ string file_name(object default: F_THIS_OBJECT);
 string capitalize(string);
 string *explode(string, string);
 mixed implode(mixed *, string | function, void | mixed);
+#ifdef CALLOUT_HANDLES
+int call_out(string | function, int,...);
+#else
 void call_out(string | function, int,...);
+#endif
 int member_array(mixed, string | mixed *, void | int);
 int input_to(string | function,...);
 int random(int);
@@ -96,14 +100,25 @@ void message(mixed, string, string | string * | object | object *,
 
     object find_object(string, int default: 0);
     object load_object find_object(string, int default: 1);
+#ifdef CALLOUT_HANDLES
+    int find_call_out(int|string);
+#else
     int find_call_out(string);
+#endif
 
 /* mapping functions */
 
     mapping allocate_mapping(int);
-    void map_delete(mapping, mixed);
     mixed *values(mapping);
     mixed *keys(mapping);
+#ifdef COMPAT_32
+    mapping map_delete(mapping, mixed);
+    mapping m_delete map_delete(mapping, mixed);
+    mixed *m_values values(mapping);
+    mixed *m_indices keys(mapping);
+#else
+    void map_delete(mapping, mixed);
+#endif
 
     mixed match_path(mapping, string);
 
@@ -112,7 +127,7 @@ void message(mixed, string, string | string * | object | object *,
     int clonep(mixed default: F_THIS_OBJECT);
     int intp(mixed);
     int undefinedp(mixed);
-    int nullp(mixed);
+    int nullp undefinedp(mixed);
     int floatp(mixed);
     int stringp(mixed);
     int virtualp(object);
@@ -120,6 +135,7 @@ void message(mixed, string, string | string * | object | object *,
     int pointerp(mixed);
     int arrayp pointerp(mixed);
     int objectp(mixed);
+    int classp(mixed);
     string typeof(mixed);
 
 #ifndef DISALLOW_BUFFER_TYPE
@@ -185,15 +201,17 @@ void message(mixed, string, string | string * | object | object *,
     string function_exists(string, object default:F_THIS_OBJECT);
 
     object *objects(void | string | function, void | object);
-    string process_string(string);
-    mixed process_value(string);
     string query_host_name();
     int query_idle(object);
     string query_ip_name(void | object);
     string query_ip_number(void | object);
     object query_snoop(object);
     object query_snooping(object);
+#ifdef CALLOUT_HANDLES
+    int remove_call_out(int | void | string);
+#else
     int remove_call_out(void | string);
+#endif
     void set_heart_beat(int);
     int query_heart_beat(object default:F_THIS_OBJECT);
     void set_hide(int);
@@ -212,14 +230,19 @@ void message(mixed, string, string | string * | object | object *,
     object query_shadowing(object);
 #endif
     object snoop(object, void | object);
-    mixed *sort_array(mixed *, int | string | function, void | object | string);
+    mixed *sort_array(mixed *, int | string | function, ...);
     int tail(string);
     void throw(mixed);
     int time();
     mixed *unique_array(mixed *, string | function, void | mixed);
-    mapping unique_mapping(mixed *, string | function, string | object | void, ...);
+    mapping unique_mapping(mixed *, string | function, ...);
     string *deep_inherit_list(object default:F_THIS_OBJECT);
-    string *inherit_list(object default:F_THIS_OBJECT);
+    string *shallow_inherit_list(object default:F_THIS_OBJECT);
+#ifdef COMPAT_32
+    string *inherit_list deep_inherit_list(object default:F_THIS_OBJECT);
+#else
+    string *inherit_list shallow_inherit_list(object default:F_THIS_OBJECT);
+#endif
     void printf(string,...);
     string sprintf(string,...);
     int mapp(mixed);
@@ -268,6 +291,8 @@ void message(mixed, string, string | string * | object | object *,
 #endif				/* RUSAGE */
 #endif
 
+    void flush_messages(void | object);
+
 #ifdef OLD_ED
     void ed(string | void, string | void, string | int | void, int | void);
 #else
@@ -280,13 +305,13 @@ void message(mixed, string, string | string * | object | object *,
     string cache_stats();
 #endif
 
-    mixed filter(mixed * | mapping, string | function, mixed | void, ...);
-    mixed filter_array filter(mixed *, string | function, mixed | void, ...);
-    mapping filter_mapping filter(mapping, string | function, mixed | void, ...);
+    mixed filter(mixed * | mapping, string | function, ...);
+    mixed filter_array filter(mixed *, string | function, ...);
+    mapping filter_mapping filter(mapping, string | function, ...);
 
-    mixed map(string | mapping | mixed *, string | function, mixed | void, ...);
-    mapping map_mapping map(mapping, string | function, mixed | void, ...);
-    mixed *map_array map(mixed *, string | function, mixed | void, ...);
+    mixed map(string | mapping | mixed *, string | function, ...);
+    mapping map_mapping map(mapping, string | function, ...);
+    mixed *map_array map(mixed *, string | function, ...);
 /*
  * parser 'magic' functions, turned into efuns
  */

@@ -1,0 +1,57 @@
+
+
+Page Title
+
+M_GETTABLE
+
+
+The gettable module is what you need to inherit
+if you want your players to be able to get your
+object.  
+
+Functions that you call from your create():
+
+  set_getmsg() - This functions allows you to define a personal/unique
+                 get message for your object.  The mudib will display 
+                 this message when a player gets your object.
+
+  set_gettable() -  This function tells the mud whether or not your
+                    object is gettable.  A 1 and the object is 
+                    gettable, a 0 and it is not.
+
+  set_dropmsg() -  This function allows you to define a personal/unique
+                   message for when a player drops your object.
+
+  set_dropable() - This function allows you to tell the mud if this 
+                   object is droppable.  A 1 means yes this object
+                   can be dropped, a 0 means that it can not be dropped.
+      
+Functions that you can overload:
+
+  get() -  This function is defined for you in m_gettable.c
+           however if you wanted to have something very unique
+           happen when someone gets your object, you can overload 
+           this function in your object.  Note that you are then
+           responsible for the correct behavior of get.
+
+  drop() -  same as above, only with drop.
+
+  prevent_get()  - This function is a hook into your object.  Gives 
+                   your object and extract chance to not be picked up  
+                   the default will be whatever you put in set_gettable
+                   however you can overload this function to do 
+                   somethign unique.          
+
+Other important functions:
+
+  query_dropmsg() -  This function returns the response that you
+                            set in set_dropmsg().
+
+  query_getmsg() - same as above but get instead.  
+
+
+
+
+Last Updated: Wednesday, April 03, 1996
+
+

@@ -13,15 +13,15 @@ private void main()
     types = this_body()->query_currencies();
     i = sizeof(types);
     if(!i)
-	write("You dig around in your pockets and find only lint!\n");
+	out("You dig around in your pockets and find only lint!\n");
     else
     {
-	write ("You have the following types of money:\n");
+      out ("You have the following types of money:\n");
 	while(i--)
 	{
 	    currency = types[i];
 	    amount = this_body()->query_amt_money(currency);
-	    printf("\n%10s %-30i\n", currency,amount);
+	    outf("\n%10s %-30i\n", currency,amount);
 	}
     }
 }

@@ -5,10 +5,12 @@ inherit CMD;
 
 private void main(string arg)
 {
-    clone_object(NEWSREADER)->begin_reading(arg);
+    new(NEWSREADER)->begin_reading(arg);
 }
 
 void player_menu_entry()
 {
-    main("");
+  bare_init();
+  main("");
+  done_outputing();
 }

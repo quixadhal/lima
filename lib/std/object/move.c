@@ -68,6 +68,17 @@ varargs mixed move(mixed dest, string where)
 	env->containee_light_changed(-light);
 
     move_object(dest);
+#ifdef USE_STATUS_LINE
+if( this_object()->has_status_line())
+    call_out( (: this_object()->update_status_line() :), 0);
+
+    ret = all_inventory( this_object());
+    foreach( tmp in ret )
+    {
+            if( tmp->has_status_line()) tmp->update_status_line();
+    }
+#endif
+
 //:HOOK move
 //Called when an object moves.  The return value is ignored.
     call_hooks("move", HOOK_IGNORE);
@@ -92,6 +103,7 @@ varargs mixed move(mixed dest, string where)
 
     if (env) env->call_hooks("object_left", HOOK_IGNORE, 0, this_object());
     dest->call_hooks("object_arrived", HOOK_IGNORE, 0, this_object());
+
     return MOVE_OK;
 }
 
