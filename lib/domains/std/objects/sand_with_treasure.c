@@ -15,14 +15,18 @@ void setup()
   set_id("beach","sand");
   set_attached(1);
   set_long("There's lots of it.\n");
+#ifdef USE_SIZE
   set_size(TOO_LARGE);
+#endif
+#ifdef USE_MASS
+  set_mass(TOO_LARGE);
+#endif
 }
-
 
 void dig(object o)
 {
   switch(number_times_dug++)
-    {
+  {
     case 0:
       my_hole = new(HOLE);
       my_hole->move(environment(this_object()));
@@ -64,5 +68,5 @@ void dig(object o)
 				 "from it.");
       break;
 				
-    }
+  }
 }

@@ -64,6 +64,7 @@ inherit M_BODY_STATS;
 
 void heal_all();
 varargs void stop_fight(object);
+void reinstate_effects();
 
 // Global variables --
 private string plan;
@@ -142,6 +143,7 @@ private nomask void init_stuff()
       inv->do_wear();
   }
   update_container(this_object());
+  reinstate_effects();
 }
 
 /* initialize various internal things */

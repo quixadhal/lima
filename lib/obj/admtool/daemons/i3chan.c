@@ -72,7 +72,7 @@ private nomask void rcv_add_channel(string channel_name, int type)
     return;
   }
 
-  IMUD_D->add_channel(channel_name, type);
+  IMUD_D->add_channel(channel_name, to_int(type));
 }
 
 private nomask void rcv_remove_channel(string channel_name)

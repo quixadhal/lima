@@ -2,7 +2,45 @@
 // out(f) isn't very appropriate here...
 
 
-#include <mudlib.h>
+//:COMMAND
+//$$ see: feelings, m_messages, rmemote, showemote, stupidemote, targetemote
+//USAGE:  addemote (verb)
+//
+//This command allows you to add new souls.  (verb) being the soul.
+//
+//After entering the addemote soul you will be asked for the rule.
+//The rule consists of one of the following; OBJ, LIV, STR etc.
+//Then you will be asked for the message.
+//
+//addemote kick
+//rule OBJ
+//message: $N $vkick $T
+//
+//To add a new rule treat it as if the whole emote was new, just
+//follow the same steps as for adding a brand new emote.
+//
+//The message can also be multiple messages separated by " && "; these
+//as the message for the doer, others, the first target, the second target ...
+//respectively.
+//
+//e.g. $N $vkick $t hard. && $N $vkick $t hard (how mean).
+//
+//gives:
+//me: You kick Rust hard.
+//rust: Beek kicks you hard.
+//room: Beek kicks Rust hard (how mean).
+//
+//(when there is no message for the target, they see the first one)
+//
+//also: $N $vkick $t hard. && $N $vkick $t hard (how mean). && $N $vkick $t hard (ouch!).
+//
+//gives:
+//me: You kick Rust hard.
+//rust: Beek kicks you hard (ouch!).
+//room: Beek kicks Rust hard (how mean).
+//
+//Extensive details of the messaging syntax are available in /contrib/emotehelp.txt
+
 #include <daemons.h>
 #include <log.h>
 

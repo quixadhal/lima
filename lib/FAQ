@@ -1,0 +1,189 @@
+FREQUENTLY ASKED QUESTIONS
+==========================
+
+Q Does Lima work on Windows ?
+
+A No - MudOS does not support Windows.
+  However, it does compile satisfactorily on Cygwin, a Linux emulator
+  which runs on Windows.
+
+Q Does Lima work with other drivers ?
+
+A No - it was written specifically for MudOS.
+  It could be converted for other drivers (eg LDMUD or DGD),
+  but that would involve a lot of work.
+
+Q Does Lima work on OS X? (or other versions of *nix)
+
+A It should do. However we don't test on all versions.
+  Report any problems compiling the driver on Lima Bean 
+ (lima.mudlib.org:7878) and by email to marius@mudos.org (with full details)
+
+Q Why doesn't the mud work - says it can't find the mudlib directory ?
+
+A This usually means faulty filepaths in config.lima in the /etc directory.
+  Usual problems are either not getting the correct absolute filepath,
+  or editing in a Windows/DOS editor, instead of *nix.
+
+Q Why don't my code changes have any effect ?
+
+A Firstly "update" the changed file, to make sure it compiles without error.
+  Generally objects already in the mud will still use the "old" code, 
+  and only newly created objects will use the "new" code.
+  Using the "renew" command on an old object should replace the "old" code
+  with the "new" code.
+  You may also need to use "update -R" on objects which inherit the code 
+  that you have changed.
+  If all else fails, try rebooting the mud. However, make sure that 
+  you've not "broken" any critical files (eg anything inherited by the 
+  user or body), which would stop the mud from booting, or stop you from
+  logging in.
+
+Q I've broken the mud, and it won't boot. WHat do I do ?
+
+A Restore the mud from the last backup.
+  Restore the broken file from its last backup.
+
+Q How do I make backups ?
+
+A The entire mud can be backed up by using the "backup" script in the /etc
+  directory.
+  Individual files can be backed up with the "bak" command, which places a
+  copy in the corresponding BAK directory, name amended to incorporate a
+  timestamp. Restore with the "rst" command.
+
+Q Where is the Lima documentaion?
+
+A Start with the help files - either "help <subject>" or browse through the
+  /help/ directory
+  Read the code
+  Look at examples in the /domains/std/ directory
+  In particular, look at the "school" in /domains/std/school/
+  If these don't answer your question, then visit Lima Bean itself
+  (lima.mudlib.org:7878) and ask there - and please wait long enough for 
+  somebody to notice you and reply
+
+Q How can I learn LPC?
+
+A There are useful manuals by Descartes and Ronnie Wikh - search for them
+  on the web.
+  But the best way is to join an existing mud and learn there.
+
+Q how do I call functions from the command line / shell prompt?
+
+A Use the "@" command - eg "@.me->query_health()"
+  Details are available in the shell help ("?" from the shell prompt)
+
+Q Why don't add_actions work in Lima?
+
+A They have deliberately been disabled, as they are far inferior to verbs,
+  and should not be used.
+  See the design_decisions section in help for full reasons.
+
+Q How do I use verbs ?
+
+A Read "help verbs" and "help parser" for details.
+  Don't forget the undocumented command "rehash" to get the parser to 
+  recognise a new verb when you've written it.
+
+Q How do I get my new verb to work properly ?
+
+A Best way to find what is wrong is to use the "parse" command in front of 
+  the verb - eg "parse smash apple" to see why "smash apple" isn't working.
+  You need to have debugging enabled in the driver, which can be done be
+  recompiling the driver starting with "./build.MudOS debug", then "make",
+  "make install" etc.
+
+Q How do I find/fix errors in my code ?
+
+A Start with the "dbxwhere <playername>" and "dbxframe <playername> <frame>" 
+  commands to see where the error is occuring.
+  You may then need to show yourself variable values at that point - 
+  see the LBUG etc macros in /include/global.h, add one for yourself, 
+  add in a suitable statement to your code (eg "LBUG(myvar);") 
+  then update the code and try again.
+  If you can't fix it yourself, try asking on Lima Bean, but fixing other
+  people's problems takes much longer than fixing our own, and we often
+  don't have the time available to do anything other than suggest places
+  you can look for yourself.
+
+Q Why don't I get any xp for killing monsters ?
+
+A Assuming you have configured the combat system to use experience, 
+  you will need to add a bit of extra code.
+  When anything dies, the appropriate health module will call the function
+  die() - which exists only for players (in /std/body.c).
+  You should probably add a die() function into /std/adversary.c, 
+  which should award appropriate xp to previous_object().
+
+Q Why aren't there any guilds in Lima ?
+
+A Most of the code you will need to set up guilds is already present.
+  Read "help guild_d" for details of the guild daemon, which handles the
+  criteria and consequences for leaving/joining.
+  There are several example guild specification files - in /data/config/ 
+  and in /domains/std/.
+  There's several example guild masters in /domains/std/monsters/, 
+  and an example guild guard in /domains/std/.
+  There are inheritables for guild masters, guards and trainers within /std/
+  and /std/modules/, though the trainer is unfinished.
+
+Q What about magic and spells ?
+
+A All the groundwork is in place, with a "cast" command, spell daemon and a
+  basic inheritable for spells.
+  There is an example in /domains/std/magic/ of a more advanced spell 
+  inheritable, with a couple of example spells.
+  There's no "spell point" or "mana" system provided, but it should be fairly
+  simple to adapt a copy of the hit_point health module to similarly track
+  spell points.
+
+Q I've found a bug. What do I do ?
+
+A Report it on Lima Bean - use the "bug" command.
+
+Q How do I give money to myself (or another player) ?
+
+A Use "@.me->add_money(type, number)" - eg @.me->give_money("copper",3)
+  See /std/body/money.c for details.
+
+Q How do I code an npc to carry money ?
+
+A This is a little more complicated.
+  Use the set_objects function, with COINS or MONEY as the object
+  (ie the mapping key), and the value should be an array consisting of :
+  the number of objects (usually 1)
+  the type of currency
+  the number of coin
+  eg set_objects( ([ COINS : ({ 1, "copper", 5 }) ]) );
+
+Q I changed one of the default colours, but it had no effect. Why ?
+
+A Your colour settings will have been set to the old default colours.
+  To change to a new one, clear the old one.
+  In the "colours" command, use the "colours remove <whatever>" syntax.
+  Any newly created characters will automatically start with the current
+  default colour settings.
+
+Q Why is the suicide command disabled ?
+
+A Because it doesn't work properly in its current form.
+  The security system prevents a player command accessing secure data,
+  so the deletion fails.
+  If you want to enable it, look at how the "finger" command uses redirection
+  to a command in the /trans/cmds/ directory, and daemons in the /secure/
+  directory to achieve access to secure player data.
+
+Q How do players customise the prompt to show hit points etc ?
+
+A They don't.
+  Lima's health system was written to reduce processor load by only 
+  calculating halth (hit points) when required.
+  If you calculate that every time a command is entered, you've wiped
+  out most of that gain.
+  The system is also modular, with options for using limb- or wound-
+  based health,  which would probably be too detailed to display in a prompt.
+  It may be useful to add a display each round during combat, in which case
+  look at /std/adversary/main.c for the main combat loop.
+
+

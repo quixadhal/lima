@@ -3,11 +3,12 @@
 // Taken off of psycho
 // Megaboz@ZorkMUD attached header
 
+//:PLAYERCOMMAND
+//You don't understand what quit does??
 
-#include <mudlib.h>
 inherit CMD;
 
 private void main()
 {
-    this_user()->quit();
+  this_user()->quit();
 }

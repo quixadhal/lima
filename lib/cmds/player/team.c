@@ -9,6 +9,12 @@
 // August 15, 1999: Iizuka@Lima Bean ripped out all of the modal code
 //                  and moved it to TEAM_MENU.
 
+
+//:PLAYERCOMMAND
+//USAGE team
+//
+//Starts up the "team" menu system
+
 inherit M_INPUT;
 inherit CMD;
 

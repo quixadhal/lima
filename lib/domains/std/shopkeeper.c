@@ -29,6 +29,7 @@ void setup() {
     set_sell(([
      __DIR__ "apple" : -1,
      OBJS "sword" : 3,
+     __DIR__ "ale" : -1,
      ]));
 
 /* We would set this so that the vendor stores weaps/armor in a storage

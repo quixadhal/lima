@@ -38,12 +38,16 @@ inherit M_DAEMON_DATA;
 
 protected mapping translations, null_translations, identity_translations;
 
+string * restrictions;
+
 mapping defaults;
 
 mapping array query_translations()
 {
   return ({ translations, null_translations, identity_translations });
 }
+
+string* query_restrictions() { return copy(restrictions); }
 
 mapping defaults() { return defaults; }
 
@@ -54,16 +58,16 @@ void create()
   if (!translations)
     translations = ([
 	    "NONE" : "",
-	    "RESET" : RESET, "BOLD" : BOLD, "FLASH" : FLASH, "BLACK" : BLACK, "RED" : RED, 
+	    "RESET" : RESET, "BOLD" : BOLD, "FLASH" : FLASH, "BLACK" : BLACK, "RED" : RED,
 	    "GREEN" : GREEN, "ORANGE" : ORANGE, "YELLOW" : YELLOW, "BLUE" : BLUE,
 	    "CYAN" : CYAN, "MAGENTA" : MAGENTA, "WHITE" : WHITE, "B_RED" : B_RED,
 	    "B_GREEN" : B_GREEN, "B_ORANGE" : B_ORANGE, "B_YELLOW" : B_YELLOW,
-	    "B_BLUE" : B_BLUE, "B_CYAN" : B_CYAN, "B_BLACK" : B_BLACK, 
+	    "B_BLUE" : B_BLUE, "B_CYAN" : B_CYAN, "B_BLACK" : B_BLACK,
 	    "B_WHITE" : B_WHITE, "CLEARLINE" : CLEARLINE, "B_MAGENTA" : B_MAGENTA,
-	    "INITTERM" : INITTERM, "ENDTERM" : ENDTERM, "SAVE" : SAVE, 
+	    "INITTERM" : INITTERM, "ENDTERM" : ENDTERM, "SAVE" : SAVE,
 	    "RESTORE" : RESTORE, "HOME" : HOME,
 	    ]);
-			
+
   if (!defaults)
     defaults = ([
 	    "ROOM_EXIT" : "magenta",
@@ -76,6 +80,8 @@ void create()
 	    "LS_DEFAULT" : "cyan",
 	    "LS_HEADING" : "bold"
 	    ]);
+  if(!restrictions)
+    restrictions = ({});
 
   translations = translations + defaults;
 
@@ -96,11 +102,27 @@ void resync()
 }
 
 
-void add_default_colour(string key, string value)
+void add_restriction(string key)
 {
   require_privilege("Mudlib:daemons");
-    
+
+  restrictions += ({ upper_case(key) });
+}
+
+void remove_restriction(string key)
+{
+  require_privilege("Mudlib:daemons");
+
+  restrictions -= ({ upper_case(key) });
+}
+
+void add_default_colour(string key, string value, int wiz_only)
+{
+  require_privilege("Mudlib:daemons");
+
   defaults[upper_case(key)] = lower_case(value);
+  if(wiz_only)
+    restrictions += ({ upper_case(key) });
   resync();
 }
 
@@ -110,5 +132,6 @@ void remove_default_colour(string key)
 
   map_delete(translations, upper_case(key));
   map_delete(defaults, upper_case(key));
+  restrictions += ({ upper_case(key) });
   resync();
 }

@@ -48,7 +48,12 @@ void mudlib_setup(string name, string long, object l)
     add_relation("on");
     set_default_relation("on");
     set_max_capacity(VERY_LARGE);
+#ifdef USE_SIZE
     set_size(VERY_LARGE);
+#endif
+#ifdef USE_MASS
+    set_mass(VERY_LARGE);
+#endif
     set_num_decays(3);
     set_decay_action("Insects gnaw at the withering corpse.\n");
     set_last_decay_action("A corpse $vdecay into dust and ash.\n");

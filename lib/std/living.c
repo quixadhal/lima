@@ -5,6 +5,7 @@ inherit CONTAINER;
 inherit __DIR__ "living/grammar";
 inherit __DIR__ "living/messages";
 inherit __DIR__ "living/misc";
+inherit __DIR__ "living/effects";
 
 /* This is a pure 'living' object, not what is traditionally meant
  * by a living object on LPmuds.  Note that find_living() won't
@@ -20,45 +21,37 @@ private string name;
 
 void mudlib_setup()
 {
-    ::mudlib_setup();
-    /* We always should have an 'in' relation in living objects. */
-    /* This takes care of capacity too */
-    add_relation("on",100);
-    set_default_relation("on");
-    set_def_msgs("living-default");
+  ::mudlib_setup();
+/* We always should have an 'in' relation in living objects. */
+/* This takes care of capacity too */
+  add_relation("on",100);
+  set_default_relation("on");
+  set_def_msgs("living-default");
 }
 
 string query_name() { return name; }
 
-void set_name(string n) {
-    if (name) remove_id(lower_case(n));
-    name = n;
-    LOG_D->log(LOG_SETNAME, sprintf("%O used set_name() on %O (%s)\n", this_user(), this_object(),query_name()));
-    add_id_no_plural(lower_case(n));
+void set_name(string n)
+{
+  if (name)
+    remove_id(lower_case(n));
+  name = n;
+  LOG_D->log(LOG_SETNAME, sprintf("%O used set_name() on %O (%s)\n", this_user(), this_object(),query_name()));
+  add_id_no_plural(lower_case(n));
 }
 
-string in_room_desc() {
-  return query_in_room_desc();
-}
+string in_room_desc() {  return query_in_room_desc(); }
 
-string inventory_header() {
-    return capitalize(query_subjective()) + " is carrying:\n";
-}
+string introduce_contents(){ return capitalize(query_subjective()) + " is carrying:\n"; }
 
-string invis_name() {
-    return "someone";
-}
+string invis_name() { return "someone"; }
 
-int is_living() {
-  return 1;
-}
+int is_living() { return 1; }
 
 // This returns an action, so that spells can modify the perspective. i.e:
 // You sense: Beek is dead.  Other than that, things are going well for him.
 
-string diagnose() {
-    return "$N $vare in perfect health.\n";
-}
+string diagnose() { return "$N $vare in perfect health.\n"; }
 
 /* verb interaction */
 mixed direct_cross_obj(object ob) {
@@ -72,31 +65,32 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
 }
 
 mixed direct_get_obj(object ob) {
-    if (ob == this_body())
-	return "#You find your presence uplifting.\n";
+  if (ob == this_body())
+    return "#You find your presence uplifting.\n";
 
-    return "#I can't do everything.  If you want to pick up another player, try using your social skills.\n";
+  return "#I can't do everything.  If you want to pick up another player, try using your social skills.\n";
 }
 
 mixed direct_whisper_liv_str() { return 1; }
 mixed direct_whisper_str_to_liv() { return 1; }
 mixed direct_whisper_to_liv_str() { return 1; }
 
-mapping lpscript_attributes() {
-    return ([
-	"name" : ({ LPSCRIPT_STRING, "setup", "set_name" }),
-	"proper_name" : ({ LPSCRIPT_STRING, "setup", "set_proper_name" }),
-        "gender" : ({ LPSCRIPT_GENDER }),
+mapping lpscript_attributes()
+{
+  return ([
+    "name" : ({ LPSCRIPT_STRING, "setup", "set_name" }),
+    "proper_name" : ({ LPSCRIPT_STRING, "setup", "set_proper_name" }),
+    "gender" : ({ LPSCRIPT_GENDER }),
     ]);
 }
 
 string look_in( string relation )
 {
-    // only trap "in", since you may want something to be behind/on/under a living
+// only trap "in", since you may want something to be behind/on/under a living
 
-   if( relation == "in" )
-        return "With your X-Ray vision?";
-      else return ::look_in( relation );
+  if( relation == "in" )
+    return "With your X-Ray vision?";
+  else return ::look_in( relation );
 }
 
 string query_possessive() { return grammar::query_possessive(); }

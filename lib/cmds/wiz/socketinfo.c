@@ -1,6 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:COMMAND
+//$$ see: netstat
+//USAGE socketinfo
+//
+//Displays details of sockets
 
 inherit CMD;
 

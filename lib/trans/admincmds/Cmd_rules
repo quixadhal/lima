@@ -1,0 +1,4 @@
+addguest        str
+listeners	[str|obj]
+removeguest     str
+shutdown -ct:	str*

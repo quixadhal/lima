@@ -673,4 +673,4 @@ string dump_socket_status() {
 }
 
 
-string lima_version() { return "Lima 1.0b4"; }
+string lima_version() { return "Lima 1.0b5"; }

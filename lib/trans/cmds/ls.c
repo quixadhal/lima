@@ -4,7 +4,21 @@
   * by doing things in code they don't want me to do...   Eg, map_arrays =)
   */
 
-#include <mudlib.h>
+//:COMMAND
+//USAGE ls [ -a -s -F ] [path]
+//
+//This command will show you the files and directories in the
+//current directory.  You can change the default behavior of ls by
+//suppplying a valid path, and the optional - arguments.
+//
+// -l  --  shows file size in bytes and date last modified
+// -s  --  shows the file size (KB) to the left of the file
+// -p  --  suppresses / to the right of the directory name (for non-ansi users)
+// -n  ..  suppresses "invisible" files (names starting with .)
+//
+//The flags and path are both optional, if you leave off the path
+//ls assumes you meant the current directory.
+//You can use wildcards in the path - eg *.h.
 
 inherit M_GLOB;
 inherit M_ANSI;
@@ -38,7 +52,7 @@ make_l_flag_line(string basename, string fullname)
 
     if(!info[fullname])
 	return sprintf("           %-20s %s", "Unreadable", basename);
-    return sprintf("%-10d %20s %s", info[fullname][0], 
+    return sprintf("%-10d %20s %s", info[fullname][0],
       ctime(info[fullname][1])[4..], basename);
 }
 
@@ -78,7 +92,7 @@ int do_ls(mixed argv, mapping flags)
 	argv[0] = decompose(map(argv[0], (:is_directory($1) ?
 	      glob(path_join($1, "*")) : $1 :)));
 
-    // Changed because this is non-intuitive compared to the rest of the 
+    // Changed because this is non-intuitive compared to the rest of the
     // uses of colour -- Tigran.
     //uses_ansi = get_user_variable("colour-ls");
     uses_ansi=i_use_ansi();
@@ -159,4 +173,3 @@ string external_ls(string array files, mapping flags)
 	return 0;
     return get_output();
 }
-

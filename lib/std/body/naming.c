@@ -7,6 +7,7 @@
 */
 
 #include <commands.h>		/* for CMD_OB_xxx */
+#include <playerflags.h>        /* for F_INACTIVE */
 
 private string describe;
 private string invis_name;
@@ -55,18 +56,20 @@ nomask string query_invis_name()
 
 string query_idle_string()
 {
-    object link = query_link();
-    int idle_time;
-    string result = "";
+  object link = query_link();
+  int idle_time;
+  string result = "";
 
-    if ( interactive(link) )
-	idle_time = query_idle(link);
-    if ( idle_time < 60 )
-      return "";
+  if(test_flag(F_INACTIVE))
+    result += " [INACTIVE] ";
 
-    result += " [idle " + convert_time(idle_time, 2) + "]";
-
+  if ( interactive(link) )
+    idle_time = query_idle(link);
+  if ( idle_time < 60 )
     return result;
+
+  result += " [idle " + convert_time(idle_time, 2) + "]";
+  return result;
 }
 
 // This is used by in_room_desc and by who, one of which truncates,
@@ -90,7 +93,7 @@ string query_formatted_desc(int num_chars)
 {
     string idle_string;
     int i;
-  
+
     idle_string = query_idle_string();
     if ( i = strlen(idle_string) )
     {

@@ -15,6 +15,7 @@
 
 inherit CLASS_MOVE;
 
+varargs mixed call_hooks(string, mixed, mixed);
 varargs mixed move(mixed dest, string where);
 string query_msg(string which);
 int test_flag(int which);
@@ -23,7 +24,6 @@ varargs string *action(object *who, mixed msg, array obs...);
 varargs string compose_message(object forwhom, string msg, object *who, 
   array obs...);
 object query_target();
-
 
 private nomask int move_me_there(class move_data data)
 {
@@ -139,16 +139,18 @@ void notify_move()
 //varargs int move_to(string dest, mixed dir, mixed exit, mixed enter)
 varargs int move_to(class move_data data)
 {
-    object where = environment();
-    if (move_me_there(data)) {
-	where->call_hooks("person_left", HOOK_IGNORE, 0, data->exit_dir);
-	environment()->call_hooks("person_arrived", HOOK_IGNORE, 0, data->exit_dir);
-    }
+  object where = environment();
+  if (move_me_there(data))
+  {
+    where->call_hooks("person_left", HOOK_IGNORE, 0, data->exit_dir);
+    environment()->call_hooks("person_arrived", HOOK_IGNORE, 0, data->exit_dir);
+    call_hooks("interrupt", HOOK_IGNORE);
+  }
 
-    if ( where != environment() )
-    {
-	this_object()->notify_move();
-	return 1;
-    }
-    return 0;
+  if ( where != environment() )
+  {
+    this_object()->notify_move();
+    return 1;
+  }
+  return 0;
 }

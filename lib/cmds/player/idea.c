@@ -7,7 +7,12 @@
 ** Original by Rust (?)
 */
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//$$ see: bug, typo, feedback, question
+//USAGE:  idea
+//
+//Allows you to document an idea for the administration to see.
+
 inherit CMD;
 
 void create()
@@ -16,10 +21,7 @@ void create()
   no_redirection();
 }
 
-private void main(string str)
-{
-    REPORTER_D->report_something("Idea", str);
-}
+private void main(string str){ REPORTER_D->report_something("Idea", str); }
 
 void player_menu_entry()
 {

@@ -11,7 +11,12 @@ setup()
     set_long("There isn't anything special about the hole.\n");
     add_relation("in",LARGE);
     set_default_relation("in");
+#ifdef USE_SIZE
     set_size(MEDIUM);
+#endif
+#ifdef USE_MASS
+    set_mass(MEDIUM);
+#endif
 }
 
 

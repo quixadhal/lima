@@ -1,256 +1,128 @@
+This is an introduction to verbs in Lima.
+
+There's more extensive technical details in "help parser".
+
+Details of the implementation of verbs have changed many times,
+and will no doubt change again, so don't be surprised if there are small
+differences between what is written here and what actually happens
+in your mud.
 
-********   Please note this is a rough draft of how verbs work.  ************
-********   Until this has beeks and the rest of the lima admin   ************
-********   approval it will be considered just that a rough      ************ 
-********   draft.  The purpose of this is to give someone a very ************ 
-********   high level picture of what is happening in the verbs. ************
+Verbs should generally be used instead of commands for "in character" ("IC")
+actions, ie actions which the character should have access to, rather than 
+the player - eg "look" (IC) should be a verb, while "help" should not.
+Lima does not support add_actions.
+
+Reasons for this - 
+verbs have a central "condition checking" (is the character dead ? etc),
+other checking for whether the action is possible is well-supported
+multiple syntaxes can easily be defined for each verb
+aliases can be defined for each syntax within each verb
+sensible default error messages, easily tailored as required
 
-
-One of the most often asked questions is what is the difference between a verb
-and a command.  
-
-     The "major" difference between verbs and commands is the way in which they 
-     are parsed and the 'tokens' the recognize.
-
-     Commands use tokens like cfile etc which parse filenames etc.
- 
-     Verbs use tokens like OBJ, LIV and are suited for game like stuff.
-
-     Verbs are used for game type stuff ( i.e. look, get, drop etc.), and 
-     most verbs have heavy interaction with other objects.    
-
-
-The first part of this document is a post on Lima Bean from Beek regarding 
-the parser.
-
-___________________________________________________________________________________
-....  [ snipped for the reason that it wasnt necessary ] ....
-
-   First of all, I'm not guaranteeing that
-   the current interface will be the final one, so the given
-   examples are a good indication of what things will probably
-   look like, but not necessarily.  [ more snipped ].
-
-   Basically, if you are thinking of writing 100s of verbs, you're
-   jumping the gun a bit as the parser isn't finished yet.  If you
-   don't mind making small tweaks to them as design changes roll
-   through, though, you'll be fine.
-
-_____________________________________________________________________________________
-
-
-Basically the idea is that once lima is "complete", many of the verbs you are trying 
-to add will more than likely already be part of the distribution.  Until which time 
-the parser is complete you may very well have to go back and change things anyway so 
-the best bet is to wait. 
-
-for those that are impatient and want to code their own verbs the following is the
-spec that beek supplied.  (keep in mind that the specs may have changed slightly
-but the functionality is still basically the same).
-
-The efun interface:
-
-void parse_init()
-
-   This efun alerts the driver that this_object() is an object that the
-   parser should recognize as a 'game' object.  All objects that do not
-   call parse_init() are ignored by the parser.  Nothing is actually
-   done at this time; the internal parser structures for the object are
-   set up, and the object is marked as being a parseable object, and is
-   marked as being in a non-setup state.
-
-   Objects that are not setup will have the parse_* functions called on
-   them *once* at a later point when the driver decides it needs the
-   information for that object.  After that, the driver remembers what
-   the functions returned.  See parse_refresh().
-
-void parse_refresh()
-   
-   Notifies the driver that the result of the parse_* functions may have
-   changed.  Basically, the driver throws away it's saved information and
-   marks the object as not being set up.
-
-void parse_add_rule(string verb, string rule, int flags)
-
-   Adds rule 'rule' for verb 'verb' to the internal parse tables.  Rule
-   is in the form 'OBJ in OBJ'.  'flags' is reserved for future use.
-
-mixed parse_sentence(string input)
-
-   Asks the driver to handle the input string 'input'.  Return values are
-   1 for everything went spiffy, 0 for 'I haven't a clue what the hell that
-   is' and a string error message if 'input' doesn't make sense, but the
-   parser has a good idea what was intended.  parse_sentence("put belboz in
-   trashcan") -> "Belboz vehemently refuses to be put anywhere."; many of
-   these messages are the result of negotiation with the mudlib, altough
-   there are some canned ones (parse_sentence("get foo") -> "There is no
-   foo here.").
-
-   This is by far the most complex one.  The others are bookkeeping/interface
-   more or less.  The algorithm is more or less as follows:
-
-   1. Find the first word and lookup the appropriate verb.
-
-   2. For each rule for the verb, match it to the remaining input string
-      and attempt to fit parse the sub parts
-      (i.e. for 'belboz in bag' and 'OBJ in OBJ' try to parse 'belboz'
-       and 'bag' as OBJs)
-      -> at this moment, support for OBJ, OBS, LIV, STR, WRD is planned. 
-          Probably more to specified stuff like 'an object I am holding' 
-          etc.
-
-   3. The basic algorithm for parsing an object is to first check if
-      the object table has been loaded (from a previous attempt to parse
-      an OBJ rule).  If not, parsing information is loaded from the
-      objects in environment(this_player()).
-
-   4. The substring is then iterated over, checking the grammatical types
-      of the words, and seeing if it makes sense/matches an object
-
-   5. Assuming a rule is properly matched (there is a non-ambiguous object
-      that matches each OBJ rule, etc) the parser then attempts to check if
-      the rule make sense.  It calls the following:
-      -> can_verb() in the zorker object
-           e.g. can_look() { if (!light) return "It is dark"; }
-     
-   
- 
-   6. Actually execute the verb.  verb_obj->do_verb(object io, object do)
-
-There are some details about imprecise matches, error recovery, and error
-priorities which have been left out here for simplicity.  They only improve
-the error messages, not the functionality.
-
--Beek
-
-___________________________________________________________________________________
-
-One of the most important things to remeber to do in your verb handler ( the file in 
-  /cmds/verbs/) is to 
-
-      inherit VERB_OB
-
-
-the important functions are as follows:
-    
-    can_(verb)()  --  
-
-       This function should do nothing other than tell the driver if it is possible
-       for this to happen.
-
-    do_(verb)()  --
-
-       This is where the functionality of the verb takes place.
-
-
-    query_verb_info()
-
-       this function is very important, it tells the driver what 'rules' can be 
-       associated with the verb i.e. OBJ, LIV, STR etc.  Also in the future this
-       is where you will also return the aliases for a particular verb.
-       i.e. get and take will be aliases so that there is only one verb for those.
-
-       ****** PLEASE NOTE THAT ALIASES ARE NOT IMPLEMENTED YET *******
-       
-The following 2 functions are used in the direct/indirect object respecitvely.
-
-    direct_(verb)..()   
-
-      called when there is a direct object.
-
-
-
-    indirect_(verb)..()
-
-      indirect called when there is a indirect object.
-
-
-
-__________________________________________________________________________________
-Lets look at a very simple verb:  xyzzy (from the original ZORK adventures).
-
-        
-      #include <mudlib.h>
-
-      inherit VERB_OB;
-
-
-      mixed can_xyzzy()
-      {
-         return 1;
-      }
-
-      mixed do_xyzzy()
-      {
-         write("A hollow voice says: Fool!\n");
-      }
-
-      mixed * query_verb_info()
-      {
-        return ({ ({ "" }), ({ "plugh", "plover" }) });
-      }
-
-This is a very simple verb.  The can_xyzzy by always returning 1 tells the driver
-OK, this action can happen.  the do_xyzzy does the action for the verb.
-
-the query_verb_info returns the optional arguements for the verb (in this case 
-only the verb xyzzy by itself is valid).  plugh and plover will be aliases in 
-the future.
-
-_____________________________________________________________________________________
-
-Lets look at another example of a verb.
-        
-      #include <mudlib.h>
-
-      inherit VERB_OB;
-
-      
-      mixed can_give_obj_to_liv(object ob, object liv)
-      {
-          return 1;
-      }
-
-      mixed do_give_obj_to_liv(object ob, object liv)
-      {
-          if (!try_to_acquire(ob))
-              return;
-          this_body()->targetted_action("$N $vgive $o to $t.\n", liv, ob);
-              ob->move(liv);
-      }
-
-      mixed * query_verb_info()
-      {
-           return ({ ({ "OBJ to LIV" }), ({ "hand" }) });
-      }
-
-
-In the above example, notice the difference in the function names.  They correspond 
-to the rule/rules  in query_verb_info().
-
-Also notice that the do_give_obj_to_liv() doesnt necessarily have to do the actual
-action.  The do...() can make calls to other functions as it did in this case.  
-The do_give_obj_to_liv() actually has a hook in it to move() in the object.
-
-
-     please note the existence of the following in /std/living.c:
-
-     indirect_give_obj_to_liv()
-     {
-                ......
-
-     }
-         
-          LIV is the indirect object in this case.
-
-
-
-     direct_give_obj_to_liv is in /std/object/vsupport.c: (which is where things go
-     that dont really have a home yet)
-
-          Obj is the direct object in this case.
-
-
-************  more examples coming soon ***********************************
-     
-  
+Basics
+======
+Verbs are defined in individual files within /cmds/verbs/
+
+They inherit VERB_OB
+
+The syntaxes (rules) and aliases allowed for the verb are defined using the 
+add_rules() function within create()
+
+Each rule for the verb has a corresponding do_ function.
+
+Optional can_ function for each syntax - if it doesn't evaluate to 1,
+the action is prevented, using default error message if 0 is returned, 
+whilst returning a string causes that to be used as the error message.
+
+Verbs using any OBJ rule (ie the rule involves an object) require a
+direct_ function, similar to the optional can_ function
+
+Verbs involving a second object require a similar indirect_ function
+for that second object.
+
+Details
+=======
+
+Flags are used to signify which of the following checks are to be applied
+in the verb :
+NEED_TO_SEE
+NEED_TO_BE_ALIVE
+NEED_TO_THINK
+TRY_TO_ACQUIRE
+The first three are self-explanatory, and are included by default.
+TRY_TO_ACQUIRE is excluded by default, and adding it signifies that the verb
+requires the object to be in the player's possession, and will try to acquire
+it first.
+
+Use add_flag() and clear_flag() to add/remove these condition checks,
+and include verbs.h which is where they are defined.
+
+Most objects will inherit /std/obj/vsupport.c, which contains various 
+default verb support functions (generally direct_).
+
+When evaluating direct_ and indirect_ functions, any such functions in 
+either the verb or the object concerned will be checked, followed by the
+generic "direct_verb_rule()" and indirect_verb_rule() functions.
+
+A default version of direct_verb_rule() is included in /std/obj/vsupport.c,
+normally returning 1 for containers (rooms) and exits (provided the object 
+passes the default checks, such as being visible).
+
+Similarly a default version of indirect_verb_rule() was included in CONTAINER
+(/std/container.c), allowing moving things to/from containers by default
+(put, get etc) - this has now been moved to /std/container/vsupport.c and
+replaced by specific indirect_ functions for the appropriate verbs.
+
+Default implementations for various rules are included in VERB_OB.
+For example, the implementation of the OBJ rule calls do_verb() in the object,
+after having made various checks.
+
+Problems
+========
+Use the "parse" command (in front of the normal verb syntax) to see the 
+results of can/direct/indirect checks, and hence which rule(if any) is
+used.
+
+In order for the parse command to function, the driver should be compiled
+in debug mode - ie "./build.MudOS debug"
+
+SIMPLE EXAMPLE
+==============
+A verb for kicking things
+
+inherit VEB_OB;
+
+void do_kick_obj(object ob)
+{
+  ob->do_kick();
+}
+
+void create()
+{
+  add_rules( ({ "OBJ" }) ({ }) );
+}
+
+In any object which can successfully be kicked :
+have a direct_kick_obj() function returning 1
+have a do_kick() function which implements the effects of kicking it
+
+eg a ball to kick:
+inherit OBJ;
+
+void setup()
+{
+  set_id("ball");
+  set_long("It's a ball, sitting waiting to be kicked....");
+}
+
+mixed dirct_kick_obj() { return 1; }
+
+void do_kick()
+{
+  this_body()->simple_action("$N $vkick $o.", this_object();
+// ADD SOME CODE TO MOVE IT TO A NEW ROOM
+// AND MESSAGE ON ENTERING THE ROOM
+}
+
+It's usually worth abstracting such code into a module, so that similar
+items can inherit the module, instead of cut/pasting the support code.

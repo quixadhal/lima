@@ -1,0 +1,5 @@
+USAGE: resetpath
+
+Resets your command path to the default.
+Command path is the list directories that will be searched for matching commands
+when you enter one.

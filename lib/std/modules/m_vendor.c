@@ -358,6 +358,7 @@ protected int sell_object(object ob) {
   float exchange_rate = to_float(MONEY_D->query_exchange_rate(currency_type));
   float cost; 
   mapping array money;
+  object cont;
 
   if (!test_sell(ob)) 
     return 0;
@@ -367,9 +368,21 @@ protected int sell_object(object ob) {
 	   MONEY_D->currency_to_string(cost, currency_type));
     return 0;
     }
+  if (ob->query_default_container())
+  {
+    cont = new(ob->query_default_container());
+    ob->move(cont);
+    ob = cont;
+  }
   if (ob->move(this_body()) != MOVE_OK) {
     write(capitalize(query_subjective()) + " can't seem to give " 
 	  + ob->the_short() + " to you.\n");
+	  if(ob->move(environment(this_body())) == MOVE_OK)
+	  {
+      write(capitalize(query_subjective()) +
+          " leaves it on the floor instead.\n");
+      return 1;
+	  }
     return 0;
   }
   money = MONEY_D->handle_subtract_money(this_body(), cost, currency_type);

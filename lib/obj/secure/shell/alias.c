@@ -2,22 +2,72 @@
 
 /*
 ** Alias module by John Viega (rust@virginia.edu) Jul 2, 1995
-** 
+**
 ** NOTE:
-** This had to be munged rather badly to get an alias w/ $1 in it to work 
+** This had to be munged rather badly to get an alias w/ $1 in it to work
 ** at all.  (I realized after the fact I wanted it to work, since you can
 ** set an alias to code, and some code uses $1, eg: (: $1 :) )
-** use a \\\$1....  It's ugly, nod, but I don't have time at the moment to 
+** use a \\\$1....  It's ugly, nod, but I don't have time at the moment to
 ** make it nicer. =/
 */
 
-//:MODULE
-//Implements generic alias handling code.
+//:PLAYERCOMMAND
+//USAGE:
+//There are 3 different versions of the alias command:
+//
+//alias  -- will give you a menu for adding aliases.  some things can only
+//	  be done through the alias menu.
+//
+//alias str -- shows the value of alias 'str'
+//
+//alias str expansion -- sets the alias 'str' to the expansion.
+//
+//An alias definition can change each time you use the alias:
+//$1  -- Wherever you put this in your alias definition,
+//       the $1 will be replaced with the first word after
+//       the alias when you use the alias.
+//       You can do the same with $2, $3, $4, ad infinitum.
+//       If you have $1 in your alias definition, but don't
+//       provide a first argument when you use an alias,
+//       the default value for $1 is used.
+//
+//       If you're using the alias menu to add an alias, you can set the
+//       default value when you are done with the alias definition.
+//
+//       Example:  If you alias "you're" to:
+//                  say Hey, $2, you're $1!
+//       When you type:
+//                  you're studly Rust
+//       You'll say: "Hey, Rust, you're studly!"
+//
+//$*  -- It's the same as $1, but it means 'everything else'.
+//       Example:  If you alias "you're" to:
+//                  say $2, you're $1!  Do you $*?       When you type:
+//                 you're studly Rust exercise much
+//	You'll say: "Hey, Rust, you're studly!  Do you exercise much?"
+//
+//Notice $* matches any number of words, whereas $1, $2, etc...
+//only match one word.
+//
+//If you don't put a $* in your expansion, one will be automatically
+//added to the end of the alias for you.
+//
+//If you have an alias, but don't want to use it, you can prepend a \ to
+//make the game ignore your alias.  For example, if you have 'grin' aliased
+//to 'grin evilly', and you type:
+//
+//    \grin psychopathically
+//
+//you'll get:
+//    You grin psychopathically.
+//
+//
+//To make an alias where you don't need to type a space after the alias,
+//use the menu, and answer 'y' when the game asks: 'Allow space omission?'
 
 #include <classes.h>
 
 inherit CLASS_ALIAS;
-
 
 /*
 ** Xverb aliases are for aliases where you can omit the space between the verb 

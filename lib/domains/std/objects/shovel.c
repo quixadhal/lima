@@ -10,5 +10,10 @@ void setup()
   set_adj("plastic");
   set_id("shovel");
   set_long ("It's a plastic shovel.");
+#ifdef USE_SIZE
   set_size (SMALL);
+#endif
+#ifdef USE_MASS
+  set_mass (SMALL);
+#endif
 }

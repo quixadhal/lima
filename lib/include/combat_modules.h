@@ -8,96 +8,93 @@
 /* 
 ** DESCRIPTION OF OPTIONS
 **
-*******************************************************************************
-**                                                                           **
-** 	       		    TO CORPSE OR NOT TO CORPSE                       **
-**                                                                           **
-** DEATH_VAPORIZE 		Select this option if you want no corpses to **
-** 				be left when something dies.                 **
-** DEATH_CORPSES		Corpses are left behind when something dies. **
-**                                                                           **
-*******************************************************************************
+*****************************************************************************
+**                                                                         **
+**                          TO CORPSE OR NOT TO CORPSE                     **
+**                                                                         **
+** DEATH_VAPORIZE Select this option if you want no corpses to             **
+**                be left when something dies.                             **
+** DEATH_CORPSES  Corpses are left behind when something dies.             **
+**                                                                         **
+*****************************************************************************
 **
-*******************************************************************************
-**                                                                           **
-**                                   HEALTH                                  **
-**                                                                           **
-** HEALTH_HITPOINTS		This is the more traditional way of handling **
-**                              health.  The entire body has a set number of **
-**                              hitpoints.                                   **
-** HEALTH_LIMBS                 This type of health is based on the limbs    **
-**                              that a body has.  There can be vital limbs   **
-**                              which, when their hitpoints drop to 0, the   **
-**                              body dies                                    **
-** HEALTH_WOUNDS                A more complex limb based system than        **
-**                              HEALTH_LIMBS, where wounds can be accumulated**
-**                              and limbs disabled                           **
-**                                                                           **
-*******************************************************************************
+*****************************************************************************
+**                                                                         **
+**                                   HEALTH                                **
+**                                                                         **
+** HEALTH_HITPOINTS		This is the more traditional way of handling         **
+**                    health.  The entire body has a set number of         **
+**                    hitpoints.                                           **
+** HEALTH_LIMBS       This type of health is based on the limbs            **
+**                    that a body has.  There can be vital limbs           **
+**                    which, when their hitpoints drop to 0, the           **
+**                    body dies. Normal limbs are disabled then.           **
+** HEALTH_WOUNDS      A more complex limb based system than                **
+**                    HEALTH_LIMBS, where wounds can be accumulated        **
+**                                                                         **
+*****************************************************************************
 ** 
-*******************************************************************************
-**                                                                           **
-**                             WEILDING WEAPONS                              **
-**                                                                           **
-** WIELD_SIMPLE 		Only one weapon can be wielded at a time.    **
-** WIELD_MULTIPLE               Allow adversaries to wield multiple weapons  **
-**                              without requiring a limb-based health module **
-** WIELD_LIMBS			Any 'wielding' limb can wield a weapon.      **
-**                              This method requires HEALTH_LIMBS or         **
-**                              HEALTH_WOUNDS                                **
-**                                                                           **
-*******************************************************************************
+*****************************************************************************
+**                                                                         **
+**                           WEILDING WEAPONS                              **
+**                                                                         **
+** WIELD_SIMPLE 		Only one weapon can be wielded at a time.              **
+** WIELD_MULTIPLE   Allow adversaries to wield multiple weapons            **
+**                  without requiring a limb-based health module           **
+** WIELD_LIMBS			Any 'wielding' limb can wield a weapon.                **
+**                  This module requires HEALTH_LIMBS or HEALTH_WOUNDS     **
+**                                                                         **
+*****************************************************************************
 **
-*******************************************************************************
-**                                                                           **
-**                               WEARING ARMOUR                              **
-**                                                                           **
-** ARMOR_SIMPLE_SLOTS		This is a simplistic way of determining      **
-**                              where armour can be worn                     **
-** ARMOR_COMPLEX_SLOTS          A more complicated slot method               **
-** ARMOR_LIMBS                  Armour works with limbs.  Each limb that is  **
-**                              marked able to bear armour, works properly.  **
-**                              This module requires                         **
-**                                                                           **
-*******************************************************************************
+*****************************************************************************
+**                                                                         **
+**                             WEARING ARMOUR                              **
+**                                                                         **
+** ARMOR_SIMPLE_SLOTS	This is a simplistic way of determining            **
+**                      where armour can be worn                           **
+** ARMOR_COMPLEX_SLOTS  A more complicated slot method                     **
+** ARMOR_LIMBS          Armour works with limbs.  Each limb that is        **
+**                      marked able to bear armour, works properly.        **
+**                      Requires HEALTH_LIMBS or HEALTH_WOUNDS             **
+**                                                                         **
+*****************************************************************************
 **
-*******************************************************************************
-**                                                                           **
-**                                    PULSE                                  **
-**                                                                           **
-** PULSE_HEART_BEAT		Does heart_beat() drive your combat?         **
-** PULSE_NON_HEART_BEAT         Or not?                                      **
-**                                                                           **
-*******************************************************************************
+*****************************************************************************
+**                                                                         **
+**                                    PULSE                                **
+**                                                                         **
+** PULSE_HEART_BEAT	    Does heart_beat() drive your combat?           **
+** PULSE_NON_HEART_BEAT Or not?                                            **
+**                                                                         **
+*****************************************************************************
 **
-*******************************************************************************
-**                                                                           **
-**                                    BLOWS                                  **
-**                                                                           **
-** BLOW_SIMPLE			Damage is damage.  Who cares how you get it. **
-** BLOW_TYPES                   Ok, so there really /is/ different kinds of  **
-**                              damage                                       **
-**                                                                           **
-*******************************************************************************
+*****************************************************************************
+**                                                                         **
+**                                    BLOWS                                **
+**                                                                         **
+** BLOW_SIMPLE Damage is damage.  Who cares how you get it.                **
+** BLOW_TYPES  Ok, so there really /is/ different kinds of  damage         **
+**                                                                         **
+*****************************************************************************
 **
-*******************************************************************************
-**                                                                           **
-**                                  FORMULAS                                 **
-**                                                                           **
-** FORUMLA_SIMPLE		A simpler combat formula scheme              **
-** FORMULA_STATS                All combat calculations are based upon       **
-**                              bodystats                                    **
-**                                                                           **
-*******************************************************************************
+*****************************************************************************
+**                                                                         **
+**                                  FORMULAS                               **
+**                                                                         **
+** FORUMLA_SIMPLE  A simpler combat formula scheme (level-based)           **
+** FORMULA_STATS   All combat calculations are based upon bodystats        **
+** FORMULA_SKILLS  Uses Lima's akills system                               **
+**                                                                         **
+*****************************************************************************
 **
-*******************************************************************************
-**                                                                           **
-**                                 ADVANCEMENT                               **
-**                                                                           **
-** ADVANCEMENT_SIMPLE		A simple experience based advancement.       **
-**                              Presently this is all that comes with Lima.  **
-**                                                                           **
-******************************************************************************/
+*****************************************************************************
+**                                                                         **
+**                                 ADVANCEMENT                             **
+**                                                                         **
+** ADVANCEMENT_SIMPLE A simple experience based advancement.               **
+**                    Presently this is all that comes with Lima.          **
+**                                                                         **
+****************************************************************************/
 
 #ifndef COMBAT_MODULES_H
 #define COMBAT_MODULES_H
@@ -127,6 +124,7 @@
 #define BLOW_TYPES            2
 #define FORMULA_SIMPLE        1
 #define FORMULA_STATS         2
+#define FORMULA_SKILLS        3
 #define ADVANCEMENT_SIMPLE    1
 
 /*
@@ -140,7 +138,7 @@
 #define ARMOR_STYLE       ARMOR_COMPLEX_SLOTS
 #define PULSE_STYLE       PULSE_HEART_BEAT
 #define BLOW_STYLE        BLOW_TYPES
-#define FORMULA_STYLE     FORMULA_SIMPLE
+#define FORMULA_STYLE     FORMULA_SKILLS
 #define ADVANCEMENT_STYLE ADVANCEMENT_SIMPLE
 
 /* #define or #undef these. Modify them without fear of messing anything
@@ -222,6 +220,10 @@
 #else
 #if FORMULA_STYLE == FORMULA_STATS
 #define FORMULA_MODULE stats
+#else
+#if FORMULA_STYLE == FORMULA_SKILLS
+#define FORMULA_MODULE skills
+#endif
 #endif
 #endif
 

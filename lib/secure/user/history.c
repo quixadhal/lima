@@ -40,21 +40,14 @@ void add_tell_history(string add) {
   }
 }
 
-string array list_tell_history() {
-  return copy(tell_history);
-}
+string array list_tell_history() {  return copy(tell_history); }
 
+void clear_tell_history() { tell_history = ({}); }
 
 //:FUNCTION set_reply
 //set_reply(s) sets the person to whom 'reply' goes to.
-void set_reply(string o)
-{
-    reply = o;
-}
+void set_reply(string o){ reply = o; }
 
 //:FUNCTION query_reply
 //query the person to whom reply goes to
-string query_reply()
-{
-    return reply;
-}
+string query_reply(){ return reply; }

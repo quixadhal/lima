@@ -28,3 +28,30 @@ string diagnose_msg(int x)
          error("query_health() out of bounds.\n");
    }
 }
+
+string diagnose_limb_msg(int x, string limb)
+{
+  if (x < 0)
+    return "$P " + limb + " is ruined.\n";
+  switch(x)
+  {
+    case 0..10:
+      return "$P " + limb + " is ruined.\n";
+    case 11..25:
+      return "$P " + limb + " is in very bad shape.\n";
+    case 26..50:
+      return "$P " + limb + " is badly wounded.\n";
+    case 51..75:
+      return "$P " + limb + " is wounded.\n";
+    case 76..85:
+      return "$P " + limb + " is lightly wounded.\n";
+    case 86..95:
+      return "$P " + limb + " is a bit hurt, but nothing serious.\n";
+    case 96..99:
+      return "$P " + limb + " is a bit roughed up.\n";
+    case 100:
+      return "$P " + limb + " is in perfect health.\n";
+    default:
+      error("query_health() out of bounds.\n");
+   }
+}

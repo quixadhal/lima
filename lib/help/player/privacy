@@ -1,9 +1,9 @@
 $$ see: snoopable
 Though technically your legal rights on a mud are very limited,
-the administration of ZorkMUD tries its best to treat you as
+the administration of this MUD tries its best to treat you as
 human beings, and respect your privacy.  The most destructive
 invasion of privacy on muds is the ability for Wizards to snoop.
-ZorkMUD's policy on snooping is hard coded:
+This MUD's policy on snooping is hard coded:
 
 1) There is a player command called "snoopable."  Turning it on
    allows a Wizard to snoop you.  Default is off.  If you want to

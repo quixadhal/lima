@@ -230,7 +230,8 @@ private void do_wander()
   
   if(environment(this_object()))
     directions=environment(this_object())->query_exit_directions();
-  /* Stop if there are no directions (this takes care of blue prints*/
+
+/* Stop if there are no directions (this takes care of blue prints*/
   if(!directions||!i=sizeof(directions))
     return;
 
@@ -238,39 +239,36 @@ private void do_wander()
   file=environment(this_object())->query_exit_destination(chosen_dir);
   /* If the file is null or a null string try to move again next time */
   if(!file||file=="")
-    {
-      call=call_out( (: do_wander :), query_wander_time());
-      return;
-    }
-  /* If the destination is not loaded, do so */
+  {
+    call=call_out( (: do_wander :), query_wander_time());
+    return;
+  }
+/* If the destination is not loaded, do so */
   dest=find_object(file);
 
   if(!dest)
     dest=load_object(file);
 
-  /* If still no destination it won't load, try again next time */
+/* If still no destination it won't load, try again next time */
   if(!dest)
-    {
-      call=call_out( (: do_wander :), query_wander_time());
-      return;
-    }
-  /* Check if the npc has wander restrictions */
+  {
+    call=call_out( (: do_wander :), query_wander_time());
+    return;
+  }
+/* Check if the npc has wander restrictions */
   if(sizeof(wander_area))
+  {
+    if(arrayp(wander_area)&&arrayp(dest->query_area()))
     {
-      if(arrayp(wander_area)&&
-	 arrayp(dest->query_area()))
-	{
-	  if(sizeof(wander_area&dest->query_area()))
-	    move_me(chosen_dir);
-	  else
-	    call=call_out( (: do_wander :), query_wander_time());
-	}
+      if(sizeof(wander_area&dest->query_area()))
+        move_me(chosen_dir);
       else
-	call=call_out( (: do_wander :), query_wander_time());
-    }
-  else
+        call=call_out( (: do_wander :), query_wander_time());
+    } else
+      call=call_out( (: do_wander :), query_wander_time());
+  } else
     move_me(chosen_dir);
-  return;
+   return;
 }
 
 void mudlib_setup()

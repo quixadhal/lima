@@ -31,7 +31,10 @@
 #endif
 #endif
 
+#if defined(__APPLE__) && defined(__GNUC__)
+#else
 extern int sys_nerr;
+#endif
 
 int legal_path PROT((char *));
 
@@ -51,7 +54,7 @@ static int CDECL pstrcmp P2(CONST void *, p1, CONST void *, p2)
 {
     svalue_t *x = (svalue_t *)p1;
     svalue_t *y = (svalue_t *)p2;
-    
+
     return strcmp(x->u.string, y->u.string);
 }
 

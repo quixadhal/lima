@@ -1,6 +1,14 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:COMMAND
+//USAGE:  ed [ filename ]
+//
+//The mud file editor.
+//With no file name supplied, the last file editted will be edited again.
+//If you supply a file/path that does not exist, ed will respond with [new]
+//then your ed prompt.
+//
+//Help for ed commands is available from within ed itself.
 
 inherit CMD;
 

@@ -8,7 +8,7 @@ private string get_mudlib(string s)
   switch (s[0..3])
     {
     case "Lima":
-      return "<a href=http://lima.mudlib.org>Lima</a>";
+      return "<a href=http://lima.mudlib.org:7881>Lima</a>";
     case "Nigh":
       return sprintf("<a href=http://www.imaginary.com/LPC/Nightmare/>%s</a>", s);
     case "Disc":
@@ -25,7 +25,7 @@ private string get_driver(string s)
   switch (s[0..4])
     {
     case "MudOS":
-      return "<a href=http://ie.imaginary.com/~beek/mudos>" + s + "</a>";
+      return "<a href=http://www.mudos.org>" + s + "</a>";
     default:
       return s;
     }

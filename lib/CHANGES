@@ -470,3 +470,105 @@ Mon Nov 11 09:27:16 2002: Loriel amended /cmds/player/semote.c to support "LIV L
 
 Sun Dec  1 10:23:16 2002: Loriel amended /cmds/wiz/people.c to better handle the "h" option.
 
+Changes since 1.0b4
+===================
+
+Sat Mar 22 10:12:16 2003: Tigran fixed a bug in /obj/admtool/daemons/i3chan.c that needed to wrap an int in a to_int() so that it was actually an int instead of a string in rcv_channel_add()
+
+Sat Mar 22 13:18:14 2003: Loriel amended /daemon/imud/channel.c and /obj/admtool/daemons/i3chan.c to log the banishing of muds from owned channels, and the corresponding reversals.
+
+Sun Apr 27 11:15:52 2003: Loriel renamed inventory_header() to introduce_contents() in LIVING (/std/living.c) so inventory is now displayed as "X is carrying ..." instead of "X contains ...".
+
+Sun Apr 27 11:40:31 2003: Loriel extended do_damage_event() in /std/adversary/blows/base.c for HEALTH_USES_LIMBS to pass the additional parameter evt->target_extra (ie which limb is hit).
+
+Mon Apr 28 22:31:06 2003: Loriel fixed M_DICE (/std/modules/m_dice.c) by adding missing "int" to the function declaration roll_dice(int num_dice, num_sides).
+
+Tue Apr 29 10:38:30 2003: Loriel fixed the DOC_D tag for /std/object/names::query_primary_name().
+
+Tue Apr 29 10:41:45 2003: Loriel fixed the DOC_D tag for /std/object/msg_recipient::environment_can_hear() - previously environment_can_here().
+
+Tue Apr 29 10:48:17 2003: Loriel fixed /trans/cmds/shutdown.c to log the shutdown reason, by changing args to args[0] (line 62).
+
+Tue Apr 29 10:53:42 2003: Loriel fixed a couple of bad messages in MESSAGES_D (/daemons/messages_d.c) - unarmed dam4 and unarmed dam6 ($vland and $vpummel).
+
+Wed Apr 30 05:27:34 2003: Loriel added support for the USE_MASS option to the following files : BOOK (/std/book.c), CORPSE (/std/corpse.c), FLAME (/std/flame.c), FLASK (/std/flask.c), FLUID (/std/fluid.c), HOLE (/std/hole.c), LANTERN (/std/lantern.c), PAPER (/std/paper) and M_FLUID_CONTAINER (/std/modules/m_fluid_container.c).
+
+Wed Apr 30 05:28:44 2003: Loriel amended the pour() function in FLUID (/std/fluid.c) to use part_fill_with() instead of fill_with(), correcting the problem of "overfilling"
+
+Wed Apr 30 12:12:02 2003: Loriel changed the syntax of numerous functions in M_EXIT (/std/modules/m_exit.c) for "which=present(direction)" checks.
+
+Wed Apr 30 12:21:15 2003: Loriel added a limb-based set of messages to /std/adversary/health/diagnose_msg.c, in diagnose_limb_msg(), and amended /std/adversary/health/limbs.c to use it.
+
+Wed Apr 30 13:28:23 2003: Loriel updated the URLs for Lima and MudOS in /WWW/cgi/mudlist.c and /WWW/cgi/mudinfo.c, and amended /WWW/cgi/mudinfo::main() to better handle names containing blanks by substituting + for blank.
+
+Wed Apr 30 22:34:07 2003: Loriel amended mudlib_setup() in ACCOUNTANT (/std/accountant.c) to properly pass arguments.
+
+Fri May  2 08:07:27 2003: Loriel amended /cmds/verbs/drive.c and /cmds/verbs/go.c to use the sefun is_normal_direction() instead of using member_array() on an array of "normal directions".
+
+Thu Jul  3 07:38:04 2003: Loriel added a can_get_wrd() function to the get verb, to restrict it to valid exits (eg "get out" from vehicles), which should make get messages work correctly again in both add_items and normal objects. Thanks to Limanoob for reporting the problem.
+
+Thu Jul  3 07:40:17 2003: Loriel added a clear_tell_history() function to /secure/user/history.c and amended /cmds/player/tell.c to call this, so "tell /clear" should now work as advertised. Thanks to Zen for reporting this.
+
+Sun Sep 14 14:37:20 2003: Loriel amended /cmds/player/stats.c to use query_experience() instead of the mis-named query_exp() - line 87 approx.
+
+Sun Sep 14 17:51:12 2003: Loriel switched the arrival and departure messages in /domains/std/horse.c
+
+Sun Sep 14 18:14:29 2003: Loriel added another exception to pluralize() in M_GRAMMAR (/std/modules/m_grammar.c) to handle current MudOS driver's habit of pluralizing "elf" as "eves" etc (Not needed here as we run older version).
+
+Tue Sep 16 18:11:58 2003: Loriel added support for default container into FLUID (/std/fluid.c), to specify container in which the fluid will be sold, amended M_VENDOR (/std/modules/m_vendor.c) to use it, added a suitable example container (tankard) to /domains/std/, and modified ale and shopkeeper there to use/demonstrate it.
+
+Thu Oct  9 09:06:18 2003: Loriel added /WWW/cgi/viewfile.c, a simple file viewer based on the web editor. This allows viewing of any mud files by non-wizards who can't or don't want to download them by ftp. Also amended /WWW/index.html to link to it.
+
+Thu Oct  9 09:30:52 2003: Loriel amended the following example itmes in /domains/std/ to support mass :- ale, keg, river, scarf, sword_in_stone, table, attic/coffee_table, camera/button, lima/leaflet and small_mailbox, objects/backpack, debris, hole, maps, navigation_passage, navigation_table, pac_sword, platemail, rock, sandcastle, sand_with_treasure, shovel, sword, and treasure_chest.
+
+Sat Oct 11 12:45:18 2003: Loriel amended FTP_CMD_port() in FTP_D (/secure/daemons/ftp_d.c) to use the public address instead of private address where these differ. This should fix many of the longstanding ftp problems for users with NAT/port forwarding, theough they will need to be in DMZ in order for the data channel to connect back from mud to user. In addition there still appears to be a bug with large files (over approx 11K).
+
+Wed Oct 15 01:59:09 2003: Loriel amended M_MESSAGES (/std/modules/m_messages.c), adding functions _a_short() and _the_short() to fix the problem of adding unnecessary prefixes, and added handle_obs() to better handle multiple objects for the "o" case in compose_message().
+
+Wed Oct 15 02:00:39 2003: Loriel amended direct_verb_rule() in /std/object/vsupport.c to return 0 by default for non-exits.
+
+Wed Oct 15 02:03:56 2003: Loriel moved the verb support from CONTAINER (/std/container.c) to /std/container/vsupport.c, and removed the generic indirect_verb_rule(), adding indirect_get_ and indirect_put_ functions instead.
+
+Wed Oct 15 02:19:17 2003: Loriel fixed various problems in inventory_recurse() in CONTAINER (/std/container.c).
+
+Wed Oct 15 02:24:00 2003: Loriel amended VERB_OB (/std/verb_ob.c), adding do_verb() and do_verb_obs() to provide default support for "" and "OBS" rules, and removed the unnecessary messages from handle_obs(). Also added checking for existence of do_ functions in targets.
+
+Wed Oct 15 14:08:38 2003: Loriel extended the combat system to allow use of the skill system. This involved moving part of the existing /std/body/skills.c to a new /std/adversary/skills.c, adding /std/adversary/formula/skills.c and /include/skills.h, plus modifications to /std/adversary.c, /std/adversary/mod_config.c, include/combat_modules.h and /std/sword.c.
+
+Wed Oct 15 14:38:01 2003: Loriel amended the messaging system for combat to handle randomly-chosen limbs as targets - represented by "$o2". Files changed were : /daemons/messages_d.c, /std/adversary/health/hit_points.c (added query_random_limb()), /std/adversary/blows/base.c (also fixed "disarm" to disarm the right combatant), /std/adversary/messages.c, and /std/adversary/armor/simple_slots.c (fixed query_random_armor_slot()).
+
+Wed Oct 15 15:27:54 2003: Loriel added a simple implementation for ranged/reloadable weapons (bows, guns etc). Files added/amended : /std/adversary.c, /std/adversary/main.c, /std/adversary/condition.c (previously /std/adversary/state_of_mind.c), /std/adversary/formula/stats.c, /std/adversary/formula/skills.c, /std/adversary/behaviors.c, /std/modules/m_ready.c, /include/mudlib.h, /std/ranged_weapon.c, /std/ammunition.c, /cmds/verbs/fire.c, /cmds/verbs/ready.c and /cmds/verbs/unready.c. Examples have been provided in the form of crossbow and quarrel in /domains/std/.
+
+Wed Oct 15 15:44:17 2003: Loriel added validation for damage types for the combat system. Files added/changed : /daemons/damage_d.c, /include/daemons.h, /obj/admtool/daemons/damage.c, /std/modules/m_damage_sink.c and /std/modules/m_damage_source.c.
+
+Wed Oct 15 16:57:27 2003: Loriel added /cmds/player/rows.c to allow players to change the number of rows displayed before pausing, and amended /obj/mudlib/pshell.c to support this.
+
+Wed Oct 15 17:07:58 2003: Loriel made various improvements to the help system - amending DOC_D (/daemons/doc_d.c) to handle PLAYERCOMMAND and ADMINCOMMAND tags, adding a mapping topic_refs for intermediate menus into HELP_D (/daemons/help_d.c) and adding a shorten_array() function to HELPSYS (/obj/mudlib/helpsys.c) to use them. Use "help player commands" for an example.
+
+Sat Oct 18 04:43:08 2003: Loriel amended FTP_D (/secure/daemons/ftp_d.c), adding code to FTP_CMD_passv() to close "old" pipes with the same user when a new one is started.
+
+Sat Oct 18 04:50:40 2003: Loriel added the directory /trans/admincmds/ for admin-only commands, defined it in /include/commands.h, amended /trans/obj/wish.c to add the path for admins (using "resetpath"), and amended /trans/cmds/addpath.c to prevent non-admins from adding the path. Transferred the following commands from /trans/cmds/ to /trans/admincmds/ : addguest, listeners, objpurge, removeguest, shutdown, snoops, telnet, wall.
+
+Sat Oct 18 05:04:38 2003: Loriel transferred help files from /help/player/bin/, /help/wiz/bin/ and help/admin/ to the corresponding command files where possible, added missing help, and made a number of minor fixes.
+
+Sat Oct 18 05:09:52 2003: Loriel amended ANSI_D (/daemons/ansi_d.c) and /obj/admtool/daemons/colour.c to support "wizard-only" configurable colours, and amended /cmds/player/colours.c to ignore them for non-wizards.
+
+Sat Oct 18 05:11:12 2003: Loriel amended /cmds/player/chanlist.c to dynamically determine channels available, rather than using a hard-coded list.
+
+Sat Oct 18 05:14:09 2003: Loriel amended /cmds/player/tell.c to warn if the target is inactive (ie has set the F_INACTIVE flag via the "inactive" command). Also amended query_idle_string() in /std/body/naming.c to include it, for "who" lists.
+
+Sat Oct 18 05:24:48 2003: Loriel amended /cmds/player/quests.c to distinguish completed quests.
+
+Sat Oct 18 05:25:37 2003: Loriel amended /cmds/player/version.c to use the sefun lima_version() instead of using a hard-coded value.
+
+Sat Oct 18 05:26:57 2003: Loriel amended /std/object/description.c to display a "yellow sticky tag" for wizards on any "annotated" objects.
+
+Sat Oct 18 05:27:57 2003: Loriel added a_short() to /cmds/wiz/review.c to fix missing parts of the fol_leave and fol_enter messages.
+
+Sat Oct 18 05:31:04 2003: Loriel rewrote /help/wiz/coding/verbs.
+
+Sat Oct 18 05:31:39 2003: Loriel added /FAQ, which should answer many newbie wizard/admin questions.
+
+Sat Oct 18 05:40:23 2003: Loriel added an "effects" system, similar in concept though different in implementation to the "transient_effect" system in /contrib/. Files added/changed : /std/living/effects.c, /std/living/, /std/classes/effect.c, /include/classes.h and /std/body.c. Examples provided in /domains/std/effects/base_disease.c and /domains/std/effects/cold.c.
+
+Sat Oct 18 05:44:55 2003: Loriel added further spell example(s) in /domains/std/spells/stock-priest/std_priest_spell.c and cure_cold.c, which include the use of a prevent_combat hook (added to /std/adversary/main.c) and interrupt hook (added to M_SMARTMOVE).

@@ -5,6 +5,29 @@
 
 inherit CMD;
 
+//:COMMAND
+//USAGE: showtree <function name> <object>
+//       showtree <object>
+//
+//Displays the location(s) of the specified function in the specified
+//object, together with any intermediate inheritance.
+//
+//If used without function nams, it displays the full inheritance tree.
+//
+//>showtree long here
+//
+//Tracing definitions of long in /domains/std/Wizroom.c
+///domains/std/Wizroom.c
+//  /std/indoor_room.c
+//    /std/base_room.c
+//      [defined]
+//      /std/container.c
+//        [defined]
+//        /std/object.c
+//          /std/base_obj.c
+//            /std/object/description.c
+//              [defined]
+
 varargs string print_tree(string file, string func, int indent) {
     object ob;
     string result;
@@ -39,19 +62,21 @@ ob = find_object( absolute_path(file, get_user_variable("pwd")));
 }
 
 // [str] cfile
-private void main(mixed *arg) {
-    string file, func;
-    object target;
-    if (arg[1]) {
-      target=arg[1];
-	file = base_name(target);
-	func = arg[0];
-	out("Tracing definitions of '" + func + "' in " + file + "\n");
-    } else {
-        target=arg[0];
-	file=base_name(target);
-	func = 0;
-    }
+private void main(mixed *arg)
+{
+  string file, func;
+  object target;
+  if (arg[1])
+  {
+    target=arg[1];
+    file = base_name(target);
+    func = arg[0];
+    out("Tracing definitions of '" + func + "' in " + file + "\n");
+  } else {
+    target=arg[0];
+    file=base_name(target);
+    func = 0;
+  }
 
-    out(print_tree(file, func));
+  out(print_tree(file, func));
 }

@@ -251,40 +251,32 @@ private string convert_to_actual_path(string path)
 /* Zif added this.  its not the most elegant way of doing 
   * It i am sure, however people were able to do any number
   * of ../'s to get to any file in the mudlib...
-* and I tried to use replace_string on that and had no luck.
-*
+  * and I tried to use replace_string on that and had no luck.
+  *
   * i.e. lima.mudlib.org:3003/../secure/master.c
   *      lima.mudlib.org:3003/../../../../secure/master.c
   */
 
-path= evaluate_path(path);
-    if(path[0] == '/')
-    {
-	path = path[1..];
-    }
-    if(path[0] == '~')
-    {
-	path = expand_user(path);
-    }
-    else
-    {
-	if(path[0..4] == "scgi/")
-	{
-          path = join_path(SECURE_CGI_DIR, path[5..]);
-	}
-	else
-	{
+  path= evaluate_path(path);
+  if(path[0] == '/')
+    path = path[1..];
+
+  if(path[0] == '~')
+    path = expand_user(path);
+  else
+  {
+    if(path[0..4] == "scgi/")
+	  {
+      path = join_path(SECURE_CGI_DIR, path[5..]);
+    }	else {
 	    path = join_path(HTTP_ROOT, path);
-	}
     }
-    if (path[<1] == '/')
-    {
-	return join_path(path, DEFAULT_PAGE);
-    }
-    else
-    {
-	return path;
-    }
+  }
+
+  if (path[<1] == '/')
+    return join_path(path, DEFAULT_PAGE);
+  else
+    return path;
 }
 
 private void write_callback(object socket) {

@@ -1,5 +1,15 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+//$$ see: goto, wizz
+//USAGE:  trans <name>
+//
+//This command will transfer a player from their location to yours.
+//
+//trans ohara
+//
+//Will bring ohara to the room you are in.
+
 inherit CMD;
 
 // Rust/Belboz

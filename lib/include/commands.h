@@ -18,12 +18,14 @@
 */
 #define CMD_DIR			"/cmds"
 #define TRANS_CMD_DIR		"/trans/cmds"
+#define TRANS_ADMINCMD_DIR	"/trans/admincmds"
 
 #define CMD_DIR_PLAYER		CMD_DIR "/player"
 #define CMD_DIR_VERBS		CMD_DIR "/verbs"
 #define CMD_DIR_RESTRICT	CMD_DIR "/wiz"
-#define CMD_DIR_NO_RESTRICT	TRANS_CMD_DIR 
+#define CMD_DIR_NO_RESTRICT	TRANS_CMD_DIR
 #define CMD_DIR_CREATE          CMD_DIR "/create"
+#define CMD_DIR_ADMIN           TRANS_ADMINCMD_DIR
 
 /*
 ** Command objects

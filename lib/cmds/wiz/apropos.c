@@ -8,8 +8,8 @@ inherit CMD;
 //:COMMAND
 //Returns information on which mudlib functions contain the
 //keyword passed, including a short description.
-mixed
-apropos(string s)
+
+mixed apropos(string s)
 {
     mapping filer=([]);
     mapping topics;

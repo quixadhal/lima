@@ -4,6 +4,53 @@
 ** 25-Jul-96    Valentino.     Created.
 */
 
+//:COMMAND
+//syntax: people [flags]
+//
+//Shows a list of players and associated info, with the flags determining
+//which players and info are included
+//
+//Instead of calling the cmd with flags you can do:
+//'set people_flags [flags]' the flags that you appoint will be automatically
+// used as your default arguments when the command is called.
+//
+//ex:
+//'set people_flags hpnI'
+//or
+//'people hpnI'
+//
+//The available flags are as follows.
+//--------------------------------------------------------------------------
+//W -This flag will show wizards only. It will not print anything, it just
+//   filters the users and removes anyone without wizard status.
+//P -This flag shows players only. Another filter, this command just removes
+//   any wizards from the who list.
+//A -This flag shows admins (demigods or Gods) only.
+//D -This flag adds an informative line of info triggered by other flags, fex.
+//   if your command supports the 'W' flag the info line would print:
+//   'Wizards only'
+//   -----------------------------------------~
+//   <list of wizards>
+//   -----------------------------------------~
+//
+//   above the list of all the wizards logged on.
+//h -Huge header. Lists mudname and time on a header 3 lines wide. Automatically
+//   appended at the top of the list.
+//H -Small header. List mudname and time on a header 1 line wide. Automatically
+//   appended to the top of the list.
+//l -Adds a line between names on the who list.
+//n -Prints the users login name without titles.
+//t -Prints the users name and title.
+//p -Prints positions, God, Avatar, Demigod, player, ect.
+//
+//-WIZARD ONLY FLAGS-
+//w -Prints brief description of the users enviroment.
+//f -Prints filename of the users environment.
+//a -Prints either player, wizard or admin titles only.
+//i -Prints idle times of people logged on.
+//I -Prints IP/hostnames of people logged on.
+//F -Prints an 'I' if a person is idle, and an 'E' if the person is editing.
+
 #include <playerflags.h>
 
 inherit CMD;

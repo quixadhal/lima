@@ -1,5 +1,13 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:PLAYERCOMMAND
+//USAGE:  whisper <player> <message>
+//        whisper <message> to <player>
+//        whisper to <player> <message>
+//
+//This command is used to whisper a message to another player who is in the same
+//room as you without other players being able to hear what you are saying.
+
 
 inherit VERB_OB;
 inherit M_MESSAGES;

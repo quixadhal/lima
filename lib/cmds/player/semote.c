@@ -1,6 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//USAGE semote <feeling>
+//
+//Shows you how a "soul" or "feeling" will look, both to you and to target
+//and onlookers, if you use it.
+
 #include <commands.h>
 
 inherit CMD;

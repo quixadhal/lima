@@ -5,11 +5,14 @@
 //
 
 //:COMMAND
+//USAGE: whoguests
+//
 // This command lists the names of guests allowed for when the mud
 // does not allow new players
-// Syntax: whoguests
+//
+//Admin only
 
-#include <mudlib.h>
+
 #include <log.h>
 
 inherit CMD;

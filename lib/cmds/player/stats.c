@@ -5,11 +5,11 @@
 **
 //### for now, these are numeric... eventually, we'll move to a system
 //### where they are "fuzzy" and use words
-//### 
+//###
 //### Um, that sounds nifty, but players hate it worse than death itself ..
 //### -Beek
 //-- If it is done WELL (and it will be .. be assured of THAT :)
-//-- it's fairly painless ... problems arise when you have a set of terms 
+//-- it's fairly painless ... problems arise when you have a set of terms
 //-- that are confusing - the prime example was ROM2's "mean" ranking
 //-- which either meant poor, average, or rather good <grin> noone
 //-- except a couple of people were sure, and they weren't giving out
@@ -21,7 +21,16 @@
 ** 950813, Deathblade: Created.
 */
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//$$ see: score
+//USAGE stats
+//
+//Shows you various details about yourself.
+//As you might guess from the name, these probably include stats like "strength".
+//Depending on how the mud works, it could also tell you things like level,
+//experience, guild membership.
+//Also it will probably tell you what race you are, in case you have forgotten.
+
 #include <config.h>
 
 #define SEP_MAJOR	(repeat_string("-=", 38) + "-\n")
@@ -84,7 +93,7 @@ private void main(string arg)
 #endif
 
 #ifdef USE_SIMPLE_EXP
-    x_info = "  Exp: "+this_body()->query_exp();
+    x_info = "  Exp: "+this_body()->query_experience();
 #endif
 
 #ifdef USE_SIMPLE_LEVEL

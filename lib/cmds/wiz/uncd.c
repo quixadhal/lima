@@ -2,12 +2,18 @@
 
 /* Beek: Nov 2 96 */
 
+//:COMMAND
+//USAGE: uncd
+//
+//Switch to previous working directory.
+
 inherit CMD;
 
-private void main() {
-    object ob = this_user()->query_shell_ob();
-    
-    ob->swap_pwd();
+private void main()
+{
+  object ob = this_user()->query_shell_ob();
 
-    outf("new cwd: %s\n", ob->get_variable("pwd") || "NONE");
+  ob->swap_pwd();
+
+  outf("new cwd: %s\n", ob->get_variable("pwd") || "NONE");
 }

@@ -24,8 +24,18 @@ mixed taste_action = "It tastes rather bland.";
 mixed evaporate_action = 0;
 function evaporate_puddle = (: evaporate_puddle_func :);
 
+private string default_container;
+
 string short();
 int ob_state();
+
+//:FUNCTION set_default_container
+// Defines container into which fluid will be put by a vendor selling it
+void set_default_container(string def){ default_container = def; }
+
+//:FUNCTION query_default_container
+// Returns container into which fluid will be put by a vendor selling it
+string query_default_container(){ return default_container; }
 
 //:FUNCTION set_puddle_name
 //void set_puddle_name( string x )
@@ -86,14 +96,24 @@ void create(){
 }
 
 varargs void set_fluid_level( int x, string y ){
+#ifdef USE_SIZE
   set_size( x );
+#endif
+#ifdef USE_MASS
+  set_mass( x );
+#endif
   if ( y ) set_quantity( y );
   else set_quantity( x );
 }
 
 varargs int add_fluid( object fluid){
   if (!fluid) return 0;
+#ifdef USE_SIZE
   set_fluid_level( query_size() + (fluid -> query_size()) );
+#endif
+#ifdef USE_MASS
+  set_fluid_level( query_mass() + (fluid -> query_mass()) );
+#endif
   fluid -> remove();
   return 1;
 }
@@ -151,7 +171,7 @@ varargs void pour( string how, mixed ob2, mixed from ){
 		}
 
 
-	else if ( ob2 -> fill_with( this_object() ))
+	else if ( ob2 -> part_fill_with( this_object() ))
 		{
 		if (functionp( pour_action ) ) evaluate( pour_action ); else
 		this_body() -> simple_action ( pour_action, this_object(), how, where );
@@ -165,9 +185,14 @@ varargs void pour( string how, mixed ob2, mixed from ){
 int will_fit( object bottle ){
 	int fluid_size;
 	int room_left;
+#ifdef USE_SIZE
 	fluid_size = query_size();
+#endif
+#ifdef USE_MASS
+	fluid_size = query_mass();
+#endif
 	room_left = 
-	bottle -> query_max_capacity() 
+    bottle -> query_max_capacity() 
 	   - bottle -> query_capacity() ;
 
 	return (fluid_size <= room_left);
@@ -189,12 +214,16 @@ void remove_puddle(){
 
 void evaporate_puddle_func(){
 
+#ifdef USE_SIZE
    set_size( query_size() -1 );
-
    if( query_size() <= 0 ) {remove_puddle(); return;};
-
+#endif
+#ifdef USE_MASS
+   set_mass( query_mass() -1 );
+   if( query_mass() <= 0 ) {remove_puddle(); return;};
+#endif
     this_object() -> simple_action
-	( evaporate_action, this_object() );
+      ( evaporate_action, this_object() );
 
    call_out( evaporate_puddle, evap_time );
 }

@@ -9,7 +9,7 @@
 ** 960603, Deathblade: added this header re: directions
 */
 
-//:FUNCTION environment_can_here
+//:FUNCTION environment_can_hear
 //Returns 1 if messages should propagate upwards to our environment.
 int environment_can_hear()
 {

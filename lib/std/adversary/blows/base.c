@@ -16,12 +16,16 @@ object array event_get_armors(class event_info);
 
 int do_damage_event(class event_info evt)
 {
-   int x;
-   if(evt->data != "miss")
-      x = hurt_us(event_damage(evt));
-   if(member_array(previous_object(), query_targets()) == -1)
-      attacked_by(previous_object(), 0);
-   return x;
+  int x;
+  if(evt->data != "miss")
+   x = hurt_us(event_damage(evt)
+#ifdef HEALTH_USES_LIMBS
+    , evt->target_extra
+#endif
+    );
+  if(member_array(previous_object(), query_targets()) == -1)
+    attacked_by(previous_object(), 0);
+  return x;
 }
 
 // Modify us (as attacker). Include things such as racial modifiers,
@@ -58,69 +62,73 @@ class event_info modify_event(class event_info evt)
 
 void handle_result(class event_info evt)
 {
-   object w;
+  object w;
 
-   if(stringp(evt->data))
-   {
-      handle_message("!" + evt->data, evt->target, evt->weapon);
+  if(stringp(evt->data))
+  {
+    handle_message("!" + evt->data,
+                   evt->target,
+                   evt->weapon
+#ifdef HEALTH_USES_LIMBS
+                   , evt->target_extra
+#endif
+                   );
 
-      switch (evt->data)
-      {
-         case "dispatch":
-            evt->target->kill_us();
-            break;
-         case "disarm":
-            w = query_weapon();
-            unwield();
-            w->move(environment());
-            break;
-         case "miss":
-            evt->target->do_damage_event(evt);
-            break;
-      }
-   }
-   else
-   {
-      int percent = event_damage(evt);
-      handle_message(damage_message(percent), evt->target, evt->weapon);
-      percent = evt->target->do_damage_event(evt);
-   }
+    switch (evt->data)
+    {
+      case "dispatch":
+        evt->target->kill_us();
+        break;
+      case "disarm":
+        w = evt->target->query_weapon();
+        evt->target->unwield();
+        w->move(environment());
+        break;
+      case "miss":
+        evt->target->do_damage_event(evt);
+        break;
+    }
+  } else {
+    int percent = event_damage(evt);
+    handle_message(damage_message(percent), evt->target, evt->weapon);
+    percent = evt->target->do_damage_event(evt);
+  }
 }
 
 void handle_events()
 {
-   int i = 0;
+  int i = 0;
 
-   /* walking over the queue is slightly more efficient than deleting the
-      first element each time, causing them all to have to move */
-   while (i < sizeof(queue))
-   {
-      queue[i] = modify_our_event(queue[i]);
-      if(!queue[i])
-      {
-         i++;
-         continue;
-      }
-      if(queue[i]->weapon)
-      {
-         queue[i] = queue[i]->weapon->source_modify_event(queue[i]);
-         if(!queue[i])
-         {
-            i++;
-            continue;
-         }
-      }
-      if(queue[i]->target)
-        queue[i] = queue[i]->target->modify_event(queue[i]);
-      if(!queue[i])
-      {
-         i++;
-         continue;
-      }
-
-      handle_result(queue[i]);
+/* walking over the queue is slightly more efficient than deleting the
+   first element each time, causing them all to have to move */
+  while (i < sizeof(queue))
+  {
+    queue[i] = modify_our_event(queue[i]);
+    if(!queue[i])
+    {
       i++;
-   }
+      continue;
+    }
+    if(queue[i]->weapon)
+    {
+      queue[i] = queue[i]->weapon->source_modify_event(queue[i]);
+      if(!queue[i])
+      {
+        i++;
+        continue;
+      }
+    }
+    if(queue[i]->target)
+      queue[i] = queue[i]->target->modify_event(queue[i]);
+    if(!queue[i])
+    {
+      i++;
+      continue;
+    }
 
-   queue = ({ });
+    handle_result(queue[i]);
+    i++;
+  }
+
+  queue = ({ });
 }

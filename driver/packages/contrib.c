@@ -409,7 +409,7 @@ static void fv_recurse P5(array_t *, arr, int *, idx, program_t *, prog, int, ty
     char *end = EndOf(buf);
     
     for (i = 0; i < prog->num_inherited; i++) {
-	fv_recurse(arr, idx, prog->inherit[i].prog, 
+	fv_recurse(arr, idx, prog->inherit[i].prog,
 		   type | prog->inherit[i].type_mod, flag);
     }
     for (i = 0; i < prog->num_variables_defined; i++) {
@@ -901,7 +901,7 @@ static char *pluralize P1(char *, str) {
 	rel = p + 1;
     else
 	rel = pre;
-	
+
     end = rel + strlen(rel);
 
     /*
@@ -1146,7 +1146,10 @@ static char *pluralize P1(char *, str) {
 	case 'F': case 'f':
 	    if (end[-2] == 'e' || end[-2] == 'E')
 		break;
-	    found = PLURAL_CHOP + 2;
+	    if (end[-2] == 'f' || end[-2] == 'F')
+		found = PLURAL_CHOP + 2;
+	    else
+		found = PLURAL_CHOP + 1;
 	    suffix = "ves";
 	    break;
 	case 'H': case 'h':
@@ -1524,7 +1527,7 @@ static int query_ip_port P1(object_t *, ob)
     if (!ob || ob->interactive == 0)
 	return 0;
     return ob->interactive->local_port;
-}    
+}
 
 void
 f_query_ip_port PROT((void))

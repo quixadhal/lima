@@ -1,4 +1,2 @@
 #/daemons/channel_d.c
-permanent_channels (["errors":1,"news":0,"announce":1,"admin":2,"wiz":1,"gossip":0,"newbie":0,])
-saved_listeners ({(/"imud_imud_imud_gossip","/daemons/imud_d",/),(/"imud_imud_lima","/daemons/imud_d",/),(/"imud_imud_code","/daemons/imud_d",/),(/"imud_imud_code","/daemons/chanlog_d",/),(/"imud_imud_gossip","/daemons/imud_d",/),(/"imud_imud_gossip","/daemons/chanlog_d",/),})
-saved_hooks ({})
+permanent_channels (["news":0,"errors":1,"announce":1,"conf":0,"wiz":1,"gossip":0,"newbie":0,"admin":2,])

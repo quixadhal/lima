@@ -1,6 +1,13 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 // Restore command "rst" - Halo@Timescapes
 
 //:COMMAND
+//$$see: bak
+//USAGE rst <filename>
+//
+// Restores a previous backup of a file.
+//
 // This command takes one argument, either a path and a file or just a
 // file. It will then prompt you, asking which file you'd like to restore
 // from.
@@ -44,9 +51,9 @@ void main(string sFile) {
 
   if (sFile[0] == '/')
     iStartAtRoot = 1;
-  
+
   asPathList = explode(sFile, "/");
-  
+
   if (sizeof(asPathList) > 1) {
     sPath     = implode(asPathList[0..<2], "/");
     sFilename = asPathList[sizeof(asPathList) - 1];

@@ -1,11 +1,38 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:COMMAND
+//$$see: mudlist
+//USAGE:  mudinfo <mudname>
+//
+//This command will give you specific information about a mud.
+//
+//mudinfo ideaexchange
+//
+//I d e a E x c h a n g e
+//___________________________________
+//Type: LPMud
+//Address: 199.199.122.10 7890
+//Current Mudlib: Foundation IIr1
+//Base Mudlib: Foundation IIr1
+//Status:  Up
+//Open Status: open for public
+//TCP Imud port: 7895
+//UDP Imud port: 7898
+//Services available: tell, who, rcp, http, locate, ftp, channel, finger
+//
+//Driver: MudOS v21.6a10
+//
+//This command can also be accessed through the menu.
+//
+//In order for this to be available, both this mud and the target mud must
+//have been connected to the intermud 3 server at the same time.
+//The information is saved, so it is not necessary for either mud to be
+//currently connected, but the information could be out-of-date in such
+//circumstances.
 
 inherit CMD;
 inherit M_REGEX;
 inherit M_GLOB;
-
 
 private void main(string arg)
 {

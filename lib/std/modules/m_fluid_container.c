@@ -26,31 +26,19 @@ void look_me();
 //1 by default, but this function can be
 //overridden if this container is limited 
 //in the types of fluids it can hold.
-varargs int can_hold_fluid( mixed ob )
-{
-  return 1; 
-}
+varargs int can_hold_fluid( mixed ob ){ return 1; }
 
 //### Incompletelly implemented.
-void set_fluid_only( mixed x )
-{
-  fluid_only = x;
-}
+void set_fluid_only( mixed x ){ fluid_only = x; }
 
-mixed query_fluid_only()
-{
-  return fluid_only;
-}
+mixed query_fluid_only(){ return fluid_only; }
 
 //:FUNCTION set_leak_action
 //set_leak_action(x)
 // 'x' is evaluated if this
 //container cannot hold the fluid
 //that is being put into it.
-void set_leak_action( mixed x )
-{
-  leak_action = x;
-}
+void set_leak_action( mixed x ){ leak_action = x; }
 
 void leak ( object ob )
 {
@@ -72,7 +60,12 @@ int will_fit( object fluid )
   
   if ( first_inventory() )
     load = first_inventory() -> query_size();
+#ifdef USE_SIZE
   fluid_size = fluid ->query_size();
+#endif
+#ifdef USE_MASS
+  fluid_size = fluid ->query_mass();
+#endif
   room_left = query_max_capacity() - load;
   //  write ("Fluid size:  " + fluid_size + "   Room left:   " + room_left + ".\n");
   return (fluid_size <= room_left );
@@ -84,10 +77,7 @@ int will_fit( object fluid )
 //is full of fluid and can hold no more.
 //If it is a string, it is passed to
 //my_action().
-void set_full_action( mixed x )
-{
-  full_action = x;
-}
+void set_full_action( mixed x ){ full_action = x; }
 
 
 varargs void full_action( object ob )
@@ -224,7 +214,12 @@ string get_extra_long()
   if (!ob)
     full = "It is empty";
   else
+#ifdef USE_SIZE
     switch ((100 * ob->query_size())/ this_object()->query_max_capacity())
+#endif
+#ifdef USE_MASS
+    switch ((100 * ob->query_mass())/ this_object()->query_max_capacity())
+#endif
     {
     case 0: 
       full = "It is empty.";
@@ -264,10 +259,7 @@ mixed indirect_pour_obj_wrd_obj()
 //  return have_flask() ;
 }
 
-mixed direct_pour_obj_wrd_obj()
-{
-  return have_flask() ;
-}
+mixed direct_pour_obj_wrd_obj(){ return have_flask() ; }
 
 mixed direct_pour_obj()
 { 
@@ -275,33 +267,14 @@ mixed direct_pour_obj()
   return have_flask();
 }
 
-mixed direct_fill_obj( )
-{
-  return have_flask();
-}
+mixed direct_fill_obj( ){ return have_flask(); }
 
-mixed direct_fill_obj_with_obj()
-{
-  return have_flask();
-}
+mixed direct_fill_obj_with_obj(){ return have_flask(); }
 
-mixed direct_fill_obj_with_str()
-{
-  return have_flask();
-}
+mixed direct_fill_obj_with_str(){ return have_flask(); }
 
-mixed direct_fill_obj_from_obj()
-{
-  return have_flask();
-}
+mixed direct_fill_obj_from_obj(){ return have_flask(); }
 
-mixed direct_drink_from_obj()
-{
-  return have_flask();
-}
+mixed direct_drink_from_obj(){ return have_flask(); }
 
-mixed indirect_drink_obj_from_obj()
-{
-  return have_flask();
-}
-
+mixed indirect_drink_obj_from_obj(){ return have_flask(); }

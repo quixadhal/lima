@@ -1,6 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:COMMAND
+//USAGE: heal <playername>
+//
+//Completely heals the targetted player.
 
 inherit CMD;
 

@@ -7,7 +7,11 @@
 // Beek made one line reports work right 11/14/94
 // Rust made them post news
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//$$ see: idea, typo, feedback, question
+//USAGE:  bug
+//
+//This command directs a report of a game bug to the proper place.
 
 inherit CMD;
 
@@ -17,10 +21,7 @@ void create()
   no_redirection();
 }
 
-private void main(string str)
-{
-    REPORTER_D->report_something("Bug", str);
-}
+private void main(string str){ REPORTER_D->report_something("Bug", str); }
 
 void player_menu_entry()
 {

@@ -1,6 +1,20 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//$$ see: adverbs, random, semote
+//
+//USAGE: feelings <pattern>
+//
+//With a pattern, feelings will show you all souls matching the given pattern.
+//Without an argument, feelings will list all available soul commands.
+//
+//Examples:
+//
+//	feelings  			-- show all souls
+//	feelings s			-- show all souls beginning with an s
+//	feelings s*e			-- show all souls beginning with an s,
+//					   having anything in the middle, and
+//					   ending with an e.
 
 inherit CMD;
 inherit M_GLOB;

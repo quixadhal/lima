@@ -1,8 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 /*
-** This file is part of the Lima distribution mudlib.  
-** Do not remove this header.  Please see /USAGE for more 
+** This file is part of the Lima distribution mudlib.
+** Do not remove this header.  Please see /USAGE for more
 ** information on using this code.
 **
 ** FILE: /trans/obj/telnet_ob.c
@@ -21,7 +21,7 @@
 **
 ** REVISIONS
 ** =========
-** Rust. Jul 25 1995 - / isn't the command character if you have the 
+** Rust. Jul 25 1995 - / isn't the command character if you have the
 **                     telnet_char environment variable set.  Suggested
 **                     by Satan@ArcadiaF.
 **                   - Added a /close to close the current connection.
@@ -35,7 +35,8 @@
 inherit M_ACCESS;
 inherit M_REGEX;
 inherit M_INPUT;
-#define TELNET_HELP_FILE "/help/admin/telnet"
+//#define TELNET_HELP_FILE "/help/admin/telnet"
+#define TELNET_HELP_FILE "/help/admin/command/telnet"
 #define IAC  255
 
 string *iac_regex = ({sprintf("%c..",IAC)});

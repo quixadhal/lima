@@ -10,10 +10,6 @@
 
 inherit VERB_OB;
 
-//###should be shared somehow with go.c
-string array normal_directions = ({ "north", "south", "east", "west",
-                 "northwest", "northeast", "southwest", "southeast" });
-
 mixed can_drive_str(string str)
 {
    mixed value;
@@ -26,7 +22,7 @@ mixed can_drive_str(string str)
    value = where->can_go_str(str);
    if(!stringp(value) && (value == 1))
      return default_checks();
-   if(!stringp(value) && (member_array(str, normal_directions) != -1))
+   if(!stringp(value) && is_normal_direction(str))
       return "It doesn't appear you can drive that way.\n";
    return value;
 }
@@ -46,7 +42,7 @@ mixed can_drive_obj_str(object ob, string str)
    mixed value = environment(this_body())->can_go_somewhere(str);
    if(!stringp(value) && (value == 1))
       return default_checks();
-   if(!stringp(value) && (member_array(str, normal_directions) != -1))
+   if(!stringp(value) && is_normal_direction(str))
       return "It doesn't appear you can go that way.\n";
    return value;
 }

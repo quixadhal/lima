@@ -4,14 +4,17 @@
 ** typo.c
 **
 ** Converted to use new /std/reporter superclass (Deathblade 4-Sep-94)
-** Original by Rust 
+** Original by Rust
 ** Rust made it post news.
 */
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//$$ see: bug, idea, feedback, question
+//USAGE:  typo
+//
+//This command directs a typo report to the proper place.
 
 inherit CMD;
-
 
 void create()
 {
@@ -21,7 +24,7 @@ void create()
 
 private void main(string str)
 {
-    REPORTER_D->report_something("Typo", str);
+  REPORTER_D->report_something("Typo", str);
 }
 
 void player_menu_entry()

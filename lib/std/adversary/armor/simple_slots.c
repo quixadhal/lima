@@ -71,12 +71,7 @@ string query_random_armor_slot()
 {
    string tmp;
 
-   if(!tmp)
-      return 0;
-
    tmp = choice(keys(slots));
-   if(!tmp)
-      return 0;
 
    return tmp;
 }

@@ -145,10 +145,9 @@ string show_exits()
 //Return the enter messages of a given exit
 string query_enter_msg(string direction)
 {
-  object which;
+  object which=present(direction);
   int i;
-  if(which=present(direction)&&
-     which->is_exit())
+  if(which && which->is_exit())
     return which->query_method_exit_messages("go");
   i=sizeof(exits[direction]->enter_messages);
   if(!i)
@@ -163,13 +162,12 @@ string query_enter_msg(string direction)
 //If multiple messages are passed, a random one will be selected when invoked
 void set_enter_msg(string direction, mixed array message...)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->set_method_enter_messages("go",message...);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->set_method_enter_messages("go",message...);
+    return;
+  }
   exits[direction]->enter_messages = message;
 }
 
@@ -179,13 +177,12 @@ void set_enter_msg(string direction, mixed array message...)
 //If multiple messages are passed, a random one will be selected when invoked
 void add_enter_msg(string direction, mixed array message...)
 {  
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->add_method_enter_messages("go",message...);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->add_method_enter_messages("go",message...);
+    return;
+  }
   exits[direction]->enter_messages+=message;
 }
 
@@ -193,13 +190,12 @@ void add_enter_msg(string direction, mixed array message...)
 //Remove an enter emssage from a given exit.
 void remove_enter_msg(string direction, mixed array message...)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->remove_method_enter_messages("go",message...);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->remove_method_enter_messages("go",message...);
+    return;
+  }
   exits[direction]->enter_messages-=message;
 }
 
@@ -207,9 +203,8 @@ void remove_enter_msg(string direction, mixed array message...)
 //Return all possible enter messages for a given exit
 mixed array list_enter_msgs(string direction)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
+  object which=present(direction);
+  if(which && which->is_exit())
     return which->list_method_enter_messages("go");
   return exits[direction]->enter_messages;
 }
@@ -219,9 +214,8 @@ mixed array list_enter_msgs(string direction)
 string query_exit_msg(string direction)
 {  
   int i=sizeof(exits[direction]->exit_messages);
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
+  object which=present(direction);
+  if(which && which->is_exit())
     return which->query_method_exit_messages("go");
   if(i)
     return evaluate(exits[direction]->exit_messages[random(i)]);
@@ -233,13 +227,12 @@ string query_exit_msg(string direction)
 //This message will be displayed in the room the body is leaving
 void set_exit_msg(string direction, mixed array message...)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->set_method_exit_messages("go",message...);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->set_method_exit_messages("go",message...);
+    return;
+  }
   exits[direction]->exit_messages = message;
 }
 
@@ -248,13 +241,12 @@ void set_exit_msg(string direction, mixed array message...)
 //The message can be a function pointer or a string
 void add_exit_msg(string direction, mixed array message...)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->add_method_exit_messages("go",message...);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->add_method_exit_messages("go",message...);
+    return;
+  }
   exits[direction]->exit_messages+=message;
 }
 
@@ -262,13 +254,12 @@ void add_exit_msg(string direction, mixed array message...)
 //Remove an exit emssage from a given exit.
 void remove_exit_msg(string direction, mixed array message...)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->remove_method_exit_messages("go",message...);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->remove_method_exit_messages("go",message...);
+    return;
+  }
   exits[direction]->exit_messages-=message;
 }
 
@@ -276,9 +267,8 @@ void remove_exit_msg(string direction, mixed array message...)
 //List all of the possible exit messages for an exit
 mixed array list_exit_msgs(string direction)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
+  object which=present(direction);
+  if(which && which->is_exit())
     return which->list_method_exit_messages("go");
   return exits[direction]->exit_messages;
 }
@@ -307,9 +297,8 @@ private string eval_dest(mixed arg)
 //Return the destination path of the given exit.
 varargs string query_exit_destination(string arg)
 {
-  object which;
-  if(which=present(arg)&&
-     which->is_exit())
+  object which=present(arg);
+  if(which && which->is_exit())
     return which->query_method_destination("go");
   return eval_dest(arg);
 }
@@ -334,13 +323,12 @@ string query_exit_description(string direction)
 //Set the description of an exit.
 void set_exit_description(string direction, mixed description)
 {  
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->set_long(description);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->set_long(description);
+    return;
+  }
   exits[direction]->description = description;
 }
 
@@ -361,13 +349,12 @@ mixed query_exit_check(string direction)
 //Function setting the check funciton for the exit
 void set_exit_check(string direction, function f)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
-    {
-      which->set_method_check("go",f);
-      return;
-    }
+  object which=present(direction);
+  if(which && which->is_exit())
+  {
+    which->set_method_check("go",f);
+    return;
+  }
   exits[direction]->checks = f;
 }
 
@@ -380,9 +367,8 @@ void set_exit_check(string direction, function f)
 //name.
 void delete_exit(mixed direction)
 {
-  object which;
-  if(which=present(direction)&&
-     which->is_exit())
+  object which=present(direction);
+  if(which && which->is_exit())
     destruct(which);
   map_delete(exits, direction);
 }
@@ -421,8 +407,8 @@ void set_exits( mapping new_exits )
 {
   mixed key; 
   if ( mapp(new_exits) )
-      foreach(string direction,mixed destination in new_exits)
-	add_exit(direction,destination);
+    foreach(string direction,mixed destination in new_exits)
+      add_exit(direction,destination);
 }
 
 /* 
@@ -484,7 +470,8 @@ mixed can_go_str(string arg)
   return ret;
 }
 
-void do_go_str(string dir) {
+void do_go_str(string dir)
+{
   class move_data exit=new(class move_data);
   if (call_hooks("block_" + dir, HOOK_LOR, 0, dir)
       || call_hooks("block_all", HOOK_LOR, 0, dir))
@@ -494,19 +481,19 @@ void do_go_str(string dir) {
   exit->enter_messages=query_enter_msg(dir);
   exit->exit_dir=dir;
   if (!this_body()->query_driving_vehicle())
-    {
-      if(!exit->exit_messages)
-	exit->exit_messages=this_body()->query_msg("leave");
-      if(!exit->enter_messages)
-	exit->enter_messages=this_body()->query_msg("enter");
-      /* Normal movement, which should be the scope of this module should
-       * always send to the method "in" */
-      this_body()->move_to(exit);
-    }
-  else
-    {
-      environment(this_body())->move_to(exit);
-    }
+  {
+    if(!exit->exit_messages)
+      exit->exit_messages=this_body()->query_msg("leave");
+    if(!exit->enter_messages)
+      exit->enter_messages=this_body()->query_msg("enter");
+/* Normal movement, which should be the scope of this module should
+ * always send to the method "in" */
+    exit->who = this_body();
+    this_body()->move_to(exit);
+  } else {
+    exit->who = environment(this_body());
+    environment(this_body())->move_to(exit);
+  }
 }
 /* 
  * DEBUGGING
@@ -515,7 +502,7 @@ void do_go_str(string dir) {
 //Return all of the exit info contained within the object
 mapping debug_exits()
 {
-  return exits;
+  return copy(exits);
 }
 
 //:FUNCTION query_base

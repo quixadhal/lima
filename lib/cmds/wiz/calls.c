@@ -1,7 +1,22 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 // call_out info display by Rust.
-#include <mudlib.h>
+
+//:COMMAND
+//USAGE:  calls
+//
+//This command shows you the number of call_outs that are active
+//
+//Produces display like :
+//     calls
+//
+//object                                            Function            Delay
+//-----------------------------------------------------------------------------
+///secure/master                                    <function>          1
+///domains/std/harry#474                            <function>          3
+///domains/std/harry                                <function>          3
+//
+//There are 3 call_outs active..
 
 inherit CMD;
 

@@ -1,16 +1,19 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 //:COMMAND
+//$$see: rst
+//USAGE bk <filename>
+//
 // This command allows you to backup a file.
 // Given the argument, file, it assumes your current
-// directory. 
-// 
+// directory.
+//
 // It then copies this file to ./bak/ directory while
 // also date stamping it. Timestamps are appended, as
 // well, if two files are backed up on the same day.
-// 
+//
 // Also, if no ./bak/ directory exists, it automagically
 // creates one for you.
-//
-// See also: rst
 
 // 1998-Oct-13 : Halo@Timescapes        : Created.
 // 1999-Jan-28 : Rodney@Timescapes      : Updated date creation to be string, fixed

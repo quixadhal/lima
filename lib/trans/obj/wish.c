@@ -10,6 +10,12 @@ inherit M_COMPLETE;
 inherit M_GETOPT;
 inherit M_REGEX;
 
+#define WIZ_CMD_DIRS ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/",\
+	CMD_DIR_CREATE "/", CMD_DIR_PLAYER "/"})
+
+#define ADMIN_CMD_DIRS ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/",\
+	CMD_DIR_CREATE "/", CMD_DIR_PLAYER "/", CMD_DIR_ADMIN "/" })
+
 private nosave string path;
 int	expand_vars;
 
@@ -33,7 +39,7 @@ private mixed evaluate_code(mixed code)
 
     code = reg_assoc(code,({"\\$[a-zA-Z0-9]+"}),({0}))[0];
 
-    code = 
+    code =
     map(code, (: (strlen($1) > 1 && $1[0] == '$' && is_variable($1[1..]))  ?
 	"(get_user_variable(\""+$1[1..]+"\"))" :
 	$1 :));
@@ -88,8 +94,9 @@ string query_path() {
 
 private void fix_path()
 {
-    set_variable("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
-	CMD_DIR_PLAYER "/", CMD_DIR_CREATE "/"}));
+    set_variable("path", WIZ_CMD_DIRS);
+    if(query_owner() && adminp(query_owner()))
+      set_variable("path", ADMIN_CMD_DIRS);
     printf("Ok, your path is fixed.\n");
 }
 
@@ -119,8 +126,11 @@ protected void prepare_shell()
 {
     ::prepare_shell();
 
-    set_if_undefined("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
-	CMD_DIR_CREATE "/", CMD_DIR_PLAYER "/"}));
+    set_if_undefined("path", WIZ_CMD_DIRS);
+
+    if(query_owner() && adminp(query_owner()))
+      set_if_undefined("path", ADMIN_CMD_DIRS);
+
     set_if_undefined("pwd", "/");
     set_if_undefined("cwf", 0);
 
@@ -138,7 +148,7 @@ string query_shellname()
     return "wish (Lima wizard shell) v. 0.9";
 }
 
-varargs protected void execute_command(string original_input) 
+varargs protected void execute_command(string original_input)
 {
     string * argv = explode(original_input, " ");
     mixed	tmp;

@@ -1,8 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 //:COMMAND
+// USAGE: diff <file1> <file2>
+//
 // Finds the difference between two files.
-// Usage: diff <file1> <file2>
 
 /* This file is originally a part of the TMI distribution mudlib.
    Please retain this header if you use this code.

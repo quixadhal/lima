@@ -1,9 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 //:COMMAND
-// Prints out the last few lines of a file
-// The specification is: tail file *
-// We will recieve: ({ array of file names })
+//USAGE: tail <file(s)>
+//       tail -n<number> <files>
+//
+// Prints out the last few lines of a file.
+//Optional -n flag for number of lines to display (default 10).
 
 #include <mudlib.h>
 inherit CMD;

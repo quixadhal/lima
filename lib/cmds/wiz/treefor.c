@@ -3,7 +3,15 @@
 //treefor
 //By Beek - derived from codefor, which was derived from eval
 
-#include <mudlib.h>
+//:COMMAND
+//USAGE: treefor <lpc expression>
+//
+//Shows the driver's internal representation of the expression.
+//
+//>treefor int x; int y; return x+y;
+//
+//(return ("binary op" "+" ("opcode_1" "local" 0)("opcode_1" "local" 1)))
+
 inherit CMD;
 
 #define SYNTAX "USAGE:  treefor <lpc expression>\n"
@@ -15,10 +23,12 @@ private void ind(int indent) {
 private int dump(mixed *value, int indent, int flag) {
     mixed val;
     int subindent;
-
-    if (!value)
+//LBUG(value);
+    if (!sizeof(value))
 	return flag;
-    
+    if(!stringp(value[0]))
+        return flag;
+
     switch (value[0]) {
     case "two values":
 	if (flag) {
@@ -26,13 +36,13 @@ private int dump(mixed *value, int indent, int flag) {
 	    subindent = indent + 4;
 	} else
 	    subindent = indent;
-	
+
 	if (dump(value[1], subindent, 0))
 	    outf("\n");
 
 	if (dump(value[2], subindent, 0));
 	    outf("\n");
-	
+
 	return 0;
     case "efun":
 	if (!flag)
@@ -106,7 +116,7 @@ void main(string str)
     mixed ret;
     object o;
 
-    initial_write_to_file = 
+    initial_write_to_file =
         "#include <mudlib.h> \n"
         "#include <daemons.h>\n"
         "#include <config.h>\n"
@@ -120,8 +130,9 @@ void main(string str)
     }
     write_file(tmp_file,str+"; };\n");
     write_file(tmp_file,"}\n");
-    
-    if (ret = find_object(tmp_file)) destruct(ret);
+
+    if (ret = find_object(tmp_file))
+      destruct(ret);
     ret = tmp_file->eval_function();
     rm( tmp_file );
 

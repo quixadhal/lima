@@ -2,7 +2,11 @@
 
 /* todo.c -- log todos */
 
-#include <mudlib.h>
+//COMMAND
+//USAGE todo
+//
+//Invokes the reporting system for "todos" - enters an editor allowing you
+//to post to the todo newsgroup (or file, depending on configuration).
 
 inherit CMD;
 

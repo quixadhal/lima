@@ -2,13 +2,22 @@
 
 //  Grep - Locate files containing a particular regular expression.
 //  Created by Rust, Jul 10, 1995
-#include <mudlib.h>
+
+//:COMMAND
+//USAGE grep [-inv] <target> <files>
+//
+//Locates and displays lines matching specified pattern within specified files.
+//
+//Flags :
+//-i for case insensitive comparison
+//-n to display line numbers
+//-v to invert slection - ie display lines NOT matching.
 
 inherit CMD;
 inherit M_REGEX;
 inherit M_GLOB;
 
-private void 
+private void
 stdin_grep(string pattern, mapping flags, string stdin)
 {
   string array lines;
@@ -16,87 +25,80 @@ stdin_grep(string pattern, mapping flags, string stdin)
   int	i;
 
   if(!stdin)
-    {
-      out("Too few arguments.\nUsage: grep -inv string file(s)\n");
-      return;
-    }
+  {
+    out("Too few arguments.\nUsage: grep -inv string file(s)\n");
+    return;
+  }
 
   if(flags["i"])
-	pattern = insensitive_pattern(pattern);
+    pattern = insensitive_pattern(pattern);
   if(flags["n"])
-        bits |= 1;
+    bits |= 1;
   if(flags["v"])
-        bits |= 2;
+    bits |= 2;
 
   pattern = translate(pattern);
   lines = regexp(explode(stdin, "\n"),pattern, bits);
   if(!sizeof(lines))
-    {  
-      out("No matches.\n");
-    }
-  else
+  {
+    out("No matches.\n");
+  } else {
+    if(flags["n"])
     {
-      if(flags["n"])
-	{
-	  for(i = 0;i<sizeof(lines);i++)
-	    {
-	      outf(" %d  %s\n", lines[i+1], lines[i++]);
-	    }
-	}
-      else
-	{
-	  map(map(lines,(:$1+"\n":)), (: out :));
-	}
+      for(i = 0;i<sizeof(lines);i++)
+        outf(" %d  %s\n", lines[i+1], lines[i++]);
+    } else {
+        map(map(lines,(:$1+"\n":)), (: out :));
     }
+  }
 }
 
 private void
 main(mixed argv, mapping flags, string stdin)
 {
-    string file;
-    string this_output;
-    string pattern;
-    
-    pattern = replace_string(argv[0], "/", "\\/");
-    if(!argv[1])
-      {
-	stdin_grep(pattern, flags, stdin); 
-	return;
-      }
-    if(flags["v"])
-      {
-	map(argv[1], (:stdin_grep($(pattern), $(flags),
-				  read_file($1)):));
-	return;
-      }
+  string file;
+  string this_output;
+  string pattern;
 
-    argv[1] = decompose(map(argv[1], (:is_directory($1) ?
-	glob($1 + ($1[<1] == '/' ? "*" : "/*")): $1:)));
+  pattern = replace_string(argv[0], "/", "\\/");
+  if(!argv[1])
+  {
+    stdin_grep(pattern, flags, stdin);
+    return;
+  }
+  if(flags["v"])
+  {
+    map(argv[1], (:stdin_grep($(pattern), $(flags), read_file($1)):));
+    return;
+  }
 
-    if(flags["i"])
-	pattern = insensitive_pattern(pattern);
-    pattern = translate(pattern);
-    foreach(file in argv[1])
+  argv[1] = decompose(map(argv[1], (:is_directory($1) ?
+      glob($1 + ($1[<1] == '/' ? "*" : "/*")): $1:)));
+
+  if(flags["i"])
+    pattern = insensitive_pattern(pattern);
+  pattern = translate(pattern);
+  foreach(file in argv[1])
+  {
+    if(file_size(file) < 1)
+      continue;
+    if(file_size(file) > MAX_FILE_SIZE)
     {
-	if(file_size(file) < 1)
-	    continue;
-	if(file_size(file) > MAX_FILE_SIZE)
-	{
-	    outf("Ignoring file %s - too large!\n", file);
-	    continue;
-	}
-	ed_start(file);
-	if(flags["n"])
-	    ed_cmd("n");
-	if (catch(this_output = ed_cmd("1,$g/"+pattern+"/p")))
-        {
-         printf("Warning: %s was too large for LPC to grep.\n", file);
-         continue;
-        }
-	if(this_output && strlen(this_output))
-	    outf("[%s]:\n%s\n\n", file, this_output);
-	ed_cmd("q");
+      outf("Ignoring file %s - too large!\n", file);
+      continue;
     }
-    if(!strlen(get_output()))
-	out("No matches found.\n");
+    ed_start(file);
+    if(flags["n"])
+      ed_cmd("n");
+    if (catch(this_output = ed_cmd("1,$g/"+pattern+"/p")))
+    {
+      printf("Warning: %s was too large for LPC to grep.\n", file);
+      continue;
+    }
+    if(this_output && strlen(this_output))
+      outf("[%s]:\n%s\n\n", file, this_output);
+    ed_cmd("q");
+  }
+  if(!strlen(get_output()))
+    out("No matches found.\n");
 }

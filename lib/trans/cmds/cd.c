@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 //:COMMAND
+//$$ see: mkdir, ls, pwd, ed
 // USAGE:  cd [directory|obj]
 //
 // Most file commands assume you're talking about your current working
@@ -14,28 +15,29 @@ inherit CMD;
 
 nomask private void main(string* argv)
 {
-    mixed fname;
+  mixed fname;
 
-    if ( sizeof(argv) )
-        fname = argv[0];
-    if ( !fname )
-    {
-        fname = wiz_dir(this_user());
-        if(!is_directory(fname))
-            fname = "/help";
-    }
+  if ( sizeof(argv) )
+    fname = argv[0];
 
-    if (objectp(fname))
-        fname = base_name(fname);
+  if ( !fname )
+  {
+    fname = wiz_dir(this_user());
+    if(!is_directory(fname))
+      fname = "/help";
+  }
 
-    if ( fname[<2..] == ".c" && is_directory(fname[0..<3]) )
-      fname = fname[0..<3];
+  if (objectp(fname))
+    fname = base_name(fname);
 
-    if ( !is_directory( fname ) && !is_directory( fname = base_path(fname) ) )
-    {
-        out("No such directory: " + fname + "\n");
-        return;
-    }
-    this_user()->query_shell_ob()->set_pwd(fname);
-    outf("new cwd: %s\n", fname);
+  if ( fname[<2..] == ".c" && is_directory(fname[0..<3]) )
+    fname = fname[0..<3];
+
+  if ( !is_directory( fname ) && !is_directory( fname = base_path(fname) ) )
+  {
+    out("No such directory: " + fname + "\n");
+    return;
+  }
+  this_user()->query_shell_ob()->set_pwd(fname);
+  outf("new cwd: %s\n", fname);
 }

@@ -14,7 +14,12 @@ void mudlib_setup()
 {
     set_fuel( 4 );
     set_id( "paper" );
+#ifdef USE_SIZE
     set_size( VERY_SMALL );
+#endif
+#ifdef USE_MASS
+    set_mass( VERY_SMALL );
+#endif
     set_light_level( 0 );
     set_die_msg( "The $o crumbles into fine ash." );
 }
@@ -56,4 +61,9 @@ void set_fuel( int amount )
 {
     if( !burnt ) max_fuel = amount;
     ::set_fuel( amount );
+}
+
+mixed lpscript_attributes()
+{
+   return object::lpscript_attributes() + light_object::lpscript_attributes();
 }

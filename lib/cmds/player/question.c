@@ -1,13 +1,16 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-// _bug.c
 // Rust wrote it
 // Megaboz@ZorkMUD attached header 5-5-94
 // Converted to use new /std/reporter superclass (Deathblade 4-Sep-94)
 // Beek made one line reports work right 11/14/94
 // Rust made them post news
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//$$ see: bug, typo, feedback, idea
+//USAGE:  question
+//
+//Allows you to send a question to the relevant place.
 
 inherit CMD;
 
@@ -19,7 +22,7 @@ void create()
 
 private void main(string str)
 {
-    REPORTER_D->report_something("Question", str);
+  REPORTER_D->report_something("Question", str);
 }
 
 void player_menu_entry()

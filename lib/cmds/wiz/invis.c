@@ -2,7 +2,15 @@
 
 // Rust
 
-#include <mudlib.h>
+//:COMMAND
+//$$ see: vis
+//USAGE: invis
+//
+//This command will let you turn invisible to players
+//This is not intended as a "foolproof" way to be invisible.
+//If you want to make sure players can't interrupt you while you work,
+//either work offline or enforce a strict "do not disturb" policy.
+
 #include <setbit.h>
 #include <daemons.h>
 

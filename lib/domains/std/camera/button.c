@@ -3,24 +3,21 @@
 inherit OBJ;
 inherit M_GETTABLE;
 
-
 void setup()
 {
-set_adj( "camera", "polaroid" );
-    set_id( "button" );
-    set_long( "It's a small black button." );
-    set_getmsg( "#That would surely break the camera.");
-    set_size(SMALL);
+  set_adj( "camera", "polaroid" );
+  set_id( "button" );
+  set_long( "It's a small black button." );
+  set_getmsg( "#That would surely break the camera.");
+#ifdef USE_SIZE
+  set_size(SMALL);
+#endif
+#ifdef USE_MASS
+  set_mass(SMALL);
+#endif
 }
-
 
 void do_press( string s )
 {
-    environment( this_object())->take_picture();
-}
-
-
-mapping lpscript_attributes()
-{
-    return object::lpscript_attributes() + m_gettable::lpscript_attributes();
+  environment( this_object())->take_picture();
 }

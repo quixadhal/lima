@@ -12,14 +12,13 @@ void setup() {
   set_adj("small");
   set_in_room_desc("There is a small mailbox here.");
   set_max_capacity(SMALL);
+#ifdef USE_SIZE
   set_size(MEDIUM);
+#endif
+#ifdef USE_MASS
+  set_mass(MEDIUM);
+#endif
   set_objects( ([
 		 "leaflet" : 1
   ]) );
-}
-
-
-mapping lpscript_attributes()
-{
-    return container::lpscript_attributes() + m_openable::lpscript_attributes() + m_gettable::lpscript_attributes();
 }

@@ -2,7 +2,14 @@
 
 // Rust/Belboz
 
-#include <mudlib.h>
+//:COMMAND
+//USAGE:  pwd
+//
+//Shows you what directory you are currently "in".
+//
+//pwd
+//
+// /wiz/zifnab/obj
 
 inherit CMD;
 

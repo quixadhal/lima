@@ -27,8 +27,8 @@ set_relations("on");
 
 // We could opt for simple messages, and uncomment these
 // 2 lines, but we can also go for more complex msgs (see below).
-    set_arrival_msg("The $N $vtrot off $o.\n");
-    set_departure_msg("A $N $vtrot in.\n");
+    set_arrival_msg("$N $vtrot off.\n");
+    set_departure_msg("$N $vtrot in.\n");
     add_method("mount", this_object());
     add_method("dismount", (: environment(this_object()) :) );
 }

@@ -1,17 +1,23 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 void dispatch_opponent();
+void do_game_command(string str);
+
+void do_move_away();
 
 //:FUNCTION flee
 // Try to run away. Does nothing by default. Overload this function to
 // modify the behavior of your monster when it panics.
-void flee() {
+void flee()
+{
+//  do_move_away();
 }
 
 //:FUNCTION surrender
 // Try to surrender. Does nothing by default. Overload this function to
 // modify the behavior of your monster when it panicss.
-void surrender() {
+void surrender()
+{
 }
 
 //:FUNCTION panic
@@ -33,4 +39,37 @@ void panic()
 void target_is_asleep()
 {
    dispatch_opponent();
+}
+
+//:FUNCTION do_move_away
+//Moves through a random exit. Probable implementation of "flee"
+void do_move_away()
+{
+  string array directions;
+  string chosen_dir;
+  string file;
+  object dest;
+  
+  if(environment(this_object()))
+    directions=environment(this_object())->query_exit_directions();
+
+/* Stop if there are no directions (this takes care of blue prints*/
+  if(!sizeof(directions))
+    return;
+
+  chosen_dir=choice(directions);
+  file=environment(this_object())->query_exit_destination(chosen_dir);
+
+/* If the file is null or a null string then give up */
+  if(!file||file=="")
+    return;
+
+/* If the destination is not loaded, do so */
+  dest=load_object(file);
+
+/* If still no destination it won't load, try again next time */
+  if(!dest)
+    return;
+
+  do_game_command(sprintf("go %s",chosen_dir));
 }

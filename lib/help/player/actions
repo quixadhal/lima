@@ -1,10 +1,10 @@
-		Communicating With Zork
+		Communicating With the mud
 
-Like the original Infocom games, Zork is able to understand a wide
-range of user input, which is unlike most other MU*'s which normally
-require very terse and specific commands.  However, Zorkmud is a
-computer game, not an english professor.  Therefore, while it does
-it's best to understand what you type, Zork does have it's limits.
+The Lima mudlib is able to understand a wide range of user input,
+which is unlike most other MU*'s which normally require very terse and
+specific commands.  However, it is a computer game, not an english professor.
+Therefore, while it does its best to understand what you type,
+it does have its limits.
 
 The following examples should give you an idea of what is acceptable:
 
@@ -13,28 +13,23 @@ go north
 go through the window
 give the red barin to the old wizard
 look through beek's crystal ball
-get the red cake then drop it.  jump on it
-drop the hat, the silver hammer, and all my zorkmids
-trade all my stuff for a magic potato
-get everything except for the gnarled broom
-hello, sailor!
-dwarf, tell me about babe flathead
+drop the hat.
+drop the silver hammer
+drop all my zorkmids
+trade all my weapons for a magic potato
 ask the urchin about his jacket
-
 
 Some points to keep in mind:
 
 o Always use lower case letters for entering input.
-o Use adjectives to distinguish between like objects, for example,
-  if you see a red book and a green book, if you do not specify
-  which you mean when talking about a book, Zork will assume for you,
-  and as with all assumptions, may not always be right.
-o Use a period or 'then' if you wish to execute more than one command
-  in a single shot.  Do not use 'and' because it is treated as a comma
-  in a list of objects:  'the hood, the bar and the twine'
+o Use adjectives to distinguish between like objects.
+  For example,if you see a red book and a green book, and use "get book"
+  it will NOT assume for you, but will ask you to specify unambiguously
+  which one you mean.
+  If you use "a" or "any" (eg "get a book") it will choose randomly,
+  and you may get the "wrong" one.
 
-
-If there is any input you think Zork should accept and does not,
+If there is any input you think the mud should accept and does not,
 please use the idea command.
 
 

@@ -1,10 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-//:COMMAND
-// Destructs the old version of a file and loads a new one
-// Usage: update <filename/object>
-
-
 //      /bin/system/_update.c
 //      from the Nightmare Mudlib
 //      destructs an old version of a file and loads a new one
@@ -18,8 +13,19 @@
 //     Rust made it so that it calls the doc daemon after successfully
 //     loading an object.
 
-#include <mudlib.h>
+//:COMMAND
+//$$ see : renew
+//USAGE update <filename>
+//      update <object>
+//
+// Destructs the old version of a file and loads a new one
+//Flags :
+//-r - Ingnore inherited files
+//-R - Update all inherited files
+//-z - Update only inherited files "older" than the target file.
+
 #include <daemons.h>
+
 inherit CMD;
 
 int do_update(string file, int deep);
@@ -35,20 +41,28 @@ private void main(mixed *arg, mapping flags) {
     if(arg[0] && !stringp(arg[0]))
     {
       foreach(file in arg[0])
-	{
-	  catch(main(({file}), flags));
-	}
+        catch(main(({file}), flags));
       return;
     }
 
-    if (flags["r"]) deep_up = 1;
-    if (flags["R"]) deep_up = 2;
-    if (flags["z"]) deep_up = 3;
+    if (flags["r"])
+      deep_up = 1;
+    if (flags["R"])
+      deep_up = 2;
+    if (flags["z"])
+      deep_up = 3;
+
     file = arg[0];
-    if (!file && shell_ob) file = shell_ob->get_variable("cwf");
-    if (!file || file == "here") file = "/"+file_name(environment(this_body()));
+    if (!file && shell_ob)
+      file = shell_ob->get_variable("cwf");
+    if (!file || file == "here")
+      file = "/"+file_name(environment(this_body()));
+
     file = evaluate_path(file);
-    if (shell_ob) shell_ob->set_cwf( file );
+
+    if (shell_ob)
+      shell_ob->set_cwf( file );
+
     sscanf(file, "%s.c", file);
     // DO NOT check if the file exists.  It's really bad for virtual objects.
     if(file_size(file) == -2 && file_size(file+".c") < 0 )
@@ -56,21 +70,25 @@ private void main(mixed *arg, mapping flags) {
 	outf("update: file is a directory.\n");
 	return 0;
     }
-    if(file_size(file+".c") && shell_ob)  shell_ob->set_cwf(file+".c");
+
+    if(file_size(file+".c") && shell_ob)
+      shell_ob->set_cwf(file+".c");
+
     obs = ({});
     if ((ob = find_object(file)) && ob != find_object(VOID_ROOM)) {
-	obs = filter(all_inventory(ob), function(object ob) 
-		     {
-			 object link = ob->query_link();
-			 if (link && interactive(link)) {
-			     ob->move(VOID_ROOM);
-			     return 1;
-			 }
-			 destruct(ob);
-			 return 0;
-		     } );
+	obs = filter(all_inventory(ob), function(object ob)
+	     {
+		 object link = ob->query_link();
+		 if (link && interactive(link)) {
+		     ob->move(VOID_ROOM);
+		     return 1;
+		 }
+		 destruct(ob);
+		 return 0;
+	     } );
     }
-    if (file[<2..<1] != ".c" && file[<4..<1] != ".scr") file += ".c";
+    if (file[<2..<1] != ".c" && file[<4..<1] != ".scr")
+      file += ".c";
     if (do_update(file,deep_up) < time())
         out(file + ": No update necessary.\n");
 
@@ -82,17 +100,19 @@ int do_update(string file, int deep)
     object ob;
     int tmp;
     int newest_inh = 0;
-    
+
     if (deep == 3) {
 	mixed *info = stat(file);
 	ob = load_object(file);
 
 	foreach (string fn in inherit_list(ob)) {
-	    tmp = do_update(fn, (deep>1?deep:0));
-	    if (tmp > newest_inh) newest_inh = tmp;
+	    tmp = do_update(fn, (deep>1 ? deep : 0));
+	    if (tmp > newest_inh)
+	      newest_inh = tmp;
 	}
 	if (sizeof(info)) {
-	    if (info[1] > newest_inh) newest_inh = info[1];
+	    if (info[1] > newest_inh)
+	      newest_inh = info[1];
 
 	    // return if object isn't out of date.
 	    if (info[2] >= newest_inh)

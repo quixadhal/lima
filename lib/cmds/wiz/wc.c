@@ -1,5 +1,13 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+//usage: wc [-lw] <filename(s)>
+//
+//Gives wordcount (and linecount) of the file specified.
+//The 2 flags specify what to count :
+//-l = linecount only
+//-w = wordcount only
+
 inherit CMD;
 inherit M_REGEX;
 

@@ -43,26 +43,26 @@ mixed direct_verb_rule(string verb,string rule,mixed args...)
 {
   mixed temp;
   if(this_object()->is_container())
+  {
+    string aliased_to;
+    if(rule=="WRD OBJ")
     {
-      string aliased_to;
-      if(rule=="WRD OBJ")
-	{
-	  args[0]=PREPOSITION_D->translate_preposition(args[0]);
-	  aliased_to=is_relation_alias(args[0]);
-	  if(!valid_relation(args[0]))
-	    {
-	      if(!aliased_to)
-		return 0;
-	      args[0]=aliased_to;
+      args[0]=PREPOSITION_D->translate_preposition(args[0]);
+      aliased_to=is_relation_alias(args[0]);
+      if(!valid_relation(args[0]))
+      {
+        if(!aliased_to)
+          return 0;
+        args[0]=aliased_to;
 	    }
-	}
     }
-  if(this_object()->is_exit())
-    {
-      temp=this_object()->complex_exit_direct_verb_rule(verb,rule,args...);
-      if(!temp||stringp(temp))
-	return temp;
-    }
+  } else if(this_object()->is_exit()){
+    temp=this_object()->complex_exit_direct_verb_rule(verb,rule,args...);
+    if(!temp||stringp(temp))
+      return temp;
+  } else {
+    return 0;
+  }
   return default_object_checks();
 }
 
@@ -70,21 +70,21 @@ mixed direct_verb_rule(string verb,string rule,mixed args...)
 //The default handling for all verbs.
 int do_verb_rule(string verb,string rule,mixed args...)
 {
-   if(this_object()->is_container())
+  if(this_object()->is_container())
+  {
+    string aliased_to;
+    if(rule=="WRD OBJ")
     {
-      string aliased_to;
-      if(rule=="WRD OBJ")
-	{
-	  args[0]=PREPOSITION_D->translate_preposition(args[0]);
-	  aliased_to=is_relation_alias(args[0]);
-	  if(!valid_relation(args[0]))
+      args[0]=PREPOSITION_D->translate_preposition(args[0]);
+      aliased_to=is_relation_alias(args[0]);
+      if(!valid_relation(args[0]))
 	    {
-	      args[0]=aliased_to;
-	    }
-	}
+        args[0]=aliased_to;
+      }
     }
-   if(this_object()->is_exit())
-      this_object()->complex_exit_do_verb_rule(verb,rule,args...);
+  }
+  if(this_object()->is_exit())
+    this_object()->complex_exit_do_verb_rule(verb,rule,args...);
 }
 
 //:FUNCTION direct_get_obj
@@ -113,21 +113,26 @@ mixed direct_get_obj(object ob)
 //:FUNCTION direct_get_obj_from_obj
 //Handle parser checks for "get OBJ from OBJ"
 //From doesn't care what relation Object 1 is in.
-mixed direct_get_obj_from_obj(object ob1, object ob2) {
-    if (ob2 != 0 && environment(ob1) != ob2) return 0;
-    return call_hooks("prevent_get", HOOK_YES_NO_ERROR);
+mixed direct_get_obj_from_obj(object ob1, object ob2)
+{
+  if (ob2 != 0 && environment(ob1) != ob2) return 0;
+  return call_hooks("prevent_get", HOOK_YES_NO_ERROR);
 }
 
-//:FUNCTION direct_get_obj_wrd_obj
-//Handle parser checks for get.  WRD in this instance should be a valid 
-//relation in obj2
-
+//:FUNCTION direct_get_obj_from_wrd_obj
+//Handle parser checks for "get OBJ from WRD OBJ"
+//Leave the relation checks to indirect_
+mixed direct_get_obj_from_wrd_obj(object ob1, string rel, object ob2)
+{
+  return direct_get_obj_from_obj(ob1, ob2);
+}
 
 //:FUNCTION direct_put_obj_wrd_obj
 //Handle parser checks for "put OBJ WRD OBJ"     
-/* mixed direct_put_obj_wrd_obj(object ob1, object ob2) { */
-/*     return check_permission("put"); */
-/* } */
+mixed direct_put_obj_wrd_obj(object ob1, object ob2)
+{
+  return check_permission("put");
+}
 
 //:FUNCTION direct_get_obj_with_obj
 //Handle parser checks for "get OBJ with OBJ"
@@ -140,12 +145,12 @@ mixed direct_get_obj_with_obj(object ob1, object ob2) {
 //you to use objects you are carrying.
 //Most of the work is done in try_to_acquire.
 mixed need_to_have() {
-    mixed res = direct_get_obj(this_object());
-    if(!default_object_checks())
-      return 0;
-    if (res == "#You already have it!\n")
-	return 1;
-    return res;
+  mixed res = direct_get_obj(this_object());
+  if(!default_object_checks())
+    return 0;
+  if (res == "#You already have it!\n")
+    return 1;
+  return res;
 }
 
 //:FUNCTION direct_look_at_obj

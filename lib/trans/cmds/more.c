@@ -3,15 +3,14 @@
 // Originally a 5 line hack by someone :)
 // Modified by Beek when he successfully more'd /std/player (a directory)
 
-#include <mudlib.h>
-
 inherit CMD;
 
-
-
 //:COMMAND
+//USAGE : more <object(s)>
+//        more <filename(s)>
+//
 // Prints out the lines of a file
-// specification is : more obj|file*
+
 // we will recieve  : ({ array of files })
 
 private void main(mixed *arg, mapping flags, string stdin)

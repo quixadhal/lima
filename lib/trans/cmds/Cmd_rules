@@ -1,9 +1,9 @@
-addguest        str
 addpath		dir
 addto		fname|file
 at		user str*
 banish -sn	[str] str*
 cat	        [file*]
+cd              [dir|fname|obfile]
 cp -rf		file* fname|dir|file
 cut -f:d:       [file*]
 dataedit	file
@@ -14,28 +14,25 @@ find -in        str file*
 findfile -u	[str]
 force		user str*
 grep -inv	str [file|dir*]
+head -n:	[file*]
 in		obj str*
-listeners	[str|obj]
 loadall		dir
 ls -npsl	[file|dir*]
 mkdir		fname
 more		[obfile*]
 mv -rf		file* fname|dir|file
-removeguest     str
+renew		obj
 replace	-qn	str str file*
 rm		file*
 rmdir		dir*
 rmpath		dir
-shutdown -ct:	str*
 snoop		[user] [str*]
-unsnoop         [user]
-spew		file str*
+spew		file [str*]
 stat		obj
 tail -n:	[file*]
-head -n:	[file*]
-tsh		file
+testargs        [str*]
 times		num str*
+tsh		file
+unsnoop         [user]
 update	-rRz	[obfile*]
-renew		obj
-cd              [dir|fname|obfile]
 xargs	-!	str*

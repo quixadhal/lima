@@ -433,7 +433,7 @@ string diagnose()
    damaged_limbs = filter(query_limbs(),
                    (: query_health($1) < health[$1]->max_health :));
    foreach(string limb in damaged_limbs)
-      ret += diagnose_msg(health[limb]->health * 100 / health[limb]->max_health);
+      ret += diagnose_limb_msg(health[limb]->health * 100 / health[limb]->max_health, limb);
 
    if(ret == "")
       ret = "You are in excellent health.\n";

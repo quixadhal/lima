@@ -29,7 +29,7 @@
 #define ZBUG(x) TELL_BUG("zifnab",(x))
 #define ZABUG(x) TELL_BUG("zakk", (x))
 #define TBUG(x) TELL_BUG("tigran",(x))
-#define RABUG(x) TELL_BUG("rassilon",(x))
+#define LBUG(x) TELL_BUG("loriel",(x))
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))

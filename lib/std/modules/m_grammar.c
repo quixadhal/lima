@@ -17,8 +17,8 @@
 
 string pluralize(string str)
 {
-    switch (str)
-    {
+  switch (str)
+  {
     case "were": return "was";
     case "don't": return "doesn't";
     case "aren't": return "isn't";
@@ -29,14 +29,20 @@ string pluralize(string str)
     case "barf": return "barfs";
     case "snarf": return "snarfs";
     case "hum": return "hums";
-    }
+  }
 
-    if ( str[<2..<1] == "ff" )	/* e.g. "bluff" */
-	return str + "s";
-    if ( str[<5..<1] == "penis" )
-	return str + "es";
+  if ( str[<2..<1] == "ff" )	/* e.g. "bluff" */
+    return str + "s";
+// Temporary fix for MudOS v22.2b13 pluralizing elf as eves
+  if ( str[<1..<1] == "f" )
+{
+LBUG(str);
+    return str[0..<2] + "ves";
+}
+  if ( str[<5..<1] == "penis" )
+    return str + "es";
 
-    return efun::pluralize(str);
+  return efun::pluralize(str);
 }	
 
 // punctuate Written by Rust.

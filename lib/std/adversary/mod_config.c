@@ -49,7 +49,9 @@ void check_combat_config()
 #endif
 
 #if FORMULA_STYLE != FORMULA_SIMPLE && FORMULA_STYLE != FORMULA_STATS
+#if FORMULA_STYLE != FORMULA_SKILLS
    error("No valid formula style set.\n");
+#endif
 #endif
 
 /* We don't really care whether an advancement module is set or

@@ -67,7 +67,12 @@ string get_extra_long()
 //at it.
 string long()
 {
-  return get_base_long() + get_extra_long();
+  string ret = get_base_long() + get_extra_long();
+  if(this_user() && wizardp(this_user()))
+    if(sizeof(ANNOTATION_D->retrieve_annotations(base_name(this_object()))))
+      ret += "%^YELLOW%^Attached to it is a yellow sticky note, "
+          "bearing the word \"discuss\".\n%^RESET%^";
+  return ret;
 }
 
 protected string array discarded_message, plural_discarded_message;

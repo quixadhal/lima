@@ -1,6 +1,6 @@
 #/daemons/news_d.c
-data ([])
-removed ([])
+data (["reporter.question":(["next_id":1,]),"reporter.bugs":(["next_id":1,]),"reporter.ideas":(["next_id":1,]),"reporter.discussion":(["next_id":1,]),"reporter.typos":(["next_id":1,]),"wiz.general":(["next_id":1,]),"reporter.todo":(["next_id":1,]),"admin.general":(["next_id":1,]),])
+removed (["reporter.question":({}),"reporter.bugs":({}),"reporter.ideas":({}),"reporter.discussion":({}),"reporter.typos":({}),"wiz.general":({}),"reporter.todo":({}),"admin.general":({}),])
 archive_info ([])
-restrictions ([])
+restrictions (["admin":({"admin","admin",}),"reporter":({0,"wiz",}),"wiz":({"wiz","wiz",}),"reporter.todo":({"wiz","wiz",}),])
 mail_forward ([])

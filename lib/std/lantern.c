@@ -33,7 +33,12 @@ void mudlib_setup()
    light_object::mudlib_setup();
    add_save( ({ "num_decays" }) );
    set_id("lantern");
+#ifdef USE_SIZE
    set_size(MEDIUM);
+#endif
+#ifdef USE_MASS
+   set_mass(MEDIUM);
+#endif
    set_long("It's an unremarkable lantern.");
    set_fuel(3600);
    set_gettable(1);

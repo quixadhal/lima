@@ -6,7 +6,11 @@
 ** 960522, Deathblade: Created.
 */
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//USAGE skills
+//
+//Prints out a list of your skills (if you have any, and the mud uses them)
+
 #include <config.h>
 #include <classes.h>
 
@@ -16,29 +20,28 @@ inherit CLASS_SKILL;
 private void main(string arg)
 {
 #ifndef USE_SKILLS
-    out(mud_name() + " has no player skills, sorry.\n");
+  out(mud_name() + " has no player skills, sorry.\n");
 #else
 
-    mapping skills = this_body()->get_skills();
-    string array names;
+  mapping skills = this_body()->get_skills();
+  string array names;
 
-    if ( sizeof(skills) == 0 )
-    {
-	out("You have no skills.\n");
-	return;
-    }
-    names = sort_array(keys(skills), 1);
-    outf("%-20s %8s  %8s\n%*'-'s\n", "Skill", "Points", "Training", 50, "");
+  if ( sizeof(skills) == 0 )
+  {
+    out("You have no skills.\n");
+    return;
+  }
+  names = sort_array(keys(skills), 1);
+  outf("%-20s %8s  %8s\n%*'-'s\n", "Skill", "Points", "Training", 50, "");
 
-    foreach ( string name in names )
-    {
-	class skill skill = skills[name];
-	string * parts = explode(name, "/");
-	string name2 = repeat_string("   ", sizeof(parts)-1) + parts[<1];
-	
-	outf("%-20s %8d  %8d\n",
-	     name2, skill->skill_points, skill->training_points);
-    }
+  foreach ( string name in names )
+  {
+    class skill skill = skills[name];
+    string * parts = explode(name, "/");
+    string name2 = repeat_string("   ", sizeof(parts)-1) + parts[<1];
 
+    outf("%-20s %8d  %8d\n",
+        name2, skill->skill_points, skill->training_points);
+  }
 #endif /* USE_SKILLS */
 }

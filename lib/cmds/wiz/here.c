@@ -15,13 +15,21 @@
 // Temporary?  Funny how long some things last .... (Beek, about
 // 2 years later)
 
-#include <mudlib.h>
+//:COMMAND
+//USAGE:  here
+//
+//This command shows you the pathname to the file of the object
+//you are currently in.
+//
+//here
+//
+//Grand Hall: [/domains/std/wizroom
+
 inherit CMD;
 
-
-
-private void main() {
-   object env;
-   env = environment(this_body());
-   outf("%s: [%s]\n",env->short(),file_name(env));
+private void main()
+{
+  object env;
+  env = environment(this_body());
+  outf("%s: [%s]\n",env->short(),file_name(env));
 }

@@ -1,0 +1,4 @@
+USAGE: rehash
+
+Resets the stored list of commands.
+Use this to implement any new commands after adding them.

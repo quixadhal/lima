@@ -22,35 +22,23 @@ private string array damage_type = ({ "blow" });
 private nosave mapping def_combat_messages = ([]);
 private mapping combat_messages = ([]);
 
-mixed adjust_my_result(mixed result)
-{
-  return result;
-}
+mixed adjust_my_result(mixed result){ return result; }
 
-int query_to_hit_bonus(object target)
-{
-  return to_hit_bonus;
-}
+int query_to_hit_bonus(object target){ return to_hit_bonus; }
 
-void set_to_hit_bonus(int x)
-{
-  to_hit_bonus = x;
-}
+void set_to_hit_bonus(int x){ to_hit_bonus = x; }
 
-string array query_damage_type()
-{
-  return damage_type;
-}
+string array query_damage_type(){ return damage_type; }
 
 void set_damage_type(string array str...)
 {
+  string array exclude = str - DAMAGE_D->query_damage_types();
+  if(sizeof(exclude))
+    error("Invalid damage type(s) : " + implode(exclude,","));
   damage_type = str;
 }
 
-int is_weapon()
-{
-  return 1;
-}
+int is_weapon(){ return 1; }
 
 //:FUNCTION set_combat_messages
 //Set the set of combat messages which are used by default
@@ -92,28 +80,16 @@ void add_combat_message(string type, string msg)
                                       def_combat_messages[type]);
 }
 
-void set_weapon_class(int x)
-{
-  weapon_class = x;
-}
+void set_weapon_class(int x){ weapon_class = x; }
 
-int query_weapon_class()
-{
-  return weapon_class;
-}
+int query_weapon_class(){ return weapon_class; }
 
 #ifdef USE_SKILLS
 private string skill_used = "combat/unarmed";
 
-string query_skill_used()
-{
-  return skill_used;
-}
+string query_skill_used(){ return skill_used; }
 
-void set_skill_used(string new_skill_used)
-{
-  skill_used = new_skill_used;
-}
+void set_skill_used(string new_skill_used){ skill_used = new_skill_used; }
 #endif
 
 mapping lpscript_attributes()
@@ -125,7 +101,4 @@ mapping lpscript_attributes()
     ]);
 }
 
-class event_info source_modify_event(class event_info evt)
-{
-  return evt;
-}
+class event_info source_modify_event(class event_info evt){ return evt; }

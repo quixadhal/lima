@@ -1,6 +1,27 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:PLAYERCOMMAND
+//$$ see: feelings, random, semote
+//
+//USAGE:	adverbs [pattern]
+//
+//Without an argument, shows all adverbs that you can use in soul commands.
+//With an argument, shows all adverbs matching the given pattern.
+//
+//Example:
+//    adverbs f*ly
+//
+// will show you all adverbs that start w/ 'f' and end in 'ly'
+//
+//To use an adverb in a soul command, use as much of the adverb as necessary
+//to uniquely identify it, followed by a *.
+//
+//For example:
+//    smile fla*
+//
+//will translate to: 'smile flatly'.
+//
+//But: 'smile fl*' will not, because 'flirtingly' also starts with fl.
 
 inherit CMD;
 inherit M_GLOB;

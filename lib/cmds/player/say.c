@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-//:COMMAND
+//:PLAYERCOMMAND
 //
 // Syntax: <say MESSAGE>
 //         <say /last>
@@ -20,56 +20,60 @@ inherit M_GRAMMAR;
 
 void create()
 {
-    ::create();
-    no_redirection();
+  ::create();
+  no_redirection();
 }
 
 private void main(string str)
 {
-    string array msgs;
-    object array others = ({});
-    object ob;
+  string array msgs;
+  object array others = ({});
+  object ob;
 
-    // Collect speech recipients upwards through environments,
-    // where proper. Not possible to use normal message propagation
-    // if you want to save say history in the body object.
-    // -- Marroc
-    ob = this_body();
-    while (ob && ob->environment_can_hear()) {
-	others += all_inventory(environment(ob)) - ({ ob });
-	ob = environment(ob);
-    }
+// Collect speech recipients upwards through environments,
+// where proper. Not possible to use normal message propagation
+// if you want to save say history in the body object.
+// -- Marroc
+  ob = this_body();
+  while (ob && ob->environment_can_hear())
+  {
+    others += all_inventory(environment(ob)) - ({ ob });
+    ob = environment(ob);
+  }
 
-    if (!str || str == "")  {
-	out("Say what?\n");
-	return;
-    }
-    switch(explode(str," ")[0]) {
-	string array out=({});
+  if (!str || str == "")
+  {
+    out("Say what?\n");
+    return;
+  }
+  switch(explode(str," ")[0])
+  {
+    string array out=({});
     case "/last":
     case "/history":
-	out=({"History of says:\n"});
-	msgs=HISTORY_OB->list_say_history();
-	if(sizeof(msgs))
-	    out+=msgs;
-	else
-	    out+=({"\t<none>"});
-	more(out);
-	break;
+      out=({"History of says:\n"});
+      msgs=HISTORY_OB->list_say_history();
+      if(sizeof(msgs))
+        out+=msgs;
+      else
+        out+=({"\t<none>"});
+      more(out);
+      break;
     default:
-	msgs=this_body()->action(({this_body()}),
-	  "%^SAY%^$N $vsay:%^RESET%^ $o",
-	  punctuate(str));
-	this_body()->inform(({this_body()}),msgs,others);
+      msgs=this_body()->action(({this_body()}),
+          "%^SAY%^$N $vsay:%^RESET%^ $o",
+          punctuate(str));
+      this_body()->inform(({this_body()}),msgs,others);
 #ifndef SAY_HISTORY_IN_ROOMS
-	HISTORY_OB->add_say_history(msgs[0]);
-	others->add_say_history(msgs[1]);
+      HISTORY_OB->add_say_history(msgs[0]);
+      others->add_say_history(msgs[1]);
 #else
-	HISTORY_OB->add_say_history(msgs[1]);
+      HISTORY_OB->add_say_history(msgs[1]);
 #endif
-    }
+  }
 }
 
-nomask int valid_resend(string ob) {
-    return ob == "/cmds/player/converse";
+nomask int valid_resend(string ob)
+{
+  return ob == "/cmds/player/converse";
 }

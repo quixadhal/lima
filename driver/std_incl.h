@@ -8,6 +8,9 @@
 #  include <unistd.h>
 #endif
 
+//To force use of <stdarg.h> - gcc 3.3 ceased support of <varargs.h>
+#define INCL_STDARG_H
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <setjmp.h>

@@ -11,7 +11,12 @@ void mudlib_setup()
 {
     set_id("flame", "fire");
     set_long( "It's a pleasant little fire.");
+#ifdef USE_SIZE
     set_size( SMALL );
+#endif
+#ifdef USE_MASS
+    set_mass( SMALL );
+#endif
     set_getmsg( "#It would burn you.\n" );
 }
 
@@ -24,4 +29,10 @@ mixed indirect_light_obj_with_obj( object obj, object with )
     if(stringp(sf))
 	return with->id(sf);
     return evaluate( sf, with );
+}
+
+
+mapping lpscript_attributes()
+{
+    return m_gettable::lpscript_attributes() + object::lpscript_attributes();
 }

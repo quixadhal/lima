@@ -20,37 +20,27 @@
  * INHERIT
  */
 inherit OBJ;
+inherit "/std/container/vsupport";
 
 #ifdef SAY_HISTORY_IN_ROOMS
 inherit "/std/body/history";
 #endif 
-
 
 /* 
  * CLASS DEFINITIONS
  */
 class relation_data
 {
-    object array contents;              /* All of the objects associated with 
-					 * that relation */
-    int max_capacity;                   /* The maximum capacity that can be 
-					 * maintained by that relation. */
-    int hidden;                         /* Whether or not the contents in 
-					 * this relation can be seen or not */
-    int attached;                       /* Determines whether or not the contents
-					 * of the relation will be added to 
-					 * the relations mass/size when calc'd */
-    mixed hidden_func;                  /* Function or int to be evaluated 
-					 * to determine whether or not the
-					 * contents of the relation can be seen*/
-    mapping create_on_reset;            /* A mapping containing filenames, 
-					 * quantities and parameters needed for
-					 * objects to be updated every reset()
-					 * in the relation */
-    mapping create_unique_on_reset;     /* Mapping similar to that above, but 
-					 * the entire game is checked for the
-					 * existance of the object before cloning
-					 */
+  object array contents;           /* All of the objects associated with that relation */
+  int max_capacity;                /* The maximum capacity of that relation. */
+  int hidden;                      /* Whether the contents in this relation can be seen */
+  int attached;                    /* Whether the contents of the relation will be added to 
+                                      the relation's mass/size when calc'd */
+  mixed hidden_func;               /* Function or int to be evaluated to determine visibility */
+  mapping create_on_reset;         /* A mapping of filenames, quantities and parameters needed for
+                                      objects to be updated as required every reset() in the relation */
+  mapping create_unique_on_reset;  /* Mapping similar to that above, but the entire game is checked for the
+                                      existance of the object before cloning */
 }
 
 /* 
@@ -85,33 +75,33 @@ int inventory_visible();
 /* Return 1 if the relation is valid, else 0 */
 private nomask int valid_relation(string relation)
 {
-    relation=PREPOSITION_D->translate_preposition(relation);
-    if(member_array(relation,keys(relations))==-1)
-	return 0;
-    return 1;
+  relation=PREPOSITION_D->translate_preposition(relation);
+  if(member_array(relation,keys(relations))==-1)
+    return 0;
+  return 1;
 }
 
 //:FUNCTION query_relation
 //Return the relation which the given object is conatained by
 string query_relation(object ob)
 {
-    foreach(string test,class relation_data values in relations)
+  foreach(string test,class relation_data values in relations)
     if(member_array(ob,values->contents)>-1)
-	return test;
+      return test;
 }
 
 //:FUNCTION add_relation
 //Add a relation to the complex container.
 varargs void add_relation(string relation,int max_capacity,int hidden)
 {
-    class relation_data new_relation=new(class relation_data);
-    relation=PREPOSITION_D->translate_preposition(relation);
-    new_relation->max_capacity=max_capacity;
-    new_relation->hidden=hidden;
-    new_relation->contents=({});
-    new_relation->create_on_reset=([]);
-    new_relation->create_unique_on_reset=([]);
-    relations[relation]=new_relation;
+  class relation_data new_relation=new(class relation_data);
+  relation=PREPOSITION_D->translate_preposition(relation);
+  new_relation->max_capacity=max_capacity;
+  new_relation->hidden=hidden;
+  new_relation->contents=({});
+  new_relation->create_on_reset=([]);
+  new_relation->create_unique_on_reset=([]);
+  relations[relation]=new_relation;
 }
 
 //:FUNCTION remove_relations
@@ -119,105 +109,103 @@ varargs void add_relation(string relation,int max_capacity,int hidden)
 //if they are unoccupied.
 void remove_relations(string array rels...)
 {
-    foreach(string rel in rels)
-    {
-	rel=PREPOSITION_D->translate_preposition(rel);
-	if(sizeof(relations[rel]->contents))
-	    continue;
-	map_delete(relations,rel);
-    }
+  foreach(string rel in rels)
+  {
+    rel=PREPOSITION_D->translate_preposition(rel);
+    if(sizeof(relations[rel]->contents))
+      continue;
+    map_delete(relations,rel);
+  }
 }
 
 //:FUNCTION set_relations
 //Set the relations which are legal for a complex container.  Example:
 //set_relations("on", "in", "under").  The first one is the default
 //relation (the one used by set_objects(), etc)
-void set_relations(string array rels...) {
-    /* Ok, a bit tricky here.  We can't remove relations if there is an
-       object occupying that, so we remove all relations with no objects,
-       and add the new ones */
-    /* Cheat and remove_relations() instead, it handles this already -- Tigran */
-    remove_relations(keys(relations)...);
-    foreach(string rel in rels)
-    add_relation(rel,VERY_LARGE);
+void set_relations(string array rels...)
+{
+/* Ok, a bit tricky here.  We can't remove relations if there is an
+   object occupying that, so we remove all relations with no objects,
+   and add the new ones */
+/* Cheat and remove_relations() instead, it handles this already -- Tigran */
+  remove_relations(keys(relations)...);
+  foreach(string rel in rels)
+  add_relation(rel,VERY_LARGE);
 }
 
 //:FUNCTION get_relations
 //Return all of the possible relations for an object
-string array get_relations()
-{
-    return keys(relations);
-}
+string array get_relations(){ return keys(relations); }
 
 //:FUNCTION is_relation_alias
 //Determine whether or not the relation is valid and return which relation
 //the alias is associated with.
 string is_relation_alias(string test)
 {
-    foreach(string relation,mixed aliases in relation_aliases)
-    {
-	if(member_array(test,aliases)>-1)
-	    return relation;
-    }
-    return 0;
+  foreach(string relation,mixed aliases in relation_aliases)
+  {
+    if(member_array(test,aliases)>-1)
+      return relation;
+  }
+  return 0;
 }
 
 //:FUNCTION set_relation_alias
 //Set the aliases that a relation has
 void set_relation_alias(string relation,string aliases...)
 {
-    string aliased_to;
-    relation=PREPOSITION_D->translate_preposition(relation);
-    aliased_to=is_relation_alias(relation);
-    if(!valid_relation(relation))
-    {
-	if(!aliased_to)
-	    error("Cannot set a relation alias to a nonexistant relation");
-	relation=aliased_to;
-    }
-    relation_aliases[relation]=flatten_array(aliases);
+  string aliased_to;
+  relation=PREPOSITION_D->translate_preposition(relation);
+  aliased_to=is_relation_alias(relation);
+  if(!valid_relation(relation))
+  {
+    if(!aliased_to)
+      error("Cannot set a relation alias to a nonexistant relation");
+    relation=aliased_to;
+  }
+  relation_aliases[relation]=flatten_array(aliases);
 }
 
 //:FUNCTION add_relation_alias
 //Add additional aliases that a relation has.
 void add_relation_alias(string relation,string aliases...)
 {
-    string aliased_to;
-    relation=PREPOSITION_D->translate_preposition(relation);
-    aliased_to=is_relation_alias(relation);
-    if(!valid_relation(relation))
-    {
-	if(!aliased_to)
-	    error("Cannot add a relation alias to a nonexistant relation");
-	relation=aliased_to;
-    }
-    if(!sizeof(relation_aliases[relation]))
-	set_relation_alias(relation,aliases...);
-    else
-	relation_aliases[relation]=flatten_array(relation_aliases[relation]+aliases);
+  string aliased_to;
+  relation=PREPOSITION_D->translate_preposition(relation);
+  aliased_to=is_relation_alias(relation);
+  if(!valid_relation(relation))
+  {
+    if(!aliased_to)
+      error("Cannot add a relation alias to a nonexistant relation");
+    relation=aliased_to;
+  }
+  if(!sizeof(relation_aliases[relation]))
+    set_relation_alias(relation,aliases...);
+  else
+    relation_aliases[relation]=flatten_array(relation_aliases[relation]+aliases);
 }
 
 //FUNCTION remove_relation_alias
 //Remove aliases that a relation has.
 void remove_relation_alias(string relation,string aliases...)
 {
-    relation_aliases[relation]-=aliases;
-    if(!sizeof(relation_aliases))
-	map_delete(relation_aliases,relation);
+  relation_aliases[relation]-=aliases;
+  if(!sizeof(relation_aliases))
+    map_delete(relation_aliases,relation);
 }
 
 //:FUNCTION query_relation_aliases
 //Return the array of aliases that a relation has.
 string array query_relation_aliases(string relation)
 {
-    return relation_aliases[relation];
+  return relation_aliases[relation];
 }
 
 //:FUNCTION list_relation_aliases
 //List all of the relation alias information
 mapping list_relation_aliases()
 {
-    return relation_aliases;
+  return relation_aliases;
 }
 
 //:FUNCTION set_default_relation
@@ -225,24 +213,21 @@ mapping list_relation_aliases()
 //relation is specified on many functions
 void set_default_relation(string set)
 {
-    string aliased_to;
-    set=PREPOSITION_D->translate_preposition(set);
-    aliased_to=is_relation_alias(set);
-    if(!valid_relation(set))
-    {
-	if(!aliased_to)
-	    error("Cannot set a nonexistant relation as default");
-	default_relation=aliased_to;
-    }
-    default_relation=set;
+  string aliased_to;
+  set=PREPOSITION_D->translate_preposition(set);
+  aliased_to=is_relation_alias(set);
+  if(!valid_relation(set))
+  {
+    if(!aliased_to)
+      error("Cannot set a nonexistant relation as default");
+    default_relation=aliased_to;
+  }
+  default_relation=set;
 }
 
 //:FUNCTION query_default_relation
 //Returns the default relation for the container.  See set_default_relation.
-string query_default_relation()
-{
-    return default_relation;
-}
+string query_default_relation(){ return default_relation; }
 
 
 /********    Capacity   ********/
@@ -252,33 +237,33 @@ string query_default_relation()
 //Returns the amount of mass currently attached to a container
 varargs int query_capacity(string relation)
 {
-    int cap;
-    string aliased_to;
-    /* Need a little special handling for #CLONE# */
-    if(!relation||relation==""||relation=="#CLONE#")
-	relation=query_default_relation();
-    relation=PREPOSITION_D->translate_preposition(relation);
-    aliased_to=is_relation_alias(relation);
-    if(!valid_relation(relation))
+  int cap;
+  string aliased_to;
+/* Need a little special handling for #CLONE# */
+  if(!relation||relation==""||relation=="#CLONE#")
+    relation=query_default_relation();
+  relation=PREPOSITION_D->translate_preposition(relation);
+  aliased_to=is_relation_alias(relation);
+  if(!valid_relation(relation))
+  {
+    if(!aliased_to)
+      return 0;
+    relation=aliased_to;
+  }
+  foreach(object ob in relations[relation]->contents)
+  {
+    if(!ob)
     {
-	if(!aliased_to)
-	    return 0;
-	relation=aliased_to;
+      relations[relation]->contents-=({ob});
+      continue;
     }
-    foreach(object ob in relations[relation]->contents)
-    {
-	if(!ob)
-	{
-	    relations[relation]->contents-=({ob});
-	    continue;
-	}
 #ifdef USE_SIZE 
-	cap+=ob->query_size();
+    cap+=ob->query_size();
 #else
-	cap+=ob->query_mass();
+    cap+=ob->query_mass();
 #endif
-    }
-    return cap;
+  }
+  return cap;
 }
 
 //:FUNCTION set_max_capacity
@@ -406,19 +391,22 @@ void reinsert_object( object target, string relation )
 
 string long()
 {
-    string res;
-    string contents;
+  string res;
+  string contents;
 
-    res = simple_long();
-    if (!inventory_visible()) return res;
-
-    foreach (string rel,class relation_data data in relations) {
-	contents = inv_list(data->contents, 1);
-	if (contents) {
-	    res += introduce_contents(rel) + contents;
-	}
-    }
+  res = simple_long();
+  if (!inventory_visible())
     return res;
+
+  foreach (string rel,class relation_data data in relations)
+  {
+    contents = inv_list(data->contents, 1);
+    if (contents)
+    {
+	    res += introduce_contents(rel) + contents;
+    }
+  }
+  return res;
 }
 
 //:FUNCTION look_in
@@ -741,19 +729,20 @@ varargs mixed array set_unique_objects(mapping m,string relation) {
 //:FUNCTION introduce_contents
 //returns a string appropriate for introduction the contents of an object
 //in room descriptions.
-varargs string introduce_contents(string relation) {
-    if(!relation||relation=="")
-	relation=query_default_relation();
-    relation=PREPOSITION_D->translate_preposition(relation);
-    switch (relation)
-    {
+varargs string introduce_contents(string relation)
+{
+  if(!relation||relation=="")
+    relation=query_default_relation();
+  relation=PREPOSITION_D->translate_preposition(relation);
+  switch (relation)
+  {
     case "in":
-	return capitalize(the_short()) + " contains:\n";
+      return capitalize(the_short()) + " contains:\n";
     case "on":
-	return "Sitting on "+the_short()+" you see:\n";
+      return "Sitting on "+the_short()+" you see:\n";
     default:
-	return capitalize(relation)+" "+the_short()+" you see:\n";
-    }
+      return capitalize(relation)+" "+the_short()+" you see:\n";
+  }
 }
 
 /* //:FUNCTION inventory_header */
@@ -766,43 +755,53 @@ varargs string introduce_contents(string relation) {
 /*     } */
 /* } */
 
-varargs string inventory_recurse(int depth, mixed avoid) {
-    string res;
-    object array obs;
-    int i;
-    string str="";
-    string tmp;
+varargs string inventory_recurse(int depth, mixed avoid)
+{
+  string res;
+  object array obs;
+  int i;
+  string str="";
+  string tmp;
 
-    if (avoid) 
+  if (avoid) 
+  {
+    if(!arrayp(avoid))
+      avoid = ({ avoid });
+  } else
+    avoid = ({});
+
+
+  if (!this_object()->is_living())
+  {
+    obs = all_inventory() - avoid;
+    foreach (object ob in obs)
     {
-	if(!arrayp(avoid))
-	    avoid = ({ avoid });
-	obs = all_inventory() - avoid;
+      if (!(ob->is_visible()))
+        continue;
+	    if (!ob->test_flag(TOUCHED) && ob->untouched_long())
+	    {
+        str += ob->untouched_long()+"\n";
+        if (ob->inventory_visible())
+          if (!ob->is_living())
+            str += ob->inventory_recurse(0, avoid);
+      }
     }
-    else
-	obs = all_inventory();
-
-    if (!this_object()->is_living()) {
-	foreach (object ob in obs) {
-	    if (!(ob->is_visible())) continue;
-	    if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
-		str += ob->untouched_long()+"\n";
-		if (ob->inventory_visible())
-		    if (!ob->is_living())
-			str += ob->inventory_recurse(0, avoid);
-	    }
-	}
-    }
-    if (!this_object()->is_living()) {
-	foreach(string key,mixed data in relations) {
+  }
+  if (!this_object()->is_living())
+  {
+    foreach(string key,mixed data in relations)
+    {
 	    res = introduce_contents(key);
-	}
-	if (tmp = inv_list(obs, 1, depth)) {
-	    for (i=0; i<depth; i++) str += "  ";
-	    str += res + tmp;
-	}
+	    tmp = inv_list(data->contents-avoid, 1, depth);
+      if (tmp)
+      {
+        for (i=0; i<depth; i++)
+          str += "  ";
+        str += res + tmp;
+      }
     }
-    return str;
+  }
+  return str;
 }
 
 string show_contents()
@@ -958,35 +957,10 @@ mapping lpscript_attributes()
     ]);
 }
 
-//:FUNCTION indirect_verb_rule
-// The default verb handling where the container is an indirect object.  
-mixed indirect_verb_rule(string verb,string rule,mixed second,mixed third,mixed fourth)
-{
-    string aliased_to;
-    third=PREPOSITION_D->translate_preposition(third);
-    // The third should /always/ be the relation.  If this is in err..oops --Tig
-    aliased_to=is_relation_alias(third);
-    //  if(!valid_relation(third))
-    //    {
-    //      if(!aliased_to)
-    //	return 0;
-    //      third=aliased_to;
-    //    }
-    //  if(query_relation(second)!=third)
-    //    return 0;
-    if(!is_visible())
-	return "not visible";
-    if(!short())
-	return "no short";
-    if(this_object()->query_closed()&&third=="in")
-	return "closed";
-    return 1;
-}
-
 
 /********    Miscellaneous    ********/
 
-//:FUNCTION container
+//:FUNCTION is_container
 //Returns 1 if an object is a container
 int is_container()  { return 1; }
 

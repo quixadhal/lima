@@ -3,7 +3,7 @@
 /*
 ** DESIGN
 **
-**   Skills are represented as slash-seperated names, organized as a tree
+**   Skills are represented as slash-separated names, organized as a tree
 **   of skills.  Learning a skill propagates improvement up the chain to
 **   the parent skills.  The total, aggregate value of a skill at any point
 **   is computed from a skill and all of its parent skills.  This implies
@@ -43,6 +43,7 @@
 **   against the opposing skill (MAX if you're totally outclassed or MIN
 **   if you stomp all over your opponent).
 **
+**   All these parameters are set in the skills.h file.
 **
 ** Note: policy decision says that we aren't protecting skills from
 **       "unauthorized" tampering.  This is consistent with much of
@@ -51,21 +52,13 @@
 */
 
 #include <classes.h>
+#include <skills.h>
 
 inherit CLASS_SKILL;
 
 private mapping skills = ([ ]);
 
-#define MAX_SKILL_VALUE		10000
-#define LEARNING_FACTOR		10	/* divide new by 1/N of current */
-#define TRAINING_FACTOR		10	/* 1/N goes to training pts */
-#define PROPAGATION_FACTOR	2	/* 1/N propagates upward */
-#define AGGREGATION_FACTOR	3	/* 1/N^i of parent skills aggregate
-					   into the specified skill */
-#define SKILL_ON_FAILURE	1	/* learn by N on failure */
-#define SKILL_MIN_ON_WIN	2	/* minimum to learn on a win */
-#define SKILL_MAX_ON_WIN	20	/* maximum to learn on a win */
-
+int base_test_skill(string skill, int opposing_skill);
 
 class skill set_skill(string skill, int skill_points, int training_points)
 {
@@ -177,56 +170,41 @@ void learn_skill(string skill, int value)
 }
 
 //:FUNCTION test_skill
-// Test whether this users' skill succeeds against a given opposing skill
-// level.  Returns 1 for success of this user.
+// This replaces the basic adversary test_skill function,
+// adding an attempt to improve the skill
 int test_skill(string skill, int opposing_skill)
 {
-    int total_skill;
-    int amount;
-    int combined_total;
+  int total_skill;
+  int amount;
+  int combined_total;
+  int res;
 
-    total_skill = aggregate_skill(skill);
-    combined_total = total_skill + opposing_skill;
+  total_skill = aggregate_skill(skill);
+  combined_total = total_skill + opposing_skill;
 
-    /*
-    ** If both participants are unskilled, then make them evenly matched.
-    ** (and avoid divide by zero errors :-)
-    */
-    if ( !combined_total )
-    {
-	total_skill = opposing_skill = 1;
-	combined_total = 2;
-    }
+  res = base_test_skill(skill, opposing_skill);
 
-    /*
-    ** total_skill should be total_skill/opposing_skill more likely to win
-    ** than opposing_skill.  The formula below works this way.  For example,
-    ** total_skill == 100, opposing_skill == 50.  This user has a 2/3 chance
-    ** of winning.
-    */
-    if ( random(combined_total) < opposing_skill )
-    {
-	/* FAILED!  Bump the skill a bit on a failure. */
-	learn_skill(skill, SKILL_ON_FAILURE);
-	return 0;
-    }
-
-    /*
-    ** Successful skill attempts win a number of skill points based on
-    ** the ratio between the total_skill and opposing_skill.
-    **
-    ** The range is MIN to MAX, centered between the two for evenly matched
-    ** skills.  As the opposing skill increases, so does the amount learned.
-    */
+  if(res)
+  {
+/*
+ ** Successful skill attempts win a number of skill points based on
+ ** the ratio between the total_skill and opposing_skill.
+ **
+ ** The range is MIN to MAX, centered between the two for evenly matched
+ ** skills.  As the opposing skill increases, so does the amount learned.
+ */
     amount = ( ( (SKILL_MAX_ON_WIN - SKILL_MIN_ON_WIN) * opposing_skill
-		 + (combined_total / 2) )
-	       / combined_total
-	       + SKILL_MIN_ON_WIN
-	       );
+           + (combined_total / 2) )
+           / combined_total
+           + SKILL_MIN_ON_WIN
+           );
     learn_skill(skill, amount);
-
-    return 1;
+  }
+  else
+    learn_skill(skill, SKILL_ON_FAILURE);
+  return res;
 }
+
 
 //:FUNCTION query_evaluation
 //Returns the player's overall evaluation (0 to 100 percent) of their skill

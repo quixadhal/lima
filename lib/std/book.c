@@ -343,7 +343,12 @@ void mudlib_setup()
 {
   ::mudlib_setup();
   set_id( "book" );
+#ifdef USE_SIZE
   set_size( SMALL );
+#endif
+#ifdef USE_MASS
+  set_mass( SMALL );
+#endif
   add_hook("open",open_hook);
   add_hook("close",close_hook);
   add_hook("extra_long",extra_long_hook);

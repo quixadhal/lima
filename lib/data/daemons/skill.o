@@ -1,2 +1,2 @@
 #/daemons/skill_d.c
-skills (["combat/backstab":1,"combat":1,"combat/archery":1,"spell/blind":1,"misc":1,"combat/disarm":1,"combat/unarmed":1,"spell/cure":1,"misc/climb":1,"orc/bite":1,"orc":1,"spell":1,"misc/throw":1,"spell/unlock":1,"spell/fireball":1,"misc/lockpick":1,])
+skills (["spell/disease":1,"combat/dodge":1,"spell/cure":1,"spell/blind":1,"combat/sword":1,"misc/lockpick":1,"misc/climb":1,"combat/disarm":1,"combat":1,"orc":1,"misc/throw":1,"spell/unlock":1,"orc/bite":1,"spell":1,"combat/unarmed":1,"combat/archery":1,"combat/backstab":1,"misc":1,"spell/fireball":1,])

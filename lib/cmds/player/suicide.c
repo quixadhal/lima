@@ -3,6 +3,16 @@
 // Based on passwd.c and admtool's nuke.
 // --OH.
 
+//:PLAYERCOMMAND
+//USAGE suicide
+//
+//This would allow you to completely obliterate your character from the game,
+//leaving no trace.
+//However, we're sure you wouldn't really want to do that,
+//so we've disabled it.
+//If you really really do want to be removed completely and irrevocably,
+//then mail the request to one of the admins.
+
 inherit M_INPUT;
 inherit CMD;
 

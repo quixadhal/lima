@@ -4,8 +4,12 @@
 //codefor
 //By Beek - derived from eval
 
+//:COMMAND
+//$$ see: treefor
+//USAGE: codefor <lpc expression>
+//
+//Displays a "disassembly" of the LPC expression.
 
-#include <mudlib.h>
 inherit CMD;
 
 void create()
@@ -26,7 +30,7 @@ private void main(string str)
     mixed ret;
     object o;
 
-    initial_write_to_file = 
+    initial_write_to_file =
         "#include <mudlib.h> \n"
         "#include <daemons.h>\n"
         "#include <config.h>\n"
@@ -40,7 +44,7 @@ private void main(string str)
     }
     write_file(tmp_file,str+";\n");
     write_file(tmp_file,"}\n");
-    
+
     ret = load_object(tmp_file);
     dump_prog(ret, 1, "/tmp/CODE_TMP_FILE");
     ret = read_file( "/tmp/CODE_TMP_FILE");

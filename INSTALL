@@ -1,0 +1,81 @@
+If at any point you have problems with these directions, log on to our
+Lima support mud, Lima Bean: lima.mudlib.org 7878.  Type 'news',
+and then post a report of your problems.  We'll help you as soon as
+humanly possible.
+
+
+
+How to install Lima:
+
+1) You must compile the driver for your machine:
+	a) cd to the driver directory
+	b) Type: ./build.MudOS
+	c) When it is done running, it will tell you to which make
+	   program to use: "make" or "gmake".  Type either "gmake install"
+	   or "make install", depending on which one it says.
+	d) When this is finished, you should have a driver and an
+	   addr_server in ../etc
+
+2) You must edit the mudlib configuration file.
+	a) cd ../etc
+	b) edit config.lima
+	c) follow the directions in the file
+
+3) Start your address server if one isn't running already (type this while
+   you're in the "etc" directory):
+	./addr_server 9990 &
+
+   Change the port number above as needed, ensuring that the config.lima
+   file matches the command line used to start the address server.
+
+3) Start the driver with the command (type this while in the "etc"
+   directory):
+	./driver config.lima &
+
+   Your mud should now be starting up.  When it says:
+	Accepting connections on port NNNN.
+
+   Then your mud is up.
+
+4) Log in to your mud.  Make sure you're the first person to do so --
+   whoever is first will become an admin!  After that, new users will
+   just be guest wizards (by default).
+
+   Connect to the mud, type a name, password, etc.  Once you are logged
+   in, you should be a full admin.  To verify this, type:
+	checkpriv 1
+
+   It should come back with:
+	Verified.  You have privilege '1'
+
+   In order to access all the admin commands, you will need to type:
+	resetpath
+
+5) Creating new admins;
+
+   You can convert other wizards after they log in into admins by adding
+   them into the "admin" domain.  Use the "admtool" command for this.
+
+6) Mudlib configuration:
+
+   Change any options you feel appropriate in /include/config.h.  You
+   MUST change the ADMIN_EMAIL define if you wish to use the Intermud
+   network.  The Intermud daemon will not load until you edit this line.
+
+   When you're done with any configuration changes, then shut down the
+   mud with the shutdown command.  Restart it, as described above, to
+   make those changes happen.
+
+7) You're done! Come see us on Lima Bean (lima.mudlib.org 7878) and
+   let us know how it went!  We are also keeping track of people who
+   are using the Lima Mudlib.  See our web pages at:
+
+	http://lima.mudlib.org:7881/
+
+8) If your machine has /bin/bash, you can modify LIMADIR in
+   /etc/backup and /etc/startmud, and follow the usage instructions in
+   those scripts, if you think you'll find them useful.
+
+9) Intermud channel rules - please comply with  the rules for the main
+   intermud channels, icode and igossip, which are at
+   http://cie.imaginary.com/protocols/channels.html

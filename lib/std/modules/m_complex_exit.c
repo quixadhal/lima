@@ -511,52 +511,50 @@ mixed complex_exit_direct_verb_rule(string verb,string rule,mixed args...)
 
 int complex_exit_do_verb_rule(string verb,string rule,mixed args...)
 {
-    class move_data data;
-    string prep;
-    string match;
-    string method;
-    mixed dest;
-    object sibling;
+  class move_data data;
+  string prep;
+  string match;
+  string method;
+  mixed dest;
+  object sibling;
 
-    /* For our purposes the rule should always be WRD OBJ or OBJ or no rule at 
-       all.  -- Check for no rule first.*/
+/* For our purposes the rule should always be WRD OBJ or OBJ or no rule at 
+   all.  -- Check for no rule first.*/
 
-    /* Make a method out of it */
-    if(rule=="WRD OBJ")
-    {
-	args[0]=PREPOSITION_D->translate_preposition(args[0]);
-	method=sprintf("%s %s",verb,args[0]);
-    }
-    else if(rule=="WRD")
-    {
-	method=sprintf("%s %s",verb,args[0]);
-    }
-    else
-	method=verb;
-    /* We know now that there can be only one match, or it would not have 
-     * passed the direct_verb_rule */
-    match=methods_matched(method)[0];
-    sscanf(match,"%s %s",method,prep);
-    dest=query_method_destination(match);
+/* Make a method out of it */
+  if(rule=="WRD OBJ")
+  {
+    args[0]=PREPOSITION_D->translate_preposition(args[0]);
+    method=sprintf("%s %s",verb,args[0]);
+  } else if(rule=="WRD") {
+    method=sprintf("%s %s",verb,args[0]);
+  } else
+    method=verb;
 
-    /* Default to everything that's in the method. */
-    data=copy(methods[match]);
+/* We know now that there can be only one match, or it would not have 
+ * passed the direct_verb_rule */
+  match=methods_matched(method)[0];
+  sscanf(match,"%s %s",method,prep);
+  dest=query_method_destination(match);
 
-    /* We want to do some operation on these */
-    data->destination=objectp(dest)?file_name(query_method_destination(match)):dest;
-    data->relation=prep;
-    data->exit_messages=query_method_exit_message(match);
-    /* Fetch enter msg from sibling, if one is found */
-    if (sibling = this_object()->get_sibling())
-	data->enter_messages = sibling->query_method_enter_message(match);
-    else
-	data->enter_messages = query_method_enter_message(match);
-    /* Set up the through object for M_SMARTMOVE */
-    data->through = sibling;
-    data->who=this_body();
+/* Default to everything that's in the method. */
+  data=copy(methods[match]);
 
-    /* It is now time to move the body to the destination */
-    return this_body()->move_to(data);
+/* We want to do some operation on these */
+  data->destination=objectp(dest)?file_name(query_method_destination(match)):dest;
+  data->relation=prep;
+  data->exit_messages=query_method_exit_message(match);
+/* Fetch enter msg from sibling, if one is found */
+  if (sibling = this_object()->get_sibling())
+    data->enter_messages = sibling->query_method_enter_message(match);
+  else
+    data->enter_messages = query_method_enter_message(match);
+/* Set up the through object for M_SMARTMOVE */
+  data->through = sibling;
+  data->who=this_body();
+
+/* It is now time to move the body to the destination */
+  return this_body()->move_to(data);
 }
 
 string stat_me()

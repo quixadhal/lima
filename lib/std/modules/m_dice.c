@@ -7,7 +7,7 @@
 // Roll x number of dice with y sides. 
 // Not all gaming systems use just the total of the dice, so each result is 
 // returned in an array.
-int array roll_dice(int num_dice,num_sides)
+int array roll_dice(int num_dice, int num_sides)
 {
   int i;
   int array results=({});

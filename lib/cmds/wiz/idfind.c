@@ -8,28 +8,32 @@
 ** 07-Nov-94. Created. Deathblade.
 */
 
-#include <mudlib.h>
+//:COMMAND
+//USAGE idfind <name>
+//
+//Lists all objects in the mud with the specified id,
+//together with their location.
 
 inherit CMD;
 
 mapping envs;
-    string argo;
+string argo;
 
 private void main(string arg)
 {
-    object * obs;
+  object * obs;
 
-    if( !arg )
-    {
-	write( "Idfind what?\n");
-	return;
-    }
+  if( !arg )
+  {
+    write( "Idfind what?\n");
+    return;
+  }
 
-    argo = arg;
-    obs = objects( (: $1->id( argo ) :));
+  argo = arg;
+  obs = objects( (: $1->id( argo ) :));
 
-    envs = ([ ]);
-    map_array(obs, (: envs[$1] = environment($1) :));
+  envs = ([ ]);
+  map_array(obs, (: envs[$1] = environment($1) :));
 
-    out(sprintf("%O\n", envs));
+  out(sprintf("%O\n", envs));
 }

@@ -313,7 +313,7 @@ string query_primary_adj() {
     return primary_adj;
 }
 
-//:FUNCTION query_primary_id
+//:FUNCTION query_primary_name
 //Returns the primary name (primary adj + primary id) of an object
 string query_primary_name() {
     return (primary_adj ? primary_adj + " " : "") + primary_id;

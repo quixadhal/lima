@@ -4,13 +4,17 @@
 
 /* This command will show you your current exec path */
 
-#include <mudlib.h>
+//:COMMAND
+//$$ see: addpath, rmpath
+//USAGE: showpath
+//
+//This command will show you your current list of exec paths.
 
 inherit CMD;
 
-private void main() 
+private void main()
 {
-    string * paths = this_user()->query_shell_ob()->query_path();
+  string * paths = this_user()->query_shell_ob()->query_path();
 
-    out("Your current path is: " + implode(paths, (: $1 + ", " + $2 :)) + "\n");
+  out("Your current path is: " + implode(paths, (: $1 + ", " + $2 :)) + "\n");
 }

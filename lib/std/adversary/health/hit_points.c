@@ -157,6 +157,14 @@ int query_ghost()
    return dead;
 }
 
+// Returns a simple choice of limb (target struck) for combat messages
+// Overload it for specific npcs as appropriate, so you don't hit the
+// hands of a bird, legs of a snake, etc
+string query_random_limb()
+{
+  return choice( ({ "head", "torso", "arm", "leg" }) );
+}
+
 //:FUNCTION badly_wounded
 // int badly_wounded();
 // Returns 1 if we're nearing death.

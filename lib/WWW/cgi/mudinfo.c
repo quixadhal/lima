@@ -15,7 +15,7 @@ private string get_mudlib (string s)
   switch (s[0..3])
     {
     case "Lima":
-      return "<a href=http://lima.mudlib.org>Lima</a>";
+      return "<a href=http://lima.mudlib.org:7881>Lima</a>";
     case "Nigh":
       return sprintf("<a href=http://www.imaginary.com/LPC/Nightmare/>%s</a>", s);
     case "Disc":
@@ -49,6 +49,7 @@ string main (string pattern)
   if (!pattern)
     pattern = "*";
   
+  pattern = replace_string(pattern, "+", " ");
   pattern = lower_case (pattern);
   if(pattern[0] == '=')
     pattern=pattern[1..];
@@ -66,8 +67,10 @@ string main (string pattern)
       "<br><font size=+1><em>";
     foreach (mudname in sort_array (keys (mudlist), 1))
     {
-      ret += sprintf ("<a href=http://%s:%d/cgi/mudinfo.c?=%s$>%s</a><br>",
-		      __HOST__, PORT_HTTP, mudname, mudname);
+//      ret += sprintf ("<a href=http://%s:%d/cgi/mudinfo.c?=%s$>%s</a><br>",
+//		      __HOST__, PORT_HTTP, mudname, mudname);
+      ret += sprintf ("<a href=mudinfo.c?=%s$>%s</a><br>",
+		      replace_string(mudname, " ", "+"), mudname);
     }
     return ret + "</em></font>";
   }

@@ -240,7 +240,7 @@ nomask void begin_mail(string arg)
     }
     else
     {
-	write("\n--- LimaLib Mailer ---\nCurrent headers:\n");
+	write(sprintf("\n--- %s Mailer ---\nCurrent headers:\n", mud_name()));
         cmd_headers( idx + "-" + mailbox_ob->query_message_count());
     }
 }

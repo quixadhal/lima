@@ -22,15 +22,12 @@ class event_info source_modify_event(class event_info evt)
   if(evt->data == "miss" || evt->data == "disarm")
     return evt;
 
-
 #ifdef HEALTH_USES_LIMBS
   opp_health = evt->target->query_health(evt->target_extra);
 #else
   opp_health = evt->target->query_health();
 #endif
   damage = evt->data[sizeof(evt->data) - 1];
-
-tell_user("loriel", "Damage before adj : " + damage + "\n");
 
   if(opp_health <= damage)
   {
@@ -56,11 +53,6 @@ tell_user("loriel", "Damage before adj : " + damage + "\n");
     }
 #endif /* HEALTH_STYLE */
   }
-
-damage = evt->data[sizeof(evt->data) - 1];
-
-tell_user("loriel", "Damage after adj : " + damage + "\n");
-
    return evt;
 }
 
@@ -71,5 +63,10 @@ void setup()
   add_id("mercy");
   add_adj("sword of");
   set_proper_name("the Sword of Mercy");
+#ifdef USE_SIZE
   set_size(MEDIUM);
+#endif
+#ifdef USE_MASS
+  set_mass(MEDIUM);
+#endif
 }

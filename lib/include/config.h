@@ -230,10 +230,10 @@
 #define lib_status()		"game development"
 
 /* What's the IP of your game?*/
-#define __HOST__		"host.name"
+#define __HOST__		"localhost"
 
 /* The administrator(s)' email address(es).
- * NOTE: This is required to be changed in order to have a working 
+ * NOTE: This is required to be changed in order to have a working
  * I3 system. */
 #define ADMIN_EMAIL		"user@host.name"
 
@@ -249,8 +249,8 @@
  * the autodoc daemon.
  * You will need to make a dir of MUD_AUTODOC_DIR in /help/autodoc
  * If you plan to make use of this feature. */
-#define AUTODOC_MUDNAME "lima"
-#define MUD_AUTODOC_DIR "LIMA"
+#define AUTODOC_MUDNAME "LIMA"
+#define MUD_AUTODOC_DIR "lima"
 
 /*************************************************************************
  ** 									**

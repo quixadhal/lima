@@ -10,7 +10,12 @@ void setup()
   set_id("castle","sculpture");
   set_in_room_desc("An intricate sand castle towers before you.");
   set_long("The sand castle is obviously the work of an artistic genius. Its towers and walls are carved in loving detail.  If you weren't on a beach, you might not even guess that this sculpture is made of sand.  You poke at it a bit, and it doesn't budge... It might as well have been made of stone!");
+#ifdef USE_SIZE
   set_size(TOO_LARGE);
+#endif
+#ifdef USE_MASS
+  set_mass(TOO_LARGE);
+#endif
 }
 
 void do_enter()
