@@ -3,20 +3,16 @@
 // Rust/Belboz
 
 #include <mudlib.h>
+
 inherit CMD;
-
-
 
 private void main()
 {
-  string cwf,pwd;
+    object ob = this_body()->query_shell_ob();
 
-  cwf = this_body()->query_cwf();
-  pwd = this_body()->query_pwd();
-  if(!cwf) cwf = "NONE";
-  if(!pwd) pwd = "NONE";
-
-   printf("Dir:  %s\nFile: %s\n",pwd,cwf);
+    printf("Dir:  %s\nFile: %s\n",
+	   ob->get_variable("pwd") || "NONE",
+	   ob->get_variable("cwf") || "NONE");
 }
 
               

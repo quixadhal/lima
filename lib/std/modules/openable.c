@@ -17,6 +17,8 @@
 */
 void set_in_room_desc(string arg);
 string the_short();
+string* query_adj();
+void set_adj(string*);
 
 
 private int closed;
@@ -27,7 +29,19 @@ private string closed_desc;
 
 int openable() { return 1; }
 int query_closed() { return closed; }
-void set_closed(int x) { closed = x; parse_refresh(); }
+void set_closed(int x) { 
+  string* adjs;
+  
+  closed = x; 
+  adjs = query_adj();
+  if(!arrayp(adjs))
+    adjs = ({});
+  else adjs -= ({"closed","open"});
+  set_adj(adjs + (string *)(closed ? ({"closed"}) : ({"open"})));
+  parse_refresh(); 
+}
+
+
 void extra_open() { }
 void extra_close() { }
 int prevent_open() { return 0; }
@@ -89,7 +103,7 @@ int close() {
     extra_close();
     if( closed_desc )
 	set_in_room_desc( closed_desc );
-    set_closed(1);
+    set_closed(1);    
     return 1;
 }
 
@@ -105,6 +119,12 @@ extra_long()
 	(query_closed() ? "closed" : "open") + ".\n";
 }
 
+string
+extra_short()
+{
+  return query_closed() ? 0 : "open";
+}
+
 /* Verb interaction */
 mixed direct_open_obj(object ob) {
     if (!query_closed())
@@ -116,4 +136,13 @@ mixed direct_close_obj(object ob) {
     if (query_closed())
         return "It is already closed.\n";
     return 1;
+}
+
+// You should do this, or call set_closed() when you create an openable,
+// so that the proper adjective gets initialized.
+void create(){
+  if ( !clonep() )
+    return;
+
+  set_closed(1);
 }

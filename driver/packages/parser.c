@@ -16,11 +16,14 @@
  * . the 'her' ambiguity
  * . foo, who is ...   foo, where is ...   foo, what is ...   foo, go south
  * . where is ... "where is sword" -> "In the bag on the table"
+ * . > Which button do you mean, the camera button or the recorder button?
+ * . Zifnab's crasher
  */
 
 #include "std.h"
 #include "lpc_incl.h"
 #include "parser.h"
+#include "md.h"
 
 char *pluralize PROT((char *));
 
@@ -73,6 +76,46 @@ static void parse_rule PROT((parse_state_t *));
  * parse_add_rule(verb, rule, handler) - add a rule for a verb
  * parse_sentence(sent) - do the parsing :)
  */
+
+#ifdef DEBUGMALLOC_EXTENSIONS
+void parser_mark_verbs() {
+    int i;
+
+    for (i = 0; i < VERB_HASH_SIZE; i++) {
+	verb_t *verb_entry = verbs[i];
+	
+	while (verb_entry) {
+	    EXTRA_REF(BLOCK(verb_entry->name))++;
+	    verb_entry = verb_entry->next;
+	}
+    }
+    
+    for (i = 0; i < num_literals; i++) {
+	EXTRA_REF(BLOCK(literals[i]))++;
+    }
+
+    EXTRA_REF(BLOCK(the_word))++;
+    EXTRA_REF(BLOCK(a_word))++;
+    EXTRA_REF(BLOCK(me_word))++;
+}
+    
+void parser_mark P1(parse_info_t *, pinfo) {
+    int i;
+
+    if (!(pinfo->flags & PI_SETUP))
+	return;
+    
+    for (i = 0; i < pinfo->num_ids; i++) {
+	EXTRA_REF(BLOCK(pinfo->ids[i]))++;
+    }
+    for (i = 0; i < pinfo->num_adjs; i++) {
+	EXTRA_REF(BLOCK(pinfo->ids[i]))++;
+    }
+    for (i = 0; i < pinfo->num_plurals; i++) {
+	EXTRA_REF(BLOCK(pinfo->ids[i]))++;
+    }
+}
+#endif
 
 #ifdef DEBUG
 /* Usage:  DEBUG_P(("foo: %s:%i", str, i)); */
@@ -230,7 +273,8 @@ void f_parse_init PROT((void)) {
 
 void f_parse_refresh PROT((void)) {
     if (!(current_object->pinfo))
-	error("Current object is not known by the parser.  Call parse_init() first.\n");
+	error("%s is not known by the parser.  Call parse_init() first.\n",
+	      current_object->name);
     current_object->pinfo->flags = 0;
 }
 
@@ -783,8 +827,8 @@ static void error_is_not P4(char *, buf, hash_entry_t *, adj,
 }
 
 static char *strput_words P3(char *, str, int, first, int, last) {
-    char *p = words[first].end_prev;
-    char *end = words[last].start_next;
+    char *p = words[first].start;
+    char *end = words[last].end;
     
     while (isspace(p[0]))
 	p++;
@@ -863,9 +907,6 @@ static void parse_obj P2(int, tok, parse_state_t *, state) {
 
     DEBUG_INC;
     DEBUG_P(("parse_obj:"));
-    
-    if (!objects_loaded)
-	load_objects();
     
     all_objects(objects, parse_vn->handler->pinfo->flags & PI_REMOTE_LIVINGS);
 
@@ -962,13 +1003,19 @@ static void parse_obj P2(int, tok, parse_state_t *, state) {
 }
 
 /* misnomer; this func is not recursive */
-static verb_t *parse_verb PROT((void)) {
+static verb_t *parse_verb P1(char *, str) {
+    char *vb = findstring(str);
     verb_t *ret;
 
-    ret = verbs[DO_HASH(words[0].string, VERB_HASH_SIZE)];
+    if (!vb) return 0;
+
+    ret = verbs[DO_HASH(vb, VERB_HASH_SIZE)];
     while (ret) {
-	if (ret->name == words[0].string)
+	if (ret->name == vb) {
+	    words[0].string = vb;
+	    words[0].type = 0;
 	    return ret;
+	}
 	ret = ret->next;
     }
     return 0;
@@ -991,6 +1038,7 @@ static char *make_error_message P1(int, which) {
 		p = strput(p, "that ");
 	    } else {
 		p = strput_words(p, matches[cnt].first, matches[cnt].last);
+		*p++ = ' ';
 	    }
 	    cnt++;
 	    break;
@@ -1122,8 +1170,12 @@ static int make_function P4(char *, buf, char *, pre,
     } else {
 	char tmpbuf[1024];
 	buf = strput(buf, "verb");
+#if 0
 	strput_words(tmpbuf, 0, 0);
 	push_string(tmpbuf, STRING_SHARED);
+#else
+	push_string(words[0].string, STRING_SHARED);
+#endif
 	on_stack++;
     }
 
@@ -1329,7 +1381,8 @@ static void do_the_call PROT((void)) {
 	if (apply(best_result->res[i].func, ob,
 		  best_result->res[i].num, ORIGIN_DRIVER)) return;
     }
-    error("Parse accepted, but no do_* function found!\n");
+    error("Parse accepted, but no do_* function found in object %s!\n",
+	  ob->name);
 }
 
 static void parse_rule P1(parse_state_t *, state) {
@@ -1529,8 +1582,8 @@ static void parse_recurse P3(char **, iwords, char **, ostart, char **, oend) {
 	    p += l;
 	    if ((q = findstring(buf))) {
 		words[num_words].type = 0;
-		words[num_words].end_prev = oend[-1];
-		words[num_words].start_next = ostart[iwp - iwords];
+		words[num_words].start = ostart[0];
+		words[num_words].end = oend[iwp - iwords - 1];
 		words[num_words++].string = q;
 		idx = iwp - iwords;
 		parse_recurse(iwp, ostart + idx, oend + idx);
@@ -1539,8 +1592,8 @@ static void parse_recurse P3(char **, iwords, char **, ostart, char **, oend) {
 		l = p - buf;
 		words[num_words].type = WORD_ALLOCATED;
 		words[num_words].string = new_string(l, "parse_recurse");
-		words[num_words].end_prev = oend[-1];
-		words[num_words].start_next = ostart[1];
+		words[num_words].start = ostart[0];
+		words[num_words].end = oend[iwp - iwords - 1];
 		memcpy(words[num_words].string, buf, l);
 		words[num_words++].string[l] = 0;
 		idx = iwp - iwords;
@@ -1552,30 +1605,27 @@ static void parse_recurse P3(char **, iwords, char **, ostart, char **, oend) {
 	    *p++ = ' ';
 	} while (*iwp[0]);
     } else {
-	if ((parse_verb_entry = parse_verb())) {
 #ifdef DEBUG
-	    if (debug_parse_depth) {
-		char dbuf[1024];
-		int i;
-		char *p;
-		p = strput(dbuf, "Trying interpretation: ");
-		for (i = 0; i < num_words; i++) {
-		    p = strput(p, words[i].string);
-		    p = strput(p, ":");
-		}
-		DEBUG_P((dbuf));
+	if (debug_parse_depth) {
+	    char dbuf[1024];
+	    int i;
+	    char *p;
+	    p = strput(dbuf, "Trying interpretation: ");
+	    for (i = 0; i < num_words; i++) {
+		p = strput(p, words[i].string);
+		p = strput(p, ":");
 	    }
-#endif
-	    parse_rules();
+	    DEBUG_P((dbuf));
 	}
+#endif
+	parse_rules();
     }
 }
 
 static void parse_sentence P1(char *, input) {
     char *starts[256];
     char *orig_starts[256];
-    char *orig_ends_internal[257];
-    char **orig_ends = &orig_ends_internal[1];
+    char *orig_ends[256];
     char c, buf[1024], *p, *start, *inp;
     int n = 0;
     int i;
@@ -1585,25 +1635,38 @@ static void parse_sentence P1(char *, input) {
     p = start = buf;
     flag = 0;
     inp = input;
-    orig_ends[-1] = input;
+    while (*inp && (isspace(*inp) || isignore(*inp)))
+	inp++;
+    orig_starts[0] = inp;
+    
     while ((c = *inp++)) {
 	if (isignore(c)) continue;
 	if (isupper(c))
 	    c = tolower(c);
 	if (iskeep(c)) {
-	    if (!flag) {
-		orig_starts[n] = inp - 1;
+	    if (!flag)
 		flag = 1;
-	    }
 	    *p++ = c;
 	} else {
 	    /* whitespace, punctuation, or end of string */
+	    if (!isspace(c))
+		while (*inp && !iskeep(*inp) && !isspace(*inp))
+		    inp++;
+	    else
+		inp--;
+
 	    if (flag) {
 		flag = 0;
 		*p++ = 0;
 		orig_ends[n] = inp - 1; /* points to where c was */
 		starts[n++] = start;
 		start = p;
+		while (*inp && isspace(*inp))
+		    inp++;
+		orig_starts[n] = inp;
+	    } else {
+		while (*inp && isspace(*inp))
+		    inp++;
 	    }
 	}
     }
@@ -1611,19 +1674,24 @@ static void parse_sentence P1(char *, input) {
 	*p++ = 0;
 	orig_ends[n] = inp - 1;
 	starts[n++] = start;
+    } else {
+	if (n)
+	    orig_ends[n - 1] = inp - 1;
+	else
+	    orig_ends[0] = inp - 1;
     }
-    orig_starts[n] = inp - 1;
     starts[n] = p;
     *p = 0;
 
     reset_error();
     /* find an interpretation, first word must be shared (verb) */
     for (i = 1; i <= n; i++) {
-	if ((words[0].string = findstring(buf))) {
+	if (parse_verb_entry = parse_verb(buf)) {
+	    if (!objects_loaded && (parse_verb_entry->flags & VB_HAS_OBJ)) 
+		load_objects();
 	    num_words = 1;
-	    words[0].type = 0;
-	    words[0].end_prev = input;
-	    words[0].start_next = orig_starts[i];
+	    words[0].start = orig_starts[0];
+	    words[0].end = orig_ends[i-1];
 	    parse_recurse(&starts[i], &orig_starts[i], &orig_ends[i]);
 	}
 	starts[i][-1] = ' ';
@@ -1632,7 +1700,8 @@ static void parse_sentence P1(char *, input) {
 
 void f_parse_sentence PROT((void)) {
     if (!current_object->pinfo)
-	error("Current object is not known by the parser.  Call parse_init() first.\n");
+	error("%s is not known by the parser.  Call parse_init() first.\n",
+	      current_object->name);
 
     if (pi)
 	error("Illegal to call parse_sentence() recursively.\n");
@@ -1692,9 +1761,11 @@ void f_parse_my_rules PROT((void)) {
     int flag = (st_num_arg == 3 ? (sp--)->u.number : 0);
     
     if (!(sp-1)->u.ob->pinfo)
-	error("Object is not known by the parser.  Call parse_init() first.\n");
+	error("%s is not known by the parser.  Call parse_init() first.\n",
+	      (sp-1)->u.ob->name);
     if (!current_object->pinfo)
-	error("Current object is not known by the parser.  Call parse_init() first.\n");
+	error("%s is not known by the parser.  Call parse_init() first.\n",
+	      current_object->name);
 
     if (pi)
 	error("Illegal to call parse_sentence() recursively.\n");
@@ -1759,14 +1830,16 @@ void f_parse_add_rule() {
     verb_t *verb_entry;
     verb_node_t *verb_node;
     int h;
-
+    int *p;
+    
     rule = (sp-1)->u.string;
     verb_entry = 0;
     verb = findstring((sp-2)->u.string);
     CHECK_TYPES(sp, T_OBJECT, 3, F_PARSE_ADD_RULE);
     handler = sp->u.ob;
     if (!(handler->pinfo))
-	error("Verb handler is not known by the parser.  Call parse_init() first.\n");
+	error("%s is not known by the parser.  Call parse_init() first.\n",
+	      handler->name);
 
     /* Create the rule */
     make_rule(rule, tokens);
@@ -1809,8 +1882,11 @@ void f_parse_add_rule() {
 
     verb_node->lit[0] = lit[0];
     verb_node->lit[1] = lit[1];
-    for (j = 0; j <= i; j++)
+    for (j = 0; j <= i; j++) {
+	if (tokens[j] <= OBJ_A_TOKEN)
+	    verb_entry->flags |= VB_HAS_OBJ;
 	verb_node->token[j] = tokens[j];
+    }
     verb_node->handler = handler;
     handler->pinfo->flags |= PI_VERB_HANDLER;
     verb_node->next = verb_entry->node;

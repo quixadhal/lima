@@ -164,6 +164,10 @@ int query_hp() {
     }
     return hp;
 }
+int query_max_hp()
+{
+    return max_hp;
+}
 
 int query_ghost() {
     if (hp==0) return 1;

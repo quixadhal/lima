@@ -11,6 +11,7 @@
 #include <mudlib.h>
 #include <config.h>
 #include <security.h>
+#include <commands.h>
 
 inherit M_ACCESS;
 
@@ -19,11 +20,12 @@ inherit "/secure/modules/sw_body";
 inherit "/secure/modules/sw_user";
 inherit "/secure/modules/loginfail";
 inherit "/secure/modules/inputsys";
+inherit "/secure/modules/userinfo";
 
 private string		name;
 private string		password;
 
-private string		body_fname = PLAYER;	/* ### should fix name */
+private string		body_fname;
 
 static private object	body;
 
@@ -34,6 +36,10 @@ nomask string query_name()
 nomask string query_userid()
 {
     return name;
+}
+nomask string query_real_name()		/* ### should remove */
+{
+    return stringp(name) ? name : "login";
 }
 static nomask void set_userid(string new_userid)
 {
@@ -49,13 +55,31 @@ static nomask void set_password(string str)
     password = crypt(str, str);
 }
 
+
 nomask string query_body_fname()
 {
-    return body_fname;
+    /*
+    ** ### need to work out proper strategy.
+    ** ### elements: select appropriate body for wiz vs. player.  allow
+    ** ### for wizzes to permanent change their body until they are
+    ** ### dewizzed.
+    ** ### -> make use of 0 to mean default, non-zero is a wiz body
+    **
+    ** ### for now, hard-code one of two bodies
+    */
+
+    /* ### temp change to reset old users' fnames */
+    if ( body_fname == "/std/dev" )
+	body_fname = 0;
+
+    return PLAYER;
+
+//    return body_fname;
 }
 static nomask void set_body_fname(string new_body_fname)
 {
-    body_fname = new_body_fname;
+    // ### see query_body_fname() discussion
+//    body_fname = new_body_fname;
 }
 
 nomask object query_body()
@@ -74,13 +98,6 @@ void remove()
 	destruct(this_object());
     }
 }
-
-/* ### what is this for?  this object shouldn't clean up, ever...
-int clean_up()
-{
-    return body == 0;
-}
-*/
 
 static nomask void save_me()
 {
@@ -104,4 +121,25 @@ private nomask void net_dead()
 	body->net_dead();
     else
 	destruct(this_object());
+}
+
+
+/*
+** this is bunk... should disappear soon
+*/
+nomask void set(string key, mixed value)
+{
+    switch ( key )
+    {
+    case "password":
+        if ( previous_object() == find_object(CMD_OB_PASSWD) )
+	{
+	    set_password(value);
+	    save_me();
+	}
+	break;
+
+    default:
+	error("unknown attribute\n");
+    }
 }

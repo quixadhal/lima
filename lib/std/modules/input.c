@@ -3,8 +3,10 @@
 /*
 ** input.c -- modules to aid in working with the input system
 **
-** 95-May-01. Deathblade. Created.
+** 950501, Deathblade: Created.
 */
+
+private static object	input_user;
 
 varargs nomask void modal_push(function input_func,
 			       mixed prompt_func,
@@ -12,17 +14,22 @@ varargs nomask void modal_push(function input_func,
 			       function return_to_func
 			       )
 {
-    this_user()->modal_push(input_func, prompt_func, secure, return_to_func);
+    if ( input_user && this_user() != input_user )
+	error("user mismatch -- already assigned to a user\n");
+
+    input_user = this_user();
+    input_user->modal_push(input_func, prompt_func, secure, return_to_func);
 }
 
 nomask void modal_push_char(function callback)
 {
-    this_user()->modal_push_char(callback);
+    input_user->modal_push_char(callback);
 }
 
 nomask void modal_pop()
 {
-    this_user()->modal_pop();
+    input_user->modal_pop();
+    input_user = 0;
 }
 
 varargs nomask void modal_func(function input_func,
@@ -30,12 +37,7 @@ varargs nomask void modal_func(function input_func,
 			       int secure
 			       )
 {
-    this_user()->modal_func(input_func, prompt_func, secure);
-}
-
-nomask void modal_recapture()
-{
-    this_user()->modal_recapture();
+    input_user->modal_func(input_func, prompt_func, secure);
 }
 
 varargs nomask void modal_simple(function input_func, int secure)
@@ -45,5 +47,10 @@ varargs nomask void modal_simple(function input_func, int secure)
 
 nomask void modal_pass(string str)
 {
-    this_user()->modal_pass(str);
+    input_user->modal_pass(str);
+}
+
+nomask int modal_stack_size()
+{
+    input_user->modal_stack_size();
 }

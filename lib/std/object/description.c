@@ -224,6 +224,11 @@ void set_adj( mixed new_adjs )
     parse_refresh();
 }
 
+string* query_adj()
+{
+	return copy(adj);
+}
+
 void set_adjectives( mixed new_adjs ){
     set_adj( new_adjs );
     parse_refresh();

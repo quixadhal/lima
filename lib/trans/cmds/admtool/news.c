@@ -11,9 +11,12 @@
 
 void std_handler(string str);
 varargs void modal_simple(function input_func, int secure);
+varargs void modal_func(function input_func, mixed prompt_func, int secure);
 void receive_news_input(string);
 
-static nomask void write_news_menu()
+#define PROMPT_NEWS     "(AdmTool:news)   [larmq?] > "
+
+private nomask void write_news_menu()
 {
     write("Administration Tool: news administration\n"
 	  "\n"
@@ -55,8 +58,8 @@ private nomask void rcv_group_name(string str)
 	return;
     }
     NEWS_D->add_group(str);
-    write("** group added.\n");
-    this_user()->modal_func((:receive_news_input:), PROMPT_NEWS);
+    printf("** Group '%s' added.\n", str);
+    modal_func((:receive_news_input:), PROMPT_NEWS);
 }
 
 private nomask void add_group()
@@ -82,10 +85,10 @@ private nomask void remove_group(string group_name)
     }
 
     NEWS_D->remove_group(group_name);
-    write("** group removed.\n");
+    printf("** Group '%s' removed.\n", group_name);
 }
 
-static nomask void receive_news_input(string str)
+private nomask void receive_news_input(string str)
 {
     string name;
 
@@ -113,4 +116,15 @@ static nomask void receive_news_input(string str)
 	std_handler(str);
 	break;
     }
+}
+
+static nomask void begin_news_menu()
+{
+    if( !check_privilege(1) )
+    {
+	write("Sorry... admin only.\n");
+	return;
+    }
+    modal_func((: receive_news_input :), PROMPT_NEWS);
+    write_news_menu();
 }

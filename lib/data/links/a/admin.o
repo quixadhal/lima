@@ -1,9 +1,0 @@
-#secure/user.c
-email ""
-real_name ""
-level 5
-title "Admin the title-less"
-failures ({})
-name "admin"
-password "adpexzg3FUZAk"
-body_fname "/std/dev"

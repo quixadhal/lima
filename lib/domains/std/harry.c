@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 #include <mudlib.h>
 
 inherit LIVING;
@@ -31,7 +33,7 @@ create() {
       "smile",
       "lsfbog",
       "ack",
-      "chan gossip Is this thing on?",
+//      "chan gossip Is this thing on?",
       "rock"
     }) );
     add_pattern("%s smiles.", (: $1 != "Harry the affectionate" ? "smile" : 0 :));

@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 // Beek - a simple room to demonstrate relationships and some toys
 
 #include <mudlib.h>

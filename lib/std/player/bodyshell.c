@@ -8,26 +8,25 @@
 */
 
 #include <mudlib.h>
-#include <commands.h>
 
-inherit SHELL;
-inherit M_COMPLETE;
-
-void do_game_command(string input);
 object query_link();
 
 
 /*
-** The shell object filename to use.  0 means the builtin shell.
+** The shell object filename to use.  0 means the default shell.
 */
 private string		shell_fname;
 
 /*
-** If an external shell is being used, then this is it, along with its
-** save information.
+** The saved information for the shell object
+*/
+private string		shell_saved_data;
+
+/*
+** The actuall shell object we're using
 */
 static private object	shell_ob;
-private string		shell_saved_data;
+
 
 nomask string query_shell_fname()
 {
@@ -42,102 +41,32 @@ nomask void set_shell_fname(string fname)
 
 nomask object query_shell_ob()
 {
-    return shell_ob || this_object();
+    return shell_ob;
 }
 
-void start_shell()
+static void start_shell()
 {
-    if(previous_object() && previous_object() != query_link())
-	return;
-    if ( wizardp(query_link()) )
+    if ( !shell_ob )
     {
-	if ( !shell_fname )
-	    shell_ob = clone_object(WIZ_SHELL, shell_saved_data);
-	else
-	    shell_ob = clone_object(shell_fname, shell_saved_data);
+	string fname = shell_fname;
 
-	shell_ob->start_shell();
-    }
-    else
-    {
-	shell::create(shell_saved_data);
-	shell::start_shell();
-    }
+	if ( !fname )
+	    fname = wizardp(query_link()) ? WIZ_SHELL : PLYR_SHELL;
 
-    if ( shell_saved_data )
-    {
-	if(!shell_ob)
-	    load_from_string(shell_saved_data,0);
-	else
+	shell_ob = new(fname, shell_saved_data);
+
+	if ( shell_saved_data )
+	{
+	    /* sometimes incompatibilities break the restore... :-( */
 	    catch(shell_ob->load_from_string(shell_saved_data, 0));
+	}
     }
-}
 
-
-static void restart_shell()
-{
-    if (wizardp(query_link()) && !shell_ob)
-      {
-	start_shell();
-	return;
-      }
-    if ( shell_ob )
-	shell_ob->start_shell();
-    else
-	shell::start_shell();
+    shell_ob->start_shell();
 }
 
 static nomask void prepare_to_save()
 {
-  if(!shell_ob)
-    shell_saved_data = save_to_string();
-  else
-    shell_saved_data = shell_ob->save_to_string();
+    if ( shell_ob )
+	shell_saved_data = shell_ob->save_to_string();
 }
-
-string query_shellname()
-{
-    return "[ Builtin Body Shell ]";
-}
-
-static
-int execute_command(string * argv, string original_input)
-{
-  object winner;
-  string argument;
-
-  winner = CMD_D->find_cmd_in_path(argv[0], ({ CMD_DIR_PLAYER "/" }));
-  if ( !winner )
-  {
-      //return 0;
-      do_game_command(original_input);
-      return 1;
-  }
-
-  if ( sizeof(argv) > 1 )
-    argument = implode(argv[1..]," ");
-
-  winner->call_main(argument);
-  return 1;
-}
-
-private nomask string expand_one_argument(string arg)
-{
-    mixed expansion;
-
-    if ( strlen(arg) <= 1 || arg[<1] != '*' )
-	return arg;
-    expansion = complete_user(arg[0..<2]);
-    if ( stringp(expansion) )
-	return expansion;
-    return arg;
-}
-
-static string * expand_arguments(string* argv)
-{
-    return map(argv, (: expand_one_argument :));
-}
-
-
-
-

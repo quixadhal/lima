@@ -25,8 +25,8 @@ short compatible[11] = {
     /* UNKNOWN */  0,
     /* ANY */      0xfff,
     /* NOVALUE */  CT_SIMPLE(TYPE_NOVALUE) | CT(TYPE_VOID) | CT(TYPE_NUMBER),
-    /* VOID */     CT_SIMPLE(TYPE_VOID) | CT(TYPE_NOVALUE),
-    /* NUMBER */   CT_SIMPLE(TYPE_NUMBER) | CT(TYPE_NOVALUE) | CT(TYPE_REAL),
+    /* VOID */     CT_SIMPLE(TYPE_VOID) | CT(TYPE_NOVALUE) | CT(TYPE_NUMBER),
+    /* NUMBER */   CT_SIMPLE(TYPE_NUMBER) | CT(TYPE_NOVALUE) | CT(TYPE_REAL) | CT(TYPE_VOID),
     /* STRING */   CT_SIMPLE(TYPE_STRING),
     /* OBJECT */   CT_SIMPLE(TYPE_OBJECT),
     /* MAPPING */  CT_SIMPLE(TYPE_MAPPING),
@@ -236,12 +236,13 @@ void copy_variables P2(program_t *, from, int, type)
      } 
 }
 
-
-
 static void copy_function_details P2(function_t *, to, function_t *, from) {
     to->offset = from->offset;
     to->function_index_offset = from->function_index_offset;
     to->type = from->type;
+    if (to->type & TYPE_MOD_PRIVATE)
+	to->type |= TYPE_MOD_HIDDEN;
+    
     to->num_local = from->num_local;
     to->num_arg = from->num_arg;
     to->flags = (from->flags & NAME_MASK) | NAME_DEF_BY_INHERIT | NAME_UNDEFINED;
@@ -257,6 +258,9 @@ static function_t *copy_function P2(function_t *, new, int, add) {
 
     ret = (function_t *)allocate_in_mem_block(A_FUNCTIONS, sizeof(function_t));
     *ret = *new;
+    if (ret->type & TYPE_MOD_PRIVATE)
+	ret->type |= TYPE_MOD_HIDDEN;
+    
     ref_string(new->name); /* increment ref count */
     /* don't propagate certain flags forward */
     ret->flags &= NAME_MASK;
@@ -793,17 +797,17 @@ int define_variable P3(char *, name, int, type, int, hide)
 	}
 	/* Okay, the nasty idiots have two variables of the same name in
 	   the same object.  This causes headaches for save_object().
-	   To keep save_object sane, we need to make one static;
-	   Also, be careful not to hide the current variable with a
-	   hidden one. */
+	   To keep save_object sane, we need to make one static */
 	if (!(type & TYPE_MOD_STATIC)) {
 	    /* this one isn't static, make the other one static */
 	    VARIABLE(ihe->dn.global_num)->type |= TYPE_MOD_STATIC;
 	}
+	/* hidden variables don't cause variables that are visible to become
+	   invisible; we only add them above (in the !hide case) for better
+	   error messages */
 	if (!hide)
 	    ihe->dn.global_num = n;
     }
-    ihe->dn.global_num = n;
 
     dummy = (variable_t *)allocate_in_mem_block(A_VARIABLES,sizeof(variable_t));
     dummy->name = str;
@@ -1120,7 +1124,6 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 	    }
 	}
 
-	args->type = predefs[f].ret_type;
 	min_arg = predefs[f].min_args;
 	max_arg = predefs[f].max_args;
 
@@ -1203,6 +1206,11 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 	}
 	args->l.number = num;
 	args->v.number = predefs[f].token;
+	args->type = predefs[f].ret_type;
+	if (args->type == TYPE_NOVALUE) {
+	    args->v.number += NOVALUE_USED_FLAG;
+	    args->type = TYPE_VOID;
+	}
 	args->kind = NODE_EFUN;
     } else {
 	CREATE_ERROR(args);

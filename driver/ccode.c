@@ -508,7 +508,8 @@ c_generate_node P1(parse_node_t *, expr) {
 	{
 	    parse_node_t *node = expr->r.expr;
 	    int num_arg = expr->l.number;
-	    int f = expr->v.number;
+	    int novalue_used = expr->v.number & NOVALUE_USED_FLAG;
+	    int f = expr->v.number & ~NOVALUE_USED_FLAG;
 	    int idx = 1;
 
 	    generate_expr_list(node);
@@ -526,7 +527,7 @@ c_generate_node P1(parse_node_t *, expr) {
 		ins_vstring("st_num_arg = %i;\n", num_arg);
 	    }
 	    ins_vstring("f_%s();\n", instrs[f].name);
-	    if (expr->type == TYPE_NOVALUE) {
+	    if (novalue_used) {
 		/* the value of a void efun was used.  Put in a zero. */
 		ins_string("push_number(0);\n");
 	    }

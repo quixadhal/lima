@@ -15,6 +15,8 @@
 #define DEFAULT_HISTORY_BUFFER_SIZE	20
 
 
+object query_owner();
+
 private static string* history = ({});
 private static int buffer_size = DEFAULT_HISTORY_BUFFER_SIZE;
 private static int array_index;
@@ -247,8 +249,14 @@ history_command(string input)
 nomask mixed
 query_history()
 {
-  if(check_previous_privilege(1))
+    if(check_previous_privilege(1))
     {
-      return get_ordered_history();
+	object ob = query_owner();
+
+	if ( ob && (ob = ob->query_link()) && adminp(ob) )
+	    tell_object(ob, sprintf("%s has just read your history!\n",
+				    this_body()->query_name()));
+
+	return get_ordered_history();
     }
 }

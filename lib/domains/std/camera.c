@@ -1,4 +1,7 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 // Written by Rust.
+// I wrote this? I thought Beek did.
 #include <mudlib.h>
 
 inherit OBJ;
@@ -14,7 +17,6 @@ void create() {
 int press(string s) {
     object picture;
 
-BBUG(s);
     this_body()->simple_action("$N $vtake a picture with $p $o.\nA polaroid picture slides out the front of $o.\n", this_object());
 
     picture = new(__DIR__ "picture");
@@ -37,3 +39,7 @@ string direct_press_obj(object ob, string name) {
 }
 
 */
+
+
+
+

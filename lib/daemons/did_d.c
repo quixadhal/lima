@@ -33,11 +33,10 @@ someone_did(string str) {
     who->ilog_hook(str);
 }
 
-void
-dump_did_info(int time) {
+void dump_did_info(int time, string * header)
+{
     int index;
-    string array output = ({"Changes since you last logged in:",
-                            "*************************************\n"});
+    string * output = header;
 
     index = sizeof(did) - 1;
     while (index > 0 && time < did[index][0]) index--;
@@ -46,18 +45,20 @@ dump_did_info(int time) {
     if(index >= sizeof(did))
       return;
 
-    for ( ; index < sizeof(did); index++) {
-        output += 
-	  ({iwrap(sprintf("%s: %s\n", ctime(did[index][0]), did[index][1]))});
+    for ( ; index < sizeof(did); index++)
+    {
+        output += explode(iwrap(sprintf("%s: %s",
+					ctime(did[index][0]),
+					did[index][1])), "\n") + ({ "" });
     }
-    new(MORE_OB)->more_lines(output, 3);
+    new(MORE_OB)->more_string(output);
 }
 
 varargs void
 print_changelog_to_file(string file, int time, int show_date)
 {
     int index;
-    string array output = ({});
+    string output = "";
 
     index = sizeof(did) - 1;
     while (index > 0 && time < did[index][0]) index--;
@@ -65,16 +66,15 @@ print_changelog_to_file(string file, int time, int show_date)
 
     if(show_date) {
       for ( ; index < sizeof(did); index++) {
-        output += 
-	  ({iwrap(sprintf("%s: %s\n", ctime(did[index][0]), did[index][1]))});
+        output += iwrap(sprintf("%s: %s\n",
+				ctime(did[index][0]),
+				did[index][1])) + "\n";
       }
     }
     else {
       for ( ; index < sizeof(did); index++) {
-        output += 
-	  ({iwrap(sprintf("%s\n", did[index][1]))});
+        output += iwrap(sprintf("%s\n", did[index][1])) + "\n";
       }
     }
-    write_file(file, implode(output,"\n"));
+    write_file(file, output);
 }
-  

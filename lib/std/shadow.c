@@ -5,6 +5,7 @@ private static object victim;
 int start_shadowing(object ob) {
     if (!shadow(ob)) return 0;
     victim = ob;
+    return 1;
 }
 
 int stop_shadowing() {

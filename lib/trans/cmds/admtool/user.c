@@ -11,8 +11,11 @@
 
 void std_handler(string str);
 varargs void modal_simple(function input_func, int secure);
+varargs void modal_func(function input_func, mixed prompt_func, int secure);
 
-static nomask void write_user_menu()
+#define PROMPT_USER	"(AdmTool:user) [nwdmq?] > "
+
+private nomask void write_user_menu()
 {
     write("Administration Tool: user administration\n"
 	  "\n"
@@ -42,8 +45,12 @@ private nomask void confirm_nuking(string who, string str)
 	o->quit();
 
     /* ### handle mail */
+
     rm(sprintf("/data/links/%c/%s.o", who[0], who));
     rm(sprintf("/data/players/%c/%s.o", who[0], who));
+
+    /* ### deal with clearing privs and stuff */
+    
     printf("'%s' has been nuked.\n", capitalize(who));
 }
 
@@ -52,7 +59,7 @@ private nomask void wiz_user(string who)
     object ob;
     string err;
 
-    if ( !(ob = find_body(who)) )
+    if ( !(ob = find_user(who)) )
     {
 	printf("** '%s' must be logged on.\n", capitalize(who));
 	return;
@@ -70,8 +77,12 @@ private nomask void wiz_user(string who)
     }
     mkdir("/wiz/" + who);
     SECURE_D->set_protection("/wiz/" + who, 1, who + ":");
-    ob->set_level(1);
+
+    /* ### switch to an action? */
+    tell_object(ob, "You are now a wizard.  Changing bodies...\n");
     printf("'%s' is now a wizard.\n", capitalize(who));
+
+    ob->force_me("su");
 }
 
 private nomask void dewiz_user(string who)
@@ -79,12 +90,12 @@ private nomask void dewiz_user(string who)
     object ob;
     string err;
 
-    if ( !(ob = find_body(who)) )
+    if ( !(ob = find_user(who)) )
     {
 	printf("** '%s' must be logged on.\n", capitalize(who));
 	return;
     }
-    if ( GROUP_D->adminp(ob) )
+    if ( adminp(ob) )
     {
 	printf("** '%s' is an admin and cannot be dewizzed.\n",
 	       capitalize(who));
@@ -102,11 +113,15 @@ private nomask void dewiz_user(string who)
 	return;
     }
     SECURE_D->set_protection("/wiz/" + who, 1, -1);
-    ob->set_level(0);
+
+    /* ### switch to an action? */
+    tell_object(ob, "You have lost your wizard status.\n");
     printf("'%s' is no longer a wizard.\n", capitalize(who));
+
+    ob->force_me("su");
 }
 
-static nomask void receive_user_input(string str)
+private nomask void receive_user_input(string str)
 {
     string name;
 
@@ -143,4 +158,15 @@ static nomask void receive_user_input(string str)
 	std_handler(str);
 	break;
     }
+}
+
+static nomask void begin_user_menu()
+{
+    if ( !check_privilege(1) )
+    {
+	write("Sorry... admin only.\n");
+	return;
+    }
+    modal_func((: receive_user_input :), PROMPT_USER);
+    write_user_menu();
 }

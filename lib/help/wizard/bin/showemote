@@ -1,0 +1,13 @@
+
+USAGE:  showemote (soul)
+
+     This will show all the rules and messages for the given soul
+
+   showemote kick
+ 
+"OBJ" -> $N $vkick the $o.
+"LIV" -> $N $vkick $t.
+"LIV LIV" -> "$N $vjump up in the air and $vkick $n1 and $n2 simultaneously.
+"LIV STR" -> $N $vkick $t $o.
+ 
+see also: feelings, addemote, messages

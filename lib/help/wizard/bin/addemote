@@ -1,0 +1,15 @@
+ 
+USAGE:  addemote (verb)
+
+  This command allows you to add new souls.  (verb) being the soul.
+
+After entering the addemote soul you will be asked for the rule.
+The rule consists of one of the following; OBJ, LIV, STR etc.
+Then you will be asked for the message.
+
+addemote kick
+rule STR
+message: $N $vkick $T
+
+  see messages for more information on the message.
+

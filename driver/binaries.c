@@ -138,8 +138,8 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
     ret = safe_apply_master_ob(APPLY_VALID_SAVE_BINARY, 1);
     if (!MASTER_APPROVED(ret))
 	return;
-    if (prog->total_size > (int) MAXSHORT ||
-	includes->current_size > (int) MAXSHORT)
+    if (prog->total_size > (int) USHRT_MAX ||
+	includes->current_size > (int) USHRT_MAX)
 	/* assume all other sizes ok */
 	return;
 
@@ -223,7 +223,7 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
     /* string table */
     for (i = 0; i < (int) p->num_strings; i++) {
 	tmp = SHARED_STRLEN(p->strings[i]);
-	if (tmp > (int) MAXSHORT) {	/* possible? */
+	if (tmp > (int) USHRT_MAX) {	/* possible? */
 	    fclose(f);
 	    unlink(file_name);
 	    error("String to long for save_binary.\n");

@@ -168,7 +168,7 @@ INLINE static block_t *
     strncpy(STRING(b), string, len);
     STRING(b)[len] = '\0';	/* strncpy doesn't put on \0 if 'from' too
 				 * long */
-    SIZE(b) = (len > MAXSHORT ? MAXSHORT : len);
+    SIZE(b) = (len > USHRT_MAX ? USHRT_MAX : len);
     REFS(b) = 0;
     NEXT(b) = base_table[h];
     base_table[h] = b;
@@ -190,7 +190,7 @@ char *
      * stop keeping track of ref counts at the point where overflow would
      * occur.
      */
-    if (REFS(b) < MAXSHORT) {
+    if (REFS(b) < USHRT_MAX) {
 	REFS(b)++;
     }
     NDBG(b);
@@ -213,7 +213,7 @@ ref_string P1(char *, str)
 	fatal("stralloc.c: called ref_string on non-shared string: %s.\n", str);
     }
 #endif				/* defined(DEBUG) */
-    if (REFS(b) < MAXSHORT) {
+    if (REFS(b) < USHRT_MAX) {
 	REFS(b)++;
     }
     NDBG(b);
@@ -250,10 +250,10 @@ free_string P1(char *, str)
     SUB_STRING(SIZE(b));
 
     /*
-     * if a string has been ref'd MAXSHORT times then we assume that its used
+     * if a string has been ref'd USHRT_MAX times then we assume that its used
      * often enough to justify never freeing it.
      */
-    if (REFS(b) == MAXSHORT)
+    if (REFS(b) == USHRT_MAX)
 	return;
 
     REFS(b)--;
@@ -335,10 +335,10 @@ char *int_new_string P1(int, size)
     malloc_block_t *mbt;
 
     mbt = (malloc_block_t *)DXALLOC(size + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, tag);
-    if (size < MAXSHORT) {
+    if (size < USHRT_MAX) {
 	mbt->size = size;
     } else {
-	mbt->size = MAXSHORT;
+	mbt->size = USHRT_MAX;
     }
     mbt->ref = 1;
     ADD_NEW_STRING(size, sizeof(malloc_block_t));
@@ -351,10 +351,10 @@ char *extend_string P2(char *, str, int, len) {
     /* This isn't always right */
     ADD_STRING_SIZE(len - MSTR_SIZE(str));
     mbt = (malloc_block_t *)DREALLOC(MSTR_BLOCK(str), len + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, "extend_string");
-    if (len < MAXSHORT) {
+    if (len < USHRT_MAX) {
 	mbt->size = len;
     } else {
-	mbt->size = MAXSHORT;
+	mbt->size = USHRT_MAX;
     }
     return (char *)(mbt + 1);
 }

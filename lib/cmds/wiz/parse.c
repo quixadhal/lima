@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 // Beek - July 30, 1995
 //
 // Interface to the parse_sentence() debug info
@@ -7,5 +9,10 @@
 inherit CMD;
 
 private void main(string str) {
-    this_body()->do_game_command(str, 1);
+    int flag = 1;
+    if (str[0..2] == "-v ") {
+        flag = 2;
+        str = str[3..];
+    }
+    this_body()->do_game_command(str, flag);
 }

@@ -7,7 +7,7 @@
 
 /*
 ** PLAYER	main player object (body)
-** DEV		developers' object (body)
+** GHOST	ghost object (body)
 ** USER_OB	user's connection object
 ** USER_OB_BAK	user's connection object (backup version)
 **
@@ -36,6 +36,8 @@
 ** M_RECONNECT	functions for performing socket reconnects
 ** M_ANSI	functions for using the %^ ansi protocol
 ** M_SAVE	functions to abstract saveing and restoring objects
+**
+** M_BODY_STATS	statistics (characteristics) for a body (player/NPC)
 **
 ** M_WEARABLE	things that can be worn
 ** M_ITEMS	provides virtual/fake items for an object
@@ -79,13 +81,14 @@
 */
 
 #define PLAYER			"/std/player"
-#define DEV			"/std/dev"
+#define GHOST			"/std/ghost"
 #define USER_OB			"/secure/user"
 #define USER_OB_BAK		"/secure/user_bak"
 
 #define SIMUL_OB		"/secure/simul_efun"
 
 #define ROOM			"/std/room"
+#define BOOK			"/std/book"
 #define ENTERABLE		"/std/enterable"
 #define WATER_ROOM		"/std/water_room"
 
@@ -110,6 +113,8 @@
 #define M_RECONNECT		"/std/modules/reconnect"
 #define M_ANSI          	"/std/modules/ansi"
 #define M_SAVE			"/std/modules/save"
+
+#define M_BODY_STATS		"/std/modules/bodystats"
 
 #define M_WEARABLE		"/std/modules/wearable"
 #define M_ITEMS			"/std/modules/items"
@@ -145,8 +150,10 @@
 #define MORE_OB			"/obj/more_ob"
 #define FAKE_OB			"/obj/fake"
 #define TEMP_WORKROOM		"/obj/tworkroom"
+#define ALIASMENU		"/obj/aliasmenu"
 
 #define WIZ_SHELL		"/obj/shells/wish"
+#define PLYR_SHELL		"/obj/pshell"
 
 #define REPORTER		"/std/reporter"
 #define VERB_OB			"/std/verb_ob"

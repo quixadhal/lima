@@ -19,6 +19,8 @@
 #include <menu.h>
 #include <mudlib.h>
 
+inherit M_INPUT;
+
 class menu_item {
   string 	description;
   mixed		action;
@@ -410,15 +412,15 @@ get_current_prompt()
 static void
 init_menu_application(MENU toplevel)
 {
-  this_user()->modal_push ((: parse_menu_input :), (: get_current_prompt :));
+  modal_push((: parse_menu_input :), (: get_current_prompt :));
   current_menu = toplevel;
-  goto_menu (toplevel);
+  goto_menu(toplevel);
 }
 
 static void 
 quit_menu_application()
 {
-  this_user()->model_pop();
+  modal_pop();
   destruct(this_object());
 }
   
@@ -433,7 +435,7 @@ goto_menu(MENU m)
 static void
 return_to_current_menu()
 {
-  this_user()->modal_func ((: parse_menu_input :), (: get_current_prompt :));
+  modal_func((: parse_menu_input :), (: get_current_prompt :));
 }
 
 static void
@@ -563,8 +565,8 @@ complete_choice(string input, string* choices, function f)
 	       "-----------------------\n";
       for(i=1; i<= sizeof(matches); i++)
 	  output += sprintf("%=3d)  %s\n", i, matches[i-1]);
-      this_user()->modal_func((: finish_completion :),
-			      "[Enter number or r to return to menu] ");
+      modal_func((: finish_completion :),
+		 "[Enter number or r to return to menu] ");
       // Don't do this before the modal_func I'll bet...
       new(MORE_OB)->more_string(output);
       completion_callback = f;
@@ -582,8 +584,7 @@ finish_completion(string input)
     return;
   if(input == "r")
     {
-      this_user()->modal_func((: parse_menu_input :), 
-			      (: get_current_prompt :));
+      modal_func((: parse_menu_input :), (: get_current_prompt :));
       goto_menu(current_menu);
       return;
     }
@@ -593,7 +594,7 @@ finish_completion(string input)
       return;
     }
   // Put this before the evaluate so that the callback can change things.
-  this_user()->modal_func((: parse_menu_input :), (: get_current_prompt :));
+  modal_func((: parse_menu_input :), (: get_current_prompt :));
   evaluate(completion_callback, cur_choices[i-1]);
   cur_choices = 0;
   completion_callback = 0;
@@ -605,20 +606,19 @@ receive_string(function thencall, string input)
 {
   // order here is important!  prompt_then_return() won't work
   // from your callback if the evaluate() goes first.
-  this_user()->modal_func ((: parse_menu_input :), (: get_current_prompt :));
+  modal_func((: parse_menu_input :), (: get_current_prompt :));
   evaluate(thencall, input);
 }
 
 static void
 get_input_then_call(function thencall, string prompt)
 {
-    this_user()->modal_func((: receive_string, thencall :), prompt);
+    modal_func((: receive_string, thencall :), prompt);
 }
   
 static void 
 prompt_then_return()
 {
-    this_user()->modal_func((: return_to_current_menu :),
-			    "[Hit enter to return to menu] ");
+    modal_func((: return_to_current_menu :),
+	       "[Hit enter to return to menu] ");
 }
-

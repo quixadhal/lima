@@ -168,10 +168,11 @@ mapping_t *deep_copy_mapping P1( mapping_t *, arg ) {
 void deep_copy_svalue P2(svalue_t *, from, svalue_t *, to) {
     switch (from->type) {
     case T_ARRAY:
+    case T_CLASS:
 	depth++;
 	if (depth > MAX_SAVE_SVALUE_DEPTH) {
 	    depth = 0;
-	    error("Mappings and/or arrays nested too deep (%d) for copy()\n",
+	    error("Mappings, arrays and/or classes nested too deep (%d) for copy()\n",
 		  MAX_SAVE_SVALUE_DEPTH);
 	}
 	*to = *from;
@@ -182,7 +183,7 @@ void deep_copy_svalue P2(svalue_t *, from, svalue_t *, to) {
 	depth++;
 	if (depth > MAX_SAVE_SVALUE_DEPTH) {
 	    depth = 0;
-	    error("Mappings and/or arrays nested too deep (%d) for copy()\n",
+	    error("Mappings, arrays and/or classes nested too deep (%d) for copy()\n",
 		  MAX_SAVE_SVALUE_DEPTH);
 	}
 	*to = *from;
@@ -576,6 +577,10 @@ char *pluralize P1(char *, str) {
 	if (!strcasecmp(rel + 1, "eer")) {
 	    found = PLURAL_SAME;
 	} else
+	if (!strcasecmp(rel + 1, "o")) {
+	    found = PLURAL_SUFFIX;
+	    suffix = "es";
+        } else
 	if (!strcasecmp(rel + 1, "ynamo"))
 	    found = PLURAL_SUFFIX;
 	break;
@@ -598,12 +603,20 @@ char *pluralize P1(char *, str) {
 	if (!strcasecmp(rel + 1, "oose")) {
 	    found = PLURAL_CHOP + 4;
 	    suffix = "eese";
+	} else
+	if (!strcasecmp(rel + 1, "o")) {
+	    found = PLURAL_SUFFIX;
+	    suffix = "es";
 	}
 	break;
     case 'H':
     case 'h':
 	if (!strcasecmp(rel + 1, "uman"))
 	    found = PLURAL_SUFFIX;
+	else if (!strcasecmp(rel + 1, "ave")) {
+	    found = PLURAL_CHOP + 2;
+	    suffix = "s";
+	}	    
 	break;
     case 'I':
     case 'i':
@@ -669,6 +682,14 @@ char *pluralize P1(char *, str) {
 	    found = PLURAL_SUFFIX;
 	    suffix = "en";
 	}
+	break;
+    case 'W':
+    case 'w':
+	if (!strcasecmp(rel + 1, "as")) {
+	    found = PLURAL_CHOP + 2;
+	    suffix = "ere";
+	}
+	break;
     }
     /*
      * now handle "rules" ... god I hate english!!
@@ -924,7 +945,7 @@ void f_program_info PROT((void)) {
     for (i=0; i < 10; i++)
 	num_pushes[i]=0;
     for (ob = obj_list; ob; ob = ob->next_all) {
-	if (ob->flags & O_CLONE) continue;
+	if (ob->flags & (O_CLONE|O_SWAPPED)) continue;
 	hdr_size += sizeof(program_t);
 	prog_size += ob->prog->program_size;
 	func_size += ob->prog->num_functions * sizeof(function_t);
@@ -957,6 +978,7 @@ void f_program_info PROT((void)) {
  * interactive object, ie, Linkdead reconnection)
  */
 
+#ifdef F_REMOVE_INTERACTIVE
 void f_remove_interactive PROT((void)) {
     if( (sp->u.ob->flags & O_DESTRUCTED) || !(sp->u.ob->interactive) ) {
 	free_object(sp->u.ob, "f_remove_interactive");
@@ -969,3 +991,33 @@ void f_remove_interactive PROT((void)) {
 	*sp = const1;
     }
 }
+#endif
+
+/* Zakk - August 23 1995
+ * return the port number the interactive object used to connect to the
+ * mud.
+ */
+#ifdef F_QUERY_IP_PORT
+int query_ip_port P1(object_t *, ob)
+{
+    if (!ob || ob->interactive == 0)
+	return 0;
+    return ob->interactive->local_port;
+}    
+
+void
+f_query_ip_port PROT((void))
+{
+    int tmp;
+    
+    if (st_num_arg) {
+	tmp = query_ip_port(sp->u.ob);
+	free_object(sp->u.ob, "f_query_ip_port");
+    } else {
+	tmp = query_ip_port(command_giver);
+	sp++;
+    }
+    put_number(tmp);
+}
+#endif
+

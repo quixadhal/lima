@@ -39,8 +39,9 @@ mixed* expand_arguments(string* argv)
 {
   int i;
 
-  if(this_body() != get_owner())
+  if(this_body() != query_owner())
     error("get your own shell, asswipe!\n");
+
   for(i=0;i<sizeof(argv);i++)
     {
 
@@ -84,28 +85,35 @@ show_shell_help()
   new(MORE_OB)->more_file("/help/wizard/shell");
 }
 
-private void
-create(string save_str)
+private void create()
 {
   if ( !clonep() )
     return;
 
-  shell::create(save_str);
+  ::create();
 
   set_privilege(1);
 
   /* set up to save variables through the M_SAVE api */
   setup_for_save();
 
-  set_variable("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
-			   CMD_DIR_PLAYER "/"}));
   arg_to_words_func = (: argument_explode :);
-  shell_bind("resetpath", (: fix_path :));
-  shell_bind("print", (: print_argument :));
-  shell_bind("?", (: show_shell_help :));
 }
 
+static void prepare_shell()
+{
+    ::prepare_shell();
 
+    set_if_undefined("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
+				   CMD_DIR_PLAYER "/"}));
+    set_if_undefined("pwd", "/");
+    set_if_undefined("cwf", 0);
+
+    shell_bind_if_undefined("resetpath", (: fix_path :));
+    shell_bind_if_undefined("print", (: print_argument :));
+    shell_bind_if_undefined("?", (: show_shell_help :));
+}
+    
 string
 query_shellname()
 {
@@ -131,4 +139,14 @@ execute_command(string * argv, string original_input)
     }
   cmd_info[0]->call_main(cmd_info[2], cmd_info[1]);
   return 1;
+}
+
+void set_pwd(string fname)
+{
+    set_variable("pwd", fname);
+}
+
+void set_cwf(string fname)
+{
+    set_variable("cwf", fname);
 }

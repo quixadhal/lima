@@ -552,6 +552,7 @@ int set_heart_beat P2(object_t *, ob, int, to)
 	while (index--) {
 	    if (heart_beats[index].ob == ob) {
 		heart_beats[index].time_to_heart_beat = heart_beats[index].heart_beat_ticks = to;
+		break;
 	    }
 	}
 	DEBUG_CHECK(index < 0, "Couldn't find enabled object in heart_beat lsit!\n");

@@ -19,7 +19,7 @@ private nomask void handle_piping(string arg)
 	return;
     }
 
-    resend("/cmds/player/say", "say " + arg);
+    resend("/cmds/player/say", arg);
 }
 
 nomask private void main()

@@ -30,11 +30,13 @@ private static mapping log_files = ([
 				     "Bug" : "/log/BUGS",
 				     "Typo" : "/log/TYPOS",
 				     "Idea" : "/log/IDEAS",
+				     "Todo" : "/log/TODOS",
 				     ]);
 private static mapping news_groups = ([
 				       "Bug" : BUG_NEWSGROUP,
 				       "Typo" : TYPO_NEWSGROUP,
 				       "Idea" : IDEA_NEWSGROUP,
+				       "Todo" : TODO_NEWSGROUP,
 				       ]);
 
 private nomask void issue_report(string type, string subject, string text)

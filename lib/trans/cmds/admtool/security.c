@@ -6,48 +6,41 @@
 ** 950710, Deathblade: Created.
 */
 
-
 #include <mudlib.h>
 #include <security.h>
 
+int write_error(string err);
 void std_handler(string str);
 void do_one_arg(string arg_prompt, function fp, string arg);
 void do_two_args(string arg1_prompt, string arg2_prompt,
 		 function fp, string arg);
 
-varargs void modal_simple(function input_func, int secure);
+varargs void modal_func(function input_func, mixed prompt_func, int secure);
+
+#define PROMPT_SECURITY	"(AdmTool:security) [psnuadlwrcmq?] > "
 
 private nomask void write_security_menu()
 {
     write("Administration Tool: security administration\n"
 	  "\n"
-	  "    o             - privilege owners\n"
-	  "    s [priv]      - show privilege\n"
-	  "    n [priv]      - define new privilege\n"
-	  "    u [priv]      - undefine privilege\n"
+	  "    p             - privileges\n"
+	  "    s [priv]      - show sub-privileges\n"
+	  "    n [priv]      - define new privilege               [admin/owner]\n"
+	  "    u [priv]      - undefine privilege                 [admin/owner]\n"
 	  "\n"
-	  "    a [user priv] - add user to a privilege\n"
-	  "    d [user priv] - delete a user from privilege\n"
+	  "    a [user priv] - add user to a privilege            [admin/owner]\n"
+	  "    d [user priv] - delete a user from privilege       [admin/owner]\n"
 	  "\n"
 	  "    l [dir]       - list directory protections\n"
-	  "    w [dir priv]  - set a directory's write protection\n"
-	  "    r [dir priv]  - set a directory's read protection\n"
-	  "    c [dir]       - clear a directory's protection\n"
+	  "    w [dir priv]  - set a directory's write protection [parent priv]\n"
+	  "    r [dir priv]  - set a directory's read protection  [admin]\n"
+	  "    c [dir]       - clear a directory's protection     [parent priv]\n"
 	  "\n"
 	  "    m             - main menu\n"
 	  "    q             - quit\n"
 	  "    ?             - help\n"
 	  "\n"
 	  );
-}
-
-private nomask int write_error(string err)
-{
-    if ( err )
-    {
-	write("Error: " + err + ".\n");
-	return 1;
-    }
 }
 
 private nomask void privilege_owners()
@@ -101,73 +94,40 @@ private nomask void receive_privilege_for_show(string priv)
     }
 }
 
-private nomask void show_privilege(string arg)
-{
-    do_one_arg("Show information for which privilege? ",
-	       (: receive_privilege_for_show :),
-	       arg);
-}
-
 private nomask void receive_privilege_for_define(string priv)
 {
+    /* checks for admin/owner... */
     if ( write_error(SECURE_D->define_privilege(priv)) )
 	return;
 
     printf("Privilege '%s' has been defined.\n", priv);
 }
 
-private nomask void define_privilege(string arg)
-{
-    do_one_arg("Define which privilege? ",
-	       (: receive_privilege_for_define :),
-	       arg);
-}
-
 private nomask void receive_privilege_for_undefine(string priv)
 {
+    /* checks for admin/owner... */
     if ( write_error(SECURE_D->undefine_privilege(priv)) )
 	return;
 
     printf("Privilege '%s' has been undefined.\n", priv);
 }
 
-private nomask void undefine_privilege(string arg)
-{
-    do_one_arg("Undefine which privilege? ",
-	       (: receive_privilege_for_undefine :),
-	       arg);
-}
-
 private nomask void receive_privilege_for_add(string user, string priv)
 {
+    /* checks for admin/owner... */
     if ( write_error(SECURE_D->extend_access(priv, user)) )
 	return;
 
     printf("User '%s' has been added to '%s'.\n", user, priv);
 }
 
-private nomask void add_user_to_priv(string arg)
-{
-    do_two_args("Adding which user (to a priv) ? ",
-		"Add '%s' to which privilege? ",
-		(: receive_privilege_for_add :),
-		arg);
-}
-
 private nomask void receive_privilege_for_remove(string user, string priv)
 {
+    /* checks for admin/owner... */
     if ( write_error(SECURE_D->restrict_access(priv, user)) )
 	return;
 
     printf("User '%s' has been removed from '%s'.\n", user, priv);
-}
-
-private nomask void remove_user_from_priv(string arg)
-{
-    do_two_args("Remove which user (from a priv) ? ",
-		"Remove '%s' from which privilege? ",
-		(: receive_privilege_for_remove :),
-		arg);
 }
 
 private nomask void remap_tree(mapping result, mapping tree, string path)
@@ -233,45 +193,27 @@ private nomask void perform_set_dir_priv(int rw, string dir, mixed priv)
     else if ( priv == "1" )
 	priv = 1;
 
+    /* checks for parent dir priv... */
     if ( write_error(SECURE_D->set_protection(dir, rw, priv)) )
 	return;
 
     printf("Directory '%s' has been set to '%s'.\n", dir, priv);
 }
 
-private nomask void set_dir_write_priv(string arg)
-{
-    do_two_args("Set which directory's write privilege? ",
-		"Set '%s' to what privilege? ",
-		(: perform_set_dir_priv, 1 :),
-		arg);
-}
-
-private nomask void set_dir_read_priv(string arg)
-{
-    do_two_args("Set which directory's read privilege? ",
-		"Set '%s' to what privilege? ",
-		(: perform_set_dir_priv, 0 :),
-		arg);
-}
-
 private nomask void perform_clear_dir_priv(string dir)
 {
     dir = evaluate_path(dir);
 
-    /* ### for now... no write_error() cuz sometimes there are no
-       linked privs */
-    SECURE_D->set_protection(dir, 0, -1);
-    SECURE_D->set_protection(dir, 1, -1);
+    /* checks for parent dir priv... */
+    if ( SECURE_D->query_protection(dir + "/foo", 0) )
+	if ( write_error(SECURE_D->set_protection(dir, 0, -1)) )
+	    return;
+
+    if ( SECURE_D->query_protection(dir + "/foo", 1) )
+	if ( write_error(SECURE_D->set_protection(dir, 1, -1)) )
+	    return;
 
     printf("The privileges on '%s' have been cleared.\n", dir);
-}
-
-private nomask void clear_dir_priv(string arg)
-{
-    do_one_arg("Clear which directory's privileges? ",
-	       (: perform_clear_dir_priv :),
-	       arg);
 }
 
 private nomask void receive_security_input(string str)
@@ -290,30 +232,42 @@ private nomask void receive_security_input(string str)
 
     switch ( str )
     {
-    case "o":
+    case "p":
 	if ( arg )
 	    write("** No argument is required.\n");
 	privilege_owners();
 	break;
 
     case "s":
-	show_privilege(arg);
+	do_one_arg("Show information for which privilege? ",
+		   (: receive_privilege_for_show :),
+		   arg);
 	break;
 
     case "n":
-	define_privilege(arg);
+	do_one_arg("Define which privilege? ",
+		   (: receive_privilege_for_define :),
+		   arg);
 	break;
 
     case "u":
-	undefine_privilege(arg);
+	do_one_arg("Undefine which privilege? ",
+		   (: receive_privilege_for_undefine :),
+		   arg);
 	break;
 
     case "a":
-	add_user_to_priv(arg);
+	do_two_args("Adding which user (to a priv) ? ",
+		    "Add '%s' to which privilege? ",
+		    (: receive_privilege_for_add :),
+		    arg);
 	break;
 
     case "d":
-	remove_user_from_priv(arg);
+	do_two_args("Remove which user (from a priv) ? ",
+		    "Remove '%s' from which privilege? ",
+		    (: receive_privilege_for_remove :),
+		    arg);
 	break;
 
     case "l":
@@ -321,15 +275,23 @@ private nomask void receive_security_input(string str)
 	break;
 
     case "w":
-	set_dir_write_priv(arg);
+	do_two_args("Set which directory's write privilege? ",
+		    "Set '%s' to what privilege? ",
+		    (: perform_set_dir_priv, 1 :),
+		    arg);
 	break;
 
     case "r":
-	set_dir_read_priv(arg);
+	do_two_args("Set which directory's read privilege? ",
+		    "Set '%s' to what privilege? ",
+		    (: perform_set_dir_priv, 0 :),
+		    arg);
 	break;
 
     case "c":
-	clear_dir_priv(arg);
+	do_one_arg("Clear which directory's privileges? ",
+		   (: perform_clear_dir_priv :),
+		   arg);
 	break;
 
     case "?":
@@ -340,4 +302,10 @@ private nomask void receive_security_input(string str)
 	std_handler(str);
 	break;
     }
+}
+
+static nomask void begin_security_menu()
+{
+    modal_func((: receive_security_input :), PROMPT_SECURITY);
+    write_security_menu();
 }

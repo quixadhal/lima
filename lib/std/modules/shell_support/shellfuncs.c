@@ -38,6 +38,13 @@ shell_bind(string command, function f)
 }
 
 static void
+shell_bind_if_undefined(string command, function f)
+{
+    if ( !dispatch[command] )
+	dispatch[command] = f;
+}
+
+static void
 shell_unbind(string command)
 {
   map_delete(dispatch, command);

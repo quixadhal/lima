@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 #include <mudlib.h>
 inherit OBJ;
 inherit M_READABLE;
@@ -9,7 +11,7 @@ create()
     set_id("sign");
 set_gettable(0);
 
-  set_in_room_desc("A small sign");
+  set_in_room_desc("A small sign floats comfortably in mid-air.");
 
 set_long("Perhaps you should read it"); 
 set_text( @ENDMARKER

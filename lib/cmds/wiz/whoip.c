@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
   //  Yaynu@Lima Bean 950723
   //  Prints out a list of IP connections.
   //  Arguments: <none> - Reports all players IP names+numbers.

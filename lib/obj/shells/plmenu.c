@@ -56,7 +56,7 @@ private nomask void do_cmd(string cmd)
 private nomask void 
 simple_cmd(string cmd)
 {
-    do_cmd(cmd);
+    do_cmd(dispatch[cmd]);
 //  call_other(CMD_DIR_PLAYER "/" + dispatch[cmd],"main");
 }
 
@@ -90,7 +90,7 @@ find_soul(string s)
 void
 show_souls(string s)
 {
-    do_cmd("feelings ^" + s);
+   do_cmd("feelings " + s);
 //    CMD_OB_FEELINGS->main("^"+s);
 }
 
@@ -102,7 +102,7 @@ show_adverbs(string s)
 "then *, if the part you type is unique.  Eg, kick rust ene* would give you:\n"
 "kick rust energetically, but kick rust en* won't because it also\n"
 "matches endearingly and enthusiastically.\n");
-    do_cmd("adverbs ^" + s);
+  do_cmd("adverbs " + s);
 //  CMD_OB_ADVERBS->main("^"+s);
 }
 
@@ -110,7 +110,7 @@ show_adverbs(string s)
 void
 change_email(string s)
 {
-  this_user()->set("email", s);
+  this_user()->set_email(s);
   write("Email info changed.\n");
 }
 

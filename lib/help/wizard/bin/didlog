@@ -1,0 +1,8 @@
+
+USAGE:  didlog    or didlog <value>
+
+   This command shows you the "did" log.  With no arguements it shows the
+log for the past day.  With an integer argument it will show the log for
+that many days back.
+
+see also: I

@@ -20,9 +20,8 @@ inherit DAEMON;
 inherit M_INPUT;
 inherit M_ANSI;
 
-#define CHUNK \
-(chunk_size || to_int(this_body()->query_shell_ob()->get_variable("MORE"))\
- || 20)
+#define CHUNK get_chunk_size()
+
 
 private string current_search;
 private string last_search;
@@ -32,6 +31,22 @@ private int file_index;
 private string * lines;
 private int line_index;
 private int chunk_size;
+
+private nomask int get_chunk_size()
+{
+    if ( !chunk_size )
+    {
+	object ob;
+
+	if ( this_body() && (ob = this_body()->query_shell_ob()) )
+	    chunk_size = this_body()->query_shell_ob()->get_variable("MORE");
+        if(stringp(chunk_size)) chunk_size = to_int(chunk_size);
+        if ( !chunk_size )
+	    chunk_size = 20;
+    }
+
+    return chunk_size;
+}
 
 private nomask string query_prompt()
 {
@@ -251,12 +266,16 @@ nomask void do_more(mixed arg) {
 	}
 	for(x = line_index;x < sizeof(lines) && x < line_index + CHUNK; x++)
 	    write(lines[x] + "\n");
-	if (sizeof(lines) >= CHUNK || (file_list && sizeof(file_list) > 1)) {
-	}
-	else
-	    break;
-	return;
+	if (sizeof(lines) >= CHUNK || (file_list && sizeof(file_list) > 1))
+	  {
+	    /* return to prompt about more lines/next file */
+	    return;
+	  }
+
+	/* break: we're done, so finish up */
+	break;
     }
+
     finish();
     return;
 }
@@ -298,7 +317,3 @@ void more_file( string file )
 {
   more_files( ({ file }) );
 }
-
-
-
-

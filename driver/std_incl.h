@@ -115,7 +115,7 @@
 #include <bstring.h>
 #endif
 
-/* Add stuff we didn't get that we need */
+/* Note: This is now only used if _both_ USHRT_MAX and MAXSHORT fail to exist*/
 #ifndef MAXSHORT
 #define MAXSHORT ((1 << (sizeof(short)*8)) - 1)
 #endif

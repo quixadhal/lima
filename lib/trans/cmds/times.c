@@ -16,7 +16,7 @@ private void main( mixed * arg)
     command = implode(arg[1]," ");
     repeats = arg[0];
 
-    if( repeats <= 0 || ( repeats > 10 && !GROUP_D->adminp(this_user()) ) )
+    if( repeats <= 0 || ( repeats > 10 && !check_privilege(1)) )
     {
 	write( "times:  argument out of range.\n" );
 	return;

@@ -377,13 +377,12 @@ int main P2(int, argc, char **, argv)
 
     save_context(&econ);
     if (SETJMP(econ.context)) {
-	debug_message("The simul_efun (/%s) and master (/%s) objects must be loadable.\n", 
-		simul_efun_file_name, master_file_name);
+	debug_message("The simul_efun (%s) and master (%s) objects must be loadable.\n", 
+		      SIMUL_EFUN, MASTER_FILE);
 	exit(-1);
     } else {
-	set_simul_efun(SIMUL_EFUN);
-	if (!load_object(master_file_name, 0))
-	    error("Master object doesn't exist!\n");
+	init_simul_efun(SIMUL_EFUN);
+	init_master(MASTER_FILE);
     }
     pop_context(&econ);
 
@@ -512,12 +511,12 @@ char *int_string_unlink P1(char *, str)
     mbt = ((malloc_block_t *)str) - 1;
     mbt->ref--;
     
-    if (mbt->size == MAXSHORT) {
-	int l = strlen(str + MAXSHORT) + MAXSHORT; /* ouch */
+    if (mbt->size == USHRT_MAX) {
+	int l = strlen(str + USHRT_MAX) + USHRT_MAX; /* ouch */
 
 	newmbt = (malloc_block_t *)DXALLOC(l + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, desc);
 	memcpy((char *)(newmbt + 1), (char *)(mbt + 1), l+1);
-	newmbt->size = MAXSHORT;
+	newmbt->size = USHRT_MAX;
 	ADD_NEW_STRING(l, sizeof(malloc_block_t));
     } else {
 	newmbt = (malloc_block_t *)DXALLOC(mbt->size + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, desc);

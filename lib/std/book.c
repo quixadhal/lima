@@ -6,20 +6,22 @@ inherit OBJ;
 inherit M_OPENABLE;
 inherit M_READABLE;
 
-int
-read()
-{
-  if( !is_open() )
-    return (int)notify_fail( "Perhaps you should open the book first.\n" );
-
-  return readable::read();
+mixed direct_read_obj(object ob) {
+    if (!is_open())
+	return "Perhaps you should open the book first.\n";
+    
+    return readable::direct_read_obj(ob);
 }
 
-int
-read_entry( string entry )
-{
-  if( !is_open() )
-    return (int)notify_fail( "Perhaps you should open the book first.\n" );
+mixed direct_read_str_word_obj(string str, string p, object ob) {
+    if (!is_open())
+	return "Perhaps you should open the book first.\n";
 
-  return readable::read_entry( entry );
+    return readable::direct_read_str_word_obj(str, p, ob);
+}
+
+void create()
+{
+  object::create();
+  openable::create();
 }

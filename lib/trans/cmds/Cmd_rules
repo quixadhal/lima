@@ -26,3 +26,4 @@ tail		file*
 tsh		file
 times		num str*
 in		obj str*
+dbxtracer	obj str

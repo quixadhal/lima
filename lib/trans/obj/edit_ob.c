@@ -103,7 +103,10 @@ private void end_edit(int aborted)
     this_body()->clear_flag(F_IN_EDIT);
     modal_pop();
 
-    call_other(client_ob, client_func, client_ctx, arg2);
+    if(functionp(client_func))
+	evaluate(client_func, client_ctx, arg2);
+    else
+    	call_other(client_ob, client_func, client_ctx, arg2);
 
     destruct(this_object());
 }
@@ -131,16 +134,18 @@ private void handle_escape(string str)
 	end_edit(1);
 	return;
     case 'r':
-	if(!wizardp(this_user()))
-	buf += read_strings(evaluate_path(str[3..]), 1);
+	if(wizardp(this_user()))
+	    buf += read_strings(evaluate_path(str[3..]), 1);
 	return;
     case 'w':
-	if(!wizardp(this_user()))
-        tmp = build_string();
-	if(!write_file(evaluate_path(str[3..]),tmp))
-	    write("Unable to write to file.\n");
-	else 
-	    write("Ok.\n");
+	if(wizardp(this_user()))
+	{
+	    tmp = build_string();
+	    if(!write_file(evaluate_path(str[3..]),tmp))
+		write("Unable to write to file.\n");
+	    else
+		write("Ok.\n");
+	}
 	return;
     case 'h':
 	write(

@@ -58,7 +58,6 @@ static char *type_names[] = {
 #define TYPE_CODES_END 0x400
 #define TYPE_CODES_START 0x2
 
-int master_ob_is_loading;
 #ifdef PACKAGE_UIDS
 extern userid_t *backbone_uid;
 #endif
@@ -214,8 +213,10 @@ int validate_shadowing P1(object_t *, ob)
 	error("shadow: Already shadowing.\n");
     if (current_object->shadowed)
 	error("shadow: Can't shadow when shadowed.\n");
+#ifndef NO_ENVIRONMENT
     if (current_object->super)
 	error("shadow: The shadow must not reside inside another object.\n");
+#endif
     if (ob == master_ob)
 	error("shadow: cannot shadow the master object.\n");
     if (ob->shadowing)
@@ -2004,13 +2005,14 @@ eval_instruction P1(char *, p)
 		s = fp + EXTRACT_UCHAR(pc++);
 		DEBUG_CHECK((fp-s) >= csp->num_local_variables,
 			    "Tried to push non-existent local\n");
-		if ((s->type == T_OBJECT) && (s->u.ob->flags & O_DESTRUCTED)) {
+		if ((s->type == T_OBJECT) && (s->u.ob->flags & O_DESTRUCTED))
 		    *++sp = const0;
-		    assign_svalue(s, &const0);
-		} else {
+		else
 		    *++sp = *s;
-		    s->type = T_NUMBER;
-		}
+
+		/* The optimizer has asserted this won't be used again.  Make
+		 * it look like a number to avoid double frees. */
+		s->type = T_NUMBER;
 		break;
 	    }
 	case F_LOCAL:
@@ -4969,38 +4971,17 @@ void do_trace P3(char *, msg, char *, fname, char *, post)
 }
 #endif
 
-int assert_master_ob_loaded P2(char *, fun, char *, arg) {
-    /* First we check two special conditions.  If master_ob == -1, main.c
-     * hasn't tried to load the master object yet, so we shouldn't.
-     * if master_ob_is_loading is set, then the master is in the process
-     * of loading.
-     */
-    if (master_ob_is_loading || (master_ob == (object_t *)-1))
-	return -1;
-    if (!master_ob || (master_ob->flags & O_DESTRUCTED)) {
-	object_t *ob;
-
-	ob = load_object(master_file_name, 0);
-	if (!ob) {
-	    debug_message("%s(%s) failed: Master failed to load.\n", fun, arg);
-	    return 0;
-	}
-    }
-    return 1;
-}
-
 /* If the master object can't be loaded, we return zero. (svalue_t *)-1
- * means that a secure object is loading.  Default behavior should be that
- * the check succeeds.
+ * means that we haven't gotten to loading the master object yet in main.c.
+ * In that case, the check should succeed.
  */
 svalue_t *apply_master_ob P2(char *, fun, int, num_arg)
 {
-    POINTER_INT err;
     IF_DEBUG(svalue_t *expected_sp);
 
-    if ((err = assert_master_ob_loaded("apply_master_ob", fun)) != 1) {
+    if (master_ob == (object_t *)-1) {
 	pop_n_elems(num_arg);
-	return (svalue_t *)err;
+	return (svalue_t *)-1;
     }
     call_origin = ORIGIN_DRIVER;
 
@@ -5022,10 +5003,9 @@ svalue_t *apply_master_ob P2(char *, fun, int, num_arg)
 
 svalue_t *safe_apply_master_ob P2(char *, fun, int, num_arg)
 {
-    POINTER_INT err;
-    if ((err = assert_master_ob_loaded("safe_apply_master_ob", fun)) != 1) {
+    if (master_ob == (object_t *)-1) {
 	pop_n_elems(num_arg);
-	return (svalue_t *)err;
+	return (svalue_t *)-1;
     }
     return safe_apply(fun, master_ob, num_arg, ORIGIN_DRIVER);
 }

@@ -26,48 +26,100 @@
  * varargs id NEWS_D->system_post(group, subject, message, poster)  (poster optional)
  *
  *
- * GUElib conversion by Deathblade on 24-Dec-94.
- * Rust added system_post on July 7, 1995
- * Rust added the restrict_group() interface on July 24, 1995.
- * Beek modified the system to be automatic based on group prefixes.
+ * 941224, Deathblade: GUElib conversion
+ * 950707, Rust: added system_post on July 7, 1995
+ * 950724, Rust: added the restrict_group() interface on July 24, 1995.
+ * ??????, Beek: modified the system to be automatic based on group prefixes.
+ * 950811, Deathblade: converted to classes. added remove_post().
  * 
  */
 
 #include <mudlib.h>
 #include <security.h>
-#include <news.h>
 #include <commands.h>
+#include <classes.h>
 
 inherit M_ACCESS;
 
+inherit CLASS_NEWSMSG;
+
 #define SAVE_FILE "/data/news/news_d"
+
 #define ARCHIVE_DAYS 14
 #define ARCHIVE_DIR "/data/news/archive"
 
 void archive_posts();
 
 private mapping data = ([]);
+private int new_format;
+
 private static mapping restrictions = 
 ([
 	"wiz" : 	(: wizardp(this_user()) :),
-	"admin" : 	(: GROUP_D->adminp(this_user()) :)
+	"admin" : 	(: adminp(this_user()) :)
 ]);
-
-nomask void create()
-{
-  string group;
-  int rest;
-  set_privilege(1);
-  if (clonep(this_object())) destruct(this_object());
-
-  restore_object(SAVE_FILE, 1);
-  
-  archive_posts();
-}
 
 nomask void save_me()
 {
     unguarded(1, (: save_object, SAVE_FILE :));
+}
+
+/*
+** Convert the storage format from (old-style) mappings to classes
+*/
+private nomask void convert_news()
+{
+    string group;
+    mapping contents;
+
+    foreach ( group, contents in data )
+    {
+	mixed id;
+	mapping post;
+
+	foreach ( id, post in contents )
+	{
+	    class news_msg msg;
+
+	    if ( id == "next_id" )
+		continue;
+
+#define MSG_TIME	1
+#define MSG_THREAD	2
+#define MSG_SUBJECT	3
+#define MSG_MESSAGE	4
+#define MSG_POSTER	5
+
+	    msg = new(class news_msg);
+	    msg->time		= post[MSG_TIME];
+	    msg->thread_id	= post[MSG_THREAD];
+	    msg->subject	= post[MSG_SUBJECT];
+	    msg->poster		= post[MSG_POSTER];
+	    msg->userid		= lower_case(msg->poster);
+	    msg->body		= post[MSG_MESSAGE];
+
+	    contents[id] = msg;
+	}
+    }
+
+    new_format = 1;
+    save_me();
+}
+
+nomask void create()
+{
+    set_privilege(1);
+    if ( clonep(this_object()) )
+    {
+	destruct(this_object());
+	return;
+    }
+
+    restore_object(SAVE_FILE, 1);
+    if ( !new_format )
+	convert_news();
+  
+    archive_posts();
 }
 
 private nomask int get_new_id(string group)
@@ -75,53 +127,80 @@ private nomask int get_new_id(string group)
     return data[group]["next_id"]++;
 }
 
-private nomask void notify_users(string group, mapping msg)
+private nomask void notify_users(string group, class news_msg msg)
 {
     NCHANNEL_D->deliver_string("plyr_news",
 			       sprintf("[news] %s: %s [%s]\n",
 				       group,
-				       msg[MSG_SUBJECT][0..39],
-				       msg[MSG_POSTER]));
+				       msg->subject[0..39],
+				       msg->poster));
 }
 
 nomask int post(string group, string subject, string message)
 {
     int post_id;
-    mapping map;
+    class news_msg msg;
 
-    map = allocate_mapping(5);
     if (!data[group]) return 0;
     post_id = get_new_id(group);
-    map[MSG_TIME] = time();
-    map[MSG_THREAD] = post_id;
-    map[MSG_SUBJECT] = subject;
-    map[MSG_MESSAGE] = message;
-    map[MSG_POSTER] = this_body()->query_name();
-    data[group][post_id] = map;
+    msg = new(class news_msg);
+    msg->time		= time();
+    msg->thread_id	= post_id;
+    msg->subject	= subject;
+    msg->poster		= this_body()->query_name();
+    msg->userid		= this_user()->query_userid();
+    msg->body		= message;
+
+    data[group][post_id] = msg;
     save_me();
-    notify_users(group, map);
+
+    notify_users(group, msg);
+
     return post_id;
 }
 
-varargs nomask int system_post(string group, string subject, string message, string poster)
+varargs nomask int system_post(string group,
+			       string subject,
+			       string message,
+			       string poster)
 {
-  int post_id;
-  mapping map = allocate_mapping(5);
-  if(get_privilege(previous_object()) != 1)
-    return 0;
-  if(!data[group])
-    return 0;
-  post_id = get_new_id(group);
-  map[MSG_TIME] = time();
-  map[MSG_THREAD] = post_id;
-  map[MSG_SUBJECT] = subject;
-  map[MSG_MESSAGE] = message;
-  map[MSG_POSTER] = poster ? poster : this_body() ? capitalize(this_body()->
-			       query_link()->query_userid()) : mud_name();
-  data[group][post_id] = map;
-  save_me();
-  notify_users(group, map);
-  return post_id;
+    int post_id;
+    class news_msg msg;
+
+    if ( get_privilege(previous_object()) != 1 )
+	return 0;
+    if ( !data[group] )
+	return 0;
+    post_id = get_new_id(group);
+    msg = new(class news_msg);
+    msg->time		= time();
+    msg->thread_id	= post_id;
+    msg->subject	= subject;
+    if ( poster )
+    {
+	msg->poster = msg->userid = poster;
+    }
+    else if ( this_body() )
+    {
+	msg->poster = this_body()->query_name();
+	msg->userid = this_user()->query_userid();
+    }
+    else if ( this_user() )
+    {
+	msg->poster = msg->userid = this_user()->query_userid();
+    }
+    else
+    {
+	msg->poster = msg->userid = mud_name();
+    }
+    msg->body		= message;
+
+    data[group][post_id] = msg;
+    save_me();
+
+    notify_users(group, msg);
+
+    return post_id;
 }
 
 varargs nomask void add_group(string group)
@@ -129,7 +208,7 @@ varargs nomask void add_group(string group)
     string fn;
 
     fn = file_name(previous_object());
-    if (fn != ADMTOOL) return;
+    if (fn != CMD_OB_ADMTOOL) return;
 
     data[group] = (["next_id":1]);
     save_me();
@@ -140,7 +219,7 @@ nomask void remove_group(string group)
     string fn;
 
     fn = file_name(previous_object());
-    if (fn != ADMTOOL) return;
+    if (fn != CMD_OB_ADMTOOL) return;
 
     map_delete(data, group);
     save_me();
@@ -148,41 +227,68 @@ nomask void remove_group(string group)
 
 nomask int followup(string group, int id, string message)
 {
-    int post_id;
-    int tmp;
-    mapping map;
     string subject;
+    int post_id;
+    class news_msg msg;
 
-    map = allocate_mapping(6);
     if (!data[group]) return 0;
     if (!data[group][id]) return 0;
     post_id = get_new_id(group);
-    subject = ">" + data[group][id][MSG_SUBJECT];
+    subject = ">" + ((class news_msg)data[group][id])->subject;
 
-    /* the original article is the thread id */
-    while (tmp = data[group][id][MSG_FOLLOW])
-	id = tmp;
-    map[MSG_TIME] = time();
-    map[MSG_THREAD] = id;
-    map[MSG_SUBJECT] = subject;
-    map[MSG_MESSAGE] = message;
-    map[MSG_POSTER] = this_body()->query_name();
-    data[group][post_id] = map;
+    id = ((class news_msg)data[group][id])->thread_id;
+
+    msg = new(class news_msg);
+    msg->time		= time();
+    msg->thread_id	= id;		/* link to original thread_id */
+    msg->subject	= subject;
+    msg->poster		= this_body()->query_name();
+    msg->userid		= this_user()->query_userid();
+    msg->body		= message;
+
+    data[group][post_id] = msg;
     save_me();
-    notify_users(group, map);
+
+    notify_users(group, msg);
+
     return post_id;
 }
 
-nomask mapping get_message(string group, int id)
+nomask class news_msg get_message(string group, int id)
 {
-    mapping msg;
+    class news_msg msg;
+
+    if ( !data[group] )
+	return 0;
 
     msg = data[group][id];
     if ( !msg )
 	return 0;
 
     /* sigh */
-    return copy(msg);
+    /* ### oops... can't do this yet... leave this unsafe for now */
+//    return copy(msg);
+    return msg;
+}
+
+nomask void remove_post(string group, int id)
+{
+    class news_msg msg;
+
+    if ( !data[group] )
+	return;
+
+    msg = data[group][id];
+    if ( !msg || !msg->body )
+	return;
+
+    if ( !adminp(this_user()) &&
+	 msg->userid != this_user()->query_userid() )
+    {
+	error("* illegal attempt to remove post\n");
+    }
+
+    msg->body = 0;
 }
 
 nomask int * get_messages(string group)
@@ -192,14 +298,16 @@ nomask int * get_messages(string group)
 
 nomask int * get_thread(string group, int thread)
 {
-    return filter_array(keys(data[group]), (: $1 != "next_id" &&
-					      data[$(group)][$1][MSG_THREAD]
-					      == $(thread) :) );
+    return filter_array(keys(data[group]),
+			(: $1 != "next_id" &&
+			 ((class news_msg)data[$(group)][$1])->thread_id
+			 == $(thread) :) );
 }
 
 nomask string * get_groups()
 {
     string array ret;
+
     // filter before sorting; the func is typically pretty cheap, and
     // and calling them all is O(n).  Sorting the list first is more
     // expensive
@@ -220,42 +328,41 @@ nomask int get_group_last_id(string group)
 
 private nomask void archive_post(string group, int id)
 {
+    class news_msg msg = data[group][id];
+
     unguarded(1, (: write_file, 
-	sprintf("%s/%s", ARCHIVE_DIR, group),
-	sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
-		data[group][id][MSG_POSTER],
-		data[group][id][MSG_SUBJECT],
-		ctime(data[group][id][MSG_TIME]),
-		data[group][id][MSG_MESSAGE])
+		  sprintf("%s/%s", ARCHIVE_DIR, group),
+		  sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
+			  msg->poster, msg->subject,
+			  intp(msg->time) ? ctime(msg->time) : msg->time,
+			  msg->body)
 		  :) );
+
     map_delete(data[group], id);
 }
 
 nomask void archive_posts()
 {
 #ifdef NOT_YET
-
-    string *groups;
-    int *ids;
-    int i,j,ni,nj;
-    mapping group;
     int archive_time;
+    string group;
+    mapping contents;
 
     archive_time = time() - ARCHIVE_DAYS * 24 * 60 * 60;
 
-    groups = keys(data);
-    ni = sizeof(groups);
-
-    for (i=0; i<ni; i++)
+    foreach ( group, contents in data )
     {
-        group = data[groups[i]];
-        ids = keys(group) - ({ "next_id" });
-        nj = sizeof(ids);
+	mixed id;
+	class news_msg msg;
 
-        for (j=0; j<nj; j++)
+	foreach ( id, msg in contents )
 	{
-            if ( group[ids[j]][MSG_TIME] < archive_time )
-                archive_post(groups[i], ids[j]);
+	    if ( id == "next_id" )
+		continue;
+
+	    /* ### how to archive posts with strings as times? */
+	    if ( intp(msg->time) && msg->time < archive_time )
+		archive_post(group, id);
         }
     }
 #endif /* NOT_YET */

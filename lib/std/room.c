@@ -23,7 +23,7 @@
 
 inherit CONTAINER;
 inherit M_ITEMS;
-
+inherit __DIR__ "room/weather";
 
 
 // global vars
@@ -33,11 +33,13 @@ int rbits;
 int xtra_flags;
 string base;
 string remote_desc;
+private mixed def_exit;
 mapping exits = ([]);
 mapping items = ([]);
 mapping exit_msg = ([]);
 mapping enter_msg = ([ ]);
 int total_light;
+string map_type;
 
 int query_lit() { return total_light + query_light(); }
 
@@ -81,6 +83,14 @@ void create(){
 mapping get_exits()
 {
     return exits;
+}
+
+void set_default_exit(mixed value) {
+    def_exit = value;
+}
+
+int is_default_exit(string str, int flag) {
+    return flag && def_exit;
 }
 
 string get_exit(string dir) {
@@ -164,13 +174,28 @@ string show_objects()
     return wrap(obj_show);
 }
 
+/*
+** map_type is used to indicate the map that a room is on (used on muds
+** with map systems)
+*/
+void set_map(string type)
+{
+    map_type = type;
+}
+string print_map()
+{
+    return map_type;
+}
+
 string query_enter_msg(string arg){
     return enter_msg[arg]; 
 }
-
 nomask string long()
 {
-    return sprintf("%s%s", container::simple_long(), show_objects());
+    return sprintf("%s%s%s",
+		   container::simple_long(),
+		   weather(),
+		   show_objects());
 }
 
 
@@ -239,13 +264,17 @@ int evaluate_destination(mixed dest, string arg) {
     }
 }
 
-int go_somewhere(string arg){
+int go_somewhere(string arg) {
     string dest;
     int ret;
 
     if (!(dest = exits[arg])){
-	if (dest = exits["DEFAULT"]) notify_fail(dest);
-	else notify_fail("You can't go that way!\n");
+	if (dest = def_exit) {
+	    ret = evaluate(dest);
+	    if (stringp(ret))
+		write(ret);
+	}
+	else write("You can't go that way!\n");
 	return 0;
     }
     this_object()->pre_exit();

@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 /*
 ** listeners.c -- displays info on people listening to channels
 **
@@ -44,6 +46,8 @@ private void main()
     foreach ( channel_name, listeners in registered )
     {
 	string one_channel = "";
+
+        listeners -= ({ 0 });
 
 	output += channel_name + ":\n" +
 	    iwrap("    " +

@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 #define need(x) badness += x + " is required for LIMA libs.\n"
 
 #define FOOTER "**********************************************************\n"
@@ -24,6 +26,12 @@ void create() {
 #endif
 #ifndef __NO_ADD_ACTION__
     need("#define NO_ADD_ACTION");
+#endif
+#ifdef __NO_ENVIRONMENT__
+    need("#undef NO_ENVIRONMENT");
+#endif
+#ifndef __NO_WIZARDS__
+    need("#define NO_WIZARDS");
 #endif
 #ifdef __OLD_RANGE_BEHAVIOR__
     need("#undef OLD_RANGE_BEHAVIOR");

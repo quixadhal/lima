@@ -1484,7 +1484,7 @@ static void add_long_message P2(object_t *, who, char *, s) {
 }
 
 /*
- * tell_object: Send a message to an object.
+ * tell_object: send a message to an object.
  * If it is an interactive object, it will go to his
  * screen. Otherwise, it will go to a local function
  * catch_tell() in that object. This enables communications

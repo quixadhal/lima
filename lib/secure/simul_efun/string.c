@@ -152,6 +152,9 @@ string trim_spaces( string s ){
   int i, j;
 
   j = strlen(s) - 1;
+  if ( j < 0 )
+      return "";
+
   while( i <= j && member_array(s[i], whitespace) != -1 ) i++;
   while( i <= j && member_array(s[j], whitespace) != -1 ) j--;
   return s[i..j];
@@ -292,4 +295,27 @@ string center( string s, int width )
   half = n>>1;
   if( n%2&&width%2) half++;
   return power_str(" ",half) + s + power_str(" ",n-half);
+}
+
+// Note that truncate adds an elipsis ("...") to the end if it 
+// truncates.
+string truncate( string s, int length )
+{
+  length -= 3;
+  if(length < 1)
+	{
+		error("truncate:  value too low");
+	}
+  if(strlen(s) <= length)
+	return s;
+  return s[0..length-1] + "...";
+}
+
+int is_letter(int c)
+{
+  return strsrch(lowercase+uppercase,c) != -1;
+
+
+
+
 }

@@ -1188,6 +1188,26 @@ static int check_prog P4(char *, tag, char *, pre, char *, code, int, andrun) {
     return 0;
 }
 
+static void check_linux_libc() {
+    char buf[1024];
+    FILE *ct;
+    
+    ct = fopen("comptest.c", "w");
+    fprintf(ct, "int main() { }\n");
+    fclose(ct);
+    
+    sprintf(buf, "%s -g comptest.c -o comptest >/dev/null 2>&1", COMPILER);
+    if (system(buf)) {
+	fprintf(stderr, "   libg.a/so installed wrong, trying workaround ...\n");
+	sprintf(buf, "%s -g comptest.c -lc -o comptest >/dev/null 2>&1", COMPILER);
+	if (system(buf)) {
+	    fprintf(stderr, "*** FAILED.\n");
+	    exit(-1);
+	}
+	fprintf(yyout, " -lc");
+    }
+}
+
 static char *memmove_prog = "\
 char buf[80];\n\
 strcpy(buf,\"0123456789ABCDEF\");\n\
@@ -1234,8 +1254,11 @@ static void handle_configure() {
     check_include("INCL_DOS_H", "dos.h");
     check_include("INCL_USCLKC_H", "usclkc.h");
     check_include("INCL_LIMITS_H", "limits.h");
-    if (!check_prog(0, 0, "int x = MAXSHORT;", 0))
-	check_include("INCL_VALUES_H", "values.h");
+    if (!check_prog(0, 0, "int x = USHRT_MAX;", 0)) {
+	if (!check_prog(0, 0, "int x = MAXSHORT;", 0))
+	    check_include("INCL_VALUES_H", "values.h");
+	fprintf(yyout, "#define USHRT_MAX  (MAXSHORT)\n");
+    }
     
     check_include("INCL_NETINET_IN_H", "netinet/in.h");
     check_include("INCL_ARPA_INET_H", "arpa/inet.h");
@@ -1283,6 +1306,11 @@ static void handle_configure() {
     /* includes just to shut up gcc's warnings on some systems */
     check_include("INCL_BSTRING_H", "bstring.h");
 #endif
+
+    /* Runtime loading support */
+    check_include("INCL_DLFCN_H", "dlfcn.h");
+    if (!check_prog(0, 0, "int x = RTLD_LAZY;", 0))
+	fprintf(yyout, "#define RTLD_LAZY     1\n");
 
     printf("Checking for random number generator ...");
     if (check_prog("DRAND48", "#include <math.h>", "srand48(0);", 0)) {
@@ -1352,12 +1380,19 @@ static void handle_configure() {
     if (!check_prog(0, "", "char *x = malloc(100);", 0))
 	check_library("-lmalloc");
 
+    if (!check_prog(0, "", "void *x = dlopen(0, 0);", 0))
+	check_library("-ldl");
+    
     check_library("-lsocket");
     check_library("-linet");
     check_library("-lnsl");
     check_library("-lnsl_s");
     check_library("-lseq");
     check_library("-lm");
+
+    fprintf(stderr, "Checking for flaky Linux systems ...\n");
+    check_linux_libc();
+    
     fprintf(yyout, "\n\n");
     close_output_file();
 }

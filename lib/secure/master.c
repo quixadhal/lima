@@ -286,6 +286,8 @@ string make_path_absolute(string path)
 
 int valid_override(string file, string efun_name)
 {
+    // M_GRAMMAR overrides this
+    if (efun_name == "pluralize") return 1;
     /*
     ** The simul efun ob can use efun:: all it wants.  Other objects are
     ** completely restricted.
@@ -338,6 +340,8 @@ string object_name( object ob )
 	return ob->query_userid();
 
     if ( ob->is_living() )
+	if(ob = ob->query_link()) return ob->query_userid()+"'s body";
+	else
         return "NPC";
 }
 
@@ -408,9 +412,9 @@ int valid_object(object o)
     return 1;
 }
 
-int valid_bind()
+int valid_bind(object binder, object old_owner, object new_owner)
 {
-    return check_privilege(1);
+    return check_privilege(get_protection(base_name(new_owner), "wf"));
 }
 
 int valid_save_binary()

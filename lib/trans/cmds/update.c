@@ -49,10 +49,10 @@ private void main(mixed *arg, mapping flags) {
     if (flags["r"]) deep_up = 1;
     if (flags["R"]) deep_up = 2;
     file = arg[0];
-    if (!file) file = this_body()->query_cwf();
+    if (!file) file = this_body()->query_shell_ob()->get_variable("cwf");
     if (!file || file == "here") file = "/"+file_name(environment(this_body()));
     file = evaluate_path(file);
-    this_body()->set_cwf( file );
+    this_body()->query_shell_ob()->set_cwf( file );
     sscanf(file, "%s.c", file);
     if (file_size(file+".c")==-1) {
 	printf("update: no such file.\n");
@@ -63,7 +63,7 @@ private void main(mixed *arg, mapping flags) {
 	printf("update: file is a directory.\n");
 	return 0;
     }
-    if(file_size(file+".c"))  this_body()->set_cwf(file+".c");
+    if(file_size(file+".c"))  this_body()->query_shell_ob()->set_cwf(file+".c");
     obs = 0;
     if (ob = find_object(file)) {
 	obs = all_inventory(ob);

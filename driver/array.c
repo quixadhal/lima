@@ -18,8 +18,10 @@ int total_array_size;
 INLINE static int builtin_sort_array_cmp_fwd PROT((svalue_t *, svalue_t *));
 INLINE static int builtin_sort_array_cmp_rev PROT((svalue_t *, svalue_t *));
 INLINE static int sort_array_cmp PROT((svalue_t *, svalue_t *));
+#ifndef NO_ENVIRONMENT
 static int deep_inventory_count PROT((object_t *));
 static void deep_inventory_collect PROT((object_t *, array_t *, int *));
+#endif
 INLINE static int alist_cmp PROT((svalue_t *, svalue_t *));
 
 /*
@@ -877,6 +879,7 @@ array_t *add_array P2(array_t *, p, array_t *, r)
     return d;
 }
 
+#ifndef NO_ENVIRONMENT
 /* Returns an array of all objects contained in 'ob'
  */
 array_t *all_inventory P2(object_t *, ob, int, override)
@@ -922,7 +925,7 @@ array_t *all_inventory P2(object_t *, ob, int, override)
     }
     return d;
 }
-
+#endif
 
 /* Runs all elements of an array through ob::func
    and replaces each value in arr by the value returned by ob::func
@@ -1244,6 +1247,7 @@ f_sort_array PROT((void))
  * The recursive call routines are:
  *    deep_inventory_count() and deep_inventory_collect()
  */
+#ifndef NO_ENVIRONMENT
 static int valid_hide_flag;
 
 static int deep_inventory_count P1(object_t *, ob)
@@ -1333,6 +1337,7 @@ array_t *deep_inventory P2(object_t *, ob, int, take_top)
 
     return dinv;
 }
+#endif
 
 INLINE static int alist_cmp P2(svalue_t *, p1, svalue_t *, p2)
 {

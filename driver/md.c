@@ -88,7 +88,7 @@ MDmalloc P4(md_node_t *, node, int, size, int, tag, char *, desc)
 #ifdef DEBUG
 	abort();
 #endif
-	return 0;
+	return;
     }
     total_malloced += size;
     if (total_malloced > hiwater) {
@@ -287,7 +287,12 @@ static void mark_object P1(object_t *, ob) {
 	sent = sent->next;
     }
 #endif
-    
+
+#ifdef PACKAGE_PARSER
+    if (ob->pinfo)
+	parser_mark(ob->pinfo);
+#endif    
+
     if (ob->prog)
 	for (i = 0; i < ob->prog->num_variables; i++)
 	    mark_svalue(&ob->variables[i]);
@@ -525,7 +530,7 @@ void check_all_blocks P1(int, flag) {
 		    msbl = NODET_TO_PTR(entry, malloc_block_t *);
 		    str = (char *)(msbl + 1);
 		    msbl->extra_ref = 0;
-		    if (msbl->size != MAXSHORT && msbl->size != strlen(str)) {
+		    if (msbl->size != USHRT_MAX && msbl->size != strlen(str)) {
 			outbuf_addv(&out, "Malloc'ed string length is incorrect: %s %04x '%s': is: %i should be: %i\n", entry->desc, (int)entry->tag, str, msbl->size, strlen(str));
 		    }
 		    break;
@@ -645,6 +650,9 @@ void check_all_blocks P1(int, flag) {
 #endif
 #ifdef PACKAGE_SOCKETS
     mark_sockets();
+#endif
+#ifdef PACKAGE_PARSER
+    parser_mark_verbs();
 #endif
 #ifdef LPC_TO_C
     mark_switch_lists();
@@ -793,7 +801,7 @@ void check_all_blocks P1(int, flag) {
 	    case TAG_FUNP:
 		fp = NODET_TO_PTR(entry, funptr_t *);
 		if (fp->hdr.ref != fp->hdr.extra_ref)
-		    outbuf_addv(&out, "Bad ref count for function pointer, is %d - should be %d\n", fp->hdr.ref, fp->hdr.extra_ref);
+		    outbuf_addv(&out, "Bad ref count for function pointer (owned by %s), is %d - should be %d\n", fp->hdr.owner->name, fp->hdr.ref, fp->hdr.extra_ref);
 		break;
 	    case TAG_BUFFER:
 		buf = NODET_TO_PTR(entry, buffer_t *);

@@ -11,7 +11,7 @@ mixed can_wait()
 
 void do_wait()
 {
-    write("Time passes........\n");
+    write("Do I have to do EVERYTHING for you?\n");
 }
 
 mixed * query_verb_info()

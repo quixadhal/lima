@@ -1,13 +1,12 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
-#include <wizlevels.h>
 
 inherit CMD;
 
 private void main(string s)
 {
-    if ( !GROUP_D->adminp(this_user()) || !check_privilege(1) )
+    if ( !check_privilege(1) )
       {
 	printf("Only admins may shut down the game.\n");
 	return;
@@ -20,6 +19,9 @@ private void main(string s)
     case "bite me":
 	write("Bite yourself!\n");
 	return;
+    case "asap":
+        write("As soon as you provide a reason.\n");
+        return;
     default:
 	if (s[0..3] == "now") {
 	    write("Now is not a reason.\n");

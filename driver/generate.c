@@ -253,7 +253,7 @@ static void lpc_tree_list P2(parse_node_t *, dest, parse_node_t *, expr) {
     }
 }
 
-#define lpc_tree_opc(x, y) lpc_tree_string(x, get_f_name(y))
+#define lpc_tree_opc(x, y) lpc_tree_string(x, get_f_name(y & ~NOVALUE_USED_FLAG))
 
 #define ARG_1 dest->r.expr
 #define ARG_2 dest->r.expr->r.expr
@@ -427,11 +427,13 @@ generate P1(parse_node_t *, node) {
 }
 
 void optimizer_start_function P1(int, n) {
-    last_local_refs = CALLOCATE(n, parse_node_t *, TAG_COMPILER, "c_start_function");
-    optimizer_num_locals = n;
-    while (n--) {
-	last_local_refs[n] = 0;
-    }
+    if (n) {
+	last_local_refs = CALLOCATE(n, parse_node_t *, TAG_COMPILER, "c_start_function");
+	optimizer_num_locals = n;
+	while (n--) {
+	    last_local_refs[n] = 0;
+	}
+    } else last_local_refs = 0;
 }
 
 void optimizer_end_function PROT((void)) {
@@ -755,7 +757,7 @@ dump_tree P1(parse_node_t *, expr) {
 	printf(")");
 	break;
     case NODE_EFUN:
-	printf("(%s ", instrs[expr->v.number].name);
+	printf("(%s ", instrs[expr->v.number & ~NOVALUE_USED_FLAG].name);
 	dump_expr_list(expr->r.expr);
 	printf(")");
 	break;

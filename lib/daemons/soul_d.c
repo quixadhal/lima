@@ -320,3 +320,16 @@ void remove_adverb(string adverb)
   adverbs -= ({adverb});
   unguarded(1, (: save_object, SAVE_FILE :));
 }
+
+
+int total_number_of_rules()
+{
+  string verb;
+  mapping value;
+  int i;
+
+  foreach(verb, value in emotes){
+    i+= sizeof(value);
+  }
+return i;
+}

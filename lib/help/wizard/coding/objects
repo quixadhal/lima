@@ -1,103 +1,92 @@
-Here is the minimum required for a generic object:
+
+The following example is a bare bones object.  It really doesnt do 
+Objects in the Lima mudlib are created a little differently than in most
+anything nor can you do anything with it other than look at it.
 
 #include <mudlib.h>
 
 inherit OBJ;
 
-create() {
-  set_adjectives( ({ "dumb" }) );
-  set_id( ({ "termimal", "computer" }) );
-  set_long( "It looks like it has an IQ of about 30." ); }
+create() 
+}
+    set_id( ({ "terminal", "computer" }) );
+    set_adjectives( ({ "dumb" }) );
+    set_long( "It looks like it has an IQ of about 30." );
+}
 
-the object will respond to the names "terminal", "dumb
-terminal", "computer", and "dump computer", and when you look at
-it you get a joke.
+This object will repond to the names "terminal" and "computer" 
+also will repond to "dumb terminal" and "dumb computer".
 
-This object is very bland, completely useless, and can't even be
-picked up.  Let's see how we can make things more interesting.
+This object is very boring, completely useless. Lets make it
+more interesting.
 
-First, let's fool with the description.  When you look at the
-room, you'll get a message like: "A dumb terminal lies here,
-discarded."  First of all, notice that the game refers to an
-object using the first adjective and the first noun.  This is
-the default behavior.  It's also pretty smart about using
-articles (a, the) but sometimes you want more power.  If you
-call set_proper_name(), that will be used for the name of the object
-instead.  For example, if you wanted to put the sword Excalibur
-in the game, and you wanted the game to refer to it as
-'Excalibur', 'You take a Excalibur' would be a bad thing.  so
-you would do:
+set_proper_name("Excalibur");       
 
-set_proper_name("Excalibur");
+    This will force the mud to refer to the object as Excalibur.
+    Please note that you still have to have set_id() and
+    set_adjectives() so the mud knows what the player can refer
+    to the object as.  For example:
 
-in create().  Note that you still have to call set_id and
-set_adjectives so the game knows what the player can refer to
-the sword as.  For example:
+set_unique(1);  
 
-set_id( ({ "sword", "Excalibur" }) ); set_adjectives( ({ "King
-Arthur's" }) );
+     This will force the mud to refer to an object as 'the .....'.
+     Usually reserved for items that are unique.  i.e. unique items 
+     should probably be refered to as 'the' instead of 'a'.
 
-Also, you can call set_unique(1) for objects that should always
-be refered to as 'the' instead of 'a'.  If there could never be
-two of the same object object in the same room, it probably
-should be refered to as 'the'.
+set_in_room_desc("A dumb terminal sits in the corner of the room.\n");
 
-Now how do we affect how it looks in the room?  Try:
+     This will force the default message of 'a dumb terminal sits 
+     here, discarded' with the above message.  This works well.  
+     However, for objects that can be taken, everytime you drop them
+     they will go to the corner of the room.  This would be rather odd
+     in a round room.  the solution is to use set_untouched_desc.
 
-set_in_room_desc("A dumb terminal sits in the corner of the
-room.\n");
+set_untouched_desc()
 
-This works well.  However, for objects that can be taken,
-everytime you drop them they will go to the corner of the room.
-This would be rather odd if you dropped it in a round room :)
+     This can be used to give a very verbose description of where the
+     item is in the room.  However once the item is moved this
+     description is no longer used.
 
-The solution is to use set_untouched_desc.  That description
-will only be used until the object is moved, so it can be used
-to give a verbose description of where the object is situated in
-the room.
-
-Ok, it's pretty useless if you can't take anything.  How do you
-make something takeable?  At the very top of the file, right
-after #include <mudlib.h> insert the line:
-
-inherit M_GETTABLE;
-Like all the other M_* files, M_GETTABLE adds some functionality
-to your object.  Now, your object has more control over what
-happens when someone tries to take it.  In order to make it
-gettable, you need to call:
-
-set_gettable(1);
-
-from create().  1 means that it is possible to get the object.
-0 means give the standard error ("You can't get that!") and -1
-mean that a special message will be given.  The message is set
-like this:
-
-set_getmsg("You don't want to get your hands near the dumb
-terminal.");
-
-There is also set_dropable() and set_dropmsg(), but objects
-default to being dropable, so you don't have to call
-set_dropable(1) from create().  They are used the same way.
-
-What other M_* files can you use?  M_WEARABLE, M_OPENABLE,
-M_LOCKABLE, and M_READABLE, to name a few.  Check the
-appropriate documentation for details.
-
-Do you want your object to give off light?  call set_light(1)
-from create().  Also, if your object should have weight, call
-set_weight(50).  1 weight unit corresponds roughly to a pound or
-so.
+========================================================================
 
 
-Another way that the behavior of the object can be affected ...
+Your base object is still useless as it cant be picked up or
+used in any way.  In order to change the functionality of your
+object you need to inherit files of the form M_*.  this will add 
+the necessary functions to allow you to change the way you object
+behaves.
 
---- this is as far as Beek has gotten
+The following M_* files are available:
 
-#include <setbit.h> set_flag(ATTACHED); set_flag(TRANSPARENT);
-set_flag(FLAMING); set_flag(DESTROYABLE);
+   M_GETTABLE    Functions for object that can be picked up
+   M_LOCKABLE    Functions for objects that can be locked/unlocked
+   M_ANSI        Functions for using %^ ansi protocol
+   M_WEARABLE    Functions for things that can be worn
+   M_ITEMS       Functions for providing virtual/fake items for
+                 objects
+   M_OPENABLE    Functions for objects that can be opened and closed 
+   M_READABLE    Functions for something that can be read
+   M_WIELDABLE   Functions for something that can be wielded (weapons)
+   
+There are a few more inheritables that may be used also but dont fit 
+into the module category.
+
+   CONTAINER     Makes your object a container for other objects.
+   ENTERABLE     Makes your object able to be entered.                   
+   WEAPON        Weapons
+   MONSTERS      Monsters
+   DOOR          Doors to places
+   LIVING        Can hold things and perform actions(no fighting)
+          
+For the documentation on these inheritables please see the 
+appropriate help file for that inheritable.  Also note that 
+work is in progress on these so they may not be entirely complete.
+  
+
+ 
+
+ 
 
 
-inherit CONTAINER set_max_capacity() can_put_in()
-receive_object() release_object() set_objects() extra_receive()
-can_take_from()
+
+

@@ -44,6 +44,9 @@ typedef struct interactive_s {
 #else
     int fd;			/* file descriptor for interactive object  */
     struct sockaddr_in addr;	/* socket address of interactive object    */
+#ifdef F_QUERY_IP_PORT
+    int local_port;		/* which of our ports they connected to    */
+#endif
 #endif
     char *prompt;		/* prompt string for interactive object    */
     char text[MAX_TEXT];	/* input buffer for interactive object     */

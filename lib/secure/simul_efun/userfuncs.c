@@ -1,6 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+#include <daemons.h>
+#include <security.h>
 
 string base_name(mixed val);
 
@@ -11,32 +13,12 @@ nomask object this_body()
     return u ? u->query_body() : 0;
 }
 
-private nomask int filter_users(string str, int lv, object who)
-{
-    object body = who->query_body();
-    mixed *nicks;
-
-    if ( base_name(who) != USER_OB ) return 0;
-    if ( body && body->query_hidden() > lv ) return 0;
-    if ( who->query_name() == str ) return 1;
-
-    nicks = body && body->query_nicknames();
-    if ( nicks && member_array(str, nicks) != -1) return 1;
-
-    return 0;
-}
 
 nomask object find_user(string str)
 {
     object *choices;
-    int lv;
-
-    if ( this_user() )
-	lv = this_body()->query_level();
-    else
-	lv = 0;
     
-    choices = filter_array(users(), (: filter_users, str, lv :));
+    choices = filter_array(users(), (: $1->query_userid() == $(str) :));
 
     if ( sizeof(choices) )
 	return choices[0];
@@ -53,15 +35,21 @@ nomask object find_body(string str)
 }
 
 
-int
-get_level( object ob )
+nomask int wizardp(mixed m)
 {
-  int		level;
+    if ( objectp(m) )
+	m = m->query_userid();
 
-  level = userp(ob) ?
-	(ob->query_score())/
-	(QUEST_D->total_points()/5) :
-	ob->query_level();
+    if ( stringp(m) )
+	return SECURE_D->query_is_wizard(m);
 
-  return (level<0 ? 0 : ( level > 5 ? 5 : level ));
+    return 0;
+}
+
+nomask int adminp(mixed m)
+{
+    if ( objectp(m) )
+	m = m->query_userid();
+
+    return member_array(m, SECURE_D->query_domain_members("admin")) != -1;
 }

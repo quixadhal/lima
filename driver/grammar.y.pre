@@ -124,13 +124,15 @@ int yyparse PROT((void));
         char num;
 	parse_node_t *node;
     } decl;
+    /* same size as function_context_t; any more and we need to expand */
     struct { 
 	char num_local; 
 	char max_num_locals; 
+	short last_fc_num_params;
 	short context; 
 	short save_current_type; 
 	short save_exact_types;
-    } func_block;
+    } func_block; 
 }
 
 /*
@@ -473,11 +475,11 @@ basic_type:
 %ifdef ARRAY_RESERVED_WORD
        | atomic_type L_ARRAY
             {
-		$$ = $1 | TYPE_MOD_MASK;
+		$$ = $1 | TYPE_MOD_ARRAY;
 	    }
        | L_ARRAY
             {
-		$$ = TYPE_ANY | TYPE_MOD_MASK;
+		$$ = TYPE_ANY | TYPE_MOD_ARRAY;
             }
 %endif
        ;
@@ -763,25 +765,7 @@ while:
 	    }
 	statement
 	    {
-		/* do some optimizations on the conditional expression */
-		if (IS_NODE($3, NODE_BINARY_OP, F_LT) &&
-		    IS_NODE($3->l.expr, NODE_OPCODE_1, F_LOCAL)) {
-		    if (IS_NODE($3->r.expr, NODE_OPCODE_1, F_LOCAL)) {
-			CREATE_OPCODE_2($$, F_LOOP_COND_LOCAL, 0,
-					$3->l.expr->l.number,
-					$3->r.expr->l.number);
-		    } else if ($3->r.expr->kind == NODE_NUMBER) {
-			CREATE_OPCODE_2($$, F_LOOP_COND_NUMBER, 0,
-					$3->l.expr->l.number,
-					$3->r.expr->v.number);
-		    }
-		} else if (IS_NODE($3, NODE_UNARY_OP, F_POST_DEC) &&
-			   IS_NODE($3->r.expr, NODE_OPCODE_1, F_LOCAL_LVALUE)) {
-		    int lvar = $3->r.expr->l.number;
-		    CREATE_OPCODE_1($3, F_WHILE_DEC, 0, lvar);
-		}
-
-		CREATE_LOOP($$, 1, $6, 0, $3);
+		CREATE_LOOP($$, 1, $6, 0, optimize_loop_test($3));
 		context = $<number>1;
 	    }
     ;
@@ -794,7 +778,7 @@ do:
 	    }
         statement L_WHILE '(' comma_expr ')' ';'
             {
-		CREATE_LOOP($$, 0, $3, 0, $6);
+		CREATE_LOOP($$, 0, $3, 0, optimize_loop_test($6));
 		context = $<number>1;
 	    }
     ;
@@ -807,19 +791,6 @@ for:
 	    }
         statement
             {
-		if (IS_NODE($5, NODE_BINARY_OP, F_LT) &&
-		    IS_NODE($5->l.expr, NODE_OPCODE_1, F_LOCAL)) {
-		    if (IS_NODE($5->r.expr, NODE_OPCODE_1, F_LOCAL)) {
-			CREATE_OPCODE_2($$, F_LOOP_COND_LOCAL, 0,
-					$5->l.expr->l.number,
-					$5->r.expr->l.number);
-		    } else if ($5->r.expr->kind == NODE_NUMBER) {
-			CREATE_OPCODE_2($$, F_LOOP_COND_NUMBER, 0,
-					$5->l.expr->l.number,
-					$5->r.expr->v.number);
-		    }
-		}
-
 		$3 = insert_pop_value($3);
 		$7 = insert_pop_value($7);
 		if ($7 && IS_NODE($7, NODE_UNARY_OP, F_INC)
@@ -829,7 +800,7 @@ for:
 		}
 
 		CREATE_STATEMENTS($$, $3, 0);
-		CREATE_LOOP($$->r.expr, 1, $10, $7, $5);
+		CREATE_LOOP($$->r.expr, 1, $10, $7, optimize_loop_test($5));
 
 		context = $<number>1;
 	      }
@@ -850,6 +821,15 @@ foreach_var: L_DEFINED_NAME
 		    CREATE_OPCODE_1($$, F_GLOBAL_LVALUE, 0, 0);
 		}
             }
+          | L_IDENTIFIER
+            {
+		char buf[256];
+		sprintf(buf, "'%s' is not a local or a global variable.",
+			$1);
+		yyerror(buf);
+		CREATE_OPCODE_1($$, F_GLOBAL_LVALUE, 0, 0);
+		scratch_free($1);
+	    }
      ;
 
 foreach_vars:
@@ -1708,20 +1688,9 @@ get_two_types(t1, t3));
 	    }
     |   cast expr0  %prec L_NOT
 	    {
-		/* Normally the code generator takes care of the use of
-		   TYPE_NOVALUE values, but casting away from TYPE_NOVALUE
-		   prevents that, so we have to do it here.  This means
-		   that a discarded cast:
-		   (void) destruct(ob)
-		   etc produces a F_CONST0 F_POP_VALUE, unfortunately.
-		   Do the conversion: (expr) -> (expr, 0) */
-		if ($2->type == TYPE_NOVALUE) {
-		    CREATE_TWO_VALUES($$, $1, $2, 0);
-		    CREATE_NUMBER($$->r.expr, 0);
-		} else {
-		    $$ = $2;
-		    $$->type = $1;
-		}
+		$$ = $2;
+		$$->type = $1;
+
 		if (exact_types && $2->type != TYPE_ANY && 
 		    $2->type != TYPE_UNKNOWN &&
 		      $1 != TYPE_VOID) {
@@ -2227,11 +2196,17 @@ expr4:
             }
     |   expr4 '[' '<' comma_expr L_RANGE '<' comma_expr ']'
             {
-                $$ = make_range_node(F_RR_RANGE, $1, $4, $7);
+		if ($7->kind == NODE_NUMBER && $7->v.number <= 1)
+		    $$ = make_range_node(F_RE_RANGE, $1, $4, 0);
+		else
+		    $$ = make_range_node(F_RR_RANGE, $1, $4, $7);
             }
     |   expr4 '[' comma_expr L_RANGE '<' comma_expr ']'
             {
-                $$ = make_range_node(F_NR_RANGE, $1, $3, $6);
+		if ($6->kind == NODE_NUMBER && $6->v.number <= 1)
+		    $$ = make_range_node(F_NE_RANGE, $1, $3, 0);
+		else
+		    $$ = make_range_node(F_NR_RANGE, $1, $3, $6);
             }
     |   expr4 '[' comma_expr L_RANGE ']'
             {
@@ -2343,6 +2318,7 @@ expr4:
     |   L_BASIC_TYPE
             {
 	        if ($1 != TYPE_FUNCTION) yyerror("Reserved type name unexpected.");
+		$<func_block>$.last_fc_num_params = function_context.num_parameters;
 		$<func_block>$.num_local = current_number_of_locals;
 		$<func_block>$.max_num_locals = max_num_locals;
 		$<func_block>$.context = context;
@@ -2355,6 +2331,8 @@ expr4:
 		type_of_locals_ptr += max_num_locals;
 		runtime_locals_ptr += current_number_of_locals;
 		max_num_locals = current_number_of_locals = 0;
+		/* -2 should be a define here; identify as ANON_FUNC */
+		function_context.num_parameters = -2;
 		exact_types = TYPE_ANY;
             }
         '(' argument ')' block
@@ -2388,7 +2366,8 @@ expr4:
 		context = $<func_block>2.context;
 		current_type = $<func_block>2.save_current_type;
 		exact_types = $<func_block>2.save_exact_types;
-
+		function_context.num_parameters = $<func_block>2.last_fc_num_params;
+		
 		locals_ptr -= current_number_of_locals;
 		type_of_locals_ptr -= max_num_locals;
 		runtime_locals_ptr -= current_number_of_locals;
@@ -2671,6 +2650,14 @@ function_call:
 
 	      $$ = $3;
 	      if ((f = $1->dn.function_num) != -1) {
+		  if (FUNCTION(f)->type & TYPE_MOD_HIDDEN) {
+		      char buf[MAXLINE + 30];
+		      
+		      strcpy(buf, "Illegal to call private function '");
+		      strcat(buf, $1->name);
+		      strcat(buf, "'");
+		      yyerror(buf);
+		  }
 		  if (function_context.num_parameters >= 0)
 		      function_context.bindable = FP_NOT_BINDABLE;
 
@@ -2750,7 +2737,7 @@ function_call:
 		       * return L_DEFINED_NAME instead.
 		       */
 		      funp = FUNCTION(f);
-		      
+
 		      $$->type = validate_function_call(funp, f, $3->r.expr);
 		  } else {
 		      f = define_new_function(name, 0, 0, 
@@ -2921,6 +2908,24 @@ cond:
 			     $3 = $3->r.expr;
 		}
 
+		/* TODO: should optimize if (0), if (1) here.  
+		 * Also generalize this.
+		 */
+
+		if ($5 == 0) {
+		    if ($6 == 0) {
+			/* if (x) ; -> x; */
+			$$ = insert_pop_value($3);
+			break;
+		    } else {
+			/* if (x) {} else y; -> if (!x) y; */
+			parse_node_t *repl;
+			
+			CREATE_UNARY_OP(repl, F_NOT, TYPE_NUMBER, $3);
+			$5 = $6;
+			$6 = 0;
+		    }
+		}
 		CREATE_IF($$, $3, $5, $6);
 	    }
     ;

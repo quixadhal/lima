@@ -159,8 +159,13 @@
    process_input() then becomes the only way to deal with player input. */
 #undef NO_ADD_ACTION
 
+/* NO_ENVIRONMENT: define this to remove the handling of object containment
+   relationships by the driver */
+#undef NO_ENVIRONMENT
+
 /* NO_WIZARDS: for historical reasons, MudOS used to keep track of who
-   is and isn't a wizard.  Defining this removes that completely. */
+   is and isn't a wizard.  Defining this removes that completely.
+   If this is defined, the wizardp() and related efuns don't exist */
 #define NO_WIZARDS
 
 /* OLD_TYPE_BEHAVIOR: reintroduces a bug in type-checking that effectively
@@ -561,6 +566,11 @@
  *  using binaries is not required, though.]
  */
 #define LPC_TO_C
+
+/* RUNTIME_LOADING: On systems which support it, it allows LPC->C compilation
+ * 'on the fly' without having to recompile the driver.
+ */
+#define RUNTIME_LOADING
 
 /* TRACE_CODE: define this to enable code tracing (the driver will print
  *   out the previous lines of code to an error) eval_instruction() runs about

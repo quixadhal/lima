@@ -980,7 +980,6 @@ static void new_user_handler P1(int, which)
     int i;
     object_t *ob;
     svalue_t *ret;
-    int err;
 
 #ifndef OS2
     length = sizeof(addr);
@@ -1021,15 +1020,6 @@ static void new_user_handler P1(int, which)
 	    all_users[max_users++] = 0;
     }
 
-    err = assert_master_ob_loaded("[internal] new_user_handler","");
-    if (err != 1) {
-	debug_message("Can't connect with no master object.\n");
-	close(new_socket_fd);
-#ifndef OS2
-	debug_message("Connection from %s aborted.\n", inet_ntoa(addr.sin_addr));
-#endif
-	return;
-    }
     command_giver = master_ob;
     master_ob->interactive =
 	(interactive_t *)
@@ -1073,6 +1063,9 @@ static void new_user_handler P1(int, which)
     new_user_handle = 0;
 #else
     all_users[i]->fd = new_socket_fd;
+#ifdef F_QUERY_IP_PORT
+    all_users[i]->local_port = external_port[which].port;
+#endif
 #endif
     set_prompt("> ");
     
@@ -2444,15 +2437,15 @@ int outbuf_extend P2(outbuffer_t *, outbuf, int, l)
     if (outbuf->buffer) {
 	limit = MSTR_SIZE(outbuf->buffer);
 	if (outbuf->real_size + l > limit) {
-	    if (outbuf->real_size == MAXSHORT) return 0; /* TRUNCATED */
+	    if (outbuf->real_size == USHRT_MAX) return 0; /* TRUNCATED */
 
 	    /* assume it's going to grow some more */
 	    limit = (outbuf->real_size + l) * 2;
-	    if (limit > MAXSHORT) {
+	    if (limit > USHRT_MAX) {
 		limit = outbuf->real_size + l;
-		if (limit > MAXSHORT) {
-		    outbuf->buffer = extend_string(outbuf->buffer, MAXSHORT);
-		    return MAXSHORT - outbuf->real_size;
+		if (limit > USHRT_MAX) {
+		    outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
+		    return USHRT_MAX - outbuf->real_size;
 		}
 	    }
 	    outbuf->buffer = extend_string(outbuf->buffer, limit);
@@ -2470,22 +2463,22 @@ void outbuf_add P2(outbuffer_t *, outbuf, char *, str)
     
     if (!outbuf) return;
     l = strlen(str);
-    DEBUG_CHECK(l > MAXSHORT, "Added string exceeds maximum buffer size\n");
+    DEBUG_CHECK(l > USHRT_MAX, "Added string exceeds maximum buffer size\n");
     if (outbuf->buffer) {
 	limit = MSTR_SIZE(outbuf->buffer);
 	if (outbuf->real_size + l > limit) {
-	    if (outbuf->real_size == MAXSHORT) return; /* TRUNCATED */
+	    if (outbuf->real_size == USHRT_MAX) return; /* TRUNCATED */
 
 	    /* assume it's going to grow some more */
 	    limit = (outbuf->real_size + l) * 2;
-	    if (limit > MAXSHORT) {
+	    if (limit > USHRT_MAX) {
 		limit = outbuf->real_size + l;
-		if (limit > MAXSHORT) {
-		    outbuf->buffer = extend_string(outbuf->buffer, MAXSHORT);
+		if (limit > USHRT_MAX) {
+		    outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
 		    strncpy(outbuf->buffer + outbuf->real_size, str,
-			    MAXSHORT - outbuf->real_size);
-		    outbuf->buffer[MAXSHORT] = 0;
-		    outbuf->real_size = MAXSHORT;
+			    USHRT_MAX - outbuf->real_size);
+		    outbuf->buffer[USHRT_MAX] = 0;
+		    outbuf->real_size = USHRT_MAX;
 		    return;
 		}
 	    }

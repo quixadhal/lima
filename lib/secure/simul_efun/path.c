@@ -79,7 +79,7 @@ string evaluate_path(string path) {
     if (!path || path[0] != '/') {
 	string *route;
 	route = explode(file_name(previous_object()), "/");
-	path = (this_body() ? this_body()->query_pwd() : "/" +
+	path = (this_body() ? this_body()->query_shell_ob()->get_variable("pwd") : "/" +
 	  (sizeof(route) > 2 ? implode(route[1.. sizeof(route)-2], "/") : ""))
 	+ "/" + path;
     }

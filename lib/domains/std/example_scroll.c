@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 //*************************************************************/
 //*      an example object for lima bean
 //*  

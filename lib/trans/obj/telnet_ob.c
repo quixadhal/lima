@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 /*
 ** This file is part of the Lima distribution mudlib.  
 ** Do not remove this header.  Please see /USAGE for more 
@@ -37,8 +39,9 @@ string *iac_regex = ({sprintf("%c..",IAC)});
 string iac = sprintf("%c",IAC);
 
 
-inherit M_REGEX;
 inherit DAEMON;
+inherit M_REGEX;
+inherit M_INPUT;
 
 class connection
 {
@@ -208,7 +211,7 @@ private nomask void handle_input(mixed input)
       return;
     }
   else
-    this_user()->modal_pass(input);
+    modal_pass(input);
 }
 
 void init_telnet()
@@ -218,7 +221,7 @@ void init_telnet()
   owner = this_body();
   control_char = this_body()->query_shell_ob()->get_variable("telnet_char") ||
     "/";
-  this_user()->modal_push((: handle_input :), "# ");
+  modal_push((: handle_input :), "# ");
 }
 
 nomask void remove() {
@@ -298,7 +301,7 @@ private nomask void handle_command(string cmd)
       }
       return;
     case "exit" :
-      this_user()->modal_pop();
+      modal_pop();
       remove();
       return;
     case "tog" :

@@ -119,6 +119,7 @@ extern function_context_t function_context;
 #define ARG_IS_PROTO             1
 #define ARG_IS_VARARGS           2
 
+#define NOVALUE_USED_FLAG        1024
 
 int validate_function_call PROT((function_t *, int, parse_node_t *));
 parse_node_t *validate_efun_call PROT((int, parse_node_t *));

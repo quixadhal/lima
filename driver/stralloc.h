@@ -49,7 +49,7 @@ typedef struct malloc_block_s {
 #define MSTR_UPDATE_SIZE(x, y) SAFE(\
 				    ADD_STRING_SIZE(y - MSTR_SIZE(x));\
 				    MSTR_BLOCK(x)->size = \
-				    (y > MAXSHORT ? MAXSHORT : y);\
+				    (y > USHRT_MAX ? USHRT_MAX : y);\
 				)
 
 #define FREE_MSTR(x) SAFE(\
@@ -61,7 +61,7 @@ typedef struct malloc_block_s {
 
 /* This counts on some rather crucial alignment between malloc_block_t and
    block_t */
-#define COUNTED_STRLEN(x) ((svalue_strlen_size = MSTR_BLOCK(x)->size), svalue_strlen_size != MAXSHORT ? svalue_strlen_size : strlen((x)+MAXSHORT)+MAXSHORT)
+#define COUNTED_STRLEN(x) ((svalue_strlen_size = MSTR_BLOCK(x)->size), svalue_strlen_size != USHRT_MAX ? svalue_strlen_size : strlen((x)+USHRT_MAX)+USHRT_MAX)
 #define COUNTED_REF(x)    MSTR_REF(x)
 
 typedef struct block_s {

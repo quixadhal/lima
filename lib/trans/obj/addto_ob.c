@@ -30,5 +30,5 @@ private nomask void do_addto(string file, mixed str)
 
 nomask void addto(string file)
 {
-    modal_push((: do_addto, file :), (: "]" :));
+    modal_push((: do_addto, file :), "]");
 }

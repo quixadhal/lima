@@ -17,44 +17,42 @@ private void main()
     object* bodies;
     int i;
     string name;
-    mixed info;
-    int bits;
     string where;
     object o;
-    string extra;
 
     user_obs = users();
 
-    bodies = map_array(user_obs, (: $1->query_body() :)) - ({0});
-    bodies = sort_array(bodies, (: $1->query_level() == $2->query_level() ?
-		       $1->query_score() > $2->query_score() :
-		       $1->query_level() > $2->query_level() :) );
+    bodies = user_obs->query_body() - ({ 0 });
+    bodies = sort_array(bodies, (: $1->query_score() > $2->query_score() :));
+
     write(DIVIDER);
     printf("%|70s\n", implode(explode(mud_name(),"")," "));
     printf("%|70s\n", "(PST is: "+ctime(time())+")");
-    if ( extra )
-	printf("%|70s\n",extra);
     write(DIVIDER);
     i = sizeof(bodies);
     if(!i)
 	printf("%-17s%4s     %15s  %s\n","[(*SATAN*)]","none","666.666.666.666","HELL!!!!!");
     while ( i-- )
     {
-      info = bodies[i]->query_who_data();
-	bits = info[0];
-	name = info[1];
-	if(!name)name = "login";
+	string userid;
+
+	userid = bodies[i]->query_real_name();
+
+	if ( !userid )
+	    name = "login";
 	else
-	    name = capitalize(name);
-	if( bodies[i] && bodies[i]->test_flag(F_INVIS) ) name = "("+name+")";
-	if(bits & (1 << FlagIndex(F_HIDDEN))) name = "["+name+"]";
-	if( bodies[i] && (o = environment(bodies[i])) )
+	    name = capitalize(userid);
+	if( bodies[i]->test_flag(F_INVIS) ) name = "("+name+")";
+
+	if( o = environment(bodies[i]) )
 	    where = file_name(o);
 	else
 	    where = "(null)";
 	if(!o) name = "<"+name+">";
+
+	/* ### put "position" in here... */
 	printf("%-10s %-13s%4d %c%c %-s\n",
-	       LEVELS[info[3]],
+	       adminp(userid) ? "admin" : wizardp(userid) ? "wizard" : "player",
 	       name,
 	       bodies[i] ? bodies[i]->query_score() : 0,
 	       (query_idle(bodies[i]->query_link()) > 60 ? 'I':' '),

@@ -11,6 +11,9 @@ directories.  Here are a few to start with, though:
 	path(*), regex, string(*)
 
   misc: exits(*), simul_efuns, global_macros
+ 
+  cmds: showemote, goto, objdump, quest, timer, 
+        objcount, objfind, users, didlog, exits, I
 
 (*) highly recommended
 

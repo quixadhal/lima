@@ -1,205 +1,99 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <security.h>
-#include <mudlib.h>
-#include <daemons.h>
-
-inherit M_ACCESS;
-
-
-int fill_info( string x );
-int nuke_users( string x );
-string get_display( string x );
-
-private static mapping	info =([]);
-
 /*
-** These variables are restored from the link files when we build the
-** "info" mapping
+** user_d.c -- user/body information access
+**
+** 950823, Deathblade: created
 */
-private int	level;
-private string	email;
 
-/* this is used for retrieving a password for /secure/modules/sw_user.c */
-private string	password;
+#include <mudlib.h>
+#include <security.h>
 
+inherit DAEMON;
 
-nomask int fill_info(string);
+static private string *	legal_user_query =
+({
+    "failures",
+});
+static private string *	legal_user_set =
+({
+    "failures",
+});
 
-void create()
+static private string *	legal_body_query =
+({
+    "nickname",
+});
+static private string *	legal_body_set =
+({
+});
+
+private nomask mixed query_online_object(object ob, string varname)
 {
-    mixed *tmp;
-    
-    set_privilege(1);
-
-    info = ([]);
-    tmp = unguarded(1,
-		    (: filter_array(map_array(get_dir( "/data/links/*" ) - ({ ".",".." }),
-					      (: get_dir(sprintf("/data/links/%s/*", $1)) :) ),
-				    (: pointerp :)) :));
-
-    /* recurse two levels */
-    map_array( tmp, (: map_array( $1, (: fill_info :)) :));
+    return evaluate(bind((: fetch_variable, varname :), ob));
 }
 
-nomask int fill_info( string x )
+private nomask mixed set_online_object(object ob, string varname, mixed value)
 {
-    mixed * last;
-
-    if( strlen( x ) < 0 ) 
-	return 0;
-    x = x[0..<3];
-    if( !unguarded(1, (: restore_object, LINK_PATH(x) :)) )
-	return 0;
-    last = LAST_LOGIN_D->query_last(x);
-    info[x] = ({ last ? last[0] : 0, level, email });
-
-    level = email = password = 0;
+    evaluate(bind((: store_variable, varname, value :), ob));
 }
 
-nomask int sort_by_level( string x, string y )
+nomask mixed query_variable(string userid, string varname)
 {
-    if( info[x][1] == info[y][1] )
-	return x > y;
-    return info[x][1] < info[y][1];
-}
+    string fname;
+    object ob;
+    mixed * lines;
 
-nomask int sort_by_timeon( string x, string y )
-{
-    if( info[x][0] == info[y][0] )
-	return x > y;
-    return info[x][0] < info[y][0];
-}
-
-nomask int valid_mail( string user )
-{
-    string x, y;
-
-    return info[user][2] && ( sscanf( info[user][2], "%s@%s", x, y ) == 2 );
-}
-
-nomask string get_mail( string user )
-{
-    return info[user][2];
-}
-
-nomask int filter_levels( string x, int min, int max )
-{
-    return info[x][1] >= min && info[x][1] <= max;
-}
-
-nomask int filter_times( string x, int min, int max )
-{
-    if ( catch(info[x][0]) ) { printf("x=%O  info[x]=%O\n",x,info[x]); return 0; }
-
-    return info[x][0] >= min && info[x][0] <= max;
-}
-
-nomask string * parse_desire(
-  int sortby,
-  int minlev,
-  int maxlev,
-  int mintime,
-  int maxtime,
-  int nuke,
-  string alias,
-  string * except
-  )
-{
-    string	*users;
-    string	*display;
-    string	x,y;
-
-    users = keys( info );
-
-    if( pointerp(except) ) 
-	users -= map_array( except, (: lower_case :) );
-    switch( sortby )
+    if ( member_array(varname, legal_user_query) != -1 )
     {
-    case 2:
-	users = sort_array( users, (: sort_by_timeon :) );
-	break;
-    case 1:
-	users = sort_array( users, (: sort_by_level :) );
-	break;
-    default:
-	users = sort_array( users, 1 );
-	break;
+	fname = LINK_PATH(userid);
+	ob = find_user(userid);
+    }
+    else if ( member_array(varname, legal_body_query) != -1 )
+    {
+	fname = USER_PATH(userid);
+	ob = find_body(userid);
     }
 
-    if ( maxlev < ~(1 << 31) || minlev > (1 << 31) )
-	users = filter_array( users, (: filter_levels($1, $(minlev),$(maxlev)) :) );
+    if ( !fname )
+	error("illegal variable request\n");
 
-    if( mintime || maxtime )
-    {
-	if( !maxtime )
-	    maxtime = time();
-	users = filter_array( users, (: filter_times($1, $(mintime), $(maxtime)) :) );
-    }
+    if ( ob )
+	return query_online_object(ob, varname);
 
-    display = map_array( users, (: get_display :) );
-
-
-    if( alias )
-    {
-	x = wiz_dir(this_user()) + "/.unix.mailrc";
-        y = sprintf("alias %s %s\n",alias, implode( map_array(
-	  filter_array( users, (: valid_mail :) ), (: get_mail :) ), "," ) );
-	unguarded( 1, (: write_file, x, y :) );
-
-	write( "Mail list written to ~/.unix.mailrc.\n" );
-    }
-
-    if( nuke )
-    {
-	filter_array( users, (: nuke_users :) );
-	create();
-    }
-
-    return display;
+    lines = regexp(explode(read_file(fname + __SAVE_EXTENSION__), "\n"),
+		  "^" + varname + " ");
+    return restore_variable(lines[0][member_array(' ', lines[0]) + 1..]);
 }
 
-nomask string get_display( string user )
+nomask void set_variable(string userid, string varname, mixed value)
 {
-    return sprintf( "%-15s%-7s%-4s%-6d%-40s", capitalize(user),
-      info[user][0] ? ctime( info[user][0] )[4..9] : "NEVER",
-      info[user][0] ? ctime( info[user][0] )[<2..] : "",
-      info[user][1], info[user][2] ? info[user][2] : "NONE" );
-}
+    string fname;
+    object ob;
+    mixed * lines;
 
-nomask int nuke_users( string user )
-{
-    if ( !check_privilege(1) )
-	return 0;
-
-    if( GROUP_D->member_group( user, "admin" ) )
+    if ( member_array(varname, legal_user_set) != -1 )
     {
-	printf("Nuke:  Can't nuke admin: %s\n", user );
-	return 0;
+	fname = LINK_PATH(userid);
+	ob = find_user(userid);
+    }
+    else if ( member_array(varname, legal_body_set) != -1 )
+    {
+	fname = USER_PATH(userid);
+	ob = find_body(userid);
     }
 
-    unguarded(1, (: rm, LINK_PATH(user)+".o" :));
-    unguarded(1, (: rm, USER_PATH(user)+".o" :));
+    if ( !fname )
+	error("illegal variable assignment\n");
 
-    // ### deal with mail somehow...
-//    rm( "/data/mail/"+user+".o" );
-    printf("Nuking %s.\n",user);
-}
+    if ( ob )
+	return query_online_object(ob, varname);
 
-nomask string query_password(string user)
-{
-    string * programs = call_stack(0);
-    string pwd;
-
-    if ( programs[1] != "secure/modules/sw_user.c" )
-	error("* illegal attempt to fetch password\n");
-
-    if( !unguarded(1, (: restore_object, LINK_PATH(user) :)) )
-	return 0;
-
-    pwd = password;
-
-    level = email = password = 0;
-
-    return pwd;
+    fname += __SAVE_EXTENSION__;
+    lines = regexp(explode(read_file(fname), "\n"),
+		  "^" + varname + " ",
+		   2);
+    write_file(fname, implode(lines, "\n") +
+	       sprintf("\n%s %s\n", varname, save_variable(value)),
+	       1);
 }

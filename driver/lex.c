@@ -1267,7 +1267,10 @@ int yylex()
 
 	case '$':
 	    if (function_context.num_parameters < 0) {
-		yyerror("$var illegal outside of function.");
+		if (function_context.num_parameters == -2)
+		    yyerror("$var illegal inside anonymous function pointer.");
+		else
+		    yyerror("$var illegal outside of function pointer.");
 		return '$';
 	    } else {
 		if (!isdigit(c = *outp++)) {
@@ -1286,7 +1289,7 @@ int yylex()
 		if (yylval.number < 0)
 		    yyerror("In function parameter $num, num must be >= 1.");
 		else if (yylval.number > 255)
-		    yyerror("only 255 parameters allowed.");
+		    yyerror("only 256 parameters allowed.");
 		else if (yylval.number >= function_context.num_parameters)
 		    function_context.num_parameters = yylval.number + 1;
 		return L_PARAMETER;
@@ -1791,7 +1794,6 @@ parse_identifier:
 	char buff[100];
 
 	sprintf(buff, "Illegal character (hex %02x) '%c'", (unsigned) c, (char) c);
-	debug_message("partial = [%s]\n", partial);
 	yyerror(buff);
 #endif
 	return ' ';
@@ -2203,7 +2205,7 @@ static void refill()
 
     p = yytext;
     do {
-	c = cmygetc();
+	c = *outp++;
 	if (p < yytext + MAXLINE - 5)
 	    *p++ = c;
 	else {
@@ -2398,7 +2400,7 @@ static void add_predefine P3(char *, name, int, nargs, char *, exps)
 	if (nargs != p->nargs || strcmp(exps, p->exps)) {
 	    char buf[200 + NSIZE];
 
-	    sprintf(buf, "Warning: redefinition of #define %s\n", name);
+	    sprintf(buf, "redefinition of #define %s\n", name);
 	    yywarn(buf);
 	}
 	p->exps = (char *)DREALLOC(p->exps, strlen(exps) + 1, TAG_PREDEFINES, "add_define: redef");

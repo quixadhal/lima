@@ -526,10 +526,13 @@ parse P5(char *, cmd,		/* Command to parse */
     /* note: obarr is only put in parse_obarr if it needs freeing */
     if (ob_or_array->type == T_ARRAY)
 	obarr = ob_or_array->u.arr;
+#ifndef NO_ENVIRONMENT
     else if (ob_or_array->type == T_OBJECT) {
 	/* 1 == ob + deepinv */
 	parse_obarr = obarr = deep_inventory(ob_or_array->u.ob, 1);
-    } else 
+    }
+#endif
+    else 
 	error("Bad second argument to parse_command()\n");
 
     check_for_destr(obarr);
@@ -1765,7 +1768,7 @@ svalue_t *
 	ob = find_object2(obj);
 
     if (!ob) {
-	FREE(func);
+	FREE_MSTR(func);
 	return &const0;
     }
     /*
@@ -1791,7 +1794,7 @@ svalue_t *
      */
     ret = apply(func, ob, numargs, ORIGIN_EFUN);
 
-    FREE(func);
+    FREE_MSTR(func);
 
     if (!ret)
 	return &const0;

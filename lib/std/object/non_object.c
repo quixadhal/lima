@@ -6,7 +6,7 @@ int
 remove()
 {
     if (environment())
-	environment()->release_object(this_object());
+        environment()->release_object(this_object());
     destruct(this_object());
     return 0;
 }

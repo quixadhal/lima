@@ -31,8 +31,12 @@ private void main(string str) {
         return;
     }
 
+    /*
+    ** NOTE: this may fail if the command user does not have enuf privs
+    */
+    f = bind((: fetch_variable :), ob);
+
     write("Matches:\n");
-    f = unguarded( 1, (: bind( (: fetch_variable :), $(ob)) :));
     foreach (var in vars) {
         printf("%20s: %O\n", var, evaluate(f, var));
     }

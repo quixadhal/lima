@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 /*
 ** This file is part of the Lima distribution mudlib.  
 ** Do not remove this header.  Please see /USAGE for more 

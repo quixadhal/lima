@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 //*************************************************************/
 //*      an example object for lima bean
 //*  
@@ -15,7 +17,7 @@ create()
 {
     container::create();
     set_id("safe");
-    set_in_room_desc( "\nThere is a large safe in the center of the room");
+    set_in_room_desc( "\nThere is a large safe in the center of the room.");
 
     set_gettable(-1);
     set_getmsg("The safe is way to heavy for you to lift. \n");

@@ -11,28 +11,37 @@ inherit DAEMON;
 string* bad_names =({});
 mixed* bad_sites = ({});
 
-void banish_name(string name){
-  if(!GROUP_D->adminp(previous_object(2))) return;
+void banish_name(string name)
+{
+  if ( !check_previous_privilege(1) )
+    return;
+
   if(!stringp(name)) return;
   bad_names += ({name});
   unguarded(1, (: save_object,SAVE_PATH :));
 }
 
 void unbanish_name(string name){
-  if(!GROUP_D->adminp(previous_object(2))) return;
+  if ( !check_previous_privilege(1) )
+    return;
+
   bad_names -= ({name});
   unguarded(1, (: save_object,SAVE_PATH :));
 }
 
 void banish_site(mixed *site){
-  if(!GROUP_D->adminp(previous_object(2))) return;
-   if(!pointerp(site))return;
+  if ( !check_previous_privilege(1) )
+    return;
+
+  if(!pointerp(site))return;
   bad_sites += ({ site });
   unguarded(1, (: save_object ,SAVE_PATH :));
 }
 
 void unbanish_site(string *site){
-  if(!GROUP_D->adminp(previous_object(2))) return;
+  if ( !check_previous_privilege(1) )
+    return;
+
   bad_sites -= ({ site });
   unguarded(1, (: save_object,SAVE_PATH :));
 }

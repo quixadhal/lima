@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 /* This file optimizes prompt displaying.*/
 
 
@@ -88,7 +90,7 @@ static string get_prompt()
       switch(rep)
 	{
 	case P_PWD:
-	  s = replace_string(s,"%p", this_body()->query_pwd() || "(no pwd!)");
+	  s = replace_string(s,"%p", get_variable("pwd") || "(no pwd!)");
 	  continue;
 	case P_TIME:
 	  s = replace_string(s,"%t", ctime(time())[11..15]);

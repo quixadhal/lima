@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 #include <mudlib.h>
 #include <daemons.h>
 #include <commands.h>

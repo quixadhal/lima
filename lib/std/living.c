@@ -52,3 +52,7 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
 mixed direct_get_obj(object ob) {
     return "I can't do everything.  If you want to pick up another player, try using your social skills.\n";
 }
+
+mixed direct_whisper_liv_str() { return 1; }
+mixed direct_whisper_str_to_liv() { return 1; }
+mixed direct_whisper_to_liv_str() { return 1; }

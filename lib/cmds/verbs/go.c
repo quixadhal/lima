@@ -24,7 +24,10 @@ mixed can_go_str(string str) {
 // Be careful what errors you return here since "go " + str is tried for
 // all input
     if (undefinedp(m[str])) {
-	if (member_array(str, normal_dirs) != -1)
+	int is_normal = (member_array(str, normal_dirs) != -1);
+	
+	if (environment(this_body())->is_default_exit(str, is_normal)) return 1;
+	if (is_normal)
 	    return "It doesn't seem possible to go that direction.\n";
 	return 0;
     }
@@ -33,16 +36,16 @@ mixed can_go_str(string str) {
 
 void do_go_str(string str) {
     object here = environment(this_body());
-    
+
     here->go_somewhere(str);
     if ( here != environment(this_body()) )
-        force_look();
+	force_look();
 }
 
 mixed * query_verb_info()
 {
     return ({ ({ 1, "down OBJ", "up OBJ", "around OBJ:v", "to OBJ:v",
-		     "over OBJ", "on OBJ", "into OBJ", "in OBJ" }) });
+    "over OBJ", "on OBJ", "into OBJ", "in OBJ" }) });
 
     /*
     ** exit 1 -> go 1
@@ -75,30 +78,30 @@ int go( int rule, mixed *stack, string originial_input )
     // so hat it's stack[1] later.
     if( rule == 4 )
 	stack += stack;
-    
+
     if( rule > 2 )
     {
 	here = environment( this_body() );
 	if (!here) return 0;
-	
+
 	here->go_somewhere( stack[1] );
-	
+
 	if( here != environment( this_body() ) )
 	{
 	    force_look();
 	}
 	else
 	    return 0;
-	
+
 	return 1;
-	
+
     }
     if( rule == 2 )
 	stack = ({ "to", stack[1] });
-    
+
     here = environment( this_body() );
-    
-    
+
+
     if( here == environment( this_body() ) && stack[1] == "to" )
 	write( "That's not so tough, you remain where you are.\n" );
     write( "That doesn't seem to be possible.\n" );

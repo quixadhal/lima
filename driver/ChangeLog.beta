@@ -1,3 +1,18 @@
+Mon Aug 21 03:18:45 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.6b5
+	* fixed a crasher in parse_command() [reported by Magician]
+	* fixed a few bad free's in parse_value() [reported by Aragorn]
+	* added Symmetry's fix for Tensor's 'Couldn't find enabled object in
+	  heart_beat list' crasher
+	* fixed a crasher with #pragma optimize on
+	* added pluralization for do, go, was
+
+Mon Aug 21 03:16:33 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.6b4
+	* make configure.h early enough so that it can be included in
+	  func_spec.c, so that the rusage() efun can be included
+	* added in Deathblade's fixes for remove_call_out()
+
 Thu Aug  3 11:29:56 EDT 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.6b3
 	* added REALLY verbose parsing mode for those really hard to find

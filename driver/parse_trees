@@ -91,5 +91,5 @@ NODE_LVALUE_EFUN:
 
 NODE_EFUN:
     r.expr: expr_list
-    v.number: opcode
+    v.number: opcode    ( + 1024 if void valued efun is used)
     l.number: num args

@@ -1,0 +1,15 @@
+
+USAGE:  Exits
+
+   Used with no arguments, this command shows you the possible
+exits from the room you are currently in, with the path name of the
+room.
+
+Please note the differeance of the capital <E>xits, this differentiates
+ this Exits from the players exits.
+
+Exits
+Current exits:
+south:  Monster Room (/domains/std/monster_room.c)
+west:  Quiet Room (/domains/std/quiet_room.c)
+east:  Example Room (/domains/std/example_room1.c)

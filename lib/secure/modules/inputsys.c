@@ -17,6 +17,8 @@
 #include <driver/function.h>
 
 string query_userid();
+object query_body();
+
 mixed query_privilege();
 
 
@@ -37,6 +39,78 @@ private static class input_info *	modal_stack = ({ });
 private static int	dispatching_to;
 
 private nomask void dispatch_modal_input(string str);
+
+
+private nomask int create_handler()
+{
+    /*
+    ** Attempt to create a handler (the user has none!)
+    */
+    if ( query_body() )
+	query_body()->reset_input_handler();
+
+    if ( !sizeof(modal_stack) )
+    {
+	write("Sorry, but I can't process your typing for some reason.\n"
+	      "Please log in and try again or send mail to " ADMIN_EMAIL "\n"
+	      "if you continue to have problems.\n");
+	destruct(this_object());
+	return 1;
+    }
+
+    return 0;
+}
+
+private nomask class input_info get_top_handler(int require_handler)
+{
+    int some_popped = 0;
+
+    while ( sizeof(modal_stack) )
+    {
+	class input_info info;
+
+	/*
+	** Get the top of the stack and make sure the func is valid
+	*/
+	info = modal_stack[<1];
+	if ( !(functionp(info->input_func) & FP_OWNER_DESTED) )
+	{
+	    if ( some_popped && info->return_to_func )
+		evaluate(info->return_to_func);
+	    return info;
+	}
+
+	modal_stack = modal_stack[0..<2];
+	some_popped = 1;
+    }
+
+    if ( !require_handler || create_handler() )
+	return 0;
+
+    return modal_stack[<1];
+}
+
+private nomask class input_info get_bottom_handler()
+{
+    while ( sizeof(modal_stack) )
+    {
+	class input_info info;
+
+	/*
+	** Get the bottom of the stack and make sure the func is valid
+	*/
+	info = modal_stack[0];
+	if ( !(functionp(info->input_func) & FP_OWNER_DESTED) )
+	    return info;
+
+	modal_stack = modal_stack[1..];
+    }
+
+    if ( create_handler() )
+	return 0;
+
+    return modal_stack[0];
+}
 
 
 /*
@@ -93,10 +167,23 @@ varargs nomask void modal_push(function input_func,
 
 nomask void modal_pop()
 {
+    class input_info info;
+
     /*
     ** Erase/pop the handler at the top level
     */
     modal_stack = modal_stack[0..<2];
+
+    /*
+    ** If there is something in the stack, then execute its return_to_func
+    ** now that we have returned to this input handler.
+    **
+    ** Note: during login, we will sometimes empty the input stack, so
+    ** we need to use get_top_handler() carefully -- tell it not to require
+    ** a handler.  We want it for validating any TOS that may be there.
+    */
+    if ( (info = get_top_handler(0)) && info->return_to_func )
+	evaluate(info->return_to_func);
 }
 
 varargs nomask void modal_func(function input_func,
@@ -110,30 +197,12 @@ varargs nomask void modal_func(function input_func,
     modal_stack[<1]->secure = secure;
 }
 
-private nomask class input_info get_top_handler()
-{
-    while ( sizeof(modal_stack) )
-    {
-	class input_info info;
-
-	/*
-	** Get the top of the stack and make sure the func is valid
-	*/
-	info = modal_stack[<1];
-	if ( !(functionp(info->input_func) & FP_OWNER_DESTED) )
-	    return info;
-
-	modal_stack = modal_stack[0..<2];
-    }
-    return 0;
-}
-
-nomask void modal_recapture()
+static nomask void modal_recapture()
 {
     class input_info info;
     string prompt;
 
-    if ( !(info = get_top_handler()) )
+    if ( !(info = get_top_handler(1)) )
 	return;
 
     /* auto-pop (modal_simple()) and char handlers don't have prompts */
@@ -199,16 +268,10 @@ private nomask void dispatch_modal_input(mixed str)
     class input_info info;
 
     /*
-    ** Just in case the stack is empty (an error is thrown), pass the
-    ** input to parse_line()
-    **
-    ** ### this prolly has to change
+    ** Get the top handler, or fail if none are present/can be created.
     */
-    if ( !(info = get_top_handler()) )
-    {
-        this_body()->parse_line(str);
-        return;
-    }
+    if ( !(info = get_top_handler(1)) )
+	return;
 
     /* auto-pop _before_ dispatching, so we pop the correct handler */
     if ( info->input_type == INPUT_AUTO_POP )
@@ -231,7 +294,6 @@ nomask void modal_push_char(function input_func)
 }
 
 
-
 /*
 ** process_input()
 **
@@ -247,19 +309,14 @@ private nomask string process_input(string str)
 {
     class input_info info;
 
-    if(!sizeof(modal_stack))
-      this_body()->start_shell();
-
-    info = modal_stack[0];
+    /*
+    ** Get the bottom handler, or fail if none are present/can be created.
+    */
+    if ( !(info = get_bottom_handler()) )
+	return;
 
     dispatching_to = 0;
 
-    if( functionp(info->input_func) & FP_OWNER_DESTED )
-      {
-	modal_pop();
-	process_input(str);
-	return;
-      }
     evaluate(info->input_func, str);
 
     if ( this_object() )
@@ -291,17 +348,20 @@ nomask void force_me(string str)
 int stat_me()
 {
     if ( check_privilege(1) )
+    {
 	printf("INPUT STACK:\n%O\n", modal_stack);
+	return 1;
+    }
 }
 
-nomask void clear_input_stack()
+static nomask void clear_input_stack()
 {
     class input_info top;
 
     while (sizeof(modal_stack))
     {
 	if (catch {
-	    top = get_top_handler();
+	    top = get_top_handler(1);
 	    modal_pop();
             evaluate(top->input_func, -1);
 	}) {

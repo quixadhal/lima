@@ -6,6 +6,10 @@ int is_directory(string);
 string evaluate_path(string);
 object find_body(string);
 
+object *bodies() {
+    return users()->query_body();
+}
+
 DOC(call_trace, "returns the stack of objects and functions")
 
 string
@@ -193,7 +197,14 @@ varargs mixed exec_code(string arg, string dir, string includefile)
 
     if (strsrch(arg,";")==-1) arg = "return "+arg;
 
-    contents = "";
+    contents = @END
+#include <mudlib.h>
+#include <security.h>
+inherit M_ACCESS;
+create() { set_privilege(1); }
+
+END;
+    
     if(includefile)
 	contents += sprintf("\n#include \"%s\"\n", includefile);
     contents += sprintf( "mixed exec_foo(){ %s", arg );

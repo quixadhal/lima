@@ -23,12 +23,19 @@ int is_variable(string var)
 }
 
 static void
-set_variable(string var, string value)
+set_variable(string var, mixed value)
 {
   variables[var] = value;
   this_object()->save();
   if(set_var_hooks[var])
     evaluate(set_var_hooks[var], value);
+}
+
+static void
+set_if_undefined(string var, mixed value)
+{
+    if ( !is_variable(var) )
+	set_variable(var, value);
 }
 
 mixed 

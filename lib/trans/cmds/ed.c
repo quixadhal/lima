@@ -6,21 +6,24 @@ inherit CMD;
 
 nomask private void main(string* argv)
 {
-  string fname;
-  if(sizeof(argv))
-    fname =argv[0];
+    string fname;
+
+    if ( sizeof(argv) )
+	fname = argv[0];
+
     if ( !fname )
     {
-        fname = this_body()->query_cwf();
+        fname = this_body()->query_shell_ob()->get_variable("cwf");
         if ( !fname )
         {
             write("You have no cwf. Please specify a file.\n");
             return;
         }
     }
-  else fname = evaluate_path(fname);
+    else
+	fname = evaluate_path(fname);
 
-    this_body()->set_cwf(fname);
+    this_body()->query_shell_ob()->set_cwf(fname);
 
     clone_object(ED_SESSION)->begin_editing(fname);
 }

@@ -47,7 +47,7 @@ private void main(string arg)
 	    "errors              Wizard\n"
 	    ;
 
-    if ( GROUP_D->adminp(this_user()) )
+    if ( adminp(this_user()) )
 	s +=
 	    "admin               Admin\n"
 	    ;

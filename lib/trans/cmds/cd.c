@@ -6,17 +6,15 @@ inherit CMD;
 private void main(mixed *arg)
 {
     if ( !arg[0] )
-      {
+    {
 	arg = ({ wiz_dir(this_user()) });
 	if(!is_directory(arg[0]))
-	  arg = ({"/help"});
-      }
+	    arg = ({"/help"});
+    }
     
-    this_body()->set_path(arg[0]);
-    this_body()->set_pwd(arg[0]);
-    printf("new cwd: %s\n", arg[0]);
+    this_body()->query_shell_ob()->set_pwd(arg[0]);
 
-    return;
+    printf("new cwd: %s\n", arg[0]);
 }
 
 int help()

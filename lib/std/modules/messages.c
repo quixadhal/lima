@@ -82,24 +82,35 @@ string compose_message(object forwhom, string msg, object *who, mixed ob0, mixed
 	case 'T':
 	    num = 1;
 	    if (str=="") str = "o";
-	    if (has_n && (who[0] == who[1]) && (str == "o")) {
-		if (forwhom == who[0]) bit = "yourself";
-		else bit = who[0]->query_reflexive();
+	    if (str != "p" && has_n && (who[0] == who[1])) {
+		// objective: You kick yourself, Beek kicks himself.
+		if (str == "o") {
+		    if (forwhom == who[0]) bit = "yourself";
+		    else bit = who[0]->query_reflexive();
+		}
+		// subjective: You prove you are stupid,
+		// Beek proves he is stupid.
+		if (str == "s") {
+		    if (forwhom == who[0]) bit = "you";
+		    else bit = who[0]->query_subjective();
+		}
 		break;
 	    }
 	    /* Fall through */
 	case 'n':
 	case 'N':
-	    if (who[num]==forwhom) {
-		bit = "you";
-		if (!num) has_n = 1;
-		else if (num==1) has_t = 1;
-		break;
-	    }
-	    if ((num==0 && has_n) || (num==1 && has_t)) {
-		if (str[0]=='o') bit = who[num]->query_objective();
-		else bit = who[num]->query_subjective();
-		break;
+	    if (str != "p") {
+		if (who[num]==forwhom) {
+		    bit = "you";
+		    if (!num) has_n = 1;
+		    else if (num==1) has_t = 1;
+		    break;
+		}
+		if ((num==0 && has_n) || (num==1 && has_t)) {
+		    if (str[0]=='o') bit = who[num]->query_objective();
+		    else bit = who[num]->query_subjective();
+		    break;
+		}
 	    }
 	    if (!num) has_n=1;
 	    else if (num==1) has_t=1;

@@ -1,0 +1,11 @@
+(I was going to add this to the room doc, but there's nothing here.
+ ff to doc the rest of the stuff)
+
+set_default_exit(string str) will cause 'str' to be printed whenever the
+player tries to go a direction that doesn't exist.
+
+The argument may also be a function pointer, in which case it is evaluated,
+and the return value is printed if it is a string.
+
+(Note: set_default_exit actually just sets the value of the exit "DEFAULT";
+ you can do this explicitly)

@@ -9,7 +9,8 @@
 string the_short();
 
 
-private mapping 	entries;
+mapping 	        entries;
+mapping                 synonyms;
 private string		read_text;
 
 
@@ -31,6 +32,10 @@ read_entry( string entry )
 {
 
     entry = entries[entry];
+    if(!entry)
+      {
+	entry = entries[synonyms[entry]];
+      }
 
     if (functionp(entry))
 	return evaluate(entry);
@@ -57,11 +62,11 @@ mixed direct_read_obj(object ob) {
     return 1;
 }
 
-mixed direct_read_prep_obj(string p, object ob) {
+mixed direct_read_word_obj(string p, object ob) {
     return direct_read_obj(ob);
 }
 
-mixed direct_read_str_prep_obj(string str, string p, object ob) {
+mixed direct_read_str_word_obj(string str, string p, object ob) {
     if (!entries) {
       if (read_text)
           return "It's fairly short.  Just read it all.\n";
@@ -70,7 +75,25 @@ mixed direct_read_str_prep_obj(string str, string p, object ob) {
     return 1;
 }
 
-mixed direct_read_prep_str_prep_obj(string p1, string str, string p2,
+mixed direct_read_word_str_word_obj(string p1, string str, string p2,
                                   object ob) {
-    return direct_read_str_prep_obj(str, p2, ob);
+    return direct_read_str_word_obj(str, p2, ob);
 }
+
+void set_entries(mapping e)
+{
+  entries = e;
+}
+
+void set_entry_synonyms(mapping s)
+{
+  synonyms = s;
+}
+
+
+
+
+
+
+
+

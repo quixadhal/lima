@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 // Beek, End of July
 
 #include <mudlib.h>

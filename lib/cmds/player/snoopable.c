@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 // _snoopable.c
 // this space intentionally left blank
 // Megaboz@ZorkMUD added header and help

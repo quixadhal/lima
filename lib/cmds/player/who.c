@@ -11,16 +11,11 @@ inherit CMD;
 "-------------------------------------------------------------------------\n"
 
 
-int level_sort(object o1, object o2)
-{
-    return (o1->query_level() > o2->query_level());
-}
-
 string get_who_string(string arg)
 {
     object *u;
-    int    idle_int, bits, i;
-    string idle, name, extra, retval;
+    int    bits, i;
+    string name, extra, retval;
     mixed  info;
 
     extra = retval = "";
@@ -67,7 +62,7 @@ string get_who_string(string arg)
     }
     else
         u = filter_array(users(), (: !call_other($1, "test_flag", F_INVIS) :));
-    u = sort_array(u, (: level_sort :));
+
 #ifdef ZORKMUD
     retval += sprintf("%s:  (GUE Time is: %s) %28s\n%s",
 #else
@@ -79,13 +74,12 @@ string get_who_string(string arg)
         retval += sprintf("%|70s\n","Sorry, no one fits that bill.");
     while(i--)
     {
-        info = u[i]->query_who_data();
-        bits = info[0];
 	if (!u[i]->query_body())
 	    continue;
-        name = u[i]->query_body()->query_title();
+        name = u[i]->query_body()->query_truncated_title(78);
+        bits = u[i]->query_body()->get_flags(PLAYER_FLAGS);
         if(!name)
-            name = capitalize(u[i]->query_real_name());
+            name = capitalize(u[i]->query_userid());
 //        else
 //            name = capitalize(name);
         if(bits & (1 << FlagIndex(F_INVIS)))
@@ -94,12 +88,7 @@ string get_who_string(string arg)
             name = "["+name+"]";
         if(u[i]->test_flag(F_IN_EDIT))
             name = "*"+ name;
-        idle_int = query_idle(u[i]);
-        if(idle_int >= 3600)
-            idle = sprintf("%dh",idle_int/3600);
-        else if(idle_int >= 60) idle = sprintf("%dm",idle_int/60);
-        else idle = "";
-        retval += sprintf("%-68s %=4s\n",name,idle);
+        retval += sprintf("%-68s\n",name);
     }
     return retval + DIVIDER;
 }

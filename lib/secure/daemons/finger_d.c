@@ -14,9 +14,14 @@ string show_big_finger();
 string 	name;
 string  email;
 string  real_name;
-int 	level;
 mapping mailbox_flags;
 
+
+/* pass a USER_OB or a userid */
+private nomask string get_level(mixed m)
+{
+    return adminp(m) ? "admin" : wizardp(m) ? "wizard" : "player";
+}
 
 mixed * get_raw_data(string who)
 {
@@ -43,7 +48,7 @@ mixed * get_raw_data(string who)
 
     last = LAST_LOGIN_D->query_last(who);
     return ({ capitalize(name),
-		  LEVELS[level],
+		  get_level(name),
 		  real_name,
 		  email,
 		  last ? ctime(last[0]) : "<unknown>",
@@ -76,7 +81,7 @@ get_finger( string who )
 	unguarded( 1, (: restore_object, userpath, 1 :) );
 
 	if( this_user() &&
-	   ( GROUP_D->adminp(this_user()) ||
+	   ( adminp(this_user()) ||
 	    this_user()->query_real_name() == name) )
 	{
 	    email = email || "None given";
@@ -108,7 +113,7 @@ get_finger( string who )
 			 "%s %s from %s\n%s\nEmail Address: %s\n",
 			 capitalize( name ),
 			 real_name,
-			 LEVELS[level],
+			 get_level(name),
 			 find_body( name ) ? "On since" : "Last on",
 			 last ? ctime(last[0]) : "<unknown>",
 			 last ? last[1] : "<unknown>",
@@ -121,13 +126,6 @@ get_finger( string who )
 	return retval;
     }
     return "No such player.\n";
-}
-
-static
-string
-get_level( object o )
-{
-  return LEVELS[ (o->query_body()->query_level()) ];
 }
 
 static

@@ -1,4 +1,4 @@
-Welcome to Lima release 0.9r2 pre-alpha!
+Welcome to Lima release 0.9r3 pre-alpha!
 
 To compensate for our lack of documentation, please come to our lib
 support mud, Lima Bean, and ask questions (or type news and post
@@ -7,6 +7,10 @@ them there).
 Lima Bean is located at:
 lima.imaginary.com 7878
 (198.92.143.9	7878)
+
+Additional information is also available on our new web pages:
+  http://lima.imaginary.com/
+
 
 Mudlib Features:
  o Centralized natural language parsing (zork like commands for players).

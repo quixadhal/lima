@@ -1,38 +1,0 @@
-#std/dev.c
-mass 100
-psets (["gwiz":1,])
-our_light 10
-persist_flags ([5:1,3:0,2:20,0:0,])
-max_capacity 100
-objects ([])
-main_prep "in"
-gender 1
-messages (["menter":"$N $vappear in a puff of smoke.","invis":"$N $vfade from view.","vis":"$N $vfade into view.","clone":({"$N $vclone the $o.",}),"home":"$N $vgo home.","clean":"$N $vdo not have a message for 'clean'.","destruct":({"$N $vdest the $o.",}),"enter":"$N $venter.","mleave":"$N $vdisappear in a puff of smoke.","dest":({}),"leave":"$N $vleave $o",])
-wield_type "blow"
-wielded_by 
-hp 10
-max_hp 10
-heal_rate 10
-weapon_type "blow"
-default_mailer "/std/mailers/standard"
-news_data (["lima.ideas":83,"driver.discussion":5,"test.group":1,"wiz.test":1,"lima.discussion":31,"lima.todo":2,"driver.bugs":3,"..announcements..":7,"wiz.chat":2,"lima.bugs":173,"wiz.news":1,"player.chat":1,"player.news":1,"lima.help":16,"admin.chat":2,"reporter.typos":4,])
-paths ({"/commands/norestrict/","/commands/restrict/","/commands/player/",})
-level 5
-topic_to_time ([])
-wizdefaults ([])
-wizxdefaults ({})
-saved ({})
-shell_saved_data "([\"#base_name#\":\"/obj/shells/wish\",\"modules\":({}),\"variables\":([\"show_loc\":\"1\",\"PROMPT\":\"\\\"bean> \\\"\",\"path\":({\"/trans/cmds/\",\"/cmds/wiz/\",\"/cmds/player/\",}),]),\"alias_save\":([\"gossip\":(/\"chan gossip $*\",({\"\",}),0,0,/),\"newbie\":(/\"chan newbie $*\",({\"\",}),0,0,/),\":\":(/\"emote $*\",({\"\",}),0,0,/),\"x\":(/\"examine $*\",({\"\",}),0,0,/),\"'\":(/\"say $*\",({\"\",}),0,0,/),\"e\":(/\"go east $*\",({\"\",}),0,0,/),\"ldir\":(/\"ls -laF $*\",({\"\",}),0,0,/),\"se\":(/\"go southeast $*\",({\"\",}),0,0,/),\"sw\":(/\"go southwest $*\",({\"\",}),0,0,/),\"n\":(/\"go north $*\",({\"\",}),0,0,/),\"l\":(/\"look $*\",({\"\",}),0,0,/),\"admin\":(/\"achan admin $*\",({\"\",}),0,0,/),\"ne\":(/\"go northeast $*\",({\"\",}),0,0,/),\"w\":(/\"go west $*\",({\"\",}),0,0,/),\"nw\":(/\"go northwest $*\",({\"\",}),0,0,/),\"s\":(/\"go south $*\",({\"\",}),0,0,/),\"dir\":(/\"ls -aF $*\",({\"\",}),0,0,/),]),\"personal_bindings\":([]),\"xalias_save\":({\":\",\"'\",}),])"
-skills ([])
-title "Deathblade the Electric Head."
-name "deathblade"
-describe "Deathblade is a boring zorker and hasn't described itself."
-invis_name "Someone"
-nickname "db"
-start_location "/domains/std/wizroom"
-reply "skylight"
-channel_list ({"wiz_wiz","plyr_gossip","plyr_newbie","adm_admin","plyr_rust-db","plyr_news","plyr_conf","plyr_timer","wiz_s.wiz","imud_imud_gossip","imud_imud_code","imud_ie_flibcode","wiz_announce","wiz_errors",})
-auto_load ({})
-pwd "/data/config"
-cwf "/obj/shells/plmenu.c"
-ilog_time 807628385

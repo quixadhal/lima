@@ -20,12 +20,14 @@
 #define ANNOUNCE_D	"/daemons/announce_d"
 #define ALIAS_D		"/daemons/alias_d"
 #define TIMER_D		"/daemons/timer_d"
+#define WEATHER_D	"/daemons/weather_d"
 
 #define CMDPATH_CACHE	"/daemons/cmdpath_cache_d"
 
 #define MAIL_D		"/secure/daemons/mail_d"
 #define GROUP_D		"/secure/daemons/group_d"
 #define FINGER_D	"/secure/daemons/finger_d"
+#define USERLIST_D	"/secure/daemons/userlist_d"
 #define USER_D		"/secure/daemons/user_d"
 
 // Define these only if you want intermud services.

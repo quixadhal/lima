@@ -4,44 +4,53 @@
 #define __CONFIG_H__
 
 #define mud_name()		MUD_NAME
+#define driver_version()	__VERSION__
+
 /* You don't have permission to change the next 2 lines w/o our consent.*/
 #define lib_name()		"Lima"
-#define lib_version()		"0.9r2 (pre-alpha)"
-#define lib_status()		"Open for the public"
-#define driver_version()	__VERSION__
+#define lib_version()		"0.9r3 (pre-alpha)"
+
+/* changes these as you please */
+#define lib_status()		"mudlib development"
 #define __HOST__		"lima.imaginary.com"
+#define ADMIN_EMAIL		"rust@virginia.edu or gstein@svpal.org"
 
 #define START			"/domains/std/wizroom"
 
 #define HISTORY_CHAR	'%' /* ! will give you problems since it's used as input escape. */
 #define AUTOMATIC_REHASH
 
-#define ADMIN_EMAIL	"rust@virginia.edu or gstein@svpal.org"
-
-#undef NO_NEW_PLAYERS
-#define OBVIOUS_EXITS   
+#define OBVIOUS_EXITS
 
 #define USE_GAME_FEATURES
+
 #ifdef USE_GAME_FEATURES
-#define USE_STATS
-#ifdef USE_STATS
-#define USE_COMBAT
+# define USE_STATS
+# define USE_GUILDS
+# define USE_SKILLS
+# define USE_TITLES
+# define USE_COMBAT
 #endif
-#define USE_GUILDS
-#endif
+
+
+#undef NO_NEW_PLAYERS
+#define LOGIN_NAME_WAIT		300	/* seconds to wait for a name */
+#define LOGIN_PASSWORD_WAIT	180	/* seconds for the password */
 
 
 // Auto wiz means guest wizard only.  You still have to use the admtool
 // command to make the person a full wizard w/ a directory.
 #define AUTO_WIZ
 
-#define BUG_NEWSGROUP "lima.bugs"
-#define TYPO_NEWSGROUP "reporter.typos"
-#define IDEA_NEWSGROUP "lima.ideas"
-
 // Define this if you want bug, typo and idea commands to log to /log instead
 // of posting news
 #undef LOG_DONT_POST
+
+#define BUG_NEWSGROUP "lima.bugs"
+#define TYPO_NEWSGROUP "reporter.typos"
+#define IDEA_NEWSGROUP "lima.ideas"
+#define TODO_NEWSGROUP "lima.todo"
+
 
 #define BUG_MSG \
 "You have just encountered a bug.  Please use the bug command to report it.\n"

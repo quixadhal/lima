@@ -14,7 +14,7 @@ private void main()
 
     if( wizardp(this_user()) )
     {
-	printf("You are a level %d implementor.\n",this_body()->query_level());
+	write("You are an implementor.\n");
     }
 
     pts = this_body()->query_score();
@@ -43,5 +43,4 @@ private void main()
 	     "This gives you the rank of %s.\n", pts, total, mud_name(), rank );
     else
       printf("There are no points or anything on %s, so I guess you're doing Ok.\n", mud_name());
-    return;
 }

@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+#include <driver/origin.h>
 
 inherit M_INPUT;
 inherit M_HISTORY;
@@ -18,9 +19,12 @@ string query_shellname();
 
 static function arg_to_words_func = (: explode($1," ") :);
 
-static void remove()
+void remove()
 {
-  destruct(this_object());
+    if ( origin() != ORIGIN_LOCAL && owner && previous_object() != owner )
+	error("illegal attempt to remove shell object\n");
+
+    destruct(this_object());
 }
 
 void setup_for_save()
@@ -45,6 +49,7 @@ shell_input(mixed input)
 {
   mixed argv, tmp;
   string original_input;
+
   if(input == "") return;
   if(input == -1)
     {
@@ -128,52 +133,59 @@ if(sizeof(argv) == 1 && argv[0][0] == '$' && strlen(argv[0]) > 1)
       // work, even though the command wasn't executed in the shell...
 }
 
-void start_shell()
-{
-  if(owner)
-    return;
-  owner = this_body();
-  modal_push((: shell_input :), (: wizardp($(this_user())) ? get_prompt() : "> " :));
-  history::create();
-}
-
 private void cmd_exit(){
-  if(sizeof(this_user()->modal_stack_size()) == 1)
+  if(modal_stack_size() == 1)
     {
       this_user()->force_me("quit");
       return;
     }
   printf("Exiting %s\n", query_shellname());
-  this_user()->modal_pop();
+  modal_pop();
   remove();
 }
 
-void create(string shell_saved_data)
+void create()
 {
-  if(owner)
-    return;
-  alias::create();
-  history::create();
-  prompt::create();
-  shell_bind("set",    (: cmd_set :));
-  shell_bind("unset",  (: cmd_unset :));
-  shell_bind("alias",  (: cmd_alias :));
-  shell_bind("unalias", (: cmd_remove_alias($1,1) :));
-  shell_bind("history", (: history_command :));
-  shell_bind("scrollback", (: cmd_scrollback :));
-  shell_bind("exit", (: cmd_exit :));
+    if ( !clonep() )
+	return;
+
+    alias::create();
+    history::create();
+    prompt::create();
+}
+
+/*
+** This function is used internally to prepare a shell for operation.
+** Subclasses will typically override to set up bindings and variables
+** with shell_bind_if_undefined() or set_if_undefined(), respectively.
+*/
+static void prepare_shell()
+{
+    shell_bind_if_undefined("set",	(: cmd_set :));
+    shell_bind_if_undefined("unset",	(: cmd_unset :));
+    shell_bind_if_undefined("alias",	(: cmd_alias :));
+    shell_bind_if_undefined("unalias",	(: cmd_remove_alias($1,1) :));
+    shell_bind_if_undefined("history",	(: history_command :));
+    shell_bind_if_undefined("scrollback", (: cmd_scrollback :));
+    shell_bind_if_undefined("exit",	(: cmd_exit :));
+}
+
+void start_shell()
+{
+    if ( !owner )
+	owner = this_body();
+
+    if ( owner != this_body() || previous_object() != owner )
+	error("illegal attempt to take over shell\n");
+
+    modal_push((: shell_input :),
+	       wizardp(this_user()) ? (mixed)(: get_prompt :) : (mixed)"> ");
+
+    prepare_shell();
 }
 
 
-void reconnect()
+nomask object query_owner()
 {
-  if(this_body() != owner)
-    return;
-  scrollback::reconnect();
-}
-
-
-nomask object get_owner()
-{
-  return owner;
+    return owner;
 }

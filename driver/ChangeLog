@@ -967,7 +967,7 @@ Mon Dec  5 12:14:46 EST 1994 (tim@handel.princeton.edu (Beek))
 Mon Nov 21 13:51:25 EST 1994 (tim@handel.princeton.edu (Beek))
         * raised patchlevel to v20.22
 	--- Beek section
-	* COMPAT_BUSTER: the environment_destructing() master apply has
+	* COMPAT_BUSTER: The environment_destructing() master apply has
 	  been removed.  move_or_destruct() is now called in all objects
 	  in the inventory of a destructed object, regardless of whether
 	  the object being destructed has an environment.  This

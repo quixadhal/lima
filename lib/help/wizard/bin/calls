@@ -1,0 +1,16 @@
+
+USAGE:  calls
+
+    This command shows you the number of call_outs that are active
+
+     calls
+
+object                                            Function            Delay
+-----------------------------------------------------------------------------
+/secure/master                                    <function>          1
+/domains/std/harry#474                            <function>          3
+/domains/std/harry                                <function>          3
+ 
+There are 3 call_outs active..
+w
+q

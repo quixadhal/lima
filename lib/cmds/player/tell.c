@@ -8,6 +8,7 @@
 inherit CMD;
 inherit M_GRAMMAR;
 inherit M_COMPLETE;
+inherit M_ANSI;
 
 private void main(string arg)
 {
@@ -70,8 +71,8 @@ private void main(string arg)
         return;
       }
 
-  if (who->query_invis() && (int) who->query_level() > (int) this_body()->
-      query_level()) {
+  if (who->query_invis() && !adminp(this_user()) )
+  {
     printf("No such player.\n");
     return;
   }
@@ -83,7 +84,7 @@ private void main(string arg)
     if(who != this_body())
       {
 	write(iwrap(sprintf("You tell %s: %s\n", who->query_name(), arg)));
-	tell_object(who, iwrap(sprintf("%s tells you: %s\n", this_body()->query_name(), arg)));
+	tell_object(who, ansi(iwrap("%^BOLD%^" + this_body()->query_name() + " tells you: %^RESET%^" + arg + "\n"), who));
       }
   else
     write("You tell yourself: "+arg+"\n");

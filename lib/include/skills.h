@@ -1,3 +1,5 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 private static string *skill_levels = ({"Beginner",
 					"Amature",
 					"Competent",

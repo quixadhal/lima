@@ -1,340 +1,284 @@
-Rust fixed player prompts. 
+Deathblade converted all input handlers to use M_INPUT and fixed the imp of 
+    M_INPUT to make it more robust against changes in this_user() from call 
+    to call. 
 
-Rust made it so spaces after a command and before the first argument are 
-    OK.  I wonder if that's the right descision or not.  Please give me 
-    feedback.... 
+Deathblade broke the alias menu out into /obj/aliasmenu.c 
 
-Rust added Calin's code for showing obvious exits. 
+Deathblade fixed somebody's addition of ADMTOOL to commands.h. It should 
+    have been CMD_OB_ADMTOOL. 
 
-Rust changed 2 do_game_command's to link->force_me in /std/player.c cause 
-    they didn't work right as was on some muds (worked fine on others tho) 
+Deathblade fixed the player menu's problems with [nwbti?l] commands. 
 
-Rust started a telnet client that works from within the mud.  I was on 4 
-    lima muds at once through it. =) 
+Deathblade fixed a nasty security hole. Released 0.9r2-patch1. 
 
-Rust made announce a channel & removed all old announce code.  Type: 
-    announce /on 
+Deathblade fixed a problem with player shells. user ob was getting level 1, 
+    causing it become a wiz, causing /std/player to create a wizard shell 
+    (wish). user ob is no longer always set to level 1. 
 
-Rust added a lib_status() define to config.h which gives your status on I3 
-    mudinfo 
+Deathblade fixed the converse command to not prepend say 
 
-Rust fixed the score bug, where it wouldn't work if your mud didn't use the 
-    quest system. 
+Deathblade fixed the alias menu in the admtool. 
 
-Rust added the ability to restrict newsgroups.  The interface to make an 
-    admin, wizard or player newsgroup should still be added to admtool. 
+Deathblade made the newsreader print the total number of msgs in a group on 
+    the group prompt line. 
 
-Rust finished the telnet object (/trans/obj/telnet_ob) and added a telnet 
-    command. 
+Deathblade fixed a bug in /std/modules/input.c for modal_simple(). it may 
+    not always have input_user defined. switched back to this_user() which 
+    should be fine, given modal_simple's semantics. 
 
-Rust still need to add telnet negotiations... Some places might not work 
-    quite right 
+Deathblade fixed addemote to pass its values thru fptrs rather than use 
+    global vars. Should prevent errors that were being seen due to 
+    simultaneous usage of the cmd. 
 
-Rust still need to add telnet negotiations... Some places might not work 
-    quite right 
+Deathblade upgraded news_d (and company) to use classes for the posts. 
 
-Rust added options to admtool to make a new newsgroup admin-only or 
-    wiz-only. 
+Deathblade added a rudimentary post removal to the news daemon/reader 
 
-Beek fixed read_entry in readable to return a string 
+Deathblade applied Robo's patch to the newsreader to enable <CR> at the 
+    main prompt to drop you out. 
 
-Beek changed the news daemon to do restrictions based on the hierarchical 
-    prefix of the group; currently 'wiz.*' and 'admin.*' have filters.  
-    add_restriction was scrapped, since the two functions it supported are 
-    included in the name.  To add more restrictions, add them to the 
-    mapping at the top of the news_d.c (can't have a nicer interface unless 
-    someone figures out a good way to save function pointers) 
+Deathblade modified finger.c to select a mud with an exact match rather 
+    than failing, saying it could match (foo or foobar) (i.e. you couldn't 
+    ever finger @foo) 
 
-Deathblade changed exec() to exec_code() since the driver already defines 
-    exec() (even tho' we don't use it) 
+Deathblade removed some posts from lima.bugs... whew. only partway though. 
+    admins can remove any. a non-admin can remove their own (fyi). 
 
-Rust made it so you can change the control char for telnet if you set the 
-    telnet_char environment variable 
+Deathblade added a first pass at stats. see /std/modules/bodystats. see the 
+    "stats" command. 
 
-Rust made some enhancements to telnet_ob based on suggestions by Satan & 
-    Zifnab... 
+Deathblade wanted to mention you can generate stats for yourself with: 
+    @.me->init_stats() 
 
-Rust added the ability to recapture scrollback while you're linkdead.  set 
-    save_scrollback,  and just type scrollback  to see it when you 
-    reconnect. 
+Deathblade added a "todo" command 
 
-Rust made update take [cfile*]  so you can do: update *.  However, I 
-    suggest not removing loadall because update * is far more noisy, and 
-    won't update every file in /trans/cmds ... it stops once it updates 
-    itself P-) (since it has to dest itself to do that) 
+Deathblade removed /std/ghost.c. 'nuf said. 
 
-Rust made a working fix to the shutdown command crasher.  The crasher still 
-    exists, but an extra test avoids it. (the crasher used to occur when a 
-    non-admin tried to shut down the game) 
+Beek added M_ACCESS inherit and an set_priv to the file created in 
+    exec_code() priv 1 evals actually have priv 1. If your eval.h has 
+    M_ACCESS in it, you'll need to remove that now. 
 
-Rust fixed the bug w/ the first targeted emote not working.  We have no 
-    clue why our fix works, or why it was even broken in the first place, 
-    but... 
+Deathblade removed the level concept. We will move towards a string naming 
+    a wiz's "position" in the mud instead. level 0/1 for player/wiz is now 
+    detected via SECURE_D. 
 
-Beek talked to Deathblade, Ohara, and Rust.  They were horribly boring. 
+Deathblade rebuilt the driver with NO_WIZARD. added a wizardp() simul. 
+    removed enable/disable wizards. hacked some minor body fname stuff for 
+    now. 
 
-Ohara ignored Beek .. he was awful AND boring. 
+Deathblade fixed up code throughout the lib to deal without levels. several 
+    simuls were removed. some optimized. 
 
-Beek apologized for that last entry. 
+Deathblade modified the admtool's user menu to alter the wiz/dewiz feature. 
+    it now forces an su. it no longers sets a level. 
 
-Rust added code so that wizards can get the path to where they are in the 
-    default room long() if they've got the show_loc env variable set 
+Deathblade fixed auto-wiz. It now creates a "real" wizard in the SECURE_D. 
 
-Zifnab was playing with the example room and the verbs and having some 
-    problems 
+Beek fixed nicknames to add the id when you log in, so they work again. 
 
-Beek fixed a bug that caused _only_ *Error in loading object errors to be 
-    reported on the errors channel, instead of _everything but_ *Error in 
-    loading object errrors. 
+Beek added a -v flag to the parse command for the really super spammy debug 
+    info; it'll work as soon as we're on a driver with DEBUG enabled. 
 
-Beek reminds Rust that type modifiers aren't types; there are a number of 
-    missing return types for functions in the shell stuff 
+Beek modified ansi() in M_ANSI to have an optional second arg which 
+    indicates who the message is for. 
 
-Beek fixed a bunch of things in /domains/std/example_safe; I commented 
-    heavily what I did and left the old code for comparison, so it's 
-    probably worth reading. 
+Beek added made 'Foo tells you' come out in bold if you have ansi on. 
 
-Deathblade fixed scrollback.c's type problems that beek referred to (but 
-    didn't fix :-) 
+Deathblade improved admtool's internal structure. altered some priv checks. 
+    added the "domain admin" menu. other small tweaks/improvements to it. 
 
-Deathblade fixed the mudlist handling to merge rather than replace. daemons 
-    now saves/restores info, and returns ids to router at connect time. 
+Deathblade created a "checkpriv" command to verify if you are operating 
+    with a particular privilege. 
 
-Deathblade fixed up the channel daemon to eliminate duplicate listeners 
-    (caused some problems with I3 sending multiple messages out). also 
-    saves/restores blueprint objects that are listening to channels so that 
-    it can be updated without fear. fixed Buddha's bug with passing 0 to 
-    interactive(). 
+Beek added %^SAVE%^, %^RESTORE%^ and %^HOME%^ to M_ANSI 
 
-Deathblade wrote a "listeners" command for admins to aid in debugging 
-    channel problems. shows all listeners of all channels. 
+Deathblade removed GROUP_D->adminp() usage. admin status is now defined by 
+    membership within the Admin domain. 
 
-Deathblade updated the chanlist command to show the announce and errors 
-    channels 
+Ohara wrote up ~ohara/stats which is a suggested breakdown of the secondary 
+    stats .. feedback to DB 
 
-Deathblade switched drivers to 6a10 (including the right patchlevel.h :-) 
+Yaynu made a basic weather-daemon 
 
-Rust added support for update here, ed here, etc... even though it's easy 
-    as sin to add a $here... 
+Deathblade broke the player shell out of the body into PLYR_SHELL 
+    (/obj/pshell). fixed up save and destroy of shell obs. 
 
-Rust rewrote prompts, optimizing them a lot.  
+Rust added [idle] to your in_room_desc if you've been idle for 2 minutes or 
+    more 
 
-Rust made room.c's long() nomask, since set_long() allows you to pass a 
-    closure. 
+Beek added a bodies() simul 
 
-Rust fixed a bug in cp.c and mv.c 
+Rust changed master::object_name to say: "rust's body" instead of NPC 
 
-Rust added an owner to shells. 
+Ohara wrote a rough draft for some basic skills/catagories .. 
+    comments/suggestions to lima.ideas pls .... 
 
-Deathblade fixed a bug in /std/shell where expand_arguments would return 0 
-    causing it to barf. 
+Deathblade thrashed hard on mudlist.c. displays mudlib by default now. use 
+    -t to display type instead (old behavior). filters muds to display only 
+    UP muds. use -a to display all muds. internally it now has a flexible 
+    system for selecting columns and widths of stuff to display. 
 
-Beek added 'dbxwhere last' and 'dbxframe last <num>'; useful for tracking 
-    errors you see on the errors channel 
+Yaynu READ THE LIMA WWW PAGE AT: http://lima.imaginary.com 
 
-Rust added Beek's ,macros to the shell.  do and eval are now obsolete.... 
+Beek changed whisper to a verb, as a test case. Also modified it to use the 
+    message module. 
 
-Beek changed commands rather heavily; the Right Way is now: inherit CMD; 
-    private void main(...).  If you don't inherit CMD it won't work.  
-    Changes propagated thrugh /cmds.  The upside is you can't fake a 
-    command via a call. 
+Beek added 'whisper to LIV STR' and 'whisper STR to LIV' 
 
-Beek : oh, if you _do_ need to call main() in another command, see resend() 
-    in CMD. 
+Deathblade removed cwf and pwd from /std/dev. they are now part of wish.c. 
+    modified appropriate commands/files. 
 
-Rust and Beek rewrote the whole mudlib in Perl. 
+Deathblade modified the start up and reconnect of the shell ob. much 
+    simpler now. 
 
-Beek added nicknames.  You can only give yourself nicknames.  (Note: DB 
-    better nick himself db real quick-like or he is going to have some 
-    broken bones) 
+Deathblade fixed the su problem with shells. 
 
-Rust did some work on skills.  Started /std/player/skills and 
-    /daemons/skill_d 
+Deathblade wanted to note that aliases work at the first cmd now, due to 
+    the restructuring of shell startup/teardown/reconnect. Prompt is 
+    forthcoming :-) 
 
-Beek made execute_command() static 
+Deathblade obsoleted /std/dev. /std/player is now used for players and 
+    wizzes. just the shell is different. moved DEV funcs to 
+    /std/player/wizfuncs.c. note the order of operations at login is 
+    changed: move to room, enter game, channel signup for new users, dump 
+    DID data, run .login, look. 
 
-Beek changed clean_array() to be O(n log n) and not O(n^2) (with a higher 
-    constant to boot); downside is it no longer preserves order. 
+Deathblade worked on the login sequence to separate character creation from 
+    login. more of it uses modal_xxx now. 
 
-Beek removed exclude_array(); the 'symmetry' method is faster. 
+Deathblade updated MORE_OB and M_ANSI to deal with no body/shell. 
 
-Beek fixed cmp( ({ ({ 1 }) }), ({ ({ 1 }) })) to return true; similar fix 
-    for mappings.  It is now bad to call cmp() on recursive structures :) 
+Deathblade updated some of the query/set functions for the user ob. Also 
+    changed plmenu and player/title. 
 
-Deathblade tweaked the show_loc thing in /std/room to move it to 
-    do_looking() rather than long 
+Deathblade wrote the didlog command. Some related changes in DID_D and 
+    player.c. Format is: didlog num_days (num_days defaults to 1 day). It 
+    will print the changes over the past num_days. 
 
-Deathblade fixed a minor problem in su when you had no body yet wanted one 
+Deathblade moved the logon DID_D report after the look because the "more" 
+    doesn't block until completion, meaning you can get a "look" in between 
+    your more prompts. 
 
-Deathblade did more work on I3 
+Deathblade implemented the return_to_func in the input system. This 
+    function is called whenever your input handler is returned to (after 
+    another handler was popped). 
 
-Deathblade made update pass 1 to remove(). I3 uses this to know if it will 
-    be coming back shortly (to tell the router). 
+Beek updated /std/book.c to interact correctly with the parser 
 
-Beek rewrote flatten_array() to be iterative (and fairly efficient; 
-    arr[i..i] = arr[i] rox) 
+Azy can't type, strange keyboard... 
 
-Beek made handle_chain (for call_out_chain) static 
+Deathblade added a query_history() warning for the persion queried 
 
-Beek just finished browsing /secure/simul_efun/misc :) 
+Rust ripped out Deathblade's query_history code, as he hadn't finished it, 
+    and I felt like pissing him off. 
 
-Beek fixed decompose() to use the flatten_array() trick; thanks to Aragorn 
-    for suggesting it. 
+Beek added code to the did_d to verify that what gets reported actually 
+    happened. 
 
-Beek changed M_SAVE to use mappings instead of arrays so it deals with 
-    added/deleted variables better.  old_load_from_string() can hang around 
-    for a while for compat; it's used if an array-based save file is 
-    detected. 
+Deathblade tweaked the history warning. only admins get it. 
 
-Beek added /secure/check_config to make sure the driver compiles right 
+Rust changed it so it says: You have left mudname instead of you have left 
+    the game 
 
-Beek : erm "... was compiled right." 
+Beek added /ftp/incoming (for mudlib submissions), and moved a bunch of 
+    files there, since the mail level of /ftp can get rather crowded. 
 
-Beek removed the 'put STR' rule since in prevented error messages and was 
-    unhandled 
+Beek added support for default exit behavior. Doc forthcoming. 
 
-Beek fixed 'grep' to escape /'s 
+Beek added the doc in /help/wizard/lib/std/room or something like that 
 
-Beek whapped DB on the nose with a newspaper for leaving the I3 daemon in 
-    an unloadable state. 
+Deathblade installed Aldernon's new rooms. Thanx, Aldernon! 
 
-Beek changed /std/object to call parse_refresh() when one of STD_FLAGS is 
-    changed (important later) 
+Deathblade revised the login code to use the modal input system. Cleaner. 
+    Prompt now appears on login/reconnect. 
 
-Beek fixed set_closed() to call parse_refresh(); important on later drivers 
+Deathblade made modal_recapture() static. Should only be used at startup 
+    and internally by the input system. Removed from M_INPUT. 
 
-Rust commented out a config check that we weren't passing P-) 
+Deathblade fixed a problem in the login sequence where you would mistype a 
+    name twice and it would begin to log you in as that name. The new input 
+    mechanisms helped this a lot. Also fixed some problems related to early 
+    termination of the login sequence and call_outs. 
 
-Rust added a quick integer-only pow() sefun 
+Zifnab fixed the problem with the listing of souls through the menu 
 
-Beek fixed pow(x, -n) to not loop forever, then got carried away and added 
-    a high performance integer power simul :) 
+Beek re-added the 'laugh' emote. Anyone have any idea where it went? 
 
-Beek : for those wondering, pow(x, y) can be done in O(log y) 
-    multiplications, not O(y) :) 
+Zifnab started adding help files for some wiz cmds 
 
-Beek found his mudadmin pw, and hacked our driver to not crash on Rust's 
-    code. 
+Zifnab didnt get as far as i would of liked tonight will contnue tomorrow 
+    :) 
 
-Beek : arg, strike that, the new driver is in the src dir; I can't move it 
-    to /usr/local/bin and it's not important enough to change the start 
-    script 
+Deathblade added a check for NO_WIZARDS to check_config.c. 
 
-Beek added fuzzy_divide(x, y), which returns a number close to x/y, but 
-    with the property that the expected value of 1/3 + 1/3 + 1/3 = 1.  i.e. 
-    it rounds non-deterministically in a way proportional to the remainder, 
-    giving the illusion of floating point division. 
+Deathblade updated master::valid_bind() and dbxvars to apply restrictions 
+    to variable inspection. valid_bind() is now a bit more lenient. 
 
-Beek added a workaround in skill_d for the crasher. 
+Beek added number_of() to M_GRAMMAR. number_of(2, "dog" ) -> "2 dogs" 
 
-Beek added a debug flag to do_game_command(), which turns on 
-    parse_sentence()'s debug mode 
+Beek added support for idle time in hours and days 
 
-Beek linked the driver to v21.6b1 
+Beek I fixed announce to use correct grammar 
 
-Beek moved us to b1 and made some small verb mods 
+Deathblade fixed a problem with logging in a second time and taking over 
+    your body 
 
-Rust disabled the DOC macro 
+Rust added a truncate simul_efun that truncates a string to a specified 
+    length and adds an elipsis ( "..." ) and then used it in who because 
+    Yaynu was being really obnoxious about long titles. 
 
-Rust fixed inputsys to start up your shell if you ever don't have one 
+Rust reworked the in_room_desc code in player.c some so that when you 
+    truncate the desc, you don't truncate the idle info. 
 
-Rust rm'd the stupid timeout_d 
+Earendil env 
 
-Rust removed lots of offending (offensive) code until both wish.c and dev.c 
-    finally loaded w/o warnings 
+Rust fixed the Bill the Cat Graphic for ack 
 
-Deathblade built and installed a 6b1 with all the right flags and stuff. 
-    Relinked bean's driver to the /usr/local/bin area. 
+Deathblade fixed M_GRAMMAR to include some special cases that the driver 
+    doesn't know about yet 
 
-Rust rewrote argument_explode in M_GETOPT. A regexp that worked completely 
-    right was more parens than the driver allows P-) 
+Deathblade revised a lot of the user/body system for mud entry. 
 
-Rust finished skill_d. It probably needs to be balanced, and a few example 
-    skills would be nice, but what the hay! 
+Beek removed /std/object/non_object.c 
 
-Beek added a south exit of the example room for a new room. 
+Beek put non_object.c back :) 
 
-Beek fixed Obvious Exits to come after objects in the room 
+Deathblade shifted the room's weather code to /std/room/weather. changed 
+    WEATHER_D some to make it a bit more efficient. 
 
-Beek thought about it again, and moved obvious exits to the brief line. 
+Deathblade fixed a couple problems in edit_ob dealing with ~r and ~w 
 
-Deathblade worked on I3 channels, fixed error reporting to a user, and put 
-    in an error response for bad fingers 
+Beek added an obscene number of new emotes. 
 
-Deathblade added read protection to /data/links, /data/players, /data/mail, 
-    and /data/M. fixed problems in player.c, mail_d.c, and user_d.c to deal 
-    with the read protection. 
+Deathblade fixed trim_spaces() so it doesn't barf on empty strings or 
+    all-white-space strings. 
 
-Beek moved set_name(), etc from MONSTER to LIVING 
+Deathblade added a "random [ LIV ]" command for producing random emotes 
+    (possibly targetted) 
 
-Beek add /std/modules/actions; it allows an object to use emotes and player 
-    verbs 
+Deathblade worked on stats some more. stats use the Official Ohara 
+    Percentages[tm]. con and wis now support racial modifiers. 
 
-Beek added Harry the affectionate 
+Beek added $np, $tp: propper name 
 
-Rust added a recorder, and fixed the read verb 
+Rust added do_read_word_str() support to read, so that it assumes what you 
+    want to read from if it's clear. 
 
-Beek added Barney 
+Rust made it so openable assigns the adjectives "open" and "closed" to an 
+    object at the right time 
 
-Beek added a parse_refresh() to remove_id() 
+Rust changed the call to ob->extra() to ob->extra_short() in inv_list() 
+    sefun 
 
-Beek added lock_with() to M_LOCKABLE 
+Rust changed all _prep_'s I could find to _word_ 
 
-Rust made it so that set_in_room_desc will take functions 
+Deathblade tweaked some logic in more_ob to avoid a driver bug. that ob 
+    needs more help, though. 
 
-Rust added my_call_outs() 
+Deathblade fixed Rust's non-loading version of M_OPENABLE. :-) 
 
-Rust added monster scripting facilities to M_ACTIONS. An example monster 
-    will be online tonight... 
+Deathblade fixed some AUTO_WIZ problems: new wizzies didn't actually get
+    their privs. After changing for correct privs, then needed to change
+    the force_me() calls in enter_game().
 
-Rust added Beavis and Butthead. clone butthead, and then laugh. That'll set 
-    off his script. 
-
-Deathblade made force_me() do some security checks. Had to move some 
-    commands to /trans/cmds. 
-
-Deathblade fixed some compile warnings related to prompts in the reader, 
-    menu, and alias menu 
-
-Deathblade fixed check_config's SANE_EXPLODE_STRING check: backwards logic. 
-
-Deathblade fixed bodyshell to not attempt to load from saved shell data 
-    when it is 0 (new characters) 
-
-Beek wonders why the hell 'say' moved to /trans/cmds 
-
-Beek moved 'say' back to /cmds/player 
-
-Beek finished writing M_TRIGGER; doc forthcoming 
-
-Beek turned AUTO_WIZ back on 
-
-Beek rewrote M_TRIGGERS to be more intuitive. 
-
-Beek wrote /domains/std/genius using M_TRIGGERS; it's smart enough to 
-    understand 'Beek says: my name starts with b and ends with k and is not 
-    spam.' 
-
-Beek added documentation for the M_TRIGGERS module 
-
-Deathblade upgraded us to v21.6b2. 
-
-Deathblade patched f_remove_call_out() and remove_all_call_out(). also 
-    patched free_parse_globals(). the mud now builds without DEBUG and 
-    remove_call_out() works right. 
-
-Deathblade added remove() to M_ACTIONS to remove all call outs. added 
-    remove() to M_ACTIONS users in /domains/std. 
-
-Deathblade fixed up the "calls" command to not barf if a call_out refers to 
-    a dested object. also cleaned it up a lot. 
-
-Beek fixed 'converse' to use resend() to do it's 'say's 
-
-Azy think its time. 
-
-Deathblade removed /trans/cmds/dir.c 
-
-Rust wants t know who broke the camera? 
-
-Rust fixed the camera 
+Deathbladed added NO_ENVIRONMENT check to check_config.c

@@ -265,3 +265,27 @@ parse_node_t *insert_pop_value P1(parse_node_t *, expr) {
     return replacement;
 }
 
+parse_node_t *optimize_loop_test P1(parse_node_t *, pn) {
+    parse_node_t *ret;
+    
+    if (IS_NODE(pn, NODE_BINARY_OP, F_LT) &&
+	IS_NODE(pn->l.expr, NODE_OPCODE_1, F_LOCAL)) {
+	if (IS_NODE(pn->r.expr, NODE_OPCODE_1, F_LOCAL)) {
+	    CREATE_OPCODE_2(ret, F_LOOP_COND_LOCAL, 0,
+			    pn->l.expr->l.number,
+			    pn->r.expr->l.number);
+	} else if (pn->r.expr->kind == NODE_NUMBER) {
+	    CREATE_OPCODE_2(ret, F_LOOP_COND_NUMBER, 0,
+			    pn->l.expr->l.number,
+			    pn->r.expr->v.number);
+	} else
+	    ret = pn;
+    } else if (IS_NODE(pn, NODE_UNARY_OP, F_POST_DEC) &&
+	       IS_NODE(pn->r.expr, NODE_OPCODE_1, F_LOCAL_LVALUE)) {
+	int lvar = pn->r.expr->l.number;
+	CREATE_OPCODE_1(ret, F_WHILE_DEC, 0, lvar);
+    } else
+	ret = pn;
+    
+    return ret;
+}

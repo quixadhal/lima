@@ -187,7 +187,7 @@ varargs string inv_list(object o, int flag, int depth) {
 	    } else {
 		res += (string)obs[i]->a_short();
 	    }
-	    if (ex = (string)obs[i]->extra())
+	    if (ex = (string)obs[i]->extra_short())
 		res += " (" + ex + ")";
 	    res += "\n";
 	    if (obs[i]->inventory_visible())

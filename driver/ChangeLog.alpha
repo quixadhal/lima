@@ -1,3 +1,69 @@
+Thu Aug 24 06:58:46 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7a3
+	* configuration checks for broken libg.a Linux configurations,
+	  <dlfcn.h>, -ldl, RTLD_LAZY
+	* try cc -E -traditional-cpp as a possible preprocessor in build.MudOS
+	* Use ANSI USHRT_MAX instead of MAXSHORT if availiable
+	* reworked the handling of novalue efuns to be more robust; fixed
+	  crashers in (void efun) || (void efun) among other things.
+	* Patches from Symmetry:
+	  . made Config.Example match the testsuite setup
+	  . fixed mapping case in dump_variable() for testsuite
+	  . bugfix in resolve_path() in testsuite
+	  . allow (: function() { return $1; } :)
+	  . optimize x[y..<1] to x[y..]
+	  . optimize dested obs in F_TRANSFER_LOCAL
+	  . crasher fix for swapped objects in program_info()
+	  . fixed disassembly of efun function pointers
+
+Mon Aug 21 03:58:32 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7a2
+	* fixes from Symmetry for #undef RUNTIME_LOADING
+	* added Zakk's query_ip_port() contrib efun for finding out which
+	  port an object connected to
+	* fixed a parser bug that would sometimes cause objects to fail
+	  to be recognized the first time they were referenced.  Many, many
+	  thanks to Deathblade for helping to track down this one
+	* Added filenames to the parser error messages
+	* improved the handling of punctuation; verbs do NOT include
+	  punctuation again, although this may change; stay tuned ...
+
+Thu Aug  3 20:25:27 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* created v21.7a1 from v21.6b3
+	* valid_compile_to_c() in the master object now controls the use
+	  of the generate_source efun.
+	* RUNTIME_LOADING works if your system supports dlopen()/dlsym();
+	  define it in options.h, then use generate_source(filename)
+	  to load the object.  Note that /lpc2c in the mudlib must be
+	  a symbolic link to the driver source.  Objects loaded in this
+	  manner do not show up on lpc_info() [yet]
+	* The restriction which disallowed cloning of objects with
+	  environments was removed
+	* destruct()'ing the master or simul_efun object now fails if a new
+	  copy can't be loaded.  This means that once the mud starts, a
+	  master or simul_object is ALWAYS loaded.
+	* preliminary changes for disallowing calls to private functions;
+	  you can still get past it in odd cases (e.g. calling the function
+	  before you inherit it)  More changes in a patchlevel or two.
+	* fixed a bug that caused // and /* to be interpreted as comments
+	  within continuation lines in #define's
+	* fixed the F_WHILE_DEC optimization, and added support for it
+	  in loops of the form 'for (...; x--; ...) { ... }'.  Centralized
+	  the handling of loop test optimization.
+	* optimize empty blocks for if's
+	* removed some mentions of 'actlab' in the docs
+	* added some new exit codes to the Exit_Codes doc
+	* added NO_ENVIRONMENT in options.h
+	* fixed the disassembly of F_LOOP_COND_NUMBER
+	* fixed a crasher/wierd behavior in using 'array' to declare arrays
+	* fixed a bug that made using a (blank) simul_efun object necessary
+	* added DEBUGMALLOC support for the parsing package
+	* added support for classes in copy()
+	* fixed a bug that chopped the last letter off of some
+	  parser error messages
+	* updated the testsuite lib to run under the default driver 
+	  configuration
+
 ----------------------------------------------------------------------------
 (v21.6a11 promoted to v21.6b1)
 

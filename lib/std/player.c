@@ -15,66 +15,49 @@
 #include <playerflags.h>
 #include <commands.h>
 
-#define USE_TITLES
-
 
 // Files we need to inherit --
 inherit MONSTER;
-//inherit M_ACCESS;
 inherit M_GRAMMAR;
-//inherit M_INPUT;
+inherit M_ACCESS;
 
 inherit "/std/player/quests";
 inherit "/std/player/mailbase";
 inherit "/std/player/newsdata";
 inherit "/std/player/path";
-inherit "/std/player/wizlevel";
 inherit "/std/player/cmd";
 inherit "/std/player/help";
 inherit "/std/player/bodyshell";
-#ifdef USE_GAME_FEATURES
+inherit "/std/player/wizfuncs";
+
+#ifdef USE_SKILLS
 inherit "/std/player/skills";
 #endif
-
 #ifdef USE_TITLES
 inherit "/std/player/title";
+#endif
+#ifdef USE_STATS
+inherit M_BODY_STATS;
 #endif
 
 
 // Global variables --
-
-string name = "guest";
-string describe;
-string invis_name;
-string nickname;
-static object link;
-static string cap_name;
-string start_location;
-string reply;
-int more_chunk;
-
-private string * channel_list;
-private static int catching_scrollback;
+private string name = "guest";
+private string describe;
+private string invis_name;
+private string nickname;
+private string start_location;
+private string reply;
+private int more_chunk;
+private string * channel_list = ({ });
 
 // part of patch for handling auto loading  -- Pere@ZorkMUD
-string* auto_load;
+private string * auto_load = ({ });
 
-// login related stuff --
+private static object link;
+private static string cap_name;
+private static int catching_scrollback;
 
-int init_user(string str){
-    cap_name = capitalize(str);
-    name = str;
-    unguarded(1, (: restore_object, USER_PATH(str), 1 :));
-    if (!describe)
-    {
-	describe = ( capitalize(name) +
-		    " is a boring player and hasn't described " +
-		    query_reflexive() + ".\n"
-		    );
-    }
-
-    return 1;
-}
 
 /* this is so that players don't show up as (wielded) */
 string extra_short() { return 0; }
@@ -100,6 +83,27 @@ string query_name()
 nomask string query_real_name()
 {
     return name;
+}
+
+int set_start_location(string str)
+{
+    if ( !stringp(str) )
+	return 0;
+
+    if ( load_object(str) )
+    {
+	start_location = str;
+        return 1;
+    }
+
+    return 0;
+}
+
+string query_start_location()
+{
+    if ( start_location )
+	return start_location;
+    return START;
 }
 
 // load info for auto_loading   -- Peregrin@ZorkMUD
@@ -162,15 +166,7 @@ void init_cmd_hook()
     object mailbox;
     int idx;
 
-#if 0
-    if (GROUP_D->adminp(this_object()))
-	set_privilege(1);
-    else
-	set_privilege(name);
-#endif
-
     link = previous_object();
-//    load_outside_aliases();
 
     mailbox = MAIL_D->get_mailbox(query_real_name());
 
@@ -185,7 +181,9 @@ void init_cmd_hook()
 	write("\n>>You have new mail<<\n\n");
     }
 
-    add_id( name );
+    add_id_no_plural( name );
+    if (nickname)
+	add_id_no_plural(nickname);
 
     NCHANNEL_D->register_channels(channel_list);
     NCHANNEL_D->deliver_string("wiz_announce", 
@@ -195,8 +193,9 @@ void init_cmd_hook()
     set_mass(100);
     set_max_capacity(100);
 
-    bodyshell::start_shell();
+    start_shell();
     load_autoload();
+
 #undef WORLD_IS_FLAT            
 #ifdef WORLD_IS_FLAT
     call_out((: parse_sentence(name) :), 0);
@@ -207,19 +206,79 @@ void init_cmd_hook()
 void enter_game(int is_new)
 {
     init_cmd_hook();
-    if(move(start_location) && move(START)){
+
+    if ( move(start_location) && move(START) )
+    {
 	write("Uh-oh, you have no environment.\n");
 	return;
     }
-    if(is_new)
-      {
-	write("Tuning in the newbie channel for you.  (newbie /on)\n");
-	link->force_me("chan newbie /on");
-	write("Tuning in the gossip channel for you.  (gossip /on)\n");
-	link->force_me("chan gossip /on");
-      }
-    simple_action("$N $venter the game.\n");
+
+    simple_action("$N $venter "+mud_name()+".\n");
+
+    if ( is_new && wizardp(link) )
+    {
+	write("\nHi, new wiz! Tuning you in to all the mud's important channels.\n");
+	write("Doing: wiz /on\n");
+//	link->force_me("wchan wiz /on");
+	write("Doing: chan news /on   (you'll see when new news is posted.)\n");
+// for some reason aliases don't catch from a force_me from here, so use the
+// full cmd. (probably a better idea anyway P-)
+//	link->force_me("chan news /on");
+	write("Doing: gossip /on\n");
+//	link->force_me("chan gossip /on");
+	write("Doing: newbie /on\n");
+//	link->force_me("chan newbie /on");
+        write("Doing: announce /on\n\n");
+//        link->force_me("wchan announce /on");
+
+	channel_list = ({ "wiz_wiz", "plyr_news", "plyr_gossip",
+			  "plyr_newbie", "wiz_announce" });
+	NCHANNEL_D->register_channels(channel_list);
+
+	/* So the hapless new wizard doesn't get spammed. */
+	set_ilog_time(time());
+    }
+    else if ( is_new )
+    {
+	write("\nTuning in the newbie channel for you.  (newbie /on)\n");
+//	link->force_me("chan newbie /on");
+	write("Tuning in the gossip channel for you.  (gossip /on)\n\n");
+//	link->force_me("chan gossip /on");
+
+	channel_list = ({ "plyr_gossip", "plyr_newbie" });
+	NCHANNEL_D->register_channels(channel_list);
+    }
+
+    if ( wizardp(link) )
+    {
+	string login_file;
+
+	// do .login stuff
+	login_file = wiz_dir(this_object()) + "/.login";
+	if( file_size(login_file) > 0 )
+	{
+	    map_array(explode(read_file(login_file),"\n"),
+		      (: this_user()->force_me($1) :));
+	}
+    }
+
     do_game_command("look");
+
+    /*
+    ** For now, this must be after all other printed stuff cuz it will
+    ** start a MORE_OB, which doesn't block the above printing.  At
+    ** some point, we'll add continuation functions to MORE_OB and then
+    ** this can be anywhere in the login sequence, with a continuation
+    ** for the rest of the sequence.
+    */
+    if ( wizardp(link) )
+    {
+	DID_D->dump_did_info(query_ilog_time(),
+			     ({ "Changes since you last logged in",
+				"********************************",
+				"" }));
+	set_ilog_time(time());
+    }
 }
 
 void save_me()
@@ -236,21 +295,37 @@ void save_me()
 void remove()
 {
     object ob;
+
+    if ( !clonep() )
+    {
+	::remove();
+	return;
+    }
+
     save_me();
+
+    if ( ob = query_shell_ob() )
+	ob->remove();
     MAIL_D->unload_mailbox(query_real_name());
     unload_mailer();
     LAST_LOGIN_D->register_last(query_real_name());
     if ( link )
-      {
+    {
 	link->remove();
-      }
+    }
     ::remove();
 }
 
 void quit()
 {
+    if ( !clonep() )
+    {
+	::remove();
+	return;
+    }
+
     if (!test_flag(INVIS))
-	simple_action("$N $vhave left the game.\n");
+	simple_action("$N $vhave left "+mud_name()+".\n");
     save_autoload();
     NCHANNEL_D->deliver_string("wiz_announce", 
 			    sprintf("[announce] %s has left %s.\n",
@@ -262,7 +337,31 @@ void quit()
 }
 
 
-string in_room_desc()
+string query_idle_string()
+{
+    int idle_time;
+    string result="";
+    if(interactive(link))
+       idle_time = query_idle(link)/60;
+    if(!idle_time)
+      return "";
+
+    // Don't worry about weeks or months :)
+    if (idle_time > 24 * 60)
+        result += " [idle " + number_of(idle_time/(24*60), "day") + "]";
+    else if (idle_time > 60) 
+        result += " [idle " + number_of(idle_time/60, "hour") + "]";
+    else
+        result += " [idle " + number_of(idle_time, "minute") + "]";
+
+    return result;
+}
+
+
+// This is used by in_room_desc and by who, one of which truncates,
+// one of which doesnt.  Both want an idle time.
+
+string base_in_room_desc()
 {
     string result;
 
@@ -281,11 +380,14 @@ string in_room_desc()
     /* if they are link-dead, then prepend something... */
     if ( !link || !interactive(link) )
 	result = "The lifeless body of " + result;
-
     /* titles may include a %s in them. substitute their name */
     return punctuate(sprintf(result, cap_name));
 }
 
+string in_room_desc()
+{
+  return base_in_room_desc() + query_idle_string();
+}
 
 void set_reply(string o){
     reply = o;
@@ -337,7 +439,7 @@ string *get_player_message(string message, mixed arg) {
 
 void net_dead()
 {
-    simple_action("$N has gone link-dead.\n");
+    simple_action("$N $vhave gone link-dead.\n");
     NCHANNEL_D->deliver_string("wiz_announce", 
 			    sprintf("[announce] %s has gone link-dead.\n",
 				    capitalize(name)));
@@ -352,43 +454,46 @@ void reconnect()
     link = previous_object();
     remove_call_out("remove");
     simple_action("$N $vhave reconnected.\n");
-    bodyshell::restart_shell();
-//    modal_push((: parse_line :), (: "> " :));
+
     NCHANNEL_D->deliver_string("wiz_announce",
 			    sprintf("[announce] %s has reconnected.\n",
 				    capitalize(name)));
     catching_scrollback = 0;
-    if(query_shell_ob())
-      query_shell_ob()->reconnect();
+    if ( query_shell_ob() )
+      query_shell_ob()->end_scrollback();
+
+    start_shell();
 }
 
-
-
-mixed query_who_data()
+nomask void reset_input_handler()
 {
-    return ({ get_flags(PLAYER_FLAGS), query_real_name(), short(), query_level() });
+    if ( previous_object() != query_link() )
+	error("illegal attempt to modify input processing\n");
+
+    start_shell();
 }
 
+void die()
+{
+    if ( wizardp(link) )
+    {
+	simple_action("If $N $vwere mortal, $n would now no longer be mortal.\n");
+	set_hp(10);
+	return;
+    }
 
-
-
-int query_hidden(){
-    if(test_flag(F_HIDDEN)) return query_level();
-}
-
-void die(){
     simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.\n");
     tell_object(this_object(), "   ****  You have died  ****\n"
       "A pity, really.  Way too many people dying these days for me to just patch\n"
       "everyone up.  Oh well, you'll live.\n");
     rack_up_a_death();
-    link->switch_body("/std/ghost");
+    link->switch_body(GHOST, 1);
 }
 
 
 void clean_up()
 {
-    remove();
+    quit();
 }
 
 
@@ -403,7 +508,7 @@ int id(string arg)
 int stat_me()
 {
     write(short()+"\n");
-    write("Name: "+cap_name+" ("+query_level()+")\n");
+    write("Name: "+cap_name+"\n");
     ::stat_me();
     if ( link )
 	link->stat_me();
@@ -429,16 +534,23 @@ void set_nickname(string arg) {
     add_id_no_plural(nickname);
 }
 
-void create()
+string query_nickname() {
+    return nickname;
+}
+
+private void create(string userid)
 {
-    auto_load = ({});
+    if ( !clonep() )
+	return;
+
+    if ( base_name(previous_object()) != USER_OB )
+	error("security violation: illegal attempt to change name\n");
+
     messages = ([]);
-    channel_list = ({ });
 
     monster::create();
-//    parser::create();
-//    path_create();
-    
+    bodystats::create();
+
     /*
     ** Both sets of flags can only be set by this_object() -- this
     ** restriction is imposed by using the secure_closure feature
@@ -453,7 +565,20 @@ void create()
 		  (: this_object() != this_body() ||
 		   ($2 && $1 == 97 && previous_object() != find_object("/bin/player/_inactive")) :) 
         	   );
+
     set_long( (: our_description :) );
+
+    cap_name = capitalize(userid);
+    name = userid;
+    unguarded(1, (: restore_object, USER_PATH(userid), 1 :));
+
+    if ( !describe )
+    {
+	describe = (cap_name +
+		    " is a boring player and hasn't described " +
+		    query_reflexive() + ".\n"
+		    );
+    }
 }
 
 
@@ -516,4 +641,3 @@ nomask void clear_failures()
 {
     return link->clear_failures();
 }
-

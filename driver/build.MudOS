@@ -9,13 +9,13 @@
 OBJDIR=obj
 
 # change this if you wish the driver binary to be named something else
-DRIVER_BIN=driver.v21.6b3.lima
+DRIVER_BIN=driver.v21.7a3
 
 # uncomment PROOF if using CenterLine's TestCenter to debug the driver.
 #PROOF=proof
 
 # Set INSTALL_DIR to the directory where you want to install the executables.
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="../etc"
 
 #Enable warnings from the compiler (gcc), if wanted.
 #WARN=-Wall
@@ -34,7 +34,7 @@ INSTALL_DIR="/usr/local/bin"
 #PROFIL="-pg -DPROFILING $(PROFILE_ON)"
  
 # Enable run time debugging
-DEBUG="-g"
+#DEBUG="-g"
 # With extra driver debug code
 #DEBUG="-g -DDEBUG" 
 # For DEC Alpha: to have optimization and debugging
@@ -218,8 +218,13 @@ else
     if test $? -eq 0; then
         CPP="cpp"
     else
-        echo "FATAL ERROR: Can't figure out how to run the C preprocessor"
-        exit
+        $CC -E -traditional-cpp comptest.c >/dev/null
+	if test $? -eq 0; then
+	    CPP="$CC -E -traditional-cpp"
+	else
+	    echo "FATAL ERROR: Can't figure out how to run the C preprocessor"
+            exit
+	fi
     fi
 fi
 

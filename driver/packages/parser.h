@@ -60,8 +60,7 @@ typedef struct {
 typedef struct {
     int type;
     char *string;
-    char *end_prev;
-    char *start_next;
+    char *start, *end;
 } word_t;
 
 /* Flags for parse_info structures.  parse_info information is cached inside
@@ -120,9 +119,12 @@ typedef struct verb_node_s {
  * The entry for a verb.  Links for the verb hash table, and a linked
  * list of rules.
  */
+#define VB_HAS_OBJ   1
+
 typedef struct verb_s {
     struct verb_s *next;
     char *name;
+    int flags;
     verb_node_t *node;
 } verb_t;
 

@@ -5,7 +5,8 @@
 **
 ** Daemon for handling system groups.
 **
-** 18-Dec-94. Created. Deathblade.
+** 941218, Deathblade: created.
+** 950813, Deathblade: removed method of specifying admins here
 */
 
 #include <mudlib.h>
@@ -15,21 +16,12 @@ static private mapping group_map;
 
 void create()
 {
-// It might be a good idea to leave rust, beek and deathblade here until
-// you really know your way around the lib, in case you run into any
-// problems.  But definitly replace admin with any people that you want
-// to be running the mud.
     group_map = ([
-		 "admin" : ({
-		     "admin",
-		     "rust",
-		     "beek",
-		     "deathblade",
-		 }),
-
-		 "moderators" : ({
-		 }),
-		 ]);
+    "admin" : ({ "beek", "deathblade","ohara","rust","zifnab",
+  }),
+    "moderators" : ({
+  }),
+  ]);
 }
 
 nomask int member_group(string name, string group)
@@ -48,7 +40,7 @@ nomask mixed get_group(string group)
     if ( !(res = group_map[group]) )
     {
 	if ( this_body() &&
-	    (res = (string)this_body()->query_perm("groups")) )
+	  (res = (string)this_body()->query_perm("groups")) )
 	{
 	    return res[group] ? res[group] : group;
 	}
@@ -66,13 +58,4 @@ nomask string * process_list(string * name_list)
 nomask mixed get_group_data()
 {
     return copy(group_map);
-}
-
-nomask int adminp(object o)
-{
-    if ( !objectp(o) )
-	return 0;
-
-    return member_array((string)o->query_real_name(),
-			group_map["admin"]) != -1;
 }

@@ -666,27 +666,32 @@ i_generate_node P1(parse_node_t *, expr) {
 	    break;
 	}
     case NODE_EFUN:
-	generate_expr_list(expr->r.expr);
-	end_pushes();
-	if (expr->v.number < ONEARG_MAX) {
-	    ins_byte(expr->v.number);
-	} else {
-	    /* max_arg == -1 must use F_EFUNV so that varargs expansion works*/
-	    if (expr->l.number < 4 && instrs[expr->v.number].max_arg != -1)
-		ins_byte(F_EFUN0 + expr->l.number);
-	    else {
-		ins_byte(F_EFUNV);
-		ins_byte(expr->l.number);
+	{
+	    int novalue_used = expr->v.number & NOVALUE_USED_FLAG;
+	    int f = expr->v.number & ~NOVALUE_USED_FLAG;
+	    
+	    generate_expr_list(expr->r.expr);
+	    end_pushes();
+	    if (f < ONEARG_MAX) {
+		ins_byte(f);
+	    } else {
+		/* max_arg == -1 must use F_EFUNV so that varargs expansion works*/
+		if (expr->l.number < 4 && instrs[f].max_arg != -1)
+		    ins_byte(F_EFUN0 + expr->l.number);
+		else {
+		    ins_byte(F_EFUNV);
+		    ins_byte(expr->l.number);
+		}
+		ins_byte(f - ONEARG_MAX);
 	    }
-	    ins_byte(expr->v.number - ONEARG_MAX);
+	    if (novalue_used) {
+		/* the value of a void efun was used.  Put in a zero. */
+		ins_byte(F_CONST0);
+	    }
+	    break;
+	default:
+	    fatal("Unknown node %i in i_generate_node.\n", expr->kind);
 	}
-	if (expr->type == TYPE_NOVALUE) {
-	    /* the value of a void efun was used.  Put in a zero. */
-	    ins_byte(F_CONST0);
-	}
-	break;
-    default:
-	fatal("Unknown node %i in i_generate_node.\n", expr->kind);
     }
 }
 

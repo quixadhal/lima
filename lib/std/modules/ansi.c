@@ -49,22 +49,27 @@ private void create() {
     "B_MAGENTA" : "\e[45m",
     "INITTERM" : "\e[H\e[2J",
     "ENDTERM" : "",
+    "SAVE" : "\e7",
+    "RESTORE" : "\e8",
+    "HOME" : "\e[H"
   ]);
-    null_translations = map(translations, (: "" :) );
+    null_translations = map(translations, function(){ return "";} );
 }
 
 mapping *query_translations() {
     return ({ translations, null_translations });
 }
 
-string ansi(string str) {
+varargs string ansi(string str, object forwho) {
     // Maintain a shared structure to save memory
     if (!translations) {
 	mapping *tmp = M_ANSI->query_translations();
 	translations = tmp[0];
 	null_translations = tmp[1];
     }
-    if (this_body()->query_shell_ob()->get_variable("ansi"))
+    if (!forwho)
+        forwho = this_body();
+    if (forwho && forwho->query_shell_ob()->get_variable("ansi"))
 	return terminal_colour(str, translations);
     else
 	return terminal_colour(str, null_translations);
@@ -73,5 +78,6 @@ string ansi(string str) {
 
 nomask int i_use_ansi()
 {
-  return this_body()->query_shell_ob()->get_variable("ansi") != 0;
+  return (this_body() &&
+	  this_body()->query_shell_ob()->get_variable("ansi") != 0);
 }

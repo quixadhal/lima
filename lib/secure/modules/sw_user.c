@@ -11,14 +11,13 @@
 #include <commands.h>
 
 string query_userid();
-string query_body_fname();
 object query_body();
 
 string query_userid();
 varargs void restore_me(string some_name);
 int matches_password(string str);
 
-void switch_body(mixed new_body);
+varargs void switch_body(string new_body_fname, int permanent);
 
 void register_failure(string addr);
 
@@ -53,10 +52,10 @@ private nomask int do_su(string old_userid, string new_userid)
     ** old body).
     */
     restore_me(new_userid, 1);
-    switch_body(0);
+    switch_body();
 
     /* alter privileges */
-    if ( GROUP_D->adminp(this_object()) )
+    if ( adminp(query_userid()) )
 	set_privilege(1);
     else
 	set_privilege(query_userid());
@@ -77,7 +76,7 @@ private nomask void confirm_valid_su(string old_userid,
 				     string new_userid,
 				     string arg)
 {
-    string pwd = USER_D->query_password(new_userid);
+    string pwd = USERLIST_D->query_password(new_userid);
 
     if ( crypt(arg, arg) != pwd )
     {
@@ -91,9 +90,9 @@ private nomask void confirm_valid_su(string old_userid,
 
 nomask void switch_user(string str)
 {
-    int is_admin = GROUP_D->adminp(this_object());
     string old_userid = query_userid();
     string new_userid = lower_case(str);
+    int is_admin = adminp(old_userid);
 
     if ( previous_object() != find_object(CMD_OB_SU) )
 	return;

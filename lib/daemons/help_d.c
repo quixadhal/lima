@@ -146,7 +146,10 @@ nomask string * find_topic(string name)
     result = topics[name];
     if ( !result )
 	return 0;
-    lvl = this_body()->query_level();
+
+    /* ### simulate the old levels */
+    lvl = adminp(this_user()) ? 5 : wizardp(this_user()) ? 1 : 0;
+
     return filter_array(result, (: $(lvl) >= restrict[explode($1, "/")[2]] :));
 }
 

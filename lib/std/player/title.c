@@ -14,11 +14,26 @@ private string invis_title;
 string in_room_desc();		/* in /std/player */
 object query_link();		/* in /std/player */
 string query_real_name();	/* in /std/player */
-
+string query_idle_string();     /* in /std/player */
+string base_in_room_desc();     /* in /std/player */
 
 string query_title()
 {
     return in_room_desc();
+}
+
+string query_truncated_title(int num_chars)
+{
+  string idle_string;
+  int i;
+  
+  idle_string = query_idle_string();
+  if(i=strlen(idle_string))
+    {
+      num_chars -= (i+1);
+      idle_string = " " + idle_string;
+    }
+  return truncate(base_in_room_desc(), num_chars) +  idle_string;
 }
 
 int set_title(string str)
@@ -36,5 +51,5 @@ int set_title(string str)
     else
 	title = replace_string(str,"$N", capitalize(query_real_name()));
 
-    query_link()->set("title",title);
+    query_link()->set_title(title);
 }

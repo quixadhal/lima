@@ -303,7 +303,7 @@ void create()
 
     cl_user_chan_name = (: explode($1, "_")[<1] :);
 
-    map_array(all_users()->query_body(), (: register_body :));
+    map_array(users()->query_body(), (: register_body :));
 
     restore_object(SAVE_FILE, 1);
     if ( saved_listeners )
@@ -609,8 +609,8 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     }
     else if ( arg == "/moderate" )
     {
-	if ( GROUP_D->adminp(this_user()) ||
-	    GROUP_D->member_group(this_user()->query_real_name(), "moderators") )
+	if ( adminp(this_user()) ||
+	    GROUP_D->member_group(this_user()->query_userid(), "moderators") )
 	{
 	    moderators[channel_name] = tb;
 	    if ( !requestors[channel_name] )

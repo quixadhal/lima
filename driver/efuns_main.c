@@ -1430,10 +1430,7 @@ f_map PROT((void))
 void
 f_master PROT((void))
 {
-    int err;
-    
-    err = assert_master_ob_loaded("master", "");
-    if (err != 1)
+    if (master_ob == (object_t *)-1)
 	push_number(0);
     else
 	push_object(master_ob);

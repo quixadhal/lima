@@ -39,7 +39,7 @@ static void add_define P3(char *, name, int, nargs, char *, exps)
 	if (nargs != p->nargs || strcmp(exps, p->exps)) {
 	    char buf[200 + NSIZE];
 
-	    sprintf(buf, "Warning: redefinition of #define %s\n", name);
+	    sprintf(buf, "redefinition of #define %s\n", name);
 	    yywarn(buf);
 
 	    p->exps = (char *)DREALLOC(p->exps, strlen(exps) + 1, TAG_COMPILER, "add_define: redef");

@@ -10,7 +10,6 @@ varargs mixed unguarded(mixed priv, function code);
 
 string query_userid();
 void save_me();
-varargs void restore_me(string some_name);
 
 #define FAILURE_LOG_FILE	"/log/LOGIN_FAIL"
 
@@ -41,8 +40,7 @@ nomask void clear_failures()
 #ifdef NEED_UNRESTRICTED_PLAYER_CMD
     if ( !check_privilege(query_userid()) )
 #endif
-//    if ( this_user() != this_object() )		/* ### for now */
-    if ( this_user()->query_link() != this_object() )	/* ### for now */
+    if ( this_user() != this_object() )
     {
 	error("* Security violation: you cannot clear this info\n");
     }
@@ -53,19 +51,19 @@ nomask void clear_failures()
 
 static nomask void report_login_failures()
 {
-    mixed * failures = query_failures();
     int count;
 
     if ( !sizeof(failures) )
 	return;
 
     count = sizeof(filter_array(failures, (: $1[0] > $(notify_time) :)));
-    if ( count )
-    {
-	/* ### hmm... this count is total, not since last login */
-	printf("You had %d failed login attempt(s) since your last login.\n",
-	       count);
-    }
+    if ( !count )
+	return;
+
+    /* ### hmm... this count is total, not since last login */
+    printf("You had %d failed login attempt(s) since your last login.\n",
+	   count);
 
     notify_time = time();
+    save_me();
 }

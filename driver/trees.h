@@ -116,7 +116,7 @@ typedef struct parse_node_block_s {
 					     (vn)->kind = NODE_TERNARY_OP_1;\
 					     INT_CREATE_TERNARY_OP(vn, op, t,\
 								   x, y, z);\
-					     (vn)->type = p;\
+					     (vn)->r.expr->type = p;\
 					     )
 #define CREATE_RETURN(vn, val) SAFE(\
 				    (vn) = new_node_no_line();\
@@ -251,5 +251,6 @@ parse_node_t *make_range_node PROT((int, parse_node_t *,
 					 parse_node_t *,
 					 parse_node_t *));
 parse_node_t *insert_pop_value PROT((parse_node_t *));
+parse_node_t *optimize_loop_test PROT((parse_node_t *));
 
 #endif

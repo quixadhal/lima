@@ -10,8 +10,12 @@
 
 void std_handler(string str);
 varargs void modal_simple(function input_func, int secure);
+varargs void modal_func(function input_func, mixed prompt_func, int secure);
 
-static nomask void write_i3chan_menu()
+#define PROMPT_I3CHAN	"(AdmTool:i3chan) [larmq?] > "
+
+
+private nomask void write_i3chan_menu()
 {
     write("Administration Tool: Intermud channel administration\n"
 	  "\n"
@@ -91,7 +95,7 @@ private nomask void remove_channel(string channel_name)
     IMUD_D->remove_channel(channel_name);
 }
 
-static nomask void receive_i3chan_input(string str)
+private nomask void receive_i3chan_input(string str)
 {
     string name;
 
@@ -119,4 +123,15 @@ static nomask void receive_i3chan_input(string str)
 	std_handler(str);
 	break;
     }
+}
+
+static nomask void begin_i3chan_menu()
+{
+    if ( !check_privilege(1) )
+    {
+	write("Sorry... admin only.\n");
+	return;
+    }
+    modal_func((: receive_i3chan_input :), PROMPT_I3CHAN);
+    write_i3chan_menu();
 }
