@@ -16,7 +16,7 @@ mapping messages =
     ({ "$N $vcatch $t square in the face with a quick jab.",
 	"$N $vconnect with a kick to $p1 midsection." }),
      "serious" :
-    ({ "$N $vunleashes a series of stunning blows to $p1 head!  $N1 $v1are hurt badly!",
+    ({ "$N $vunleash a series of stunning blows to $p1 head!  $N1 $v1are hurt badly!",
        "$N1 $v1are caught off guard, and $n $vtake advantage and pummel $t soundly." }),
      "fatal" : "$N $vdrive $t back with a series of punches and kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.",
     
@@ -72,7 +72,7 @@ mapping messages =
     "none" : "$N just barely $vnick $t with a swipe of $p $o.",
     "dam1" : "$N $vprick $t with a quick stab of $p $o.",
     "dam2" : "Blood flows from $p1 hand as $n $vsneak past $p1 guard.",
-    "dam3" : "$N1 $vare not quite fast enough; $n $o slices $t across the arm.",
+    "dam3" : "$N1 $v1are not quite fast enough; $p $o slices $t across the arm.",
     "dam4" : "$N $vcatch $t in the arm with a quick thrust.",
     "dam5" : "$N $vcut $t with a slice of $p $o.",
     "dam6" : "$N $vwound $t with a quick slash.",

@@ -34,6 +34,8 @@
 **  o If home directory does not exist, it defaults to "/".
 ** Tigran Jan 15, 1999
 **  o Added passive mode connections.
+** Loriel July 2001
+**  o Tidied up passive mode to close old passive pipes etc.
 */
 
 #include <socket.h>
@@ -48,7 +50,14 @@ inherit M_ACCESS;
 #define LTYPE_LIST 0
 #define LTYPE_NLST 1
 
+#define RESTRICT_PORTS
+#define MIN_PORT 4000
+#define MAX_PORT 4100
+#define MAX_TRIES 10
+
+private int lastport = MIN_PORT;
 private nosave int idlecall;
+private string iphost;
 private nosave mapping passives = ([]);
 private nosave mapping sessions = ([]);
 private nosave mapping dataports = ([]);
@@ -80,8 +89,9 @@ private mixed outfile=([]);
 private nosave string array anon_logins = ({"anonymous", "ftp"});
 #endif
 
-varargs
-private string find_flags(string incoming)
+int query_lastport() { return lastport; }
+
+varargs private string find_flags(string incoming)
 {
   string array parts;
   string array flags=({});
@@ -127,25 +137,23 @@ private void FTP_handle_idlers()
 {
   map_delete(sessions,0); /* Just make sure there's no stale stuff here */
   if(!sizeof(sessions))
-    {
-      return;
-    }
+    return;
   foreach(object socket, class ftp_session info in sessions)
+  {
+    if(info->dataPipe) /* Data connections are still active. */
     {
-      if(info->dataPipe) /* Data connections are still active. */
-	{
-	  info->idleTime = 0;
-	  continue;
-	}
-      info->idleTime += 60;
-      if(info->idleTime >= MAX_IDLE_TIME+60)
-	{
-	  FTPLOGF("%s idled out at %s.\n", capitalize(info->user), ctime(time()));
-	  socket->send(sprintf("421 Timeout. (%i seconds): closing control connection.\n",MAX_IDLE_TIME));
-	  map_delete(sessions,socket);
-	  destruct(socket);
-	}
+      info->idleTime = 0;
+      continue;
     }
+    info->idleTime += 60;
+    if(info->idleTime >= MAX_IDLE_TIME+60)
+    {
+      FTPLOGF("%s idled out at %s.\n", capitalize(info->user), ctime(time()));
+      socket->send(sprintf("421 Timeout. (%i seconds): closing control connection.\n",MAX_IDLE_TIME));
+      map_delete(sessions,socket);
+      destruct(socket);
+    }
+  }
   if(sizeof(keys(sessions)))
     idlecall=call_out( (:FTP_handle_idlers:), 60);
 }
@@ -195,8 +203,8 @@ private void FTP_read(object socket, string data)
 
   thisSession = sessions[socket];
 
-  /* Check to make sure that the time idle is not greater than the maximum
-   * idle time.  If it is remove the session and everything attached to it */ 
+/* Check to make sure that the time idle is not greater than the maximum
+ * idle time.  If it is remove the session and everything attached to it */ 
 /*   if(thisSession->idleTime>MAX_IDLE_TIME) { */
 
 /*     //    call_out((:destruct($(socket) ):),5); */
@@ -205,26 +213,28 @@ private void FTP_read(object socket, string data)
 
   thisSession->idleTime = 0;
   
-  if (!thisSession->command) thisSession->command="";
+  if (!thisSession->command)
+    thisSession->command="";
 
   data=replace_string(data,"\r","");
   thisSession->command+=data;
-  if ((i=strsrch(thisSession->command,"\n"))==-1) return;
+  if ((i=strsrch(thisSession->command,"\n"))==-1)
+    return;
   data=thisSession->command[0..i-1];
   thisSession->command=thisSession->command[i+1..];
 
   thisSession->command=trim_spaces(thisSession->command);
 
-  /* get the command and argument. */
+/* get the command and argument. */
   if (!sscanf(data, "%s %s", cmd, arg))
     {
       cmd = data;
     }
 
-  /* lower_case the command... */
+/* lower_case the command... */
   cmd = lower_case(cmd);
 
-  /* If we're not connected, these are valid commands... */
+/* If we're not connected, these are valid commands... */
   if (!thisSession->connected)
     {
       switch(cmd)
@@ -264,15 +274,15 @@ private void FTP_read(object socket, string data)
   return;
 }
 
-private void FTP_PASV_read(class ftp_session info,object socket,string text)
+private void FTP_PASV_read(class ftp_session info, object socket, string text)
 {
   info->dataPipe=socket;
-  /* I'm not sure I like this...but it shouldn't hurt anything resetting 
-   * the callback function */
+/* I'm not sure I like this...but it shouldn't hurt anything resetting 
+ * the callback function */
   info->dataPipe->set_write_callback((:FTP_write:));
 
-  /* We now know that the passive connection worked, so the listening socket
-   * can be destroyed */
+/* We now know that the passive connection worked, so the listening socket
+ * can be destroyed */
   destruct(passives[info->cmdPipe]);
 
   dataports[info->dataPipe] = info->cmdPipe;
@@ -302,6 +312,7 @@ private void create()
 {
   sock = new(SOCKET, SKT_STYLE_LISTEN, PORT_FTP, (: FTP_read :),
 	     (: FTP_close :));
+  resolve(__HOST__,(: iphost=$2 :) );
 }
 
 private void FTP_DATA_read(object socket, mixed text)
@@ -424,13 +435,27 @@ private void FTP_CMD_quit(class ftp_session info, string arg)
 {
   info->cmdPipe->send("221 Goodbye.\n");
   if(info->dataPipe)
-    {
-      destruct(info->dataPipe);
-    }
+    destruct(info->dataPipe);
+  if(member_array(info->cmdPipe, keys(passives))>-1)
+  {
+    destruct(passives[info->cmdPipe]);
+    map_delete(passives, info->cmdPipe);
+  }
   FTPLOGF("%s QUIT at %s.\n", capitalize(info->user), ctime(time()));
   map_delete(sessions, info->cmdPipe);
   destruct(info->cmdPipe);
 
+}
+
+int next_port()
+{
+#ifdef RESTRICT_PORTS
+  lastport ++;
+  if(lastport>MAX_PORT+1)
+    lastport = MIN_PORT+1;
+  return lastport - 1;
+#endif
+  return 0;
 }
 
 private void FTP_CMD_pasv(class ftp_session info, string arg)
@@ -439,37 +464,43 @@ private void FTP_CMD_pasv(class ftp_session info, string arg)
   int port_dec;
   int array port;
   int listen_socket;
+  int tries;
   if(arg)
-    {
-      info->cmdPipe->send("500 command not understood.\n");
-      return;
-    }
+  {
+    info->cmdPipe->send("500 command not understood.\n");
+    return;
+  }
   if(info->dataPipe)
-    {
-      destruct(info->dataPipe);
-    }
+  {
+    destruct(info->dataPipe);
+  }
   switch(info->binary)
-    {
+  {
     case 0:
-      listen_socket = unguarded(1,(:new(SOCKET, SKT_STYLE_LISTEN, 
-					 0,
-					 (: FTP_PASV_read, $(info) :),
-					 (: FTP_DATA_close :) ) :) );
+      while(!listen_socket && tries < MAX_TRIES)
+        listen_socket = unguarded(1,(:new(SOCKET, SKT_STYLE_LISTEN, 
+	            next_port(),
+              (: FTP_PASV_read, $(info) :),
+              (: FTP_DATA_close :) ) :) );
       break;
     case 1:
-      listen_socket = unguarded(1,(:new(SOCKET, SKT_STYLE_LISTEN_B, 
-					 0,
-					 (: FTP_PASV_read, $(info) :),
-					 (: FTP_DATA_close :) ):));
+      while(!listen_socket && tries < MAX_TRIES)
+        listen_socket = unguarded(1,(:new(SOCKET, SKT_STYLE_LISTEN_B, 
+	            next_port(),
+              (: FTP_PASV_read, $(info) :),
+              (: FTP_DATA_close :) ) :) );
       break;
     default:
       return;
-    }
+  }
+//tell_user("loriel", sprintf("passives %O\n", passives));
+  if(member_array(info->cmdPipe, keys(passives))>-1)
+    destruct(passives[info->cmdPipe]);
   passives[info->cmdPipe]=listen_socket;
   port_dec=listen_socket->local_port();
   port=({port_dec>>8,port_dec%256});
   info->cmdPipe->send(sprintf("227 Entering Passive mode. (%s,%i,%i)\n",
-			      replace_string(listen_socket->local_address(),".",","),
+			      replace_string(iphost,".",","),
 			      port[0],
 			      port[1]) );
 }
@@ -482,21 +513,21 @@ private void FTP_CMD_port(class ftp_session info, string arg)
 
   parts = explode(arg, ",");
   if(sizeof(parts)!=6)
-    {
-      info->cmdPipe->send("550 Failed command.\n");
-      destruct(info->dataPipe);
-      return;
-    }
+  {
+    info->cmdPipe->send("550 Failed command.\n");
+    destruct(info->dataPipe);
+    return;
+  }
   ip = implode(parts[0..3],".");
-  /* Make a 16 bit port # out of 2 8 bit values.  */
+/* Make a 16 bit port # out of 2 8 bit values.  */
   port = (to_int(parts[4]) << 8) + to_int(parts[5]);
   
+//tell_user("loriel", sprintf("info %O", info));
   if(info->dataPipe)
-    {
-      destruct(info->dataPipe);
-    }
+    destruct(info->dataPipe);
+
   switch(info->binary)
-    {
+  {
     case 0:
       info->dataPipe = unguarded(1,(:new(SOCKET, SKT_STYLE_CONNECT, 
 					 sprintf("%s %d", $(ip), $(port)),
@@ -511,12 +542,13 @@ private void FTP_CMD_port(class ftp_session info, string arg)
       break;
     default:
       return;
-    }
-  /* map the data port to the cmd port so we can find the cmd port when
-   * we're given the data port. */
+  }
+/* map the data port to the cmd port so we can find the cmd port when
+ * we're given the data port. */
   dataports[info->dataPipe] = info->cmdPipe;
   info->dataPipe->set_write_callback((:FTP_write:));
   info->cmdPipe->send("200 PORT command successful.\n");
+//tell_user("loriel", sprintf("info %O", info));
   return;
 }
 
@@ -995,3 +1027,11 @@ string FTP_CMD_retr_callback(object ob)
 
     return ret;
 }
+
+mapping query_passives() { return copy(passives); }
+
+mapping query_sessions() { return copy(sessions); }
+
+mapping query_dataports() { return copy(dataports); }
+
+string query_iphost() { return iphost; }

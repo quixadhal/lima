@@ -15,6 +15,7 @@
 */
 
 #include <more.h>
+#define NUM_LINES 999
 
 inherit M_INPUT;
 inherit M_ACCESS;
@@ -227,7 +228,7 @@ private nomask void do_more(mixed arg) {
                     break;
 		continue;
 	    }
-            contents = read_file(file_list[file_index]);
+            contents = read_file(file_list[file_index], 0, NUM_LINES);
             if ( !contents || !sizeof(lines = explode(contents, "\n")) )
             {
 		write("more: file \"" + file_list[file_index] +

@@ -18,14 +18,15 @@ void setup() {
     set_long("It is about 3 feet round, but otherwise fairly nondescript.");
     set_in_room_desc("A large stone lies off to the side of the room.");
     // Not using set_objects() here since we don't want to reset
-    set_max_capacity(MEDIUM);
+    add_relation("in", MEDIUM);
+    set_default_relation("in");
     sword = give_new_obj( this_object(), "sword_in_stone", 0 );
     set_unique(1);
 }
 
 mixed receive_object( object target, string relation ) {
-    if (target != sword) return 0;
-    set_hide_contents(0);
+    if (!target->id("sword")) return 0;
+    set_hide_contents(0, "in");
     return ::receive_object(target, relation);
 }
 

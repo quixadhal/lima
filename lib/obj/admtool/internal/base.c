@@ -158,51 +158,63 @@ void create() {
     }
 }
 
-private void handle_input(string str) {
-    string array parts = explode(str," ");
-    string arg;
+private void handle_input(string str)
+{
+  string array parts = ({});
+  string arg;
+  if(stringp(str))
+    parts = explode(str," ");
+  else
+    str="";
 
-    if(sizeof(parts)>1) {
-	arg=implode(parts[1..]," ");
-	str=parts[0];
-    }
+  if(sizeof(parts)>1)
+  {
+    arg=implode(parts[1..]," ");
+    str=parts[0];
+  }
 
-    if (str == "") {
-	if (parent)
+  if (str == "")
+  {
+    if (parent)
 	    str = "m";
-	else
+    else
 	    str = "q";
+  }
+
+  foreach (class command_info comm in commands)
+  {
+    if (str == comm->key)
+    {
+      if (comm->priv && !check_previous_privilege(comm->priv))
+      {
+        printf("Permission denied; need privilege '%O'.\n",
+            comm->priv);
+        return;
+      }
+      switch (sizeof(comm->args))
+      {
+        case 0:
+          if (arg)
+          {
+            write("** No argument required.\n");
+            return;
+          }
+
+          evaluate(comm->action);
+          return;
+        case 1:
+          input_one_arg(comm->args[0], comm->action, arg);
+          return;
+        case 2:
+          input_two_args(comm->args[0], comm->args[1], comm->action, arg);
+          return;
+        default:
+          error("No support for >2 args\n");
+      }
     }
+  }
 
-    foreach (class command_info comm in commands) {
-	if (str == comm->key) {
-	    if (comm->priv && !check_previous_privilege(comm->priv)) {
-		printf("Permission denied; need privilege '%O'.\n",
-		  comm->priv);
-		return;
-	    }
-	    switch (sizeof(comm->args)) {
-	    case 0:
-		if (arg) {
-		    write("** No argument required.\n");
-		    return;
-		}
-
-		evaluate(comm->action);
-		return;
-	    case 1:
-		input_one_arg(comm->args[0], comm->action, arg);
-		return;
-	    case 2:
-		input_two_args(comm->args[0], comm->args[1], comm->action, arg);
-		return;
-	    default:
-		error("No support for >2 args\n");
-	    }
-	}
-    }
-
-    write("** Unknown option (? for help)\n");
+  write("** Unknown option (? for help)\n");
 }
 
 protected nomask void do_modal_func() {

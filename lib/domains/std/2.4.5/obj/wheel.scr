@@ -1,0 +1,21 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object
+primary_id=wheel
+flag=attached
+long=A wheel.
+---
+void do_turn()
+{
+  object safe = present("safe", environment(this_body()));
+  if(safe && (safe->query_listener() == this_body()))
+  {
+    this_body()->simple_action(
+      "$N $vturn the wheel carefully, and there is a loud click."
+      );
+    safe->set_locked(0);
+  } else
+    this_body()->simple_action(
+      "$N $vturn the wheel randomly, but nothing happens."
+      );
+}

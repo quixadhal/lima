@@ -38,19 +38,21 @@ inherit M_DAEMON_DATA;
 
 protected mapping translations, null_translations, identity_translations;
 
-mapping array query_translations() {
-    return ({ translations, null_translations, identity_translations });
-}
-
 mapping defaults;
+
+mapping array query_translations()
+{
+  return ({ translations, null_translations, identity_translations });
+}
 
 mapping defaults() { return defaults; }
 
-void create() {
-    ::create();
+void create()
+{
+  ::create();
 
-    if (!translations)
-	translations = ([
+  if (!translations)
+    translations = ([
 	    "NONE" : "",
 	    "RESET" : RESET, "BOLD" : BOLD, "FLASH" : FLASH, "BLACK" : BLACK, "RED" : RED, 
 	    "GREEN" : GREEN, "ORANGE" : ORANGE, "YELLOW" : YELLOW, "BLUE" : BLUE,
@@ -62,8 +64,8 @@ void create() {
 	    "RESTORE" : RESTORE, "HOME" : HOME,
 	    ]);
 			
-    if (!defaults)
-	defaults = ([
+  if (!defaults)
+    defaults = ([
 	    "ROOM_EXIT" : "magenta",
 	    "TELL" : "bold",
 	    "CHANNEL" : "green",
@@ -75,37 +77,38 @@ void create() {
 	    "LS_HEADING" : "bold"
 	    ]);
 
-    translations = translations + defaults;
+  translations = translations + defaults;
 
 
-    null_translations = map(translations, function(){ return "";} );
-    identity_translations = map(translations, (: "%^" + $1 + "%^" :));
+  null_translations = map(translations, function(){ return "";} );
+  identity_translations = map(translations, (: "%^" + $1 + "%^" :));
 }
 
-void resync() {
+void resync()
+{
+  translations = translations + defaults;
 
-    translations = translations + defaults;
+  null_translations = map(translations, function(){ return "";} );
+  identity_translations = map(translations, (: "%^" + $1 + "%^" :));
 
-    null_translations = map(translations, function(){ return "";} );
-    identity_translations = map(translations, (: "%^" + $1 + "%^" :));
-
-    save_me();
-    users()->update_translations();
+  save_me();
+  users()->update_translations();
 }
 
 
-void add_default_colour(string key, string value) {
-    require_privilege("Mudlib:daemons");
+void add_default_colour(string key, string value)
+{
+  require_privilege("Mudlib:daemons");
     
-    defaults[upper_case(key)] = lower_case(value);
-    resync();
+  defaults[upper_case(key)] = lower_case(value);
+  resync();
 }
 
-void remove_default_colour(string key) {
-    require_privilege("Mudlib:daemons");
+void remove_default_colour(string key)
+{
+  require_privilege("Mudlib:daemons");
 
-    map_delete(translations, upper_case(key));
-    map_delete(defaults, upper_case(key));
-    resync();
+  map_delete(translations, upper_case(key));
+  map_delete(defaults, upper_case(key));
+  resync();
 }
-

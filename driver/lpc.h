@@ -42,7 +42,7 @@ typedef struct svalue_s {
 
 typedef struct ref_s {
     unsigned short ref;
-    struct ref_s *next;
+    struct ref_s *next, *prev;
     struct control_stack_s *csp;
     svalue_t *lvalue;
     svalue_t sv;

@@ -286,3 +286,186 @@
 <DT><em>Sun May 13 16:47:50 2001</em>: <strong>Loriel</strong>
 <DD> fixed part of the 'Pirate Quest', changing "player_left" to "person_left" in on_clone() in /domains/std/objects/ocean.c, and changing the matching in award_points() to if(evaluate(direction) == "the ocean") in the same file, and set the granting object to ocean instead of room.<p>
 </DL>
+<p><h1>Changes since Lima 1.0b3</h1></p>
+<DL>
+<DT><em>Wed May 30 12:59:16 2001</em>: <strong>Marroc</strong>
+<DD> added a lima_version() sefun to /secure/simul_efun/misc.c, returning a version string like "Lima 1.0b3".<p>
+<DT><em>Thu May 31 08:22:29 2001</em>: <strong>Loriel</strong>
+<DD> amended action_movement() in M_ACTIONS allow combination of wandering and set_actions to work better.<p>
+<DT><em>Fri Jun  1 10:56:40 2001</em>: <strong>Loriel</strong>
+<DD> fixed show_money() in M_ACCOUNTANT (/std/modules/accountant.c) which had lost the MONEY_D->currency_to_string() conversion (approx line 100). Thanks to Pteppic@Beyond the Flame for spotting it.<p>
+<DT><em>Sat Jun  9 13:13:34 2001</em>: <strong>Loriel</strong>
+<DD> added a filter for userp() to listeners in rcv_channel_who_req() in /daemons/imud/channel.c, which was failing as it tried to use listeners->query_body()->query_name() with /daemons/chanlog_d.c included in listeners.<p>
+<DT><em>Sat Jun  9 13:39:00 2001</em>: <strong>Loriel</strong>
+<DD> amended mudname to canon_mudname(mudname) in remote_listeners() in /daemons/imud_d/channel.c.<p>
+<DT><em>Thu Jun 14 13:56:15 2001</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/lima/workroom_ob.c, converting to use class for the argument in move_to() call. Thanks to Seven for reporting it.<p>
+<DT><em>Sun Jun 17 13:29:52 2001</em>: <strong>Loriel</strong>
+<DD> amended /cmds/wiz/clean.c so it excludes add_items (simple_obs).<p>
+<DT><em>Tue Jun 19 19:27:09 2001</em>: <strong>Marroc</strong>
+<DD> amended LPSCRIPT_D (/secure/daemons/lpscript_d.c), making handle_string() split long strings to multiple lines, thereby avoiding errors from the driver.<p>
+<DT><em>Wed Jun 20 09:04:34 2001</em>: <strong>Marroc</strong>
+<DD> commented the set_enter_msg() line of /domains/std/Car_Wash.c as it was causing trouble. Needs more attention.<p>
+<DT><em>Wed Jun 20 09:09:00 2001</em>: <strong>Marroc</strong>
+<DD> modified can_go_str() and do_go_str() of /cmds/verbs/go.c to enable moving around with vehicles.<p>
+<DT><em>Wed Jun 20 09:12:10 2001</em>: <strong>Marroc</strong>
+<DD> switched departure and arrival msgs of /domains/std/camaro.c as they seemed to be in the wrong order, and generated errors.<p>
+<DT><em>Wed Jun 20 10:10:54 2001</em>: <strong>Marroc</strong>
+<DD> modified complex_exit_do_verb_rule() of M_COMPLEX_EXIT (/std/modules/m_complex/exit.c) to allow for "WRD" rule, making "get out" etc possible.<p>
+<DT><em>Wed Jun 20 10:11:26 2001</em>: <strong>Marroc</strong>
+<DD> added "get WRD" rule to /cmds/verbs/get.c, so that you can "get out" of vehicles.<p>
+<DT><em>Wed Jun 20 11:42:40 2001</em>: <strong>Marroc</strong>
+<DD> updated M_SMARTMOVE (/std/modules/m_smartmove.c) to actually use data->who instead of this_body() for messaging; this_object() is also conceivable, but gives less options.<p>
+<DT><em>Wed Jun 20 11:44:00 2001</em>: <strong>Marroc</strong>
+<DD> updated M_EXIT (/std/modules/m_exit.c) to correctly set exit->who both for moving with vehicle and without.<p>
+<DT><em>Wed Jun 20 11:50:40 2001</em>: <strong>Marroc</strong>
+<DD> amended /domains/std/Example_Room1.c, changing can_go_east() to can_go_str(string dir) and checking that dir is "east".<p>
+<DT><em>Wed Jun 27 03:38:28 2001</em>: <strong>Loriel</strong>
+<DD> added the if(!weapon) check back into chance_to_hit() in /std/adversary/formula/simple.c.<p>
+<DT><em>Mon Jul  2 03:27:24 2001</em>: <strong>Smack</strong>
+<DD> changed /std/body/title.c to use query_name() instead of query_userid() to better reflect chosen names.. could represent a security hole on muds that care<p>
+<DT><em>Mon Jul  2 14:24:52 2001</em>: <strong>Loriel</strong>
+<DD> amended FTP_D (/secure/daemons/ftp_d.c) adding functions query_passives(), query_sessions() and query_dataports(), and amending FTP_CMD_pasv() to close previous passive pipe (if any) and amending FTP_CMD_quit() to close passive pipe (if any) and remove the entry from the passives mapping.<p>
+<DT><em>Tue Jul 17 07:54:43 2001</em>: <strong>Marroc</strong>
+<DD> amended can_go_str() in /domains/std/Example_Room1.c, having it call ::can_go_str() instead of just returning 1 so as to ensure proper checks are performed.<p>
+<DT><em>Sun Jul 29 21:15:23 2001</em>: <strong>Loriel</strong>
+<DD> amended FTP_D (/secure/daemons/ftp_d.c) to restrict the range of ports used in passive mode - currently set to 4000 - 4100, but configurable as MIN_PORT and MAX_PORT.<p>
+<DT><em>Mon Sep  3 22:50:07 2001</em>: <strong>Loriel</strong>
+<DD> fixed chance_to_hit() in /std/adversary/formula/stats.c by changing the check from if(!weapon) to if(!weapon || weapon == this_object())<p>
+<DT><em>Sun Sep 23 02:40:29 2001</em>: <strong>Loriel</strong>
+<DD> applied Kesac's proposed fixes to close a loophole which allows players to read unrestricted files into the editor (eg when mailing) by using "1r <filename>". Files amended : /trans/obj/ed_session.c and /trans/obj/edit_ob.c.<p>
+<DT><em>Sun Nov 18 21:26:06 2001</em>: <strong>Loriel</strong>
+<DD> amended /include/config to define ANON_CAN_PUT, so non-wizards have limited ablility to upload - hence can put contributions into /open etc.<p>
+<DT><em>Wed Dec 19 05:15:40 2001</em>: <strong>Loriel</strong>
+<DD> amended /include/driver/runtime.h, changing the define of BASE_CONFIG_INT from (BASE_CONFIG_STR + 14) to (BASE_CONFIG_STR + 15). Thanks to Dunedain for spotting it.<p>
+<DT><em>Wed Dec 19 05:33:12 2001</em>: <strong>Dunedain</strong>
+<DD> added a check in /cmds/player/random2.c to ensure that no mappings exceeded __MAX_MAPPING_SIZE__.  It should no longer error on first update.<p>
+<DT><em>Fri Jan  4 22:46:31 2002</em>: <strong>Loriel</strong>
+<DD> amended inv_list() in /secure/simul_efun/objcalls.c to filter out null objects instead of erroring.<p>
+<DT><em>Thu Feb 14 09:19:22 2002</em>: <strong>Loriel</strong>
+<DD> amended clean_up() in OBJ (/std/object.c) to use children() to check whether the file is inherited (and should not be cleaned up yet) instead of the 'instances' parameter passed, which appears to be inaccurate.<p>
+<DT><em>Sun Feb 17 16:57:38 2002</em>: <strong>Loriel</strong>
+<DD> amended show_objects() in /std/rooms/roomdesc.c to correctly show players "(outside the...)" description in appropriate cases.<p>
+<DT><em>Thu Feb 21 12:35:50 2002</em>: <strong>Loriel</strong>
+<DD> updated the greeter in /domains/std/ to reflect current info for where to get the lib (ie 'help release') and where to report MudOS bugs.<p>
+<DT><em>Thu Feb 28 11:51:04 2002</em>: <strong>Marroc</strong>
+<DD> fixed problem in parse_arg() of CMD_D (/secure/daemons/cmd_d.c) causing it not to parse OBFILE arguments correctly if they indirectly refer to LPSCRIPT objects (ie, "update here" would fail in an LPSCRIPT room). It seems that base_name() for an LPSCRIPT object returns the full filename, including ".scr".<p>
+<DT><em>Thu Feb 28 12:02:27 2002</em>: <strong>Loriel</strong>
+<DD> added set_combat_message() to M_DAMAGE_SOURCE (/std/modules/m_damage_source.c) to allow the setting of a single combat message, replacing the existing one(s).<p>
+<DT><em>Sun Mar  3 11:59:44 2002</em>: <strong>Marroc</strong>
+<DD> added TaskTool, a useful tool for keeping track of development tasks etc, and allows you to mark them as completed. It's a tree structure, so you can add sub-tasks for every task, and completing a task is prohibited until all sub-tasks are completed. Installed TASK_D (/daemons/task_d.h), /obj/tasktool/* and /cmds/wiz/tasktool.c. Modified /include/daemons.h, /include/commands.h and /include/mudlib.h. Try it out :)<p>
+<DT><em>Wed Mar  6 05:48:37 2002</em>: <strong>Loriel</strong>
+<DD> fixed help on /secure/simul_efun/misc::is_normal_direction(), which had a typo in the FUNCTION token and for which the help comments appear to have been misposted from the call_trace function.<p>
+<DT><em>Sat Mar 16 02:53:31 2002</em>: <strong>Loriel</strong>
+<DD> fixed wrong tokens in the combat_sword dam3 message in MESSAGES_D (/daemons/messages_d.c).<p>
+<DT><em>Sat Mar 16 18:27:51 2002</em>: <strong>Loriel</strong>
+<DD> amended /cmds/player/tell.c to use "$N " + arg for intermud tell/emotes, as suggested by Andrew.<p>
+<DT><em>Mon Mar 18 15:35:15 2002</em>: <strong>Loriel</strong>
+<DD> amended /secure/user/login.c to use the lima_version() sefun in the message in login_handle_logon().<p>
+<DT><em>Sun Apr  7 13:23:37 2002</em>: <strong>Loriel</strong>
+<DD> amended message for "stand" method in FURNITURE (/std/furniture.c) to $vstand (from $vstands). Thanks to Bunny for spotting it.<p>
+<DT><em>Fri Apr 19 14:48:03 2002</em>: <strong>Loriel</strong>
+<DD> added missing support for attack_speed into /std/adversary/formula/stats.c.<p>
+<DT><em>Sun May  5 23:54:50 2002</em>: <strong>Loriel</strong>
+<DD> amended /trans/cmds/ed.c, restricting the size of files to be edited, to stop over-ambitious editors from crashing the mud.<p>
+<DT><em>Mon May  6 00:41:11 2002</em>: <strong>Loriel</strong>
+<DD> amended MORE_OB (/trans/obj/more_ob.c) to handle "large" files, by adding a "number of lines" parameter to read_file().<p>
+<DT><em>Tue May  7 10:47:17 2002</em>: <strong>Loriel</strong>
+<DD> changed /std/adversary/armor/complex_slots.c, adding a reset_slots() function to set bodyslots to the default_slots mapping, simplifying the adding of new body slots to existing players.<p>
+<DT><em>Fri May 17 11:59:22 2002</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/Car_Wash.c so the set_enter_msg() is on the right exit (west), and the room now loads.<p>
+<DT><em>Mon May 20 04:20:43 2002</em>: <strong>Loriel</strong>
+<DD> added some usage help to the colours command (/cmds/player/colours.c)<p>
+<DT><em>Mon Jun  3 03:44:54 2002</em>: <strong>Loriel</strong>
+<DD> amended 'look' to use exit descriptions in M_EXIT for 'look <direction>'<p>
+<DT><em>Wed Jun  5 14:12:18 2002</em>: <strong>Loriel</strong>
+<DD> fixed query_exit_description() in M_EXIT (/std/modules/m_exit.c) to handle invalid directions without erroring.<p>
+<DT><em>Sat Jun 15 11:21:53 2002</em>: <strong>Loriel</strong>
+<DD> fixed main() in /WWW/cgi/who.c to strip the leading "=" to find individual players, instead of returning "No such player".<p>
+<DT><em>Thu Jun 27 01:18:47 2002</em>: <strong>Loriel</strong>
+<DD> amended move() in /std/object/move.c to use default relation of dest where none is specified (otherwise give_new_obj() will break).<p>
+<DT><em>Thu Jun 27 01:21:14 2002</em>: <strong>Loriel</strong>
+<DD> updated /domains/std/stone.c to the relation-based container system, adding the relation "in", making it the default relation, and adding it to set_hide_contents() in receive_object(). Additionally changed the condition in receive_object() to "if(target->id("sword"))".<p>
+<DT><em>Sun Jun 30 14:08:19 2002</em>: <strong>Loriel</strong>
+<DD> fixed the typo 'loccation' in /help/wizard/bin/start.<p>
+<DT><em>Sun Aug 18 18:41:46 2002</em>: <strong>Loriel</strong>
+<DD> added a file size check to /trans/cmds/grep.c, similar to /trans/cmds/ed.c, and moved the actual value to /include/config.h - MAXFILESIZE, currently set to 1000000.<p>
+<DT><em>Fri Aug 23 03:29:58 2002</em>: <strong>Loriel</strong>
+<DD> changed /obj/admtool/daemons/body.c::add_limb() to check sizeof(BODY_D->get_body()) instead of checking for 0.<p>
+<DT><em>Sat Aug 24 17:01:26 2002</em>: <strong>Loriel</strong>
+<DD> fixed problems in /domains/std/2.4.5/giant_conf.scr arising from non-existent attributes (armor_class and proper_name) and from the switching of weapon and sword.<p>
+<DT><em>Sat Aug 24 20:43:36 2002</em>: <strong>Loriel</strong>
+<DD> added relations and default_relation to lpscript_attributes() in CONTAINER (/std/container.c).<p>
+<DT><em>Sat Aug 24 20:51:30 2002</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/2.4.5/sea_bottom, adding relations and default_relation to the octopus, and correcting the setting of objects in it, so it clones 1 chest containing random(500) gold, rather than random(500) chests (empty).<p>
+<DT><em>Sat Aug 24 20:51:58 2002</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/2.4.5/obj/chest, adding relations and default_relation and capacity.<p>
+<DT><em>Sat Aug 24 22:07:29 2002</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/2.4.5/forest2.scr, which used "money=500" instead of "objects=/std/money(1,500,"gold"), and also changed proper_name to primary_id.<p>
+<DT><em>Sun Aug 25 00:13:33 2002</em>: <strong>Loriel</strong>
+<DD> changed this_body() to this_object() within the 'response' section of handle_block() in LPSCRIPT_D (/daemons/secure/lpscript_d.c), namely the part handling line[0] == "!" around line 500.<p>
+<DT><em>Sun Aug 25 00:17:57 2002</em>: <strong>Loriel</strong>
+<DD> made various fixes to the beggar in /domains/std/2.4.5/yard, including inheriting M_ACTIONS by setting is=monster,actor, moving the "periodic" section from the room to the beggar, making those actions consistent (ie !says blah etc), and removing the query_money check in the trigger as it's no longer valid, and the money system doesn't easily support the intention of checking how much he has.<p>
+<DT><em>Sun Aug 25 01:09:24 2002</em>: <strong>Loriel</strong>
+<DD> added a simple rope into /domains/std/2.4.5/big_tree - in place of the missing /domains/std/2.4.5/obj/rope (which would ideally handle tie and untie, if those verbs existed).<p>
+<DT><em>Sun Aug 25 03:24:46 2002</em>: <strong>Loriel</strong>
+<DD> changed /domains/std/2.4.5/shop to use the standard M_VENDOR shop system, instead of the old (non-functional) add_actions, and also removed surplus related (non-functional) code from /domains/std/2.4.5/store and /domains/std/2.4.5/storage.<p>
+<DT><em>Mon Aug 26 00:26:59 2002</em>: <strong>Loriel</strong>
+<DD> added support in LPSCRIPT_D (/secure/daemons/lpscript_d.c) for the following : "hidden_door", "key", "block" (M_BLOCKEXITS), "outdoor", "aggressive" (AGGRESSIVE_MONSTER), "wielded" and "worn".<p>
+<DT><em>Mon Aug 26 00:27:24 2002</em>: <strong>Loriel</strong>
+<DD> added LPSCRIPT_WIELD and LPSCRIPT_WORN to /include/lpscript.h.<p>
+<DT><em>Mon Aug 26 00:27:48 2002</em>: <strong>Loriel</strong>
+<DD> added lpscript support to KEY (/std/key.c) for "keytype".<p>
+<DT><em>Mon Aug 26 00:28:18 2002</em>: <strong>Loriel</strong>
+<DD> added into /std/adversary/armor/armor_base.c lpscript support for "worn".<p>
+<DT><em>Mon Aug 26 00:28:40 2002</em>: <strong>Loriel</strong>
+<DD> added into /std/adversary/wield/wield_base.c lpscript support for "wielded".<p>
+<DT><em>Mon Aug 26 00:29:10 2002</em>: <strong>Loriel</strong>
+<DD> added support for "aggressive" to M_AGGRESSIVE (/std/modules/m_aggressive.c).<p>
+<DT><em>Mon Aug 26 00:30:55 2002</em>: <strong>Loriel</strong>
+<DD> added lpscript support for "block", "unblock" and "block_action" to M_BLOCKEXITS (/std/modules/m_blockexits.c).<p>
+<DT><em>Mon Aug 26 00:31:31 2002</em>: <strong>Loriel</strong>
+<DD> fixed "weight" and "mass" lpscript support for the "size" option in OBJECT (/std/object.c).<p>
+<DT><em>Mon Aug 26 00:32:19 2002</em>: <strong>Loriel</strong>
+<DD> fixed the following files in the /domains/std/2.4.5 directory : bank, bankroom, fortress, giant_lair, orc_treasure, orc_vall, plane9, obj/stethoscope, quest_room, mine/tunnel9, south/sforst39, south/sislnd10, south/sislnd15, south/sshore7, south/sshore9, south/sshore24, south/sshore25, south/sshore26, south/sshore27, south/sshore28, south/sshore29, south/sshore30. There are about 6 left with bugs to remove, and many more where the functionality is poor.<p>
+<DT><em>Mon Aug 26 22:35:06 2002</em>: <strong>Loriel</strong>
+<DD> extended handle_action() in LPSCRIPT_D (/secure/daemons/lpscript_d.c) to use this_object() for $o in messaging.<p>
+<DT><em>Mon Aug 26 22:37:47 2002</em>: <strong>Loriel</strong>
+<DD> added the verbs tie and untie, and extended the verb listen to cover 'listen to obj with obj' - directory /cmds/verbs/.<p>
+<DT><em>Mon Aug 26 22:39:08 2002</em>: <strong>Loriel</strong>
+<DD> added picture.scr to the directory /domains/lpscript/, and fixed the following files there : camera.scr, large_oak_door.scr and wizroom.scr.<p>
+<DT><em>Mon Aug 26 22:40:52 2002</em>: <strong>Loriel</strong>
+<DD> fixed stethoscope.scr in the directory /domains/std/2.4.5/obj/ and added the following files to that directory - safe.scr, wheel.scr, rope.scr and ring.scr.<p>
+<DT><em>Mon Aug 26 22:42:25 2002</em>: <strong>Loriel</strong>
+<DD> fixed the following files in /domains/std/2.4.5/mine/ - tunnel3.scr, tunnel5.scr, tunnel9.scr, tunnel12.scr, tunnel16.scr, tunnel19.scr and tunnel29.scr.<p>
+<DT><em>Mon Aug 26 23:39:26 2002</em>: <strong>Loriel</strong>
+<DD> added the file /domains/std/2.4.5/obj/lever.scr and amended the following files : /domains/std/2.4.5/well.scr, /domains/std/2.4.5/sub/door_trap.scr and /domains/std/2.4.5/sub/after_door.scr.<p>
+<DT><em>Tue Aug 27 22:55:10 2002</em>: <strong>Loriel</strong>
+<DD> amended compile_object() in /secure/master.c to add the .scr suffix to lpscript files where appropriate if the name is quoted without it.<p>
+<DT><em>Wed Aug 28 13:12:37 2002</em>: <strong>Loriel</strong>
+<DD> add support in LPSCRIPT_D (/secure/daemons/lpscript_d.c) for drinkable (M_DRINKABLE) and regex (M_REGEX) and amended handle_wield() and handle_worn() to allow random choice using one_object().<p>
+<DT><em>Wed Aug 28 13:13:35 2002</em>: <strong>Loriel</strong>
+<DD> added lpscript support to BOOK (/std/book.c).<p>
+<DT><em>Wed Aug 28 13:16:56 2002</em>: <strong>Loriel</strong>
+<DD> amended the following files in /domains/std/2.4.5/ : inn.scr, pub2.scr and obj/leo.scr, and added the following : npc/innkeeper, npc/go_player, obj/beer, obj/special, obj/firebreather, obj/potion, obj/go_board, obj/go_book, obj/Rule1, obj/Rule2, obj/Rule3, obj/Rule4 and obj/Rule5.<p>
+<DT><em>Thu Aug 29 03:52:21 2002</em>: <strong>Loriel</strong>
+<DD> fixed a couple of problems in main() in /WWW/cgi/mudinfo.c, where leading '=' was not being stripped from pattern, and trailing $ was not being added for 'exact match' where mud is selected from a list of part-matching names.<p>
+<DT><em>Thu Aug 29 17:43:26 2002</em>: <strong>Loriel</strong>
+<DD> fixed a problem in /WWW/cgi/autodoc.c::main() where leading "=" was not being stripped before parsing the arg, and added a function html() to convert \n to <br> for better display.<p>
+<DT><em>Fri Aug 30 01:05:13 2002</em>: <strong>Loriel</strong>
+<DD> amended main() in /WWW/cgi/who.c to handle mixed data, using 'name' element from mapping, to strip leading '=' where appropriate, and strip colour tokens from titles. Also amended /WWW/fingeruser.html to use post instead of get.<p>
+<DT><em>Sat Aug 31 23:24:42 2002</em>: <strong>Loriel</strong>
+<DD> added combat_messages to lpscript_attributes() in M_DAMAGE_SOURCE (/std/modules/m_damage_source.c).<p>
+<DT><em>Sun Sep  1 21:14:44 2002</em>: <strong>Loriel</strong>
+<DD> amended query_name() in LIVING (/std/living.c) to return query_primary_id() if name has not been set.<p>
+<DT><em>Sun Sep 22 14:52:38 2002</em>: <strong>Loriel</strong>
+<DD> removed a duplicate "M_" prefix from module_summary_line() in /WWW/cgi/autodoc.c.<p>
+<DT><em>Tue Sep 24 03:59:11 2002</em>: <strong>Loriel</strong>
+<DD> extended /obj/admtool/daemons/i3chan.c to handle allowing/disallowing muds to owned channels, and also to set the type of owned channel.<p>
+<DT><em>Fri Oct  4 13:29:49 2002</em>: <strong>Loriel</strong>
+<DD> fixed a bug in SOCKET (/obj/secure/socket.c) which generated errors when handling large files (eg jpgs) : 'write_queue = ({ evaluate(write_func, this_object()) });' should be 'evaluate(write_func, this_object());' in write_callback().<p>
+<DT><em>Mon Nov 11 09:27:16 2002</em>: <strong>Loriel</strong>
+<DD> amended /cmds/player/semote.c to support "LIV LIV" cases, adding file semote2.c to return appropriate names for second argument.<p>
+<DT><em>Sun Dec  1 10:23:16 2002</em>: <strong>Loriel</strong>
+<DD> amended /cmds/wiz/people.c to better handle the "h" option.<p>
+</DL>

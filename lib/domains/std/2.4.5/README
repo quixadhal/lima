@@ -1,0 +1,60 @@
+lpmud rooms and lpscript
+========================
+
+For a number of years, releases of the Lima mudlib have included a fairly
+complete set of rooms (with included objects) from lpmud 2.4.5.
+
+These rooms were "mostly" converted to lpscript, with a few bits of Lima-
+compatible LPC as required.
+
+However, that left a significant number of unconverted rooms, together with
+cases where converted rooms didn't work properly for various reasons.
+
+I've worked through these rooms, completing the conversion to Lima-compatible
+code - largely lpscript, but with some LPC where the lpscript conversion
+wasn't quick and easy to achieve.
+
+The area should now work with a minimum of errors, subject to a number of
+reservations:
+
+1) Lima has numerous configuration options, and some of these may be
+incompatible with this area. 
+
+2) Some Lima systems are incompatible with the methods used in lpmud - for
+example Lima uses virtual news and mail, instead of boards and post offices.
+If you wish to use lpmud style systems, you will have to start converting
+Lima's systems.
+
+3) I have made no attempt to balance combat settings - eg health, weapon class
+- and levels have been ignored, as they are unsupported in some combat
+configurations.
+
+4) lpmud used a DnD-like method of setting ac in the npc. Lima sets it in the
+armour only - so if you want ac to be effective, you'll have to add armor to
+the npcs (or change the combat system).
+
+5) The lpmud style of defining npcs and items within the room files is fine
+for "one-off" cases, but better programming style would be to use inheritables
+to a greater degree, and to clone similar npcs from a central file to multiple
+rooms.
+
+6) Room descriptions have generally been left unchanged - so they are rather
+brief and add_items are very rarely used.
+
+7) Incorporation of the quests in this area into the Lima quest system is left
+as an exercise for the reader.
+
+Finally:
+Please do NOT use this area as your mud - it is provided as an example of the
+use of lpscript, for you to study and improve on it.
+
+
+Loriel
+August 2002
+
+NB
+Further errors which are reported will probably be fixed.
+
+However, incompatibilities are unlikely to be solved, as the solution lies in
+your hands by choosing suitable options and changing whatever needs to be
+changed.

@@ -1,0 +1,14 @@
+----------------------------------------------------------------------------
+Lima Mud (MudOS v22.2b13) starting up on Cygwin-32 - Sat Jan  4 06:46:38 2003
+
+
+Connected to address server on localhost port 9990
+
+Loading preloaded files ...
+]ERROR:
+  The I3 daemon will not load until you set a proper ADMIN_EMAIL
+  value in /include/config.h
+Initializations complete.
+
+Accepting connections on port 7878.
+Socket passed to fd 6 ignored (support is disabled).

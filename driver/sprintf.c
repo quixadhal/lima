@@ -132,8 +132,8 @@ typedef unsigned int format_info;
 					 * recover */
 
 #define ADD_CHAR(x) {\
-  outbuf_addchar(&(sprintf_state->obuff), x);\
   if (sprintf_state->obuff.real_size == USHRT_MAX) ERROR(ERR_BUFF_OVERFLOW); \
+  outbuf_addchar(&(sprintf_state->obuff), x);\
 }
 
 #define GET_NEXT_ARG {\
@@ -512,7 +512,7 @@ static void add_pad P2(pad_info_t *, pad, int, len) {
     char *p;
     int padlen;
     
-    if (outbuf_extend(&(sprintf_state->obuff), len) != len)
+    if (outbuf_extend(&(sprintf_state->obuff), len) < len)
 	ERROR(ERR_BUFF_OVERFLOW);
     p = sprintf_state->obuff.buffer + sprintf_state->obuff.real_size;
     sprintf_state->obuff.real_size += len;
@@ -539,7 +539,7 @@ static void add_pad P2(pad_info_t *, pad, int, len) {
 }
 
 INLINE_STATIC void add_nstr P2(char *, str, int, len) {
-    if (outbuf_extend(&(sprintf_state->obuff), len) != len)
+    if (outbuf_extend(&(sprintf_state->obuff), len) < len)
 	ERROR(ERR_BUFF_OVERFLOW);
     memcpy(sprintf_state->obuff.buffer + sprintf_state->obuff.real_size, str, len);
     sprintf_state->obuff.real_size += len;
@@ -1137,7 +1137,10 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 		    }
 		    if (pres) {
 			cheat[i++] = '.';
-			sprintf(cheat + i, "%d", pres);
+			if (pres >= sizeof(temp))
+			    sprintf(cheat + i, "%d", sizeof(temp) - 1);
+			else
+			    sprintf(cheat + i, "%d", pres);
 			i += strlen(cheat + i);
 		    }
 		    switch (finfo & INFO_T) {

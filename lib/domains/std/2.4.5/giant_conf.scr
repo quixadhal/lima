@@ -9,52 +9,53 @@ long=
     organized by the giants.
 end
 objects=
-    frost giant=
-      is=monster
-      primary_adj=frost
-      primary_id=giant
-      weapon_class=20
-      armor_class=2
-      objects=
-        weapon=
-          is=sword,valuable
-          primary_id=sword of frost
-          proper_name=sword of frost
-          weapon_class=20
-          weight=3
-          value=2000
-        end
-    end
-    stone giant=
-        is=monster
-        primary_adj=stone
-        primary_id=giant
+  frost giant=
+    is=monster
+    primary_adj=frost
+    primary_id=giant
+    in_room_desc=A huge man-like beast, covered in ice.
+    weapon_class=20
+#      armor_class=2
+    objects=
+      sword=
+        is=weapon,valuable
+        primary_id=sword of frost
+#        proper_name=sword of frost
         weapon_class=20
-        armor_class=2
-        objects=
-          weapon=
-            is=sword,valuable
-            primary_adj=stone cutter
-            primary_id=sword
-            weapon_class=20
-            weight=3
-            value=2000
-          end
-    end
-    fire giant=
-        is=monster
-        primary_adj=fire
-        primary_id=giant
+        weight=3
+        value=2000
+      end
+  end
+  stone giant=
+    is=monster
+    primary_adj=stone
+    primary_id=giant
+    weapon_class=20
+#    armor_class=2
+    objects=
+      sword=
+        is=weapon,valuable
+        primary_adj=stone cutter
+        primary_id=sword
         weapon_class=20
-        armor_class=2
-        objects=
-          weapon=
-            is=sword,valuable
-            primary_id=sword of fire
-            proper_name=sword of fire
-            weapon_class=20
-            weight=3
-            value=2000
-          end
-    end
+        weight=3
+        value=2000
+      end
+  end
+  fire giant=
+    is=monster
+    primary_adj=fire
+    primary_id=giant
+    weapon_class=20
+#    armor_class=2
+    objects=
+      sword=
+        is=weapon,valuable
+        primary_id=sword of fire
+#        proper_name=sword of fire
+        weapon_class=20
+        weight=3
+        value=2000
+      end
+  end
 end

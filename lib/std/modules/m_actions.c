@@ -169,7 +169,9 @@ void action_movement()
   env = environment();
   env->add_hook("object_arrived", arrival_fn );
   env->add_hook("object_left", departure_fn );
-
+  if(find_call_out("actions")<0)
+    if(query_listeners())
+      call_out("actions", delay_time);    
 }
 
 void start_actions()

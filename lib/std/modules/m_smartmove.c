@@ -71,6 +71,11 @@ private nomask int move_me_there(class move_data data)
     if ( !data->exit_dir ) {
 	data->exit_dir= "somewhere";
     }
+    /* Also ensure that there is a valid object being moved */
+    if ( !data->who ) {
+	data->who = this_body();
+    }
+
     env = environment();
 
     /* Exit Messages */
@@ -83,9 +88,9 @@ private nomask int move_me_there(class move_data data)
 
     /* Display the message */
     if(data->source)
-	tell_from_inside(last_loc,action(({this_body()}),txt,data->source)[1]);
+	tell_from_inside(last_loc,action(({data->who}),txt,data->source)[1]);
     else
-	tell_from_inside(last_loc,action(({this_body()}),txt,data->exit_dir)[1]);
+	tell_from_inside(last_loc,action(({data->who}),txt,data->exit_dir)[1]);
 
     /* Entrance messages */
     txt = data->enter_messages;

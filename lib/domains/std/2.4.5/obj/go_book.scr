@@ -1,0 +1,9 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=book,gettable
+primary_id=book
+primary_adj=rule
+title=go for beginners
+in_room_desc=A thin book
+weight=1
+pages=Rule1,Rule2, Rule3, Rule4, Rule5

@@ -115,7 +115,7 @@ f_localtime PROT((void))
     vec->item[LT_ZONE].subtype = STRING_MALLOC;
     vec->item[LT_ISDST].type = T_NUMBER;
 #if defined(BSD42) || defined(apollo) || defined(_AUX_SOURCE) \
-	|| defined(OLD_ULTRIX)
+	|| defined(OLD_ULTRIX) || defined(__CYGWIN__)
     /* 4.2 BSD doesn't seem to provide any way to get these last three values */
     vec->item[LT_GMTOFF].u.number = 0;
     vec->item[LT_ZONE].type = T_NUMBER;

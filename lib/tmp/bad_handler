@@ -1,0 +1,9 @@
+Error in input_func(-1):
+	input_func: (: handle_input :)
+	prompt: "(AdmTool:user) [nwdpPmq?] > "
+Error in input_func(-1):
+	input_func: (: handle_input :)
+	prompt: "(AdmTool:priv 1) [dsumq?] > "
+Error in input_func(-1):
+	input_func: (: handle_input :)
+	prompt: "(AdmTool:main) [di1q?] > "

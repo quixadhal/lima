@@ -1,0 +1,167 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=monster,actor
+id=innkeeper
+in_room_desc=The innkeeper
+variables=cm,mm,rmm, last_eater
+---
+#define FOODS 2
+
+#define CURRENCY_TYPE "gold"
+
+#define Speak(s)\
+ do_game_command("say "+s+"\n")
+
+void mudlib_setup()
+{
+  ::mudlib_setup();
+  _cm=FOODS*4;
+  _mm=FOODS*2;
+  _rmm=FOODS;
+}
+
+int query_vendor() { return 1; }
+
+void query_items()
+{
+  write("\n");
+  if(!(_cm||_mm||_rmm)) 
+    Speak("We have completely sold out...come back later.");
+  else
+  {
+    write("1: Commoner's Meal     ");write(_cm);write(" at 20 gp\n");
+    write("2: Merchant's Meal     ");write(_mm);write(" at 50 gp\n");
+    write("3: Rich Man's Meal     ");write(_rmm);write(" at 90 gp\n");
+    write("4: A Mug of Beer       ");write(" ");write("     2 gp\n");
+    write("\n");
+    write("Use 'buy <number>' to buy the desired Food. The food will\n"+
+          "be consumed at once. Good appetite.\n\n");
+  }
+}
+
+#define Level this_body()->query_level()
+#define Name this_body()->query_name()
+
+void no_food()
+{
+  Speak("Sorry - we have sold out of that.");
+  if(_cm||_mm||_rmm)
+    Speak("Why don't you try something else ?");
+  else
+    Speak("Why don't you come back later ?");
+}
+
+int pays(int n, string what)
+{
+  float exchange_rate = to_float(MONEY_D->query_exchange_rate(CURRENCY_TYPE));
+  float cost = n;
+  mapping array money;
+
+  if(cost>this_body()->query_amt_currency(CURRENCY_TYPE))
+  {
+    Speak("You cannot afford that.");
+    return 0;
+  }
+      money = MONEY_D->handle_subtract_money(this_body(), cost, CURRENCY_TYPE);
+      this_body()->my_action("$N $vbuy a $o for " 
+        +MONEY_D->currency_to_string(cost, CURRENCY_TYPE)
+        +". You give "
+        +MONEY_D->currency_to_string(money[0], CURRENCY_TYPE)
+        +" to $o1"
+        +(sizeof(money[1]) ? " and get "
+  	+MONEY_D->currency_to_string(money[1],CURRENCY_TYPE)
+  	+" as change" : "")
+        +".\n", what, this_object());
+  this_body()->add_money(-n);
+  return 1;
+}
+
+void tease(int n)
+{
+  if(Name==_last_eater)
+    Speak("My - Are we hungry today.");
+  _last_eater=Name;
+  this_body()->heal_us(n);
+}
+
+void sell_stored_objects(mixed dummy, mixed dummy2, int num)
+{
+  string s = ""+num;
+  if(!s)
+  {
+    Speak("What do you want to buy ?");
+    return;
+  }
+/* commoner's meal, price 20, heals 4, preferably for levels 1-6 */ 
+  if(s=="1"||s=="<1>")
+  {
+    if(!_cm)
+      return no_food();
+    if(!pays(20, "meal"))
+      return;
+    if(Level>6)
+    {
+      Speak("You don't look like a commoner to me.");
+      if(_mm||_rmm)
+      {
+        Speak("You should eat food more suited for you.");
+        return;
+      }
+      Speak("But as we have no better food - here you are.");
+    }
+    write("You are served a commoner's meal - very nourishing\n");
+//    say(Name+" orders a commoner's meal\n");
+    _cm--;
+    return tease(4);
+  }
+/* merchant's meal, price 50, heals 8, preferably for levels 7-12 */ 
+  if(s=="2"||s=="<2>")
+  {
+    if(!_mm)
+       return no_food();
+    if(!pays(50, "meal"))
+      return;
+    if(Level>12)
+    {
+      Speak("You look more like a richman to me.");
+      if(_rmm)
+      {
+        Speak("You should eat food more suited for you.");
+        return;
+      }
+      Speak("But as we have no better food - here you are.");
+    }
+    write("You are served a merchant's meal - very good\n");
+//    say(Name+" orders a merchant's meal\n");
+    _mm--;
+    return tease(8);
+  }
+/* rich man's meal, price 90, heals 12, preferably for levels 13+ */ 
+  if(s=="3"||s=="<3>")
+  {
+    if(!_rmm)
+    return no_food();
+    if(!pays(90, "meal"))
+      return;
+    write("You are served a rich man's meal - very delicious\n");
+//    say(Name+" orders a rich man's meal\n");
+    _rmm--;
+    return tease(12);
+  }
+  if(s=="4"||s=="<4>"||s=="mug"||s=="beer")
+  {
+    if(!pays(2, "drink"))
+      return;
+//    if(!this_player()->drink_alcohol(2))
+//    {
+//      Speak("You look a little too drunk for that..let me take it back.");
+//      this_player()->add_money(2);
+//      return;
+//    }
+    write("You drink a mug of first class beer - That feels good.\n");
+//    say(Name+" drinks a beer.\n");
+    return;
+  }
+  Speak("We have no such number on the menu, try 1, 2 or 3.");
+  return;
+}

@@ -1,5 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <driver/runtime_config.h>
 inherit CMD;
 
 mapping data = ([ ]);
@@ -40,8 +41,11 @@ void process() {
 		m[1]++;
 
 		tmp = part + " " + l1;
-		if (!reverse[tmp])
+                if (!reverse[tmp]) {
+                    if ( sizeof(reverse) >= get_config(__MAX_MAPPING_SIZE__) )
+                        return;
 		    reverse[tmp] = ([ ]);
+                }
 
 		m = reverse[tmp];
 		m[l2]++;

@@ -1,0 +1,60 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=monster,actor,regex
+primary_id=player
+primary_adj=go
+max_health=100
+weapon_class=12
+long=
+  A man sitting beside a go board, concentrating on a problem.\n
+  He looks as if he wants help. Why not look at his problem,\n
+  and tell him where to play ?\n
+end
+in_room_desc=A go player, concentrating on the board
+periodic[1 to 99]:
+  oneof
+    !say Hm. This is tricky!
+    !say The moron who wrote this book didn't deal with this problem.
+    !say A throw in here should just be wasted.
+    !say This group is more alive than I am.
+    !say This is simple using oi-otoshi.
+  end
+end
+---
+void succeed(int n)
+{
+  this_body()->targetted_action("$T $v1thank $n for $p solution.",
+      this_object());
+  environment(this_object())->set_problem(n+1);
+// ADD A REWARD
+}
+
+void receive_outside_msg(string str)
+{
+  int problem = environment(this_object())->query_problem();
+
+  if ( search(str, "play +(b1|b 1|1b|1 b)") != -1 )
+  {
+    if(problem==0)
+    {
+      succeed(0);
+      return;
+    }
+  }
+  if ( search(str, "play +(b2|b 2|2b|2 b)") != -1 )
+  {
+    if(problem==1)
+    {
+      succeed(1);
+      return;
+    }
+  }
+  if ( search(str, "play +(d3|d 3|3d|3 d)") != -1 )
+  {
+    if(problem==2)
+    {
+      succeed(2);
+      return;
+    }
+  }
+}

@@ -609,7 +609,7 @@ static array_t *MySQL_fetch P2(dbconn_t *, c, int, row)
 	MYSQL_FIELD *field;
 
 	field = mysql_fetch_field(c->mysql.results);
-	if (!field) {
+	if (!field || target_row[i] == NULL) {
 	    v->item[i] = const0u;
 	} else {
 	    switch (field->type) {

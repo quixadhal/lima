@@ -890,7 +890,7 @@ static void copy_chars P3(interactive_t *, ip, char *, from, int, num_bytes)
 						/* If we get { 0, SLC_DEFAULT, 0 } or { 0, SLC_VARIABLE, 0 } return a list of values */
 						/* If it's SLC_DEFAULT, reset to defaults first */
 						if (!ip->sb_buf[x] && !ip->sb_buf[x + 2]) {
-						    if (ip->sb_buf[x] == SLC_DEFAULT || ip->sb_buf[x] == SLC_VARIABLE) {
+						    if (ip->sb_buf[x + 1] == SLC_DEFAULT || ip->sb_buf[x + 1] == SLC_VARIABLE) {
 							int n;
 
 							for (n = 0;  n < NSLC;  n++) {
@@ -915,6 +915,8 @@ static void copy_chars P3(interactive_t *, ip, char *, from, int, num_bytes)
 						if (ip->sb_buf[x] >= NSLC || slc_default_flags[(int)ip->sb_buf[x]] == SLC_NOSUPPORT) {
 						    slc_response[slc_length++] = SLC_NOSUPPORT;
 						    slc_response[slc_length++] = ip->sb_buf[x + 2];
+						    if ((unsigned char)ip->sb_buf[x + 2] == IAC)
+							slc_response[slc_length++] = IAC;
 						    continue;
 						}
 
@@ -960,6 +962,8 @@ static void copy_chars P3(interactive_t *, ip, char *, from, int, num_bytes)
 						    default:
 							slc_response[slc_length++] = SLC_NOSUPPORT;
 							slc_response[slc_length++] = ip->sb_buf[x + 2];
+							if ((unsigned char)slc_response[slc_length - 1] == IAC)
+							    slc_response[slc_length++] = IAC;
 							break;
 						}
 					    }
@@ -1369,8 +1373,8 @@ INLINE void make_selectmasks()
      * set fd's for efun sockets.
      */
     for (i = 0; i < max_lpc_socks; i++) {
-	if (lpc_socks[i].state != CLOSED) {
-	    if (lpc_socks[i].state != FLUSHING &&
+	if (lpc_socks[i].state != STATE_CLOSED) {
+	    if (lpc_socks[i].state != STATE_FLUSHING &&
 		(lpc_socks[i].flags & S_WACCEPT) == 0)
 		FD_SET(lpc_socks[i].fd, &readmask);
 	    if (lpc_socks[i].flags & S_BLOCKED)
@@ -1421,10 +1425,10 @@ INLINE void process_io()
      * check for data pending on efun socket connections.
      */
     for (i = 0; i < max_lpc_socks; i++) {
-	if (lpc_socks[i].state != CLOSED)
+	if (lpc_socks[i].state != STATE_CLOSED)
 	    if (FD_ISSET(lpc_socks[i].fd, &readmask))
 		socket_read_select_handler(i);
-	if (lpc_socks[i].state != CLOSED)
+	if (lpc_socks[i].state != STATE_CLOSED)
 	    if (FD_ISSET(lpc_socks[i].fd, &writemask))
 		socket_write_select_handler(i);
     }
@@ -1916,7 +1920,9 @@ void remove_interactive P2(object_t *, ob, int, dested)
         /*
 	 * auto-notification of net death
 	 */
+	save_command_giver(ob);
 	safe_apply(APPLY_NET_DEAD, ob, 0, ORIGIN_DRIVER);
+	restore_command_giver();
     }
     
 #ifndef NO_SNOOP
@@ -2544,6 +2550,7 @@ int outbuf_extend P2(outbuffer_t *, outbuf, int, l)
     int limit;
 
     DEBUG_CHECK(l < 0, "Negative length passed to outbuf_extend.\n");
+    l = (l > USHRT_MAX ? USHRT_MAX : l);
     
     if (outbuf->buffer) {
 	limit = MSTR_SIZE(outbuf->buffer);
@@ -2553,16 +2560,14 @@ int outbuf_extend P2(outbuffer_t *, outbuf, int, l)
 	    /* assume it's going to grow some more */
 	    limit = (outbuf->real_size + l) * 2;
 	    if (limit > USHRT_MAX) {
-		limit = outbuf->real_size + l;
-		if (limit > USHRT_MAX) {
-		    outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
-		    return USHRT_MAX - outbuf->real_size;
-		}
+		limit = USHRT_MAX;
+		outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
+		return USHRT_MAX - outbuf->real_size;
 	    }
 	    outbuf->buffer = extend_string(outbuf->buffer, limit);
 	}
     } else {
-	outbuf->buffer = new_string(l, "outbuf_add");
+	outbuf->buffer = new_string(l, "outbuf_extend");
 	outbuf->real_size = 0;
     }
     return l;
@@ -2574,65 +2579,19 @@ void outbuf_add P2(outbuffer_t *, outbuf, char *, str)
     
     if (!outbuf) return;
     l = strlen(str);
-    if (outbuf->buffer) {
-	limit = MSTR_SIZE(outbuf->buffer);
-	if (outbuf->real_size + l > limit) {
-	    if (outbuf->real_size == USHRT_MAX) return; /* TRUNCATED */
-
-	    /* assume it's going to grow some more */
-	    limit = (outbuf->real_size + l) * 2;
-	    if (limit > USHRT_MAX) {
-		limit = outbuf->real_size + l;
-		if (limit > USHRT_MAX) {
-		    outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
-		    strncpy(outbuf->buffer + outbuf->real_size, str,
-			    USHRT_MAX - outbuf->real_size);
-		    outbuf->buffer[USHRT_MAX] = 0;
-		    outbuf->real_size = USHRT_MAX;
-		    return;
-		}
-	    }
-	    outbuf->buffer = extend_string(outbuf->buffer, limit);
-	}
-    } else {
-	outbuf->buffer = new_string(l, "outbuf_add");
-	outbuf->real_size = 0;
+    if ((limit = outbuf_extend(outbuf, l)) > 0) {
+	strncpy(outbuf->buffer + outbuf->real_size, str, limit);
+	outbuf->real_size += (l > limit ? limit : l);
+	*(outbuf->buffer + outbuf->real_size) = 0;
     }
-    strcpy(outbuf->buffer + outbuf->real_size, str);
-    outbuf->real_size += l;
 }
 
 void outbuf_addchar P2(outbuffer_t *, outbuf, char, c)
 {
-    int limit;
-    
-    if (!outbuf) return;
-
-    if (outbuf->buffer) {
-	limit = MSTR_SIZE(outbuf->buffer);
-	if (outbuf->real_size + 1 > limit) {
-	    if (outbuf->real_size == USHRT_MAX) return; /* TRUNCATED */
-
-	    /* assume it's going to grow some more */
-	    limit = (outbuf->real_size + 1) * 2;
-	    if (limit > USHRT_MAX) {
-		limit = outbuf->real_size + 1;
-		if (limit > USHRT_MAX) {
-		    outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
-		    *(outbuf->buffer + outbuf->real_size) = c;
-		    outbuf->buffer[USHRT_MAX] = 0;
-		    outbuf->real_size = USHRT_MAX;
-		    return;
-		}
-	    }
-	    outbuf->buffer = extend_string(outbuf->buffer, limit);
-	}
-    } else {
-	outbuf->buffer = new_string(80, "outbuf_add");
-	outbuf->real_size = 0;
+    if (outbuf && (outbuf_extend(outbuf, 1)) > 0) {
+        *(outbuf->buffer + outbuf->real_size++) = c;
+	*(outbuf->buffer + outbuf->real_size) = 0;
     }
-    *(outbuf->buffer + outbuf->real_size++) = c;
-    *(outbuf->buffer + outbuf->real_size) = 0;
 }
 
 void outbuf_addv P2V(outbuffer_t *, outbuf, char *, format)

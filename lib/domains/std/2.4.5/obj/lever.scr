@@ -1,0 +1,13 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object
+primary_id=lever
+flag=attached
+long=A lever.
+---
+mixed direct_pull_obj() { return 1; }
+
+void do_pull()
+{
+  load_object("/domains/std/2.4.5/sub/door_trap.scr")->do_pull();
+}

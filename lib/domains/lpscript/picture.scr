@@ -1,0 +1,16 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object,gettable
+id=picture
+adj=polaroid
+
+---
+void mudlib_setup()
+{
+  object ob;
+  if ( (ob = this_body()) && (ob = environment(ob)) )
+  {
+    set_long("Looking at the picture, you see:\n\n" + ob->long());
+    add_save( ({ "long" }) );
+  }
+}

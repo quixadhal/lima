@@ -12,5 +12,5 @@ long=
 end
 
 exits=
-  north:room/narr_alley.scr
+  north:narr_alley.scr
 end

@@ -42,7 +42,7 @@ void f_named_livings() {
     int i;
     int nob;
 #ifdef F_SET_HIDE
-    int apply_valid_hide, hide_is_valid = 0;
+    int apply_valid_hide, display_hidden = 0;
 #endif
     object_t *ob, **obtab;
     array_t *vec;
@@ -62,9 +62,9 @@ void f_named_livings() {
 	    if (ob->flags & O_HIDDEN) {
 		if (apply_valid_hide) {
 		    apply_valid_hide = 0;
-		    hide_is_valid = valid_hide(current_object);
+		    display_hidden = valid_hide(current_object);
 		}
-		if (hide_is_valid)
+		if (!display_hidden)
 		    continue;
 	    }
 #endif
@@ -276,6 +276,13 @@ static void deep_copy_svalue P2(svalue_t *, from, svalue_t *, to) {
 	to->u.map = deep_copy_mapping( from->u.map );
 	depth--;
 	break;
+#ifndef NO_BUFFER_TYPE
+    case T_BUFFER:
+        *to = *from;
+        to->u.buf = allocate_buffer(from->u.buf->size);
+        memcpy(to->u.buf->item, to->u.buf->item, from->u.buf->size);
+        break;
+#endif
     default:
 	assign_svalue_no_free( to, from );
     }
@@ -1139,7 +1146,7 @@ static char *pluralize P1(char *, str) {
 	case 'F': case 'f':
 	    if (end[-2] == 'e' || end[-2] == 'E')
 		break;
-	    found = PLURAL_CHOP + 1;
+	    found = PLURAL_CHOP + 2;
 	    suffix = "ves";
 	    break;
 	case 'H': case 'h':
@@ -1660,20 +1667,24 @@ void f_function_owner PROT((void)) {
 #ifdef F_REPEAT_STRING
 void f_repeat_string PROT((void)) {
     char *str;
-    int repeat, len;
+    int repeat, len, newlen;
     char *ret, *p;
     int i;
     
     repeat = (sp--)->u.number;    
+    if (repeat > 0) {
+	str = sp->u.string;
+	len = SVALUE_STRLEN(sp);
+        if ((newlen = len * repeat) > max_string_length)
+            repeat = max_string_length / len;
+    }
     if (repeat <= 0) {
 	free_string_svalue(sp);
 	sp->type = T_STRING;
 	sp->subtype = STRING_CONSTANT;
 	sp->u.string = "";
     } else if (repeat != 1) {
-	str = sp->u.string;
-	len = SVALUE_STRLEN(sp);
-	p = ret = new_string(len * repeat, "f_repeat_string");
+	p = ret = new_string(newlen, "f_repeat_string");
 	for (i = 0; i < repeat; i++) {
 	    memcpy(p, str, len);
 	    p += len;

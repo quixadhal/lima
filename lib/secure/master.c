@@ -22,6 +22,9 @@ object compile_object(string path)
     if (path[<4..] == ".scr")
 	return LPSCRIPT_D->compile(path);
 
+    if (file_size(path+".scr")>0)
+  return LPSCRIPT_D->compile(path+".scr");
+
     pname = path;
 
     /* go back through the path, checking each dir; if the name is

@@ -137,6 +137,12 @@ void kill_ref P1(ref_t *, ref) {
 	    unlock_mapping(ref->sv.u.map);
     }
     free_svalue(&ref->sv, "kill_ref");
+    if (ref->next)
+	ref->next->prev = ref->prev;
+    if (ref->prev)
+	ref->prev->next = ref->next;
+    else
+	global_ref_list = ref->next;
     if (ref->ref > 0) {
 	/* still referenced */
 	ref->lvalue = 0;
@@ -148,6 +154,9 @@ void kill_ref P1(ref_t *, ref) {
 ref_t *make_ref PROT((void)) {
     ref_t *ref = ALLOCATE(ref_t, TAG_TEMPORARY, "make_ref");
     ref->next = global_ref_list;
+    ref->prev = NULL;
+    if (ref->next)
+	ref->next->prev = ref;
     global_ref_list = ref;
     ref->csp = csp;
     ref->ref = 1;
@@ -387,7 +396,7 @@ void unlink_string_svalue P1(svalue_t *, s) {
 	    break;
 	}
     case STRING_CONSTANT:
-	s->u.string = string_copy(sp->u.string, "unlink_string_svalue");
+	s->u.string = string_copy(s->u.string, "unlink_string_svalue");
 	s->subtype = STRING_MALLOC;
 	break;
     }
@@ -464,7 +473,7 @@ INLINE void int_free_svalue P1(svalue_t *, v)
 		break;
 	    case T_REF:
 		if (!v->u.ref->lvalue)
-		    FREE(v->u.ref);
+		    kill_ref(v->u.ref);
 		break;
 	    }
 	}
@@ -564,7 +573,7 @@ INLINE void assign_svalue_no_free P2(svalue_t *, to, svalue_t *, from)
 {
     DEBUG_CHECK(from == 0, "Attempt to assign_svalue() from a null ptr.\n");
     DEBUG_CHECK(to == 0, "Attempt to assign_svalue() to a null ptr.\n");
-    DEBUG_CHECK(from->type & (from->type - 1), "from->type is corrupt; >1 bit set.\n");
+    DEBUG_CHECK((from->type & (from->type - 1)) & ~T_FREED, "from->type is corrupt; >1 bit set.\n");
     
     if (from->type == T_OBJECT && (!from->u.ob || (from->u.ob->flags & O_DESTRUCTED))) {
 	*to = const0u;
@@ -1970,7 +1979,7 @@ eval_instruction P1(char *, p)
 	     */
 	    ref = make_ref();
 	    ref->lvalue = sp->u.lvalue;
-	    if (op != F_GLOBAL_LVALUE && op != F_LOCAL_LVALUE) {
+	    if (op != F_GLOBAL_LVALUE && op != F_LOCAL_LVALUE && op != F_REF_LVALUE) {
 		ref->sv.type = lv_owner_type;
 		ref->sv.subtype = STRING_MALLOC; /* ignored if non-string */
 		if (lv_owner_type == T_STRING) {
@@ -1994,11 +2003,8 @@ eval_instruction P1(char *, p)
 	{
 	    int num = EXTRACT_UCHAR(pc++);
 	    
-	    while (num--) {
-		ref_t *ref = global_ref_list;
-		global_ref_list = global_ref_list->next;
-		kill_ref(ref);
-	    }
+	    while (num--)
+		kill_ref(global_ref_list);
 	    break;
 	}
 	case F_REF:
@@ -4901,7 +4907,12 @@ array_t *get_svalue_trace()
 
 	v2 = allocate_empty_array(num_arg);
 	for (i = 0; i < num_arg; i++) {
-	    assign_svalue_no_free(&v2->item[i], &fp[i]);
+//	    assign_svalue_no_free(&v2->item[i], &fp[i]);
+      if( ptr[i].type == T_REF )
+        assign_svalue_no_free(&v2->item[i], ptr[i].u.ref->lvalue );
+      else
+        assign_svalue_no_free(&v2->item[i], &ptr[i]);
+
 	}
 	add_mapping_array(m, "arguments", v2);
 	v2->ref--;
@@ -5625,4 +5636,3 @@ void restore_context P1(error_context_t *, econ) {
 	    refp = &((*refp)->next);
     }
 }
-

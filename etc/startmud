@@ -3,7 +3,7 @@
 #	Rust July 7, 1994
 
 # modify as necessary
-limadir=/home/mud/lima-1.0b1
+limadir=/home/David/lima-1.0b3
 
 ########################################
 logdir=$limadir/lib/log

@@ -94,3 +94,12 @@ mixed handle_blocks(string dir) {
     
     return !evaluate(block_action, dir, this_body());
 }
+
+mapping lpscript_attributes()
+{
+  return ([
+    "block" : ({ LPSCRIPT_STRING, "setup", "add_block" }),
+    "unblock" : ({ LPSCRIPT_STRING, "setup", "remove_block" }),
+    "block_action" : ({ LPSCRIPT_STRING, "setup", "set_block_action" }),
+  ]);
+}

@@ -19,3 +19,10 @@ void mudlib_setup()
 {
     set_id("key");
 }
+
+mapping lpscript_attributes()
+{
+  return ([
+    "keytype" : ({ LPSCRIPT_STRING, "setup", "set_key_type" }),
+  ]);
+}

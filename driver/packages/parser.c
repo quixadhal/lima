@@ -129,8 +129,10 @@ void parser_mark_verbs() {
     int i, j;
 
     if (best_result) {
+#ifdef DEBUGMALLOC_EXTENSIONS
 	if (best_result->ob)
 	    best_result->ob->extra_ref++;
+#endif
 	if (best_result->parallel)
 	    /* mark parallel errors */;
 	
@@ -175,8 +177,10 @@ void parser_mark_verbs() {
     }
     if (my_string)
 	EXTRA_REF(BLOCK(my_string))++;
+#ifdef DEBUGMALLOC_EXTENSIONS
     if (master_user_list)
 	master_user_list->extra_ref++;
+#endif
 }
 
 void parser_mark P1(parse_info_t *, pinfo) {
@@ -2914,9 +2918,9 @@ static void parse_sentence P1(char *, input) {
 		flag = 0;
 		*p++ = 0;
 		orig_ends[n] = inp - 1; /* points to where c was */
+                starts[n++] = start;
 		if (n == MAX_WORDS_PER_LINE)
 		    return; /* too many words */
-		starts[n++] = start;
 		start = p;
 		while (*inp && uisspace(*inp))
 		    inp++;
@@ -2932,9 +2936,9 @@ static void parse_sentence P1(char *, input) {
     if (flag) {
 	*p++ = 0;
 	orig_ends[n] = inp - 2;
+	starts[n++] = start;
 	if (n == MAX_WORDS_PER_LINE)
 	    return; /* too many words */
-	starts[n++] = start;
     } else {
 	if (n)
 	    orig_ends[n - 1] = inp - 2;

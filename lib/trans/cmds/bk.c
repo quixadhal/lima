@@ -12,7 +12,6 @@
 //
 // See also: rst
 
-//:FLAME
 // 1998-Oct-13 : Halo@Timescapes        : Created.
 // 1999-Jan-28 : Rodney@Timescapes      : Updated date creation to be string, fixed
 //                                      : calculation of the month.

@@ -1562,11 +1562,8 @@ void c_make_ref P1(int, op) {
 }
 
 void c_kill_refs P1(int, num) {
-    while (num--) {
-	ref_t *ref = global_ref_list;
-	global_ref_list = global_ref_list->next;
-	kill_ref(ref);
-    }
+    while (num--)
+	kill_ref(global_ref_list);
 }
 
 #endif

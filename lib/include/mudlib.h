@@ -269,6 +269,7 @@
 #define WIZ_SHELL		"/trans/obj/wish"
 #define TELNET_OB		"/trans/obj/telnet_ob"
 #define ADMTOOL			"/obj/admtool/admtool2"
+#define TASKTOOL                "/obj/tasktool/tasktool"
 #define DATAEDIT		"/trans/obj/dataedit"
 
 #define ALIASMENU		"/obj/mudlib/aliasmenu"

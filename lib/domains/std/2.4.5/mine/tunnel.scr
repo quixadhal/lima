@@ -9,9 +9,10 @@ exits=
 end
 objects=
   sign=
-    id=sign,pole
     is=object,readable
-    flag=attached
+    id=sign,pole
+    in_room_desc=sign
+#    flag=attached
     long=
       WARNING !!\n\n
       The mines are closed due to risk of falling rock.

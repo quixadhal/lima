@@ -14,63 +14,65 @@ string long();
 //Return a string describing the objects in the room
 varargs string show_objects(object except)
 {
-    object *obs;
-    string user_show;
-    string obj_show;
-    string str;
-    int n;
-    object link;
+  object *obs;
+  string user_show;
+  string obj_show;
+  string str;
+  int n;
+  object link;
 
-    obs = filter(all_inventory() - ({ this_body() }), 
+  obs = filter(all_inventory() - ({ this_body() }), 
       (: $1->is_visible() :));
-    if(except)
+  if(except)
+  {
+    obs -= ({except});
+  }
+
+  n = sizeof(obs);
+  user_show = "";
+  obj_show = "";
+
+  while (n--)
+  {
+    if (obs[n]->is_living())
     {
-	obs -= ({except});
+      str = obs[n]->in_room_desc();
+      if((link = obs[n]->query_link()) && userp(link))
+      {
+        if(except)
+		      str += sprintf(" (outside %s)", except->the_short());
+        user_show += str + "\n";
+        continue;
+      }
+      if(strlen(str)) 
+      {
+        if(except)
+		      str += sprintf(" (outside %s)", except->the_short());
+        obj_show += str + "\n";
+      }
+    } else {
+      if (!duplicatep(obs[n]))
+      {
+        if ((str = obs[n]->show_in_room()) && strlen(str))
+        {
+		      if(except)
+            str += sprintf(" (outside %s)", except->the_short());
+          obj_show += str + "\n";
+        }
+        if(obs[n]->inventory_visible() && !obs[n]->query_hide_contents()) 
+          obj_show += obs[n]->show_contents();
+      }
     }
+  }
+  if(except) // We're inside an object
+    obj_show += except->inventory_recurse(0,this_body());
 
-    n = sizeof(obs);
-    user_show = "";
-    obj_show = "";
-
-    while (n--) {
-	if (obs[n]->is_living()) {
-	    if((link = obs[n]->query_link()) && userp(link))
-	    {
-		user_show += obs[n]->in_room_desc() + "\n";
-		continue;
-	    }
-	    str = obs[n]->in_room_desc();
-	    if(strlen(str)) 
-	    {
-		if(except)
-		{
-		    str += sprintf(" (outside %s)", except->the_short());
-		}
-		obj_show += str + "\n";
-	    }
-	} else {
-	    if (!duplicatep(obs[n])) {
-		if ((str = obs[n]->show_in_room()) && strlen(str)) {
-		    if(except)
-		    {
-			str += sprintf(" (outside %s)", except->the_short());
-		    }
-		    obj_show += str + "\n";
-		}
-    if(obs[n]->inventory_visible() && !obs[n]->query_hide_contents()) 
-		    obj_show += obs[n]->show_contents();
-	    }
-	}
-    }
-    if(except) // We're inside an object
-	obj_show += except->inventory_recurse(0,this_body());
-
-    if(user_show != "")
-    {
-	if( obj_show != "") obj_show += "\n";
-	obj_show += user_show;
-    }
-    return obj_show;
+  if(user_show != "")
+  {
+    if( obj_show != "") obj_show += "\n";
+    obj_show += user_show;
+  }
+  return obj_show;
 }
 
 //### major hack

@@ -1,0 +1,44 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object
+id=board
+flag=attached
+---
+string long()
+{
+  int problem=environment(this_object())->query_problem();
+  switch(problem)
+  {
+    case 0:
+      return "5|.......\n" +
+             "4|.......\n" +
+             "3|@@@@@..\n" +
+             "2|OOOO@..\n" +
+             "1|...O@..\n" +
+             " --------\n" +
+             "  abcdefg\n" +
+             "\nIt is black ('@') to play.\n";
+    case 1:
+      return "7|.......\n" +
+             "6|.......\n" +
+             "5|@@@....\n" +
+             "4|OOO@@..\n" +
+             "3|O.OO@..\n" +
+             "2|...O@..\n" +
+             "1|..OO@..\n" +
+             " --------\n" +
+             "  abcdefg\n" +
+             "\nIt is black ('@') to play.\n";
+    case 2:
+      return "5|..........\n" +
+             "4|...@@@@@..\n" +
+             "3|@@@.O...@.\n" +
+             "2|@OO@OOOO@.\n" +
+             "1|@OO.O...@.\n" +
+             " -----------\n" +
+             "  abcdefg\n" +
+             "\nIt is white ('O') to play.\n";
+    default:
+      return "The board has been cleared - the puzzles solved.";
+  }
+}

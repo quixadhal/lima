@@ -270,64 +270,68 @@ void process_file(string fname) {
     }
 }
 
-void continue_scan() {
-    array files;
-    array item;
+void continue_scan()
+{
+  array files;
+  array item;
 
-    for (int i = 0; i < 10; i++) {
-	if (sizeof(dirs_to_do)) {
-	    printf("Scanning %s ...\n", dirs_to_do[0]);
-	    files = get_dir(dirs_to_do[0], -1);
-	    foreach (item in files) {
-		if (item[1] == -2) {
-		    string dir = dirs_to_do[0] + item[0] + "/";
-		    if ( member_array(dir, filtered_dirs) != -1 )
-			continue;
-		    dirs_to_do += ({ dir });
-		} else
-		if (item[2] > last_time && item[0][<2..<1] == ".c") {
-		    files_to_do += ({ dirs_to_do[0] + item[0] });
-		}
-	    }
+  for (int i = 0; i < 10; i++)
+  {
+    if (sizeof(dirs_to_do))
+    {
+      printf("Scanning %s ...\n", dirs_to_do[0]);
+      files = get_dir(dirs_to_do[0], -1);
+      foreach (item in files)
+      {
+        if (item[1] == -2)
+        {
+          string dir = dirs_to_do[0] + item[0] + "/";
+          if ( member_array(dir, filtered_dirs) != -1 )
+            continue;
+          dirs_to_do += ({ dir });
+        } else if (item[2] > last_time && item[0][<2..<1] == ".c") {
+          files_to_do += ({ dirs_to_do[0] + item[0] });
+        }
+      }
 	    dirs_to_do[0..0] = ({ });
-	} else
-	if (sizeof(files_to_do)) {
-	    printf("Updating docs for %s ...\n", files_to_do[0]);
-	    /*
-	    ** We need an unguarded() for any writes that may occur... there
-	    ** is no user object, so protection checks will always fail.  This
-	    ** will terminate the checking at this daemon rather than fall
-	    ** off the stack and fail.  Note that we don't actually hit priv
-	    ** 1, but the maximum allowed.
-	    */
+    } else if (sizeof(files_to_do))	{
+      printf("Updating docs for %s ...\n", files_to_do[0]);
+/*
+ ** We need an unguarded() for any writes that may occur... there
+ ** is no user object, so protection checks will always fail.  This
+ ** will terminate the checking at this daemon rather than fall
+ ** off the stack and fail.  Note that we don't actually hit priv
+ ** 1, but the maximum allowed.
+ */
 	    unguarded(1, (: process_file, files_to_do[0] :));
 	    files_to_do[0..0] = ({ });
-	} else {
-	    printf("Done.\n");
-	    last_time = time();
-	    save_me();
-	    return;
-	}
-    }	    
-    call_out( (: continue_scan :), 1);
+    } else {
+      printf("Done.\n");
+      last_time = time();
+      save_me();
+      HELP_D->rebuild_data();
+      return;
+    }
+  }	    
+  call_out( (: continue_scan :), 1);
 }
 
-void
-do_sweep() {
-    scan_mudlib();
-    call_out( (: do_sweep :), 86400);
-}
-
-void
-create()
+void do_sweep()
 {
-    if(clonep()) {
-	destruct(this_object());
-	return;
-    }	    
-    ::create();
-    if ( !last_time )
-	do_sweep();
-    else
-	call_out( (: do_sweep :), 86400);
+  scan_mudlib();
+  call_out( (: do_sweep :), 86400);
+}
+
+void create()
+{
+  if(clonep())
+  {
+    destruct(this_object());
+    return;
+  }	    
+  ::create();
+  if ( !last_time )
+    do_sweep();
+  else
+    call_out( (: do_sweep :), 86400);
 }

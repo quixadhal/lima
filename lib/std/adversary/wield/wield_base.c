@@ -11,3 +11,10 @@ int set_wielding(string wep)
    ob->move(this_object());
    return do_wield(ob);
 }
+
+mapping lpscript_attributes()
+{
+  return ([
+    "wielded" : ({ LPSCRIPT_WIELD }),
+    ]);
+}

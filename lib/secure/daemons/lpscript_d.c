@@ -3,31 +3,38 @@
 inherit M_ACCESS;
 
 private mapping inheritable = ([
-           "accountant" : ACCOUNTANT,
-    "following monster" : FOLLOWING_MONSTER,
-              "monster" : ADVERSARY,
-               "living" : LIVING,
-    "wandering monster" : WANDERING_MONSTER,
+  "accountant" : ACCOUNTANT,
+  "aggressive" : AGGRESSIVE_MONSTER,
+  "following monster" : FOLLOWING_MONSTER,
+  "monster" : ADVERSARY,
+  "living" : LIVING,
+  "wandering monster" : WANDERING_MONSTER,
 
-                "armor" : ARMOR,
-                 "book" : BOOK,
-            "container" : CONTAINER,
-          "moving room" : "/std/moving_room",
-               "object" : OBJ,
-               "portal" : PORTAL,
-                 "room" : ROOM,
-	         "door" : DOOR,
-          "secret door" : SECRET_DOOR,
-                "torch" : TORCH,
-               "weapon" : WEAPON,
+  "armor" : ARMOR,
+  "book" : BOOK,
+  "container" : CONTAINER,
+  "key" : KEY,
+  "moving room" : "/std/moving_room",
+  "object" : OBJ,
+  "outdoor" : OUTDOOR_ROOM,
+  "portal" : PORTAL,
+  "room" : ROOM,
+  "door" : DOOR,
+  "hidden door" : HIDDEN_DOOR,
+  "secret door" : SECRET_DOOR,
+  "torch" : TORCH,
+  "weapon" : WEAPON,
 
-                 "actor": M_ACTIONS,
-             "gettable" : M_GETTABLE,
-             "lockable" : M_LOCKABLE,
-             "openable" : M_OPENABLE,
-             "readable" : M_READABLE,
-             "valuable" : M_VALUABLE,
-               "vendor" : M_VENDOR,
+  "actor": M_ACTIONS,
+  "block" : M_BLOCKEXITS,
+  "drinkable" : M_DRINKABLE,
+  "gettable" : M_GETTABLE,
+  "lockable" : M_LOCKABLE,
+  "openable" : M_OPENABLE,
+  "readable" : M_READABLE,
+  "regex" : M_REGEX,
+  "valuable" : M_VALUABLE,
+  "vendor" : M_VENDOR,
 ]);
 
 int cur, intrigger;
@@ -44,19 +51,19 @@ string handle_action(string arg);
 void add_error(int, string);
 
 private mapping keywords = ([
-    "oneof" : (: handle_oneof :),
-    "if" : (: "if (" + handle_expression($1) +
-	    ") {\n" + handle_block($2) + "}\n" :),
-    "nexttrigger" : (: intrigger ? "continue;" : (add_error(cur, "nexttrigger illegal outside of trigger"), "") :),
-    "call" : (: handle_expression("call " + $1) +";\n" :),
-    "lcall" : (: handle_expression("lcall " + $1) +";\n" :),
-    "check" : (: handle_check :),
-    "ok" : "return 1;",
-    "write" : (: "write(" + handle_expression($1) + ");\n" :),
-    "lpc" : (: implode($2, "\n") + "\n" :),
-    "delay" : (: handle_delay :),
-    "action" : (: handle_action :),
-    "return" : (: "return " + handle_expression($1) + ";\n" :),
+  "oneof" : (: handle_oneof :),
+  "if" : (: "if (" + handle_expression($1) +
+    ") {\n" + handle_block($2) + "}\n" :),
+  "nexttrigger" : (: intrigger ? "continue;" : (add_error(cur, "nexttrigger illegal outside of trigger"), "") :),
+  "call" : (: handle_expression("call " + $1) +";\n" :),
+  "lcall" : (: handle_expression("lcall " + $1) +";\n" :),
+  "check" : (: handle_check :),
+  "ok" : "return 1;",
+  "write" : (: "write(" + handle_expression($1) + ");\n" :),
+  "lpc" : (: implode($2, "\n") + "\n" :),
+  "delay" : (: handle_delay :),
+  "action" : (: handle_action :),
+  "return" : (: "return " + handle_expression($1) + ";\n" :),
 ]);
 
 mixed handle_periodic(string arg, array lines);
@@ -64,9 +71,9 @@ mixed handle_trigger(string arg, array lines);
 mixed handle_setup(string arg, array lines);
 
 private mapping funcs = ([
-    "periodic" : (: handle_periodic :),
-    "trigger" : (: handle_trigger :),
-    "setup" : (: handle_setup :),
+  "periodic" : (: handle_periodic :),
+  "trigger" : (: handle_trigger :),
+  "setup" : (: handle_setup :),
 ]);
 
 string handle_string(array args);
@@ -124,10 +131,10 @@ array parse_long_string() {
     if (indent == 0)
 	add_error(cur, "Bad indentation.");
     ind = repeat_string(" ", indent);
-    
+
     while (cur < sizeof(lines)) {
 	string line = lines[cur++];
-	
+
 	if (line[0..indent-1] != ind) {
 	    if (line != "end")
 		add_error(cur, "Missing end.");
@@ -140,7 +147,7 @@ array parse_long_string() {
 array parse_block(int oldind, int indent) {
     int needend = -1;
     array ret = ({});
-    
+
     while (cur < sizeof(lines)) {
 	int newind;
 	string line = lines[cur++];
@@ -162,7 +169,7 @@ array parse_block(int oldind, int indent) {
 		add_error(cur, "Bad indentation.");
 	    indent = newind;
 	}
-	
+
 	if (newind < indent) {
 	    if (line == "end") {
 		if (newind == oldind) {
@@ -180,11 +187,11 @@ array parse_block(int oldind, int indent) {
 	    cur--;
 	    ret[<1] = ({ ret[<1] }) + line_info() + parse_block(indent, newind);
 	} else {
-	  ret += line_info() + ({ line });
-	  needend++;
+	    ret += line_info() + ({ line });
+	    needend++;
 	}
     }
-    
+
     if (needend > 0)
 	add_error(cur-1, "Missing 'end'.");
     return ret;
@@ -197,13 +204,13 @@ void assert_alphanum(int line, string what) {
 
 void handle_grouping() {
     int newind;
-    
+
     attributes = ([ "is" : ({ LPSCRIPT_SPECIAL, (: handle_is :) }),
-		    "variables" : ({ LPSCRIPT_SPECIAL, (: handle_variables :) }) ]);
+      "variables" : ({ LPSCRIPT_SPECIAL, (: handle_variables :) }) ]);
     unique = linesync = cur = dest = indent = 0;
     tail = setup_args = "";
     cur_vars = globals = ({});
-    
+
     while (cur < sizeof(lines)) {
 	mixed part1;
 	string part2, part3;
@@ -213,7 +220,7 @@ void handle_grouping() {
 	    linesync = 1;
 	    continue;
 	}
-	
+
 	if (line[0] == ' ')
 	    add_error(cur, "Bad indentation.");
 	if (sscanf(line, "%s[%s]=%s", part1, part2, part3) == 3) {
@@ -235,15 +242,15 @@ void handle_grouping() {
 	    lines = lines[0..dest-1];
 	    return;
 	} else part1 = 0;
-	
+
 	if (part1) {
 	    if (part2 == "") {
 		if (part1[0][0] == "=")		  
 		    lines[dest++] = line_info() + part1 + parse_long_string();
 		else
-		  {
+		{
 		    lines[dest++] = line_info() + part1 + parse_block(0, -1);
-		  }
+		}
 	    } else {
 		if (part1[0][0] == ":")
 		    add_error(cur, "Illegal function declaration");
@@ -310,8 +317,8 @@ mixed handle_expr1(string arg) {
 
 string handle_call(string s1, string s2, array rest...) {
     return "call_other(" + s1 + ", " + s2 + 
-	(sizeof(rest) > 0 ? "," : "") +
-	implode(rest, ", ") + ")";
+    (sizeof(rest) > 0 ? "," : "") +
+    implode(rest, ", ") + ")";
 }
 
 string handle_lcall(string s1, array rest...) {
@@ -323,7 +330,7 @@ string handle_lcall(string s1, array rest...) {
 
 mixed handle_prefix(string arg) {
     string rest = "";
-    
+
     sscanf(arg, "%s %s", arg, rest);
     rest = trim_spaces(rest);
 
@@ -345,7 +352,7 @@ mixed handle_prefix(string arg) {
 
 mixed handle_infix(string arg) {
     string rest = "";
-    
+
     sscanf(arg, "%s %s", arg, rest);
     rest = trim_spaces(rest);
 
@@ -360,7 +367,7 @@ mixed handle_infix(string arg) {
     case "==":
 	return ({ (: $1 + " " + $(arg) + " " + $2 :), rest });
     }
-    
+
     return 0;
 }
 
@@ -368,7 +375,7 @@ mixed handle_assignment(string arg) {
     string var;
     string rest;
     mixed tmp;
-    
+
     sscanf(arg, "%([A-Za-z0-9_]*)%s", var, rest);
     rest = trim_spaces(rest);
     if (rest[0] != '=')
@@ -399,7 +406,7 @@ mixed handle_expr2(string arg) {
     function f;
     int num;
     array args = ({});
-    
+
     if (arg == "") {
 	add_error(cur, "expression expected.");
 	return ({ "0", "" });
@@ -435,7 +442,7 @@ mixed handle_expr2(string arg) {
  */
 mixed handle_subexpression(string arg) {
     mixed tmp, tmp2, tmp3;
-    
+
     if (arg == "") {
 	add_error(cur, "expression expected.");
 	return ({ "0", "" });
@@ -463,7 +470,7 @@ string handle_expression(string arg) {
 string translate_string(string str) {
     string before, var;
     string ret = "\"";
-    
+
     str = replace_string(str, "\"", "\\\"");
     while (sscanf(str, "%s$%s", before, str) == 2) {
 	ret += before;
@@ -486,7 +493,7 @@ string handle_block(array lines) {
 	if (arrayp(line)) {
 	    string keyword, args;
 	    function f;
-	  
+
 	    keyword = line[0];
 	    sscanf(keyword, "%s %s", keyword, args);
 	    if (f = keywords[keyword]) {
@@ -498,10 +505,10 @@ string handle_block(array lines) {
 	    if (member_array(M_ACTIONS, inherits) != -1)
 		ret[<2] += "respond(" + translate_string(line[1..]) + ");\n";
 	    else
-		ret[<2] += "this_body()->do_game_command(" + translate_string(line[1..]) + ");\n";
+		ret[<2] += "this_object()->do_game_command(" + translate_string(line[1..]) + ");\n";
 	} else if (line[0] == '$') {
 	    mixed tmp2;
-	    
+
 	    tmp2 = handle_assignment(line[1..]);
 	    if (tmp2[1])
 		ret[<1] += "mixed " + tmp2[1] + ";\n";
@@ -509,7 +516,7 @@ string handle_block(array lines) {
 	} else {
 	    string keyword, args;
 	    function f;
-	    
+
 	    keyword = line;
 	    sscanf(keyword, "%s %s", keyword, args);
 	    if (f = keywords[keyword]) {
@@ -529,9 +536,9 @@ string handle_block(array lines) {
 
 string handle_action(string arg) {
     if (member_array(M_ACTIONS, inherits) != -1)
-	return "simple_action(\"" + arg + "\");";
+	return "simple_action(\"" + arg + "\", this_object());";
     else
-	return "this_body()->simple_action(\"" + arg + "\");";
+	return "this_body()->simple_action(\"" + arg + "\", this_object());";
 }
 
 string sub_file_name() {
@@ -546,23 +553,23 @@ string handle_delay(string arg) {
 
     if (intrigger) 
 	add_error(cur, "Delay illegal inside trigger (move to a function).\n");
-    
+
     if (sizeof(locals)) {
 	args = "mixed _" + implode(locals, ", mixed _");
 	rest = ", _" + implode(locals, ", _");
     }
     else args = rest = "";
-    
+
     return "call_out(\"unnamed" + idx + "\", " + arg + rest + "); }\n}\n\nvoid unnamed" + idx + "(" + args + ") {\n{\n";
 }
 
 string handle_check(string arg, array lines) {
     string ret = "";
-    
+
     foreach (string line in lines) {
 	string left = "", right = "";
 	string tmpl, tmpr;
-	
+
 	if (sscanf(line, "%s:%s", left, right) != 2)
 	    add_error(cur, "Missing ':'");
 	tmpl = handle_expression(left);
@@ -589,14 +596,14 @@ string handle_oneof(string arg, array block) {
 mixed handle_periodic(string arg, array lines) {
     int min, max;
     string time;
-    
+
     if (sscanf(arg, "%d to %d", min, max) == 2) {
 	time = min + " + random(" + (max-min) + ")";
     } else {
 	sscanf(arg, "%d", min);
 	time = "" + (min || 2);
     }
-    
+
     cur_vars = globals;
     return ({ "setup", "f = function(function f) { " + handle_block(lines) + " call_out(f, " + time + ", f); }; call_out(f, " + time + ", f)" });
 }
@@ -610,7 +617,7 @@ mixed handle_setup(string arg, array lines) {
 mixed handle_trigger(string arg, array lines) {
     int num;
     int oldlen;
-    
+
     intrigger = 1;
     oldlen = strlen(arg);
     arg = replace_string(arg, "*", "%s");
@@ -618,7 +625,7 @@ mixed handle_trigger(string arg, array lines) {
 
     cur_vars = globals;
     triggers += ({ ({ arg, num, handle_block(lines) }) });
-		     
+
     intrigger = 0;
     return 0;
 }
@@ -626,7 +633,7 @@ mixed handle_trigger(string arg, array lines) {
 varargs string regenerate(array lines, int level) {
     string ind = repeat_string("  ", level);
     string ret = "";
-    
+
     foreach (mixed item in lines) {
 	if (intp(item)) continue;
 	if (arrayp(item)) {
@@ -637,10 +644,52 @@ varargs string regenerate(array lines, int level) {
     return ret;
 }
 
+// This allows certain attributes which should represent a single object
+// (eg wielded = weapon) to optionally accept a random choice :
+// wielded =
+//   weapon1
+//   weapon2
+// end
+string one_object(array args)
+{
+  string array output = ({});
+  foreach (mixed line in args)
+  {
+    if (arrayp(line))
+    {
+      string fn = sub_file_name();
+      string id, rest;
+      object ob;
+
+      if (sscanf(line[0], "%s=%s", id, rest) != 2 || id == "" || rest != "")
+        add_error(cur, "Syntax error in subobject.\n");
+      unguarded(1, (: write_file, fn, regenerate(line[1..]), 1 :));
+      if (ob = find_object(fn))
+        destruct(ob); // we want it to recompile too
+      line = fn;
+    }
+    output += ({ sprintf("  \"%s\" ", line) });
+  }
+  if(sizeof(output)>1)
+    return "choice( ({" + implode(output, ", ") + "}) )";
+  else
+    return output[0];
+}
+
+mixed handle_wield(array args)
+{
+  return ({ "setup", "set_wielding(" + one_object(args) + ")" });
+}
+
+mixed handle_wear(array args)
+{
+  return ({ "setup", "set_wearing(" + one_object(args) + ")" });
+}
+
 mixed handle_objects(array args) {
     string ret = "set_objects( ([\n";
     string tmp;
-    
+
     foreach (mixed line in args) {
 	if (arrayp(line)) {
 	    string fn = sub_file_name();
@@ -667,10 +716,10 @@ mixed handle_objects(array args) {
 
 mixed handle_mapping(string rfunc, string func, array args) {
     string ret = func + "( ([\n";
-    
+
     foreach (string line in args) {
 	string exit, value;
-	
+
 	if (sscanf(line, "%s:%s", exit, value) != 2) {
 	    add_error(cur, "Illegal exit value");
 	    continue;
@@ -684,10 +733,10 @@ mixed handle_mapping(string rfunc, string func, array args) {
 
 mixed handle_int_mapping(string rfunc, string func, array args) {
     string ret = func + "( ([\n";
-    
+
     foreach (string line in args) {
 	string key, value;
-	
+
 	if (sscanf(line, "%s:%s", key, value) != 2) {
 	    add_error(cur, "Illegal int map value");
 	    continue;
@@ -701,11 +750,29 @@ mixed handle_int_mapping(string rfunc, string func, array args) {
 
 string handle_string(array args) {
     string ret = implode(map(args, (: stringp($1) ? $1 : "%-%" :)), "");
+    int ret_size;
 
     ret = replace_string(ret, " %-% ", "\n\n");
     ret = replace_string(ret, "%-%", "");
     ret = replace_string(ret, "\"", "\\\"");
-    
+    ret_size = sizeof(ret);
+
+    if (ret_size > 65) {
+	string tmp = "";
+
+	for (int i = 0; i <= ret_size; i += 65) {
+	    int j;
+
+	    if (i+64 >= ret_size)
+		j = ret_size - 1;
+	    else j = i+64;
+
+	    tmp += "\"" + ret[i..j] + "\"\n";
+	}
+
+	return tmp;
+    }
+
     return "\"" + ret + "\"";
 }
 
@@ -722,14 +789,14 @@ mixed handle_flags(array args) {
 
 mixed handle_list(string rfunc, string func, array args) {
     args = map(explode(args[0], ","), (: trim_spaces :));
-    
+
     return ({ rfunc, func + "(\"" + implode(args, "\", \"") + "\")" });
 }
 
 void get_attributes(string fname) {
     object ob = load_object(fname);
     mapping tmp;
-    
+
     if (!ob) return;
     foreach (string prog in deep_inherit_list(ob)) {
 	tmp = prog->lpscript_attributes();
@@ -764,7 +831,7 @@ mixed handle_is(array args) {
 
 mixed handle_gender(array args) {
     int gen;
-    
+
     switch (args[0]) {
     case "male":
 	gen = 1;
@@ -776,7 +843,7 @@ mixed handle_gender(array args) {
 	gen = 0;
 	break;
     }
-    
+
     return ({ "setup", "set_gender(" + gen + ")" });
 }
 
@@ -801,6 +868,10 @@ array handle_attribute(mixed entry, array args) {
 	return ({ entry[1], entry[2] + "(" + args[0] + ")" });
     case LPSCRIPT_OBJECTS:
 	return handle_objects(args);
+    case LPSCRIPT_WIELD:
+  return handle_wield(args);
+    case LPSCRIPT_WEAR:
+  return handle_wear(args);
     case LPSCRIPT_GENDER:
 	return handle_gender(args);
     case LPSCRIPT_BOOLEAN:
@@ -823,7 +894,7 @@ void handle_parsing() {
     cur = 0;
     inherits = ({});
     triggers = ({});
-    
+
     for (int i = 0; i < sizeof(lines); i++) {
 	int j;
 	mixed arr = lines[i];
@@ -834,7 +905,7 @@ void handle_parsing() {
 	    j = 1;
 	} else 
 	    j = 0;
-	
+
 	switch (arr[j]) {
 	case "=":
 	    if (entry = attributes[arr[j+1]]) {
@@ -874,11 +945,11 @@ private nomask void handle_generation(string outname) {
     string protos = "";
     array tmp;
     string actions = "";
-    
+
     if (sizeof(triggers)) {
 	for (int i = 0; i < sizeof(triggers); i++)
 	    actions += "case " + i + ":\n" + triggers[i][2] + "return;\n";
-	
+
 	ret += "array patterns = ({ ";
 	for (int i = 0; i < sizeof(triggers); i++) {
 	    if (i) ret += ", ";
@@ -892,7 +963,7 @@ private nomask void handle_generation(string outname) {
 	    ret += triggers[i][1];
 	}
 	ret += "});\n";	    
-/*******************************/
+	/*******************************/
 	ret += @END
 	
 void receive_outside_msg(string str) {
@@ -902,25 +973,25 @@ for (int i = 0; i < sizeof(patterns); i++) {
 if (sscanf(str, patterns[i], _1, _2, _3, _4, _5, _6) == num[i]) {
 switch (i) {
 END + actions + "}}}}";
-/*******************************/
+	/*******************************/
     }
 
     tmp = unique_array(lines - ({ 0 }), (: $1[0] :));
     foreach (array item in tmp) {
 	if (item[0][0] == -1) {
 	    foreach (array block in item)
-		globals += block[1] + ";\n";
+	    globals += block[1] + ";\n";
 	    continue;
 	} else if (item[0][0] == "setup") {
 	    protos += "void setup(" + setup_args + ");\n";
-            ret += "\nvoid setup(" + setup_args + ") {\nfunction f;\n";
-        } else {
+	    ret += "\nvoid setup(" + setup_args + ") {\nfunction f;\n";
+	} else {
 	    protos += "mixed " + item[0][0] + "();\n";
 	    ret += "\nmixed " + item[0][0] + "() {\n";
 	}
-	
+
 	foreach (array block in item)
-	    ret += block[1] + ";\n";
+	ret += block[1] + ";\n";
 	ret += "}\n\n";
     }
 
@@ -933,7 +1004,7 @@ object compile(string scrname) {
     mixed name = tmp[1][0..<5]; /* no .scr */
     mixed outname = path + "tmp_" + name + ".c";
     mixed text;
-    
+
     fname = scrname;
     text = read_file(scrname);
     if (!text) return 0;
@@ -944,6 +1015,6 @@ object compile(string scrname) {
     handle_parsing();
     do_errors();
     handle_generation(outname);
-    
+
     return load_object(outname);
 }

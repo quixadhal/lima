@@ -3,7 +3,7 @@
 is=room
 
 exits=
-  south:sout/sforst1.scr
+  south:south/sforst1.scr
   east:forest11.scr
 end
 brief=Deep forest

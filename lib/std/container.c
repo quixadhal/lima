@@ -948,10 +948,13 @@ int destruct_if_useless() {
     return ::destruct_if_useless();
 }
 
-mapping lpscript_attributes() {
-    return ([
-      "objects" : ({ LPSCRIPT_OBJECTS }),
-      "capacity" : ({ LPSCRIPT_INT, "setup", "set_max_capacity" }),
+mapping lpscript_attributes()
+{
+  return ([
+    "objects" : ({ LPSCRIPT_OBJECTS }),
+    "capacity" : ({ LPSCRIPT_INT, "setup", "set_max_capacity" }),
+    "relations" : ({ LPSCRIPT_LIST, "setup", "set_relations" }),
+    "default_relation" : ({ LPSCRIPT_STRING, "setup", "set_default_relation" }),
     ]);
 }
 
@@ -981,7 +984,7 @@ mixed indirect_verb_rule(string verb,string rule,mixed second,mixed third,mixed 
 }
 
 
-/********    Miscelaneous    ********/
+/********    Miscellaneous    ********/
 
 //:FUNCTION container
 //Returns 1 if an object is a container

@@ -202,7 +202,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-                              "Lima 1.0b2",
+            lima_version(),
 			      "Lima",
 			      driver_version(),
 			      "LP",

@@ -25,6 +25,7 @@ private nosave mixed base=(:file_name(this_object())[0..strsrch(file_name(this_o
 varargs mixed call_hooks(string tag,mixed func,mixed start,array args...);
 mixed query_exit_check(string);
 mapping debug_exits();
+string array query_hidden_exits();
 
 /* 
  * DEFAULTS AND ERRORS
@@ -33,13 +34,13 @@ mapping debug_exits();
 //:FUNCTION query_default_exit_message
 //Return the default exit message
 string query_default_exit_message() {
-    return evaluate(default_exit_message);
+  return evaluate(default_exit_message);
 }
 
 //:FUNCTION query_default_enter_message
 //Return the default enter message
 string query_default_enter_message() {
-    return evaluate(default_enter_message);
+  return evaluate(default_enter_message);
 }
 
 //:FUNCTION set_default_exit_message
@@ -68,7 +69,7 @@ void set_default_check(mixed arg) {
 //Return the defaut check
 mixed query_default_check()
 {
-    return evaluate(default_check);
+  return evaluate(default_check);
 }
 
 //:FUNCTION set_default_error
@@ -76,22 +77,22 @@ mixed query_default_check()
 //direction with no exit).  This should be a string or a function ptr 
 //returning a string.
 void set_default_error(mixed value) {
-    default_error = value;
+  default_error = value;
 }
 
 //:FUNCTION has_default_error
 //Return true if the room has a default exit error
 int has_default_error() {
-    return !!default_error;
+  return !!default_error;
 }
 
 //:FUNCTION query_default_error
 //Returns the error default error message.
 string query_default_error()
 {
-    if (has_default_error())
-	return evaluate(default_error);
-    return( "It doesn't appear possible to go that way.\n");
+  if (has_default_error())
+    return evaluate(default_error);
+  return( "It doesn't appear possible to go that way.\n");
 }
 
 /* 
@@ -104,38 +105,36 @@ string query_default_error()
 //list.  If nonnull, they are included
 varargs string array query_exit_directions(int show_hidden)
 {
-    string array dirs = keys( exits );
-    object exit_obs=filter(all_inventory(this_object()),
-      (: $1->is_exit() && $1->query_obvious_description() :) );
-    foreach(object exit_ob in exit_obs)
+  string array dirs = keys( exits );
+  object exit_obs=filter(all_inventory(this_object()),
+			 (: $1->is_exit() && $1->query_obvious_description() :) );
+  foreach(object exit_ob in exit_obs)
     {
-	if(show_hidden||
-	  !exit_ob->query_hidden() )
-	    dirs+=({ exit_ob->query_direction() });
+      if(show_hidden||
+	 !exit_ob->query_hidden() )
+	dirs+=({ exit_ob->query_direction() });
     }
-    if (show_hidden)
-	return dirs;
-    else
-	return dirs - hidden_exits;
+  if (show_hidden)
+    return dirs;
+  else
+    return dirs - hidden_exits;
 }
 
 //:FUNCTION show_exits
 //Return a string giving the names of exits for the obvious exits line
 string show_exits()
 {
-    string exit_str;
-    string array exit_names;
-    string array hidden;
-    exit_names = query_exit_directions(0);
+  string exit_str;
+  string array exit_names;
+  exit_names = query_exit_directions(0);
+  exit_str = ((sizeof(exit_names)) ? implode(exit_names,", ") :"none");
 #ifdef WIZARDS_SEE_HIDDEN_EXITS
-    hidden = this_object()->query_hidden_exits();
-    if ( wizardp(this_user()) && sizeof(hidden) )
+  if ( wizardp(this_user()) && sizeof(query_hidden_exits()) )
     {
-	exit_names += map(hidden, (: "*" + $1 :));
+      exit_str += ", *" + implode(query_hidden_exits(), ", *");
     }
 #endif
-    exit_str = ((sizeof(exit_names)) ? implode(exit_names,", ") :"none");
-    return exit_str;
+  return exit_str;
 }
 
 /* 
@@ -146,15 +145,15 @@ string show_exits()
 //Return the enter messages of a given exit
 string query_enter_msg(string direction)
 {
-    object which;
-    int i;
-    if(which=present(direction)&&
-      which->is_exit())
-	return which->query_method_exit_messages("go");
-    i=sizeof(exits[direction]->enter_messages);
-    if(!i)
-	return query_default_exit_message();
-    return evaluate(exits[direction]->enter_messages[random(i)]);
+  object which;
+  int i;
+  if(which=present(direction)&&
+     which->is_exit())
+    return which->query_method_exit_messages("go");
+  i=sizeof(exits[direction]->enter_messages);
+  if(!i)
+    return query_default_exit_message();
+  return evaluate(exits[direction]->enter_messages[random(i)]);
 }
 
 //:FUNCTION set_enter_msg
@@ -164,14 +163,14 @@ string query_enter_msg(string direction)
 //If multiple messages are passed, a random one will be selected when invoked
 void set_enter_msg(string direction, mixed array message...)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->set_method_enter_messages("go",message...);
-	return;
+      which->set_method_enter_messages("go",message...);
+      return;
     }
-    exits[direction]->enter_messages = message;
+  exits[direction]->enter_messages = message;
 }
 
 //:FUNCTION add_enter_msg
@@ -180,53 +179,53 @@ void set_enter_msg(string direction, mixed array message...)
 //If multiple messages are passed, a random one will be selected when invoked
 void add_enter_msg(string direction, mixed array message...)
 {  
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->add_method_enter_messages("go",message...);
-	return;
+      which->add_method_enter_messages("go",message...);
+      return;
     }
-    exits[direction]->enter_messages+=message;
+  exits[direction]->enter_messages+=message;
 }
 
 //:FUNCTION remove_enter_msg
 //Remove an enter emssage from a given exit.
 void remove_enter_msg(string direction, mixed array message...)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->remove_method_enter_messages("go",message...);
-	return;
+      which->remove_method_enter_messages("go",message...);
+      return;
     }
-    exits[direction]->enter_messages-=message;
+  exits[direction]->enter_messages-=message;
 }
 
 //:FUNCTION list_enter_msgs
 //Return all possible enter messages for a given exit
 mixed array list_enter_msgs(string direction)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
-	return which->list_method_enter_messages("go");
-    return exits[direction]->enter_messages;
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
+    return which->list_method_enter_messages("go");
+  return exits[direction]->enter_messages;
 }
 
 //:FUNCTION query_exit_msg
 //Return the exit messages of a given exit
 string query_exit_msg(string direction)
 {  
-    int i=sizeof(exits[direction]->exit_messages);
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
-	return which->query_method_exit_messages("go");
-    if(i)
-	return evaluate(exits[direction]->exit_messages[random(i)]);
-    return query_default_exit_message();
+  int i=sizeof(exits[direction]->exit_messages);
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
+    return which->query_method_exit_messages("go");
+  if(i)
+    return evaluate(exits[direction]->exit_messages[random(i)]);
+  return query_default_exit_message();
 }
 
 //:FUNCTION set_exit_msg
@@ -234,14 +233,14 @@ string query_exit_msg(string direction)
 //This message will be displayed in the room the body is leaving
 void set_exit_msg(string direction, mixed array message...)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->set_method_exit_messages("go",message...);
-	return;
+      which->set_method_exit_messages("go",message...);
+      return;
     }
-    exits[direction]->exit_messages = message;
+  exits[direction]->exit_messages = message;
 }
 
 //:FUNCTION add_exit_msg
@@ -249,39 +248,39 @@ void set_exit_msg(string direction, mixed array message...)
 //The message can be a function pointer or a string
 void add_exit_msg(string direction, mixed array message...)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->add_method_exit_messages("go",message...);
-	return;
+      which->add_method_exit_messages("go",message...);
+      return;
     }
-    exits[direction]->exit_messages+=message;
+  exits[direction]->exit_messages+=message;
 }
 
 //:FUNCTION remove_exit_msg
 //Remove an exit emssage from a given exit.
 void remove_exit_msg(string direction, mixed array message...)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->remove_method_exit_messages("go",message...);
-	return;
+      which->remove_method_exit_messages("go",message...);
+      return;
     }
-    exits[direction]->exit_messages-=message;
+  exits[direction]->exit_messages-=message;
 }
 
 //:FUNCTION list_exit_msgs
 //List all of the possible exit messages for an exit
 mixed array list_exit_msgs(string direction)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
-	return which->list_method_exit_messages("go");
-    return exits[direction]->exit_messages;
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
+    return which->list_method_exit_messages("go");
+  return exits[direction]->exit_messages;
 }
 
 /* 
@@ -292,27 +291,27 @@ mixed array list_exit_msgs(string direction)
  * error. */
 private string eval_dest(mixed arg)
 {
-    mixed tmp;
-    if(!arg||arg=="")
-	return 0;
-    tmp=(class move_data)exits[arg]->destination;
-    tmp = evaluate(tmp);
-    if (!stringp(tmp))
-	return 0;
-    if (tmp[0] == '#') 
-	return tmp;
-    return absolute_path(tmp,evaluate(base));
+  mixed tmp;
+  if(!arg||arg=="")
+    return 0;
+  tmp=(class move_data)exits[arg]->destination;
+  tmp = evaluate(tmp);
+  if (!stringp(tmp))
+    return 0;
+  if (tmp[0] == '#') 
+    return tmp;
+  return absolute_path(tmp,evaluate(base));
 }
 
 //:FUNCTION query_exit_destination
 //Return the destination path of the given exit.
 varargs string query_exit_destination(string arg)
 {
-    object which;
-    if(which=present(arg)&&
-      which->is_exit())
-	return which->query_method_destination("go");
-    return eval_dest(arg);
+  object which;
+  if(which=present(arg)&&
+     which->is_exit())
+    return which->query_method_destination("go");
+  return eval_dest(arg);
 }
 
 /* 
@@ -323,27 +322,26 @@ varargs string query_exit_destination(string arg)
 //Returns the description of the given exit.
 string query_exit_description(string direction)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
-	return which->query_method_description("go");
+  object which = present(direction);
+  if(which && which->is_exit())
+    return which->query_method_description("go");
+  if(exits[direction])
     return evaluate(exits[direction]->description);
+  return 0;
 }
 
 //:FUNCTION set_exit_description
 //Set the description of an exit.
 void set_exit_description(string direction, mixed description)
 {  
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->set_long(description);
-	return;
+      which->set_long(description);
+      return;
     }
-    if(description[<1..]!="\n")
-	description+="\n";
-    exits[direction]->description = description;
+  exits[direction]->description = description;
 }
 
 /* 
@@ -354,23 +352,23 @@ void set_exit_description(string direction, mixed description)
 //Return whether or not the exit can be passed through
 mixed query_exit_check(string direction)
 {
-    if(member_array(direction,keys(exits))==-1)
-	return;
-    return exits[direction]->checks;
+  if(member_array(direction,keys(exits))==-1)
+    return;
+  return exits[direction]->checks;
 }
 
 //:FUNCTION set_exit_check
 //Function setting the check funciton for the exit
 void set_exit_check(string direction, function f)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
     {
-	which->set_method_check("go",f);
-	return;
+      which->set_method_check("go",f);
+      return;
     }
-    exits[direction]->checks = f;
+  exits[direction]->checks = f;
 }
 
 /* 
@@ -382,13 +380,13 @@ void set_exit_check(string direction, function f)
 //name.
 void delete_exit(mixed direction)
 {
-    object which;
-    if(which=present(direction)&&
-      which->is_exit())
-	destruct(which);
-    map_delete(exits, direction);
+  object which;
+  if(which=present(direction)&&
+     which->is_exit())
+    destruct(which);
+  map_delete(exits, direction);
 }
-
+ 
 //:FUNCTION add_exit
 //Add an exit to the object with a destination.  .
 //Add the value should be a filename or a more complex structure as
@@ -396,22 +394,22 @@ void delete_exit(mixed direction)
 varargs void add_exit(mixed direction, mixed destination)
 {
 #ifdef USE_COMPLEX_EXITS
-    object exit_ob=new(COMPLEX_EXIT_OBJ);
-    exit_ob->add_method(direction,destination);
-    return;
+  object exit_ob=new(COMPLEX_EXIT_OBJ);
+  exit_ob->add_method(direction,destination);
+  return;
 #else
-    class move_data new_exit=new(class move_data);
-    new_exit->description=default_desc;
-    new_exit->enter_messages=({});
-    new_exit->exit_messages=({});
-    new_exit->destination=destination;
-    if (stringp(destination) && strlen(destination) == 0)
-	error("Bogus exit passed into add_exit");
-    if (stringp(destination) && destination[0] == '#')
-	new_exit->checks = destination[1..];
-    else
-	new_exit->checks = 1;
-    exits[direction] = new_exit;
+  class move_data new_exit=new(class move_data);
+  new_exit->description=default_desc;
+  new_exit->enter_messages=({});
+  new_exit->exit_messages=({});
+  new_exit->destination=destination;
+  if (stringp(destination) && strlen(destination) == 0)
+    error("Bogus exit passed into add_exit");
+  if (stringp(destination) && destination[0] == '#')
+    new_exit->checks = destination[1..];
+  else
+    new_exit->checks = 1;
+  exits[direction] = new_exit;
 #endif
 }
 
@@ -421,9 +419,9 @@ varargs void add_exit(mixed direction, mixed destination)
 //exits doc
 void set_exits( mapping new_exits )
 {
-    mixed key; 
-    if ( mapp(new_exits) )
-	foreach(string direction,mixed destination in new_exits)
+  mixed key; 
+  if ( mapp(new_exits) )
+      foreach(string direction,mixed destination in new_exits)
 	add_exit(direction,destination);
 }
 
@@ -437,38 +435,38 @@ void set_exits( mapping new_exits )
 //will be marked as hidden regardless to the rest of the arguments.
 void set_hidden_exits( string array exits_list ... )
 {
-    if(member_array("all",exits_list)>-1)
-	hidden_exits=keys(exits);
-    else
-	hidden_exits = exits_list;
+  if(member_array("all",exits_list)>-1)
+    hidden_exits=keys(exits);
+  else
+    hidden_exits = exits_list;
 }
 
 //:FUNCTION add_hidden_exit
 //Make a given exit direction a hidden exit.  See set_hidden_exits
 void add_hidden_exit( string array exits_list ... )
 {
-    if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
-	hidden_exits = query_exit_directions(1);
-    else
-	hidden_exits += exits_list;
+  if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
+    hidden_exits = query_exit_directions(1);
+  else
+    hidden_exits += exits_list;
 }
 
 //:FUNCTION remove_hidden_exit
 //Make a given exit direction no longer a hidden exit.  See set_hidden_exits
 void remove_hidden_exit( string array exits_list ... )
 {
-    if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
-	hidden_exits = 0;
-    else
-	hidden_exits -= exits_list;
+  if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
+    hidden_exits = 0;
+  else
+    hidden_exits -= exits_list;
 }
 
 //:FUNCTION query_hidden_exits
 //Return all of the hidden exits controlled by the exit object
 string array query_hidden_exits() {
-    string exit_obs=filter(all_inventory(this_object()), (: $1->is_exit() && $1->query_hidden() && $1->query_obvious_description() :) );
-
-    return hidden_exits + exit_obs->query_direction();
+  string exit_obs=filter(all_inventory(this_object()), (: $1->is_exit() && $1->query_hidden() :) );
+  
+  return hidden_exits + exit_obs->query_direction();
 }
 
 /*
@@ -480,68 +478,68 @@ string array query_hidden_exits() {
  * error, and 1 is success */
 mixed can_go_str(string arg)
 {
-    mixed ret=evaluate(query_exit_check(arg));
-    if(!stringp(ret) && ret!=1 && is_normal_direction(arg))
-	return query_default_error();
-    return ret;
+  mixed ret=evaluate(query_exit_check(arg));
+  if(!stringp(ret) && ret!=1 && is_normal_direction(arg))
+    return query_default_error();
+  return ret;
 }
 
 void do_go_str(string dir) {
-    class move_data exit=new(class move_data);
-    if (call_hooks("block_" + dir, HOOK_LOR, 0, dir)
+  class move_data exit=new(class move_data);
+  if (call_hooks("block_" + dir, HOOK_LOR, 0, dir)
       || call_hooks("block_all", HOOK_LOR, 0, dir))
-	return;  
-    exit->destination=query_exit_destination(dir); 
-    exit->exit_messages=query_exit_msg(dir);
-    exit->enter_messages=query_enter_msg(dir);
-    exit->exit_dir=dir;
-    if (!this_body()->query_driving_vehicle())
+    return;  
+  exit->destination=query_exit_destination(dir); 
+  exit->exit_messages=query_exit_msg(dir);
+  exit->enter_messages=query_enter_msg(dir);
+  exit->exit_dir=dir;
+  if (!this_body()->query_driving_vehicle())
     {
-	if(!exit->exit_messages)
-	    exit->exit_messages=this_body()->query_msg("leave");
-	if(!exit->enter_messages)
-	    exit->enter_messages=this_body()->query_msg("enter");
-	/* Normal movement, which should be the scope of this module should
-	 * always send to the method "in" */
-	this_body()->move_to(exit);
+      if(!exit->exit_messages)
+	exit->exit_messages=this_body()->query_msg("leave");
+      if(!exit->enter_messages)
+	exit->enter_messages=this_body()->query_msg("enter");
+      /* Normal movement, which should be the scope of this module should
+       * always send to the method "in" */
+      this_body()->move_to(exit);
     }
-    else
+  else
     {
-	environment(this_body())->move_to(exit);
+      environment(this_body())->move_to(exit);
     }
 }
 /* 
  * DEBUGGING
  */
-//:FUNCTION debug_exit
+//:FUNCTION debug_exits
 //Return all of the exit info contained within the object
 mapping debug_exits()
 {
-    return exits;
+  return exits;
 }
 
 //:FUNCTION query_base
 //Return the evaluated string which is the directory the object is in.
 string query_base()
 {
-    return evaluate(base);
+  return evaluate(base);
 }
 
 //:FUNCTION set_base
 //Set the base directory to be used by the exits of the environment.
 void set_base(mixed what)
 {
-    base=what;
+  base=what;
 }
 
 mapping lpscript_attributes() {
-    return (["exits" : ({ LPSCRIPT_MAPPING, "setup", "set_exits" }),
-      "hidden_exits" : ({ LPSCRIPT_LIST, "setup", "set_hidden_exits" }),
-      "default_exit_message" : ({ LPSCRIPT_STRING, "setup", "set_default_exit_message" }),
-      "default_enter_message" : ({ LPSCRIPT_STRING, "setup", "set_default_enter_message" }),
-      "wrong_exit" : ({ LPSCRIPT_STRING, "setup", "set_default_error"}),
-      "enter_msg" : ({ LPSCRIPT_TWO,  (: ({ "setup", "set_enter_msg(\""+$1+"\",\""+$2[0]+"\")" }) :) }),
-      "exit_msg" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_exit_msg(\""+$1+"\",\""+$2[0]+"\")" }) :) }),
-      "exit_description" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_exit_description(\""+$1+"\",\""+$2[0]+"\")" }) :) }),
-    ]);
+  return (["exits" : ({ LPSCRIPT_MAPPING, "setup", "set_exits" }),
+	  "hidden_exits" : ({ LPSCRIPT_LIST, "setup", "set_hidden_exits" }),
+	  "default_exit_message" : ({ LPSCRIPT_STRING, "setup", "set_default_exit_message" }),
+	  "default_enter_message" : ({ LPSCRIPT_STRING, "setup", "set_default_enter_message" }),
+	  "wrong_exit" : ({ LPSCRIPT_STRING, "setup", "set_default_error"}),
+	  "enter_msg" : ({ LPSCRIPT_TWO,  (: ({ "setup", "set_enter_msg(\""+$1+"\",\""+$2[0]+"\")" }) :) }),
+	  "exit_msg" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_exit_msg(\""+$1+"\",\""+$2[0]+"\")" }) :) }),
+	  "exit_description" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_exit_description(\""+$1+"\",\""+$2[0]+"\")" }) :) }),
+	  ]);
 }

@@ -80,6 +80,11 @@ main(mixed argv, mapping flags, string stdin)
     {
 	if(file_size(file) < 1)
 	    continue;
+	if(file_size(file) > MAX_FILE_SIZE)
+	{
+	    outf("Ignoring file %s - too large!\n", file);
+	    continue;
+	}
 	ed_start(file);
 	if(flags["n"])
 	    ed_cmd("n");

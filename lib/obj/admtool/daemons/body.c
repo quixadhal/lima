@@ -25,7 +25,8 @@ private nomask void print_body(string cmd, string bodytype)
   string output = sprintf("%-20s %-15s %-15s %-15s\n", "Limb", "Health", "Parent Limb", "Type");
 
   output += "--------------------------------------------------------------------\n";
-  foreach ( string key, class limb val in body_info )
+  if(sizeof(body_info))
+    foreach ( string key, class limb val in body_info )
     {
       string *type = ({});
       if ( LIMB_VITAL &  val->flags )  type += ({ "vital" });
@@ -39,6 +40,8 @@ private nomask void print_body(string cmd, string bodytype)
 			val->parent?val->parent:"None",
 			implode(type, ", "));
     }
+  else
+    output += "NONE";
   more(output);
 }
 
@@ -118,7 +121,7 @@ private nomask void set_limb_health(string bodytype, string limb, string health)
 
 private nomask void add_limb(string cmd, string bodytype, string limb)
 {
-  if ( BODY_D->get_body(bodytype) == 0 )
+  if ( !sizeof(BODY_D->get_body(bodytype)) )
     {
       write("That body does not exist.\n");
       return;

@@ -88,3 +88,10 @@ void mudlib_setup()
 {
   add_hook("move", moved_fn);
 }
+
+mapping lpscript_attributes()
+{
+  return ([
+    "aggressive" : ({ LPSCRIPT_INT, "setup", "set_aggressive" }),
+    ]);
+}

@@ -110,8 +110,8 @@ private void main(string arg)
 	    soul_ret = SOUL_D->parse_imud_soul(arg);
 	    
 	    if(!soul_ret)  {
-	      IMUD_D->do_emoteto(host, user, 
-				 sprintf("%s@%s %s",capitalize(user),host,arg));
+	      IMUD_D->do_emoteto(host, user, "$N " + arg);
+//				 sprintf("%s@%s %s",capitalize(user),host,arg));
 	      outf("%%^TELL%%^You emote to %s@%s:%%^RESET%%^ %s %s\n", 
 		   capitalize(user),
 		   host,

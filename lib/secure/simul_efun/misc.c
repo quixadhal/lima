@@ -11,8 +11,8 @@ private nosave string array normal_directions = ({ "up", "down",
                                                    "southeast", "southwest",
                                                    "south", "west" });
 
-//FUNCTION: is_normal_direction
-//returns the stack of objects and functions
+//FUNCTION is_normal_direction
+//returns 1 if the direction is 'normal'
 int
 is_normal_direction(string dir) {
      if (member_array(dir, normal_directions) != -1)
@@ -265,9 +265,9 @@ object parse_ref_into_obj(string Ref)
    exec_code allows you to evaluate a string as LPC code. */
 varargs mixed exec_code(string arg, string dir, string includefile)
 {
-    // DO NOT USE UNGUARDED IN HERE
-    // If perms are bad, we want to fail.  Use unguarded(1, (: exec_code :))
-    // if really necessary -Beek
+// DO NOT USE UNGUARDED IN HERE
+// If perms are bad, we want to fail.  Use unguarded(1, (: exec_code :))
+// if really necessary -Beek
   string	file = dir + "/exec.c";
   object	tmp;
   mixed		retval;
@@ -275,26 +275,25 @@ varargs mixed exec_code(string arg, string dir, string includefile)
   int		i;
   string	contents;
   
-    if(tmp = find_object(file))
-	destruct(tmp);
+  if(tmp = find_object(file))
+    destruct(tmp);
 
-    rm(file);
+  rm(file);
 
-    if(!stringp(arg))
-	error("Bad type argument 1 to exec_code");
-    info = reg_assoc(arg, ({"\\.[a-zA-Z:/\_]+"}),({0}))[0];
-    for(i=0; i < sizeof(info);i++)
+  if(!stringp(arg))
+    error("Bad type argument 1 to exec_code");
+  info = reg_assoc(arg, ({"\\.[a-zA-Z:/\_]+"}),({0}))[0];
+  for(i=0; i < sizeof(info);i++)
 	{
-	    if(info[i][0] == '.' && strlen(info[i]) > 1 )
-		{
-		    info[i] = parse_ref(info[i]);
-		}
+    if(info[i][0] == '.' && strlen(info[i]) > 1 )
+	    info[i] = parse_ref(info[i]);
 	}
-    arg = implode(info,"");
+  arg = implode(info,"");
 
-    if (strsrch(arg,";")==-1) arg = "return "+arg;
+  if (strsrch(arg,";")==-1)
+    arg = "return "+arg;
 
-    contents = @END
+  contents = @END
 #include <mudlib.h>
 #include <security.h>
 inherit M_ACCESS;
@@ -302,15 +301,14 @@ create() { set_privilege(1); }
 
 END;
     
-    if(includefile)
-	contents += sprintf("\n#include \"%s\"\n", includefile);
+  if(includefile)
+    contents += sprintf("\n#include \"%s\"\n", includefile);
     contents += sprintf( "mixed exec_foo(){ %s", arg );
     contents += ";}\n";
     write_file(file, contents);
     retval = file->exec_foo();
     rm(file);
     return retval;
-
 }
     
 // eval by Rust, so that you can
@@ -357,7 +355,7 @@ varargs mixed eval( string arg, string includefile )
     if( strlen( arg ) < 4 )
 	return arg;
 
-    write_file( file, sprintf( "foo(){ return %s; }\n", arg ) );
+    write_file( file, sprintf( "mixed foo(){ return %s; }\n", arg ) );
     if( catch( tmp = file->foo() ) ) 
 	return arg;
 
@@ -674,3 +672,5 @@ string dump_socket_status() {
   return ret;
 }
 
+
+string lima_version() { return "Lima 1.0b4"; }

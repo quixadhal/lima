@@ -47,11 +47,12 @@ string main (string pattern)
   mixed array	data;
 
   if (!pattern)
-    {
-      pattern = "*";
-    }
+    pattern = "*";
   
   pattern = lower_case (pattern);
+  if(pattern[0] == '=')
+    pattern=pattern[1..];
+
   pattern = "^" + M_GLOB->translate (pattern, 1);
   mudlist = filter_mapping (mudlist, (: regexp (lobotomize($1), $(pattern)) :));
   if (!sizeof (mudlist))
@@ -65,7 +66,7 @@ string main (string pattern)
       "<br><font size=+1><em>";
     foreach (mudname in sort_array (keys (mudlist), 1))
     {
-      ret += sprintf ("<a href=http://%s:%d/cgi/mudinfo.c?=%s>%s</a><br>",
+      ret += sprintf ("<a href=http://%s:%d/cgi/mudinfo.c?=%s$>%s</a><br>",
 		      __HOST__, PORT_HTTP, mudname, mudname);
     }
     return ret + "</em></font>";

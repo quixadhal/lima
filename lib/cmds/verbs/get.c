@@ -74,7 +74,7 @@ void do_get_obj_with_obj(object ob1, object ob2) {
 
 void do_get_wrd_obj(string prep,object ob)
 {
-  ob->do_verb_rule("get", "WRD OBJ",prep,ob);
+    ob->do_verb_rule("get", "WRD OBJ",prep,ob);
 }
 
 mixed can_get_wrd_str(string amount, string str) {
@@ -82,8 +82,8 @@ mixed can_get_wrd_str(string amount, string str) {
     string s1, s2;
     sscanf(amount, "%d%s", z, s1);
     if (s1 != "" && amount != "all")
-        return 0;
-    
+	return 0;
+
     sscanf(str, "%s %s", s1, s2);
     if (s2) {
 	if (s2 != "coin" && s2 != "coins")
@@ -110,14 +110,20 @@ void do_get_wrd_str(string amount, string str) {
     object obj;
 
     if (obj = present("money", environment(this_body())))
-        do_get_wrd_str_from_obj(amount, str, environment(this_body()));
+	do_get_wrd_str_from_obj(amount, str, environment(this_body()));
     else
 	write("There are no coins here.\n");
+}
+
+void do_get_wrd(string prep)
+{
+    environment(this_body())->do_verb_rule("get","WRD",prep);
 }
 
 void create()
 {
     add_rules( ({ "OBS", "WRD STR", "OBS from OBJ", "OBS out of OBJ",
-"OBJ with OBJ", "WRD STR from OBJ", "WRD OBJ" }),
-	       ({ "take", "carry", "pick up" }) );
+	"OBJ with OBJ", "WRD STR from OBJ", "WRD OBJ" }),
+      ({ "take", "carry", "pick up" }) );
+    add_rules( ({ "WRD" }) );
 }

@@ -131,7 +131,8 @@ SKTLOG("write_callback: # elem",sizeof(write_queue));
     */
     if ( !sizeof(write_queue) && write_func && blocked )
     {
-        write_queue = ({ evaluate(write_func, this_object()) });
+//        write_queue = ({ evaluate(write_func, this_object()) });
+        evaluate(write_func, this_object());
     }
 
     blocked = 0;

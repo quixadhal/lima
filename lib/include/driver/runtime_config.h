@@ -48,7 +48,7 @@
  * These config settings return an int (ie number)
  */
 
-#define BASE_CONFIG_INT (BASE_CONFIG_STR + 14)
+#define BASE_CONFIG_INT (BASE_CONFIG_STR + 15)
 #define CFG_INT(x)  ((x) + BASE_CONFIG_INT)
 
 #define __MUD_PORT__                CFG_INT(0)

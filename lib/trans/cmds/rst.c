@@ -12,7 +12,6 @@
 // Menu item ? will show your selection, again. Menu item
 // q will cancel the restoration process.
 
-//:FLAME
 // 1998-Oct-15 : Halo@Timescapes        : Created.
 // 1999-Mar-17 : Rodney@Timescapes      : Updated to recognize new ".c.bakDATE"
 //                                      : formatted filenames

@@ -527,6 +527,10 @@ int complex_exit_do_verb_rule(string verb,string rule,mixed args...)
 	args[0]=PREPOSITION_D->translate_preposition(args[0]);
 	method=sprintf("%s %s",verb,args[0]);
     }
+    else if(rule=="WRD")
+    {
+	method=sprintf("%s %s",verb,args[0]);
+    }
     else
 	method=verb;
     /* We know now that there can be only one match, or it would not have 

@@ -5,13 +5,16 @@ is=room
 objects=
   octopus=
     is=monster
-    proper_name=octopus
+    primary_id=octopus
     max_health=100
     weapon_class=12
     in_room_desc=An octopus
     long=A very big octopus with long arms, reaching for you.
+    relations=in
+    default_relation=in
     capacity=500
-    objects=obj/chest.scr(random(500))
+#    objects=obj/chest.scr(random(500))
+    objects=obj/chest.scr(1,random(500))
   end
 
 exits=up:sea.scr

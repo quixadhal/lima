@@ -1,23 +1,27 @@
 # Do not remove the headers from this file! see /USAGE for more info.
 
-is= obj,gettable
+is= object,gettable
 
 primary_id= camera
 id= button
 long= It's a polaroid camera!  There is a button on top.
 
-press:
-  action[player; this] "$N $vtake a picture with $p $o.\nA polaroid picture slides out the front of $o."
+do_press:
+  action $N $vtake a picture with $p $o.\nA polaroid picture slides out the front of $o.
 
   $picture = new "/domains/lpscript/picture.scr"
-  if (failed (call $picture "move" player))
+  if (call $picture "move" me)
     call $picture "move" here
 
   ok
 end
 
 ---
+mixed direct_press_obj(){ return 1; }
+
 string get_item_desc(string str) {
     if (str == "button")
 	return "Hmm.  A button on a camera.  My, my, whatever might it do?";
 }
+
+//  if (failed (call $picture "move" player))

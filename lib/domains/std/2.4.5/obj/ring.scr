@@ -1,0 +1,23 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object
+primary_id=ring
+id=rings
+primary_adj=iron
+flag=attached
+---
+mixed indirect_tie_obj_to_obj() { return 1; }
+
+void tie(object ob)
+{
+  environment(this_object())->add_exit("down",
+    "/domains/std/2.4.5/mine/tunnel9.scr");
+  "/domains/std/2.4.5/mine/tunnel9.scr"->add_exit("up",
+    file_name(environment(this_object())));
+}
+
+void untie(object ob)
+{
+  environment(this_object())->delete_exit("down");
+  "/domains/std/2.4.5/mine/tunnel9.scr"->delete_exit("up");
+}

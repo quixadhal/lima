@@ -39,22 +39,21 @@ mapping lpscript_attributes;
 //return some debugging info about the state of the object
 string stat_me() 
 {
-    string result = ::stat_me() +
-	"Short: "+short()+"\n";
+  string result = ::stat_me() +
+    "Short: "+short()+"\n";
 
 #ifdef USE_SIZE
-    result += "Size: "+query_size()+" Light: " + query_light() + "\n";
+  result += "Size: "+query_size()+" Light: " + query_light() + "\n";
 #else
 # ifdef USE_MASS
-    result += "Weight: "+query_mass()+"  Light: " + query_light() + "\n";
+  result += "Weight: "+query_mass()+"  Light: " + query_light() + "\n";
 # else
-    result += "Light: "+query_light() + "\n";
+  result += "Light: "+query_light() + "\n";
 # endif
 #endif
 
-    return result;
+  return result;
 }
-
 
 //:FUNCTION setup
 // This function is overloaded by area implementors.  Nothing in
@@ -64,7 +63,7 @@ string stat_me()
 // function call.
 void setup(mixed array args...)
 {
-    /* Overload me! */
+/* Overload me! */
 }
 
 //:FUNCTION mudlib_setup
@@ -79,43 +78,41 @@ void setup(mixed array args...)
 // blow away some of their settings.
 void mudlib_setup(mixed array args...)
 {
-    /* Overload me! */
-
+/* Overload me! */
 }
 
 void create(mixed array args...)
 {
-    base_obj::create();
-    configure_set(STD_FLAGS, 0, (: resync_visibility :));
+  base_obj::create();
+  configure_set(STD_FLAGS, 0, (: resync_visibility :));
 
-    if ( clonep(this_object()) )
-    {
-	mudlib_setup(args...);
+  if ( clonep(this_object()) )
+  {
+    mudlib_setup(args...);
 
-	// Use a call_other to avoid a redeclaration warning, since
-	// mostly modules that aren't directly inheriting us will define
-        // this function.
-	this_object()->internal_setup(args...);
+// Use a call_other to avoid a redeclaration warning, since
+// mostly modules that aren't directly inheriting us will define
+// this function.
+    this_object()->internal_setup(args...);
 
-	setup(args...);
-    }
+    setup(args...);
+  }
 }
-
 
 /* arbitrate some stuff that was stubbed in BASE_OBJ */
 varargs mixed  call_hooks( array args...)
 {
-    return hooks::call_hooks(args...);
+  return hooks::call_hooks(args...);
 }
 
 int is_visible()
 {
-    return visible::is_visible();
+  return visible::is_visible();
 }
 
 void set_light(int x)
 {
-    light::set_light(x);
+  light::set_light(x);
 }
 
 //### defeats the purpose, doesn't it?  I think this should default to 
@@ -123,12 +120,12 @@ void set_light(int x)
 //### disallow() ...
 int allow(string what)
 {
-    return 1;
+  return 1;
 }
 
 // by default, if we appear to be useless, we are!
 int destruct_if_useless() {
-    destruct(this_object());
+  destruct(this_object());
 }
 
 // Be *very* careful about calling functions in other objects from here,
@@ -138,61 +135,67 @@ int destruct_if_useless() {
 // e.g. environment()->anything, like many libs do, is remarkably stupid.
 int clean_up(int instances)
 {
-    // If we have an environment, we will be destructed when our environment
-    // cleans up.  So no need to worry about it ourself.  Note that once
-    // we have an environment, we can never lose it, so the driver need not
-    // worry about us any more.
-    if ( environment() )
-	return NEVER_AGAIN;
+// If we have an environment, we will be destructed when our environment
+// cleans up.  So no need to worry about it ourself.  Note that once
+// we have an environment, we can never lose it, so the driver need not
+// worry about us any more.
+  if ( environment() )
+    return NEVER_AGAIN;
 
-    // if we are inherited, or have clones around, we don't want to clean up
-    // as that would cause this program to need to be recompiled later.
-    // (note: instances is only ever nonzero for blueprints)
-    // This may change later, though.
-    // Instances are always coing to be at least one because the blueprint is 
-    // counted.  -- Tigran
-    if ( instances>1 )
-	return ASK_AGAIN;
+// if we are inherited, or have clones around, we don't want to clean up
+// as that would cause this program to need to be recompiled later.
+// (note: instances is only ever nonzero for blueprints)
+// This may change later, though.
+// Instances are always coing to be at least one because the blueprint is 
+// counted.  -- Tigran
+// Actually the 'instances' counter is inaccurate - so check 'children'
+// instead -- Loriel
+//  if ( instances>1 )
+  if(base_name(this_object())[0..1] != "/d")
+    return NEVER_AGAIN;
+  if(sizeof(children(base_name(this_object())))>1)
+    return ASK_AGAIN;
 
-    // We don't have an environment.  We appear to be useless!
-    return destruct_if_useless();
+// We don't have an environment.  We appear to be useless!
+  return destruct_if_useless();
 }
 
 void on_clone( mixed array args... )
 {
 }
 
-
 void set_lpscript_attributes(mapping attributes)
 {
   if(base_name(previous_object())!=LPSCRIPT_D)
     error("Access violation:  Illegal attempt to set_lpscript_attributes");
-  lpscript_attributes=attributes;
+      lpscript_attributes=attributes;
 }
 
-string array list_lpscript_attributes() {
+string array list_lpscript_attributes()
+{
   return copy(keys(lpscript_attributes));
 }
 
-mapping dump_lpscript_attributes() {
+mapping dump_lpscript_attributes()
+{
   return copy(lpscript_attributes);
 }
 mapping lpscript_attributes() {
-    return ([
-        "adj" : ({ LPSCRIPT_LIST, "setup", "add_adj" }),
-        "id" : ({ LPSCRIPT_LIST, "setup", "add_id" }),
-        "primary_adj" : ({ LPSCRIPT_STRING, "setup", "set_adj" }),
-        "primary_id" : ({ LPSCRIPT_STRING, "setup", "set_id" }),
-	"in_room_desc" : ({ LPSCRIPT_STRING, "setup", "set_in_room_desc" }),
-	"long" : ({ LPSCRIPT_STRING, "setup", "set_long" }),
-	"flag" : ({ LPSCRIPT_FLAGS }),
-        "light" : ({ LPSCRIPT_INT, "setup", "set_light" }),
+  return ([
+    "adj" : ({ LPSCRIPT_LIST, "setup", "add_adj" }),
+    "id" : ({ LPSCRIPT_LIST, "setup", "add_id" }),
+    "primary_adj" : ({ LPSCRIPT_STRING, "setup", "set_adj" }),
+    "primary_id" : ({ LPSCRIPT_STRING, "setup", "set_id" }),
+    "in_room_desc" : ({ LPSCRIPT_STRING, "setup", "set_in_room_desc" }),
+    "long" : ({ LPSCRIPT_STRING, "setup", "set_long" }),
+    "flag" : ({ LPSCRIPT_FLAGS }),
+    "light" : ({ LPSCRIPT_INT, "setup", "set_light" }),
 #ifdef USE_MASS
-        "mass" : ({ LPSCRIPT_INT, "setup", "set_mass" }),
-        "weight" : ({ LPSCRIPT_INT, "setup", "set_mass" }),
+    "mass" : ({ LPSCRIPT_INT, "setup", "set_mass" }),
+    "weight" : ({ LPSCRIPT_INT, "setup", "set_mass" }),
 #else
-        "mass" : ({ LPSCRIPT_SPECIAL, 0 }),
-        "weight" : ({ LPSCRIPT_SPECIAL, 0 }),
+      "mass" : ({ LPSCRIPT_INT, "setup", "set_size" }),
+      "weight" : ({ LPSCRIPT_INT, "setup", "set_size" }),
 #endif
     ]);
 }

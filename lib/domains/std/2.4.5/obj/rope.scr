@@ -1,0 +1,47 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object,gettable, valuable
+primary_id=rope
+in_room_desc=A rope
+value=15
+weight=1
+variables=tied_to,tied_to_ob
+---
+string short()
+{
+  if(_tied_to)
+    return ::short() + " tied to " + _tied_to;
+  return ::short();
+}
+
+mixed direct_tie_obj_to_obj()
+{
+  if (_tied_to)
+  {
+//    write("It is already tied to " + tied_to + ".\n");
+    return "It is already tied to " + _tied_to + ".\n";
+  }
+  return 1;
+}
+
+void do_tie(object ob)
+{
+  ob->tie(this_object());
+  set_getmsg("You can't - it's tied.");
+  _tied_to_ob = ob;
+  _tied_to = ob->short();
+  this_body()->targetted_action("$N $vtie the rope to $t.", ob);
+  this_object()->move(environment(ob));
+}
+
+void do_untie()
+{
+  if(_tied_to_ob)
+  {
+    _tied_to_ob->untie(this_object());
+    this_body()->targetted_action("$N $vuntie the rope from $t.", _tied_to_ob);
+  }
+  set_gettable(1);
+  _tied_to_ob=0;
+  _tied_to=0;  
+}

@@ -29,7 +29,7 @@ void return_error(string mudname, string username,
 void add_cache_entry(string mudname, string username,
 		     string visname, int gender);
 string get_visname( string mudname, string username );
-
+string canon_mudname(string mudname);
 
 protected nomask int query_chanlist_id()
 {
@@ -98,48 +98,44 @@ nomask void channel_rcv_data(string channel_name,
 protected nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 				      string targ_user, mixed * message)
 {
-    string channel_name;
-    mixed channel_data;
-    
-    chanlist_id = message[0];
+  string channel_name;
+  mixed channel_data;
+  string array added_channels = keys(message[1]) - keys(chanlist);
+  string array removed_channels = keys(chanlist) - keys(message[1]);
 
-    foreach ( channel_name, channel_data in message[1] )
-    {
-	string int_name = "imud_" + channel_name;
-	    
-	if ( !channel_data )
-	{
-	    map_delete(chanlist, channel_name);
-	    CHANNEL_D->unregister_channels(({ int_name }));
-	}
-	else
-	{
-	    chanlist[channel_name] = channel_data;
-//	  /* We only want to add the channels that the mud is listening to. */
-//	  if(member_array(channel_name,listened_channels)>-1) {
-	    CHANNEL_D->register_channels(({ int_name }));
-//	  }	    
-	}
-    }
+  chanlist_id = message[0];
+  chanlist = message[1];
+
+  foreach(channel_name in removed_channels)
+  {
+    string int_name = "imud_" + channel_name;
+    CHANNEL_D->unregister_channels(({ int_name }));
+  }
+
+  foreach(channel_name in keys(message[1]))
+  {
+    string int_name = "imud_" + channel_name;
+    CHANNEL_D->register_channels(({ int_name }));
+  }
+ 
+  chanlist = message[1];
 }
 
 protected nomask void rcv_chan_who_req(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
-    object * listeners = CHANNEL_D->query_listeners("imud_" + message[0]);
+  object * listeners = CHANNEL_D->query_listeners("imud_" + message[0]);
 
-
-    if ( !listeners )
-    {
-	return_error(orig_mud, orig_user, "unk-channel",
-		     sprintf("Never heard of '%s'", message[0]));
-    }
-    else
-    {
-	listeners -= ({ 0, this_object() });
-	send_to_user("chan-who-reply", orig_mud, orig_user,
-		     ({ message[0], listeners->query_body()->query_name() }));
-    }
+  if ( !listeners )
+  {
+    return_error(orig_mud, orig_user, "unk-channel",
+        sprintf("Never heard of '%s'", message[0]));
+  } else {
+    listeners -= ({ 0, this_object() });
+    listeners = filter(listeners, (: userp($1) :) );
+    send_to_user("chan-who-reply", orig_mud, orig_user,
+        ({ message[0], listeners->query_body()->query_name() }));
+  }
 }
 
 protected nomask void rcv_chan_who_reply(string orig_mud, string orig_user,
@@ -286,6 +282,7 @@ protected nomask void chan_startup()
   CHANNEL_D->register_channels(map_array(listened_channels,
 			       (: "imud_" + $1 :)));
 }
+
 protected nomask void chan_shutdown()
 {
     CHANNEL_D->unregister_channels();
@@ -293,7 +290,7 @@ protected nomask void chan_shutdown()
 
 nomask mapping query_chanlist()
 {
-    return copy(chanlist);
+  return copy(chanlist);
 }
 
 nomask void add_channel(string channel_name, int channel_type)
@@ -312,7 +309,7 @@ nomask void remove_channel(string channel_name)
 
 nomask void remote_listeners(string mudname, string channel_name)
 {
-    send_to_mud("chan-who-req", mudname, ({ channel_name }));
+  send_to_mud("chan-who-req", canon_mudname(mudname), ({ channel_name }));
 }
 
 nomask void listen_to_channel(string channel_name) {
@@ -335,8 +332,8 @@ nomask void ignore_channel(string channel_name) {
 }
 
 nomask void ban_mud(string chan, string mud) {
-//  if ( !check_privilege(PRIV_REQUIRED) )
-//    error("security: illegal attempt to administer an intermud channel\n");
+  if ( !check_privilege(PRIV_REQUIRED) )
+    error("security: illegal attempt to administer an intermud channel\n");
   send_to_router("channel-admin", ({ chan, ({}), ({ mud })}));
 }
 

@@ -1,0 +1,22 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object,gettable,valuable,drinkable
+id=beer
+long=A beer
+value=5
+weight=3
+
+direct_drink_obj:
+  ok
+end
+
+drink_me:
+  call who "heal_me" 1
+  call who "tell" "That feels good!\n"
+end
+---
+void mudlib_setup()
+{
+  ::mudlib_setup();
+  set_drink_action( ( :drink_me: ) );
+}

@@ -88,7 +88,10 @@ string get_who_string(string arg)
     {
 	args-=({"h"});
 	DEBUG("Header");
-	retval += colour_center(implode(explode(mud_name(), ""), " ")) + "\n" + colour_center("(PST is: " + ctime(time()) + ")") + "\n" + colour_center("There are " + sizeof(b) + " users connected.") + "\n" + no_delim?"":DELIM;
+  retval += colour_center(implode(explode(mud_name(), ""), " ")) + "\n";
+  retval += colour_center("(PST is: " + ctime(time()) + ")") + "\n";
+  retval += colour_center("There are " + sizeof(b) + " users connected.") + "\n";
+  retval += no_delim?"":DELIM;
     }
     else
     if (member_array("H",args)!=-1)

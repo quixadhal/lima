@@ -21,7 +21,7 @@ INLINE int set_socket_owner P2(int, fd, int, which)
 #ifdef OLD_ULTRIX
     return fcntl(fd, F_SETOWN, which);
 #else
-#ifdef WINSOCK
+#if defined(WINSOCK) || defined(__CYGWIN__)
     return 1; /* FIXME */
 #else
     return ioctl(fd, SIOCSPGRP, &which);

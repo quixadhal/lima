@@ -348,3 +348,13 @@ void mudlib_setup()
   add_hook("close",close_hook);
   add_hook("extra_long",extra_long_hook);
 }
+
+mapping lpscript_attributes()
+{
+  return ([
+    "title" : ({ LPSCRIPT_STRING, "setup", "set_title" }),
+    "author" : ({ LPSCRIPT_STRING, "setup", "set_author" }),
+    "pages" : ({ LPSCRIPT_LIST, "setup", "set_pages" }),
+    "contents" : ({ LPSCRIPT_MAPPING, "setup", "set_contents" }),
+  ]);
+}

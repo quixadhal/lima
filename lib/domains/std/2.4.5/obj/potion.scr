@@ -1,0 +1,21 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object,gettable,valuable,drinkable
+id=potion
+long=A healing potion
+value=200
+weight=1
+---
+void drink_me()
+{
+  this_body()->heal_me(200);
+  tell(this_user(), "You feel much better!\n");
+}
+
+void mudlib_setup()
+{
+  ::mudlib_setup();
+  set_drink_action( (: drink_me :) );
+}
+
+mixed direct_drink_obj() { return 1; }

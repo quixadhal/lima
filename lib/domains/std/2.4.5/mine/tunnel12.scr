@@ -4,7 +4,7 @@ is=room
 light=0
 brief=Tunnel
 exits=
-  south:tunnel11
-  north:tunnel13
+  south:tunnel11.scr
+  north:tunnel13.scr
 end
 long=In the tunnel into the mines.

@@ -6,8 +6,8 @@
 #
 # The current versions are:
 #
-#    Lima Mudlib:  Lima 1.0b1
-#    MudOS:        MudOS v22.2a31
+#    Lima Mudlib:  Lima 1.0b4
+#    MudOS:        MudOS v22.2b13
 #
 #
 # 951030, Deathblade: updated - reorganized, commented, etc
@@ -27,7 +27,7 @@
 #
 # This will be the name of your mud.
 #
-name : Your Mud's name here
+name : Lima Mud
 
 #
 # [ optional ]
@@ -61,7 +61,7 @@ address server port : 9990
 # This should be the absolute pathname to where you placed your copy of
 # the Lima Mudlib.
 #
-mudlib directory : /home/mud/lima-1.0b1/lib
+mudlib directory : /home/David/lima-1.0b4/lib
 
 #
 # [ REQUIRED ]
@@ -69,7 +69,7 @@ mudlib directory : /home/mud/lima-1.0b1/lib
 # This should be the absolute pathname to where you placed your copy of
 # the driver that you built.
 #
-binary directory : /home/mud/lima-1.0b1/etc
+binary directory : /home/David/lima-1.0b4/etc
 
 
 # ------------------------------------------------------------------------

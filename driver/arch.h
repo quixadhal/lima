@@ -7,6 +7,22 @@
 #define ARCH "Sequent DYNIX"
 #endif
 
+/*
+ * Note - Cygwin runs under windows and automatically
+ * defines a number of windows related things. These
+ * must be undef'd so that the 'normal' windows port code
+ * in MudOS is not used.
+ */
+#ifdef __CYGWIN__
+#undef WINNT
+#undef WIN95
+#undef WIN98
+#undef WINSOCK
+#undef WIN32
+#define ARCH "Cygwin-32"
+#endif
+
+
 #ifdef WINNT
 #define ARCH "Microsoft Windows NT"
 #endif
@@ -131,6 +147,10 @@
 
 #if !defined(ARCH) && defined(LATTICE)
 #define ARCH "Amiga"
+#endif
+
+#if !defined(ARCH) && defined(__APPLE__) && defined(__GNUC__)
+#define ARCH "Mac OS X"
 #endif
 
 #ifndef ARCH

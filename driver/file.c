@@ -366,7 +366,11 @@ int legal_path P1(char *, path)
     if (strchr(path, ':'))
 	return 0;
 #endif
-    return 1;
+//    return 1;
+     if( ( p = strrchr( path, '/') ) )
+         return ( ( strlen(path) - ( p - path ) - 1 ) < MAX_FNAME_SIZE );
+     else
+         return ( strlen(path) < MAX_FNAME_SIZE );
 }				/* legal_path() */
 
 /*

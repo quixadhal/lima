@@ -1,0 +1,69 @@
+---
+Sat Jan  4 06:48:18 2003
+*Bad argument 1 to explode()
+Expected: string Got: -1.
+Object: /obj/admtool/secure/user#27 (/obj/admtool/internal/base.c) at line 162
+
+'<function>' at /secure/user#2 (<function>) at /:0
+'dispatch_modal_input' at /secure/user#2 (/secure/user/inputsys.c) at line 311
+'<function>' at /obj/admtool/secure/user#27 (<function>) at /:0
+'receive_name_for_dewiz' at /obj/admtool/secure/user#27 at line 158
+'force_me' at /secure/user#2 (/secure/user/inputsys.c) at line 361
+'dispatch_to_bottom' at /secure/user#2 (/secure/user/inputsys.c) at line 283
+'<function>' at /trans/obj/wish#5 (<function>) at /:0
+'shell_input' at /trans/obj/wish#5 (/obj/secure/shell.c) at line 116
+'execute_command' at /trans/obj/wish#5 at line 240
+'call_main' at /cmds/player/su (/obj/secure/cmd.c) at line 34
+'main' at /cmds/player/su at line 43
+'switch_user' at /secure/user#2 (/secure/user/sw_user.c) at line 135
+'do_su' at /secure/user#2 (/secure/user/sw_user.c) at line 45
+'clear_input_stack' at /secure/user#2 (/secure/user/inputsys.c) at line 384
+'CATCH' at /secure/user#2 (/secure/user/inputsys.c) at line 384
+'<function>' at /obj/admtool/secure/user#27 (<function>) at /:0
+'handle_input' at /obj/admtool/secure/user#27 (/obj/admtool/internal/base.c) at line 162
+---
+Sat Jan  4 06:48:18 2003
+*Bad argument 1 to explode()
+Expected: string Got: -1.
+Object: /obj/admtool/secure#24 (/obj/admtool/internal/base.c) at line 162
+
+'<function>' at /secure/user#2 (<function>) at /:0
+'dispatch_modal_input' at /secure/user#2 (/secure/user/inputsys.c) at line 311
+'<function>' at /obj/admtool/secure/user#27 (<function>) at /:0
+'receive_name_for_dewiz' at /obj/admtool/secure/user#27 at line 158
+'force_me' at /secure/user#2 (/secure/user/inputsys.c) at line 361
+'dispatch_to_bottom' at /secure/user#2 (/secure/user/inputsys.c) at line 283
+'<function>' at /trans/obj/wish#5 (<function>) at /:0
+'shell_input' at /trans/obj/wish#5 (/obj/secure/shell.c) at line 116
+'execute_command' at /trans/obj/wish#5 at line 240
+'call_main' at /cmds/player/su (/obj/secure/cmd.c) at line 34
+'main' at /cmds/player/su at line 43
+'switch_user' at /secure/user#2 (/secure/user/sw_user.c) at line 135
+'do_su' at /secure/user#2 (/secure/user/sw_user.c) at line 45
+'clear_input_stack' at /secure/user#2 (/secure/user/inputsys.c) at line 384
+'CATCH' at /secure/user#2 (/secure/user/inputsys.c) at line 384
+'<function>' at /obj/admtool/secure#24 (<function>) at /:0
+'handle_input' at /obj/admtool/secure#24 (/obj/admtool/internal/base.c) at line 162
+---
+Sat Jan  4 06:48:18 2003
+*Bad argument 1 to explode()
+Expected: string Got: -1.
+Object: /obj/admtool/admtool2#23 (/obj/admtool/internal/base.c) at line 162
+
+'<function>' at /secure/user#2 (<function>) at /:0
+'dispatch_modal_input' at /secure/user#2 (/secure/user/inputsys.c) at line 311
+'<function>' at /obj/admtool/secure/user#27 (<function>) at /:0
+'receive_name_for_dewiz' at /obj/admtool/secure/user#27 at line 158
+'force_me' at /secure/user#2 (/secure/user/inputsys.c) at line 361
+'dispatch_to_bottom' at /secure/user#2 (/secure/user/inputsys.c) at line 283
+'<function>' at /trans/obj/wish#5 (<function>) at /:0
+'shell_input' at /trans/obj/wish#5 (/obj/secure/shell.c) at line 116
+'execute_command' at /trans/obj/wish#5 at line 240
+'call_main' at /cmds/player/su (/obj/secure/cmd.c) at line 34
+'main' at /cmds/player/su at line 43
+'switch_user' at /secure/user#2 (/secure/user/sw_user.c) at line 135
+'do_su' at /secure/user#2 (/secure/user/sw_user.c) at line 45
+'clear_input_stack' at /secure/user#2 (/secure/user/inputsys.c) at line 384
+'CATCH' at /secure/user#2 (/secure/user/inputsys.c) at line 384
+'<function>' at /obj/admtool/admtool2#23 (<function>) at /:0
+'handle_input' at /obj/admtool/admtool2#23 (/obj/admtool/internal/base.c) at line 162

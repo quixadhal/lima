@@ -1,0 +1,21 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
+is=object,gettable,valuable,drinkable
+id=special
+long=A house special
+value=50
+weight=3
+---
+void drink_me()
+{
+  this_body()->heal_me(10);
+  tell(this_user(), "A tingling feeling goes through your body!\n");
+}
+
+void mudlib_setup()
+{
+  ::mudlib_setup();
+  set_drink_action( (: drink_me :) );
+}
+
+mixed direct_drink_obj() { return 1; }

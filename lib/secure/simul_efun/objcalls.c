@@ -221,7 +221,7 @@ varargs string inv_list(object array obs, int flag, int depth) {
 
     depth++;
     res = "";
-    foreach (object ob in obs) {
+    foreach (object ob in obs - ({ 0 })) {
 	if (!ob->is_visible()) continue;
 	if (!ob->short()) continue;
 	if (flag && !ob->test_flag(TOUCHED) && ob->untouched_long()) continue;

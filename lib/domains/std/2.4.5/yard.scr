@@ -20,7 +20,7 @@ objects=
     weight=2
   end
   beggar=
-    is=monster
+    is=monster, actor
     proper_name=beggar
     in_room_desc=A beggar
     id=beggar
@@ -31,22 +31,21 @@ objects=
       nexttrigger
     end
     trigger[* gives you * coins.]:
-      if (lcall "query_money") > 12
+#      if (lcall "query_amt_money" "gold") > 12
         !east
         !buy beer
         !drink beer
         !west
+#      end
+    end
+    periodic[1 to 99]:
+#FIXME: check if under attack
+      oneof
+        !say Please, give money to a poor beggar!
+        !say Why can't I find any money ?
+        !say two coins please !
       end
     end
-  end
-end
-
-periodic[1 to 99]:
-#FIXME: check if under attack
-  oneof
-    !say Please, give money to a poor beggar!
-    !say Why can't I find any money ?
-    !say Beggar says: two coins please !
   end
 end
 

@@ -31,10 +31,12 @@ trigger[*want*castle*]:
 
 periodic[5 to 100]:
   !smile
-
-#orc slayer stuff; run off of receive_object:
-#        if (!ob || !call_other(ob, "id", "orc slayer"))
-#            return;
-#        respond("Leo says: Well done. You have fullfilled this quest.\n");
-#        call_other(from, "set_quest", "orc_slayer");
-#        destruct(ob);
+---
+mixed receive_object(object ob)
+{
+  if((!ob) || (!ob->id("orc slayer")))
+    return ::receive_object(ob);
+  respond("Leo says: Well done. You have fullfilled this quest.\n");
+  call_out("destruct", 0, ob);
+  return 1;
+}

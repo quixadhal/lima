@@ -265,6 +265,8 @@ static void look_for_objects_to_swap()
 	    && !(ob->flags & O_RESET_STATE)) {
 	    debug(d_flag, ("RESET /%s\n", ob->name));
 	    reset_object(ob);
+	    if (ob->flags & O_DESTRUCTED)
+		continue;
 	}
 #endif
 	if (time_to_clean_up > 0) {
@@ -691,17 +693,38 @@ char *query_load_av()
 
 #ifdef F_HEART_BEATS
 array_t *get_heart_beats() {
-    int n = num_hb_objs;
+    int nob = 0, n = num_hb_objs;
     heart_beat_t *hb = heart_beats;
+    object_t **obtab;
     array_t *arr;
-    
-    arr = allocate_empty_array(n);
+#ifdef F_SET_HIDE
+    int apply_valid_hide = 1, display_hidden = 0;
+#endif
+
+    obtab = CALLOCATE(n, object_t *, TAG_TEMPORARY, "heart_beats");
     while (n--) {
-	arr->item[n].type = T_OBJECT;
-	arr->item[n].u.ob = hb->ob;
-	add_ref(hb->ob, "get_heart_beats");
-	hb++;
+#ifdef F_SET_HIDE
+	if (hb->ob->flags & O_HIDDEN) {
+	    if (apply_valid_hide) {
+		apply_valid_hide = 0;
+		display_hidden = valid_hide(current_object);
+	    }
+	    if (!display_hidden)
+		continue;
+	}
+#endif
+	obtab[nob++] = (hb++)->ob;
     }
+    
+    arr = allocate_empty_array(nob);
+    while (nob--) {
+	arr->item[nob].type = T_OBJECT;
+	arr->item[nob].u.ob = obtab[nob];
+	add_ref(arr->item[nob].u.ob, "get_heart_beats");
+    }
+
+    FREE(obtab);
+
     return arr;
 }
 #endif

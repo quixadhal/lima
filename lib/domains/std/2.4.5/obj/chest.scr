@@ -5,6 +5,9 @@ id=chest
 long=A chest that seems to be of a high value.
 value=200
 weight=8
+relations=in
+default_relation=in
+capacity=32
 
 setup[int money]:
    lpc

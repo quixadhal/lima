@@ -2,6 +2,11 @@
 
 inherit VERB_OB;
 
+void do_listen_to_obj_with_obj(object ob1, object ob2)
+{
+  ob2->do_listen(ob1);
+}
+
 void do_listen_to_obj(object ob)
 {
     ob->do_listen();
@@ -15,5 +20,5 @@ void do_listen()
 
 void create()
 {
-    add_rules( ({ "", "to OBJ" }) );
+    add_rules( ({ "", "to OBJ", "to OBJ with OBJ" }) );
 }

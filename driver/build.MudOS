@@ -129,6 +129,24 @@ INSTALL_DIR="../etc"
 
 echo "Trying out some stuff to see what works; ignore errors ..."
 
+# Mac OS X needs this in order to build properly
+if test "`uname`" = "Darwin"; then
+    NEED_OLD_CPP=-traditional-cpp
+fi
+
+#
+# Determine if running under Cygwin-32 and use a.exe instead
+# of a.out if so
+#
+if test "`uname|cut -c-6`" = "CYGWIN"; then
+  A_OUT=a.exe
+  echo Using a.exe for Cygwin GNU compiler default executable
+else
+  A_OUT=a.out 
+  echo Using standard a.out for compiler default executable
+fi
+ 
+
 # 
 # Figure out what make is, and how to invoke it
 # 
@@ -341,7 +359,7 @@ int main() {
 }
 END
 $CC $CFLAGS comptest.c
-ARCH=`./a.out`
+ARCH=`./$A_OUT`
 
 cat >comptest.c <<END
 int main(int argc, char **argv) { return 0; }
@@ -375,25 +393,25 @@ esac
 #
 # check for some missing functions
 #
-rm a.out
+rm $A_OUT
 cat >comptest.c <<END
 int main() {
 strchr(0,0); strrchr(0,0);
 }
 END
 $CC $CFLAGS comptest.c
-if test ! -f a.out; then
+if test ! -f $A_OUT; then
     STR="-Dstrchr=index -Dstrrchr=rindex"
 fi
 
-rm a.out
+rm $A_OUT
 cat >comptest.c <<END
 int main() {
 memcpy(0,0,0);memset(0,0,0);strtol(0,0,0);strcspn(0,0);
 }
 END
 $CC $CFLAGS comptest.c
-if test ! -f a.out; then
+if test ! -f $A_OUT; then
     STRFUNCS=strfuncs.o
 fi
 
@@ -463,3 +481,4 @@ which_makefile:
 	echo MakeIsMake
 END
 fi
+

@@ -97,7 +97,8 @@ void show_money()
    }
 
    printf("Your account balance is %s.\n\n",
-          ACCOUNT_D->query_account(bank_id, player), deposit_currency);
+       MONEY_D->currency_to_string(
+          ACCOUNT_D->query_account(bank_id, player), deposit_currency));
 }
 
 void show_rates()

@@ -223,6 +223,9 @@
  ** 									**
  *************************************************************************/
 
+/* Max file size for editing etc (eg "ulimit -H -d 1200") */
+#define MAX_FILE_SIZE 1000000
+
 /* The status of your game.*/
 #define lib_status()		"game development"
 
@@ -234,7 +237,8 @@
  * I3 system. */
 #define ADMIN_EMAIL		"user@host.name"
 
-/* If this is undefined, anonymous  undef it to not allow anonymous ftp.  Anon ftp users are limited to /ftp/pub.*/
+/* If this is undefined, anonymous ftp is allowed - undef it to prevent.
+  Anon ftp users are limited to /ftp/pub.*/
 #define ALLOW_ANON_FTP
 
 /* Whether anon ftp users can *put* files.  Only works if ALLOW_ANON_FTP is
