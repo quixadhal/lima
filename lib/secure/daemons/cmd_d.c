@@ -182,7 +182,7 @@ varargs void cache(string* paths)
 int is_command(object o) {
     mixed ret;
     
-    if (function_exists("call_main") != CMD)
+    if(function_exists("call_main", o) != CMD)
 	return 0;
     if ((ret = o->not_a_cmd()) && (ret == 1 || ret == file_name(o)))
 	return 0;
@@ -209,7 +209,7 @@ varargs mixed find_cmd_in_path(string cmd, string* path)
 	   is_file(dir+cmd+".c") &&
 	   o = load_object(dir+cmd))
 	{ 
-	    if (is_command(o))
+            if(!is_command(o))
 		return -1;
 	    return ({ o, dir, cmd });
 	}

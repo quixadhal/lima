@@ -4,7 +4,7 @@
 private nosave string array ids;
 private nosave string array plurals;
 private nosave string array adjs;
-
+private int quantity;
 private string primary_id, primary_adj;
 
 /* calculated internally */
@@ -114,11 +114,25 @@ string short()
 //### obsolete?
 //### I really don't think so.  Isn't it used by multiple copies of the same object ?
 string plural_short() {
-    return pluralize(short());
+    if (!query_plural())
+	return pluralize(short());
+    else return short();
+}
+
+/* More could be done with these quantity functions, assuming that they 
+ * belong here, which I haven't decided yet, thoughts? -- Tigran */
+void set_quantity( int x ){
+  quantity = x;
+}
+
+int query_quantity()
+{
+  return quantity;
 }
 
 //### should be somewhere else?
 string add_article(string str) {
+  if (quantity ) return "some " + str;
     switch (str[0]) {
     case 'a':
     case 'e':

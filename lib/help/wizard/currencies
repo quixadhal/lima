@@ -1,0 +1,31 @@
+Help for currencies / the money system:
+
+The money system consists of currencies and denominations.
+
+Different currencies can only be exchanged at a bank (for a fee) and
+vendors only use one currency.  You can pay with any of the
+denominations of the vendor's currency though and you get change if
+needed.  If you want to drop or give money to somebody you can only
+use the denominations which you really have though.
+
+Each currency consists of its name, the plural name, a list of
+denominations and an exchange rate.  By default a currency has a base
+denomination with the same name and the exchange rate factor 1.0.  The
+exchange rate is the value of one unit of a denomination of a currency
+with factor 1.0.  For example if the exchange rate of dollars is 1000
+then 1 dollar is worth as much as an object with set_value(1000).
+
+Each denomination consists of its name, the plural name to use, and an
+exchange rate factor relative to the base denomination of the currency
+(e.g. the base denomination has the factor 1.0).  A denomination cent
+would have the factor 0.01 for example which means 1 cent is worth as
+much as an object with set_value(10) (if the exchange rate of dollars
+is 1000).  Each denomination belongs to only one currency.
+
+Currencies are administrated with admtool at daemons/currency.
+
+When a new currency is created in admtool (by "add currency" or "add a
+denomination to a currency") the exchange rate is set to 1000.  If
+"add currency" a base denomination is added.  If you want to change
+some property of a denomination or the plural of a currency just add
+it again with the same name.

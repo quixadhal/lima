@@ -85,6 +85,7 @@ private nomask void receive_privilege_for_add(string user, string priv)
     if ( write_error(SECURE_D->extend_access(priv, user)) )
 	return;
 
+    printf("Privilege '%s' has been added to '%s'.\n", user, priv);
 }
 
 private nomask void receive_privilege_for_remove(string user, string priv)

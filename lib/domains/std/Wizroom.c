@@ -36,6 +36,7 @@ STAIRS : ({ "Attic", "Shop", 0 }),
 	]) );
     set_default_exit( "Walking through walls is painful. Try a more pleasant direction.\n");
 set_exit_msg( "east", ({ "$N $vwomble east.", "$N $vfritter away." }));
+set_enter_msg( "east", ({ "$N enters from the zoo.", "$N decides to pop in for a visit." }) );
 }
 
 void do_listen()

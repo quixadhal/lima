@@ -140,12 +140,14 @@ nomask class command_info array module_commands() {
         new(class command_info,
             key : "r",
             proto : "[alias]",
+	    args: ({"Alias: "}),
             action : (: handle_r, "r" :),
             desc : "remove a global player alias"),
         new(class command_info,
             key : "R",
             action : (: handle_r, "R" :),
             proto : "[alias]",
+	    args: ({"Alias: "}),
             desc : "remove a global wizard alias")
             });
 }

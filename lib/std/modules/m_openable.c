@@ -45,6 +45,8 @@ void do_on_close() {
     /* Overload this later */
 }
 
+string opened_attributes() { return "(open)"; }
+
 int openable() { return 1; }
 
 int query_closed() { return !test_flag(F_OPEN); /* closed; */ }
@@ -143,13 +145,13 @@ mixed close() {
     if (stringp(tmp)) return tmp;
     
     this_body()->simple_action(close_msg, this_object());
+    set_closed(1);    
     do_on_close();
 
 //:HOOK close
 //called when an object is closed.  The return value is ignored.
     call_hooks("close", HOOK_IGNORE);
 
-    set_closed(1);    
     return 1;
 }
 
@@ -199,12 +201,3 @@ mapping lpscript_attributes() {
 	"closed" : ({ LPSCRIPT_INT, "setup", "set_closed" }),
     ]);
 }
-
-// called once(?) when M_OPENABLE is first loaded.
-#if 0
-private void create()
-{
-    if ( !clonep() )
-	M_OBJ_ATTRIBUTES->register_attribute(F_OPEN, ({ "closed", "open" }));
-}
-#endif

@@ -22,7 +22,7 @@ extra_reset()
 	    call_other(orc, "set_alias", "dirty crap");
 	    call_other(orc, "set_race", "orc");
 	    call_other(orc, "set_level", random(2) + 1);
-	    call_other(orc, "set_hp", 30);
+	    call_other(orc, "set_health", 30);
 	    call_other(orc, "set_ep", 1014);
 	    call_other(orc, "set_al", -60);
 	    call_other(orc, "set_short", "An orc");

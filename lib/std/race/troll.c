@@ -6,7 +6,8 @@ inherit RACE;
  * This is the name of the race.  It is used in the initial selection screen,
  * and also in who info etc.
  */
-string query_race() {
+string query_race()
+{
     return "troll";
 }
 
@@ -14,8 +15,22 @@ string query_race() {
  * This is the description shown when the user types 'help race' during the
  * selection process
  */
-string short_description() {
-    return "Trolls get a bonus to constitution.  They have above average strength, below average agility and intelligence, and above average willpower.  Trolls fight well unarmed, and are resistent to damage due to their thick skin.  However, they are highly susceptible to fire.\n";
+string short_description()
+{
+    return @LONG
+Trolls are extremely strong and powerful creatures; probably the toughest
+race available. Their skin is extremely thick and conventional means of
+damage do not help much in killing them. Trolls aren't very intelligent
+or quick on their feet, but have an amazingly high willpower and just
+don't know when to quit. They are not exactly social outcasts, but tend
+not to do very well politically. They are definitely a physical force to
+be reckoned with though, unless you carry a torch. Trolls have a terrible
+weakness for fire and are highly susceptible to its flames. Trolls often
+live in dark, wet areas (such as under bridges!) where they can keep
+their skin moist. Trolls do not band together in tribes or form communities
+and so they can come from any part of the land. Their chief deities are
+those related to water and nature.
+LONG;
 }
 
 /*
@@ -91,14 +106,27 @@ class stat_roll_mods query_roll_mods() {
 void create(string userid) {
     ::create(userid);
     set_to_hit_bonus(0);
-#if COMBAT_STYLE == COMBAT_TRADITIONAL
+    //#if COMBAT_STYLE == COMBAT_TRADITIONAL
     set_weapon_class(10);
-#endif
+    //#endif
 }
 
+#if 0
 void intrinsic_resistance(class combat_result result) {
      if (result->kind == "fire" && result->damage)
          result->damage *= 2;
      else
          result->damage--;
+}
+#endif
+
+class event_info health_modify_event(class event_info evt)
+{
+   if(!arrayp(evt->data))
+      return evt;
+   if(member_array("fire", evt->data) != -1)
+      evt->data[sizeof(evt->data)-1] *= 2;
+   else
+      evt->data[sizeof(evt->data)-1]--;
+   return evt;
 }

@@ -4,7 +4,8 @@
 
 */
 
-inherit VERB_OB;
+inherit NVERB_OB;
+
 
 mixed direct_molest_liv( object liv )
 {
@@ -16,7 +17,7 @@ mixed direct_molest_obj( object ob )
     return "What an <ahem> strange idea.\n";
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ", "LIV" }) });
+    add_rules( ({ "OBJ", "LIV" }), ({ "rape" }) );
 }

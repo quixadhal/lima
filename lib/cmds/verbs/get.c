@@ -73,90 +73,48 @@ void do_get_obj_with_obj(object ob1, object ob2) {
     get_one(ob1, ob2);
 }
 
-void do_get_on_obj(object what)
-{
-    what->get_on();
-}
-
-void do_get_off_obj(object what)
-{
-    mixed s;
-    string err;
-
-    if(what != environment(this_body()))
-    {
-	write("You're not on it.\n");
-	return;
-    }
-    if(s = what->get_off())
-    {
-	if(!stringp(err=this_body()->move(environment(what))))
-	{
-	    if(stringp(s))
-		this_body()->simple_action(s);
-	    else
-		this_body()->simple_action("$N $vget off " + what->the_short()+
-		  ".");
-	}
-	else
-	{
-	    write(err+"\n");
-	}
-    }
-    else
-    {
-	write("You are already standing.\n");
-    }
-}
-
-//### FIXME: These next two handle get 10 gold coins well enough if the
-//### coins are in the room, but even get 10 gold coins from corpse will
-//### fail.  What we probably want to do is have rules 'WRD OBJ from OBJ'
-//### and 'WRD OBJ' and do something like ob->get_multiple(...).
 mixed can_get_wrd_str(string amount, string str) {
     int z;
     string s1, s2;
     
     sscanf(amount, "%d%s", z, s1);
-    if (s1 != "") return 0;
+    if (s1 != "" && amount != "all")
+        return 0;
     
     sscanf(str, "%s %s", s1, s2);
     if (s2) {
 	if (s2 != "coin" && s2 != "coins")
 	    return 0;
-	return 1;
+	return MONEY_D->is_denomination(s1);
     }
-    return str == "coin" || str == "coins";
+    return str == "coin" || str == "coins" || MONEY_D->is_denomination(str);
 }
 
-void do_get_wrd_str(string amount, string str)
-{
+mixed can_get_wrd_str_from_obj(string amount, string str, object obj) {
+    return can_get_wrd_str(amount, str);
+}        
+
+void do_get_wrd_str_from_obj(string amount, string str, object obj) {
     string s;
-    object ob;
-    int number;
-
-    /* Can't fail */
-    sscanf(amount, "%d", number);
-
-    sscanf(str, "%s %s", str, s); // If there are two words, we want the first
-
-    if(ob = present("coins", environment(this_body()))) {
-	ob->get(number, str);
-	return;
-    } else {
-	this_body()->my_action("There are no coins here.");
-    }
+    // If there are two words, we want the first
+    sscanf(str, "%s %s", str, s); 
+    // direct_get_wrd_str_from_obj() or do_get_wrd_str() tested if
+    // there is money there already
+    present("money", obj)->get(amount, str); 
 }
 
-int do_get_off()
-{
-    "/cmds/verbs/stand"->do_stand();
+void do_get_wrd_str(string amount, string str) {
+    object obj;
+
+    if (obj = present("money", environment(this_body())))
+        do_get_wrd_str_from_obj(amount, str, environment(this_body()));
+    else
+	write("There are no coins here.\n");
 }
 
 void create()
 {
-    add_rules( ({ "off", "off OBJ", "on OBJ" }) );
-
     add_rules( ({ "OBS", "WRD STR", "OBS from OBJ", "OBS out of OBJ",
-		      "OBJ with OBJ" }), ({ "take", "carry", "pick up" }));
+		    "OBJ with OBJ", "WRD STR from OBJ" }), 
+	       ({ "take", "carry", "pick up" }) );
 }

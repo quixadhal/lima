@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 #define NO_TARGET	0
 #define HAS_TARGET	1
@@ -179,9 +179,13 @@ void do_cast_str_with_obj_at_obj(string spell, object tool, object target)
 }
 
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "STR on OBJ", "STR", "STR at OBJ", "STR with OBJ", 
-	"STR at OBJ with OBJ", "STR on OBJ with OBJ", 
-	"STR with OBJ on OBJ", "STR with OBJ at OBJ"}), ({}) });
+    add_rules( ({ "STR on OBJ", "STR", "STR at OBJ" }), ({}) );
+    add_rules( ({ "STR with OBJ", "STR at OBJ with OBJ" }), ({}) );
+    add_rules( ({ "STR on OBJ with OBJ", "STR with OBJ on OBJ" }), ({}) );
+    add_rules( ({ "STR with OBJ at OBJ" }), ({}) );
+//    return ({ ({ "STR on OBJ", "STR", "STR at OBJ", "STR with OBJ", 
+//	"STR at OBJ with OBJ", "STR on OBJ with OBJ", 
+//	"STR with OBJ on OBJ", "STR with OBJ at OBJ"}), ({}) });
 }

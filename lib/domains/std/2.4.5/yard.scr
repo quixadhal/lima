@@ -25,7 +25,7 @@ objects=
     in_room_desc=A beggar
     id=beggar
     long=A really filthy looking poor beggar.
-    max_hp=30
+    max_health=30
     trigger[* gives *]:
       !say Thank you.
       nexttrigger

@@ -11,6 +11,7 @@
 inherit COMPLEX_CONTAINER;
 inherit M_ITEMS;
 inherit __DIR__ "room/exits";
+inherit M_EXIT_OBJ;
 
 string stat_me()
 {
@@ -19,6 +20,24 @@ string stat_me()
 	complex_container::stat_me();
 }
 
+
+int is_player_inside();
+
+mixed direct_go_wrd_obj(string s, object ob)
+{
+    if (!is_player_inside())
+      if (environment(this_body()) != environment(this_object()))
+        return 0;
+    return ::direct_go_wrd_obj(s, ob);
+}
+
+mixed direct_go_obj(object ob)
+{
+    if (!is_player_inside())
+      if (environment(this_body()) != environment(this_object()))
+        return 0;
+   return ::direct_go_obj(ob);
+}
 
 //:FUNCTION can_hold_water
 //Return 1 if the object can hold water

@@ -45,6 +45,8 @@ void add_hook(string tag, function hook) {
 void remove_hook(string tag, function hook) {
     if (hooks[tag])
 	hooks[tag] -= ({ hook });
+    if(!sizeof(hooks[tag]))
+      map_delete(hooks,tag);
 }
 
 //:FUNCTION hook_state
@@ -131,4 +133,9 @@ varargs mixed call_hooks(string tag, mixed func, mixed start,
 	    error("Unknown hook type in call_hooks.\n");
 	}
     }
+}
+
+mapping debug_hooks()
+{
+  return copy(hooks);
 }

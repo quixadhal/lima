@@ -15,7 +15,7 @@ void setup() {
 #ifdef USE_BODYSLOTS
     set_slot(HEAD);
 #endif
-    set_value(10);
+    set_value(10000);
     set_size(SMALL);
 }
 mapping lpscript_attributes()

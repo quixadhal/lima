@@ -3,27 +3,22 @@
 //:MODULE portal
 // A simple one way portal
 
-inherit OBJ;
+inherit EXIT_OBJ;
 inherit M_GETTABLE;
 
 string look_in_desc;
-string portal_destination;
 
-void do_enter()
-{
-    this_body()->move_to(portal_destination, "through " + the_short());
-}
 
 //:FUNCTION set_destination
 // Set where you go when you enter the portal
 void set_destination(string s)
 {
-    portal_destination = s;
+    set_default_destination(s);
 }
 
 string get_destination()
 {
-    return portal_destination;
+    return query_default_destination();
 }
 
 int direct_look_str_obj()
@@ -48,10 +43,6 @@ string look_in(string prep)
     return evaluate(look_in_desc);
 }
 
-int direct_enter_obj()
-{
-    return 1;
-}
 
 mapping lpscript_attributes() {
     return ([
@@ -66,5 +57,8 @@ varargs void mudlib_setup(string destination)
     set_id( "portal" );
     set_attached();
     set_gettable( "#It's a portal not a portable.");
-    if ( destination ) set_destination( destination );
+    if ( destination ) set_default_destination( destination );
+    set_go_method("enter");
+//    set_default_exit_msg( (: prep_default_msg :) );
+//    set_default_enter_msg( (: prep_default_msg :) );
 }

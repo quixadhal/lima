@@ -27,3 +27,20 @@ disasters, and rarely even succeeds in generating the correct error
 message for most commands.
 
 -Beek
+
+P.S. if you really need it somewhere, there is always:
+
+void create() {
+    parse_init();
+    parse_add_rule("foo", "STR");
+}
+
+mixed can_foo_str() {
+    // or something appropriate to objects meant to be carried
+    return environment(this_body()) == this_object();
+}
+
+Intelligent readers will note this proves that the LIMA parser
+is capable of doing anything add_action() was capable of doing.
+The reverse, however, is not true, nor is it anywhere close to being true.
+

@@ -8,11 +8,9 @@
 
 #include <commands.h>		/* for CMD_OB_xxx */
 
-private string name = "guest";
 private string describe;
 private string invis_name;
 private string nickname;
-private nosave string cap_name;
 
 int is_visible();
 int test_flag(int which);
@@ -24,6 +22,8 @@ string query_reflexive();
 void remove_id(string array id...);
 void add_id_no_plural(string array id...);
 string in_room_desc();
+string living_query_name();
+string query_name();
 
 #ifdef USE_TITLES
 string query_title();
@@ -31,27 +31,20 @@ string query_title();
 
 int query_prone();
 
-string query_name()
-{
-    if ( invis_name == cap_name || !invis_name ) invis_name = "Someone";
-    if ( !is_visible() ) return invis_name;
-    return cap_name;
-}
-
 string query_long_name()
 {
     if (query_ghost())
-	return "The ghost of " + cap_name;
+	return "The ghost of " + capitalize(living_query_name());
 #ifdef USE_TITLES
     return query_title();
 #else
-    return cap_name;
+    return capitalize(living_query_name());
 #endif
 }
 
 nomask string query_userid()
 {
-    return name;
+    return living_query_name();
 }
 
 nomask string query_invis_name()
@@ -85,7 +78,7 @@ string base_in_room_desc()
     result = query_long_name();
 
     if (query_prone())
-        return cap_name + " is lying here slumped on the ground.";
+        return capitalize(query_name()) + " is lying here slumped on the ground.";
 
     /* if they are link-dead, then prepend something... */
     if ( !link || !interactive(link) )
@@ -108,6 +101,12 @@ string query_formatted_desc(int num_chars)
     return M_ANSI->colour_truncate(base_in_room_desc(), num_chars) + idle_string;
 }
 
+string adjust_name(string name) {
+    if ( invis_name == capitalize(name) || !invis_name ) invis_name = "Someone";
+    if ( !is_visible() ) return invis_name;
+    return capitalize(name);
+}
+
 void set_description(string str)
 {
     if(base_name(previous_object()) == CMD_OB_DESCRIBE)
@@ -120,7 +119,7 @@ string our_description()
     if (describe)
 	return in_room_desc() + "\n" + describe +"\n";
 
-    return in_room_desc() + "\n" + cap_name + " is boring and hasn't described " + query_reflexive() + ".\n";
+    return in_room_desc() + "\n" + capitalize(query_name()) + " is boring and hasn't described " + query_reflexive() + ".\n";
 }
 
 void set_nickname(string arg)
@@ -141,16 +140,8 @@ string query_nickname()
     return nickname;
 }
 
-protected void naming_create(string userid)
-{
-    cap_name = capitalize(userid);
-    name = userid;
-}
-
 protected void naming_init_ids()
 {
-    add_id_no_plural(name);
-
     if ( nickname )
 	add_id_no_plural(nickname);
 }

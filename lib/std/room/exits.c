@@ -52,37 +52,53 @@ string get_default_exit()
 }
 
 void do_go_obj(object ob, mixed s) {
-    if (stringp(s) && (member_array(s, query_exit_directions(1)) != -1 )) {
+    if (call_hooks("block_all", HOOK_LOR, 0, 0))
+        return;
+
+    if (ob == this_object() && stringp(s) 
+	&& (member_array(s, query_exit_directions(1)) != -1 )) {
         do_go_somewhere(s);
         return;
     }
-    if (call_hooks("block_all", HOOK_LOR, 0, 0))
-        return;
     if (!stringp(s))
         this_body()->move_to(ob->query_default_destination(),
                              0,
                              ob->query_default_exit_msg(),
                              ob->query_default_enter_msg());
-    else
-        this_body()->move_to(ob->query_prep_destination(s),
+    else {
+	mixed dest = ob->query_prep_destination(s);
+	
+	if (!dest) {
+	    write(capitalize(ob->the_short()) + " " + (ob->query_plural() ? "do" : "does") + " not lead " + s + ".\n");
+	    return;
+	}
+	
+        this_body()->move_to(dest,
                              s,
                              ob->query_prep_exit_msg(s),
                              ob->query_prep_enter_msg(s));
+    }
 }
 
 void do_go_somewhere(string dir) {
     if (call_hooks("block_" + dir, HOOK_LOR, 0, dir)
       || call_hooks("block_all", HOOK_LOR, 0, dir))
         return;  
+    if (!this_body()->query_driving_vehicle())
     this_body()->move_to(query_exit_destination(dir, base), 
                          dir,
                          query_exit_msg(dir),
                          query_enter_msg(dir));
+    else
+    environment(this_body())->move_to(query_exit_destination(dir, base),
+                         dir,
+                         query_exit_msg(dir),
+                         query_enter_msg(dir)); 
 }
 
 
 
-mixed query_exit_destination(string arg) {
+mixed query_exit_destination(string arg, string unused) {
     mixed tmp = ::query_exit_destination(arg, base);
     if (!tmp) return get_default_exit();
     return tmp;

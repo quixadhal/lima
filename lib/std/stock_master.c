@@ -6,14 +6,13 @@
 ** 951231, --OH. created, based on DB's Fighter Guildmaster.
 */
 
-inherit MONSTER;
+inherit ADVERSARY;
 inherit M_GUILD_MASTER;
 inherit M_REGEX;
 
 void setup( string guildname )
 {
     object sword;
-
 
     set_name("Guildmaster");
     set_proper_name("The Guildmaster");
@@ -22,7 +21,7 @@ void setup( string guildname )
     set_gender(1);
     set_in_room_desc( "The " + GUILD_D->query_guild_title( guildname )+ " guildmaster is here." );
     set_long("The guildmaster is a large, muscle-bound killing machine. It would be wise to avoid pissing him off. Ask him to \"join the guild\" or to \"leave the guild\".");
-    set_max_hp(10);
+    set_max_health(10);
     set_which_guild( guildname );
 
     sword = new("/domains/std/objects/sword");

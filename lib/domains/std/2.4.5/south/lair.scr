@@ -16,7 +16,7 @@ objects=
   wyrm=
     is=monster
     proper_name=wyrm
-    max_hp=350
+    max_health=350
     in_room_desc=The Wyrm of Arcanarton
     long=
       The giant undead dragon you see before you is the result of one of\n

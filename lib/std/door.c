@@ -37,14 +37,9 @@ RABUG("door_check called");
     return 1;
 }
 
-void noisy(string arg) {
-    object_event("The $o " + arg + ".\n");
-}
-
-
 void update_state(object ob) {
     m_openable::set_closed(ob->query_closed());
-    ::set_locked(ob->query_locked(), ob->query_key_Subject());
+    ::set_locked(ob->query_locked(), ob->query_key_type());
 }
 
 void update_sibling()
@@ -61,17 +56,14 @@ void update_sibling()
     ::update_sibling();
 }
 
-void we_changed(string arg) {
-    object sib = get_sibling();
-    if (sib) sib->noisy(arg);
-}
-
 void do_on_close() {
-    we_changed("closes");
+    if (!query_closed())
+        object_event("The $o closes.\n");
 }
 
 void do_on_open() {
-    we_changed("opens");
+    if (query_closed())
+        object_event("The $o opens.\n");
 }
 
 varargs void on_clone( string ident, string dir )

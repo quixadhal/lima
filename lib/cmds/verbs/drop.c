@@ -2,7 +2,7 @@
 
 #include <move.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 mixed can_drop_obj() {
     // give a better message for this case, since all the errors generated
@@ -50,52 +50,60 @@ void do_drop_obs(array info)
     }
 }
 
-//### see comments in get.
 mixed can_drop_wrd_str(string amount, string str) {
     int z;
     string s1, s2;
     
     sscanf(amount, "%d%s", z, s1);
-    if (s1 != "") return 0;
+    if (s1 != "" && amount != "all") 
+        return 0;
     sscanf(str, "%s %s", s1, s2);
     if (s2) {
 	if (s2 != "coin" && s2 != "coins")
 	    return 0;
-	return 1;
+	return MONEY_D->is_denomination(s1);
     }
-    return str == "coin" || str == "coins";
+    return MONEY_D->is_denomination(str);
 }
 
-void do_drop_wrd_str(string amount, string str)
+void do_drop_wrd_str(string amount_str, string type)
 {
     string s;
     object ob;
-    int number;
+    int amount;
 
-    /* Can't fail */
-    sscanf(amount, "%d", number);
-    
-    sscanf(str, "%s %s", str, s);
-    
-    if (number < 0) {
+    sscanf(type, "%s %s", type, s);
+    type = MONEY_D->singular_name(type);
+    if (amount_str == "all")
+        amount = this_body()->query_amt_money(type);
+    else
+        amount = to_int(amount_str);
+    if (amount < 0) {
 	write("Nice try.\n");
 	return;
     }
-    if(this_body()->query_amt_money(str) < number) {
-	write("You dont have "+ number +" "+ str +" coins.\n");
+    if(this_body()->query_amt_money(type) < amount) {
+	write("You don't have "
+	      +MONEY_D->denomination_to_string(amount, type)+".\n");
 	return;
     } else {
-	this_body()->subtract_money(str,number);
-	if(ob = present("coins",environment(this_body()))) {
-	    ob->merge_coins(number,str);
-	} else {
-	    new(COINS, number, str)->move(environment(this_body()));
-	}
-	this_body()->simple_action("$N $vdrop "+ number +" "+ str +" coins.");
+	this_body()->subtract_money(type, amount);
+	if(ob = present("money", environment(this_body())))
+#ifdef USE_MONEY
+	    ob->merge_money(amount, type);
+	else
+	    new(MONEY, amount, type)->move(environment(this_body()));
+#else
+	    ob->merge_coins(amount, type);
+	else
+	    new(COINS, amount, type)->move(environment(this_body()));
+#endif
+	this_body()->simple_action("$N $vdrop "
+		       +MONEY_D->denomination_to_string(amount, type)+".");
     }
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBS", "WRD STR" }), ({ "put down" }) });
+    add_rules( ({ "OBS", "WRD STR" }), ({ "put down" }) );
 }

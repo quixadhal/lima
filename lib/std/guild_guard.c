@@ -4,11 +4,10 @@
 
 #include <mudlib.h>
 
-inherit MONSTER;
+inherit ADVERSARY;
 inherit M_BLOCKEXITS;
 
 private nosave string guard_for = "<no guild assigned yet>";
-
 
 private mixed handle_blocks(string dir)
 {

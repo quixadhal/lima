@@ -2,6 +2,7 @@
 
 
 inherit OBJ;
+inherit M_DAMAGE_SOURCE;
 inherit M_WIELDABLE;
 inherit M_GETTABLE;
 inherit M_MESSAGES;
@@ -10,6 +11,11 @@ void mudlib_setup()
 {
     ::mudlib_setup();
     add_id("weapon");
+}
+
+mixed ob_state()
+{
+    return object::ob_state() + "/" + !!m_wieldable::ob_state();
 }
 
 void remove() {
@@ -24,5 +30,5 @@ int indirect_kill_liv_with_obj()
 
 mapping lpscript_attributes()
 {
-    return object::lpscript_attributes() + m_wieldable::lpscript_attributes() + m_wieldable::lpscript_attributes();
+    return object::lpscript_attributes() + m_damage_source::lpscript_attributes();
 }

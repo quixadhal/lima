@@ -3,13 +3,12 @@
 // WIP
 
 inherit OBJ;
-inherit M_LIGHTABLE;
+inherit LIGHT_OBJECT;
 inherit M_GETTABLE;
 inherit M_READABLE;
 
 int burnt;
 float max_fuel;
-
 
 void mudlib_setup()
 {
@@ -34,7 +33,7 @@ void mangle_text()
 	    my_text = "It's somewhat burnt, but reads as follows:\n" + my_text;
 	}
 	for( i = 0; i < text_size; i++ )
-	    if( random( max_fuel ) > current_fuel())
+            if(random(max_fuel) > query_num_decays())
 		if( !(my_text[i] == ' ' && random(1))) my_text[i] = '?';
 	set_text( my_text );
     }
@@ -57,4 +56,9 @@ void set_fuel( int amount )
 {
     if( !burnt ) max_fuel = amount;
     ::set_fuel( amount );
+}
+
+mixed lpscript_attributes()
+{
+   return object::lpscript_attributes() + light_object::lpscript_attributes();
 }

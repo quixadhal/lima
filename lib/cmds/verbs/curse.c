@@ -1,27 +1,18 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+#include <verbs.h>
 
-inherit VERB_OB;
-
-int need_to_be_alive() {
-    return 0;
-}
-
-int need_to_think() {
-    return 0;
-}
-
-int need_to_see() {
-    return 0;
-}
+inherit NVERB_OB;
 
 mixed do_curse()
 {
     write("Such language in a high class establishment like this!\n");
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "" }), ({ "fuck","damn","shit","bitch"}) });
+    add_rules( ({ "" }), ({ "fuck","damn","shit","bitch"}) );
+    clear_flag(NEED_TO_SEE);
+    clear_flag(NEED_TO_THINK);
+    clear_flag(NEED_TO_BE_ALIVE);
 }

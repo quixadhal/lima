@@ -21,6 +21,7 @@ string pluralize(string str)
     {
     case "were": return "was";
     case "don't": return "doesn't";
+    case "aren't": return "isn't";
     case "possum": return "possums";
     case "staff": return "staves";
     case "die": return "dies";
@@ -28,6 +29,7 @@ string pluralize(string str)
     case "barf": return "barfs";
     case "snarf": return "snarfs";
     }
+
     if ( str[<2..<1] == "ff" )	/* e.g. "bluff" */
 	return str + "s";
     if ( str[<5..<1] == "penis" )

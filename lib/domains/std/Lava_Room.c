@@ -5,8 +5,6 @@
 // I'll try to explain what is going on...
 // If you don't understand any part of this, post to lima.help on Lima Bean.
 
-#include <combat.h>
-
 inherit ROOM;
 inherit CLASS_COMBAT_RESULT;
 

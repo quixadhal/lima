@@ -1,5 +1,4 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
-
 //  a room.c
 // Rust@ZorkMUD,   Jan 12, 1994
 // Nevyn@GUE       1-14-94
@@ -27,7 +26,7 @@ inherit __DIR__ "room/exits";
 inherit __DIR__ "room/roomdesc";
 inherit __DIR__ "room/state";
 
-private nosave string area_name;
+private nosave string array area_names = ({ });
 
 //:FUNCTION stat_me
 //Returns some debugging info about the object.  Shows the container info,
@@ -96,17 +95,18 @@ void mudlib_setup()
 }
 
 //:FUNCTION set_area
-//Used by weather to know which rooms are the same as this one.
-void set_area(string name)
+//Used by m_wander to prevent monsters from wandering to far.
+//Can either be a string, or an array of strings
+void set_area(string array names...)
 {
-    area_name = name;
+    area_names = names;
 }
 
-//:FUNCTION get_area
-//Find out what 'area' the room belongs to.  See set_area.
-string get_area()
+//:FUNCTION query_area
+//Find out what 'areas' the room belongs to.  See set_area.
+string array query_area()
 {
-    return area_name;
+    return area_names;
 }
 
 string query_name()
@@ -144,11 +144,11 @@ void adjust_light(int x) {
     possible_light_change(old, query_light());
 }
 
-mixed direct_get_obj( object ob, string name )
+mixed direct_get_obj(object ob)
 {
     if( this_object() == environment( this_body()))
 	return "#A surreal idea.";
-    return ::direct_get_obj( ob, name );
+    return ::direct_get_obj(ob);
 }
 
 mapping lpscript_attributes() {

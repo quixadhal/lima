@@ -84,7 +84,7 @@ private nomask void confirm_valid_su(string old_userid,
     pwd = unguarded(1, (: call_other, USER_D, "query_variable",
 			new_userid, ({ "password" }) :))[0];
 
-    if ( crypt(arg, arg) != pwd )
+    if ( crypt(arg, pwd) != pwd )
     {
 	write("\nWrong password.\n");
 	register_failure(sprintf("(su to %s)", new_userid));

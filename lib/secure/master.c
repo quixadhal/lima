@@ -385,7 +385,7 @@ string *parse_command_prepos_list()
       "down from", "inside of", "round about", "near to", "next to",
       "over to", "outside of", "up to", "in front of",
       "in back of", "on top of", "off of"
-      });
+    });
 }
 
 string parse_command_all_word()
@@ -417,7 +417,7 @@ string parser_error_message(int kind, object ob, mixed arg, int flag) {
     case ERR_NOT_LIVING:
 	if (flag)
 	    return ret + "None of the " + pluralize(arg) + " are alive.\n";
-		return ret + "The " + arg + " isn't alive.\n";
+	return ret + "The " + arg + " isn't alive.\n";
 	break;
     case ERR_NOT_ACCESSIBLE:
 	if (flag)
@@ -437,7 +437,9 @@ string parser_error_message(int kind, object ob, mixed arg, int flag) {
 		if (sizeof(descs[i]) > 1)
 		{
 		    str += "one of ";
-		    str += pluralize( descs[i][0]-> the_short());
+		    if (!descs[i][0]->query_plural())
+			str += pluralize( descs[i][0]-> the_short());
+		    else str += descs[i][0]->the_short();
 		}
 		else
 		    str += descs[i][0]->the_short();

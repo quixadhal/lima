@@ -7,74 +7,26 @@
    Vette  April 11, 1997
 */
 
+inherit NVERB_OB;
 
-inherit VERB_OB;
-
-//### for now.  We need a better system to tell check_condition() what to
-//### ignore.
-mixed can_stand_up() {
-    return 1;
-}
-
-mixed can_stand() {
-    return 1;
+mixed can_stand()
+{
+   return 1;
 }
 
 void do_stand()
 {
-  mixed s;
-  string err;
-
-    if (this_body()->query_prone()) {
-	if (this_body()->get_up())
-	    this_body()->simple_action("$N $vget back up on $p feet.");
-	return;
-    }
-  if(s = environment(this_body())->stand())
-    {
-      if(!stringp(err=this_body()->move(environment(environment(this_body())))))
-	{
-	  if(stringp(s))
-	    this_body()->simple_action(s);
-	  else
-	    this_body()->simple_action("$N $vstand up.");
-	}
-      else
-	{
-	  write(err+"\n");
-	}
-    }
-  else
-    {
-      if(environment(environment(this_body())))
-	{
-	  write("You can't stand up.\n");
-	}
-      else
-	{
-	  write("You are already standing.\n");
-	}
-    }
-} 
-
-void do_stand_up()
-{
-  do_stand();
+   environment(this_body())->do_go_obj(environment(this_body()), 0);
 }
 
-array query_verb_info()
+void do_stand_wrd_obj(string prep, object ob)
 {
-    return ({ ({ "" }), ({}), ({ "up" }), ({ "get" }), ({"in OBJ","on OBJ"}) });
+   environment(this_body())->do_go_obj(ob, prep);
 }
 
-void do_stand_in_obj(object ob1)
+void create()
 {
-  ob1->stand();
+   add_rules( ({ "" }) );
+   add_rules( ({ "WRD" }), ({ "get" }) );
+   add_rules( ({ "WRD OBJ" }), ({ }) );
 }
-
-void do_stand_on_obj(object ob1)
-{
-  ob1->stand();
-}
-
-

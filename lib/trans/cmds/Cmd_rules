@@ -28,6 +28,7 @@ rmdir		dir*
 rmpath		dir
 shutdown -ct:	str*
 snoop		[user] [str*]
+unsnoop         [user]
 spew		file str*
 stat		obj
 tail -n:	[file*]
@@ -36,7 +37,7 @@ tsh		file
 times		num str*
 update	-rRz	[obfile*]
 renew		obj
-xargs		str*
+xargs	-!	str*
 dir -cFls	[dir|file*]
 
 

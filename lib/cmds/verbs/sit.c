@@ -4,28 +4,14 @@
 ** sit.c
 */
 
+inherit NVERB_OB;
 
-inherit VERB_OB;
-
-
-void do_sit_in_obj(object ob1)
+void do_sit_wrd_obj(string prep, object ob)
 {
-  ob1->sit("in");
-} 
-
-void do_sit_on_obj(object ob1)
-{
-  ob1->sit("on");
+   environment(this_body())->do_go_obj(ob, prep);
 }
 
-void do_sit_at_obj(object ob1)
+void create()
 {
-    ob1->sit("at");
+   add_rules( ({ "WRD OBJ" }), ({ }) );
 }
-
-array query_verb_info()
-{
-    return ({ ({ "in OBJ", "on OBJ", "at OBJ" }) });
-}
-
-

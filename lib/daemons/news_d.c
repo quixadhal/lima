@@ -793,6 +793,7 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
     }
     new_id = get_new_id(to_group);
     msg->body = "(Originally in " + curr_group + ")\n" + msg->body;
+    msg->thread_id = new_id;
     data[to_group][new_id] = msg;
     recent_changes[to_group][new_id] = msg;
     remove_post( curr_group, curr_id );

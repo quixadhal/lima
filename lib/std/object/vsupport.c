@@ -69,6 +69,12 @@ mixed direct_look_for_obj(object ob) {
     return 1;
 }
 
+//:FUNCTION direct_sell_obj
+//Handle parser checks for "sell OBJ"
+mixed direct_sell_obj(object ob) {
+    return need_to_have();
+}
+
 //:FUNCTION direct_smell_obj
 //Handle parser checks for "smell OBJ" rule.
 mixed direct_smell_obj(object ob)
@@ -131,6 +137,7 @@ mixed direct_get_obs(object ob)
 //:FUNCTION direct_get_obj_from_obj
 //Handle parser checks for "get OBJ from OBJ"
 mixed direct_get_obj_from_obj(object ob1, object ob2) {
+    if (ob2 != 0 && environment(ob1) != ob2) return 0;
     return direct_get_obj(ob1);
 }
 

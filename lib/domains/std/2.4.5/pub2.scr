@@ -146,7 +146,7 @@ start_player() {
 	call_other(player, "set_level",10);
 	call_other(player, "set_al",200);
 	call_other(player, "set_ep",39000);
-	call_other(player, "set_hp",100);
+	call_other(player, "set_health",100);
 	call_other(player, "set_wc",12);
 	move_object(player, "room/pub2");
 	if (!function) {

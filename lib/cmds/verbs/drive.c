@@ -11,60 +11,43 @@
 inherit NVERB_OB;
 
 //###should be shared somehow with go.c
-string array normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
-
-
-private mixed can_go_that_way(object ob, string str)
-{
-    mixed value;
-    int is_normal;
-
-    is_normal = (member_array(str, normal_dirs) != -1);
-    if(!environment(ob))
-      return "You need to be behind the wheel of something in order "
-	"to drive.\n";
-    value = environment(ob)->query_exit_value(str, is_normal);
-    if (stringp(value) && value[0] == '#')
-	return value[1..];
-    
-    /* let's just assume they can drive anywhere */
-    if (value)
-	return 1;
-
-    if (is_normal)
-	return "It doesn't seem possible to go that direction.\n";
-
-    return 0;
-}
-
+string array normal_directions = ({ "north", "south", "east", "west",
+                 "northwest", "northeast", "southwest", "southeast" });
 
 mixed can_drive_str(string str)
 {
-  return can_go_that_way(environment(this_body()), str);
+   mixed value = environment(this_body())->can_go_somewhere(str);
+   if(!stringp(value) && (value == 1))
+      return default_checks();
+   if(!stringp(value) && (member_array(str, normal_directions) != -1))
+      return "It doesn't appear you can drive that way.\n";
+   return value;
 }
 
 void do_drive_str(string str)
 {
-    environment(this_body())->go_somewhere(str);
+    environment(this_body())->do_go_somewhere(str);
 }
 
 mixed can_drive_obj()
 {
-  return "You need to specify a direction.\n";
+   return "You need to specify a direction.\n";
 }
  
-int can_drive_obj_str(object ob, string str)
+mixed can_drive_obj_str(object ob, string str)
 {
-  if(!ob)
-    return 0;
-  return can_go_that_way(ob, str);
+   mixed value = environment(this_body())->can_go_somewhere(str);
+   if(!stringp(value) && (value == 1))
+      return default_checks();
+   if(!stringp(value) && (member_array(str, normal_directions) != -1))
+      return "It doesn't appear you can go that way.\n";
+   return value;
 }
 
-void do_drive_obj_str(object o, string str)
+void do_drive_obj_str(object ob, string str)
 {
-  o->go_somewhere(str);
+   ob->do_go_somewhere(str);
 }
-
 
 void create()
 {

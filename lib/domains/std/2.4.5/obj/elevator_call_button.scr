@@ -10,8 +10,12 @@ setup[string w]:
   lpc
     _where = w
 
-press:
+do_press:
   call "/domains/std/2.4.5/elevator.scr" "call_elevator" $where
   call container "set_room_state" "lamp"
+  ok
+end
+
+direct_press_obj:
   ok
 end

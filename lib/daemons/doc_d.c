@@ -18,7 +18,7 @@
 
 /* --------------------------------------------------------------
 
-Rewritten by Beek; the equivalent of the above is now:
+Rewritten by Beek, MonicaS; the equivalent of the above is now:
 
  [Start the comment at the left margin; these are indented so this daemon
   doesn't see these examples.]
@@ -45,7 +45,11 @@ Rewritten by Beek; the equivalent of the above is now:
  // AUTODOC_MUDNAME is set in config.h
  // (keep this line blank after comment to make comment file readable)
 
- //:TODO What we'd like to do with this in the future
+ //:TODO 
+ //What we'd like to do with this in the future
+
+ //### Something has to be fixed
+ //### This doesn't need to start at the left margin
 
 Data is updated nightly and dumped to the /help/autodoc directory
 */
@@ -102,94 +106,119 @@ string mod_name(string foo) {
     return foo[strsrch(foo, "/", -1) + 1..];
 }
 
-void process_file(string fname) 
-{
-    string file = read_file(fname);
-    string line;
-    array lines;
-    string outfile = 0;
-    int empty;
-    int last_line = -20;
-    int idx = 0;
-    int nfile = 1;
+string func_name(string bar) {
+    sscanf(bar, "%s(", bar);
+    return bar;
+}
 
-    if (!file) return;
-    lines = regexp(explode(file, "\n"), "^//", 1);
+void process_file(string fname) {
+    string file = read_file(fname);
+    string line, prototype;
+    array lines, match;
+    string outfile = 0;
+    int i;
 
     rm("/help/autodoc/FIXME/" + mod_name(fname));
     rm("/help/autodoc/todo/" + mod_name(fname));
 
-    while (idx < sizeof(lines)) {
-        if (lines[idx][2..4] == "###") {
-            write_file("/help/autodoc/FIXME/" + mod_name(fname), lines[idx][5..] + "\n");
-        }
-        if (lines[idx][2..6] == ":TODO") {
-            write_file("/help/autodoc/todo/" + mod_name(fname),lines[idx][7..]
-+ "\n");
-        }
-        if (last_line != lines[idx+1] - 1 && sizeof(lines[idx]) > 2 &&
-          (lines[idx][2] == ':') && (lines[idx][2..6] != ":TODO") ) {
-	    line = lines[idx][3..];
-	    if (line == "MODULE") {
-                if (empty) write_file(outfile, "\n[No description available]\n");
-                empty = 1;
-		outfile = "/help/autodoc/modules/" + mod_name(fname);
-                rm(outfile);
-	    } else
-	    if (line == "COMMAND") {
-                if (empty) write_file(outfile, "\n[No description available]\n");
-                empty = 1;
-		outfile = "/help/autodoc/command/" + mod_name(fname);
-                rm(outfile);
-	    } else
-            if (sscanf(line, "HOOK %s", line) == 1) {
-                if (empty) write_file(outfile, "\n[No description available]\n");
-                empty = 0;
-                outfile = "/help/autodoc/hook/" + line;
-                rm(outfile);
-                write_file(outfile, "Called by: " + fname + "\n\n");
-            } else
-	    if (sscanf(line, "FUNCTION %s", line) == 1) {
-                mkdir("/help/autodoc/functions/" + mod_name(fname));
-                if (empty) write_file(outfile, "\n[No description available]\n");
-                empty = 0;
-		outfile = "/help/autodoc/functions/" + mod_name(fname) + 
-		"/" + line;
-                rm(outfile);
-                write_file(outfile, "Found in: " + fname + "\n\n");
-            } else
-            if (sscanf(line, "EXAMPLE %s", line) == 1) {
-                if (empty) write_file(outfile, "\n[No description available]\n");
-                empty = 0;
-		outfile = "/help/autodoc/examples/" + line;
-                rm(outfile);
-                write_file(outfile, "Found in: " + fname + "\n\n");
-	    } else
-            if (line == AUTODOC_MUDNAME) {
-                if (empty) write_file(outfile, "\n[No description available]\n");
-                empty = 1;
-                outfile = "/help/autodoc/"+MUD_AUTODOC_DIR+"/" + mod_name(fname);
-                if (nfile) {
-                    rm(outfile);
-                    nfile = 0;
-                    write_file(outfile,"**** "+fname+" ****\n\n");
-                }
-            } else {
-                if (empty) write_file(outfile, "\n[No description available]\n");
-                empty = 0;
-		outfile = 0;
-		LOG_D->log(LOG_AUTODOC, "Bad header tag: "+fname+": " + line + "\n");
+    if (!file) return;
+    lines = explode(file, "\n");
+
+    while (i < sizeof(lines)) {
+	if (regexp(lines[i],"^[ \t]*//###")) {
+	    outfile = "/help/autodoc/FIXME/" + mod_name(fname);
+	    write_file(outfile, "FIXME in file "+fname+" line "+(i+1)+":\n\n");
+	    while (sscanf(lines[i], "%*(^[ \t]*//###)%s", line)) {
+		write_file(outfile, line+"\n");
+		// line = "";
+		i++;
 	    }
-            printf("Writing to: %O\n", outfile);
-	} else {
-	    if (last_line == lines[idx+1] - 1) {
-		if (outfile) write_file(outfile, lines[idx][2..] + "\n");
-                empty = 0;
-	    } else
-		outfile = 0;
+	    write_file(outfile, "\nCode:\n"+implode(lines[i..i+3], "\n")+"\n");
+	    printf("Writing to: %O\n", outfile);
 	}
-	last_line = lines[idx+1];
-	idx += 2;
+	else if (lines[i][0..2] == "//:") {
+	    line = lines[i][3..];
+	    i++;
+	    if (line == "TODO") {
+		outfile = "/help/autodoc/todo/" + mod_name(fname);
+		rm(outfile);
+		write_file(outfile, "TODO in file "+fname+" line "+i+":\n\n");
+		while (lines[i][0..1] == "//") {
+		    write_file(outfile, lines[i][2..]+"\n");
+		    i++;
+		}
+	    }
+	    else if (line == "MODULE") {
+		outfile = "/help/autodoc/modules/" + mod_name(fname);
+		rm(outfile);
+		write_file(outfile, "Module "+mod_name(fname)+" (file: "+fname+"):\n\n");
+		while (lines[i][0..1] == "//") {
+		    write_file(outfile, lines[i][2..]+"\n");
+		    i++;
+		}
+	    }
+	    else if (line == "COMMAND") {
+		outfile = "/help/autodoc/command/" + mod_name(fname);
+		rm(outfile);
+		write_file(outfile,"Command "+mod_name(fname)+" (file: "+fname+"):\n\n");
+		while (lines[i][0..1] == "//") {
+		    write_file(outfile, lines[i][2..]+"\n");
+		    i++;
+		}
+	    }
+	    else if (sscanf(line, "HOOK %s", line) == 1) {
+		outfile = "/help/autodoc/hook/" + line;
+		rm(outfile);
+		write_file(outfile, "Hook "+line+":\nCalled by module "
+		  +mod_name(fname)+" (file: "+fname+")\n\n");
+		while (lines[i][0..1] == "//") {
+		    write_file(outfile, lines[i][2..]+"\n");
+		    i++;
+		}
+	    }
+	    else if (sscanf(line, "FUNCTION %s", line) == 1) {
+		if (func_name(line) != line)
+		    LOG_D->log(LOG_AUTODOC, "Bad function name: "+fname+" line " + i
+		      + ": " + line + "\n");
+		mkdir("/help/autodoc/functions/" + mod_name(fname));
+		outfile = "/help/autodoc/functions/" + mod_name(fname) + "/" + func_name(line);
+		rm(outfile);
+		write_file(outfile, "Function "+line+":\nDefined in module "
+		  +mod_name(fname)+" (file: "+fname+")\n\n");
+		while (lines[i][0..1] == "//") {
+		    write_file(outfile, lines[i][2..]+"\n");
+		    i++;
+		}
+		//### regexp() doesn't match any ";", had to replace_string() them
+		match = regexp(map(lines[i..i+19], (: replace_string($1, ";", "#") :)),
+		  "\\<"+line+"\\>", 1);
+		if (sizeof(match) > 0) {
+		    if (sscanf(implode(lines[i+match[1]-1..i+match[1]+3], "\n"),  
+			"%([ \t]*([a-zA-Z_][a-zA-Z0-9_* \t\n]*|)\\<"+line
+			+"\\>[ \t\n]*\\([ \t\na-zA-Z_0-9*,.]*(\\)|))", 
+			prototype)) {
+			write_file(outfile, "\nPrototype:\n"+prototype+";\n");
+		    }
+		}
+	    }
+	    else if (line == AUTODOC_MUDNAME) {
+		mkdir("/help/autodoc/"+MUD_AUTODOC_DIR);
+		outfile = "/help/autodoc/"+MUD_AUTODOC_DIR+"/" + mod_name(fname);
+		rm(outfile);
+		write_file(outfile,"**** "+fname+" ****\n\n");
+		while (lines[i][0..1] == "//") {
+		    write_file(outfile, lines[i][2..]+"\n");
+		    i++;
+		}
+	    }
+	    else {
+		LOG_D->log(LOG_AUTODOC, "Bad header tag: "+fname+" line "+i
+		  +": " + line + "\n");
+	    }
+	    printf("Writing to: %O\n", outfile);
+	}
+	else
+	    i++;
     }
 }
 
@@ -197,42 +226,42 @@ void continue_scan() {
     array files;
     array item;
 
-  for (int i = 0; i < 10; i++) {
-    if (sizeof(dirs_to_do)) {
-        printf("Scanning %s ...\n", dirs_to_do[0]);
-        files = get_dir(dirs_to_do[0], -1);
-        foreach (item in files) {
-            if (item[1] == -2) {
-		string dir = dirs_to_do[0] + item[0] + "/";
-		if ( member_array(dir, filtered_dirs) != -1 )
-		    continue;
-                dirs_to_do += ({ dir });
-            } else
-	    if (item[2] > last_time && item[0][<2..<1] == ".c") {
-		files_to_do += ({ dirs_to_do[0] + item[0] });
+    for (int i = 0; i < 10; i++) {
+	if (sizeof(dirs_to_do)) {
+	    printf("Scanning %s ...\n", dirs_to_do[0]);
+	    files = get_dir(dirs_to_do[0], -1);
+	    foreach (item in files) {
+		if (item[1] == -2) {
+		    string dir = dirs_to_do[0] + item[0] + "/";
+		    if ( member_array(dir, filtered_dirs) != -1 )
+			continue;
+		    dirs_to_do += ({ dir });
+		} else
+		if (item[2] > last_time && item[0][<2..<1] == ".c") {
+		    files_to_do += ({ dirs_to_do[0] + item[0] });
+		}
 	    }
+	    dirs_to_do[0..0] = ({ });
+	} else
+	if (sizeof(files_to_do)) {
+	    printf("Updating docs for %s ...\n", files_to_do[0]);
+	    /*
+	    ** We need an unguarded() for any writes that may occur... there
+	    ** is no user object, so protection checks will always fail.  This
+	    ** will terminate the checking at this daemon rather than fall
+	    ** off the stack and fail.  Note that we don't actually hit priv
+	    ** 1, but the maximum allowed.
+	    */
+	    unguarded(1, (: process_file, files_to_do[0] :));
+	    files_to_do[0..0] = ({ });
+	} else {
+	    printf("Done.\n");
+	    last_time = time();
+	    save_me();
+	    return;
 	}
-	dirs_to_do[0..0] = ({ });
-    } else
-    if (sizeof(files_to_do)) {
-        printf("Updating docs for %s ...\n", files_to_do[0]);
-	/*
-	** We need an unguarded() for any writes that may occur... there
-	** is no user object, so protection checks will always fail.  This
-	** will terminate the checking at this daemon rather than fall
-	** off the stack and fail.  Note that we don't actually hit priv
-	** 1, but the maximum allowed.
-	*/
-	unguarded(1, (: process_file, files_to_do[0] :));
-	files_to_do[0..0] = ({ });
-    } else {
-        printf("Done.\n");
-	last_time = time();
-	save_me();
-	return;
-    }
-  }	    
-  call_out( (: continue_scan :), 1);
+    }	    
+    call_out( (: continue_scan :), 1);
 }
 
 void

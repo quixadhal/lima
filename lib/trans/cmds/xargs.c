@@ -20,7 +20,7 @@ private nomask void handle_piping(string verb, string arg)
 }
 
 
-nomask void start_cmd(mixed * arg)
+varargs nomask void start_cmd(mixed * arg,int lock)
 {
     if(!clonep() || (base_name(previous_object()) != base_name()))  {
         write("Illegal attempt to spoof command.\n");
@@ -28,7 +28,10 @@ nomask void start_cmd(mixed * arg)
         return;
     }
     write("Entering pipe mode. Type '**' to quit.\n");
-    modal_push((: handle_piping, arg[0] :), "*\b"); 
+    if(lock)
+      modal_push((: handle_piping, arg[0] :), "*\b",0,0,1); 
+    else
+      modal_push((: handle_piping, arg[0] :), "*\b"); 
 }
 
 private nomask void main(mixed * arg, mapping flags, string stdin,
@@ -45,7 +48,12 @@ private nomask void main(mixed * arg, mapping flags, string stdin,
       else
 	foreach (string line in explode(stdin, "\n") - ({ "" }))
 	      this_user()->force_me(arg[0] + " " + line);
-    } else {
-	new(file_name())->start_cmd(arg);
-    }
+    } 
+    else
+      {
+	if(flags["!"])
+	  new(file_name())->start_cmd(arg,1);
+	else
+	  new(file_name())->start_cmd(arg);
+      }
 }

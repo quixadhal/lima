@@ -48,7 +48,7 @@ private nomask void nuke_user(string userid, int skip_save)
     //### this should be enough, but may need more thought (this was a quicky)
     //### need to set it to something like @disabled so that unguarded() code
     //### in the wiz dir doesn't have priv 1 now.
-    SECURE_D->set_protection(WIZ_DIR "/" + userid, 1, -1);
+    SECURE_D->set_protection(wiz_dir(userid), 1, -1);
 
     printf("'%s' has been nuked.\n", capitalize(userid));
 }
@@ -87,12 +87,12 @@ private nomask void receive_name_for_wiz(string name)
     if ( SECURE_D->query_is_wizard(name) )
     {
 	printf("** '%s' is already a wizard.\n", capitalize(name));
-	if ( !is_directory(WIZ_DIR "/"+name) )
+	if ( !is_directory(wiz_dir(name)) )
 	{
-	    printf("However, %s/%s doesn't exist.  Creating...\n",
-	      WIZ_DIR, name);
-	    mkdir(WIZ_DIR "/" + name);
-	    SECURE_D->set_protection(WIZ_DIR "/" + name, 1, name + ":");
+	    printf("However, %s doesn't exist.  Creating...\n",
+	      wiz_dir(name));
+	    mkdir(wiz_dir(name));
+	    SECURE_D->set_protection(wiz_dir(name), 1, name + ":");
 	}
 	return;
     }
@@ -102,8 +102,8 @@ private nomask void receive_name_for_wiz(string name)
 	printf("** Error: %s\n", err);
 	return;
     }
-    mkdir(WIZ_DIR "/" + name);
-    SECURE_D->set_protection(WIZ_DIR "/" + name, 1, name + ":");
+    mkdir(wiz_dir(name));
+    SECURE_D->set_protection(wiz_dir(name), 1, name + ":");
 
     printf("'%s' is now a wizard.\n", capitalize(name));
 
@@ -140,7 +140,7 @@ private nomask void receive_name_for_dewiz(string name)
 	printf("** Error: %s\n", err);
 	return;
     }
-    SECURE_D->set_protection(WIZ_DIR "/" + name, 1, -1);
+    SECURE_D->set_protection(wiz_dir(name), 1, -1);
 
     printf("'%s' is no longer a wizard.\n", capitalize(name));
 

@@ -1,5 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
-
+//:MODULE m_drink_container
+//This module is almost obsolete.
+//Use m_fluid_container instead, unless
+//you want no fluid associated with your
+//drink container.
 private int needs_contents;
 
 string the_short();

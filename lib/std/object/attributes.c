@@ -22,38 +22,25 @@
 ** displayed.  Each object will then use this information to display that
 ** data.
 */
-private nosave mapping attribute_info = ([
-    F_OPEN : ({ "closed", "open", "is_openable" }),
-    F_LIGHTED : "providing light",
-    F_WIELDED : "wielded",
-    F_WORN : "being worn",
-    ]);
+private nosave mapping attribute_info = 0;
+
+int test_flag(int);
 
 //:FUNCTION get_attributes
 // Get the attributes (a string) for the given object.  This will be
 // built from the object's flag states and the registered attributes.
-varargs string get_attributes(object ob)
+string get_attributes()
 {
-    string attr = "";
+    string attr = " ";
 
-    if ( file_name() != M_OBJ_ATTRIBUTES )
-	return M_OBJ_ATTRIBUTES->get_attributes(this_object());
-
-    foreach ( int flag, mixed info in attribute_info )
+    if (!attribute_info)
+	attribute_info = ATTRIBUTES_D->get_global_attributes();
+    
+    foreach(int flag, mixed info in attribute_info)
     {
-	if ( arrayp(info) )
-	{
-	    if ( call_other(ob, info[<1]) )
-		attr += " (" + info[ob->test_flag(flag)] + ")";
-	}
-	else if ( ob->test_flag(flag) )
-	    attr += " (" + info + ")";
+       if(test_flag(flag))
+          attr += call_other(this_object(), info);
     }
 
     return attr;
-}
-
-void register_attribute(int flag, mixed info)
-{
-    attribute_info[flag] = info;
 }

@@ -49,7 +49,6 @@ call_trace() {
 //:FUNCTION clean_array
 //returns a version of the passed array with duplicate
 //entries removed.  Eg, clean_array(({1,2,2}))  => ({1,2})
-
 mixed*
 clean_array(mixed* r) {
     int i, n;
@@ -71,6 +70,21 @@ clean_array(mixed* r) {
     }
 
     return r;
+}
+
+//:FUNCTION rev_explode
+//returns a reversable explode, because sometimes this has a desired
+//effect.  This sefun requires SANE_EXPLODE_STRING to work properly 
+//but the mudlib already requires that anyway.
+string array rev_explode(string arr_in, string delim)
+{
+  string array arr_out=({});
+  if(arr_in[0..strlen(delim)-1]==delim)
+    arr_out=({""});
+  arr_out+=explode(arr_in,delim);
+  if(arr_in[<strlen(delim)..]==delim)
+    arr_out+=({""});
+  return arr_out;
 }
 
 
@@ -261,7 +275,7 @@ varargs mixed exec_code(string arg, string dir, string includefile)
 
     if(!stringp(arg))
 	error("Bad type argument 1 to exec_code");
-    info = reg_assoc(arg, ({"\\.[a-z:/]+"}),({0}))[0];
+    info = reg_assoc(arg, ({"\\.[a-z:/\_]+"}),({0}))[0];
     for(i=0; i < sizeof(info);i++)
 	{
 	    if(info[i][0] == '.' && strlen(info[i]) > 1 )

@@ -443,12 +443,25 @@ private void do_list(class ftp_session info, string arg, int ltype)
   
   flags=find_flags(arg);
   arg=strip_flags(arg);
+
   if(!arg || arg == "")
     {
       arg = ".";
     }
+  /* This hack added by Tigran because things like /secure/master.c/.
+   * evaluate and cause havoc w/ ftp clients like efs for Xemacs and
+   * ange-ftp for Emacs.  Besides it shouldn't happen anyways */
+  if(arg[<2..]=="/.")
+    {
+      if(is_file(arg[0..<3]))
+	{
+	  info->cmdPipe->send(sprintf("550 %s: No such file OR directory.\n",arg));
+	  destruct(info->dataPipe);
+	  return;
+	}
+    }
   arg = evaluate_path(arg, info->pwd);
-  
+
   ANON_CHECK(arg);
 
   if(unguarded(1, (:is_directory($(arg)):)))

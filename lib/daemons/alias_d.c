@@ -46,7 +46,7 @@ varargs void add_default_alias(string name,
 			       int xalias,
 			       int devalias)
 {
-    if ( base_name(previous_object()) != ADMTOOL || clonep(this_object()) )
+    if (!check_privilege("Mudlib:daemons"))
 	return;
 
     if(devalias)
@@ -66,7 +66,7 @@ varargs void add_default_alias(string name,
 
 varargs void remove_default_alias(string name, int devalias)
 {
-    if ( base_name(previous_object()) != ADMTOOL || clonep(this_object()) )
+    if (!check_privilege("Mudlib:daemons"))
 	return;
 
     if(devalias)

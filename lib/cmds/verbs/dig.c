@@ -7,7 +7,7 @@
 
 #include <mudlib.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 
 mixed can_dig_str(string str)
@@ -73,10 +73,13 @@ void do_dig_up_obj(object ob1)
   do_dig_in_obj(ob1);
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "", "STR", "in OBJ", "in OBJ with OBJ", "with OBJ", "OBJ",
-		   "out OBJ", "OBJ with OBJ", "out OBJ with OBJ",
-		   "up OBJ", "up OBJ with OBJ", "with OBJ in OBJ", }) });
+    add_rules( ({ "", "STR", "in OBJ", "in OBJ with OBJ", "with OBJ" }) );
+    add_rules( ({ "out OBJ", "OBJ with OBJ", "out OBJ with OBJ",
+                  "up OBJ",  "up OBJ with OBJ", "with OBJ in OBJ" }) );
+//    return ({ ({ "", "STR", "in OBJ", "in OBJ with OBJ", "with OBJ", "OBJ",
+//		   "out OBJ", "OBJ with OBJ", "out OBJ with OBJ",
+//		   "up OBJ", "up OBJ with OBJ", "with OBJ in OBJ", }) });
 }
 

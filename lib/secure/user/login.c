@@ -246,7 +246,7 @@ void login_handle_logon(int state, mixed extra, string arg) {
 	 * extensively modified/rewritten more than half of the base mudlib first
 	 * (intend to modify ... doesn't cut it)
 	 */
-	printf("%s is running Lima 1.0a7 on %s\n\n",
+	printf("%s is running Lima 1.0a8 on %s\n\n",
 	       mud_name(), driver_version());
 	
 #ifdef ZORKMUD

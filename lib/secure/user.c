@@ -21,7 +21,9 @@ inherit __DIR__ "user/inputsys";
 inherit __DIR__ "user/userinfo";
 inherit __DIR__ "user/messages";
 inherit __DIR__ "user/shell";
+#ifdef NEWS_DATA_IN_USER
 inherit __DIR__ "user/newsdata";
+#endif
 
 /*
 ** This users's userid (login id).

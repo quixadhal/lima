@@ -23,7 +23,7 @@ Mudlib Features:
  o Very modular, with clear code.
  o Support for Intermud-3.
  o Modal input, and fully featured interactive shells.
- o Real, secure security authored by Ellery @ TMI-2 (Remier Behrends).
+ o Real, secure security authored by Ellery @ TMI-2 (Reimer Behrends).
  o Emphasis on player usability:
 	better news, channels, menus, etc...
 	than any other mudlib
@@ -66,6 +66,7 @@ Credits:
           Scott Gamble, Zifnab @ Lima Bean
 	  Zachary Girouard, Zakk @ Lima Bean (zakk@intersurf.com)
           Robert M. Zigweid, Tigran @ Lima Bean (tigran@lima.mudlib.org)
+          Cody Russell, Iizuka@Lima Bean (bratsche@dfw.net)
 
 	Staff:
 	  Anthon Pang, Robocoder @ Lima Bean

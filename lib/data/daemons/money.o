@@ -1,3 +1,5 @@
 #/daemons/money_d.c
-rates (["silver":10000,"platinum":1000000,"electrum":1000,"dollar":1000,"copper":100,"gold":100000,])
-areas (["empire":({"dollar",}),])
+rates (["gold":100000,"dollar":1000,])
+plurals ([])
+denominations (["gold":({"platinum","gold","silver","electrum","copper",}),"dollar":({"dollar","cent",}),])
+denomination (["silver":(/0.100000,"silver","gold",/),"gold":(/1.00000,"gold","gold",/),"cent":(/0.01000000,"cents","dollar",/),"platinum":(/10.0000,"platinum","gold",/),"dollar":(/1.00000,"dollars","dollar",/),"electrum":(/0.01000000,"electrum","gold",/),"copper":(/0.00100000,"copper","gold",/),])

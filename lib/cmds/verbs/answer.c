@@ -10,7 +10,7 @@
 // Mainly used to mail a poster an answer to a posting
 // See: boards
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 mixed can_answer_to_wrd(string wrd) {
     object brd = 0;
@@ -56,6 +56,6 @@ void do_answer_to_wrd_on_obj(string wrd, object ob) {
     ob->do_reply(id);
 }
 
-array query_verb_info() {
-    return ({ ({ "to WRD", "to WRD on OBJ" }) });
+void create() {
+    add_rules( ({ "to WRD", "to WRD on OBJ" }), ({ }) );
 }

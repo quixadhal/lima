@@ -11,7 +11,7 @@ void remove();
 
 void report_login_failures();
 
-varargs void modal_simple(function input_func, mixed prompt, int secure);
+void modal_simple(function input_func, mixed prompt, int secure,int lock);
 
 void set_privilege(mixed priv);		// from M_ACCESS
 mixed unguarded(mixed priv, function fp);
@@ -143,7 +143,7 @@ private nomask void rcv_try_to_boot(object who, string answer)
     }
 
     write("please type 'y' or 'n'  >");
-    modal_simple((: rcv_try_to_boot, who :));
+    modal_simple((: rcv_try_to_boot, who :),0,0,1);
 }
 
 protected nomask void sw_body_handle_existing_logon(int enter_now) {
@@ -180,7 +180,7 @@ protected nomask void sw_body_handle_existing_logon(int enter_now) {
 		}
 	    } else {
 		write("\nYou are already logged in!\nThrow yourself off?  ");
-		modal_simple((: rcv_try_to_boot, the_user :));
+		modal_simple((: rcv_try_to_boot, the_user :),0,0,1);
 		return;
 	    }
 	}

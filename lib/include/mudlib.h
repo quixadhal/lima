@@ -2,6 +2,7 @@
 
 #ifndef __MUDLIB_H__
 #define __MUDLIB_H__
+#pragma no_warnings
 
 #include <daemons.h>
 #include <dirs.h>
@@ -134,6 +135,7 @@
 ** M_SHELLFUNCS	??
 ** M_SHELLVARS	??
 **
+** ACCOUNTANT
 ** SWORD
 ** BOOK
 ** LADDER
@@ -162,21 +164,29 @@
 #define VOID_ROOM		"/domains/std/Void"
 #define WIZ_ROOM		"/domains/std/Wizroom"
 
+#define ADVERSARY               "/std/adversary"
+#define AGGRESSIVE_MONSTER      "/std/aggressive_monster"
 #define ARMOR			"/std/armor"
 #define BASE_OBJ		"/std/base_obj"
+#define COMBAT_SPELL            "/std/combat_spell"
 #define CONTAINER		"/std/container"
 #define COMPLEX_CONTAINER	"/std/complex_container"
 #define DOOR			"/std/door"
 #define SECRET_DOOR             "/std/secret_door"
 #define FLAME			"/std/flame"
 #define HIDDEN_DOOR             "/std/hidden_door"
+#define FLUID                   "/std/fluid"
 #define FOOD                    "/std/food"
 #define FURNITURE		"/std/furniture"
 #define GUILD_GUARD             "/std/guild_guard"
 #define KEY                     "/std/key"
+#define LIGHT_OBJECT            "/std/light_object"
 #define LIVING			"/std/living"
 #define	MENUS			"/std/menu"
-#define MONSTER			"/std/monster"
+#define MONSTER                 ADVERSARY
+#define MOVING_MONSTER          "/std/moving_monster"
+#define FOLLOWING_MONSTER       "/std/following_monster"
+#define WANDERING_MONSTER       "/std/wandering_monster"
 #define MOUNT			"/std/mount"
 #define OBJ 			"/std/object"
 #define PAPER                  "/std/paper"
@@ -190,7 +200,6 @@
 #define WEAPON			"/std/weapon"
 
 /* used by the OBJ object */
-#define M_OBJ_ATTRIBUTES	"/std/object/attributes"
 
 /* for mudlib objects */
 #define M_ANSI          	"/std/modules/m_ansi"
@@ -209,6 +218,8 @@
 #define M_EDIBLE		"/std/modules/m_edible"
 #define M_DRINKABLE		"/std/modules/m_drinkable"
 #define M_DRINK_CONTAINER	"/std/modules/m_drink_container"
+#define M_FLUID_SOURCE          "/std/modules/m_fluid_source"
+#define M_FLUID_CONTAINER       "/std/modules/m_fluid_container"
 #define M_CONVERSATION		"/std/modules/m_conversation"
 
 /* for area objects */
@@ -218,11 +229,14 @@
 #define M_DAMAGE_SINK		"/std/modules/m_damage_sink"
 #define M_DAMAGE_SOURCE		"/std/modules/m_damage_source"
 #define M_DIGGABLE		"/std/modules/m_diggable"
+#define M_DECAY                 "/std/modules/m_decay"
 #define M_DIGGER		"/std/modules/m_digger"
 #define M_FLOW_ROOM		"/std/modules/m_flow_room"
+#define M_FOLLOW                "/std/modules/m_follow"
 #define M_GETTABLE		"/std/modules/m_gettable"
 #define M_GUILD_MASTER          "/std/modules/m_guild_master"
 #define M_KNOCKABLE		"/std/modules/m_knockable"
+#define M_LIGHT_SOURCE          "/std/modules/m_light_source"
 #define M_LIGHTABLE		"/std/modules/m_lightable"
 #define M_LOCKABLE		"/std/modules/m_lockable"
 #define M_SEARCHABLE		"/std/modules/m_searchable"
@@ -237,6 +251,7 @@
 #define M_VALUABLE		"/std/modules/m_valuable"
 #define M_VENDOR		"/std/modules/m_vendor"
 #define M_WANDER                "/std/modules/m_wander"
+#define M_WANDER_OLD            "/std/modules/m_wander_old"
 #define M_WEARABLE		"/std/modules/m_wearable"
 #define M_WIELDABLE		"/std/modules/m_wieldable"
 #define M_WRITING_SURFACE	"/std/modules/m_writing_surface"
@@ -250,7 +265,7 @@
 #define ADDTO_OB		"/trans/obj/addto_ob"
 #define WIZ_SHELL		"/trans/obj/wish"
 #define TELNET_OB		"/trans/obj/telnet_ob"
-#define ADMTOOL			"/trans/obj/admtool"
+#define ADMTOOL			"/obj/admtool/admtool2"
 #define DATAEDIT		"/trans/obj/dataedit"
 
 #define ALIASMENU		"/obj/mudlib/aliasmenu"
@@ -292,6 +307,8 @@
 
 // These next few are 'high level' inheritables and probably should have
 // their own dir.
+#define ACCOUNTANT              "/std/accountant"
+#define MONEY                   "/std/money"
 #define BOOK			"/std/book"
 #define COINS			"/std/coins"
 #define LADDER			"/std/ladder"

@@ -96,3 +96,10 @@ nomask mixed get_user_variable(string varname)
 	return UNDEFINED_VALUE;
     return shell->get_variable(varname);
 }
+
+//:Function set_this_user()
+//Works like set_this_player().  It was added for consistancies sake.
+nomask void set_this_user(object ob)
+{
+  set_this_player(ob);
+}

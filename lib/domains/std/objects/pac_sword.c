@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include "combat.h"
+#include "old/combat.h"
 
 inherit SWORD;
 inherit CLASS_COMBAT_RESULT;

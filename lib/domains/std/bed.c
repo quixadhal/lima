@@ -10,8 +10,7 @@ void setup()
 {
   set_id("bed");
   set_in_room_desc("There is a bed in the corner of the room.");
-  set_get_on_msg("$N $vsit on the bed.\n");
-  set_get_off_msg("$N $vget off the bed.\n");
+  set_furniture_msg("$N $vsit on the bed.", "$N $vget off the bed.");
   set_long("It's a bed...");
 set_preposition("on");
 set_relations("on","under");

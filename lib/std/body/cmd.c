@@ -27,11 +27,16 @@ string nonsense()
     return choice(nonsense_msgs) + "\n";
 }
 
+mixed *debug_ids(object ob) {
+   return ({ ob, ob->query_id() });
+}
+
 varargs nomask int do_game_command(string str, int debug)
 {
     mixed result;
     mixed go_result;
     object *objs;
+    object rootenv;
 
     /*
     ** We can't try parsing the user has no environment.  We should
@@ -48,9 +53,9 @@ varargs nomask int do_game_command(string str, int debug)
 ** First we have to get the list of objects that are going to be available
 ** in the parse.
 */
-    objs = deep_useful_inv(parser_root_environment(
-                                 environment(this_object()) ));
-//RABUG(sprintf("do_game_command: (parseable objects: %O)", objs));
+    rootenv = parser_root_environment(environment(this_object()) );
+    objs = ({ rootenv, deep_useful_inv_parser_formatted(rootenv) });
+//RABUG(sprintf("do_game_command: (parseable objects: %O)", map(objs, (: debug_ids :) )));
 
     /*
     ** Parse the player's input

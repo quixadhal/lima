@@ -143,19 +143,6 @@ int is_gettable()
 	return get_response == 1;
 }
 
-//### what uses this?  There seem to be far too many functions that do this.
-//### Ah, these two appear to be parser functions.  can_ is in the wrong
-//### place, and pick_up_ really should just be a synonym, or should be
-//### handled whereever direct_get_obj() is (vsupport, I think)
-mixed can_pick_up_obj()
-{
-  return 1;
-}
-
-int direct_pick_up_obj()
-{
-  return 1;
-}
 
 mapping lpscript_attributes() {
     return ([

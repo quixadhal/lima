@@ -32,6 +32,7 @@ class input_info
     int		secure;
     function	return_to_func;
     int		input_type;
+    int         lock;
 }
 private nosave class input_info *	modal_stack = ({ });
 
@@ -118,11 +119,12 @@ private nomask class input_info get_bottom_handler()
 ** necessary to accomodate the new element.
 */
 private nomask void push_handler(function input_func,
-  mixed prompt,
-  int secure,
-  function return_to_func,
-  int input_type
-)
+				 mixed prompt,
+				 int secure,
+				 function return_to_func,
+				 int input_type,
+				 int lock
+				 )
 {
     class input_info info;
 
@@ -132,6 +134,7 @@ private nomask void push_handler(function input_func,
     info->secure		= secure;
     info->return_to_func	= return_to_func;
     info->input_type		= input_type;
+    info->lock                  = lock;
 
     modal_stack += ({ info });
 
@@ -154,13 +157,15 @@ private nomask void push_handler(function input_func,
 ** on the stack.
 */
 varargs nomask void modal_push(function input_func,
-  mixed prompt,
-  int secure,
-  function return_to_func
+			       mixed prompt,
+			       int secure,
+			       function return_to_func,
+			       int lock
+  
 )
 {
-    push_handler(input_func, prompt, secure, return_to_func,
-      INPUT_NORMAL);
+  push_handler(input_func, prompt, secure, return_to_func,
+	       INPUT_NORMAL,lock);
 }
 
 nomask void modal_pop()
@@ -187,12 +192,16 @@ nomask void modal_pop()
 	evaluate(info->return_to_func);
 }
 
-varargs nomask void modal_func(function input_func, mixed prompt, int secure)
+varargs nomask void modal_func(function input_func,
+			       mixed prompt,
+			       int secure,
+			       int lock)
 {
     modal_stack[<1]->input_func = input_func;
     if ( prompt )
 	modal_stack[<1]->prompt = prompt;
     modal_stack[<1]->secure = secure;
+    modal_stack[<1]->lock=lock;
 }
 
 protected nomask void modal_recapture()
@@ -233,9 +242,12 @@ protected nomask void modal_recapture()
 ** NOTE: for multiple inputs, the standard push/pop is encouraged
 ** for efficiency reasons.
 */
-varargs nomask void modal_simple(function input_func, mixed prompt, int secure)
+varargs nomask void modal_simple(function input_func, 
+				 mixed prompt,
+				 int secure,
+				 int lock)
 {
-    push_handler(input_func, prompt, secure, 0, INPUT_AUTO_POP);
+  push_handler(input_func, prompt, secure, 0, INPUT_AUTO_POP,lock);
 }
 
 /*
@@ -279,8 +291,7 @@ private nomask void dispatch_to_bottom(mixed str) {
 private nomask void dispatch_modal_input(mixed str)
 {
     class input_info info;
-
-    if( str[0] == '!')
+    if( str[0] == '!'&& ! modal_stack[<1]->lock)
     {
 	/* Dispatch ! escapes */
 	dispatch_to_bottom(str[1..]);
@@ -306,7 +317,7 @@ private nomask void dispatch_modal_input(mixed str)
 
 nomask void modal_push_char(function input_func)
 {
-    push_handler(input_func, 0, 1, 0, INPUT_CHAR_MODE);
+    push_handler(input_func, 0, 1, 0, INPUT_CHAR_MODE,0);
 }
 
 

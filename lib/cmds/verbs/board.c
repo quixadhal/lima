@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-
 /***************************
 *     
 *   board.c moved to 
@@ -8,19 +7,19 @@
 ******************************/
 
 #include <mudlib.h>
-inherit VERB_OB;
+inherit NVERB_OB;
 
 mixed can_board_obj(object ob)
 {
-    return 1;
+   return 1;
 }
 
 mixed do_board_obj(object ob)
 {
-    ob->board();
+   environment(this_body())->do_go_obj(ob, 0);
 }
    
-array query_verb_info()
+void create()
 {
-   return ({ ({ "OBJ" }) });
+   add_rules( ({ "OBJ" }), ({ }) );
 }

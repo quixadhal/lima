@@ -49,12 +49,11 @@
 # define USE_SKILLS
 # define USE_TITLES
 # define USE_BODYSLOTS
-# undef USE_SIMPLE_LEVEL	// use the simple level number scheme for players
-# undef USE_MON_LEVEL		// use the simeple level number scheme for monsters
 # undef USE_TEAMS		// use team support
 # undef USE_SIMPLE_EXP		// use the simple experience scheme for players
 # undef USE_MON_RACES		// use monster race support
 #endif
+#define USE_MONEY               // money or coins
 
 /* one or the other should be defined */
 #define USE_SIZE
@@ -146,6 +145,9 @@
 
 #define WIZ_DIR			"/wiz"
 
+
+/* Define this if you want expanded wizard directories (i.e. /wiz/f/foo) */
+#undef EXPANDED_WIZ_DIR
 #define WELCOME_FILE		"/data/config/WELCOME"
 #define NEW_PLAYER		"/data/config/NEW_PLAYER"
 #define MOTD_FILE		"/data/config/MOTD"

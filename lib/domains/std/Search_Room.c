@@ -10,7 +10,7 @@ void setup() {
     searchable_once(1);
 }
 
-void search(object with, string item) {
+void do_search(object with, string item) {
     this_body()->simple_action("$N $vsearch around the room and $vfind a "
       "sword buried beneath the junk.\n");
     give_new_obj( this_body(), "/domains/std/objects/sword", 0);

@@ -57,7 +57,7 @@ void create() {
     if (!translations)
 	translations = ([
 	    "NONE" : "",
-	    "RESET" : RESET, "BOLD" : BOLD, "FLASH" : FLASH, "RED" : RED, 
+	    "RESET" : RESET, "BOLD" : BOLD, "FLASH" : FLASH, "BLACK" : BLACK, "RED" : RED, 
 	    "GREEN" : GREEN, "ORANGE" : ORANGE, "YELLOW" : YELLOW, "BLUE" : BLUE,
 	    "CYAN" : CYAN, "MAGENTA" : MAGENTA, "WHITE" : WHITE, "B_RED" : B_RED,
 	    "B_GREEN" : B_GREEN, "B_ORANGE" : B_ORANGE, "B_YELLOW" : B_YELLOW,
@@ -107,6 +107,7 @@ void add_default_colour(string key, string value) {
 void remove_default_colour(string key) {
     require_privilege("Mudlib:daemons");
 
+    map_delete(translations, upper_case(key));
     map_delete(defaults, upper_case(key));
     resync();
 }

@@ -1,6 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 inherit CONTAINER;
+inherit M_DECAY;
+inherit M_MESSAGES;
 
 string the_name;
 object link;
@@ -46,13 +48,19 @@ void mudlib_setup(string name, string long, object l)
     set_max_capacity(VERY_LARGE);
     set_size(VERY_LARGE);
     set_preposition("on");
+    set_num_decays(3);
+    set_decay_action("Insects $vgnaw at the withering corpse.\n");
+    set_last_decay_action("A corpse $vdecay into dust and ash.\n");
+    set_decay_time(20);
+    set_decay_auto_remove(1);
 }
 
 string introduce_contents()
 {
     return "On " + the_short() + " you see:\n";
 }    
-mixed indirect_get_obj_from_obj()
+
+mixed indirect_get_obj_from_obj(object ob1, object ob2)
 {
   return 1;
 }

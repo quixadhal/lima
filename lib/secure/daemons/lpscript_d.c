@@ -20,6 +20,8 @@ private mapping inheritable = ([
     "book" : BOOK,
     "container" : CONTAINER,
     "moving room" : "/std/moving_room",
+    "following monster" : FOLLOWING_MONSTER,
+    "wandering monster" : WANDERING_MONSTER,
 ]);
 
 int cur, intrigger;

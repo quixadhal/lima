@@ -99,7 +99,7 @@ private void end_edit(int aborted)
     ** Clear up this information before dispatching the callback.  The
     ** callback may want to push new modal handlers or something.
     */
-    if( !already_editing )
+    if( !already_editing && this_body() )
 	this_body()->clear_flag(F_IN_EDIT);
     modal_pop();
 
@@ -189,14 +189,16 @@ private nomask void parse_edit(mixed str)
 
 private void begin_edit(string *text, function continuation)
 {
-    if ( this_body()->test_flag(F_IN_EDIT) )
+  if(this_body())
     {
-	already_editing = 1;
-	write("Warning! You are already marked as editing.\n");
-    }
-    else
+      if ( this_body()->test_flag(F_IN_EDIT) )
+	{
+	  already_editing = 1;
+	  write("Warning! You are already marked as editing.\n");
+	}
+      else
 	this_body()->set_flag(F_IN_EDIT);
-
+    }
     buf = text ? text : ({ });
     client_func = continuation;
 

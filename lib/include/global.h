@@ -21,10 +21,9 @@
 #define mud_name()		MUD_NAME
 #define driver_version()	__VERSION__
 
-#define wiz_dir(x)		sprintf(WIZ_DIR"/%s",(x)->query_userid())
-
 #define TELL_BUG(p,x) (tell_user(p,sprintf("%s: %O\n",__FILE__,(x))))
 
+#define IBUG(x) TELL_BUG("iizuka",(x))
 #define BBUG(x) TELL_BUG("rust",(x))
 #define DBBUG(x) TELL_BUG("deathblade",(x))
 #define ZBUG(x) TELL_BUG("zifnab",(x))

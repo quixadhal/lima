@@ -100,62 +100,25 @@ nomask void shutdown()
 }
 
 //:FUNCTION query_snoop
-//The query_snoop simul makes sure only priv 1 can check snoops
+//The query_snoop efun makes no sense in the context of our snoop system.
 nomask object query_snoop(object ob)
 {
-    if(!check_privilege(1))
-	return 0;
-    return efun::query_snoop(ob);
+  error("Lima doesn't use regular snoop.\n");
 }
 
 //:FUNCTION query_snooping
-//The query_snooping simul prevents non priv 1 objects from checking on snoops
+//The query_snooping efun makes no sense in the context of our snoop system.
 nomask object query_snooping(object ob)
 {
-    if(!check_privilege(1))
-	return 0;
-    return efun::query_snooping(ob);
+  error("Lima doesn't use regular snoop.\n");
 }
 
-//:FUNCTION snoop
-//The snoop simul does some security checks before allowing snooping
-varargs nomask mixed snoop(mixed snoopee)
+void snoop(object snooper, object snoopee)
 {
-    object result;
-
-    if (snoopee) {
-	object body = snoopee->query_body();
-
-	if (body && !body->test_flag(F_SNOOPABLE) && !check_privilege(1)) {
-	    write("Failed (permission denied).\n");
-	    return 0;
-	}
-	if (efun::query_snoop(snoopee)) {
-	    write("Busy.\n");
-	    return 0;
-	}
-	result = efun::snoop(this_user(), snoopee);
-	if(result && adminp(snoopee))
-	    tell(snoopee,sprintf("%s starts to snoop you!\n",
-		this_body()->query_name()));
-    } else {
-	if (!efun::query_snooping(this_user())) {
-	    write("Not snooping.\n");
-	    return 0;
-	}
-
-	foreach (object u in users()) {
-	    if (efun::query_snoop(u) == this_user() && adminp(u))
-		tell(u, "You are no longer being snooped.\n");
-	}
-	result = efun::snoop(this_user());
-    }
-    if (!result) {
-	write("Failed.\n");
-    } else {
-	write("Ok.\n");
-    }
-    return result;
+  if(previous_object() == find_object(SNOOP_D))
+    efun::snoop(snooper, snoopee);
+  else
+    error("Only SNOOP_D may call snoop.\n");
 }
 
 varargs void tell_object()

@@ -34,7 +34,7 @@ private nomask void receive_ed_input(mixed s)
 	modal_pop();
 	if( already_editing )
 	    --already_editing;
-	else
+	else if(this_body())
 	    this_body()->clear_flag(F_IN_EDIT);
 
 	if ( end_func )
@@ -63,11 +63,13 @@ varargs nomask void begin_editing(string fname,
   function f)
 {
     modal_push((: receive_ed_input :), (: query_prompt :));
-    if( this_body()->test_flag( F_IN_EDIT ))
-      already_editing++;
-      else
+    if( this_body() )
+      {
+	if(this_body()->test_flag( F_IN_EDIT ))
+	  already_editing++;
+	else
 	  this_body()->set_flag(F_IN_EDIT);		
-
+      }
       user = this_user();
 
       end_func = f;

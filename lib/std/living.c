@@ -5,6 +5,7 @@ inherit CONTAINER;
 inherit __DIR__ "living/grammar";
 inherit __DIR__ "living/messages";
 inherit __DIR__ "living/state_of_mind";
+inherit __DIR__ "living/misc";
 
 /* This is a pure 'living' object, not what is traditionally meant
  * by a living object on LPmuds.  Note that find_living() won't
@@ -30,7 +31,7 @@ string query_name() { return name; }
 void set_name(string n) {
     if (name) remove_id(lower_case(n));
     name = n;
-    add_id(lower_case(n));
+    add_id_no_plural(lower_case(n));
 }
 
 string in_room_desc() {

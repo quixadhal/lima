@@ -66,3 +66,32 @@ mixed direct_verb_rule(string verb, string rule, mixed args)
     /* can't use that verb on us... */
     return 0;
 }
+
+// some special cases because of /std/object/vsupport.c
+mixed direct_get_obj(object ob) {
+    if (msgs["get"])
+        return msgs["get"];
+    else
+        return ::direct_get_obj(ob);
+}
+
+mixed direct_pull_obj(object ob) {
+    if (msgs["pull"])
+        return msgs["pull"];
+    else
+        return ::direct_pull_obj(ob);
+}
+
+mixed direct_press_obj(object ob) {
+    if (msgs["press"])
+        return msgs["press"];
+    else
+        return ::direct_press_obj(ob);
+}
+
+mixed direct_search_obj(object ob) {
+    if (msgs["search"])
+        return msgs["search"];
+    else
+        return ::direct_search_obj(ob);
+}

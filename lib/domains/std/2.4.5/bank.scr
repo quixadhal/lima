@@ -13,7 +13,7 @@ extra_reset() {
         guard = clone_object("obj/monster");
 	call_other(guard, "set_name", "guard");
 	call_other(guard, "set_level", 11);
-	call_other(guard, "set_hp", 200);
+	call_other(guard, "set_health", 200);
 	call_other(guard, "set_al", 100);
 	call_other(guard, "set_short", "A guard");
 	call_other(guard, "set_long", "A big and sturdy guard.");

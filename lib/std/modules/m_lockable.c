@@ -231,7 +231,9 @@ mixed direct_pick_obj_with_obj() {
     return 1;
 }
 
-mixed direct_lock_obj_with_obj() {
+mixed direct_lock_obj_with_obj(object ob1, object ob2) {
+    if( !this_object()->query_closed())
+        return "Perhaps you should close it first.";
     if (locked)
 	return "It is already locked.";
     return 1;

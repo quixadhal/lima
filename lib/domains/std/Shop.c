@@ -3,12 +3,6 @@
 inherit INDOOR_ROOM;
 
 
-mixed can_go_up() { return 1; }
-int do_go_up()
-{
-    this_body()->force_game_command( "climb up stairs" );
-    return 1;
-}
 
 
 void setup()
@@ -29,7 +23,7 @@ void setup()
       ]) );
     set_objects( ([
 	"/domains/std/shopkeeper.c" : 1,
-	STAIRS : ({ "/domains/std/Wizroom", 0, 1 }),
+	STAIRS : ({ "/domains/std/Wizroom", 0 }),
       ]) );
 
 }

@@ -18,13 +18,15 @@
 #include <move.h>
 #include <hooks.h>
 #include <size.h>
-#include <combat.h>
+//#include <combat.h>
 #include <clean_up.h>
 
 // Files we need to inherit --
-inherit MONSTER;
+inherit ADVERSARY;
 inherit M_ACCESS;
 inherit M_SMARTMOVE;
+inherit M_FOLLOW;
+inherit M_ACTIONS;
 
 #ifndef EVERYTHING_SAVES
 private inherit M_SAVE; // don't want people calling load_from_string()
@@ -50,12 +52,6 @@ inherit __DIR__ "body/skills";
 #ifdef USE_TITLES
 inherit __DIR__ "body/title";
 #endif
-#ifdef USE_SIMPLE_LEVEL
-inherit __DIR__ "body/simple_level";
-#endif
-#ifdef USE_SIMPLE_EXP
-inherit __DIR__ "body/simple_exp";
-#endif
 #ifdef USE_WIZ_POSITION
 inherit __DIR__ "body/wiz_position";
 #endif
@@ -65,6 +61,12 @@ inherit __DIR__ "body/guilds";
 #ifdef USE_STATS
 inherit M_BODY_STATS;
 #endif
+#ifndef NEWS_DATA_IN_USER
+inherit __DIR__"body/newsdata";
+#endif
+
+void heal_all();
+varargs void stop_fight(object);
 
 // Global variables --
 private string reply;
@@ -82,6 +84,11 @@ nomask object query_link()
     return link;
 }
 
+void mudlib_setup()
+{
+   adversary::mudlib_setup();
+   m_follow::mudlib_setup();
+}
 
 #ifdef EVERYONE_HAS_A_PLAN
 
@@ -277,7 +284,7 @@ void remove()
     MAILBOX_D->unload_mailbox(query_userid());
     unload_mailer();
     LAST_LOGIN_D->register_last(query_userid());
-
+    SNOOP_D->bye();
     ::remove();
 }
 
@@ -337,6 +344,7 @@ void net_dead()
 
     CHANNEL_D->deliver_emote("announce", query_name(),
       sprintf("has gone link-dead.", mud_name()));
+    SNOOP_D->bye(this_object());
 }
 
 //:FUNCTION reconnect
@@ -357,53 +365,25 @@ void reconnect(object new_link)
 //This function is called when we die :-)
 void die()
 {
-    /* Unavoidable historical problem.  I originally spec'ed die() as the function
-     * that got called when you died; i.e. it does whatever else needs to be done
-     * that the combat code hasn't already taken care of.
-     *
-     * Unfortunately, at some later date, someone decided that @ .me->die() should
-     * kill you, which is incompatible with the first definition.  Of course, they
-     * quickly found out that this leaves you only half dead or so, since only the
-     * extra stuff gets done.
-     *
-     * Some really clever person put a 'set_hp(0)' in here to fix that.  This
-     * tells the combat code to kill us.  Unfortunately, that means die() gets
-     * called *again*, resulting in this function running twice.
-     *
-     * In order to be compatible with both abu^H^H^Huses, the following check
-     * asks the combat code if it considers use dead already.  If we aren't
-     * dead, we ask the combat code to kill us.  If we were called by the
-     * combat code, we continue on and do the right thing.
-     *
-     * This fixes yet ANOTHER problem that klu^H^H^Hfeature introduced, which
-     * is that calling die() in dead people isn't a NOP like it should be.
-     * In that case, we now call the combat code to kill us, which notices
-     * we are already dead, and correctly does nothing.
-     */
-    if (!query_ghost()) {
-	set_hp(0);
-	return;
-    }
-
     if ( wizardp(link) )
     {
 	if(is_visible())
 	    simple_action("If $n $vwere mortal, $n would now no longer be mortal.");
-	set_hp(query_max_hp());
-	stop_fight();
+        stop_fight();
+        call_out((: reincarnate :), 1);
+	heal_all();
 	return;
     }
 
+    stop_fight();
     if(is_visible())
 	simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.");
     receive_private_msg("\n\n   ****  You have died  ****\n\n"
       "A pity, really.  Way too many people dying these days for me to just patch\n"
       "everyone up.  Oh well, you'll live.\n",0,0);
     rack_up_a_death();
-    /* Someone forgot to ::die() in here so corpses are created -- Tigran */
-#ifdef DEATH_USES_CORPSES
-    ::die();
-#endif
+    drop_corpse();
+
 #ifdef DEATH_MESSAGES
     {
 	// another option is to choose the message here based on player level
@@ -454,7 +434,7 @@ void create(string userid)
 
     messages = ([]);
 
-    monster::create();
+    adversary::create();
 #ifdef USE_STATS
     m_bodystats::create();
 #endif
@@ -465,7 +445,7 @@ void create(string userid)
     configure_set(PLAYER_NP_FLAGS, 1);
 
     set_long( (: our_description :) );
-    naming_create(userid);
+    set_name(userid);
 
     unguarded(1, (: restore_object, USER_PATH(userid), 1 :));
 
@@ -501,6 +481,7 @@ void channel_add(string which_channel)
     channel_list += ({ which_channel });
     CHANNEL_D->register_channels(({ which_channel }));
 }
+
 void channel_remove(string which_channel)
 {
     channel_list -= ({ which_channel });
@@ -546,10 +527,10 @@ void move_or_destruct(object suggested_dest) {
     mixed err;
     object dested_env = environment();
     mixed destination;
-
+    
     if ( !query_link() )
 	return;
-
+    
     // Might want to add another failsafe room on the end of this list
     // that doesn't inherit room.c and is guaranteed to load/accept people.
     foreach (destination in ({ suggested_dest, VOID_ROOM, this_body()->query_start_location(), START, WIZARD_START  })) {
@@ -576,69 +557,24 @@ void move_or_destruct(object suggested_dest) {
 }
 
 
-#ifdef USE_STATS
-
-int to_hit_base() {
-    return 50 - query_agi();
+string living_query_name() {
+    return ::query_name();
 }
 
-int damage_bonus() {
-    return fuzzy_divide(query_str(), 10);
-}
-
-void refresh_stats() {
-    m_bodystats::refresh_stats();
-}
-
-#endif /* USE_STATS */
-
-#ifdef USE_SKILLS
-
-int hit_skill()
+string query_name()
 {
-    //### change to something based on skill...
-    return fuzzy_divide(query_agi(), 2);
+    return naming::adjust_name(::query_name());
 }
-
-#endif /* USE_SKILLS */
 
 /*
 ** These are overrides from our ancestor (MONSTER)
 */
-string query_name() { return naming::query_name(); }
 string short() { return query_name(); }
 string a_short() { return query_name(); }
 string the_short() { return query_name(); }
 string in_room_desc() { return base_in_room_desc() + query_idle_string(); }
 
 /* end of naming overrides */
-
-#ifdef USE_SKILLS
-
-class combat_result array negotiate_result(class combat_result array result)
-{
-    result = (class combat_result array)::negotiate_result(result);
-
-    /*
-    ** See if we have disarmed the opponent by using our 'combat/disarm'
-    ** skill.  Note that testing the skill will also train it.
-    */
-    //### where's a better place to put this?
-    //### ack. we should be caching our aggregate_skill()
-    //### what the heck is the opposing skill?
-    //### ... for now, use 5000; eventually, use target's experience
-
-    if ( test_skill("combat/disarm", 5000) )
-    {
-	result = ({ new(class combat_result,
-	    special : RES_DISARM,
-	    message : "!disarm") }) + result;
-    }
-
-    return result;
-}
-
-#endif /* USE_SKILLS */
 
 int allow(string what)
 {

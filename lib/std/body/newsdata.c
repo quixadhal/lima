@@ -8,6 +8,8 @@
 ** 24-Dec-94. Deathblade. Created
 ** 03-Dec-97  Explanded to use M_SET (thus getting rid of highwater tracking)
 **            Tigran
+** 13-Mar-98  Added toggleable threading and the ability to mark articles in 
+**            a newsgroup unread -- Tigran.
 */
 
 inherit M_SET;
@@ -17,6 +19,20 @@ private string array subscribed_groups();
 private int check_subscribed(string group);
 
 private nomask mapping news_data;
+private nomask int threading_toggled=1;
+
+nomask int set_threading(int i)
+{
+  if(i)
+    threading_toggled=1;
+  else
+    threading_toggled=0;
+}
+
+nomask int query_threading()
+{
+  return threading_toggled;
+}
 
 /* Function that should be used to catch up a group */
 nomask void catch_up_newsgroup(string group)
@@ -29,6 +45,12 @@ nomask void catch_up_newsgroup(string group)
   save_me();
 }
 
+nomask void mark_newsgroup_unread(string group)
+{
+  news_data[group]=sprintf("%c",news_data[group][0]);
+  save_me();
+}
+
 /* Function for querying whigh articles have been read */
 nomask string get_news_id_read(string group)
 {
@@ -38,6 +60,8 @@ nomask string get_news_id_read(string group)
       printf("Your news read data has been corrupted, marking everything as read.\n"
 	     "Please notify Tigran@Lima Bean that this happened");
     }
+      if(strlen(news_data[group])<=1)
+        return "";
   return news_data[group][1..];
 }
 
@@ -111,6 +135,8 @@ nomask string array registered_groups()
 }
 
 /* Function that removes groups from your news_data that aren't in NEWS_D */
+/* Added by Tigran.  This function also converts news data into the proper
+ * format if it has not already been done */
 nomask void validate_groups()
 {
   string array groups;
@@ -120,6 +146,12 @@ nomask void validate_groups()
     return;
   groups = keys(news_data) - NEWS_D->get_groups();
   map_array(groups, (: map_delete(news_data, $1) :));
+  foreach(string group,mixed data in news_data)
+    {
+      if(intp(data))
+	data=sprintf(":%s",
+		     set_add_range("",1,data) );
+    }
   save_me();
 }
 

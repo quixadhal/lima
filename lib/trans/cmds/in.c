@@ -10,17 +10,23 @@ void create()
   no_redirection();
 }
 
-private void main(mixed *arg) {
-    object old;
-    string cmd;
-
-    cmd = implode(arg[1], " ");;
+private void main(string orig_input) {
+    object old=environment(this_body());
+    string array parts=explode(orig_input," ");
+    object where;
+    string cmd = implode(parts[1..], " ");
+    
     old = environment(this_body());
-
-    this_body()->move(arg[0]);
-
+    where=find_body(parts[0]);
+    if(!where)
+      where=find_object(parts[0]);
+    if(!where)
+      {
+	outf("Could not find object\n");
+	return;
+      }
+    this_body()->move(where);
     this_user()->force_me(cmd);
-
     if (old)
 	this_body()->move(old);
     else

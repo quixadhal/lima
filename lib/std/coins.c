@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+/* cleaned up and adjusted to denominations 10-Feb-98 by MonicaS */
 
 inherit OBJ;
 inherit M_GETTABLE;
@@ -8,163 +8,92 @@ inherit M_MESSAGES;
 
 private mapping coins = ([]);
 
-int long_amount;
-string long_type;
+string long_descr() {
+  string descr;
+  string denomination;
+  int amount;
 
-string long_descr()
-{
-    string *types;
-    string descr;
-    int i;
-
-    types = this_object()->query_coins();
-    i = sizeof(types);
-    if (i == 1)
-    {
-
-add_id(long_type);
-	descr = "A pile of ";
-
-	descr += coins[long_type];
-	descr += " ";
-	descr += types[0];
-  descr += " coins.\n";
-    }
+  foreach (denomination, amount in coins) {
+    if (descr)
+      descr += ", ";
     else
-    {
-descr = "A pile of various types of coins including: \n ";
-   while (i--)
-   {
-descr += "          ";
-     descr += types[i];
-descr += "\n";
-   }
-    }
-    return descr;
+      descr = "A pile of coins consisting of ";
+    descr += MONEY_D->denomination_to_string(amount, denomination);
+  }
+  return descr;
 }
 
-private int query_amt_coins(string type)
-{
-    return coins[type];
+private int query_amt_coins(string type) {
+  return coins[type];
 }
 
-int *query_coins()
-{
-    return keys(coins);
+string *query_coins() {
+  return keys(coins);
 }
 
-
-mixed get(string amount, string type)
-{
-    string *types;
-    int coin_value;
-    int int_amount;
-    int i;
-    if(!amount)
-    {
-	types = this_object()->query_coins();
-	i = sizeof(types);
-
-	if(i == 1)
-	{
-	    coin_value = this_object()->query_amt_coins(types[0]);
-	    this_body()->add_money(types[0], coin_value);
-	    remove();
-	    return "You take the pile of coins.\n";
-	}
-	else
-	{
-	    while(i--)
-	    {
-		coin_value = this_object()->query_amt_coins(types[i]);
-		this_body()->add_money(types[i], coin_value);
-	    }
-	    remove();
-	    return "You take the pile of coins.\n";
-	}
+void split_coins(int amount, string type) {
+  if(coins[type] >= amount) {
+    this_body()->add_money(type, amount);
+    coins[type] -= amount;
+    this_body()->simple_action("$N $vtake some coins.");
+    if (coins[type] <= 0) {
+      map_delete(coins,type);
+      if (!sizeof(query_coins()))
+	remove();
     }
-
-    else
-    if(type == "coins" || type == "coin")
-    {
-	types = this_object()->query_coins();
-	i = sizeof(types);
-	if (i == 1)
-	{
-	    int_amount = to_int(amount);
-	    this_object()->split_coins(types[0], int_amount);
-	}
-	else
-	{
-	    write("Which type of coins do you wnat to get?\n");
-	}
-    }
-    else
-    {
-	if(!coins[type])
-	{
-	    write("There are no coins of that type here.\n");
-	}
-	else
-	{
-	    int_amount = to_int(amount);
-	    this_object()->split_coins(type,int_amount);
-	}
-    }
+  }
+  else
+    write("There aren't that many coins of that type here.\n");
 }
 
-void split_coins(string type, int amount)
-{
-    string *types;
-    int i;
-
-
-    if(coins[type] >= amount)
-    {
-	this_body()->add_money(type,amount);
-	coins[type] -= amount;
-	this_body()->simple_action("$N $vtake some coins.");
-	if (coins[type] == 0)
-	{
-	    map_delete(coins,type);
-	}
-	types = this_object()->query_coins();
-	i = sizeof(types);
-	if (!i)
-	{
-	    remove();
-	}
+mixed get(string amount_str, string type) {
+  string denomination;
+  int amount;
+  string *types;
+  
+  if(!amount_str) {
+    foreach (denomination, amount in coins) {
+      this_body()->add_money(denomination, amount);
     }
-    else
-    {
-	write("There aren't that many coins of that type here.\n");
+    this_body()->simple_action("$N $vtake the pile of coins.");
+    remove();
+    return "";
+  }
+  else {
+    if(type == "coins" || type == "coin") {
+      types = query_coins();
+      if (sizeof(types) == 1) {
+	amount = to_int(amount_str);
+	split_coins(amount, types[0]);
+      }
+      else
+	write("Which type of coins do you want to get?\n");
     }
+    else if(!coins[type])
+      write("There are no coins of that type here.\n");
+    else {
+      if (amount_str == "all")
+        split_coins(coins[type], type);
+      else
+	split_coins(to_int(amount_str), type);
+    }
+  }
 }
 
-void merge_coins(int amount, string type)
-{
-this_object()->add_id(type);
-    if (!coins[type])
-    {
-	coins[type] = amount;
-    }
-    else
-    {
-	coins[type] += amount;
-    }
+void merge_coins(int amount, string type) {
+  this_object()->add_id(type);
+  coins[type] += amount;
 }
 
-
-void setup(int amount, string type)
-{
-    long_type = type;
-    coins[type] = to_int(amount);
-
-    set_id("coins");
-    add_adj(type);
-    set_in_room_desc("A pile of coins");
-    add_id(   "coin", "pile", "pile of coins" );
-    set_long( (: long_descr :) );
-
-    set_gettable(1);
+void setup(int amount, string type) {
+  amount = to_int(amount);
+  coins[type] = amount;
+  set_id("coins", type, "money", "coin", "pile", "pile of coins");
+  add_adj(type);
+  set_in_room_desc("A pile of coins");
+  set_proper_name("coins");
+  set_long( (: long_descr :) );
+  set_gettable(1);
+  set_plural(1);
 }
+

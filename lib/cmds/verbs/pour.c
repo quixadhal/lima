@@ -3,19 +3,29 @@
 #include <mudlib.h>
 #include <setbit.h>
 
-inherit M_PARSING;
-inherit VERB_OB;
+inherit NVERB_OB;
+
+
+void do_pour_obj( object ob ){
+ob -> pour( 0, environment (this_body() ) );
+}
 
 /* default */
-mixed indirect_pour_obj_in_obj(object ob1, object ob2) {
-    return "You can't pour anything into " + ob2->the_short() + "\n";
+mixed indirect_pour_obj_wrd_obj(object ob1, string wrd, object ob2) {
+    return "You can't pour anything " + wrd + ob2->the_short() + "\n";
 }
 
-void do_pour_obj_in_obj(object ob1, object ob2) {
-    ob1->pour_into(ob2);
+void do_pour_obj_wrd_obj(object ob1, string wrd, object ob2 ) {
+    ob1->pour(wrd, ob2);
 }
 
-array query_verb_info(string rule)
+void do_pour_obj_out( object ob){
+ob -> pour ( 0, environment( this_body() ) );
+}
+
+void create()
 {
-return ({ ({ "OBJ in OBJ" }) });
+add_rules ( ({ "OBJ", "OBJ WRD OBJ", "OBJ out" }), ({"empty"}) );
 }
+
+

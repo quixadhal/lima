@@ -91,8 +91,7 @@ private void main(string arg)
     l_info = "  Level: "+this_body()->query_level();
 #endif
 
-    outf("Hp: %d (%d)   Sp: %d (%d) %s%s%s\n",
-	 this_body()->query_hp(), this_body()->query_max_hp(),
+    outf("Sp: %d (%d) %s%s%s\n",
 	 1, 1,
          r_info,l_info,x_info);
 

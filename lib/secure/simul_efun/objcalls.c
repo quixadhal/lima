@@ -75,7 +75,39 @@ varargs int duplicatep( object o ) {
     }
 }
 mixed
-deep_useful_inv( object ob )
+//### The member_array(item, users()->query_body()); crap is to workaround
+//### a parser bug in MudOS v22.2a21.
+deep_useful_inv_parser_formatted(object ob)
+{
+    mixed ret = ({});
+    object *inv;
+    object *next_inv;
+
+    if(!ob->inventory_accessible()) return 0;
+    inv = all_inventory(ob);
+    if(!sizeof(inv)) return 0;
+    foreach(object item in inv)
+    {
+	next_inv = deep_useful_inv_parser_formatted(item);
+	if(!next_inv)
+	{
+            // ### When the parser bug is fixed, remove the following line
+//	    if (member_array(item, users()->query_body()) == -1)
+		ret += ({ item });
+	}
+	else
+	{
+            // ### When the parser bug is fixed remove the if test
+            // ### and ret += ({ next_inv });
+//	    if (member_array(item, users()->query_body()) != -1)
+//		ret += ({ next_inv });
+//	    else
+		ret += ({ item, next_inv });
+	}
+    }
+    return ret;
+}
+mixed deep_useful_inv( object ob )
 {
     object *ret;
     int i,n;
@@ -207,7 +239,7 @@ varargs string inv_list(object array obs, int flag, int depth) {
 		if (ob->is_living()) {
 		    res += ob->in_room_desc();
 		} else {
-		    res += ob->a_short() + M_OBJ_ATTRIBUTES->get_attributes(ob);
+		    res += ob->a_short() + ob->get_attributes();
 		}
 	    }
 	    res += "\n";

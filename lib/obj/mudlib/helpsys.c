@@ -103,8 +103,8 @@ private nomask void parse_file(string fname)
 	lines = ({ "This file has no text.\n" });
 	return;
     }
-    write (file_size(fname));
-     write( fname );
+    if(wizardp())
+      write( sprintf("\n%*|s\n",this_user()->query_screen_width(),"["+fname+"]" ));
     lines = explode(read_file(fname), "\n");
     lines = filter_array(lines, (: f_parse :));
 

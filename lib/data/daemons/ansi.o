@@ -1,2 +1,2 @@
 #/daemons/ansi_d.c
-defaults (["ROOM_SHORT":"none","TELL":"bold","NEWS_POSTER":"none","NEWS_SUBJECT":"bold","MORE":"bold","LS_LOADED":"yellow","LS_HEADING":"bold","MENU_CHOICE":"green","CHANNEL_IMUD":"green","ROOM_EXIT":"magenta","NEWS_TIME":"none","LS_DIR":"magenta","SAY":"none","LS_DEFAULT":"cyan","CHANNEL":"green",])
+defaults (["NEWS_GROUP_UNSUBSCRIBED":"red","NEWS_MSG_UNREAD":"none","SAY":"none","NEWS_GROUP_SUBSCRIBED":"cyan","LS_DEFAULT":"cyan","CHANNEL":"green","LS_LOADED":"yellow","NEWS_POSTER":"none","ROOM_EXIT":"magenta","MENU_CHOICE":"green","CHANNEL_IMUD":"green","NEWS_TIME":"none","ROOM_SHORT":"none","NEWS_SUBJECT":"bold","LS_HEADING":"bold","NEWS_MSG_READ":"green","MORE":"bold","LS_DIR":"magenta",])

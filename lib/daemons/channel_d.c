@@ -33,7 +33,7 @@
 ** 05-Nov-94. Created. Deathblade.
 */
 
-#define CHANNEL_FORMAT(chan) (chan[0..4] == "imud_" ? "%%^CHANNEL_IMUD%%^[%s]%%^RESET%%^ %s\n" : "%%^CHANNEL%%^[%s]%%^RESET%%^ %s\n")
+#define CHANNEL_FORMAT(chan) (chan[0..4] == "imud_" ? "%%^CHANNEL_IMUD%%^[i%s]%%^RESET%%^ %s\n" : "%%^CHANNEL%%^[%s]%%^RESET%%^ %s\n")
 
 #include <mudlib.h>
 #include <security.h>

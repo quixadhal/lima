@@ -1,8 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit MONSTER;
+inherit WANDERING_MONSTER;
 inherit M_BLOCKEXITS;
-inherit M_WANDER;
 
 void setup()
 {
@@ -13,7 +12,7 @@ void setup()
     set_in_room_desc("Tiamat");
     set_long("Getting close enough to see what a dragon is not a good idea.");
 
-    set_max_hp(300);
-    set_movement_time(5);
+    set_max_health(300);
+    set_wander_time(5);
     set_wander_area("wiz_area");
 }

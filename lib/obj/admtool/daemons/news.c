@@ -116,8 +116,7 @@ private void rcv_unforward_mail(string group,string destination)
       printf("Group %s is no longer forwarded anywhere\n",group);
       return;
     }
-  if(member_array(destination,NEWS_D->query_mail_forward())>-1)
-    NEWS_D->remove_mail_forward(group);
+  NEWS_D->remove_mail_forward(group,destination);
   printf("Group %s is not forwarded to %s",group,destination);
 }
 

@@ -132,13 +132,22 @@ object query_last_location()
     return last_location;
 }
 
-
-object give_new_obj( object target, string obj, int recurse )
+//:FUNCTION give_new_obj
+//give_new_obj creates a new object and moves it to target. If recurse is 1
+//the object will be moved to the environment if the move fails.
+//The optional args are passed to the object when it is created.
+varargs object give_new_obj(object target, string obj, int recurse, mixed args)
 {
-    object ob = new( absolute_path(obj));
+    object ob;
+    if (undefinedp(args)) 
+        ob = new(absolute_path(obj));
+    else if (arrayp(args))
+        ob = new(absolute_path(obj), args...);
+    else
+        ob = new(absolute_path(obj), args);
 
     if( !ob )
-	error( "give_new_obj() failed: No such object " + obj + ".\n" );
+	error( "give_new_obj() failed: Object could not be created: " + obj + ".\n" );
     if( !target )
 	error( "give_new_obj() failed: Invalid target.");
 

@@ -24,7 +24,7 @@ private void main(){
 	object o;
 	string Short;
 	
-	dest = room->query_exit_value(dir);
+	dest = room->query_exit_destination(dir);
 	if (dest) {
 	    if (dest[0] == '#') {
 		outf("%s:  %s", dir, dest);

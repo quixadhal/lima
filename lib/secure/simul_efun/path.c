@@ -199,3 +199,23 @@ varargs string absolute_path( string relative_path, mixed relative_to )
     return relative_path;
 }
 
+nomask string wiz_dir(mixed what)
+{
+  if(stringp(what))
+    {
+#ifdef EXPANDED_WIZ_DIR
+      return sprintf("%s/%c/%s",WIZ_DIR,what[0],what);
+#else
+      return sprintf("%s/%s",WIZ_DIR,what);
+#endif
+    }
+  if(objectp(what))
+    {
+      string who=what->query_userid();
+#ifdef EXPANDED_WIZ_DIR
+      return sprintf("%s/%c/%s",WIZ_DIR,who[0],who);
+#else
+      return sprintf("%s/%s",WIZ_DIR,who);
+#endif
+    }
+}

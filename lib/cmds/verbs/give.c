@@ -21,21 +21,20 @@ void do_give_obs_to_liv(array info, object liv) {
     handle_obs(info, (: do_give_obj_to_liv :), liv);
 }
 
-//##see comments in get
 mixed can_give_wrd_str_to_liv(string amount, string str, object who) {
     int z;
     string s1, s2;
 
     sscanf(amount, "%d%s", z, s1);
-    if (s1 != "") return 0;
+    if (s1 != "" && amount != "all") return 0;
 
     sscanf(str, "%s %s", s1, s2);
     if (s2) {
 	if (s2 != "coin" && s2 != "coins")
 	    return 0;
-	return 1;
+        return MONEY_D->is_denomination(s1);
     }
-    return str == "coin" || str == "coins";
+    return MONEY_D->is_denomination(str);
 }
 
 void do_give_wrd_str_to_liv(string amount, string str, object who)
@@ -43,17 +42,27 @@ void do_give_wrd_str_to_liv(string amount, string str, object who)
     string s;
     int number;
 
-    sscanf(amount, "%d", number);
-
     sscanf(str, "%s %s", str, s);
-
+    str = MONEY_D->singular_name(str);
+    if (amount == "all")
+        number = this_body()->query_amt_money(str);
+    else
+        number = to_int(amount);
+    if (number < 0) {
+        write("Nice try.\n");
+	return;
+    }
     if(this_body()->query_amt_money(str) < number) {
-	write("You don't have "+ number +" "+ str +" coins.\n");
+	write("You don't have "
+	      +MONEY_D->denomination_to_string(number, str)+".\n");
 	return;
     } else {
 	who->add_money(str,number);
 	this_body()->subtract_money(str,number);
-	this_body()->simple_action("$N $vgive $o some money.",who);
+	this_body()->other_action("$N $vgive $o some money.", who);
+	this_body()->my_action("$N $vgive $o "
+			       +MONEY_D->denomination_to_string(number, str)
+			       +".", who);
     }
 }
 

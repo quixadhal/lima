@@ -1,0 +1,38 @@
+Changes in the Vendor System: 
+
+m_vendor.c: completely rewritten.
+	COMPAT BUSTER: 
+	    #define SELL_OLD_OBJECTS: 
+		If you define this vendors may not share a store-room.
+	    The flag of query_items() is used to display long()'s now.
+	#define MIN_VALUE 1: items cost at least 1 <currency>.
+	Prices are now very low instead of very high. This is caused by the 
+	  high exchange rates: set_value(100000) means 100 dollar or 1 gold.
+	  so all set_value()'s should be multiplied with 1000.
+	set_for_sale() and set_will_buy() now call functions with the object
+	  to buy/sell as argument. Returned strings will be used as error msg.
+	  Array of strings to determine allowed ids is still supported.
+	Todo: compatibility of buying and selling vehicles
+
+buy.c:	completely rewritten
+	changed from command to verb
+	allowing items consisting of multiple words
+	added possibility to chose vendor with "from"
+
+list.c:	completely rewritten
+	changed from command to verb
+	added possibility to chose vendor with "from"
+
+ask.c:	uses flag = 1 for query_items(), so that long() gets printed.
+	allows to ask about STR instead of WRD   
+	(it is perhaps best to remove WRD rule)
+
+sell.c	added possibility to leave out "to LIV" (e.g. new rule: "OBJ")
+	needs the following addition to /std/object/vsupport.c:
+
+	//:FUNCTION direct_sell_obj
+	//Handle parser checks for "sell OBJ"
+	mixed direct_sell_obj(object ob) {
+	    return need_to_have();
+	}
+

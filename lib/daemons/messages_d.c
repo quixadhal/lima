@@ -124,6 +124,8 @@ mapping messages =
     "home": "$N $vgo home.",
     "clone": "$N $vclone the $o.",
     "destruct": "$N $vdest the $o.",
+    "fol_leave": "$N $vfollow $t $o.",
+    "fol_enter": "$N $venter following $t.",
     ]),
   // These messages stolen from Distortion :-)
   "player-death" : ({

@@ -15,7 +15,7 @@ inherit OBJ;
 
 private int max_capacity = LARGE;
 private nosave int capacity;
-private mapping objects;
+private mapping objects, unique_objects;
 private string main_prep = "in";
 private int hide_contents = 0;
 
@@ -276,9 +276,7 @@ mixed *make_objects_if_needed()
 
     inv = all_inventory();
     foreach (file, value in objects) {
-	if (file[0] != '/')
-	    file = base_path(file_name(this_object())) + file;
-	file = cannonical_form(file);
+        file = absolute_path(file, this_object());
 
 	if (intp(value)) {
 	    num = value;
@@ -319,11 +317,47 @@ mixed *make_objects_if_needed()
     return objs;
 }
 
+mixed *make_unique_objects_if_needed()
+{
+    mixed *rest;
+    string file;
+    int ret;
+    mixed *objs = allocate(sizeof(unique_objects));
+    mixed id = 0;
+    int i = 0;
+
+    if(!mapp(unique_objects))
+	return ({ });
+
+    foreach (file, rest in unique_objects) {
+	file = absolute_path(file, this_object());
+	if (!arrayp(rest))
+	    rest = ({ rest });
+	if (sizeof(rest) >= 1)
+	    id = rest[0];
+
+	objs[i] = objects( (: clonep($1) && cannonical_form($1) == $(file) 
+			    && !$1->test_unique($(id)) :) );
+	if (sizeof(objs[i]) == 0) {
+            object ob = new(file, rest...);
+	    objs[i] = ({ ob });
+	    if (!ob) error("Couldn't find file '" + file + "' to clone!\n");
+	    ret = ob->move(this_object(), "#CLONE#");
+	    if ( ret != MOVE_OK ) {
+	        error("Initial clone failed for '" + file +"': " + ret + "\n");
+	    }
+	    ob->on_clone( rest... );
+	}
+	i++;
+    }
+    return objs;
+}
+
 void reset()
 {
     make_objects_if_needed();
+    make_unique_objects_if_needed();
 }
-
 
 //:FUNCTION set_objects
 //Provide a list of objects to be loaded now and at every reset.  The key
@@ -338,6 +372,24 @@ void reset()
 mixed *set_objects(mapping m) {
     objects = m;
     return make_objects_if_needed();
+}
+
+//:FUNCTION set_unique_objects
+//Provide a list of objects to be loaded now and at every reset if they
+//are not already loaded.  The key should be the filename of the object, 
+//and the value should be an array which is passed to create() when the 
+//objects are cloned.
+//The first element of the array is the unique_id. This id and the filename
+//are used to determine if an already loaded object is the same. 
+//Therefore you should include the following function in an object where 
+//uniqueness should be dependant on the id:
+//
+//int test_unique(mixed id) {
+//    return unique_id != id;
+//}
+mixed *set_unique_objects(mapping m) {
+    unique_objects = m;
+    return make_unique_objects_if_needed();
 }
 
 //:FUNCTION can_take_from
@@ -448,11 +500,24 @@ void update_capacity()
 }
 
 /* verb interaction */
-mixed direct_get_obj(object ob, string name) {
+mixed direct_get_obj(object ob) {
     if (this_object() == environment(this_body())) {
 	return "#You're in it!\n";
     }
     return ::direct_get_obj(ob);
+}
+
+mixed direct_get_wrd_str_from_obj(string amount, string str, object ob) {
+    object money;
+    if (main_prep == "in") {
+        if (this_object()->query_closed())
+            return capitalize(the_short())+" is closed.\n";
+    }
+    if (money = present("money", ob))
+        return money->direct_get_obj(money);
+    if (ob->is_living())
+        return "#Too bad you're not a skilled pickpocket.\n";
+    return "There is no money "+main_prep+" "+the_short()+".\n";
 }
 
 mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
@@ -474,6 +539,20 @@ mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
     default:
 	return 0;
     }
+}
+
+mixed indirect_get_obj_from_obj(object, object);
+
+mixed indirect_get_obs_from_obj(object *obs, object ob2) {
+    int allow = 0;
+    obs = filter(obs, (: environment($1) == this_object() :));
+    if (sizeof(obs) == 0) return 0;
+    foreach (object ob in obs)
+    {
+      allow = indirect_get_obj_from_obj(ob, ob2);
+      if (!allow) return "#You can't get all of the items out of " + the_short() + ".";
+    }
+    return 1;
 }
 
 mixed indirect_get_obj_from_obj(object ob1, object ob2) {
@@ -646,4 +725,9 @@ mapping lpscript_attributes() {
       "objects" : ({ LPSCRIPT_OBJECTS }),
       "capacity" : ({ LPSCRIPT_INT, "setup", "set_max_capacity" }),
     ]);
+}
+
+int indrect_get_obs_from_obj()
+{
+  return 1;
 }

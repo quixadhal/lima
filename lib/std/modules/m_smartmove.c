@@ -14,11 +14,13 @@
 
 varargs mixed move(mixed dest, string where);
 string *get_player_message(string message, mixed arg);
+string query_msg(string which);
 int test_flag(int which);
 void simple_action(string s);
+varargs string *action(object *who, mixed msg, array obs...);
 varargs string compose_message(object forwhom, string msg, object *who, 
   array obs...);
-
+object query_target();
 
 private nomask int move_me_there(string dest, string arg, mixed exit, mixed enter)
 {
@@ -78,7 +80,6 @@ private nomask int move_me_there(string dest, string arg, mixed exit, mixed ente
 
     if ( !txt ) {
 	msgs = get_player_message("leave", arg);
-
 	// filter the object where you're going
 	tell_from_inside(last_loc, msgs[1], 0, ({ env }));
     }
@@ -106,8 +107,8 @@ private nomask int move_me_there(string dest, string arg, mixed exit, mixed ente
     //###there is a note in room.c about this being bogus
     txt = enter;
     if ( !txt ) {
-	msgs = get_player_message("enter", arg);
-	tell_from_inside(env, msgs[1], 0, ({ this_object() }));
+      msgs = get_player_message("enter", arg);
+      tell_from_inside(env, msgs[1], 0, ({ this_object() }));
     }
     else if ( arrayp(txt) ) {
 	if ( txt[0] )
@@ -157,7 +158,6 @@ void notify_move()
 varargs int move_to(string dest, mixed dir, mixed exit, mixed enter)
 {
     object where = environment();
-
     if (move_me_there(dest, dir, exit, enter)) {
 	where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
         environment()->call_hooks("person_arrived", HOOK_IGNORE, 0, dir);

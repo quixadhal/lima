@@ -5,10 +5,11 @@
 inherit DOOR;
 
 
+string our_dir;
+
 void do_hidden_stuff()
 {
     object here;
-    string our_dir = "northeast";
     here = environment(this_object());
 
     if (!here) return;
@@ -39,6 +40,7 @@ varargs void on_clone( string ident, string dir, string room )
 void setup_door( string ident, string dir, string room ) 
 {
     ::setup_door( ident, dir, room );
+    our_dir = dir;
     set_flag( ATTACHED );
 }
 

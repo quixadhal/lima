@@ -16,9 +16,7 @@ inherit __DIR__ "object/description";
 inherit __DIR__ "object/flags";
 inherit __DIR__ "object/non_object";
 inherit __DIR__ "object/vsupport";
-
-inherit M_OBJ_ATTRIBUTES;	/* __DIR__ "object/attributes.c"; */
-
+inherit __DIR__ "object/attributes";
 
 void create()
 {

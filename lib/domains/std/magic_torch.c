@@ -10,7 +10,7 @@ void setup() {
     set_light_msgs("As $n $vlight the $o, it starts burning with a blue flame.", "As $n $vlight the $o, it starts burning with a blue flame.");
     set_source( (: $1->can_light_the_magic_torch() ? (mixed)1 : "It doesn't seem to be the right type of flame.\n" :) );
     set_fuel(-1); // never runs out
-    set_value(15);
+    set_value(15000);
     set_untouched_desc( "A torch lies in the dust.");
 }
 

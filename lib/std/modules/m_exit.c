@@ -74,13 +74,14 @@ RABUG("eval_dest base: " + base);
         tmp = evaluate(arg);
     else
         tmp = arg->query_exit_destination(dir, base);
-RABUG("eval_dest eval'd arg: " + tmp);
-    if (!stringp(tmp)) return 0;
+RABUG(sprintf("eval_dest eval'd arg: %O", tmp));
+    if (!stringp(tmp) && !objectp(tmp)) return 0;
+    if (objectp(tmp)) return tmp;
 if (tmp[0] == '#') return tmp;
     if (tmp[0] != '/') {
         tmp = evaluate_path(base + tmp);
     }
-RABUG("eval_dest: " + tmp);
+RABUG(sprintf("eval_dest: %O", tmp));
     return tmp;
 }
 
@@ -154,7 +155,7 @@ RABUG(file_name(this_object()));
     if (stringp(value) && strlen(value) == 0)
         error("Bogus exit passed into add_exit");
     if (stringp(value) && value[0] == '#')
-        checks[direction] = value;
+        checks[direction] = value[1..];
     else
         checks[direction] = 1;
     exits[direction] = value;

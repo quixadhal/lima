@@ -22,7 +22,7 @@
 #
 # CONFIGURABLE STUFF
 #
-limadir=/home/mud/lima-1.0a7
+limadir=/home/mud/lima-1.0a8
 backupdir=$limadir/backups
 targetdir=$limadir/lib
 COMPRESSCMD=gzip

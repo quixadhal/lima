@@ -56,19 +56,19 @@ string set_add(string set, int number) {
             string res;
             
             if (number == lastlast + 1) {
-                if (number == first - 1) {
-                    res = set[0..lastidx-1] + lastfirst + "-" + last;
-                    if (nextidx) res += set[nextidx-1..];
-                    return res;
-                }
-                return set[0..lastidx-1] + lastfirst + "-" + number + set[idx-1..];
+	      if (number == first - 1) {
+		res = set[0..lastidx-1] + lastfirst + "-" + last;
+		if (nextidx) res += set[nextidx-1..];
+		return res;
+	      }
+	      return set[0..lastidx-1] + lastfirst + "-" + number + set[idx-1..];
             }
             if (number == first - 1) {
                 res = set[0..idx-1] + number + "-" + last;
                 if (nextidx) res += set[nextidx-1..];
                 return res;
             }
-            return set[0..idx-1] + number + "-" + number + set[idx-1..];
+            return set[0..idx-1] + number + "-" + number + "," + set[idx..];
         }
         if (number <= last)
             return set;

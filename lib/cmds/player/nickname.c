@@ -6,6 +6,7 @@
 inherit CMD;
 
 private void main(string arg) {
+//    if(this_user()->query_userid() == "iizuka") return;
     if (!arg) {
 	arg = this_body()->query_nickname();
 	if( !arg )

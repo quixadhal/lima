@@ -3,10 +3,13 @@
 #ifndef __DAEMONS_H__
 #define __DAEMONS_H__
 
+#define ACCOUNT_D     "/daemons/account_d"
 #define ALIAS_D		"/daemons/alias_d"
 #define ANSI_D		"/daemons/ansi_d"
 #define ANNOTATION_D    "/daemons/annotation_d"
+#define ATTRIBUTES_D    "/daemons/attributes_d"
 #define BANISH_D	"/daemons/banish_d"
+#define BODY_D          "/daemons/body_d"
 #define CHANLOG_D	"/daemons/chanlog_d"
 #define CHANNEL_D	"/daemons/channel_d"
 #define DID_D           "/daemons/did_d"
@@ -45,6 +48,7 @@
 #define USER_D		"/secure/daemons/user_d"
 #define LPSCRIPT_D	"/secure/daemons/lpscript_d"
 #define SMTP_D          "/secure/daemons/smtp_d"
+#define SNOOP_D         "/secure/daemons/snoop_d"
 
 // Define these only if you want intermud services.
 #define REMOTE_D        "/secure/daemons/remote"

@@ -51,6 +51,8 @@ private nomask void confirm_current_password(string s)
  
 private void main()
 {
+    write("Sorry, suicide has been disabled.\n");
+    return;
     modal_simple((: confirm_current_password :),
                  "Enter your current password to confirm suicide: ", 1);
 }

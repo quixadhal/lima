@@ -6,13 +6,12 @@
 ** 951228, Deathblade: created
 */
 
-inherit MONSTER;
+inherit ADVERSARY;
 inherit M_GUILD_MASTER;
 inherit M_REGEX;
 
 void setup()
 {
-
     set_name("Guildmaster");
     set_proper_name("The Guildmaster");
     add_id("master");
@@ -20,7 +19,7 @@ void setup()
     set_gender(1);
     set_in_room_desc("The Fighter Guild's guildmaster");
     set_long("The guildmaster is a large, muscle-bound killing machine. It would be wise to avoid pissing him off. Ask him to \"join the fighter guild\" or to \"leave the fighter guild\".");
-    set_max_hp(10);
+    set_max_health(10);
     set_which_guild( "fighter" );
 
     set_wielding("/domains/std/objects/sword");

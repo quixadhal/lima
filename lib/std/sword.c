@@ -7,5 +7,5 @@ void mudlib_setup()
     ::mudlib_setup();
     set_id("sword");
     set_combat_messages("combat-sword");
-    set_damage_kind("blade");
+    set_damage_type("blade");
 }
