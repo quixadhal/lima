@@ -1,0 +1,8 @@
+NAME
+	query_current_edits - return all editors and files being edited
+SYNOPSIS:
+	mapping query_current_edits();
+
+
+Returns a mapping, the keys being players who are in the builtin mud editor,
+the values being the file each of those respective people are editing.

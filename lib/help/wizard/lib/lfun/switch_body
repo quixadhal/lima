@@ -1,0 +1,17 @@
+NAME
+	switch_body   (lfun)
+SYNOPSIS
+	varargs void switch_body( mixed new_body );
+This function is defined in login.c
+this_object() must be equivolent to this_player()->query_link()
+for this function to execute correctly, and the target body must 
+have the functions init_user() and init_cmd_hook() before
+a transfer is possible.
+If an object is passed for new_body, an attempt will be made
+to directly move the user into the object.  If a string
+is passed, the attempt will be made on a clone of the object.
+If no argument is passed, it will act as the 'su' command, and
+give this_player() a new player object.
+
+see also:
+	init_user, init_cmd_hook, exec, query_link

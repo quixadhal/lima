@@ -1,0 +1,11 @@
+NAME
+	quit	(lfun)
+SYNOPSIS
+	void quit()
+Quit is defined in body objects, and is called most offen when
+an interactive user chooses to leave the game.  While this function
+doesn't actually destruct the user's object, it generally is
+given the task of calling remove(), which does.
+
+see also:
+	remove

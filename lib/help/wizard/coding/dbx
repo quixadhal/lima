@@ -1,0 +1,98 @@
+DBX is a system of commands which assist in tracking and correcting of
+runtime errors.
+
+If you get a message like:
+
+*Bad argument 1 to call_other()
+Expected: string or array or object Got: 0.
+Trace written to /log/catch
+
+you have encountered a runtime error.  You can read /log/catch or
+the appropriate error log to find out where the error is.  DBX also
+provides a easier approach.  When you get an error, type:
+
+> dbxwhere
+
+You will get an output something like this:
+
+*Bad argument 1 to call_other()
+Expected: string or array or object Got: 0.
+Object: /wiz/beek/EVAL at line 5
+
+#0: 'process_input' at /std/dev#52 (std/player/cmd.c) at line 358
+#1: 'parse_line' at /std/dev#52 (std/player/cmd.c) at line 167
+#2: 'cmd_hook' at /std/dev#52 (std/player/cmd.c) at line 81
+#3: 'do_my_command' at /adm/daemons/bin_d at line 55
+#4: 'main' at /bin/sys/eval at line 42
+#5: 'CATCH' at /bin/sys/eval at line 42
+#6: 'eval_function' at /wiz/beek/EVAL at line 5
+
+The first line(s) is the error message, along with the file and line
+at which the error occured.  What follows is the list of functions
+that were called to get to that point.  In this case, I typed a
+command, and the driver first called 'process_input' in my user
+object, which called 'parse_line' etc down through the eval command
+and so on.  Frame #6 is where the error actually occured.
+
+The other useful command is 'dbxframe'.  Typing:
+
+> dbxframe 4
+
+Will show you exactly what was going on in frame #4 when the error
+occured.  For example, in this case I get:
+
+------bin/sys/eval.c:42 - main(({ ... }))
+locals: "/wiz/beek/EVAL.c", NULL, "#include <mudlib.h> 
+#include <daemons.h>
+#include <config.h>
+mixed eval_function(){
+", NULL, 0, "call_other(0, "hi");"
+----------------------------------------------------------------
+    str = doith(str);
+    write_file(tmp_file,str+"\n");
+    write_file(tmp_file,"}\n");
+    
+    //ok, written a file.  now call it's function.
+=>      error = catch(return_value = tmp_file -> eval_function());
+    if(error && error != 0){
+        write(error+"\nFile is saved as "+tmp_file+"\n");
+        return 1;
+    }
+    write("Return = ");
+
+It shows how the function was called, the values of the local
+variables, and the source code in the area of the call with
+an arrow pointing to what was going on when the error occurred.
+If we look at frame 6, we can see exactly where the error was:
+
+------wiz/beek/EVAL.c:5 - eval_function()
+locals: 
+----------------------------------------------------------------
+#include <mudlib.h> 
+#include <daemons.h>
+#include <config.h>
+mixed eval_function(){
+=>call_other(0, "hi");
+}
+
+
+Advanced features:
+
+Not only can DBX be used to examine errors you run into,
+but also errors OTHER people run into.  Here is an example:
+
+Player tells you: I just got an error!  What do I do!
+
+The first thing you might want to do is:
+
+> dbxwhere player
+
+This will show you the dbx info for the last error 'player' encountered
+so you don't have to rely on him being able to explain what happened
+to you; you can browse through the frames and find out for yourself.
+
+> dbxframe player 5
+
+If you have questions/suggestions/comments, talk to me.
+
+-Beek

@@ -1,0 +1,4 @@
+$$ see: set
+USAGE:	unset variable
+
+This command will remove an environment variable if it exists.

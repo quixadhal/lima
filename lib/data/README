@@ -1,0 +1,3 @@
+This is where the mud's main data files go, such as player save files,
+mail, etc.  You should avoid everything except what's in the config
+subdirectory unless you really know what you're doing.

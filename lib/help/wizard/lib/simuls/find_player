@@ -1,0 +1,7 @@
+NAME
+	find_player
+SYNOPSIS
+	object find_player(string name)
+same as find_living(), but the search group is limited to objects
+with interactive connections.  Ie, the users() array.
+The simul_efun version filters out hidden players.

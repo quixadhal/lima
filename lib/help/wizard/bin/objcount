@@ -1,0 +1,9 @@
+$$ see: objdump, objfind
+USAGE:	objcount
+
+This command is used to find classes that have more than one instance.
+The number of instances for each qualifying class is printed along
+with that class.
+
+Note: the "blueprint" is not counted as an instance. More than one
+      _clone_ must exist to be listed.

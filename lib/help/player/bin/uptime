@@ -1,0 +1,4 @@
+USAGE:	uptime
+
+Tells you how long the MUD has been running for since the last crash
+or reboot.

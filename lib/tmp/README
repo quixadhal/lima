@@ -1,0 +1,3 @@
+The mudlib will occasionally use this directory to write a file, so
+you should not erase it.  Otherwise, it can be used in the same way
+the /open directory is used.

@@ -1,0 +1,177 @@
+Rust took quote stripping out of getopt. ` It needs to go in cmd_d 
+
+Rust fixed a bug that made "foo bar" not work right if the " was the first 
+    thing on the command line 
+
+Rust added a flag to shellvars::expand_variable() and a second (earlier) 
+    call to that function in /std/shell.c so that: = `this_user()` ` works 
+    as expected 
+
+Rust meant code in escaped backticks.... it sets to code that gets executed 
+    when you use the variable, not a string as was previously the case 
+
+Rust added a title command 
+
+Rust fixed cd w/ no arg if you don't have a dir 
+
+Beek put go <verb> parsing back in, and fixed a couple verbs. 
+
+Rust added a title command + help 
+
+Rust fixed shout to not give 2 messages to the shouter 
+
+Rust crushed the ` bug 
+
+Rust added an unalias command 
+
+Rust made it so that did_d pages. 
+
+Rust made it so more checks your MORE value, and gives you 20 if you don't 
+    have one 
+
+Rust made it so the changelog info mores in 3 entry chunks when you log in 
+    P-) 
+
+Rust made it so that bugs and typos post news instead of getting logged. 
+
+Rust added an option to config.h so you can switch it back to login if you 
+    desire 
+
+Rust added a 'which' command 
+
+Rust made it so ed says: [New file] when it's a new file 
+
+Rust added a passwd command + help for it. 
+
+Rust fixed cat so it only cats in 100 line chunks to get rid of the 8K max 
+    file size. Should probably impose an arbitrary max file size, tho. 
+
+Rust added an ansi environment var, and ansi support to ls. Type: set ansi 
+    if you want it. 
+
+Rust realized that ansi in ls requires special formatting. He'll fix it 
+    soon =) 
+
+Rust added a newsgroup administration menu to admtool 
+
+Rust fixed tons of the bugs you guys reported in the past 24. THX!! 
+
+Beek fixed snoop. 
+
+Beek fixed did_d to call the notify function in the correct object 
+
+Rust added to /std/save.c now you can give a string being a variable name, 
+    or a function pointer that should return a variable name or 0. This was 
+    necessary so I could clear all global and wiz aliases out of your alias 
+    list before saving you 
+
+Rust : that function pointer can actually return a string, 0, or an array 
+    of strings.... 
+
+Rust added clear_input_stack to /secure/user/inputsys.c and added a call to 
+    it in do_su right before a new body is created. This fixed a bug where 
+    if you su'd, !cmd would give you "*Owner of function pointer has been 
+    destroyed". 
+
+Rust added default wizard and player alias support. You can add them via 
+    the admtool 
+
+Rust removed source control stuff from the distribution since it doesn't 
+    work. It's still on Quendor, though, which means it's still under 
+    development. 
+
+Rust added a describe command 
+
+Rust fixed the snoops command and finished the snoop command 
+
+Rust fixed reconnect. It used to leave you not-a-wizard because it dested 
+    your shell when you went net dead, and only cloned you a player shell. 
+    Now it doesn't dest your shell until remove() gets called. 
+
+Rust added an interface to did_d so we can dump a changelog to a file to 
+    include w/ releases. 
+
+Rust made it so that new wizards don't see the changelog if they're a new 
+    user. 
+
+Rust removed a modal_pop from /std/shell.c. We're going to have to keep 
+    track of the shell owner, and only pop that player's stack. 
+
+Beek made some changes to /secure/modules/inputsys; see top of file for 
+    summary 
+
+Beek fixed converse/pipe to not use \r; clients can't handle it 
+
+Beek fixed who to not error if someone is logging on 
+
+Beek fixed did_d to not error if someone is logging in. 
+
+Beek fixed valid_override() to only allow efun overrides in 
+    /secure/simul_efun/overrides.c 
+
+Beek fixed valid_override() to only allow efun overrides in 
+    /secure/simul_efun/overrides.c 
+
+Beek fixed valid_override() to only allow efun overrides in 
+    /secure/simul_efun/overrides.c 
+
+Beek rewrote the users() override; it implemented filter() in LPC *puke* 
+
+Beek added an errors channel. wchan errors /on 
+
+Beek installed Buddha's fix for passwords on FreeBSD; it's a LIMA lib bug 
+    of all things ... 
+
+Rust added come more stuff to cmd_d that probably no one but me will ever 
+    notice P-) 
+
+Rust fixed mail messages with no body 
+
+Rust fixed the little problem w/ help topics. The more_chunk code was taken 
+    out of player.c in favor of shell variables, but helpsys has it's own 
+    more code which didn't reflect that change. 
+
+Rust fixed idea and typo to accept command line arguments, and made 
+    automatic posts use the current player's name if one exists unless 
+    something else is provided. 
+
+Zifnab created a very simple (stress the very) room and object 
+
+Zifnab had a hard time with the key and using that too ulnock, right now 
+    you can unlock by unlock safe, need help with tthat ppart 
+
+Zifnab added the room to the east of the bored room, will hopefully be back 
+    to work on it some more (network is going down in ten minutes ) 
+
+Magician added a bunch of emotes :-) 
+
+Ohara update here seems not to work anymore ... 
+
+Rust undid my silly little mistake for idea and typo. They now post to the 
+    proper newsgroups.... 
+
+Rust fixed I so wizards w/o dirs can't use it 
+
+Rust returned cat to it's previous state till the driver crasher is fixed. 
+    Catting files over 8K won't work. 
+
+Rust wants to clear that up... it won't allow you to cat files over 8k, but 
+    it won't crash the driver either P-) 
+
+Rust made it so that new players auto-tune into newbie and gossip, and new 
+    wizards auto-tune to wiz, news, gossip, & newbie 
+
+Rust made it so link-deads don't show up on channel listings 
+
+Rust added another change to cmd_d.... if the cmd doesn't accept a template 
+    and is just looking to get a single string, then convert anything that 
+    came from the shell vars or evaluations into a string representation 
+
+Rust fixed 2 small problems w/ tell. You only get one message when telling 
+    yourself, now 
+
+Rust made it so that you don't have to type r 12 to read the 12th message 
+    in a newsgroup. You can now just type 12 
+
+Rust made it so that spaces don't get snarfed if your command doesn't do 
+    smart parsing 

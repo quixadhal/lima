@@ -1,0 +1,74 @@
+If at any point you have problems with these directions, log on to our
+Lima support mud, Lima Bean: lima.imaginary.com 7878.  Type 'news',
+and then post a report of your problems.  We'll help you as soon as
+humanly possible.
+
+
+
+How to install Lima:
+
+1) You must compile the driver for your machine.
+	a) cd to the driver directory
+	b) type: ./build.MudOS
+	c) Type either gmake or make, depending on what the last line	
+	   of buld.MudOS tells you.
+	d) type: mv driver ../etc/
+	
+
+2) You must edit the mudlib configuration file.
+	a) cd ../etc
+	b) edit config.lima   and  change all the lines that say:
+
+	## Change the next line!
+	
+
+	you may also change lines that say:
+
+	## Change the next line if you want
+   
+3) Start the driver with the command:
+	./driver config.lima&
+
+Your mud should now be starting up.
+
+4) When it says:' Accepting connections', it's up.
+Log in to your mud.  When it asks you for your name, type:
+	admin
+   Your password will be:
+	admin
+
+5) from within the mud edit the file:
+	/secure/daemons/group_d.c
+
+	change the line:   
+		"admin",
+(The line right before "rust",)
+	 to the name of the character you want to be.
+
+6) WITHOUT LOGGING OFF AS ADMIN:
+	a) log in as the character you want to be.
+	b) as the admin character, type: admtool 
+	c) then type: u
+	d) then type: w your-admin-characters-new-name     
+	   where your-admin-characters-new-name is the same as the name you
+	   added to group_d in step 5.
+	e) type: q to exit admtool
+	f) type:  update /secure/daemons/group_d
+	g) type: save      as your admin char
+	h) type: quit      as your admin char
+	g) type: shutdown  as admin
+
+
+7) Restart the mud and log back on as your admin character.  He should
+	be an full admin now, able to edit anything, anywhere. You can
+	go back to the admtool, and nuke the admin character.
+
+8) change any options you feel appropriate in /include/config.h
+   reboot the mud with the shutdown command to make those changes happen.
+
+9) You're done! Come see us on Lima Bean (lima.imaginary.com 7878) and
+   let us know how it went!
+
+10) If your machine has /bin/bash, you can modify LIMADIR in
+/etc/backup, /etc/startmud and /etc/keepup, and follow the usage
+instructions in those scripts, if you think you'll find them useful.

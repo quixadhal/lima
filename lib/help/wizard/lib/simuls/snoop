@@ -1,0 +1,7 @@
+NAME
+	snoop  
+SYNOPSIS
+	int snoop(object target);
+the snoop simul will allow the current player to receive a copy of
+all the target's input.
+The main differences over the efun, are security precautions.

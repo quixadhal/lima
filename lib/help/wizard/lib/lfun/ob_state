@@ -1,0 +1,15 @@
+ob_state() - object lfun
+
+The printing of inventories is controlled by the inv_list()
+simul.  Clones of the same base file are normally printed
+as one item, i.e. "Three blue swords".  However, if ob_state()
+returns a nonzero value then only objects with the same value
+for ob_state() are grouped.  An exception is the value -1,
+which means never group this object with anything.
+
+For example, container overrides it to depend on whether the
+object has contents, and openable makes it so that open and
+closed copies of the same object are printed separately in
+rooms.
+
+Beek - Nov 94

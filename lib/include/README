@@ -1,0 +1,5 @@
+This is where the mud's include files go.  If you see:
+#include <foo.h> at the top of a file, foo.h is probably found in this
+directory.  
+
+global.h is automatically included by every file when the mud compiles it.

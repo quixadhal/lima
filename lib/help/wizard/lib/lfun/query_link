@@ -1,0 +1,11 @@
+NAME
+	query_link (lfun)
+SYNOPSIS
+	object query_link();
+
+returns the login object of an interactive user.  The login
+object is used to store permanent finger information, and
+handles body switching.
+
+see also:
+	switch_body

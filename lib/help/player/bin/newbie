@@ -1,0 +1,10 @@
+$$ see: channels, chan, gossip
+USAGE:  newbie on | off      or
+        newbie list          or
+        newbie <message>     or
+        newbie ;<feeling>    or
+        newbie :<emote>
+
+This channel is for "newbie" players to ask questions and get
+help and information about the MUD.  Please be helpful if you
+listen to this channel.

@@ -1,0 +1,4 @@
+USAGE:	mail   or  mail <user>
+
+Just type "mail" from anywhere in the mud, or type "mail foo" to send
+mail to someone named 'foo'.

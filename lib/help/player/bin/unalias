@@ -1,0 +1,4 @@
+$$ see: alias
+USAGE:  unalias  <alias>
+
+Removes an alias.

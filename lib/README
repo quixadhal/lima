@@ -1,0 +1,73 @@
+Welcome to Lima release 0.9 pre-alpha!
+
+To compensate for our lack of documentation, please come to our lib
+support mud, Lima Bean, and ask questions.  (Or type news and post
+them). 
+
+It's located at:
+lima.imaginary.com 7878
+(198.92.143.9	7878)
+
+Mudlib Features:
+ o Centralized natural language parsing (zork like commands for players).
+	Definitly the most advancedds command parsing currently available.
+ o Socials use the natural language parsing, and are easy to extend.
+ 	There are hundreds of socials and adverbs supplied.
+ o The wizard command line does file name expansions as well as the 
+	unix command line...  it's pretty handy to be able to type:
+	cd /s*/m*/s* to cd to /std/mixin/shell_support
+ o Inline documentation.	
+ o Distributed support.
+ o Very modular, with clear code.
+ o Support for the new Intermud-3.
+ o Modal input, and fully featured interactive shells.
+ o Real, secure security authored by Ellery@TMI-2 (Remier Behrends).
+ o Emphasis on player usability:
+	better news, channels, menus, etc...
+	than any other mudlib
+ o Easy to build menus, easy to write socials, etc...
+ o A menu driven admin tool to ease routine administration tasks.
+
+ 
+Credits:
+  The Lima Mudlib was authored by:
+	o John Viega, Rust@Lima Bean
+		(rust@virginia.edu, http://www.cs.virginia.edu/~jtv2j/)
+	o Greg Stein, Deathblade@Lima Bean
+		(gstein@svpal.org, http://www.imaginary.com/~db/)
+ 	o Tim Hollebeek, Beek@Lima Bean
+		 (tim@hollebeek.hep.upenn.edu, http://www.imaginary.com/~beek/)
+
+  Security system contributed by:
+	o Reimer Behrends, Ellery@TMI-2
+		(behrends@buran.fb10.tu-berlin.de)
+
+  Many thanks to:
+	o Henrik Bengtsson, Megadeath@TMI-2
+		(sa215@utb.shv.hb.se) for providing us with very
+	  dependable resources for our development.
+	o Taro Ogawa (bb161@freenet.carleton.ca) and 
+	  Scott Gamble (g10517@email.mot.com) for pushing this lib to it's 
+	  limits on Zorkmud, and for many of the player verbs.  
+	o Marc Blank and David Lebling for Zork.
+	o Mark St. Louis (leblany@bosoleil.ci.umoncton.ca) for
+		contributing almosr all of the adverbs in our soul.
+	o Everyone who's put a helping hand into Zorkmud and Lima in 
+	the past 18 months, especially:
+		Dave Tyler (Nevyn@ZorkMud)
+		Devon Tuck (Cleave@ZorkMud)
+		Scott Dawson (Peregrin@ZorkMud)
+		Fred Tarabay (Megaboz@ZorkMud)
+	
+Note:
+
+We are aware of the fact that error messages in the parser aren't
+fully implemented in MudOS yet, so don't report things like
+getting ERROR_PROCESS_ANSWER back from the parser or 'There is
+no X here.'.
+
+Also, a number of the verbs aren't fully implemented or converted
+yet; if you fix some of them we'd appreciate getting the fixed
+files.
+
+

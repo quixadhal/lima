@@ -1,0 +1,12 @@
+NAME
+	set_perm (lfun)
+SYNOPSIS
+	void set_perm( mixed key, mixed value );
+Sets the key to value in a non-static mapping.
+The difference between set and set_perm, as is true with related
+functions is that in objects that save_object() such as
+players, anything with a _perm will be a permanent change.
+Notice that they are 2 seperate functios, with 2 seperate
+databases.
+
+see also: set, query_perm, delete_perm

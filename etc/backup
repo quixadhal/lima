@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# standard backup script by Rust@TMI-2 (rust@virginia.edu) Jul 7, 1994
+# reworked for more flexibility by Deatblade@Quendor (gstein@svpal.org)
+#    on Mar 31, 1995
+# Rust added an exec to a new expect script that automatically ftp's
+# the backup to a remote host.
+# - Deathblade took it back out and installed another cron
+#   entry.  It made it a bit difficult to do a backup without
+#   a mirror being done. :-)
+# Jun 7, 1995: Deatbhlade altered for distinct daily backups with a running
+#   monthly longterm backup.
+#
+# If you add the following entry to your crontab:
+# 36 4 * * * ~/bin/backup  (assuming this is installed in ~/bin/backup)
+# then this script will back up your lib daily into different files.
+# The monthly will be hard link (therefore taking no extra disk space),
+# but the link is "broken" at the turn of the month; essentially, it
+# will drop off a copy each month.  This system provides for restoring
+# from up to a few days and for long term archival.
+#
+#
+# CONFIGURABLE STUFF
+#
+LIMADIR=/home/rust/lima0.9-alpha
+backupdir=$LIMADIR/backups
+targetdir=$LIMADIR/lib
+COMPRESSCMD=gzip
+#
+# END
+#
+
+
+
+base=$(basename $targetdir)
+log=$backupdir/$base.log
+
+echo Backup begun: $(date) >> $log
+
+cd $targetdir/..
+tar -cf $backupdir/$base.tar ./$base
+$COMPRESSCMD $backupdir/$base.tar
+
+weekday=$(date +%w)
+month=$(date +%m)
+rm -f $backupdir/$base.$weekday.tar.gz
+rm -f $backupdir/$base.$month.tar.gz
+mv $backupdir/$base.tar.gz $backupdir/$base.day$weekday.tar.gz
+ln $backupdir/$base.day$weekday.tar.gz $backupdir/$base.$month.tar.gz
+
+echo "  Files: $base.day$weekday.tar.gz $base.$month.tar.gz" >> $log
+echo Backup finished: $(date) >> $log
+

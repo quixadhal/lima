@@ -1,0 +1,39 @@
+$$ see: gossip, newbie, chan, feelings, conference
+Channels are a means of commnunication with other players on the MUD.
+Players may listen to a channel to take part in conversation with players
+that are not even in the same room.
+
+Two channels are provided, by default, for players: gossip and newbie.
+The gossip channel is for any sort of discussion the listeners may
+wish.  The newbie channel is for newbie players to ask questions and
+get help when they first start playing.
+
+Players may create and listen to additional channels as they please.
+[ note: we may restrict this in the future ]
+
+All interaction with the channels is performed with the "chan" command.
+Here are some example uses of the chan command:
+
+chan			- list channels being listened to
+chan gossip		- find out whether the 'gossip' channel is
+			  begin listened to
+chan gossip /on		- turn listening on for the 'gossip' channel
+chan gossip /off	- stop listening to 'gossip'
+chan gossip /list	- find out who is listening to 'gossip'
+chan gossip <msg>	- send <msg> to all listeners
+chan gossip ;<feeling>	- perform <feeling> over the channel
+			  (e.g. chan gossip ;grin)
+chan gossip :<emote>	- send <emote> to all listeners
+			  (e.g. chan gossip :wants a big sword!)
+
+Of course, the 'gossip' may be replaced with any channel name you
+might want to use.
+
+Two aliases have been set up to make things easier:
+
+gossip		chan gossip
+newbie		chan newbie
+
+This allows you to just type something like: gossip I'm hungry!
+If you set up your own channels with friends, then you might want
+to add similar aliases.

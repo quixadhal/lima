@@ -1,0 +1,9 @@
+$$# help on the help system itself (the help: prompt)
+$$#
+At the main help system prompt, you may type a topic name to look up.
+For example:
+
+	Help topic? [?]: commands
+
+
+At this prompt, you may hit return or type "q" to quit the help system.

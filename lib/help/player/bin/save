@@ -1,0 +1,6 @@
+USAGE:	save
+
+This command saves the present status of your character.  You are
+ocassionally saved automatically, so you probably don't need to use
+this command.  But if something happens to you, and you want to make
+sure it saves, this command will garuntee it.

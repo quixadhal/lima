@@ -1,0 +1,7 @@
+NAME
+	evaluate_path  - resolve a string into a full file name.
+SYNOPSIS
+	string evaluate_path( string str );
+DESCRIPTION
+	this will take a string, and try to match it to a file,
+	based on your working directory.

@@ -1,0 +1,6 @@
+NAME
+	mud_name -- return the mud's name
+SYNOPSIS
+SYNOPSIS
+	string mud_name();
+returns the mud name of the mud, as defined in config.h

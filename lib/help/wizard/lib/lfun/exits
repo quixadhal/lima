@@ -1,0 +1,116 @@
+$$ see: rooms
+Exits in rooms are added by calling set_exits() with a mapping to the "exits"
+in the create function of the room.  The standard exits (just simple links
+to rooms) are done this way:
+
+set_exits( ([ "north" : "/wiz/beek/rooms/north_of_center",
+    "west" : "/wiz/beek/rooms/west_of_center" ]) );
+
+This is very similar to many other muds.  The novel item is
+support for arrays as values for exits.  If the value of
+an exit is an array, it is interpreted as a list of function
+calls, (Technically, closures) and destinations.
+
+The parsing rule is that each function in the array is called
+in order, and if it is a string, it is used as an exit.
+If this seems confusing, a few simple examples should help.
+
+set_exits( ([ "north" : ({ fail("The mountains are too tall.\n") }) ]) );
+
+This does what you would expect.  fail is a #define that returns
+a function which prints it's argument and returns zero.  The zero
+will be important later.
+
+set_exits( ([ "north" : ({ #'pre_north, "/wiz/beek/rooms/north_of_center", 
+     #'post_north }) ]) );
+
+This implements pre_exit functions and post exit functions.  All you
+have to know is that #'function_name is how you specify a
+function in the same object.  if the function returns 1, execution
+will continue.  If it returns zero, execution will halt.
+This means you can do stuff like:
+
+pre_north() {
+  if (door_is_closed) {
+    notify_fail("The door is closed.\n");
+    return 0;
+  }
+  return 1;
+}
+
+Functions can also return strings:
+
+set_exits( ([ "north" : ({ #'north_exit }) ]) );
+
+north_exit() {
+  return "/wiz/beek/rooms/void"+random(10);
+}
+
+Which is useful for extremely nasty mazes :)
+
+-------------
+Advanced uses:
+=============
+
+Ok, here's the technical details:  Elements of the array are 
+evaluated starting with the first element.  The value of an
+element is determined as follows:
+
+integers : the value is the integer
+strings  : the value is 1 if move_zorker(element, verb)
+           succeeds and 0 if it fails
+closures : the closure is evaluated.  Note that if the closure
+           returns a string, it is evaluated as above.
+
+The value is used to figure out which element to move to next.
+If the value is zero, execution halts and the routine returns 0.
+If the value is non-zero, it is added to the index and evaluation
+continues.  If this causes execution to reach the end of the array,
+the routine returns 1.
+
+If all your functions return 0 or 1, the execution simply moves through
+the array in order executing elements.  What happens if you
+return other numbers? *evil grin*  That number is added to the
+current item count.  So returning 2 will skip the next function,
+returning 3 will skip the next 2, etc.  For example:
+
+set_exits( ([ "north" : ({ #'check_door, fail("The door is closed.\n"),
+      "/wiz/beek/rooms/north_of_center" }) ]));
+
+check_door() {
+  if (door_is_closed) return 1; else return 2;
+}
+
+Essentially, a function that returns numbers other than 0 or 1 acts
+like a switch statement.  Closure experts might be tempted to be
+even more Kewl [tm]:
+
+set_exits( ([ "north" : ({ #'door_flag, ...
+
+where door_flag is a local variable set to 1 or 2.
+
+Negative return values can be used for loops.
+i.e.
+
+set_exits( ([ "north" : ({ #'start_fall, #'continue_fall, #'check_end, 
+     "/wiz/beek/bottom_of_shaft" }) ]) );
+
+start_fall() {
+  write("The floor drops out!  You start falling!\n");
+  return 1;
+}
+
+continue_fall() {
+  write("You bounce off the side wall.\n");
+  return 1;
+}
+
+check_end() {
+  if (random(3)) return -1;
+  write("You finally hit the bottom.\n");
+  return 1;
+}
+
+But that's probably overkill :)
+
+-Beek

@@ -1,0 +1,7 @@
+NAME
+	all_users  return the full array of users
+SYNOPSIS
+	object* all_users();
+Returns the full array of users, regardless of hidden status.
+This is only available to specific files.  Which files may
+use this function is defined in the simul_efun code itsself.

@@ -1,0 +1,5 @@
+USAGE:	su [name]
+
+This is the command to switch users.  su with no arguments will update
+your character.  su with a name will polymorph you into that character,
+assuming you have the password.  =-)

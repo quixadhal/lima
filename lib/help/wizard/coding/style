@@ -1,0 +1,210 @@
+One of the most important aspects of coding is readability.
+Not only is it important if you ever need someone to debug what you've
+written, but there are often cases where people will want to use your
+work to assist in their learning, and if you are coding areas in part
+of a domain, or are doing mudlib coding, it is not at all infrequent
+for other coders to have a need to modify your work, especially if you
+are, for some reason, unable to do so yourself.  Your local mud
+administrator may need to review the content of your code.  You may want
+to get an opinion on something you have written.  Remember, code is usually
+only written once, but read many times.  Thus, it is important
+that the people who will be reading your code can do so easily.
+ 
+  One important way to maximize the readability of your code is
+to use layout techniques to emphasize program structure.
+* Use careful indentation to make structures such as conditionals
+and loops stand out for what they are.  Also, indenting the contents of
+a function helps the reader see each discrete component of your
+program more easily.
+* Use tabbing to align similar items on sequential statements.
+For example, if you do on one line, i = x, and on the next
+line you do foo = bar[i];
+Line them up with a tab, so that the ='s are in the same column.
+* Use a lot of white space!  Sure, it takes up a bit more disk space,
+but usually, it doesn't take up enough to matter.  Leave at least 2 or
+three lines between functions, and at least a line between
+program blocks, such as loops and if statements, as well
+as similar items, even after aligning them with tabs.  It makes it that
+much clearer where your variable declaration begins and ends, and
+what you are assigning where.
+Jumbled code is difficult to read, and white space helps to unjumble it.
+ 
+Consider the following piece of code:
+ 
+ 
+void foo(){
+int i,j;
+object people;
+do_this();
+do_that();
+i=bar();
+while(i--)do_some_stuff();
+people=users();
+j=count(people);
+if(j<20){
+do_something();
+do_something_else();
+}
+}
+ 
+ 
+The above code is much less readable than the same piece of code when following
+the above principles:
+ 
+void foo()
+{
+ 
+  int   i, j;
+  object        people;
+ 
+ 
+  do_this();
+  do_that();
+ 
+  i  = bar();
+ 
+  while( i-- )
+          do_some_stuff();
+ 
+ 
+  people   = users();
+  j        = sizeof( people );
+ 
+ 
+  if( j < 20 )
+  {
+     do_something();
+     do_something_else();
+  }
+ 
+}
+ 
+Make sure, however, that you align things systematically.  If your
+variable assignments are indented 2 spaces in one function, then 40
+in the next, code suddenly becomes a lot less readable.
+The muds auto-indenter can sometimes be useful in helping indent well,
+however, your version of the indenter may have problems, depending
+on the version of the driver your local mud is running, so
+it's best to try not to rely upon it.  ( The auto-indenter is
+invoked on most muds with 'I' from the ':' prompt in ed. )
+ 
+ 
+Some programmers like to use a lot of comments.  In many programming
+classes, people are told that you can never comment enough.  However,
+there are several problems with comments:
+-Most often, when a program changes, the programmer fails to change the
+comments.  They can often be misleading, and downright wrong, and would
+therefore mislead anyone trying to learn something from such a file.
+ 
+the following is real code:
+ 
+// increment i
+i = i+1;
+ 
+Isn't that obvious already??
+-Comments are often redundant, in that the code says the same thing.  Also,
+  big blocks of comments describing what certain aspects of a program are
+doing, often get in the way ofgaining a general understanding on how the
+file works on the whole.  For example, the comments in /obj/foobird.c
+confused me more than they helped me when I was a newbie, and I have found
+this occurance to happen to others as well.
+*In general I would recommend to avoid comments if at all possible,
+because well written clear code is its own best comment.  In my opinion,
+they should only be used sparingly to document unavoidable complexity,
+and used systematically to document important information not
+related to the code itsself.  For example, contact information such as
+your e-mail address, a general overview of the file, and modification
+history, are all things that are well suited to comments, and
+indeed SHOULD be commented.  Don't make your audience have to work to
+understand your code, and what has changed since you first wrote it.
+And as code very often is imperfect, and buggy, it is important
+that you are available, if at all possible, even after you're
+no longer around, if for some reason your code develops an
+unexpected bad side effect.
+ 
+The biggest problem with the extended example above was that even once it
+was formated, the intent of the code is not clear whatsoever.
+LPC is not basic, your variable names are not restricted to 6
+letters, or 8 letters.  Keeping in mind that code should not need
+to be commented to be readable:
+* Make your identifiers MEANINGFUL.
+use:
+        spell_target = find_living( "foobird" );
+ 
+  foobird = clone_object( "/obj/foobird" );
+instead of:
+  o = clone_object( "/obj/foobird" );
+ 
+* Avoid single character identifiers, and abbreviations.
+However, using i and j as counters, especially in loops is usually clear
+as, that is common practice fairly universally from coder to coder.
+* Use long identifiers if they are useful, and use underscores
+as seperators.'users_in_the_room' is much more descriptive than 'u',
+and is more readable than 'UsersInTheRoom'
+ 
+* Never hard code constants in programs with any amount of complexity,
+(this is mainly for mudlib coders) because you never know who will want
+to tweak your file in the future.  Use:
+#define MAX_ELEMENTS_IN_ARRAY   50
+        if( sizeof( array ) >= MAX_ELEMENTS_IN_ARRAY )....
+ 
+as opposed to:
+ 
+if( sizeof( array ) >= 50 )....
+ 
+Not only does it allow people to easily modify your program if desired,
+it makes it much more obvious what your program is doing.
+This also makes your code portable.
+*Use:
+ 
+#define CASTLE_ROOMS    "/wiz/rust/rooms/"
+ 
+set_exits( ([ "east" : CASTLE_ROOMS "courtyard", ]) );
+ 
+as opposed to:
+ 
+set_exits( ([ "east" : "/wiz/rust/courtyard", ]) );
+ 
+Mainly because, what if your mud god wants to move your area
+from your directory to /d/Medevil/castle/ ???
+Or what if the mud closes and you want to bring your area to another mud?
+ 
+*#define's for constants not only make portable, configurable,
+readable code, they isolate any changes that ARE made to one place.
+ 
+However, though #defines can be very helpful for good coding, it is important
+to realize when they are being abused.  You CAN have too many
+#define statements, and you CAN #define the wrong things.  Why is
+this?  Basically, macros are difficult to follow when there are a lot
+of them.  This is especially true from people trying to use your
+code to help learn.  Seeing TP as an abbreviation for this_player() is
+not uncommon, and is almost always seen out of context.  For people who
+don't quite understand macros, it is VERY confusing to see TP, and trying to fig
+ure
+out what it means.  Also, even the informed reader may not find your macro
+immediatly obvious, even if you do, and would likely prefer not to have to
+search through your files to resolve every definition.
+*The general rule of thumb for using macros is, use them when they
+represent a variable that is subject to change/configuration.  Don't
+use them to abbreviate just because you're too lazy to do the typing.
+ 
+Also, avoid dangerous constructs.  For example, when using a switch
+statement, every case should have a break; statement.   Even if you
+understand what is going on, the next person who reads your code
+may not.
+Also along the same lines:
+*Never use the assignment operator except in assigment statements
+*Use a switch statement rather than a series of if statements.
+*Don't nest control structures too deeply.
+*Keep the number of return statements in a subprogram as low as possible
+ 
+Any questions, comments, criticisms, or suggestions for improving this
+doc should be directed to:
+ 
+e-mail:
+  jtv2j@virginia.edu
+mud mail:
+  rust@tmi-2
+ 
+4-8-94
+ 

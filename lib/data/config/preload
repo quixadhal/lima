@@ -1,0 +1,15 @@
+#
+# List of objects to load automatically at reboot.
+#comments must have the # in the very first column.
+#
+/secure/user
+/std/shell
+/std/player/cmd
+/std/player/bodyshell
+/std/player
+/daemons/help_d
+/daemons/timeout_d
+/daemons/nchannel_d
+/daemons/verb_d
+/daemons/soul_d
+/daemons/imud_d

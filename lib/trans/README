@@ -1,0 +1,5 @@
+This directory contains system objects such as commands or daemons
+that need to be transparent to the security system.  Ie, the security
+level of these objects should not be a consideration to the security
+system when determining whether or not a command or function call
+succeds. 

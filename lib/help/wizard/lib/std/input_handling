@@ -1,0 +1,42 @@
+INPUT HANDLING
+
+Written by Deathblade, 4-Sep-94.
+
+
+[ note: I'm still working on this, but this should serve as a
+  quick description of input handling until I can get this completed. ]
+
+GUElib uses an input system that is quite a bit different from most
+other mudlibs.  There are two main changes: the parser and the modal
+input system.  The input system is discussed here, see /doc/std/parser
+for more information on the GUElib parser.
+
+The objective of the input system is to deal with nested input modes.
+A classic example is performing a "more" from within another.  On
+many muds, this will fail due to the non-reentrant usage of input_to()
+and non-reentrancy in whatever is performing the "more" functionality
+(it is quite common to have the player object perform this function
+and it is usually done with non-reentrant code).
+
+The new input system centers around three functions on the player
+object:
+
+  void modal_push(string func, int secure)
+  void modal_pop()
+  void modal_func(string func, int secure)
+
+The first function sets up the calling object as a modal input
+handler.  All input will then be passed to the given function until
+a modal_pop() is sent.  The function receiving the input may be changed
+with the modal_func() function.  Both modal_push() and modal_func()
+take a second parameter indicating whether the input should be
+hidden (as in a password).
+
+### need more here.  discuss MORE_OB and EDIT_OB as helpful pieces
+### of code.
+
+### Beek: This *really* needs a few examples of how to do simple
+things so we don't have to pile through tons of docs just to
+do the equivalent of input_to :)
+
+-Beek

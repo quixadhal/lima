@@ -1,0 +1,17 @@
+At this point, it is probably easiest to get the general feel of
+what wizard topics are available by browsing the /help/wizard
+directories.  Here are a few to start with, though:
+
+  coding: headers, rooms(*), style, quests
+
+  std: security, input_handling, book, container, door,
+	 enterable, gettable
+
+  moduless: getopt, grammar, lpc, messages(*), objcalls(*), parsing,
+	path(*), regex, string(*)
+
+  misc: exits(*), simul_efuns, global_macros
+
+(*) highly recommended
+
+Don't forget to read all the player topics, too.

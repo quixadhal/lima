@@ -1,0 +1,7 @@
+USAGE:  reply <message>
+
+When you are given a message via tells, it is much easier to
+type 'reply <put message here>' than 'tell <somebody> <message>'.
+
+[ Note: there will soon be a way to lock to whom you are replying to,
+        to avoid sending replies to the wrong people. ]

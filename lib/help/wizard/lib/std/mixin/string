@@ -1,0 +1,66 @@
+Module String:
+These functions are available with the following lines of code:
+
+#include <mudlib.h>
+inherit M_STRING;
+
+
+Note:  If an object inheriting this module defines a create(),
+then it should call init_stringmodule()
+
+
+chr(int) -- returns a string that is the ascii character associated with the
+		number passed.
+
+ord(string) -- takes a single character passed as a string and returns
+	 	the integer that is its ascii value.
+
+swapcase(string) -- switches the case of all letters in the string.
+
+upper(string) -- converts all the lower case characters in the string
+		to upper case.
+
+lower(string) -- converts all the upper case characters in the string 
+		to lower case.
+
+*Note!  upper() and lower() are different from the efuns capitalize()
+and lower_case() because the efuns operate only on the first letter
+of the string.
+
+power_str(string,int) -- returns a string that is a concatenation of int
+		copies of the first argument.
+
+trim_spaces(string) -- Returns string without leading and trailing whitespace.
+
+strip(string) -- same as trim_spaces()
+
+find(s, sub, i) -- Returns the lowest index in s not smaller than i where the
+substring sub is found.  Returns -1 if no matches are found.  If i is 
+ommited, it defaults to 0.  If i is negative, the length of the string is
+added.
+
+rfind(s, sub, i) -- Like find() but returns the highest index.
+
+count_substrings(string, substring, i) --  counts the number of
+	non-overlapping occurances of substring in string, starting at char i
+
+ljust(string, width) --  appends spaces to string to make it the
+	requested width.  Doesn't truncate or wrap string if too long.
+
+rjust(string, width) --  pad the string on the left so as to right
+	justify
+
+center(string, width) --  pad the string with spaces on both sides to
+	center it within the given width.  Again, not truncated if too long
+
+
+wrap(string, width) -- return a modified version of string, where if the
+length of a line is greater than width, a newline is intelligently 
+inserted.
+
+iwrap(string, indent, width) -- like wrap(), but any wrapped lines get
+spaces added to the front, specified by the second argument.
+
+expand_range(string) -- In selecting from a numbered list, takes a
+string of the form:  1-20,23,25-27  and returns a bit string (see 
+the efun set_bit) with numbers specified turned ON.

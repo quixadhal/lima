@@ -1,0 +1,2 @@
+#daemons/news_d.c
+data (["reporter.bugs":(["next_id":1,]),"reporter.idea":(["next_id":1,]),"player.chat":(["next_id":1,]),"player.news":(["next_id":1,]),"reporter.typos":(["next_id":2,1:([5:"Rust",4:"Ruhst",3:"Eye seen uh tiepo",2:1,1:806407841,]),]),"mudlib.discussion":(["next_id":1,]),])

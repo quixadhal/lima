@@ -1,0 +1,439 @@
+Sat Jul 15 14:30:37 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b9
+	* Fix from Marius: define the crdir_fopen() function even if BINARIES
+	  isn't defined
+	* fixed an LPC->C code generation bug that would change the third
+	  character of the first function to a ')' in some files
+	* in LPC->C compilation, generate 'case x:;' and 'default:;' instead
+	  of 'case x:' and 'default:' to satisfy picky compilers.
+
+Thu Jul 13 01:52:40 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b8
+	* another F_SHORT_STRING string disassembly fix from Sym
+	* fixed a bug that caused classes to fail to restore from inside
+	  classes/arrays/mappings
+	* fixed a bug that caused 'Inherit chain too deep' errors when
+	  load_object() was called repeatedly on non-existent objects
+	* fixed the alpha crasher fix (I changed the wrong #ifdef merging
+	  the changes into my local version)
+	* (: foo :) when foo is both a local function and a simul now gives
+	  a pointer to the lfun, not the simul in line with the normal
+	  visibility rules.
+	
+Thu Jul  6 03:29:37 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b7
+	* fix from Symmetry: use EXTRACT_UCHAR when disassembling 
+	  F_SHORT_STRING
+	* Alpha crasher fix: make sure there isn't any padding at the end
+	  of the shared string and malloc'ed string structs so that they
+	  overlap correctly
+	* don't use bison on AIX when compiling with xlC; xlC won't grok
+	  bison's use of alloca
+
+Fri Jun 30 16:02:44 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b6
+	* fixed a typo in socket_efuns.c
+	* fixed a bug that caused socket callbacks not to be called
+	  (introduced with the v21.5b4 fix)
+
+Tue Jun 27 01:01:27 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b5
+	* fixed MUD mode sockets to not abort the driver if they can't
+	  allocate enough memory for a packet (due to garbage for the
+	  length field, for example).  The connection is killed instead.
+
+Thu Jun 15 09:00:09 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b3
+	* fixed a LPC->C compilation error in range switch tables
+	    
+Mon Jun 12 04:03:58 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b2
+	* fixed a bug that generated incorrect code for string switches
+	* fixed a typeclash in grammar.y.pre
+	* better fix for the obj/grammar.tab.o problem
+	* fixed a crasher in some assignments in LPC->C code
+	* fixed a crasher in casting a void valued efun, i.e.
+	  return (int) destruct(ob)
+
+Sun Jun 11 04:04:49 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.5b1
+	* updated with respect to v21.4
+	* fixed a bunch of warning messages and unsafe casts for DEC Alpha
+	* added a call_stack() efun: for each internal as well as external
+	  frame:
+	  . call_stack(), call_stack(0) : an array of program names
+	  . call_stack(1) : array of current objects (in that frame)
+	  . call_stack(2) : array of function names
+	  . call_stack(3) : array of what origin() returns in that frame
+	  all the arrays are the same length; i.e. element 5 of call_stack(0)
+	  is the same frame as element 5 of call_stack(2)
+	  e.g. printf("I got called from %s in %s", call_stack(2)[0],
+	       call_stack(0)[0]);
+
+---------------------------------------------------------------------------
+(v21.4b11 promoted to v21.4 with the following fix)
+
+	* fixed a fatal error in compiling switches to C
+
+Sat Jun  3 05:24:08 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b11
+	* added Magician's fixes for pluralize() for words starting with 'b'
+	  and 'c'
+
+Thu Jun  1 14:28:38 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b10
+	* added support for w->x[y] = z, w->x[y]++ and w->x[y]-- which was
+	  accidentally omitted (generated 'Illegal lvalue' errors)
+	* fixed a crasher in strings longer than 64k
+	* fixed a compilation error crasher in x->foo when x was not a class
+
+Thu Jun  1 01:52:29 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b9
+	* removed a kludge to help older TMI-2 libs run.  It was causing
+	  delayed crashers after errors in add_actions(), as well as
+	  screwing up the previous_object(-1) lists.  I also think it was
+	  the cause of the unresolved backend crashers around v21 or so. 
+	* COMPAT_BUSTER: due to the above, previous_object() is now zero
+	  in add_action()'ed functions
+	
+Mon May 29 21:24:55 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b8
+	* fixed a bug that caused str[n..] to return garbage if n > strlen(str)
+	* fixed a compilation problem with LPC_TO_C off
+	* fixed a bad free() in edit_source that would cause defines to
+	  mutate
+	* fixed a crasher when a socket which had a function pointer as a
+	  callback was closed and then reused
+	* if a unbound socket is marked as needing a read, print an error
+	  message and close it.  This shouldn't ever happen, but evidentally
+	  does and causes the CPU to race
+
+Sat May 27 00:39:07 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b7
+	* fixed a crasher in set_privs(ob, 0)
+	* fixed a crasher in message() when the destinatination was a string
+	  that doesn't correspond to an object
+	* fixed a crasher in calling a function pointer in a swapped object
+	* fixed a bug that caused ./build.MudOS not to find 'make' if GNU
+	  make wasn't installed
+	* fixed a bug in disassembling F_BBRANCH_LT and F_NEXT_FOREACH
+	  (print as backwards, not forward branches)
+	* removed the switch stack; explicit jumps are used instead
+	* fixed a crasher in exiting foreach() via break or return
+	* cleaned up duplicated code in code generation for loops
+	* added support for verifying string lengths in md.c
+
+Tue May 23 17:59:12 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b6
+	* fixed a bug in the makefile dependencies that would cause the
+	  wrong system libs to be used
+	* fixed a bug that when using older versions of gmake would give the 
+	  'can't find rule for obj/grammar.tab.o' error
+	* updated the Makefiles, fixed a uid compilation problem
+	* removed some extra newlines at the end of compiler error messages
+	* fixed a crasher in calling functions() on a swapped object
+	* fixed a crasher in pluralize()
+	* fixed a bug that would cause parse errors/wierd error messages
+	  if (: was followed by the end of a line
+
+Mon May 22 15:54:58 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b5
+	* fixed a read_file() to set it's return string size correctly
+	* fixed a bug that would kick you out of ed if you went to line -1
+	* fixed pluralize() to make sure the string is zero terminated
+	* swapped two include files to prevent a definition of SE in
+	  <sys/sema.h> from overriding one in <arpa/telnet.h>; it causes
+	  terminal negotiation to freeze output to the user
+	* fixed a bug that caused type errors when inheriting from a
+	  program with #pragma save_types on which was saved as a binary
+	* upped the default optimization to -O3 on xlc
+	* fixed a crasher in assigning to indexed strings/array ranges
+	  in LPC->C
+	* added LPC->C support for parse_command() and evaluate()
+	* put the O_CLONE flag back on replace_program() objects; makes
+	  memory accounting efuns return slightly more intuitive values
+	  and makes some sense.  This means you can't clone from such an
+	  object, but that's probably good since create() isn't what you'd
+	  expect anyway	
+	* fixed a bug that generated illegal LPC->C code if the last case in a
+	  switch was empty (it's legal in LPC but not ANSI C)
+	* fixed a few typos in LPC->C code generation (i -> lpc_int)
+	* made the error messages for trying to compile something with a
+	  functional more friendly (LPC->C)
+
+Sun May 21 09:17:34 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b4
+	* fixed a bug that caused void and int to be compatible
+	* modified svalue_to_string and sprintf() to use outbuffers
+	* modified bad_argument() to use an outbuffer
+	* modified *_IN_TRACEBACK to use an outbuffer
+	* fixed outbuffers to truncate if they accumulate > 64k of data
+	* fixed a bunch of lines in interpret.c which had a space
+	  before the preprocessor directive
+	* cleaned up some more uses of MSTR_SIZE/COUNTED_STRLEN to fix
+	  more bugs with > 64k strings
+	* fixed a typo in the string switch type error message
+	* optimized STRING_STATS a bit (only do COUNTED_STRLEN() once
+	  in places)
+	* set up an error context before calling flag() in master in case
+	  there is an error
+	* check_memory() updated to know about the new malloc'ed strings
+	* optimized/cleaned up break_string()
+	* fixed a memory leak due to functionals keeping programs loaded
+	* fixed a memory leak in throw()
+	* fixed a memory leak in [0..n] array ranges on ref 1 arrays
+
+Sat May 20 10:21:58 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b3
+	* fixed a syntax error with PACKAGE_MUDLIB_STATS defined
+	* fixed a name conflict between mudlib_stats.c and 
+	  packages/mudlib_stats.c; moved all mudlib_stats and uid
+	  code into the appropriate package file
+	* removed some remaining DEALLOCATE_MEMORY_AT_SHUTDOWN code
+	* edit_source -configure now checks for POSIX getcwd()
+	  and <crypt.h>
+	* fixed a problem where edit_source would abort if a define
+	  in local_options and options.h had different values (it died
+	  with a redefinition warning)
+	* fixed alot of compilation warnings under SGI cc -fullwarn
+	* fixed a bug where __PORT__ was zero when specifying sockets
+	  as external_port_x
+	* fixed a crasher in socket_address()
+
+Wed May 17 15:30:02 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b2
+	* fixed a typo in cfuns.h
+	* fixed a problem with parsing of line specifiers which was causing
+	  search in ed to not return an error message; changed the message
+	  for search failing
+	* fixed a bug in SVALUE_STRLEN that would cause crashes involving
+	  strings longer than 64k
+
+Tue May 16 16:24:21 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.4b1
+	* fixed a typo in dumpstat.c
+	* added Aragorn's patch to allow %x to specify hexidecimal in sscanf
+	* partially rewrote the contrib efun pluralize() to handle 'X of Y'
+	  and clear up some crashers, as well as be a bit more robust/efficient
+	* cleaned up some gcc -Wall warnings
+	* include configure.h as well as std_incl.h when testing for existence
+	  of header files.  This fixes misconfiguration bugs with respect to
+	  rusage() on some systems (SunOS, ...)
+	* fixed outbuf_t compilation problems in comm.c on some systems
+	* fixed a crasher when explode() returned an array that was truncated
+	  due to max_array_size
+
+---------------------------------------------------------------------------
+(v21.3b5 promoted to v21.3)
+
+Mon May 15 02:46:10 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.3b5
+	* fixed a bug in code generation for addition; would produce incorrect
+	  code when LHS was a number or real and RHS was type string or mixed
+
+Sat Apr 29 23:59:18 CDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.3b4
+	* fixed a badly indented line in the GNUmakefile
+	* fixed some OBJDIR rules to not cause recompilation of alot of
+	  things when using GNU make
+	* fixed generation of package Makefiles
+
+Sat Apr 29 23:59:18 CDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.3b3
+	* fixed some compilation problems with LPC->C off
+	* put in a better fix for the function pointer to void valued efun
+	  problem; a debug check was erroneously misfiring on the old
+	  version
+
+Sat Apr 29 20:58:34 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.3b2
+	* changed some #ifdef 0's to #if 0's
+	* added a check to use -m486 when compiling using gcc on a 486
+	* fixed a crasher in self-destructing objects with call_outs
+	* fixed a crasher with calling reload_object() when call_outs to
+	  function pointers existed
+	* fixed TELOPT_NAWS to properly handle zero bytes; caused the
+	  reported screen size to be in the 17000 range
+	* fixed a typo in the missing type for argument fix in v21.3a7
+	* fixed a macro that xlc complained about in lex.c
+	* fixed a crasher in calling reload_object() on a swapped object
+	* fixed a crasher in reclaim_objects() with function pointers with
+	  no arguments
+	* fixed a crasher in edit_source
+	* #ifdefs are now legal in packages/*_spec.c
+	* updated 'Install' with the new build procedure
+
+Sat Apr 29 20:58:34 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* v21.3a7 promoted to v21.3b1
+
+---------------------------------------------------------------------------
+(v21.2b8 promoted to v21.2)
+
+Sun Apr 23 21:02:52 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.2b8
+	* fixed a crasher in efun pointers to void valued efuns
+
+Fri Apr 21 01:17:24 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.2b6
+	* fixed a bug that caused all the login ports to try to use the
+	  same port number
+	* fixed a crasher in PORT_ASCII objects which dest themselves
+	  from inside process_input()
+	* fixed a crasher that would occasionally generate the wrong
+	  code for default arguments
+	* Added a missing \n in the Function is no longer a simul error
+	  message
+	* Fixed a crasher in short style efun pointers (: efun, x, y ... :)
+	* changed a bunch of references to 'vec' in the source to 'arr'
+	  since we no longer refer to arrays as 'vectors' :)
+	* removed the port_number variable internally, the external_port
+	  array is used everywhere now
+	* changed the -p switch to change the port of external_port_1
+	* added some missing commas in the %O output of function pointers
+	* the refs() contrib efun was updated to know about classes
+	
+Tue Apr 18 17:30:51 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.2b5
+	* fixed a crasher in bind() on lfun/efun/simul function pointers
+	  with no arguments
+	* fixed a crasher in call_out_list() when a destructed object
+	  had a pending call_out
+	* fixed socket_address(object) to convert the port number back
+	  to host byte ordering (from Angus@Styx)
+	* fixed a crasher after compiling 256 break statements
+	* fixed a typo in the GNUmakefile
+	* sockets are now initialized before preload() is called, so it
+	  is possible to preload socket objects
+	* name the spec files in packages/ foo_spec.c instead of foo.spec
+	  to avoid a gcc bug
+	* include all include files found up to a given point in include
+	  tests; <sys/resource.h> needs <sys/time.h> etc.
+	* make sure TELNET_NAWS is in <arpa/telnet.h>, otherwise use the
+	  one in the MudOS distribution
+	* fixed a crasher in set_hide() when the valid_hide() check failed
+	* fixed a crasher in anonymous functions with empty blocks
+	  function(...) {}
+	* removed some unnecessary prototypes from lint.h; the configuration
+	  process now finds the appropriate includes
+	* mark the config strings as being correctly allocated for
+	  check_memory()
+	* fixed a bug where Linux 1.2.1 sometimes returns ECONNREFUSED
+	  from recvfrom() for UDP sockets when an ICMP_PORT_UNREACHED
+	  is generated internally
+	* fixed a compiling problem with pluralize() in the contrib packages
+	
+Tue Apr 18 17:30:51 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.2b4
+	* fixed a crasher in calling process_input() for PORT_BINARY and
+	  PORT_ASCII ports
+	* fixed a bug that would cause the first efun (alphabetically) to
+	  do nothing
+	* fixed a typo in a call to debug_message_with_location() in simulate.c
+	* fixed a mis-optimization of typeof() that caused it to always
+	  return 2
+
+Mon Apr 10 23:41:33 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.2b3
+	* added Symmetry's fix so OSFLAGS gets propagated to the makefiles
+	  for AIX
+	* fixed a typo in the v21.1b2 regexp fix
+	* removed an unused definition of find_status()
+
+Fri Apr 7 12:57:56 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.2b2
+	* reorganized the v21.1 changelog entry to be more concise/clear
+	* fixed a bug that would loop forever on partial matches when
+	  finding a substring in a string using strsrch() search from the
+	  right
+	* fixed regexp.c on Linux to define CHARBITS correctly; won't work
+	  on systems with non-8 bit chars, but the old code seems to be
+	  incorrect.
+	* Next two fixes from Aragorn:
+	  . Fixed the warning about too many file descriptors to print the
+	    right number
+	  . Don't free 'use_name' until after we're done using 'file' since
+	    'file' may point at it
+
+Fri Mar 24 20:59:08 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.2b1
+	* v21.1b7 promoted to minor version status (see v21.1)
+	* Changed the error message for arr[<x] where x > sizeof(arr)
+	  to 'Array index out of bounds' from 'Negative index passed to array'
+	* fixed the extern definition of control_stack[] to use MAX_TRACE
+	  instead of being hardcoded at the default
+
+------------------------------------------------------------------------------
+Fri Mar 24 20:59:08 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.1b7
+	* fixed a crasher in call_out(function, ...) when NO_SHADOWS
+	  was off
+	* removed a check for destructed objects in get_all_call_outs()
+	  which:
+	  (a) didn't remove destructed objects
+	  (b) removed call_outs to function pointers
+	* added in the config file crasher fix from v21.2a5
+
+Sun Mar 19 21:02:18 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.1b6
+	* fixed a small optimization to backend.c introduced in v21.1b5
+	* fixed a typo in the v21.1b5 type check fix
+	* Robocoder: in config files, restrict sscanf() matches to
+	  the current line
+
+Sat Mar  4 16:04:43 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.1b5
+	* some amiga compilation fixes from Robocoder
+	* added some smalloc accounting fixes from Robocoder; keep track
+	  of wasted memory as well as some more overhead
+	* cast IAC to signed char so it is compatible with (char *)
+	* fixed a bug in type checking that made (class foo *) and (mixed *)
+	  incompatible
+	* fixed a typo in the prototype fix from v21.1b4
+	* defining two classes with the same name is now an error
+	* compilation fix for IRIX 5.3 (needs <unistd.h>)
+	
+Sat Mar  4 16:04:43 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.1b4
+	* fixed a ref count error/crasher in inherits()
+	* fixed a ref count bug/memory leak (programs referenced by 
+	  non-bindable function pointers weren't being freed)
+	* added code to check function references to programs in md.c
+	* added in some porting fixes for CX/UX 6.1 (from DrFeelgood)
+	* fixed a memory munger in regular expressions that end in '\'
+	* fixed inherited functions which have a different number of
+	  arguments than the functions they replace to not error
+
+Sat Mar  4 16:04:43 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.1b3
+	* removed some debugging code in lex.c
+	* fixed a typo that prevented #undef OLD_ED compilation
+	* fixed compilation with #undef NO_MUDLIB_STATS
+	* fixed a crasher in type errors in division
+	* fixed a division error message that erroneously indicated
+	  multiplication
+	* fixed a type error in locals used in anonymous functions
+	* fixed a bug in smalloc accounting
+
+Wed Mar  1 18:14:01 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.1b2
+	* brought up to date with respect to v21c1
+
+Wed Mar  1 18:14:01 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.1b1
+	* added three new contrib efuns:
+	  . int replaceable(object) - returns 1 if the object consists only
+	           of a create() function and inherited functions
+	  . void program_info() - prints out memory usage of programs
+	           divided up by sections
+	  . string upper_case() - similar to lower_case(), but ... :)
+	* fixed a crasher in the compilation of switch tables to C code
+	* rewrote/optimized some of the compile time type checking
+	* void efuns no longer return a value on the stack.  If the value
+	  is used (c.f. x = write("hi")) a F_CONST0 instruction is inserted
+	* removed the errorp() efun
+	* added a customized allocator for mapping nodes.  This should reduce
+	  memory usage and increase speed of additions/deletions
+	* removed RUNTIME_LOADING from options.h
+	* fixed a crasher involving finding duplicate objects in the hash
+	  table with LPC objects precompiled and DEBUG on
+	* changed program ref counts to shorts

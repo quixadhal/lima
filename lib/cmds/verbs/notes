@@ -1,0 +1,6 @@
+   1)    diagnose.c   ----  purpose is same as original zork 
+                     probelm is at the moment it only tells you are in perfect health.  :)
+
+                to be like origianl   you are somewhat wounded, will
+                         be healed after so many moves 
+              and how often killed

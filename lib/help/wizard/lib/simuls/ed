@@ -1,0 +1,10 @@
+NAME
+	ed - masks the ed efun
+SYNOPSIS:
+	varargs void ed( string filename, closure to_call )
+
+This override of the ed() efun (qv) expands on the 
+functionality of the efun.  This version ensures that 2 people
+are not editing the same file before allowing one to edit,
+and allows one to pass a closure to be called when the ed
+session is done.

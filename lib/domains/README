@@ -1,0 +1,3 @@
+This directory is for mud domains.  Although domain security has been
+written, there is not currently a working interface to it.  There will
+be one by the alpha release.

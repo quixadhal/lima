@@ -1,0 +1,9 @@
+NAME:
+	get_protection -- return the permissions on a file
+
+SYNOPSIS:
+	mixed get_protection( string file, string mode )
+
+This is documented somewhere in Ellery's security docs.  Try
+help security.  If that doesn't work, mail admin telling them
+you DEMAND this doc!

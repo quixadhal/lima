@@ -1,0 +1,80 @@
+Module Path:
+These functions are available with the following lines of code:
+
+#include <mudlib.h>
+inherit M_PATH;
+
+
+has_magic(str) -- Returns true if there is a "magic" character.  A
+magic character is either *,?, or [.  The primary use is for
+wildcards, so that you can specify /std/*/*.[ch] to get all files in
+/std/whatever that have a .c or .h extention.  See glob, etc... 
+
+fnmatch(name, pattern) -- returns true if name is a filename that
+matches the glob/wildcard expression in pattern.  Caches for speedy
+lookup. 
+
+glob(str) -- returns an array of files that match the wildcard/glob
+expression str.  Glob's special characters are defined by the function
+has_magic(), and currently are: 
+	* -- matches anything
+	? -- matches any single character
+	[] -- brackets allow the user to specify a range of characters
+		that will make a match.  [abc]  will match any of
+		those 3 characters, [a-z] will match any lower case
+		character, [a-z]* will match any number of consecutive
+		lower case characters.  You can instead specify
+		characters to exclude from a match by adding a ^ or !
+		after the [.  Eg, [^z] will match any character that
+		isn't z.	
+
+
+translate(str) -- Returns a string in a format that regexp(),
+regexplode(), and functions in the REGEX module understand from a
+glob-style string.  
+
+path_exists(str) -- Returns 1 if str is the name of an existing file
+or directory.
+
+is_directory(string) -- Returns 1 if string is the name of an
+existing directory in the filesystem.
+
+is_file(string) -- Returns 1 if string is the name of an existing file
+in the filesystem.
+
+split_path(str) -- Returns a 2 element array, the first element being
+everything to the left of the final '/' in str, the second element
+being everything to the right.  No check is made for valid pathname.
+
+base_path(str) -- Essentially the same as split_path(str)[0]. Ie,
+returns everything to the left of the final '/' in str.
+
+depath(string) -- Essentially the same as split_path(str)[1].  Ie,
+it returns everything to the right of the final '/' in str.
+
+walk_dir(str, visit, arg) -- Calls the function visit with arguments
+(arg, dirname, fileList) for each directory in the directory tree
+rooted at str, including str itself.  The argument dirname specifies
+the visited directory, the argument fileList lists the files in the
+directory.  The visit function may modify the fileList argument if the
+fileList argument is accepted as a reference (see help references).
+
+
+evaluate_path(str) -- returns str if it is an absolute path.
+Otherwise, uses the current player's working directory, plus
+conventional file system tokens (., .., ~)  To find the absolute path
+equivolent to str.  str doesn't have to refer to an existing file or
+directory.
+
+join_path(p, q) -- Joins the paths p and q intelligently: If q is an
+absolute path, the return is q.  Otherwise, the the concatenation of
+p, a slash if appropriate, and q is returned. 
+
+is_source(path) -- Returns 1 if path is an existing .c file.
+
+map_paths(arr) -- Takes an array of file names (e.g., the output of
+glob()) and returns a mapping of ([ path : files ])  Where files is an
+array of file names contained in the directory path.  Valid file name
+checks are not done on the array.
+
+

@@ -1,0 +1,10 @@
+--Simul Efuns--
+
+Help is available for any of our simul efuns:
+
+add_action                find_player               set_this_player
+all_users                 get_protection            shutdown
+snoop			  ed			    query_snoop
+query_current_edits       users			    find_living 
+
+

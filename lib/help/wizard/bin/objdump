@@ -1,0 +1,4 @@
+$$ see: objcount, objfind
+USAGE:	objdump
+
+Shows a list of all objects current loaded.

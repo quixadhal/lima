@@ -1,0 +1,7 @@
+This is the directory for commands that don't do things that might be
+a security violation.  
+The Cmd_rules file that exists in some directories is used to tell the
+mudlib which wizard commands are to receive special processing.  
+If you're writing new commands, you don't have to worry about this
+file unless you understand it.  Just follow any of the commands in
+/cmds/player as a template.

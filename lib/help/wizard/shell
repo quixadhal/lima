@@ -1,0 +1,69 @@
+Using your shell.
+
+
+1)  Setting variables
+
+	see: help set 
+	You may alternatively set variables in the following way:
+	$var = value
+
+	Eg:
+	$PROMPT = "> "
+
+	notice that the space before and after the '=' are required!
+
+	Wizards also have a 'path' variable, which defines the directories in
+	which the command finder will search for commands.  By default,
+	your path is /trans/cmds, /cmds/wiz, and /cmds/player.
+	You can look at the value of this variable by typing:
+
+	$path
+
+
+2)  Evaluating code
+
+	The wizard shell will evaluate your input as code if you put
+	it inside `` 's.
+
+	For example: 	
+		rm `get_dir(evaluate_path("./*"))[12]`
+
+	will call the rm command with the 12th item from a get_dir()
+	on your current directory.
+	To use an actual ` in your code, procede it with a \.
+
+	For example:
+		print `"this is a backtick--->\`<---------------"`
+
+	The print command is a shell builtin, which is mainly 
+	used to print the results of code evaluation.
+
+
+	You may uses variables inside your code as real variables.
+	For example:
+		print `"my prompt is: " + $PROMPT`
+
+	Will give you:	
+	"my prompt is: >"   (or whatever your PROMPT is).
+
+	And yes, you may also set variables to the result of code:
+	$path = `$path + ({"/wiz/rust/cmds/"})
+
+	(then do:
+	$path
+
+	to prove to yourself that it worked right).
+
+*** If you ever mess up your path, type:	
+	resetpath
+
+
+Note, there are many other features to the shell.  See also:
+	help history, help alias
+
+	There are also facilities to load modules and bind shell commands
+	that aren't documented yet.  Feel free to check out the source
+	if that interests you at all.
+	
+
+	

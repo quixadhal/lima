@@ -1,0 +1,11 @@
+$$ see: name, unname
+USAGE: nicknames
+Help for nicknames:
+The name command is used to give an object a nickname.  The syntax is:
+name <object> <nickname>\n
+From then on, the object may be refered to by its nickname.
+Objects may share the same nickname, but this may cause some problems, depending
+ on whether or not the two objects are in the room or on the mud at the same time.
+Nicknames for most objects get lost every reboot, but nicknames for some
+things, such as other players, will stick.  To get a list of your nicknames
+ for others, use the 'nicknames' command.

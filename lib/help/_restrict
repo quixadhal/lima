@@ -1,0 +1,26 @@
+#
+# File: restrict
+# Created: 25-OCT-94. Deathblade.
+#
+# This file is used to describe the level-restrictions of the
+# sub-directories located in this directory.  The help system
+# can restrict help based on level only at this level of the
+# directory tree -- further restrictions are not available.
+#
+# The format of this file is simple:
+#
+#   <dirname> : <min-level>
+#
+# This specifies that the topics in the given directory can
+# only be seen by somebody with the given level.  If a
+# sub-directory exists and is not listed here, then it is
+# assumed to have a min-level of 0 (players can see the
+# topics).
+#
+# And, of course, lines beginning with # are ignored
+#
+# This file is parsed by help_d.c.
+#
+player : 0
+wizard : 1
+admin : 5

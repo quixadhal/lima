@@ -1,0 +1,8 @@
+NAME
+	users - return an array containing all accessable users on line
+SYNOPSIS
+	object* users();
+
+The difference of the simul_efun is that it filters the users array to
+make sure no one who doesn't want to be found who is of higher level than
+this_player() gets found.

@@ -1,0 +1,4 @@
+USAGE:	who
+
+The who command will give you a list of all user's presently logged
+onto the MUD, and whether or not they are idle.

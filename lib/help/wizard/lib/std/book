@@ -1,0 +1,18 @@
+The '/std/book' inheritable.
+
+inherits: OPENABLE, READABLE
+works well with: OBJ or another base class
+
+Summary:
+The 'book' inheritable implements the concept of a book which needs
+to be opened before it can be read.
+
+Functions useful for configuring:
+see OPENABLE, READABLE
+
+New Functions:
+none
+
+Overloaded Base Class Functions:
+readable::read() - check if the object is open has been added.
+readable::read_entry() - check if the object is open has been added.

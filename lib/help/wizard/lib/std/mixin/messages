@@ -1,0 +1,128 @@
+MESSAGE MODULE:
+
+*** Introduction:
+
+The message module exists to simplify and standardize messages on ZorkMUD.
+It is designed to replace code like the following:
+
+write("You bing at "+target->query_name()+".\n");
+tell_object(target, this_player()->query_name()+" bings at you.\n");
+tell_room(environment(this_player()), this_player()->query_name()+" bings at "+target->query_name()+".\n");
+
+Compare that to the following:
+
+this_player()->targetted_action("$N $vbing at $t.\n", target);
+
+The message module will create the appropriate messages and send them
+to the correct places.  targetted_action can be called in any object
+which has inherited the MESSAGES module, which is inherited in
+LIVING, WEAPON, ZORKER, DEV already.
+
+
+**** The Simple Interface:
+
+Four routines make up the simple version of the message interface:
+
+simple_action(message [, object [,object] ] )
+   for simple actions only involving the doer and optionally one
+   or two normal objects (or strings, see below)
+
+other_action(message, [, object [, object] ] )
+   same as simple_action, but only sends messages to the room
+
+my_action(message, ...)
+   only send messages to the doer
+
+targetted_action(message, target [, object [, object] ] )
+   for simple actions involving the doer, a target, and possibly
+   one or two objects
+
+The appropriate routine should be called in the object that is
+actually _doing_ the action.
+
+If the message is actually an array of messages, one of the messages
+will be chosen at random.
+
+**** Format for Messages:
+
+A quick note: If you want something capitalized, use the upper
+case version ($N) as opposed to $n.
+
+Here are the variables that can be used in messages:
+(Tell Beek if you have other things you would like to see here)
+
+$N - A name.  Defaults to the name of the doer.
+       if given a number, corresponds to that index into the who
+       list (only usable with more complex messages, see below)
+       starting with zero.  For example, $N3 is the name of the
+       4th person in the who list.
+
+$T - The name of the target.
+       $T is actually the same as $N1o. i.e. the first person after
+       the doer in the who list.
+       Notice that it's objective by default; if you want to use
+       the target as the subject, use $N1 or $Ts.
+
+$V - A verb
+       The message module must know what is a verb so it can conjugate
+       them correctly.  Verbs are always given in the 2nd person
+       ("you ...") form, so when writing messages it is best to think
+       from the perspective of the message that will go to the doer.
+       For example, "$N $vlook at ..." is correct, but "$N $vlooks .."
+       is not.  It will create odd messages like "Beek lookses at "
+       and "You looks at".  An optional number can be inserted
+       before the verb, indicating who is the subject (defaults to
+       zero; the doer is the subject of the sentence).  This is
+       usefull for more complex messages:
+           "$N $vpuke on $t.  $T $v1are covered with slime!"
+       A couple things to note: $T == $N1, so $V1 is the correct way
+       to make $T the subject of the sentence.  Also, "is" is given
+       in the 2nd person form ("are").  This means you have to
+       switch your perspective when switching subjects. The first
+       half of the sentence is written from the perspective of the
+       puker; the second half from the perspective of the pukee.
+
+$P - a possessive
+       Takes an (optional) number to indicate who.  It will generate
+       either a named possessive ("Beek's") or a pronoun ("his")
+       depending on the context.
+
+$R - Reflexive:  I.e. 'yourself', 'himself', 'itself'.  Take a numbe
+       to indicate which person it refers to.
+
+$O - Takes an (optional) number to indicate which of the two optional
+       objects it refers to.  If the object passed is an object, it's
+       short() is used.  If it is a string, the string is used.
+       Note that the module is smart about articles; if you include
+       one with an object that doesn't need an article, it is omitted.
+
+**** Advanced Messaging:
+
+The above routines work fine assuming you want messages to go to the
+standard places.  What if they should go across a channel?  Be sent
+to another routine? etc etc etc
+Then you must use the actual routine that all the above are based
+on:
+
+string* action( string* wholist, message [, mixed ob [, mixed ob2 ]] )
+
+The wholist is a list of people participating in the action, i.e.
+({ this_player(), target }), and corresponds to $N0, $N1, etc ...
+The message and objects are the same as above.
+
+The routine returns an array of strings; one string containing a
+message for each person in the who list, and an extra one for anyone
+who isn't directly involved (the simple routines send that message
+to the room).
+
+These messages can then be sent wherever you want, etc.  A routine
+exists to send them, if you're doing something that is *almost*
+simple (maybe the messages have to be seen in more than one room,
+etc).
+
+inform(wholist, msgs, other)
+
+where wholist is the wholist from above, msgs was returned by action()
+and other is the object to send the extra message to via tell_room().
+
+-Beek

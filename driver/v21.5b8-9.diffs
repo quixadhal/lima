@@ -1,0 +1,276 @@
+diff -cr v21.5b8/ChangeLog.beta v21.5b9/ChangeLog.beta
+*** v21.5b8/ChangeLog.beta	Sat Jul 15 14:26:14 1995
+--- v21.5b9/ChangeLog.beta	Mon Jul 17 20:46:26 1995
+***************
+*** 1,3 ****
+--- 1,12 ----
++ Sat Jul 15 14:30:37 1995 (tim@handel.princeton.edu (Beek))
++ 	* raised patchlevel to v21.5b9
++ 	* Fix from Marius: define the crdir_fopen() function even if BINARIES
++ 	  isn't defined
++ 	* fixed an LPC->C code generation bug that would change the third
++ 	  character of the first function to a ')' in some files
++ 	* in LPC->C compilation, generate 'case x:;' and 'default:;' instead
++ 	  of 'case x:' and 'default:' to satisfy picky compilers.
++ 
+  Thu Jul 13 01:52:40 1995 (tim@handel.princeton.edu (Beek))
+  	* raised patchlevel to v21.5b8
+  	* another F_SHORT_STRING string disassembly fix from Sym
+diff -cr v21.5b8/binaries.c v21.5b9/binaries.c
+*** v21.5b8/binaries.c	Thu Jul 13 01:52:24 1995
+--- v21.5b9/binaries.c	Sun Jul 16 11:19:20 1995
+***************
+*** 592,664 ****
+  }				/* check_times() */
+  
+  /*
+-  * open file for writing, creating intermediate directories if needed.
+-  */
+- FILE *crdir_fopen P1(char *, file_name)
+- {
+-     char *p;
+-     struct stat st;
+-     FILE *ret;
+- 
+- #ifdef OS2
+-     char *newy;
+- 
+-     /* Take a copy as it could be a shared string */
+-     newy = alloc_cstring(file_name, "crdir_fopen");
+- #endif
+- 
+-     /*
+-      * Beek - These directories probably exist most of the time, so let's
+-      * optimize by trying the fopen first
+-      */
+- #ifdef OS2
+-     if ((ret = fopen(newy, "wb")) != NULL) {
+- 	FREE(newy);
+- 	return ret;
+-     }
+-     p = newy;
+- #else
+-     if ((ret = fopen(file_name, "w")) != NULL) {
+- 	return ret;
+-     }
+-     p = file_name;
+- #endif
+- 
+-     while (*p && (p = (char *) strchr(p, '/'))) {
+- 	*p = '\0';
+- #ifdef OS2
+- 	if (stat(newy, &st) == -1) {
+- 	    /* make this dir */
+- 	    if (mkdir(newy, 0770) == -1) {
+- 		*p = '\\';
+- 		FREE(newy);
+- 		return (FILE *) 0;
+- 	    }
+- 	}
+- 	*p = '\\';
+- #else
+- 	if (stat(file_name, &st) == -1) {
+- 	    /* make this dir */
+- 	    if (mkdir(file_name, 0770) == -1) {
+- 		*p = '/';
+- 		return (FILE *) 0;
+- 	    }
+- 	}
+- 	*p = '/';
+- #endif
+- 	p++;
+-     }
+- 
+- #ifdef OS2
+-     f = fopen(newy, "wb");
+-     FREE(newy);
+-     return f;
+- #else
+-     return fopen(file_name, "wb");
+- #endif
+- }				/* crdir_fopen() */
+- 
+- /*
+   * Routines to do some hacking on the program being saved/loaded.
+   * Basically to fix up string switch tables, since the alternative
+   * would probably need a linear search in f_switch().
+--- 592,597 ----
+***************
+*** 745,747 ****
+--- 678,747 ----
+  }				/* patch_in() */
+  
+  #endif
++ 
++ /*
++  * open file for writing, creating intermediate directories if needed.
++  */
++ FILE *crdir_fopen P1(char *, file_name)
++ {
++     char *p;
++     struct stat st;
++     FILE *ret;
++ 
++ #ifdef OS2
++     char *newy;
++ 
++     /* Take a copy as it could be a shared string */
++     newy = alloc_cstring(file_name, "crdir_fopen");
++ #endif
++ 
++     /*
++      * Beek - These directories probably exist most of the time, so let's
++      * optimize by trying the fopen first
++      */
++ #ifdef OS2
++     if ((ret = fopen(newy, "wb")) != NULL) {
++ 	FREE(newy);
++ 	return ret;
++     }
++     p = newy;
++ #else
++     if ((ret = fopen(file_name, "w")) != NULL) {
++ 	return ret;
++     }
++     p = file_name;
++ #endif
++ 
++     while (*p && (p = (char *) strchr(p, '/'))) {
++ 	*p = '\0';
++ #ifdef OS2
++ 	if (stat(newy, &st) == -1) {
++ 	    /* make this dir */
++ 	    if (mkdir(newy, 0770) == -1) {
++ 		*p = '\\';
++ 		FREE(newy);
++ 		return (FILE *) 0;
++ 	    }
++ 	}
++ 	*p = '\\';
++ #else
++ 	if (stat(file_name, &st) == -1) {
++ 	    /* make this dir */
++ 	    if (mkdir(file_name, 0770) == -1) {
++ 		*p = '/';
++ 		return (FILE *) 0;
++ 	    }
++ 	}
++ 	*p = '/';
++ #endif
++ 	p++;
++     }
++ 
++ #ifdef OS2
++     f = fopen(newy, "wb");
++     FREE(newy);
++     return f;
++ #else
++     return fopen(file_name, "wb");
++ #endif
++ }				/* crdir_fopen() */
+diff -cr v21.5b8/ccode.c v21.5b9/ccode.c
+*** v21.5b8/ccode.c	Thu Jul 13 01:52:15 1995
+--- v21.5b9/ccode.c	Mon Jul 17 20:45:32 1995
+***************
+*** 575,581 ****
+  	case_table_size++;
+  	notreached = 0;
+  	if (switch_type == NODE_SWITCH_RANGES) {
+! 	    ins_vstring("case %i:\n", case_number);
+  	    if (expr->v.expr) {
+  		parse_node_t *other = expr->v.expr;
+  		case_table_size++;
+--- 575,581 ----
+  	case_table_size++;
+  	notreached = 0;
+  	if (switch_type == NODE_SWITCH_RANGES) {
+! 	    ins_vstring("case %i:;\n", case_number);
+  	    if (expr->v.expr) {
+  		parse_node_t *other = expr->v.expr;
+  		case_table_size++;
+***************
+*** 586,602 ****
+  	    } else {
+  		expr->v.number = case_number++;
+  	    }
+! 	} else ins_vstring("case %i:\n", expr->r.number);
+  	break;
+      case NODE_CASE_STRING:
+  	notreached = 0;
+  	case_table_size++;
+  	expr->v.number = case_number;
+! 	ins_vstring("case %i:\n", case_number++);
+  	break;
+      case NODE_DEFAULT:
+  	notreached = 0;
+! 	ins_string("default:\n");
+  	break;
+      case NODE_SWITCH_STRINGS:
+      case NODE_SWITCH_NUMBERS:
+--- 586,602 ----
+  	    } else {
+  		expr->v.number = case_number++;
+  	    }
+! 	} else ins_vstring("case %i:;\n", expr->r.number);
+  	break;
+      case NODE_CASE_STRING:
+  	notreached = 0;
+  	case_table_size++;
+  	expr->v.number = case_number;
+! 	ins_vstring("case %i:;\n", case_number++);
+  	break;
+      case NODE_DEFAULT:
+  	notreached = 0;
+! 	ins_string("default:;\n");
+  	break;
+      case NODE_SWITCH_STRINGS:
+      case NODE_SWITCH_NUMBERS:
+***************
+*** 654,665 ****
+  			    "case_table_size was incorrect.\n");
+  	    }
+  
+! 	    if (position) 
+  		sprintf(mem_block[current_block].block + position, "%3i",
+  			case_table_size);
+! 	    /* restore the char smashed by the trailing null */
+! 	    mem_block[current_block].block[position + 3] = ')'; 
+! 
+              switch_type = save_switch_type;
+  	    case_number = save_case_number;
+  	    case_table_size = save_case_table_size;
+--- 654,666 ----
+  			    "case_table_size was incorrect.\n");
+  	    }
+  
+! 	    if (position) {
+  		sprintf(mem_block[current_block].block + position, "%3i",
+  			case_table_size);
+! 		/* restore the char smashed by the trailing null */
+! 		mem_block[current_block].block[position + 3] = ')'; 
+! 	    }
+! 	    
+              switch_type = save_switch_type;
+  	    case_number = save_case_number;
+  	    case_table_size = save_case_table_size;
+Only in v21.5b8: configure.h
+Only in v21.5b8: options_incl.h
+diff -cr v21.5b8/packages/packages v21.5b9/packages/packages
+*** v21.5b8/packages/packages	Thu Jul 13 02:43:03 1995
+--- v21.5b9/packages/packages	Mon Jul 17 13:16:43 1995
+***************
+*** 1,2 ****
+! SRC=contrib.c sockets.c develop.c parser.c 
+! OBJ=contrib.o sockets.o develop.o parser.o 
+--- 1,2 ----
+! SRC=contrib.c sockets.c develop.c math.c 
+! OBJ=contrib.o sockets.o develop.o math.o 
+diff -cr v21.5b8/patchlevel.h v21.5b9/patchlevel.h
+*** v21.5b8/patchlevel.h	Thu Jul 13 01:52:40 1995
+--- v21.5b9/patchlevel.h	Sat Jul 15 14:30:37 1995
+***************
+*** 1 ****
+! #define PATCH_LEVEL "v21.5b8"
+--- 1 ----
+! #define PATCH_LEVEL "v21.5b9"
+Only in v21.5b8: system_libs

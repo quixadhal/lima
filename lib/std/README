@@ -1,0 +1,4 @@
+This directory contains objects that are not ment to be cloned.  They
+are meant to be incorporated into other objects through inheritance.
+The modules subdirectory contains inheritables of very specific
+and fine grained functionality.

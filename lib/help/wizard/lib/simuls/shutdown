@@ -1,0 +1,9 @@
+NAME:
+	shutdown -- shut down the mud
+
+SYNOPSIS:
+	void shutdown()
+
+This override of the shutdown() efun is used to keep
+people from rebooting the mud in haste.  It is not meant
+to be secure, it is just meant to be a deterent.

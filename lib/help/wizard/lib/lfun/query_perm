@@ -1,0 +1,13 @@
+NAME
+	query__perm (lfun)
+SYNOPSIS
+	mixed query_perm( mixed key );
+Returns the value of the passed key in the mapping gained by
+iheriting object.c
+The difference between this and query_perm, as with related
+functions is that in objects that save_object() such as
+players, anything with a _perm will be a permanent change.
+Notice that they are 2 seperate functios, with 2 seperate
+databases.
+
+see also: set_perm, query, delete_perm

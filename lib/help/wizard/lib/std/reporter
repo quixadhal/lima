@@ -1,0 +1,19 @@
+The /std/reporter inheritable implements an easy way to gather
+bug reports/ideas/any small piece of text from users.
+
+void begin_report(string log_file, string type)
+    type gives the type of report.  The entry will look like:
+
+    <type>: <who> reports from <where> on <date and time>
+    <text entered by player>
+    *******************************************************
+
+    log_file is the file to which the text is appended.  When
+    this routine is called, the player is put into the editor.
+    After he finishes typing, the text is appended to the
+    log file.
+
+void short_report(string log_file, string type, string text)
+    just like the routine above, but use 'text' instead of putting
+    the player into the editor.
+

@@ -1,0 +1,8 @@
+NAME
+	delete (lfun)
+SYNOPSIS
+	void delete( key );
+deletes the entry for key in the static set mapping in an object
+that inherits /std/object.c
+
+see also: set, query, delete_perm

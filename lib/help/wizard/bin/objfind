@@ -1,0 +1,10 @@
+$$ see: objdump, objcount
+USAGE:	objfind <fname>
+
+This command is used to find all the instances of a given class and their
+environments.  This is very handy in tracking down where certain items
+are, or if they have no environment.
+
+Example:
+
+> objfind /gue/zork1/trophy_case

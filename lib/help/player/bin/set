@@ -1,0 +1,38 @@
+$$ see: unset
+USAGE: set [variable [value]]
+
+Used by itself, set lists all environment variables which have been set.
+
+With just a variable name as an argument, set will set the value of that
+environment variable to "".
+
+If given a second argument, a value, a variable is created with that name and
+that value if it doesn't exist.  If it already exists, the old value is
+replaced with the new one.
+
+Some of the possible environment variables are:
+PROMPT - your prompt.  If you don't change it, it defaults to:   >
+
+ansi   - determines whether or not you see colors.  Some screens aren't 
+	 capable of seeing ansi colors, and see gibberish instead.
+
+MORE   - when you're looking at a lot of text at one time (like a big
+	 long mail message), this value determines how many lines
+	 the game shows you at once.  If you don't set this, it 
+	 defaults to 20.
+
+You can use variables you set in your commands.  For example, if you do:
+
+	set victim rust
+
+and then do:
+	kill $victim
+
+It's the same as doing:
+	kill rust
+
+You can even do:
+	alias kv kill $victim
+
+and when you type kv, the mud will look at what you have 'victim'
+currently set to.

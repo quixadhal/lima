@@ -1,0 +1,31 @@
+#!/bin/bash
+# A bash script to keep the mud up by looking at ps and seeing if
+# the driver or startmud script is going, and if it isn't, then
+# it invokes that command.  This is meant to be called from your
+# machines cron system, so you should add an entry to your crontab
+# 0,30 * * * * ~/bin/keepup
+# which will check every 30 minutes to see if your mud is still up.
+# grep is probably not the best way to check, a regexp is probably
+# better, but I figure your executable name should be long and fairly unique if
+# you invoke with the full path name, and I'd prefer this to be easily
+#portable between shells, and rexexp syntax differs between shells.
+
+#Redistribute freely, as usual
+
+LIMADIR="/home/rust/lima0.9-alpha"
+
+pscmd="ps -x"
+startingcol=21
+searchfor=config.quendor
+startmud=$LIMADIR/etc/startmud
+cutfile=/tmp/keepup.$$
+
+$pscmd | cut -c${startingcol}- > $cutfile
+
+isup=$(grep $searchfor $cutfile)
+
+if [ ${#isup} -eq 0 ]; then
+$startmud &
+fi
+
+rm -f $cutfile

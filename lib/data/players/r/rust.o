@@ -1,0 +1,34 @@
+#std/dev.c
+mass 100
+psets ([])
+last_location 
+persist_flags ([5:1,2:16,])
+max_capacity 100
+objects ([])
+main_prep "in"
+messages (["menter":"$N $vappear in a puff of smoke.","mleave":"$N $vdisappear in a puff of smoke.","destruct":"$N $vdest the $o.","enter":"$N $venter.","leave":"$N $vleave $o",])
+wield_type "blow"
+wielded_by 
+hp 1
+max_hp 1
+heal_rate 10
+weapon_type "blow"
+news_data (["lima.ideas":16,"player.chat":1,"lima.help":1,"player.news":1,"lima.discussion":3,"reporter.typos":2,"driver.bugs":3,"lima.bugs":68,])
+level 5
+topic_to_time ([])
+wizdefaults ([])
+wizxdefaults ({})
+saved ({})
+shell_saved_data "({\"/obj/shells/wish\",({([\"gossip\":(/\"chan gossip $*\",({\"\",}),0,0,/),\"newbie\":(/\"chan newbie $*\",({\"\",}),0,0,/),\":\":(/\"emote $*\",({\"\",}),0,0,/),\"x\":(/\"examine $*\",({\"\",}),0,0,/),\"'\":(/\"say $*\",({\"\",}),0,0,/),\"e\":(/\"go east $*\",({\"\",}),0,0,/),\"se\":(/\"go southeast $*\",({\"\",}),0,0,/),\"sw\":(/\"go southwest $*\",({\"\",}),0,0,/),\"n\":(/\"go north $*\",({\"\",}),0,0,/),\"l\":(/\"look $*\",({\"\",}),0,0,/),\"ne\":(/\"go northeast $*\",({\"\",}),0,0,/),\"w\":(/\"go west $*\",({\"\",}),0,0,/),\"nw\":(/\"go northwest $*\",({\"\",}),0,0,/),\"s\":(/\"go south $*\",({\"\",}),0,0,/),\"ls\":(/\"ls -asF $*\",({\"\",}),0,0,/),]),({\":\",\"'\",}),([\"PROMPT\":\"%p>\",\"path\":({\"/trans/cmds/\",\"/cmds/wiz/\",\"/cmds/player/\",}),]),([]),({}),}),})"
+title "Rust has to hide his love away!"
+name "rust"
+describe "You can see what Rust looks like at: http://www.cs.virginia.edu/~jtv2j/"
+invis_name "Someone"
+start_location "/domains/std/wizroom"
+reply "rust"
+nickname_list ([])
+channel_list ({"wiz_wiz","wiz_errors","wiz_news","plyr_news",})
+auto_load ({})
+pwd "/"
+cwf "/secure/daemons/group_d.c"
+ilog_time 806406105

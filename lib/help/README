@@ -1,0 +1,4 @@
+Many of the files in this directory, most notably the files in player,
+will be very dependant on your preferences for running a mud, and you
+should change them.  The docs in player as well as some of the others,
+were intended to be example docs.  (We stole them from our mud ZorkMUD).

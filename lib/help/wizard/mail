@@ -1,0 +1,4 @@
+Wizards have the following additional commands for use with their mail:
+
+Ms [#] <filename>			Save message w/ header intact to file
+Mw [#] <filename>			Save message but no header to file.

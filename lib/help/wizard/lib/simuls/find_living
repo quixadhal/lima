@@ -1,0 +1,6 @@
+NAME
+	find_living -- find a living object by string
+SYNOPSIS
+	object find_living(string name);
+  returns the first matched object that has had set_living_name(name)
+called in it, unless the object targeted is hidden.  

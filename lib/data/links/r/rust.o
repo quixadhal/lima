@@ -1,0 +1,10 @@
+#secure/user.c
+email "rust@virginia.edu"
+real_name "John Viega"
+level 5
+title "Rust has to hide his love away!"
+failures ({({806406103,"128.143.136.18",}),({806406103,"128.143.136.18",}),})
+notify_time 806406970
+name "rust"
+password "ree2RhF66Yjlc"
+body_fname "/std/dev"

@@ -1,0 +1,133 @@
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
+/*
+**
+**  This needs a hook for evaluating the string as code.
+**
+*/
+#include <mudlib.h>
+
+private static mapping variables = ([]);
+
+
+DOC(setup_for_save,"Sets up M_SAVE to save some variables")
+void setup_for_save()
+{
+    /*
+    ** Use the call_other() interface so that we are not statically
+    ** bound to require M_SAVE.  This object this modules is applied
+    ** to may save natively rather than via M_SAVE.
+    */
+    this_object()->add_save(({ "variables" }));
+}
+
+int is_variable(string var)
+{
+  return !undefinedp(variables[var]);
+}
+
+static void
+set_variable(string var, string value)
+{
+  variables[var] = value;
+  this_object()->save();
+}
+
+mixed 
+get_variable(string var)
+{
+  return variables[var];
+}
+
+static
+void
+print_variable(string v)
+{
+  if(undefinedp(variables[v]))
+    printf("%s: undefined variable.\n",v);
+  else
+    printf("The value of %s is: %O\n", v, variables[v]);
+}
+
+varargs static mixed expand_if_variable(string arg, int only_expand_if_string)
+{
+  mixed a;
+
+  if(!stringp(arg))
+    return arg;
+  if(!(strlen(arg) > 1 && arg[0] == '$' ))
+    return arg;
+
+  a = M_REGEX->regexplode(arg[1..],"[a-zA-Z0-9]+");
+  if(sizeof(a) < 2 || a[0] != "" || undefinedp(variables[a[1]]))
+    return arg;
+  if(!stringp(variables[a[1]]))
+    {
+      if(only_expand_if_string)
+	return arg;
+      else
+	return variables[a[1]];
+    }
+  return variables[a[1]]+((sizeof(a) > 2) ? implode(a[2..],"") : "");
+}
+
+mixed* substitute_variables(mixed* argv)
+{
+  return map(argv, (:expand_if_variable:));
+}
+
+/*
+** This is the implementation of the command interface to
+** this module from a shell command line.
+*/
+
+int cmd_unset(string* argv)
+{
+  if(sizeof(argv) != 2)
+    {
+      printf("Usage: unset variable\n");
+      return 1;
+    }
+  map_delete(variables, argv[1]);
+  printf("Ok.\n");
+  this_object()->save();
+  return 1;
+}
+
+
+int cmd_set(string* argv)
+{
+  string var, val;
+  switch(sizeof(argv))
+    {
+    case 1:
+      write("Current variables\n"
+	    "(unset varname to unset):\n"
+	    "-----------------------------\n");
+      foreach(var, val in variables)
+	if(val == "")
+	  write(var+" ---->  is set.\n");
+	else
+	  printf("%-10s%O\n",var+" ----> ", val);
+      write("\n");
+      return 1;
+    case 2:
+      if (!undefinedp(variables[argv[1]]))
+	{
+	  printf("Variable %s is already set.\n", argv[1]);
+	  return 1;
+	}
+      set_variable(argv[1],"");
+      printf("Variable %s set.\n",argv[1]);
+      return 1;
+    case 3:
+      set_variable(argv[1],argv[2]);
+      printf("Variable %s set to %O.\n",argv[1],argv[2]);
+      return 1;
+    default:
+      set_variable(argv[1], implode(argv[2..]," "));
+      printf("Variable %s set to %s.\n", 
+	     argv[1], get_variable(argv[1]));
+      return 1;
+    }
+}

@@ -1,0 +1,5 @@
+USAGE: help   or   help <topic>
+
+
+With no arguments, you are sent into the general help menu.  You may,
+instead, pass a topic as an argument.

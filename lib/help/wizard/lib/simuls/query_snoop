@@ -1,0 +1,8 @@
+NAME 
+	query_snoop -- give the snooping object of target.
+SYNOPSIS
+	object query_snoop(object snoopee);
+
+The difference in the simul_efun is that it only allows users of level
+500 or above use it.
+And amongst those who can use it, the hidden flag is respected

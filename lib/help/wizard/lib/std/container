@@ -1,0 +1,54 @@
+The '/std/container' inheritable
+
+inherits: OBJ
+works well with: ENTERABLE, GETTABLE, LOCKABLE, OPENABLE, READABLE,
+     WEARABLE
+
+Summary:
+The 'container' inheritable implements the concept of an object that
+can hold other objects.  Support for relations other than 'in'
+is also available.
+
+Functions useful for configuring:
+set_max_capacity(), set_objects(), set_preposition()
+see also OBJ
+
+New Functions:
+container() - return 1
+receive_object(object ob, string relation) - return zero if ob
+    can be put into this object with the given relation (if
+    relation is zero, use the main preposition for this object).
+    capacity is updated, so the object should be moved in if this
+    returns zero.  Non-zero results are specified by the include
+    file <move.h>.
+release_object(object ob) - returns zero if the object ob can
+    be removed from this object.  capacity is updated if it
+    succeeds, so the object should be moved out.
+set_max_capacity(int) - sets the maximum ammount of mass this object
+    can hold.
+look_in(string relation) - returns a string giving the result of
+    'look <relation> container'.  If relation is zero, the main
+    preposition for this object is used.
+set_objects(mapping) - The mapping should be of the form:
+    ([ filename1 : number,
+       filename2 : number ])
+    It will cause a certain 'number' of clones of 'filename' to
+    appear in the room when it is created, and every reset.
+inventory_visible() - returns 1 if the contents of this object
+    can be seen.
+inventory_accessible() - returns 1 if the contents of this object
+    can be touched, etc (consider a closed, transparent object).
+introduce_contents() - The line printed before the contents list
+    when the contents are printed recursively
+can_take_from() - defaults to inventory accessible
+can_put_in() - defaults to inventory_accessible()
+set_preposition(string) - sets the main preposition of the object
+    if none is set, it defaults to 'in'
+query_prep() - returns the main preposition of the object
+
+Overloaded Functions:
+stat_me() - information about capacity and contents added.
+ob_state() - containers with contents should not be grouped
+query_mass() - include the capacity as well
+long() - include the contents as well
+reset() - clone the objects specified by set_objects()

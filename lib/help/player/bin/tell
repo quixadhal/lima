@@ -1,0 +1,5 @@
+$$ see: reply
+USAGE:  tell <player> <message>
+        tell <player@mudname> <message>
+
+Tells somebody a message.  The second form can talk to people on other muds.

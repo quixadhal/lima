@@ -1,0 +1,27 @@
+addto		fname|file
+banish -s	[str]
+cat		file*
+cd		[dir]
+cp -rf		file* fname|dir|file
+dir -aslF	[file|dir*]
+du		[dir]
+ed		[file|fname]
+find -in        str file*
+grep -in	str file*
+loadall		dir
+ls -aslF	[file|dir*]
+mkdir		fname
+more		file*
+mv -rf		file* fname|dir|file
+update	-rR	[cfile]
+replace	-qn	str str file*
+rm		file*
+rmdir		dir*
+setlevel	user num
+snoop		[user] [str*]
+spew		file str*
+stat		obj|user
+tail		file*
+tsh		file
+
+
