@@ -10,31 +10,24 @@
 
 inherit VERB_OB;
 
-mixed can_put_obj_wrd_obj(object ob1, string p, object ob2) {
-    return 1;
-}
-
 void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
+    mixed tmp;
     if (!try_to_acquire(ob1))
 	return;
-    switch (ob1->move(ob2, p)) {
-    case MOVE_OK:
+
+    tmp = ob1->move(ob2, p);
+    if (tmp == MOVE_OK) {
 	write("Done.\n");
 	this_body()->other_action("$N $vput a $o into the $o1.\n", ob1, ob2);
-	break;
-    case MOVE_NO_ROOM:
-	write("There isn't enough room.\n");
-	break;
-    default:
-	write("That doesn't seem possible.\n");
-	break;
+	return;
     }
+    if (!tmp) tmp = "That doesn't seem possible.\n";
+    write(tmp);
 }
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBS next to OBJ", "OBS beside OBJ", "OBS with OBJ",
-		     "OBS at OBJ", "OBJ in OBJ" }),
+    return ({ ({ "OBS WRD OBJ", "OBJ WRD OBJ" }),
 		  ({ "insert", "place", "stuff" }) });
     
     /*

@@ -42,7 +42,6 @@ short()
 
     return shitty_hack_to_get_object_short();
 }
-
 public
 string
 long()
@@ -53,8 +52,8 @@ long()
     return shitty_hack_to_get_object_long();
 }
 
-
 public
+int
 announce_board()
 {
     this_body()->simple_action("$N $venter "+the_short()+".\n");
@@ -65,6 +64,7 @@ announce_board()
 }
 
 public
+int
 announce_failed_board()
 {
     this_body()->simple_action("$N $vtry to enter "+the_short()+", but $vfail.\n");
@@ -72,6 +72,7 @@ announce_failed_board()
 }
 
 public
+int
 announce_failed_exit()
 {
     this_body()->simple_action("$N $vtry to exit "+the_short()+", but $vfail.\n");
@@ -79,6 +80,7 @@ announce_failed_exit()
 }
 
 public
+int
 announce_exit()
 {
     this_body()->simple_action("$N $vleave "+the_short()+".\n");
@@ -89,6 +91,7 @@ announce_exit()
 }
 
 public
+int
 board()
 {
     if( !this_body()->move( this_object(), query_prep() ) )
@@ -99,6 +102,7 @@ board()
 }
 
 public
+int
 exit()
 {
     if( !this_body()->move( environment( this_object() ), "in" )  )
@@ -108,13 +112,14 @@ exit()
 	return announce_failed_exit();
 }
 
+int
 get()
 {
     return 0;
 }
 
-private
-announce_go( dir )
+int
+announce_go( string dir )
 {
     this_body()->simple_action("$N $Vgo "+dir+" the "+short()+"." );
   force_look();
@@ -123,7 +128,8 @@ announce_go( dir )
     return 1;
 }
 
-go( dir )
+int
+go( string dir )
 {
     if( dir != query_prep() )
 	return notify_fail( "That doesn't seem to be possible.\n");
@@ -135,3 +141,9 @@ go( dir )
     return 0;
 }
 
+/*      VERB INTERACTION     */
+
+mixed direct_enter_obj()
+{
+    return 1;
+}

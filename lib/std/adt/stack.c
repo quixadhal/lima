@@ -1,31 +1,25 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-private mapping stack = ([]);
-private int     counter;
+class stack {
+    int which;
+    array elems;
+};
 
-int
-size()
-{
-  return counter;
+class stack stack_new(int size) {
+    class stack s = new(class stack);
+    s->which = 0;
+    s->elems = allocate(size);
+    return s;
 }
 
-void
-push( mixed elem )
-{
-  stack[++counter] = elem;
+void stack_push(class stack s, mixed item) {
+    if (s->which == sizeof(s->elems))
+	error("Stack overflow.\n");
+    s->elems[s->which++] = item;
 }
 
-mixed
-pop()
-{
-  mixed retval;
-
-  
-  if( !counter )
-    error("Can not pop() from empty stack");
-
-  retval = stack[counter];
-
-  stack = map_delete( stack, counter-- );
-  return retval;
+mixed stack_pop(class stack s) {
+    if (s->which == 0)
+	error("Stack underflow.\n");
+    return s->elems[--(s->which)];
 }

@@ -32,22 +32,22 @@ private nomask string fmt_listener(object listener)
 
 private void main()
 {
-    mapping registered = NCHANNEL_D->query_registered();
+    string * channels = NCHANNEL_D->query_channels();
     string channel_name;
     object * listeners;
     string output = "";
 
-    if ( !registered )
+    if ( !check_privilege(1) )
     {
 	write("Sorry, this command is only available to admins.\n");
 	return;
     }
 
-    foreach ( channel_name, listeners in registered )
+    foreach ( channel_name in channels )
     {
 	string one_channel = "";
 
-        listeners -= ({ 0 });
+	listeners = NCHANNEL_D->query_listeners(channel_name) - ({ 0 });
 
 	output += channel_name + ":\n" +
 	    iwrap("    " +
@@ -55,5 +55,5 @@ private void main()
 	    "\n\n";
     }
 
-    new(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }

@@ -36,6 +36,10 @@ static void add_define P3(char *, name, int, nargs, char *, exps)
     int h;
 
     if ((p = lookup_define(name))) {
+	if (p->flags & DEF_IS_PREDEF) {
+	    yyerror("Illegal to redefine predefined value.");
+	    return;
+	}
 	if (nargs != p->nargs || strcmp(exps, p->exps)) {
 	    char buf[200 + NSIZE];
 

@@ -115,7 +115,7 @@ nomask void rebuild_mailboxes()
 
 private nomask string get_fname(int message_key)
 {
-    /* ### eventually move this to /data/mail/N/N/NNNNNNNN.o */
+//### eventually move this to /data/mail/N/N/NNNNNNNN.o
     return sprintf(MAIL_PATH "%d", message_key);
 }
 

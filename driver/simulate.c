@@ -57,7 +57,7 @@ static void destruct_object_two PROT((object_t *));
 static void send_say PROT((object_t *, char *, array_t *));
 #endif
 static sentence_t *alloc_sentence PROT((void));
-#ifndef NO_ADD_ACTION
+#if !defined(NO_ADD_ACTION) && !defined(NO_ENVIRONMENT)
 static void remove_sent PROT((object_t *, object_t *));
 #endif
 
@@ -354,7 +354,7 @@ object_t *load_object P2(char *, lname, lpc_object_t *, lpc_obj)
 #endif
 
     if (++num_objects_this_thread > INHERIT_CHAIN_SIZE)
-	error("Inherit chain too deep: > %d\n", INHERIT_CHAIN_SIZE);
+	error("Inherit chain too deep: > %d when trying to load '%s'.", INHERIT_CHAIN_SIZE, lname);
 #ifdef PACKAGE_UIDS
     if (current_object && current_object->euid == NULL)
 	error("Can't load objects when no effective user.\n");
@@ -513,7 +513,7 @@ object_t *load_object P2(char *, lname, lpc_object_t *, lpc_obj)
 	    /* I don't think this is possible, but ... */
 	    ob = load_object(name, (lpc_object_t *)ob);
 	    /* sigh, loading the inherited file removed us */
-	    if (!ob) return 0;
+	    if (!ob) { num_objects_this_thread--; return 0; }
 	    ob->load_time = current_time;
 	}
 #endif
@@ -1284,7 +1284,9 @@ void shout_string P1(char *, str)
 #ifndef NO_ADD_ACTION
 void enable_commands P1(int, num)
 {
+#ifndef NO_ENVIRONMENT
     object_t *pp;
+#endif
 
     if (current_object->flags & O_DESTRUCTED)
 	return;
@@ -1667,8 +1669,10 @@ void add_light P2(object_t *, p, int, n)
     if (n == 0)
 	return;
     p->total_light += n;
+#ifndef NO_ENVIRONMENT
     while ((p = p->super))
 	p->total_light += n;
+#endif
 }
 #endif
 
@@ -1751,7 +1755,7 @@ void free_sentence P1(sentence_t *, p)
 int user_parser P1(char *, buff)
 {
     char verb_buff[MAX_VERB_BUFF];
-#ifndef NO_ADD_ACTION
+#ifndef NO_ENVIRONMENT
     object_t *super;
 #endif
     sentence_t *s;
@@ -2007,6 +2011,7 @@ int remove_action P2(char *, act, char *, verb)
  * Remove all commands (sentences) defined by object 'ob' in object
  * 'user'
  */
+#ifndef NO_ENVIRONMENT
 static void remove_sent P2(object_t *, ob, object_t *, user)
 {
     sentence_t **s;
@@ -2027,6 +2032,7 @@ static void remove_sent P2(object_t *, ob, object_t *, user)
 	    s = &((*s)->next);
     }
 }
+#endif
 #endif /* NO_ADD_ACTION */
 
 void fatal P1V(char *, fmt)
@@ -2346,7 +2352,9 @@ void startshutdownMudOS()
  */
 void shutdownMudOS P1(int, exit_code)
 {
+#ifdef PACKAGE_SOCKETS
     int i;
+#endif
     shout_string("MudOS driver shouts: shutting down immediately.\n");
 #ifdef PACKAGE_MUDLIB_STATS
     save_stat_files();
@@ -2450,6 +2458,7 @@ void do_message P5(svalue_t *, class, char *, msg, array_t *, scope, array_t *, 
     }
 }
 
+#ifndef NO_RESETS
 #ifdef LAZY_RESETS
 void try_reset P1(object_t *, ob)
 {
@@ -2464,6 +2473,7 @@ void try_reset P1(object_t *, ob)
 	reset_object(ob);
     }
 }
+#endif
 #endif
 
 #ifndef NO_ENVIRONMENT

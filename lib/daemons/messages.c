@@ -105,9 +105,40 @@ mapping messages =
     "home": "$N $vgo home.\n",
     "clone": "$N $vclone the $o.\n",
     "destruct": "$N $vdest the $o.\n",
-    ])
+    ]),
+  // These messages stolen from Distortion :-)
+  "player-death" : ({
+      "The world mourns the loss of $N.",
+      "You are crushed to hear that $N $vhave died.",
+  }),
+  "nonsense" : ({
+      "A valiant attempt.\n",
+      "You can't be serious.\n",
+      "Even a candle is not that dim!\n",
+      "An interesting idea.\n",
+      "What a concept!\n",
+      "I think you've got better things to do.\n",
+      "Get serious.\n",
+      "Getting desperate?\n",
+  }),
+  "discarded" : ({
+      "Someone has left %s lying on the ground.",
+      "It seems that someone has left %s lying here.",
+      "%s lies here, discarded.",
+      "%s lies at your feet.",
+      "Some luckless fool has left %s here.",
+      "%s lies here, abandoned.",
+  }),
+  "discarded-plural" : ({
+      "Someone has left %s lying on the ground.",
+      "It seems that someone has left %s lying here.",
+      "%s lie here, discarded.",
+      "%s lie at your feet.",
+      "Some luckless fool has left %s here.",
+      "%s lie here, abandoned.",
+  }),
   ]);
 
-mapping get_messages(string type) {
+mixed get_messages(string type) {
     return messages[type];
 }

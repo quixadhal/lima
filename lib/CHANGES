@@ -1,234 +1,229 @@
-Beek fixed review to ignore non-string message types and messages 
+Deathblade obsoleted query_real_name(). use query_userid() (on both body 
+    and user). tweaked lots of files for this. 
 
-Zifnab added msg command 
+Deathblade shifted body fname and body instance handling into sw_body. 
+    cleaned up. added some data versioning of the link files to begin 
+    upgrading them to nice, known formats and values. this is a precursor 
+    to some race work. 
 
-Ohara replaced /log/quests and /log/QUESTS with clean files since the 
-    contents of the current files bear no relationship to real files (well 
-    .. at least til lestat arises ..) 
+Beek fixed the player shell to print an nonsense message if 
+    do_game_command() fails 
 
-Beek added support for ({ num, arg1, arg2 }) as values in set_objects(), 
-    where the additional args are passed to create(). 
+Beek added DEBUG_COMBAT to config_combat.h, and some code to print out info 
+    on combat formulas when you attack 
 
-Ohara upgraded scan <whee> 
+Beek made the percentage penalty for attacking too often a define in 
+    /std/monster/traditional.c, and doubled it from 5 to 10 
 
-Ohara finally got round to aliasing date to time .. finally Lima works 
-    logically, rather than the converse (AKA "Unix Does It That Way" ) 
+Beek fixed a rather nasty bug in traditional combat :-) See news for 
+    details :-) 
 
-Ohara went and changed date.c to time.c at Deathblade's urging. Dinos who 
-    prefer using date may alias it. <grin> 
+Beek added a tell() function to player.c and user.c; player->tell(string) 
+    is the same as tell_object(player, string). link->tell(string) is the 
+    same as tell_object(link,string) in all cases that matter (no 
+    catch_tell in user.c, etc) 
 
-Deathblade updated the I3 code to use startup-req-2. Related changes in 
-    mudinfo.c and mudlist.c. 
+Beek added DEATH_MESSAGES to config_combat.h, and implemented them in 
+    player.c 
 
-Beek fixed 'stat here' not to print the long twice 
+Beek moved nonsense and discarded messages to the messages daemon 
 
-Beek fixed dest to handle 'the something' better 
+Deathblade fixed the new character creation bug (needed to init body_fname) 
 
-Beek made 'L' in the newsreader not display removed posts 
+Rust fixed a bug Cyberspam found that just got added in the last 24 hours, 
+    see news. see news. 
 
-Beek fixed 'look in' to print the returned message 
+Beek added a quick hack to support verb synonyms, mainly b/c something is 
+    better than nothing. Better support later. 
 
-Beek fixed it so that it isn't possible to look into closed objects :-) 
+Beek fixed put X in Y to work again. 
 
-Beek disabled colors in ls since they are ugly don't wrap right anyway 
+Beek cleaned out lima.bugs. Only 114 out of 645 posts remain :-) 
 
-Beek removed a number of outdated bug reports from lima.bugs 
+Beek moved the overrides to first on the list of sefuns so they affect 
+    later sefuns 
 
-Beek removed the title sprintf hack 
+Beek made destruct() take an optional second arg, which is passed to 
+    remove(). 
 
-Beek cleaned up lima.ideas some 
+Beek added a -z flag to update; it walks the inheritance tree and updates 
+    files that are out of date. 
 
-Beek changed do_game_command() to return 1 on success, 0 on failure. It is 
-    now the callers responsibility to write(nonsense()). Propagated to 
-    shell obs. 
+Beek modified input_sys to handle "!" escapes at the mudlib level. Errors 
+    are now handled correctly (i.e. the 'next command goes through to 
+    shell' bug is gone.) 
 
-Ohara fixed that extremely obscure bug in helpsys.c, where if you removed a 
-    helpfile after it was included in the mapping it would error :) 
+Beek cleaned up lima.todo a bit 
 
-Ohara fixed all exits = ([ ]) into set_exits( ([ ]) ) .. please use this 
-    form in future, as the former may become a compat buster, 
+Beek fixed update -z to check inherited objects as well as the source, so 
+    it doesn't get fooled if some objects in the middle have been manually 
+    updated. 
 
-Deathblade tweaked master.c and secure_d.c to provide a bit better 
-    messaging when security violations occur. 
+Beek moved ed setup to /secure/modules/userinfo. ~/.edrc is obsolete. You 
+    will have to reset and save your ed setup. 
 
-Deathblade changed doc_d to skip some directories. see 
-    doc_d::filtered_dirs[] 
+Beek fixed a bug in su'ing while in ed. 
 
-Deathblade added /domains/std/wolf.c as an example of a monster that can 
-    follow you. Needs more work, though, but the basis is there. 
+Beek re-enabled 'sniff OBJ' now that the parser can disambiguate it [sniff 
+    LIV is a feeling, sniff OBJ is a verb] 
 
-Beek removed the pre_exit() call, since (1) nothing in the lib uses it, (2) 
-    it was one of those lame this_object()-> hooks, (3) it can be done with 
-    the exit functionality 
+Beek removed the 'two copies of self on stack' workaround from secure_d 
 
-Beek removed the post_exit() call; same reasoning. 
+Beek changed all the ### comments in the lib to the correct //### form 
 
-Beek added a "person_left" hook, which is called with the direction as an 
-    argument. 
+Ohara cleaned up news (mainly ideas/discussion) somewhat more .. still 
+    needs another pass sometime to pick of even more duplication .. 
 
-Beek moved the player message handling down to living.c, and put them in 
-    /std/living/messages.c [required for living objects to be able to move] 
+Beek fixed the bug in where.c that was causing crashes 
 
-Beek fixed a bug in /std/modules/triggers which would barf on lines 
-    consisting only of whitespace (common in room descriptions) 
+Beek added a hook to call NEW_USER_D in sw_body.c. Implemented NEW_USER_D 
+    to allow a race to be selected. 
 
-Beek made a number of improvements to /domains/std/wolf.c; see news for 
-    comments 
+Beek added an orc race, just so that a choice exists. 
 
-Beek added /domains/std/pet.c just for the heck of it :-) 
+Beek added a documentation race, as a joke (type help documentation at the 
+    race prompt). It also contains documentation on the various functions 
+    race objects should define. 
 
-Beek fixed echoall and echoto 
+Beek suggest that admins who want to pick a race edit their .o and set 
+    their body_fname to zero. 
 
-Deathblade fixed the shutdown command (and, btw, reset the driver.log file 
-    during testing :-) 
+Beek added a troll race as an example of a non-boring race 
 
-Beek disabled input_to 
+Beek fixed a void/int type error in /secure/modules/userinfo. 
 
-Beek uploaded my improved set module from BeekMUD; see /std/modules/set.c. 
-    Useful for newsreaders. 
+Beek added M_WRITING_SURFACE, and /domains/std/paper.c as an example 
 
-Beek fixed the pointer for compile errors to not barf on contexts which 
-    contain % 
+Beek added buy and sell verbs, M_VENDOR, and /domains/std/shopkeeper as an 
+    example. They work about as well as they can without any money support 
+    in the lib :-) 
 
-Beek added direct_kill_liv[_with_obj]() to /std/monster 
+Beek made it possible to give stuff to players 
 
-Beek added /domains/std/troll as the example monster 
+Deathblade fixed another problem with privileges in doc_d. Needed an 
+    unguarded() to halt stack tracing before falling off end of stack and 
+    requiring a user, which doesn't exist in a call_out(). 
 
-Beek : weapons can now define prevent_disarm() if they want to avoid being 
-    sent flying 
+Beek fixed an the troll race to correctly pass the arg to create() to 
+    player::create() 
 
-Beek made some extensive changes to how messages are stored; objects now 
-    have a mapping of default messages [shared, from MESSAGES_D], and a 
-    mapping of added messages, and combat messages are separate as well. 
-    You might want to do: @ .me->clear_messages() to get the new defaults 
+Beek documented a file or two in /std/modules 
 
-Beek made a number of fixes to combat 
+Deathblade began tweaking the shell for command execution changes (nothing 
+    big yet beyond some plans) 
 
-Beek simul'ed destruct() to always call ob->remove() except in the case of 
-    destruct(this_object()) 
+Deathblade fixed the saving of the ed_setup. Just added a call to save_me() 
 
-Beek changed it so that wizzes quit fighting and heal when they die 
+Rust got the mail 
 
-Beek switched around the combat logic a bit so that the messages preceded 
-    the results; hit_living() and do_damage() are void now; adjust_result() 
-    is adjust_my_result(), and the target gets a chance via adjust_result() 
-    and not do_damage() 
+Beek made ls print a message when no files match; see news for 
+    justification 
 
-Beek made /std/weapon call set_gettable(1) 
+Beek removed the more_chunk var from player.c. Private, and unused. 
 
-Beek changed USE_COMBAT (which was unused) to COMBAT_STYLE, currently 
-    defined to be one of (COMBAT_SIMPLE, COMBAT_TRADITIONAL, 
-    COMBAT_COMPLEX) 
+Beek fixed more to not claim zero-length files don't exist 
 
-Beek moved the combat related source to M_DAMAGE_SOURCE, so that living 
-    objects wouldn't have the 'wieldable' functionality 
+Beek changed more to (1) not clone an object for short mores, (2) no more 
+    CHUNK=get_chunk_size() hack by moving the interface to 
+    /secure/modules/more inherited by /secure/user. Help more/more_files 
+    for info. 
 
-Beek added /domains/std/pac_sword as an example of a sword that does 
-    something non-trivial 
+Beek fixed a bug in force_game_command() that made it ALWAYS print a 
+    nonsense message (is it used instead of do_* in the right places) 
 
-Beek lifted weapon handling into /std/monster/weapon, and cleaned it up a 
-    lot. 
+Beek : that last parenthetical note was a question 
 
-Beek got sick of config.h's size, and made config_combat.h 
+Beek changed the notorious 'Bad file name:' to 'Permission denied:' 
 
-Beek fixed wield OBJ to make sure you are holding it :-) 
+Beek fixed a bug in mkdir that would error when permission failed. 
 
-Beek added a random target choice/same target as long as valid config 
-    option 
+Beek fixed the default description to get gender right 
 
-Beek moved death functionality into /std/monster/death 
+Beek made tell use lower_case() on the user name 
 
-Beek added corpses, for those who want them; also 
-    set_corpse_long/set_corpse_filename 
+Beek changed /std/modules/complete:complete() to use filter and not 
+    regexp(). The original implementation would error often since it didn't 
+    bother to protect regexp special characters. 
 
-Beek massively re-modularized combat. parts are in /std/monster/base/*, 
-    with different types of combat in /std/monster. Currently, only 
-    /std/monster/simple exists. 
+Beek made edit_ob truncate the printing of the included text if it is too 
+    long 
 
-Beek added heart_beat based combat as a config option 
+Deathblade folded in Satan's mods for hidden exits and (configurably) 
+    showing exits at the bottom of the description. 
 
-Beek added /std/monster/traditional, which gives a more hit-point oriented, 
-    but still simple combat scheme. 
+Deathblade made all room vars private and static (COMPAT BUSTER). If you 
+    have any code that directly used these, then it will need to change to 
+    use public APIs. 
 
-Beek started /std/race.c, and made stat-handling more efficient; still not 
-    sure how best to handle effects of base bonuses to derived stats. It 
-    could be done, but it's expensive. Anyway, more work later. 
+Deathblade torched add_exits() and remove_exits(), being too hard to use. 
+    Instead, we now have add_exit() and remove_exit(). Add DOC for these. 
 
-Beek added a M_DAMAGE_SINK module; basically, it absorbs damage made by 
-    M_DAMAGE_SOURCES ;-) used it to implement /std/armor.c, so that writing 
-    a piece of armor doesn't involve hard-coding adjust_result() and 
-    add_armor() 
+Deathblade move the rehashing to after do_game_command() processing. 
+    players shells do not rehash any more, ever. 
 
-Beek fixed a couple things with wearable; hooked it back into combat 
+Deathblade wanted to amend the last two: I _added_ doc. Wiz shells rehash; 
+    player shells do not. 
 
-Beek add /domains/std/chainmail.c and /domains/std/platemail.c as examples 
-    of simple/non-trivial armor, respectively 
+Beek fixed a logic error in edit_ob that caused it to truncate the file if 
+    you used ~e 
 
-Beek moved /obj/sword.c to /domains/std/sword.c 
+Beek fixed a typo in feelings 
 
-Beek made all swords set their damage type to 'blade' and not the default 
-    ('blow'). 
+Deathblade fixed a problem in the I3 daemon where it was possible that the 
+    daemon might not retry for up to an hour after being dropping (rather 
+    than retry a minute later). Added cancel_reconnection() into 
+    rcv_startup_reply(). 
 
-Beek abstracted 'swordness' to /std/sword; ff to suggest a better place for 
-    such 'high-level' inheritables 
+Beek fixed open OBJ with OBJ in open.c to handle 0 for objects correctly. 
 
-Beek added an example of adding to the default messages for weapons; see 
-    /domains/std/sword. 
+Deathblade fixed the "tmp_hack" problem: there was a bug in the upgrading 
+    of link files that was zeroing the userid. 
 
-Beek made all armors and weapons id to 'armor' and 'weapon' respectively 
+Deathblade moved around a lot of objects and modules; stuff in: /obj, 
+    /std/modules/shell_support, /secure/modules, /trans. 
 
-Beek made add_id() add to the start, not the end, so that the primary id is 
-    correct in cases where ids are added by inheritance; this will change 
-    the primary id to the last add_id and not the first add_id, 
-    unfortunately. Probably more changes here later. 
+Beek fixed HELP_D to not barf on files in /help. Maybe it should just 
+    ignore them? (c.f. help README) 
 
-Beek fixed wield to mark the old weapon as unwielded. 
+Beek changed gettable to use 1/0/error format instead of the -1/message 
+    stuff; the old interface will work, but the 'right way' to do it now is 
+    just set_gettable(message) and not set_gettable(-1); 
+    set_getmsg(message). Also, clone no longer prints the get message of 
+    non-gettable objects 
 
-Beek fixed it so that weapons that leave your inventory are no longer 
-    marked as wielded. 
+Beek : remove() now calls release_object(..., 1) 
 
-Beek finished reorganizing bodystats; the formulas are the same with the 
-    exception of a few bugfixes 
+Beek fixed people to not die on environment-less people 
 
-Beek made combat actually depend on stats :-) 
+Deathblade added the post # to followup posts 
 
-Beek added /std/race/elf.c as a race example 
+Deathblade fixed a bug in the I3 daemon that prevented outgoing messages 
+    after receiving a channel-e packet. 
 
-Beek made base_name() default to this_object() 
+Rust repaired a bug in nchannel_d that was keeping people from logging in 
+    properly. Look for classp 
 
-Beek fixed wield.c to call try_to_acquire() in the correct place 
+Deathblade removed Rust's hack (thanx) and fixed the actual bug... wrong 
+    sense on an if() 
 
-Deathblade added the "comment" emote. Usenet readers may have a bit of fun 
-    with it :-) 
+Deathblade fixed a nit in the news posting announcements: extra CR on the 
+    end. 
 
-Deathblade removed the @help privilege, replacing it with Mudlib:help. Now, 
-    mudlib members should be able to write to /help. Also, I added 
-    Mudlib:daemons to the Mudlib:help priv so that doc_d can write into the 
-    /help dir. 
+Beek added /std/race/restricted; the correct place to put races which can't 
+    be picked by new players. 
 
-Zifnab added /std/money.c as a basic money implentation (see news for more) 
+Beek added /std/stairs, /std/ladder, climb OBJ, climb up OBJ, climb down 
+    OBJ, M_CLIMBABLE, /domains/std/attic [w/stairs to/from wizroom] 
 
-Zifnab added a basic coin object, currently it only works like this drop 
-    amount type coins 
+Deathblade added a check to check_config.c to ensure people change their 
+    mudname 
 
-Beek fixed TARGETTING_IS_RANDOM to not affect players who specify someone 
+Deathblade added a check to imud_d.c to ensure that people change the 
+    ADMIN_EMAIL in the distribution before the I3 daemon will start up. 
 
-Beek added 'kill' (no arg) which takes a swing at whoever you are attacking 
+Yaynu added numeric level system to Lima dist. as a optional player.c 
+    include. 
 
-Beek made a few fixes to skill_d; fuzzy_divide() for integer division and 
-    some added sanity to test_skill 
-
-Beek added missing newlines to the autodoc output 
-
-Beek did a complete rebuild of the autodoc stuff to fix it all 
-
-Beek fixed 'kill me' to do something a bit more sensible 
-
-Zifnab added a bird's eye view of verbs to /help today, more examples will 
-    be included at a later date 
-
-Rust removed all the notify_fail calls from commands 
-
-Rust added a #define: MAX_NUMBER_OF_ALIASES for those people who want to 
-    limit how many aliases a person can have 
+Deathblade fixed admtool to dewiz before nuking and to change the privs on 
+    their wiz directory. 
 

@@ -24,5 +24,7 @@ private void main()
 	write(sprintf("You are the only person logged in!\n"));
 	return;
     }
-    write(wrap(implode(ulist->query_userid(), " ") + "\n"));
+    write(wrap(implode(ulist->query_userid(),
+		       (: $1 + " " + ($2 ? $2 : "(login)") :),
+		       "")[1..] + "\n"));
 }

@@ -47,7 +47,7 @@ private mixed client_ctx;
 
 private string tmp_fname()
 {
-    return "/tmp/edit_ob." + this_user()->query_real_name();
+    return "/tmp/edit_ob." + this_user()->query_userid();
 }
 
 private string * read_strings(string fname, int messages)
@@ -74,9 +74,16 @@ private string * read_strings(string fname, int messages)
 
 varargs private string build_string(int flag)
 {
-    if ( sizeof(buf) == 0 )
-      return flag ? "**No text!\n" : "";
-    return implode(buf, "\n") + "\n";
+    switch (sizeof(buf)) {
+    case 0:
+      return (flag & 1) ? "**No text!\n" : "";
+  default:
+      if (flag & 2)
+	  return "[" + (sizeof(buf)-15) + " lines not displayed, please trim (~e)]\n" + implode(buf[<15..], "\n") + "\n";
+      /* WARNING - falls through */
+  case 1..15:
+      return implode(buf, "\n") + "\n";
+  }
 }
 
 private void end_edit(int aborted)
@@ -201,7 +208,7 @@ private void begin_edit(string *text, string func, mixed ctx)
     client_func = func;
     client_ctx = ctx;
 
-    write(HEADER + build_string());
+    write(HEADER + build_string(2));
     modal_push((: parse_edit :), (: query_prompt :));
 }
 

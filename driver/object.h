@@ -86,7 +86,9 @@ typedef struct object_s {
     struct object_s *next_hash;
     /* the fields above must match lpc_object_t */
     int load_time;		/* time when this object was created */
+#ifndef NO_RESET
     int next_reset;		/* Time of next reset of this object */
+#endif
     int time_of_ref;		/* Time when last referenced. Used by swap */
     long swap_num;		/* Swap file offset. -1 is not swapped yet. */
     program_t *prog;

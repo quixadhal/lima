@@ -1,3 +1,3 @@
-dummy()
+void dummy()
 {
 }

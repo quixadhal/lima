@@ -19,7 +19,7 @@ inherit M_INPUT;
 
 inherit CLASS_MAILMSG;
 
-/* ### make it private so it can't be changed? */
+//### make it private so it can't be changed?
 static object	mailbox_ob;
 
 
@@ -223,7 +223,7 @@ static nomask void cmd_read(int user_num,
     mailbox_ob->set_message_index(user_num - 1);
     mailbox_ob->set_message_read(timestamp);
 
-    clone_object(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }
 
 
@@ -274,7 +274,7 @@ static nomask void cmd_headers(string rangestr)
 		   });
     }
 
-    clone_object(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }
 
 

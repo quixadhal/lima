@@ -29,8 +29,5 @@ void do_smell_obj(object ob)
 
 mixed * query_verb_info()
 {
-    /* ### conflicts with emote... giving preference to emote for now */
-//    return ({ ({ "OBJ" }), ({ "sniff" }) });
-
-    return ({ ({ "OBJ" }) });
+    return ({ ({ "OBJ" }), ({ "sniff" }) });
 }

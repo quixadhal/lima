@@ -1,17 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-** ### HACK!  temporary until we get verb support fully integrated
-**
-** Each of these groups of functions should move to whatever module
-** supports the particular verb.  For example, the "give" functions
-** would probably move to M_GETTABLE, and the "read" functions to
-** M_READABLE.
-*
-* -Beek: A few things should remain here.  direct_look_at_obj(), for
-* example.  Most should leave tho.
-*/
-
 #include <mudlib.h>
 #include <hooks.h>
 
@@ -39,7 +27,7 @@ mixed direct_eat_obj(object ob) {
     return "I don't think " + ob->the_short() + " would agree with you.\n";
 }
      
-mixed direct_put_obj_in_obj(object ob1, object ob2) {
+mixed direct_put_obj_wrd_obj(object ob1, object ob2) {
     return 1;
 }
 
@@ -71,11 +59,18 @@ mixed direct_get_obj_with_obj(object ob1, object ob2) {
     return direct_get_obj(ob1);
 }
 
- 
-mixed direct_drop_wrd_wrd_wrd(string type)
-{
-      return 1;
+mixed direct_sell_obj_to_liv(object ob, object liv) {
+    if (owner(ob) != this_body())
+	return "You don't have it!\n";
+    return 1;
 }
+ 
+mixed direct_buy_obj_from_liv(object ob, object liv) {
+    if (owner(ob) != liv)
+	return liv->query_possessive() + "doesn't have that!\n";
+    return 1;
+}
+ 
 mixed direct_drop_obj(object ob)
 {
     if ( environment() != this_body() )

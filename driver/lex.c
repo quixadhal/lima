@@ -1426,8 +1426,12 @@ int yylex()
 			defn_t *d;
 
 			deltrail(sp);
-			if ((d = lookup_define(sp)))
-			    d->flags |= DEF_IS_UNDEFINED;
+			if ((d = lookup_define(sp))) {
+			    if (d->flags & DEF_IS_PREDEF)
+				yyerror("Illegal to #undef a predefined value.");
+			    else
+				d->flags |= DEF_IS_UNDEFINED;
+			}
 		    } else if (strcmp("echo", yytext) == 0) {
 			debug_message("%s\n", sp);
 		    } else if (strcmp("pragma", yytext) == 0) {

@@ -10,8 +10,17 @@
 
 #include <daemons.h>
 
+class timer_info
+{
+    int		delay;		/* delay between start and end */
+    int		time_left;	/* after current call_out(), how much longer */
+    int		repeating;	/* is it a repeating timer? */
+    string	channel_name;	/* channel to announce over */
+    int		notify_period;	/* how often to give timer notifications */
+}
+
 /*
-** This maps timer owners to an array of timer information.
+** This maps timer owners to a timer_info structure.
 */
 static private mapping timers;
 
@@ -22,47 +31,48 @@ void create()
 
 nomask void process_timer(object owner)
 {
-    mixed * data;
+    class timer_info data;
     string notice;
     int t;
 
     data = timers[owner];
 
-    if ( data[1] == 0 )
+    if ( data->time_left == 0 )
         notice = "The timer has expired";
     else
-        notice = sprintf("%d:%02d left on the timer", data[1]/60,data[1]%60);
-    if ( data[3] )
-        NCHANNEL_D->deliver_notice(data[3], notice);
+        notice = sprintf("%d:%02d left on the timer",
+			 data->time_left / 60, data->time_left % 60);
+    if ( data->channel_name )
+        NCHANNEL_D->deliver_notice(data->channel_name, notice);
     else
         tell_object(owner, notice + ".\n");
 
-    if ( data[1] == 0 && data[2] )
+    if ( data->time_left == 0 && data->repeating )
     {
-        data[1] = data[0];
+        data->time_left = data->delay;
 
-        if ( data[4] && data[4] < data[0] )
-            t = data[4];
+        if ( data->notify_period && data->notify_period < data->delay )
+            t = data->notify_period;
         else
-            t = data[0];
+            t = data->delay;
         notice = sprintf("Timer rescheduled for %d:%02d",
-                         data[0]/60, data[0]%60);
-        if ( data[3] )
-            NCHANNEL_D->deliver_notice(data[3], notice);
+                         data->delay / 60, data->delay % 60);
+        if ( data->channel_name )
+            NCHANNEL_D->deliver_notice(data->channel_name, notice);
         else
             tell_object(owner, notice + ".\n");
     }
-    else if ( data[1] > 0 )
+    else if ( data->time_left > 0 )
     {
-        if ( data[1] > data[4] )
-            t = data[4];
+        if ( data->time_left > data->notify_period )
+            t = data->notify_period;
         else
-            t = data[1];
+            t = data->time_left;
     }
 
     if ( t )
     {
-        data[1] -= t;
+        data->time_left -= t;
         call_out("process_timer", t, owner);
     }
 }
@@ -74,6 +84,7 @@ varargs nomask string add_timer(int delay,		/* timer delay */
 			     object owner	/* if not this_user() */
 			     )
 {
+    class timer_info info;
     int t;
 
     if ( !delay || notify > delay )
@@ -91,7 +102,14 @@ varargs nomask string add_timer(int delay,		/* timer delay */
     else
         t = delay;
 
-    timers[owner] = ({ delay, delay - t, repeating, channel, notify });
+    info = new(class timer_info);
+    info->delay		= delay;
+    info->time_left	= delay - t;
+    info->repeating	= repeating;
+    info->channel_name	= channel;
+    info->notify_period	= notify;
+    timers[owner] = info;
+
     remove_call_out("process_timer");
     call_out("process_timer", t, owner);
 
@@ -104,4 +122,8 @@ varargs nomask string add_timer(int delay,		/* timer delay */
     }
     return "Done.\n";
 }
-mapping query_timers() { return timers; }
+
+mapping query_timers()
+{
+    return timers;
+}

@@ -36,48 +36,88 @@
 
 #include <mudlib.h>
 #include <security.h>
+#include <classes.h>
 
 inherit M_ACCESS;
 inherit M_GRAMMAR;
 
+//inherit CLASS_CHANNEL_INFO;   picked up from channel/cmd
+
+inherit __DIR__ "channel/cmd";
+
 
 /*
-** This maps channel names to an array of registered objects
+** This channel information.  It specifies channel_name -> channel_info.
 */
-private static mapping registered;
+private static mapping info;
 
-/*
-** These map channel names to a moderator, a speaker, and a queue of
-** requestors.  The moderator and speaker have access to speak over the
-** channel.
-*/
-private static mapping moderators;
-private static mapping speakers;
-private static mapping requestors;
-
-/*
-** Handy utility to create a "user name" from a real channel name
-*/
-private static function cl_user_chan_name;
 
 /*
 ** Store some permanent listeners here
 */
 #define SAVE_FILE	"/data/daemons/channel_d"
 
-class listener_pair { string channel_name, filename; }
-private class listener_pair *	saved_listeners;
-
-
-private void register_one(string channel_name, object listener)
+class listener_pair
 {
-    if ( registered[channel_name] )
+    string channel_name;
+    string filename;
+}
+private class listener_pair *	saved_listeners;
+private class listener_pair *	saved_hooks;
+
+
+private nomask string extract_channel_name(string channel_name)
+{
+    int idx = strsrch(channel_name, "_", 1);
+
+    if ( idx == -1 )
+	return channel_name;
+
+    return channel_name[idx+1..];
+}
+
+static nomask class channel_info query_channel_info(string channel_name)
+{
+    return info[channel_name];
+}
+
+private void register_one(int add_hook, object listener, string channel_name)
+{
+    class channel_info	ci = info[channel_name];
+
+    if ( !ci )
     {
-	if ( member_array(listener, registered[channel_name]) == -1 )
-	    registered[channel_name] += ({ listener });
+	ci = new(class channel_info);
+	ci->name	= extract_channel_name(channel_name);
+	ci->listeners	= ({ });
+	ci->hooked	= ({ });
+	ci->allowed	= (function)1;
+
+	info[channel_name] = ci;
+    }
+
+    if ( add_hook )
+    {
+	if ( member_array(listener, ci->hooked) == -1 )
+	    ci->hooked += ({ listener });
     }
     else
-	registered[channel_name] = ({ listener });
+    {
+	if ( member_array(listener, ci->listeners) == -1 )
+	    ci->listeners += ({ listener });
+    }
+}
+
+private void unregister_one(string channel_name, object listener)
+{
+    class channel_info ci = info[channel_name];
+
+    if ( ci )
+    {
+	ci->listeners -= ({ listener });
+	if ( sizeof(ci->listeners) + sizeof(ci->hooked) == 0 )
+	    map_delete(info, channel_name);
+    }
 }
 
 private void register_body(object body)
@@ -87,12 +127,23 @@ private void register_body(object body)
     if ( !(names = body->query_channel_list()) )
 	return;
 
-    map_array(names, (: register_one :), body);
+    map_array(names, (: register_one, 0, body :));
 }
 
-private void unregister_one(string channel_name, object listener)
+/*
+** user_channel_name()
+**
+** Return a channel name that a user might like.  Internal names are
+** not "human readable"
+*/
+nomask string user_channel_name(string channel_name)
 {
-    registered[channel_name] -= ({ listener });
+    class channel_info	ci = info[channel_name];
+
+    if ( ci )
+	return ci->name;
+
+    return extract_channel_name(channel_name);
 }
 
 /*
@@ -102,7 +153,7 @@ private void unregister_one(string channel_name, object listener)
 */
 nomask void register_channels(string * names)
 {
-    map_array(names, (: register_one :), previous_object());
+    map_array(names, (: register_one, 0, previous_object() :));
 }
 
 /*
@@ -122,7 +173,7 @@ nomask void unregister_channels(string * names)
 */
 nomask void unregister_all()
 {
-    map_array(keys(registered), (: unregister_one :), previous_object());
+    map_array(keys(info), (: unregister_one :), previous_object());
 }
 
 /*
@@ -152,13 +203,12 @@ private nomask string find_sender_name(string sender_name)
 */
 nomask void deliver_string(string channel_name, string str)
 {
-    object * listeners;
+    class channel_info ci = info[channel_name];
 
-    if ( !(listeners = registered[channel_name]) ||
-	sizeof(listeners) == 0 )
+    if ( !ci ||	sizeof(ci->listeners) == 0 )
 	return;
 
-    listeners->channel_rcv_string(channel_name, str);
+    ci->listeners->channel_rcv_string(channel_name, str);
 }
 
 /*
@@ -168,16 +218,10 @@ nomask void deliver_string(string channel_name, string str)
 */
 nomask void deliver_channel(string channel_name, string str)
 {
-    object * listeners;
-
-    if ( !(listeners = registered[channel_name]) ||
-	sizeof(listeners) == 0 )
-	return;
-
-    str = iwrap(sprintf("[%s] %s\n",
-			evaluate(cl_user_chan_name, channel_name),
-			str));
-    listeners->channel_rcv_string(channel_name, str);
+    deliver_string(channel_name,
+		   iwrap(sprintf("[%s] %s\n",
+				 user_channel_name(channel_name),
+				 str)));
 }
 
 /*
@@ -187,13 +231,12 @@ nomask void deliver_channel(string channel_name, string str)
 */
 nomask void deliver_raw_soul(string channel_name, mixed * data)
 {
-    object * listeners;
+    class channel_info ci = info[channel_name];
 
-    if ( !(listeners = registered[channel_name]) ||
-	sizeof(listeners) == 0 )
+    if ( !ci ||	sizeof(ci->listeners) == 0 )
 	return;
 
-    listeners->channel_rcv_soul(channel_name, data);
+    ci->listeners->channel_rcv_soul(channel_name, data);
 }
 
 /*
@@ -206,13 +249,12 @@ private nomask void deliver_data(string channel_name,
 				 string type,
 				 mixed data)
 {
-    object * listeners;
+    class channel_info ci = info[channel_name];
 
-    if ( !(listeners = registered[channel_name]) ||
-	sizeof(listeners) == 0 )
+    if ( !ci ||	sizeof(ci->listeners) == 0 )
 	return;
 
-    listeners->channel_rcv_data(channel_name, sender_name, type, data);
+    ci->listeners->channel_rcv_data(channel_name, sender_name, type, data);
 }
 
 /*
@@ -229,7 +271,7 @@ nomask void deliver_tell(string channel_name,
     deliver_data(channel_name, sender_name, "tell", message);
     deliver_string(channel_name,
 		   iwrap(sprintf("[%s] %s: %s\n",
-				 evaluate(cl_user_chan_name, channel_name),
+				 user_channel_name(channel_name),
 				 sender_name,
 				 punctuate(message))));
 }
@@ -248,7 +290,7 @@ nomask void deliver_emote(string channel_name,
     deliver_data(channel_name, sender_name, "emote", message);
     deliver_string(channel_name,
 		   iwrap(sprintf("[%s] %s %s\n",
-				 evaluate(cl_user_chan_name, channel_name),
+				 user_channel_name(channel_name),
 				 sender_name,
 				 punctuate(message))));
 }
@@ -264,7 +306,7 @@ nomask void deliver_soul(string channel_name, mixed * soul)
 
     deliver_data(channel_name, find_sender_name(0), "soul", soul);
 
-    user_channel_name = evaluate(cl_user_chan_name, channel_name);
+    user_channel_name = user_channel_name(channel_name);
     soul = ({ soul[0] }) +
 	({ map_array(soul[1],
 		     (: iwrap(sprintf($("["+user_channel_name+"] %s"), $1)) :))
@@ -283,7 +325,7 @@ nomask void deliver_notice(string channel_name,
 {
     deliver_string(channel_name,
 		   iwrap(sprintf("[%s] (%s)\n",
-				 evaluate(cl_user_chan_name, channel_name),
+				 user_channel_name(channel_name),
 				 message)));
 }
 
@@ -294,54 +336,62 @@ nomask void deliver_notice(string channel_name,
 */
 void create()
 {
+    class listener_pair pair;
+
     set_privilege(1);
 
-    registered = ([ ]);
-    moderators = ([ ]);
-    speakers   = ([ ]);
-    requestors = ([ ]);
+    info = ([ ]);
 
-    cl_user_chan_name = (: explode($1, "_")[<1] :);
-
-    map_array(users()->query_body(), (: register_body :));
+    map_array(bodies(), (: register_body :));
 
     restore_object(SAVE_FILE, 1);
     if ( saved_listeners )
     {
-	class listener_pair pair;
-
 	foreach ( pair in saved_listeners )
 	{
 	    object ob = find_object(pair->filename);
 
 	    if ( ob )
-		register_one(pair->channel_name, ob);
+		register_one(0, ob, pair->channel_name);
 	}
 
 	saved_listeners = 0;
+    }
+    if ( saved_hooks )
+    {
+	foreach ( pair in saved_hooks )
+	{
+	    object ob = find_object(pair->filename);
+
+	    if ( ob )
+		register_one(1, ob, pair->channel_name);
+	}
+
+	saved_hooks = 0;
     }
 }
 
 /*
 ** remove()
 **
-** Write out all listeners that are blueprints.  We'll reset them at
-** creation time.
+** Write out all listeners and hooks that are blueprints.  We'll reset
+** them at creation time.
 */
 void remove()
 {
     string channel_name;
-    object * listeners;
+    class channel_info ci;
 
     saved_listeners = ({ });
+    saved_hooks = ({ });
 
-    foreach ( channel_name, listeners in registered )
+    foreach ( channel_name, ci in info )
     {
-	object listener;
+	object ob;
 
-	foreach ( listener in listeners - ({ 0 }) )
+	foreach ( ob in ci->listeners - ({ 0 }) )
 	{
-	    string fname = file_name(listener);
+	    string fname = file_name(ob);
 
 	    if ( member_array('#', fname) == -1 )
 	    {
@@ -352,330 +402,50 @@ void remove()
 		saved_listeners += ({ pair });
 	    }
 	}
+
+	foreach ( ob in ci->hooked - ({ 0 }) )
+	{
+	    string fname = file_name(ob);
+
+	    if ( member_array('#', fname) == -1 )
+	    {
+		class listener_pair pair = new(class listener_pair);
+
+		pair->channel_name = channel_name;
+		pair->filename = fname;
+		saved_hooks += ({ pair });
+	    }
+	}
     }
 
     unguarded(1, (: save_object, SAVE_FILE :));
 }
 
+
 /*
-** query_register()
+** query_channels()
 **
-** for debugging and other maintainance
+** Return the list of active channels
 */
-nomask mapping query_registered()
+nomask string * query_channels()
 {
-    if ( check_privilege(1))
-	return registered;
+    return keys(info);
 }
 
 /*
-** make_name_list()
+** query_listeners()
 **
-** Make a list of names given an array of players.
+** Return the listeners of a particular channel
 */
-private nomask string make_name_list(mixed * list)
+nomask object * query_listeners(string channel_name)
 {
-    /*
-    ** Remove null objects, objects with no links (to interactive users),
-    ** and link obs that are no longer interactive.
-    */
-    list = filter_array(list, (: $1 && $1->query_link() &&
-			       interactive($1->query_link()) :));
-    return implode(list->query_name(), ", ");
-}
-
-    
-/*
-** print_mod_info()
-**
-** Print moderator/speak infor for a moderated channel.
-*/
-private nomask void print_mod_info(string channel_name)
-{
-    object moderator;
-    
-    moderator = moderators[channel_name];
-    if ( !moderator )
-	return;
-
-    printf("It is being moderated by %s.\n", moderator->query_name());
-
-    if ( speakers[channel_name] )
-	printf("The current speaker is %s.\n",
-	       speakers[channel_name]->query_name());
-    else
-	printf("There is no current speaker.\n");
-
-    if ( moderator == this_body() )
+    if ( check_previous_privilege(1) )
     {
-	if ( !requestors[channel_name] ||
-	    !sizeof(requestors[channel_name]) )
-	    printf("There are no requestors.\n");
-	else
-	    write(iwrap(sprintf("Requestors are: %s.\n",
-				make_name_list(requestors[channel_name]))));
-    }
-    else if ( member_array(this_body(), requestors[channel_name]) != -1 )
-    {
-	printf("Your hand is raised to speak.\n");
-    }
-}
+	class channel_info ci = info[channel_name];
 
-/*
-** cmd_channel()
-**
-** Standard channel processing command for player input.  Most channel-
-** oriented systems will use this to get standardized channel manipulation.
-**
-** channel_type is:
-**	0 normal
-**	1 intermud
-*/
-varargs nomask void cmd_channel(string channel_name, string arg,
-				int channel_type)
-{
-    object tb;
-    string * channel_list;
-    int listening;
-    string user_channel_name;
-    object moderator;
-    string sender_name;
-
-    tb = this_body();
-    channel_list = tb->query_channel_list();
-    listening = member_array(channel_name, channel_list) != -1;
-    user_channel_name = evaluate(cl_user_chan_name, channel_name);
-    moderator = moderators[channel_name];
-			       
-    if ( !arg || arg == "" )
-    {
-	if ( listening )
-	{
-	    printf("You are presently listening to '%s'.\n", user_channel_name);
-	    print_mod_info(channel_name);
-	}
-	else
-	{
-	    printf("You are not listening to '%s'.\n", user_channel_name);
-	}
-
-	return;
+	if ( ci )
+	    return ci->listeners;
     }
 
-    if ( arg == "/on" )
-    {
-	if ( listening )
-	    printf("You are already listening to '%s'.\n", user_channel_name);
-	else
-	{
-	    tb->channel_add(channel_name);
-	    printf("You are now listening to '%s'.\n", user_channel_name);
-	}
-
-	print_mod_info(channel_name);
-
-	return;
-    }
-
-    /*
-    ** All the following "commands" need to have the player listening
-    */
-    if ( !listening )
-    {
-	printf("You are not listening to '%s'.\n", user_channel_name);
-
-	return;
-    }
-    
-    sender_name = tb->query_name();
-
-    if ( arg == "/off" )
-    {
-	tb->channel_remove(channel_name);
-	printf("You are no longer listening to '%s'.\n", user_channel_name);
-	if ( tb == moderator )
-	{
-	    map_delete(moderators, channel_name);
-	    map_delete(speakers, channel_name);
-	    map_delete(requestors, channel_name);
-
-	    deliver_notice(channel_name, "This channel is now unmoderated");
-	}
-	else if ( tb == speakers[channel_name] )
-	{
-	    map_delete(speakers, channel_name);
-	    deliver_notice(channel_name,
-			   sprintf("%s is no longer speaking", sender_name));
-	}
-    }
-    else if ( arg == "/list" )
-    {
-	write(iwrap(sprintf("Users listening to '%s': %s.\n",
-			    user_channel_name,
-			    make_name_list(registered[channel_name]))));
-    }
-    else if ( arg == "/raise" )
-    {
-	if ( !moderator )
-	{
-	    printf("'%s' is not moderated.\n", user_channel_name);
-	}
-	else if ( tb == speakers[channel_name] )
-	{
-	    printf("You are already speaking on '%s'.\n", user_channel_name);
-	}
-	else if ( member_array(tb, requestors[channel_name]) == -1 )
-	{
-	    printf("Your raise your hand to speak on '%s'.\n",
-		   user_channel_name);
-	    requestors[channel_name] += ({ tb });
-	    moderator->channel_rcv_string(channel_name,
-					  sprintf("[%s] (%s raises a hand to speak)\n",
-						  user_channel_name,
-						  sender_name));
-	}
-	else
-	{
-	    printf("You already have your hand raised to speak on '%s'.\n",
-		   user_channel_name);
-	}
-    }
-    else if ( arg == "/lower" )
-    {
-	if ( !moderator )
-	{
-	    printf("'%s' is not moderated.\n", user_channel_name);
-	}
-	else if ( member_array(tb, requestors[channel_name]) != -1 )
-	{
-	    printf("Your lower your hand to avoid speaking on '%s'.\n",
-		   user_channel_name);
-	    requestors[channel_name] -= ({ tb });
-	    moderator->channel_rcv_string(channel_name,
-					  sprintf("[%s] (%s lowers a hand)\n",
-						  user_channel_name,
-						  sender_name));
-	}
-	else
-	{
-	    printf("Your hand is not raised to speak on '%s'.\n",
-		   user_channel_name);
-	}
-    }
-    else if ( arg[0..3] == "/call" )
-    {
-	arg = lower_case(trim_spaces(arg[4..]));
-	if ( !moderator )
-	{
-	    printf("'%s' is not moderated.\n", user_channel_name);
-	}
-	else if ( moderator != tb )
-	{
-	    printf("You are not the moderator of '%s'.\n", user_channel_name);
-	}
-	else if ( arg == "" )
-	{
-	    if ( sizeof(requestors[channel_name]) == 0 )
-		printf("Nobody has their hand raised.\n");
-	    else
-	    {
-		speakers[channel_name] = requestors[channel_name][0];
-		requestors[channel_name] = requestors[channel_name][1..];
-		deliver_notice(channel_name,
-			       sprintf("%s will now speak",
-				       speakers[channel_name]->query_name()));
-	    }
-	}
-	else
-	{
-	    object * spkr;
-
-	    spkr = filter_array(requestors[channel_name],
-				(: $(arg) == lower_case($1->query_name()) :));
-	    if ( sizeof(spkr) == 0 )
-	    {
-		printf("'%s' was not found (or did not have their hand raised.\n",
-		       capitalize(arg));
-	    }
-	    else
-	    {
-		speakers[channel_name] = spkr[0];
-		requestors[channel_name] -= ({ spkr[0] });
-		deliver_notice(channel_name,
-			       sprintf("%s will now speak",
-				       speakers[channel_name]->query_name()));
-	    }
-	}
-    }
-    else if ( arg == "/moderate" )
-    {
-	if ( adminp(this_user()) ||
-	    GROUP_D->member_group(this_user()->query_userid(), "moderators") )
-	{
-	    moderators[channel_name] = tb;
-	    if ( !requestors[channel_name] )
-		requestors[channel_name] = ({ });
-	    deliver_notice(channel_name,
-			   sprintf("%s is now moderating", sender_name));
-	}
-	else
-	{
-	    printf("You are not allowed to moderate this channel.\n");
-	}
-    }
-    else if ( arg[0] == ':' )
-    {
-        if ( moderator && speakers[channel_name] &&
-	    tb != moderator &&
-	    tb != speakers[channel_name] )
-	{
-	    printf("You are not the speaker on '%s'.\n", user_channel_name);
-	}
-	else
-	{
-	    deliver_emote(channel_name, sender_name, arg[1..]);
-	}
-    }
-    else if ( arg[0] == ';' )
-    {
-        if (moderator && speakers[channel_name] &&
-	    tb != moderator &&
-	    tb != speakers[channel_name] )
-	{
-	    printf("You are not the speaker on '%s'.\n", user_channel_name);
-	}
-	else if ( channel_type == 1 )
-	{
-	    mixed * soul;
-
-	    soul = SOUL_D->parse_imud_soul(arg[1..]);
-	    if ( soul )
-		deliver_soul(channel_name, soul);
-	    else
-		deliver_emote(channel_name, sender_name, arg[1..]);
-	}
-	else
-	{
-	    mixed * soul;
-
-	    soul = SOUL_D->parse_soul(arg[1..]);
-	    if ( soul )
-		deliver_soul(channel_name, soul);
-	    else
-		deliver_emote(channel_name, sender_name, arg[1..]);
-	}
-    }
-    else
-    {
-        if (moderator && speakers[channel_name] &&
-	    tb != moderator &&
-	    tb != speakers[channel_name] )
-	{
-	    printf("You are not the speaker on '%s'.\n", user_channel_name);
-	}
-	else
-	{
-	    deliver_tell(channel_name, sender_name, arg);
-	}
-    }
+    return 0;
 }

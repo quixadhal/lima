@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit OBJ;
+inherit CONTAINER;
 
 string the_name;
 

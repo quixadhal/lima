@@ -15,7 +15,7 @@ private nomask void handle_piping(string verb, string arg)
 	return;
     }
 
-    this_user()->force_me(sprintf("%s %s", verb, arg));
+    this_user()->force_me(verb + " " + arg);
 }
 
 private nomask void main(mixed * arg)

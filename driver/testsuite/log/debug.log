@@ -1,9 +1,9 @@
 ----------------------------------------------------------------------------
-Basis (MudOS v21.7a1) starting up on IRIX - Sun Aug 20 00:18:34 1995
+testsuite (MudOS v22a3) starting up on IRIX - Tue Nov  7 16:41:00 1995
 
 
-Connection to address server (localhost 7374) refused.
+Connection to address server (localhost 9999) refused.
 Initializations complete.
 
-Accepting connections on port 4000.
-Accepting connections on port 4001.
+Accepting connections on port 4444.
+closed external ports

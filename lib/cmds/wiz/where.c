@@ -9,18 +9,18 @@ private void main( mixed * arg )
 {
     object*	targets;
 
-    if (!arg[0]) targets = users();
-    else targets = arg[0];
+    if ( !arg[0] )
+	targets = users();
+    else
+	targets = arg[0];
 
     printf("%-13s%-30s%-s\n","Who","File","Room");
     write("---------------------------------------------------------------\n");
 
-    targets = filter_array( targets->query_body(), (: environment :) );
+    targets = filter(targets->query_body(), (: objectp($1) ? environment($1) : 0 :));
 
-    map_array( targets, (: printf("%-13s%-30s[%-s]\n",
-				  capitalize($1->query_real_name()),
-				  file_name(environment($1)),
-				  environment($1)->short()) :) );
-
-    return;
+    map_array(targets, (: printf("%-13s%-30s[%-s]\n",
+				 capitalize($1->query_userid()),
+				 file_name(environment($1)),
+				 environment($1)->short()) :) );
 }

@@ -1,0 +1,45 @@
+Here are the features that need to be completed for our alpha release.
+All featurs minor and major will go here and slowly be picked off.
+When this list is empty, we will release the alpha version of the
+Lima Mudlib.
+
+- skills: examples, combat skills, spell skills, advancement
+- spells
+- money
+- guilds
+- I3: emoteto, OOB services, better channels, ucache, auth
+- /std must be Mudlib:xxxx, /obj must be Mudlib:objects
+- wiz positions
+- channels: restrictions, last, auto-"aliases"
+- MORE_OB / EDIT_OB continuations
+- mail unsend
+- use of parser for commands
+- admtool: quest, banish, wizdir administration
+- msg/review
+- multiple guest logins
+- login handling: who, ^D
+- "enterable" objects: vehicles, large containers, etc
+- damage types
+- File locking
+- mudlist -p <pattern>
+- smell, listen support
+- mail group administration
+- fix location of mail messages
+
+Non-features that won't define alpha:
+- organize all files properly
+- bug fixes
+- conversion of SECURE_D to array of paths, not a tree
+- RCP
+- newsreader changes, mailer changes
+- I3: disallow tell/finger to DOWN muds; better mudname handling
+- widespread nickname usage
+- more ANSI usage
+
+Undecided features:
+- water/underwater rooms
+- AMCP
+- >, <, |
+
+These have been requested for sooner, rather than later:
+skills, money, channels, admtool, enterables

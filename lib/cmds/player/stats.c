@@ -3,8 +3,11 @@
 /*
 ** stats.c -- print out player stats
 **
-** ### for now, these are numeric... eventually, we'll move to a system
-** ### where they are "fuzzy" and use words
+//### for now, these are numeric... eventually, we'll move to a system
+//### where they are "fuzzy" and use words
+//### 
+//### Um, that sounds nifty, but players hate it worse than death itself ..
+//### -Beek
 **
 ** 950813, Deathblade: Created.
 */
@@ -35,7 +38,7 @@ private void main(string arg)
 
     printf("Eval: %d   Guild: %s   Race: %s\n",
 	   1, "Goober", (capitalize(this_body()->query_race() || "none")));
-    /* ### xp, advancement info */
+//### xp, advancement info
     write("<< xp, advancement info goes here >>\n");
 
     printf("%77'-'s\n", "");
@@ -52,7 +55,7 @@ private void main(string arg)
 
     printf("%77'-'s\n", "");
 
-    /* ### other misc stats (e.g. sober, poison, wimpy, etc) */
+//### other misc stats (e.g. sober, poison, wimpy, etc)
     write("<< other misc data: sober, poison, cash, etc >>\n");
 
     printf("%76'-='s-\n", "");

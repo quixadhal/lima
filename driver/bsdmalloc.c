@@ -60,10 +60,6 @@ typedef unsigned int u_int;
 
 #endif
 
-#ifndef MEMPAGESIZE
-extern int getpagesize();
-#endif
-
 /*
  * The overhead on a block is at least 4 bytes.  When free, this space
  * contains a pointer to the next free block, and the bottom two bits must
@@ -139,6 +135,10 @@ static int botch P1(char *, s)
 #define	ASSERT(p)
 #endif
 
+#ifdef malloc
+/* linux */
+#undef malloc
+#endif
 void *bsdmalloc_malloc P1(size_t, nbytes)
 {
     register union overhead *op;
@@ -421,7 +421,10 @@ show_mstats P2(outbuffer_t *, ob, char *, s)
 #endif
 
 /* calloc was originally in its own source file */
-
+#ifdef calloc
+/* linux */
+#undef calloc
+#endif
 INLINE void *bsdmalloc_calloc P2(size_t, num, register size_t, size)
 {
     register void *p;

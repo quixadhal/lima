@@ -159,8 +159,20 @@ void take_a_swing() {
 	return;
     }
     hp = query_hp();
+#ifdef DEBUG_COMBAT
+    {
+        int bn = query_weapon()->query_wield_bonus(target);
+        int pen = query_penalty();
+	string bstr = (bn ? sprintf("[%+i]", bn) : "");
+        string pstr = (pen ? "[-" + pen + "]" : "");
+        us = hp + query_weapon()->query_wield_bonus(target) - query_penalty();
+        diff = us - them;
+        tell_object(this_object(), sprintf("US: %i%s%s THEM: %i == %+i\n", hp, bstr, pstr, them, diff));
+    }
+#else
     us = hp + query_weapon()->query_wield_bonus(target) - query_penalty();
     diff = us - them;
+#endif
     if (diff>3) diff=3;
     else if (diff<-5) diff=-5;
 

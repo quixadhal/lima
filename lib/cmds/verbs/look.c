@@ -9,6 +9,11 @@
 
 inherit VERB_OB;
 
+mixed can_look_str_obj(string str)
+{
+   return 1;
+}
+
 mixed can_look_str(string str) {
     mapping exits;
 
@@ -69,8 +74,8 @@ void do_look_for_liv(object ob) {
 }
 
 void do_look_for_obj(object ob) {
-    /* ### actually, OBJ has to be here, right? */
-    /* Beek: No, it can be in a bag/bottle etc.  Still, this should be smarter*/
+//### actually, OBJ has to be here, right?
+//### Beek: No, it can be in a bag/bottle etc.  Still, this should be smarter
     if (environment(this_body()) == environment(ob)) {
 	this_body()->my_action("$O is right here!\n", ob);
     } else 

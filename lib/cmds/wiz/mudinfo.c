@@ -70,6 +70,6 @@ private void main(string arg)
 	output += "\n";
     }
   
-    clone_object(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }
 

@@ -33,6 +33,7 @@ private nomask void write_user_menu()
 private nomask void confirm_nuking(string who, string str)
 {
     object o;
+    string err;
 
     str = lower_case(str);
     if ( str != "y" && str != "yes" )
@@ -44,12 +45,15 @@ private nomask void confirm_nuking(string who, string str)
     if ( o = find_body(who) )
 	o->quit();
 
-    /* ### handle mail */
+//### handle mail
 
     rm(sprintf("/data/links/%c/%s.o", who[0], who));
     rm(sprintf("/data/players/%c/%s.o", who[0], who));
 
-    /* ### deal with clearing privs and stuff */
+//### deal with clearing privs and stuff
+//### this should be enough, but may need more thought (this was a quicky)
+    err = SECURE_D->delete_wizard(who);
+    SECURE_D->set_protection("/wiz/" + who, 1, -1);
     
     printf("'%s' has been nuked.\n", capitalize(who));
 }
@@ -78,7 +82,7 @@ private nomask void wiz_user(string who)
     mkdir("/wiz/" + who);
     SECURE_D->set_protection("/wiz/" + who, 1, who + ":");
 
-    /* ### switch to an action? */
+//### switch to an action?
     tell_object(ob, "You are now a wizard.  Changing bodies...\n");
     printf("'%s' is now a wizard.\n", capitalize(who));
 
@@ -114,7 +118,7 @@ private nomask void dewiz_user(string who)
     }
     SECURE_D->set_protection("/wiz/" + who, 1, -1);
 
-    /* ### switch to an action? */
+//### switch to an action?
     tell_object(ob, "You have lost your wizard status.\n");
     printf("'%s' is no longer a wizard.\n", capitalize(who));
 

@@ -209,6 +209,7 @@ void call_out()
 		    }
 		    /* cop->vs is ref one */
 		    transfer_push_some_svalues(cop->vs->item, cop->vs->size);
+		    free_array(cop->vs);
 		}
 		if (cop->ob) {
 		    (void) apply(cop->function.s, cop->ob, 
@@ -294,13 +295,17 @@ void mark_call_outs()
 
     for (cop = call_list; cop; cop = cop->next) {
 	mark_svalue(&cop->v);
+	if (cop->vs)
+	    cop->vs->extra_ref++;
 	if (cop->ob) {
 	    cop->ob->extra_ref++;
 	    EXTRA_REF(BLOCK(cop->function.s))++;
+	} else {
+	    cop->function.f->hdr.extra_ref++;
 	}
 #ifdef THIS_PLAYER_IN_CALL_OUT
-    if (cop->command_giver)
-	cop->command_giver->extra_ref++;
+	if (cop->command_giver)
+	    cop->command_giver->extra_ref++;
 #endif
     }
 }

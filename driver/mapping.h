@@ -66,6 +66,7 @@ extern int num_mappings;
 extern int total_mapping_size;
 extern int total_mapping_nodes;
 
+int msameval PROT((svalue_t *, svalue_t *));
 int mapping_save_size PROT((mapping_t *));
 INLINE mapping_t *mapTraverse PROT((mapping_t *, int (*) (mapping_t *, mapping_node_t *, void *), void *));
 INLINE mapping_t *load_mapping_from_aggregate PROT((svalue_t *, int));

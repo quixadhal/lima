@@ -609,11 +609,15 @@ nomask int higher_privilege(mixed a,mixed b)
     case 'A'..'Z':
       if (strlen(a[1])==0 && domains[lower_case(b[0])])
       {
+	/* if b is "Foo" then a must be a lord; if b is "Foo:" or "Foo:xxx"
+	   then a must be a member */
         if (domains[lower_case(b[0])][a[0]] > !strlen(b[1]))
           return 1;
+
+	/* fallthru to check privs */
       }
   }
-  return member_array(a[0] + a[1], privileges[b[0]][b[1]])>=0;
+  return member_array(a[0] + a[1], privileges[b[0]][b[1]]) != -1;
 }
 
 nomask mixed reduced_privilege(mixed priv,mixed max)
@@ -664,12 +668,7 @@ nomask varargs int check_privilege(mixed prot,int ignore)
 
     if (next == this_object()) // This call is unguarded
     {
-	/* ### driver bug: may have 2 copies of self on stack */
-	if ( next == next2 && ob != this_object() )
-	    next = i < stacksize - 3 ? stack[i+3] : 0;
-	else
-	    /* ### end of patch... */
-	    next = next2;
+      next = next2;
       if (next!=ob && next != this_object())
 	{
 	  syslog(sprintf("Secvio: %O used fptr bound to %O", ob, next));
@@ -739,3 +738,4 @@ nomask varargs int check_privilege(mixed prot,int ignore)
     }
   return 1;
 }
+

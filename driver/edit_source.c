@@ -1,4 +1,4 @@
-#define CONFIGURE_VERSION	1
+#define CONFIGURE_VERSION	3
 
 #define EDIT_SOURCE
 #define NO_MALLOC

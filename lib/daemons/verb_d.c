@@ -30,7 +30,7 @@ private void reload_verb(string file)
     if ( ob = find_object(CMD_DIR_VERBS "/" + file) )
 	destruct(ob);
 
-    call_other(CMD_DIR_VERBS "/" + file, "???");
+    load_object(CMD_DIR_VERBS "/" + file);
 }
 
 /*

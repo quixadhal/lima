@@ -47,7 +47,7 @@ main(string str) {
 	return;
     }
     if (!who) {
-	frame = master()->query_error(this_user()->query_real_name());
+	frame = master()->query_error(this_user()->query_userid());
     } else {
 	frame = master()->query_error(who);
 	if (!frame && !find_body(who) && who != "last") {

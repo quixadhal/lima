@@ -107,7 +107,7 @@ private nomask void receive_alias_input(string cmd)
 		    output += sprintf("%54s$%d: %s\n","",i,val->defaults[i]);
 	    }
 	}
-	new(MORE_OB)->more_string(output);
+	this_user()->more(output);
 	break;
 
     case "a":

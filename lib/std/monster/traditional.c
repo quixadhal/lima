@@ -6,6 +6,8 @@
 inherit __DIR__ "base";
 inherit __DIR__ "base/hit_points";
 
+#define PERCENT_PER_PENALTY		10
+
 void refresh_stats() { 
     // players override this;
     // monsters can also use it to adjust things once per round
@@ -69,8 +71,24 @@ void take_a_swing() {
     refresh_stats();
 
     weapon = query_weapon();
+
+#ifdef DEBUG_COMBAT
+    {
+	int thb = target->to_hit_base();
+	int bn = weapon->query_wield_bonus(target);
+	int hs = hit_skill();
+	int pen = query_penalty();
+	string bstr = (bn ? sprintf("[%+i]", bn) : "");
+	string pstr = (pen ? "[-" + (pen*PERCENT_PER_PENALTY) + "]" : "");
+
+	chance = thb + bn + hs - pen*PERCENT_PER_PENALTY;
+	tell_object(this_object(), sprintf("THB: %i%s HS: %i%s == %i\n",
+			thb, bstr, hs, pstr, chance));
+    }
+#else
     chance = target->to_hit_base() + weapon->query_wield_bonus(target)
-	     + hit_skill() - query_penalty()*5;
+	     + hit_skill() - query_penalty()*PERCENT_PER_PENALTY;
+#endif
     
     if (chance < 2) chance = 2;
     else if (chance > 98) chance = 98;
@@ -86,14 +104,14 @@ void take_a_swing() {
     }
 
     roll = random(100);
-    if (roll < chance)
+    if (roll > chance)
 	dam = "miss";
     else if (roll == chance)
 	dam = "disarm";
     else {
 	dam = random(weapon->query_weapon_class() + damage_bonus()) + 1;
     }
-    
+
     result = dam = negotiate_result(dam, weapon_type);
 
     if (intp(dam)) {

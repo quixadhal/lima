@@ -27,8 +27,9 @@ private void main(string arg)
 	else
 	{
 	    if ( arg != "-d" )
-		channel_list = map_array(channel_list, (: explode($1, "_")[<1] :));
-					    
+		channel_list = map(channel_list,
+				   (: NCHANNEL_D->user_channel_name($1) :));
+
 	    write("You are listening to: " +
 		  implode(channel_list, ", ") + ".\n");
 	}

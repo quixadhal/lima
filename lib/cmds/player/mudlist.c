@@ -109,5 +109,5 @@ private void main(mixed *arg, mapping flags)
 					)...);
     }
   
-    clone_object(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }

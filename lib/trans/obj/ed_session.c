@@ -16,20 +16,23 @@ inherit DAEMON;		/* for cleanup and privs */
 
 inherit M_INPUT;
 
-static private string	real_name;	/* ### HACK */
 static private function	end_func;
+static private object	user;
 
 
 private nomask void receive_ed_input(mixed s)
 {
-    if(s == -1)
-      destruct(this_object());
-  
+    if(s == -1) {
+	destruct(this_object());
+	return;
+    }
+    
     write(ed_cmd(s));
     if ( query_ed_mode() == -1 )
     {
 	modal_pop();
-	this_body()->clear_flag(F_IN_EDIT);	/* ### does not nest! */
+//### does not nest!
+	this_body()->clear_flag(F_IN_EDIT);
 
 	if ( end_func )
 	    evaluate(end_func);
@@ -52,24 +55,28 @@ private nomask string query_prompt()
     return ":";
 }
 
-/* ### until we decide how to rewrite the master ob (securely) */
-nomask string query_real_name()
-{
-    return real_name;
-}
-
 varargs nomask void begin_editing(string fname,
 				  int restricted,
 				  function f)
 {
     modal_push((: receive_ed_input :), (: query_prompt :));
-    this_body()->set_flag(F_IN_EDIT);		/* ### does not nest! */
+//### does not nest!
+    this_body()->set_flag(F_IN_EDIT);		
 
-    real_name	= this_user()->query_userid();
-    end_func	= f;
+    user = this_user();
+
+    end_func = f;
 
     ed_start(fname, restricted);
     printf("Editing: /%s", ed_cmd("f"));
     if(!is_file(fname))
-      printf("[New file]\n");
+	printf("[New file]\n");
+}
+
+int set_ed_setup(int code) {
+    user->set_ed_setup(code);
+}
+
+void query_ed_setup() {
+    return user->query_ed_setup();
 }

@@ -9,7 +9,7 @@ int
 remove()
 {
     if (environment())
-        environment()->release_object(this_object());
+        environment()->release_object(this_object(), 1);
 
 //:HOOK remove
 //Called when an object is removed.  The return value is ignored
@@ -20,12 +20,12 @@ remove()
     destruct(this_object());
 }
 
-int receive_object( object target, string relation )
+mixed receive_object( object target, string relation )
 {
   return MOVE_NOT_ALLOWED;
 }
 
-int release_object( object target )
+varargs mixed release_object( object target, int force )
 {
-  return 0;
+  return 1;
 }

@@ -3,7 +3,6 @@ addto		fname|file
 at		user str*
 banish -sn	[str] str*
 cat		file*
-cd		[dir]
 cp -rf		file* fname|dir|file
 dbxtracer	obj str
 du		[dir]
@@ -28,4 +27,4 @@ stat		obj|user
 tail		file*
 tsh		file
 times		num str*
-update	-rR	[cfile*]
+update	-rRz	[cfile*]

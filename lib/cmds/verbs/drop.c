@@ -15,40 +15,24 @@ mixed can_drop_obj(object ob)
     return 1;
 }
 
-mixed can_drop_wrd_wrd_wrd(string amount, string type, string obj)
-{
-    return 1;
-}
 
 
 private nomask void drop_one(object ob)
 {
-    switch( ob->drop() )
-    {
-    case 0:
-	write("You aren't able to drop it.\n");
-	break;
+    mixed tmp = ob->drop();
 
-    case -1:
-	break;		/* drop handled it's own message */
-
-    case 1:
-	switch( ob->move(environment(this_body())) )
-	{
-	case MOVE_OK:
-	    write("Done.\n");
-	    this_body()->other_action("$N $vdrop a $o.\n", ob);
-	    break;
-
-	case MOVE_NO_ROOM:
-	    write("There's nowhere to put it.\n");
-	    break;
-
-	default:
-	    write("Failed.\n");
-	    break;
-	}
+    if (!tmp) tmp = "You aren't able to drop it.\n";
+    if (stringp(tmp)) {
+	write(tmp);
+	return tmp;
     }
+
+    tmp = ob->move(environment(this_body()));
+    if (tmp == MOVE_OK) {
+	write("Done.\n");
+	this_body()->other_action("$N $vdrop a $o.\n", ob);
+    } else
+	write(tmp);
 }
 
 void do_drop_obj(object ob)
@@ -58,21 +42,10 @@ void do_drop_obj(object ob)
 
 
 
-//   this is the verb called for dropping money and createing the mon
-//  object in the current environemnt.  there is no checking to se 
-//  if you actually haeve the money or not yet :)
-//
-mixed do_drop_wrd_wrd_wrd(string amount, string type, string obj)
-{
-   new("/std/coins", amount, type)->move(environment(this_body()));
-
-
-this_body()->simple_action("$N $vdrop "+ amount + " " + type + " coins.\n");
-}
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBJ", "OBS", "WRD WRD WRD" }) });
+    return ({ ({ "OBJ", "OBS" }) });
     
     /*
     ** torch OBJ when OBS matches 1 ob

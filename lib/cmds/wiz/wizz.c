@@ -3,6 +3,8 @@
 // product du Belboz/Rust
 
 #include <mudlib.h>
+#include <move.h>
+
 inherit CMD;
 
 string* MSGS;
@@ -37,7 +39,7 @@ private void main( string arg )
   if(!arg)
     arg = MSGS[random(sizeof(MSGS))];
 
-  if( this_body()->move( WIZ_ROOM ) )
+  if( this_body()->move( WIZ_ROOM ) != MOVE_OK)
   {
     write( "You remain where you are.\n" );
     return;

@@ -61,7 +61,9 @@ f_debug_info PROT((void))
 #ifndef NO_LIGHT
 	   outbuf_addv(&out, "total light : %d\n", ob->total_light);
 #endif
+#ifndef NO_RESETS
 	   outbuf_addv(&out, "next_reset  : %d\n", ob->next_reset);
+#endif
 	   outbuf_addv(&out, "time_of_ref : %d\n", ob->time_of_ref);
 	   outbuf_addv(&out, "ref         : %d\n", ob->ref);
 #ifdef DEBUG

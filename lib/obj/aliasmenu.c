@@ -130,7 +130,7 @@ private void display_all_aliases()
 	}
     }
 
-    new(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }
 
 

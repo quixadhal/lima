@@ -517,7 +517,7 @@ char *pluralize P1(char *, str) {
     char *suffix = "s";
     
     sz = strlen(str);
-    if (sz <= 1) return 0;
+    if (sz == 0) return 0;
 
     /* if it is of the form 'X of Y', pluralize the 'X' part */
     if ((p = strstr(str, " of "))) {

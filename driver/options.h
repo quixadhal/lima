@@ -283,6 +283,9 @@
  */
 #define DEFAULT_PRAGMAS PRAGMA_WARNINGS + PRAGMA_STRICT_TYPES
 
+/* NO_RESETS: completely disable the periodic calling of reset() */
+#undef NO_RESETS
+
 /* LAZY_RESETS: if this is defined, an object will only have reset()
  *   called in it when it is touched via call_other() or move_object()
  *   (assuming enough time has passed since the last reset).  If LAZY_RESETS
@@ -303,7 +306,8 @@
 
 /* NO_ANSI: define if you wish to disallow users from typing in commands that
  *   contain ANSI escape sequences.  Defining NO_ANSI causes all escapes
- *   (ASCII 27) to be replaced with a space ' '.
+ *   (ASCII 27) to be replaced with a space ' ' before the string is passed
+ *   to the action routines added with add_action.
  *
  * If you anticipate problems with users intentionally typing in ANSI codes
  * to make your terminal flash, etc define this.

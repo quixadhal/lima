@@ -74,23 +74,19 @@ int query_max_capacity()
 //:FUNCTION receive_object
 //Determine whether we will accept having an object moved into us;
 //returns a value from <move.h> if there is an error
-int receive_object( object target, string relation )
+mixed receive_object( object target, string relation )
 {
     int x,m;
     object ob;
 
     if( target == this_object() )
-	  return MOVE_NOT_ALLOWED;
+	return "You can't move an object inside itself.\n";
 
     if( origin() != ORIGIN_LOCAL )
     {
         /* allow a matching relation or newly cloned objects */
         if ( relation && relation != main_prep && relation != "#CLONE#" )
-            return MOVE_NOT_ALLOWED;
-	if (!this_object()->container())   return MOVE_NOT_CONTAINER;
-	else if (this_object()->hold_container() ||
-	  this_object()->this_function_should_return_non_0_if_and_only_if_this_container_is_not_hypothetically_capable_of_containing_another_container())
-	    return MOVE_NOT_ALLOWED;
+            return "You can't put things " + relation + " that.\ny";
     }
     x=target->query_mass();
 //    printf("cap=%O  max=%O  x=%O\n",query_capacity(),max_capacity,x);
@@ -99,16 +95,16 @@ int receive_object( object target, string relation )
 
     set_capacity( m );
 
-    return 0;
+    return 1;
 }
 
 //:FUNCTION release_object
 //Prepare for an object to be moved out of us; the object isn't allowed
-//to leave if we return nonzero
-int release_object( object target )
+//to leave if we return zero or a string (error message)
+varargs mixed release_object( object target, int force )
 {
     set_capacity( query_capacity() - (target->query_mass()) );
-    return 0;
+    return 1;
 }
 
 //:FUNCTION set_max_capacity
@@ -233,8 +229,8 @@ void reset(){
 	tally = sizeof(filter_array(inv, (: $1->id($(name)) :) ));
 	num -= tally;
 	for (int j = 0; j < num; j++) {
-	    if (ret = new(file, rest...)->move(this_object(), "#CLONE#"))
-		error("Initial clone failed for '" + file +"' with error " + ret + "\n");
+	    if (new(file, rest...)->move(this_object(), "#CLONE#") != MOVE_OK)
+		error("Initial clone failed for '" + file +"': " + ret + "\n");
 	}
     }
 }
@@ -323,7 +319,6 @@ void set_preposition( string new_prep )
 
 // Recognize this as a shitty scope hack?  I do.
 
-//### obsolete?
 string query_prep(){ return main_prep; }
 
 // Right now this is called only if mass is set in an object that is in
@@ -352,8 +347,19 @@ mixed direct_get_obj(object ob, string name) {
     return ::direct_get_obj(ob);
 }
 
-mixed indirect_put_obj_word_obj(object ob1, string prep, object ob2) {
-    return prep == main_prep;
+mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
+    if (prep == main_prep)
+	return 1;
+
+    switch (prep) {
+	case "on":
+	case "in":
+	case "under":
+	case "behind":
+	    return "You can't put anything " + prep + " that.";
+	default:
+	    return 0;
+    }
 }
 
 mixed direct_look_str_obj(string prep, object ob) {

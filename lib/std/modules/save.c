@@ -18,6 +18,9 @@
 private int save_recurse;
 private mixed *saved = ({});
 
+//###These filenames can legally be remapped to other objects (these moved)
+private static string * old_fnames = ({ "/obj/shells/wish" });
+
 //:FUNCTION add_save
 //Mark a variable as one that gets saved.
 static void add_save(mixed *vars) { 
@@ -28,7 +31,7 @@ static void add_save(mixed *vars) {
 //:FUNCTION get_saved
 //returns the array of variables that get saved.
 
-//###Security problem here - Beek
+//###Security problem here - Beek.  What is it used for anyway?
 string *get_saved() { return saved; }
 
 //:FUNCTION set_save_recurse
@@ -71,7 +74,16 @@ void old_load_from_string(mixed value, int recurse) {
       return;
     value = restore_variable(value);
     if (value[0] != base_name(this_object()))
-	error("Invalid save string (ob)\n");
+    {
+	/*
+	** If the saved fname is not a "legal" old name, then raise an
+	** error.  There are certain files that have moved, so we must
+	** deal appropriately with errors.
+	*/
+	if ( member_array(value[0], old_fnames) == -1 )
+	    error("Invalid save string (ob)\n");
+    }
+
     tmpsaved = decompose(map(saved, (: functionp($1) ? evaluate($1, "loading") : $1 :)));
     tmpsaved -= ({0});
     if (sizeof(tmpsaved) != sizeof(value[1]))
@@ -103,7 +115,16 @@ void load_from_string(mixed value, int recurse) {
     }
     
     if (data["#base_name#"] != base_name(this_object()))
-	error("Invalid save string (ob)\n");
+    {
+	/*
+	** If the saved fname is not a "legal" old name, then raise an
+	** error.  There are certain files that have moved, so we must
+	** deal appropriately with errors.
+	*/
+	if ( member_array(data["#base_name#"], old_fnames) == -1 )
+	    error("Invalid save string (ob)\n");
+    }
+
     tmpsaved = decompose(map(saved, (: functionp($1) ? evaluate($1, "loading") : $1 :)));
     tmpsaved -= ({0});
 

@@ -601,6 +601,8 @@ static int copy_chars P4(unsigned char *, from, unsigned char *, to, int, n, int
 	    break;
 	case TS_SB_IAC:
 	    if (from[i] == IAC) {
+		if (ip->sb_pos >= SB_SIZE)
+		    break;
 		/* IAC IAC is a quoted IAC char */
 		ip->sb_buf[ip->sb_pos++] = IAC;
 		ip->state = TS_SB;
@@ -972,8 +974,12 @@ static void new_user_handler P1(int, which)
     add_ref(master_ob, "new_user");
     push_number(external_port[which].port);
     ret = apply_master_ob(APPLY_CONNECT, 1);
-    if (ret == 0 || ret == (svalue_t *)-1 || ret->type != T_OBJECT) {
-	remove_interactive(master_ob);
+    /* master_ob->interactive can be zero if the master object self
+       destructed in the above (don't ask) */
+    if (ret == 0 || ret == (svalue_t *)-1 || ret->type != T_OBJECT
+	|| !master_ob->interactive) {
+	if (master_ob->interactive)
+	    remove_interactive(master_ob);
 	debug_message("Connection from %s aborted.\n", inet_ntoa(addr.sin_addr));
 	return;
     }

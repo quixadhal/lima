@@ -147,10 +147,14 @@ nomask string * find_topic(string name)
     if ( !result )
 	return 0;
 
-    /* ### simulate the old levels */
+//### simulate the old levels
     lvl = adminp(this_user()) ? 5 : wizardp(this_user()) ? 1 : 0;
 
-    return filter_array(result, (: $(lvl) >= restrict[explode($1, "/")[2]] :));
+    return filter_array(result, function(string file, int lvl) {
+	array parts = explode(file, "/");
+	if (sizeof(parts) < 3) return 1;
+	return (lvl >= restrict[parts[2]]);
+    }, lvl);
 }
 
 /*
@@ -164,7 +168,7 @@ nomask void conflict_report()
 
     values = values(topics);
     values = filter_array(values, (: sizeof($1) > 1 :));
-    clone_object(MORE_OB)->more_string(sprintf("%O", values));
+    this_user()->more(sprintf("%O", values));
 }
 
 /*

@@ -91,6 +91,8 @@ void create()
 
     add_pattern("%s says: Timber, %s", (: do_command :));
 //### regexp sscanf bug
+//### There should be hooks for these so we don't have to catch_tell it.
+//### say as well.
 #ifdef REGEXP_SSCANF_BUG
     add_pattern("%([^ ]*) enters", (: "emote glances at " + $1 + " for a moment." :));
 #else

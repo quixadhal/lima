@@ -14,6 +14,7 @@ inherit __DIR__ "monster/simple";
 #elif COMBAT_STYLE == COMBAT_TRADITIONAL
 inherit __DIR__ "monster/traditional";
 #elif COMBAT_STYLE == COMBAT_COMPLEX
+#error COMBAT_COMPLEX not written yet :-)
 inherit __DIR__ "monster/complex";
 #else
 #error Improperly specified COMBAT_STYLE in /include/config_combat.h

@@ -85,7 +85,7 @@ private void stdmail_cmd_help()
 	"up.... you can mail to them like a regular name, or you can enclose\n"
 	"The group in ().  Eg, Mm (admin) rust  will mail all the admins and rust.\n";
 
-    clone_object(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }
 
 private void stdmail_cmd_forward(string cmd_args)

@@ -102,6 +102,14 @@
 
    Please refer to options.h for selecting malloc package and wrapper.
 */
+#if (defined(SYSMALLOC) + defined(SMALLOC) + defined(BSDMALLOC)) > 1
+Only one malloc package should be defined
+#endif
+
+#if (defined(WRAPPEDMALLOC) + defined(DEBUGMALLOC)) > 1
+Only one wrapper (at most) should be defined
+#endif
+
 #if defined (WRAPPEDMALLOC) && !defined(IN_MALLOC_WRAPPER)
 
 #  define MALLOC(x)               wrappedmalloc(x)
@@ -135,11 +143,8 @@
 #  endif
 #endif
 
-#ifndef MALLOC
-#  define MALLOC(x)  puts("You need to specify a malloc package in options.h")
-#  define FREE(x)    puts("You need to specify a malloc package in options.h")
-#  define REALLOC(x) puts("You need to specify a malloc package in options.h")
-#  define CALLOC(x)  puts("You need to specify a malloc package in options.h")
+#if !defined(MALLOC) && !defined(EDIT_SOURCE)
+You need to specify a malloc package in local_options/options.h
 #endif
 
 #define ALLOCATE(type, tag, desc) ((type *)DXALLOC(sizeof(type), tag, desc))

@@ -36,7 +36,7 @@ private void main(string arg)
     {
 	string userid;
 
-	userid = bodies[i]->query_real_name();
+	userid = bodies[i]->query_userid();
 
 	if ( !userid )
 	    name = "login";
@@ -46,8 +46,10 @@ private void main(string arg)
 
 	if (arg != "-f")
 	{
-
-	    where = environment(bodies[i])->short();
+	    if (environment(bodies[i]))
+		where = environment(bodies[i])->short();
+	    else
+		where = "(nowhere)";
 	}
 	else
 	{
@@ -57,7 +59,7 @@ private void main(string arg)
 		where = "(null)";
 	    if(!o) name = "<"+name+">";
 	}
-	/* ### put "position" in here... */
+//### put "position" in here...
 	printf("%-10s %-13s%4d %c%c %-30s \n",
 	  adminp(userid) ? "admin" : wizardp(userid) ? "wizard" : "player",
 	  name,

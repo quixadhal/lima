@@ -41,7 +41,7 @@ string query_msg(string which) { return messages[which] || def_messages[which]; 
 
 void set_msgs(string cls, string *msgs) {
     if (!messages) messages = ([]);
-    messages[cls]= msgs;
+    messages[cls] = msgs;
 }
 
 void clear_messages() {

@@ -332,8 +332,8 @@ lpc_tree_form P2(parse_node_t *, expr, parse_node_t *, dest) {
     case NODE_OPCODE_2:
 	lpc_tree(dest, 4);
 	lpc_tree_opc(ARG_2, expr->v.number);
-	lpc_tree_number(ARG_2, expr->l.number);
-	lpc_tree_number(ARG_2, expr->r.number);
+	lpc_tree_number(ARG_3, expr->l.number);
+	lpc_tree_number(ARG_4, expr->r.number);
 	break;
     case NODE_RETURN:
 	lpc_tree(dest, 2);

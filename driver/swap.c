@@ -235,14 +235,14 @@ swap_out P3(char *, block, int, size, int *, locp)
 #ifdef SWAP_USE_FD
         if ((write(swap_file, &size, sizeof size) != sizeof size) ||
 	    write(swap_file, block, size) != size) {
-	    debug_perror("swap_out: ", swap_file);
+	    debug_perror("swap_out", swap_file);
 	    *locp = -1;
 	    return 0;
 	}
 #else
 	if (fwrite((char *) &size, sizeof size, 1, swap_file) != 1 ||
 	    fwrite(block, size, 1, swap_file) != 1) {
-	    debug_perror("swap_out:swap file:", 0);
+	    debug_perror("swap_out:swap file", 0);
 	    *locp = -1;
 	    return 0;
 	}

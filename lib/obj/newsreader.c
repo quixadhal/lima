@@ -70,9 +70,9 @@ private nomask void add_new_groups()
     ** Note: this should occur _after_ the set_news_group_id so that
     ** the number of unread messages is computed correctly.
     **
-    ** ### we should ask the user about these. provide options:
-    ** ### [ynaql?] or yes (add), no (skip), all, quit (adding), list,
-    ** ### and help
+//### we should ask the user about these. provide options:
+//### [ynaql?] or yes (add), no (skip), all, quit (adding), list,
+//### and help
     */
     write("Auto-subscribing to:\n" +
 	  implode(map_array(groups, (: format_group_line :)), "\n") + "\n");
@@ -214,7 +214,7 @@ private nomask void display_groups_with_new()
 	list = ({"Groups with new messages:", ""}) +
 	    map_array(groups, (: format_group_line :));
 
-	clone_object(MORE_OB)->more_string(list);
+	this_user()->more(list);
     }
 }
 
@@ -280,7 +280,7 @@ private nomask void display_messages(int display_all)
 
     lines = map_array(sort_array(ids, 1), (: format_message_line(0, $1, 1) :)) - ({ 0 });
     lines = ({sprintf("Messages on %s are:", current_group)}) + lines + ({""});
-    clone_object(MORE_OB)->more_string(lines);
+    this_user()->more(lines);
 }
 
 private nomask void receive_post_subject(mixed subject)
@@ -297,7 +297,7 @@ private nomask void receive_post_subject(mixed subject)
     clone_object(EDIT_OB)->edit_text(0, "receive_post_text", subject);
 }
 
-/* ### callback from EDIT_OB... can't be private/static */
+//### callback from EDIT_OB... can't be private/static
 nomask void receive_post_text(mixed ctx, string * text)
 {
     int id;
@@ -354,17 +354,13 @@ private nomask void followup_with_message()
 	return;
     }
 
-    lines = ({ sprintf("On %s %s wrote:",
+    lines = ({ sprintf("On %s %s wrote post #%d:",
 		       intp(msg->time) ? ctime(msg->time) : msg->time,
-		       msg->poster) });
+		       msg->poster, get_current_id()) });
 
     lines += map_array(explode(msg->body, "\n"), (: "> " + $1 :) );
 
     clone_object(EDIT_OB)->edit_text(lines, "receive_followup_text", 0);
-}
-
-private nomask void print_skip(int msg_id)
-{
 }
 
 private nomask int read_next_message(int skip_allowed)
@@ -440,7 +436,7 @@ private nomask int read_next_message(int skip_allowed)
 		   msg->subject,
 		   msg->body ? msg->body : "*** REMOVED ***");
 
-    clone_object(MORE_OB)->more_string(post);
+    this_user()->more(post);
 
     return 0;
 }
@@ -532,7 +528,7 @@ private nomask void group_commands(string cmd)
     }
 }
 
-/* ### callback from EDIT_OB... can't be private/static */
+//### callback from EDIT_OB... can't be private/static
 nomask void receive_followup_text(mixed ctx, string * text)
 {
     int id;
@@ -612,7 +608,7 @@ private nomask void receive_top_cmd(mixed cmd)
 
 	list = map_array(NEWS_D->get_groups(), (: format_group_line :));
 	list = ({ "", "Available groups are:" }) + list;
-	clone_object(MORE_OB)->more_string(list);
+	this_user()->more(list);
     }
     else
     {

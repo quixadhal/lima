@@ -3,32 +3,24 @@
 // John
 // Sep 7 94
 
-private static string	getmsg;
-private static int	gettable;
-private static string	dropmsg;
-private static int	non_dropable;
+private static mixed	get_response;
+private static mixed	drop_response;
 private static function	my_drop_hook, my_get_hook;
 
 void add_hook(string, function);
 
 private mixed prevent_drop() {
-    if (dropmsg)
-      return dropmsg;
-    return !non_dropable;
+    return drop_response;
 }
 
 private mixed prevent_get() {
-    if (gettable < 0)
-	return getmsg;
-    if (gettable == 0)
-	return 0;
-    return 1;
+    return get_response;
 }
 
 void
 set_getmsg( string s )
 {
-    getmsg = s;
+    get_response = s;
     if (!my_get_hook) {
 	my_get_hook = (: prevent_get :);
 	add_hook("prevent_get", my_get_hook);
@@ -38,13 +30,17 @@ set_getmsg( string s )
 string
 query_getmsg()
 {
-  return getmsg;
+    if (stringp(get_response)) return get_response;
 }
 
 void
 set_gettable( int g )
 {
-    gettable = g;
+    if (g == -1 || !g)
+	get_response = 0;
+    else
+	get_response = 1;
+
     if (!my_get_hook) {
 	my_get_hook = (: prevent_get :);
 	add_hook("prevent_get", my_get_hook);
@@ -54,29 +50,25 @@ set_gettable( int g )
 mixed
 get()
 {
-  object env;
-  int tmp;
-
-  if (gettable < 0) {
-    write(getmsg);
-    return -1;
-  }
-
-  if (!gettable) return 0;
-
-  env = environment();
-  while (env) {
-    if (tmp = environment()->can_take_from())
-      return tmp;
-    env = environment(env);
-  }
-  return 1;
+    object env;
+    int tmp;
+    
+    if (get_response != 1)
+	return get_response;
+    
+    env = environment();
+    while (env) {
+	if (tmp = environment()->can_take_from());
+	    return tmp;
+	env = environment(env);
+    }
+    return 1;
 }
 
 void
 set_dropmsg( string s )
 {
-    dropmsg = s;
+    drop_response = s;
     if (!my_drop_hook) {
 	my_drop_hook = (: prevent_drop :);
 	add_hook("prevent_drop", my_drop_hook);
@@ -86,16 +78,17 @@ set_dropmsg( string s )
 string
 query_dropmsg()
 {
-  return dropmsg;
+    if (stringp(drop_response)) return drop_response;
 }
 
 void
 set_dropable( int g )
 {
-    if( g >= 0 )
-	g = !g;
+    if (g == -1 || g == 0)
+	drop_response = 0;
+    else
+	drop_response = 1;
 
-    non_dropable = g;
     if (!my_drop_hook) {
 	my_drop_hook = (: prevent_drop :);
 	add_hook("prevent_drop", my_drop_hook);
@@ -105,15 +98,13 @@ set_dropable( int g )
 mixed
 drop()
 {
-  if (dropmsg) {
-    write(dropmsg);
-    return -1;
-  }
+    if (drop_response != 1)
+	return drop_response;
 
-  return !non_dropable;
+    return 1;
 }
 
 int is_gettable()
 {
-	return gettable;
+	return get_response == 1;
 }

@@ -52,7 +52,7 @@ mixed can_read_word_str_word_obj(string p1, string str, string p2, object ob) {
 static void read_it(object ob, string str) {
     string text;
 
-    if(ob->gettable() && !try_to_acquire(ob))
+    if(ob->is_gettable() && !try_to_acquire(ob))
 	return;
 
     if (str)
@@ -61,7 +61,7 @@ static void read_it(object ob, string str) {
         text = ob->read();
     if (sizeof(text) > 200) {
 	// Don't use more on short strings
-	clone_object(MORE_OB)->more_string(text);
+	this_user()->more(text);
     } else {
 	write(text);
     }

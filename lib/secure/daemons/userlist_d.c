@@ -181,7 +181,7 @@ nomask int nuke_users( string user )
     unguarded(1, (: rm, LINK_PATH(user)+".o" :));
     unguarded(1, (: rm, USER_PATH(user)+".o" :));
 
-    // ### deal with mail somehow...
+//### deal with mail somehow...
 //    rm( "/data/mail/"+user+".o" );
     printf("Nuking %s.\n",user);
 }

@@ -269,6 +269,7 @@ static void look_for_objects_to_swap()
 	    ready_for_swap = 0;
 	else
 	    ready_for_swap = 1;
+#ifndef NO_RESETS
 #ifndef LAZY_RESETS
 	/*
 	 * Should this object have reset(1) called ?
@@ -282,6 +283,7 @@ static void look_for_objects_to_swap()
 #endif
 	    reset_object(ob);
 	}
+#endif
 #endif
 	if (time_to_clean_up > 0) {
 	    /*
@@ -382,6 +384,10 @@ void alarm_loop P1(void *, ignore)
 
 static void call_heart_beat()
 {
+#ifdef PEDANTIC
+    /* IRIX 5.2 bug: not prototyped anywhere in the system includes */
+    void ualarm(int, int);
+#endif
     object_t *ob;
     heart_beat_t *curr_hb;
 
@@ -421,31 +427,29 @@ static void call_heart_beat()
 	    /* is it time to do a heart beat ? */
 	    curr_hb->heart_beat_ticks--;
 
-	    if (ob->prog->heart_beat == -1)
-		continue;
-	    if (curr_hb->heart_beat_ticks < 1) {
-		curr_hb->heart_beat_ticks = curr_hb->time_to_heart_beat;
-		current_prog = ob->prog;
-		current_object = ob;
-		current_heart_beat = ob;
-		command_giver = ob;
+	    if (ob->prog->heart_beat != -1) {
+		if (curr_hb->heart_beat_ticks < 1) {
+		    curr_hb->heart_beat_ticks = curr_hb->time_to_heart_beat;
+		    current_heart_beat = ob;
+		    command_giver = ob;
 #ifndef NO_SHADOWS
-		while (command_giver->shadowing)
-		    command_giver = command_giver->shadowing;
-#endif				/* NO_SHADOWS */
+		    while (command_giver->shadowing)
+			command_giver = command_giver->shadowing;
+#endif
 #ifndef NO_ADD_ACTION
-		if (!(command_giver->flags & O_ENABLE_COMMANDS))
-		    command_giver = 0;
+		    if (!(command_giver->flags & O_ENABLE_COMMANDS))
+			command_giver = 0;
 #endif
 #ifdef PACKAGE_MUDLIB_STATS
-		add_heart_beats(&ob->stats, 1);
+		    add_heart_beats(&ob->stats, 1);
 #endif
-		eval_cost = max_cost;
-		/* this should be looked at ... */
-		call_function(ob->prog,
-			&ob->prog->functions[ob->prog->heart_beat]);
-		command_giver = 0;
-		current_object = 0;
+		    eval_cost = max_cost;
+		    /* this should be looked at ... */
+		    call_function(ob->prog,
+				  &ob->prog->functions[ob->prog->heart_beat]);
+		    command_giver = 0;
+		    current_object = 0;
+		}
 	    }
 	    if (++heart_beat_index == num_hb_to_do)
 		break;
@@ -524,7 +528,7 @@ int set_heart_beat P2(object_t *, ob, int, to)
 		break;
 	    }
 	}
-	DEBUG_CHECK(index < 0, "Couldn't find enabled object in heart_beat lsit!\n");
+	DEBUG_CHECK(index < 0, "Couldn't find enabled object in heart_beat list!\n");
     } else {
 	heart_beat_t *hb;
 	

@@ -38,7 +38,7 @@ void unlock_with(object ob)
     if (!ex) ex = "You can't seem to unlock it.\n";
     if (stringp(ex)) {
 	write(ex);
-	return 1;
+	return;
     }
 
     if (ob->key_type() == key_type)
@@ -67,7 +67,7 @@ void lock_with(object ob) {
     if (!ex) ex = "You can't seem to lock it.\n";
     if (stringp(ex)) {
 	write(ex);
-	return 1;
+	return;
     }
     
     if (ob->key_type() == key_type) {

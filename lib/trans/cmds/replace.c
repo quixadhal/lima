@@ -35,6 +35,6 @@ private void main(mixed* argv, mapping flags)
     {
       if(flags["q"])
 	printf("Done.\n");
-      else new(MORE_OB)->more_string(output);
+      else this_user()->more(output);
     }
 }

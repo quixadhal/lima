@@ -21,7 +21,7 @@ mixed * get_raw_data(string who)
     mixed * last;
     object user = find_user(who);
 
-    /* ### also fetch title? */
+//### also fetch title?
     info = unguarded(1, (: call_other, USER_D, "query_variable",
 			 who, ({ "real_name", "email",
 #ifdef EVERYONE_HAS_A_PLAN
@@ -93,7 +93,7 @@ string get_finger(string who)
 
     user = find_user(who);
 
-    /* ### also fetch title */
+//### also fetch title
     info = unguarded(1, (: call_other, USER_D, "query_variable",
 			 who, ({ "real_name", "email",
 #ifdef EVERYONE_HAS_A_PLAN
@@ -102,7 +102,7 @@ string get_finger(string who)
 				     }) :));
     if ( !info )
     {
-	/* ### maybe return 0? */
+//### maybe return 0?
 	return "No such player.\n";
     }
 
@@ -139,7 +139,7 @@ string get_finger(string who)
 
     last = LAST_LOGIN_D->query_last(who);
 
-    /* ### add in title, linkdeath indication, and idle time */
+//### add in title, linkdeath indication, and idle time
 
     retval = sprintf("%s\nIn real life: %-36sLevel: %s\n"
 		     "%s %s from %s\n%s\nEmail Address: %s\n",

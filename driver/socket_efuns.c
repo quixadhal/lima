@@ -932,7 +932,6 @@ socket_write_select_handler P1(int, fd)
 
     push_number(fd);
     call_callback(fd, S_WRITE_FP, 1);
-
 }
 
 /*

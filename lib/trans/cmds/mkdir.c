@@ -8,5 +8,5 @@ private void main(string* arg) {
   if (mkdir(arg[0]))
      printf("Ok.\n");
   else
-     printf("Failed to make directory: %s\n", arg);
+     printf("Failed to make directory: %s\n", arg[0]);
 }

@@ -31,5 +31,5 @@ main(mixed argv, mapping flags)
     }
   if(!strlen(output))
     output = "No matches found.\n";
-  clone_object(MORE_OB)->more_string(output);
+  this_user()->more(output);
 }

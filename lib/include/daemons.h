@@ -3,10 +3,7 @@
 #ifndef __DAEMONS_H__
 #define __DAEMONS_H__
 
-#define CMD_D		"/trans/daemons/cmd_d"
-#define FILE_D		"/trans/daemons/file_d"
-#define RCS_D		"/trans/daemons/rcs_d"
-
+#define CMD_D		"/daemons/cmd_d"
 #define SOUL_D		"/daemons/soul_d"
 #define BANISH_D	"/daemons/banish_d"
 #define QUEST_D		"/daemons/quest_d"
@@ -23,13 +20,12 @@
 #define WEATHER_D	"/daemons/weather_d"
 #define MESSAGES_D	"/daemons/messages"
 
-#define CMDPATH_CACHE	"/daemons/cmdpath_cache_d"
-
 #define MAIL_D		"/secure/daemons/mail_d"
 #define GROUP_D		"/secure/daemons/group_d"
 #define FINGER_D	"/secure/daemons/finger_d"
 #define USERLIST_D	"/secure/daemons/userlist_d"
 #define USER_D		"/secure/daemons/user_d"
+#define NEW_USER_D	"/secure/daemons/new_user_d"
 
 // Define these only if you want intermud services.
 #define REMOTE_D        "/secure/daemons/remote_d"

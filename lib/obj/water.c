@@ -16,10 +16,8 @@ create() {
   set_adjectives( ({ "quantity of", "pool of", "puddle of" }) );
   set_id( ({ "water", "liquid", "h2o" }) );
   set_long("You see nothing special about the water.\n");
-  set_gettable(-1);
-  set_getmsg("Try putting it in something.\n");
-  set_dropable(-1);
-  set_dropmsg("Try pouring it into or on something.\n");
+  set_gettable("Try putting it in something.\n");
+  set_dropable("Try pouring it into or on something.\n");
 }
 
 int move_water(object target) {

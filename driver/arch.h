@@ -19,6 +19,10 @@
 #define ARCH "Sequent DYNIX/ptx"
 #endif
 
+#ifdef __FreeBSD__
+#define ARCH "FreeBSD"
+#endif
+
 #ifdef NeXT
 #ifdef m68k
 #define ARCH "NeXT/68k"

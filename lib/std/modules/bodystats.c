@@ -155,6 +155,10 @@ nomask int query_wil()
 /*
 ** Derived statistics
 */
+//:FUNCTION refresh_stats
+//refresh_stats() recalculates all the stats and requery's all the bonuses.
+//Combat calls this once a round.  If you are using stats in a non-combat
+//setting, you might want to call this first.
 void refresh_stats() {
 //:HOOK str_bonus
 //Used to modify strength
@@ -282,6 +286,10 @@ private nomask int roll_stat(int adjust, int range)
     return BASE_VALUE + adjust + random(range) - (range + 1)/2;
 }
 
+//:FUNCTION init_stats
+//Rolls the stats for the first time, based on the proper racial adjustments.
+//Admins can call this to reinitialize a player's stats (for example, in the
+//case of abysmally horrific (near minimum) rolls.
 nomask void init_stats()
 {
     class stat_roll_mods mods;

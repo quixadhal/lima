@@ -318,10 +318,12 @@ void
 f_call_stack PROT((void))
 {
     int i, n = csp - &control_stack[0] + 1;
-    array_t *ret = allocate_empty_array(n);
+    array_t *ret;
 
     if (sp->u.number < 0 || sp->u.number > 3)
 	error("First argument of call_stack() must be 0, 1, 2, or 3.\n");
+
+    ret = allocate_empty_array(n);
     
     switch (sp->u.number) {
     case 0:
@@ -501,22 +503,6 @@ f_crc32 PROT((void))
     put_number(crc);
 }
 #endif
-
-#ifdef F_CREATOR
-void
-f_creator PROT((void))
-{
-    ob = sp->u.ob;
-    if (!ob->uid){
-        free_object(ob, "f_creator");
-        *sp = const0;
-    } else {
-        char *str = ob->uid->name;
-        free_object(sp->u.ob, "f_creator");
-        put_constant_string(str);
-    }
-}
-#endif				/* CREATOR */
 
 #ifdef F_CTIME
 void
@@ -2267,8 +2253,7 @@ f_regexp PROT((void))
 
 	free_string_svalue(sp--);
 	free_array(sp->u.arr);
-	if (!v) *sp = const0;
-	else sp->u.arr = v;
+	sp->u.arr = v;
     }
 }
 #endif
@@ -2297,7 +2282,7 @@ f_remove_call_out PROT((void))
 	free_string_svalue(sp);
     } else {
 	remove_all_call_out(current_object);
-	i = -1;
+	i = 0;
 	sp++;
     }
     put_number(i);
@@ -2463,6 +2448,8 @@ f_replace_string PROT((void))
                         src += plen;
                         if (cur == last) break;
                     } else {
+			memcpy(dst2, src, plen);
+			dst2 += plen;
                         src += plen;
                     }
                 } else {
@@ -2490,14 +2477,27 @@ f_replace_string PROT((void))
 	    } else { /* rlen is zero */
 		while (*src) {
 		    if (*src++ == *pattern) {
-			dst2 = src - 1;
-			while (*src) {
-			    if (*src == *pattern) src++;
-			    else *dst2++ = *src++;
+			cur++;
+			if (cur >= first) {
+			    dst2 = src - 1;
+			    while (*src) {
+				if (*src == *pattern) {
+				    cur++;
+				    if (cur <= last) {
+					src++;
+					continue;
+				    } else {
+					while (*src)
+					    *dst2++ = *src++;
+					break;
+				    }
+				}
+				*dst2++ = *src++;
+			    }
+			    *dst2 = 0;
+			    arg->u.string = extend_string(dst1, dst2 - dst1);
+			    break;
 			}
-			*dst2 = 0;
-			arg->u.string = extend_string(dst1, dst2 - dst1);
-			break;
 		    }
 		}
 	    }
@@ -2515,18 +2515,16 @@ f_replace_string PROT((void))
                 } else if (memcmp(src, pattern, plen) == 0) {
                     cur++;
                     if ((cur >= first) && (cur <= last)) {
-                        if (rlen) {
-                            if (max_string_length - dlen <= rlen) {
-                                pop_n_elems(st_num_arg);
-                                push_svalue(&const0u);
-                                FREE_MSTR(dst1);
-                                return;
-                            }
-                            memcpy(dst2, replace, rlen);
-                            dst2 += rlen;
-                            dlen += rlen;
-                        }
-                        src += plen;
+			if (max_string_length - dlen <= rlen) {
+			    pop_n_elems(st_num_arg);
+			    push_svalue(&const0u);
+			    FREE_MSTR(dst1);
+			    return;
+			}
+			memcpy(dst2, replace, rlen);
+			dst2 += rlen;
+			dlen += rlen;
+			src += plen;
                         if (cur == last) break;
                     } else {
 			dlen += plen;
@@ -2836,15 +2834,13 @@ f_set_light PROT((void))
 {
     object_t *o1;
 
-#ifdef NO_LIGHT
-    sp->u.number = 1;
-#else
     add_light(current_object, sp->u.number);
     o1 = current_object;
+#ifndef NO_ENVIRONMENT
     while (o1->super)
 	o1 = o1->super;
-    sp->u.number = o1->total_light;
 #endif
+    sp->u.number = o1->total_light;
 }
 #endif
 

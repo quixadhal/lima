@@ -14,7 +14,7 @@ main(string str) {
     int i;
 
     if (!str || str == "") {
-	error = master()->query_error(this_user()->query_real_name());
+	error = master()->query_error(this_user()->query_userid());
     } else {
 	error = master()->query_error(str);
 	if (!error && !find_body(str) && str != "last") {

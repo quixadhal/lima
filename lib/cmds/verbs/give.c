@@ -1,5 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+
+/* Do not remove the headers from this file! see /USAGE for more info. */
+
 /*
 ** give.c
 **
@@ -17,9 +20,8 @@ mixed can_give_obj_to_liv(object ob, object liv)
 void do_give_obj_to_liv(object ob, object liv) {
     if (!try_to_acquire(ob))
 	return;
-    this_body()->targetted_action("$N $vgive $o to $t.\n", liv, ob);
-// ### FIXME.  move() is a low level function; something better
-// should be used here.
+    this_body()->targetted_action("$N $vgive a $o to $t.\n", liv, ob);
+//### Need to check the return value
     ob->move(liv);
 }
 
@@ -30,8 +32,6 @@ mixed * query_verb_info()
 }
 
 #ifdef OLD_CODE
-
-/* ### the parser will take care of these alternate situations */
 
 /****************************************/
 /*     give verb                        */

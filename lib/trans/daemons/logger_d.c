@@ -16,7 +16,7 @@ nomask void log_channel(string channel_name)
 {
     object * listeners;
 
-    listeners = NCHANNEL_D->query_registered()[channel_name];
+    listeners = NCHANNEL_D->query_listeners(channel_name);
     if ( listeners &&
          member_array(this_object(), listeners) != -1 )
         return;

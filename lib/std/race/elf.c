@@ -6,6 +6,10 @@ string query_race() {
     return "elf";
 }
 
+string short_description() {
+    return "Elves get bonuses to charisma and wisdom.  Their strength is below average, their agility is average, their intelligence is above average, and thier willpower is slightly below average.  If this had been a real race instead of an example, this would have been much more interesting to read.\n";
+}
+
 int racial_con_bonus() {
     return 0;
 }

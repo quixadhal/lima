@@ -34,9 +34,9 @@ nomask int notify_fail(string msg)
     return 0;
 }
 
-nomask void destruct(object ob) {
-    if (ob != previous_object())
-	catch(ob->remove());
+nomask varargs void destruct(object ob, mixed arg) {
+    if (ob && ob != previous_object())
+	catch(ob->remove(arg));
     if (ob) efun::destruct(ob);
 }
 

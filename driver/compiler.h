@@ -177,6 +177,7 @@ void copy_structures PROT((program_t *));
 int copy_functions PROT((program_t *, int));
 void type_error PROT((char *, int));
 int compatible_types PROT((int, int));
+int compatible_types2 PROT((int, int));
 void arrange_call_inherited PROT((char *, parse_node_t *));
 void add_arg_type PROT((unsigned short));
 int find_in_table PROT((function_t *, int));

@@ -64,7 +64,7 @@ private void main(string arg)
 	write("Usage: tell <user> <message>\n");
 	return;
       }
-    who = find_body(user);
+    who = find_body(lower_case(user));
     if(!who)
       {
 	printf("Couldn't find %s.\n", user);

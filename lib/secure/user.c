@@ -14,76 +14,57 @@
 
 inherit M_ACCESS;
 
-inherit "/secure/modules/login";
-inherit "/secure/modules/sw_body";
-inherit "/secure/modules/sw_user";
-inherit "/secure/modules/loginfail";
-inherit "/secure/modules/inputsys";
-inherit "/secure/modules/userinfo";
+inherit __DIR__ "user/login";
+inherit __DIR__ "user/sw_body";
+inherit __DIR__ "user/sw_user";
+inherit __DIR__ "user/loginfail";
+inherit __DIR__ "user/inputsys";
+inherit __DIR__ "user/userinfo";
+inherit __DIR__ "user/more";
 
+/*
+** This users's userid (login id).
+*/
+private string		userid;
+
+
+/*
+//### hack variable :-)... used for upgrading existing data
+//###
+//### 0: original format
+//### 1: fixed body_fname; was unknown whether "proper"
+//### 2: renamed "name" variable to "userid"
+//### 3: fixed crypt() to use a real salt (FORTHCOMING)
+*/
+
+//### temp: upgrading file
+private int		data_version = 2;
+//### old variable
 private string		name;
-private string		body_fname;
 
-static private object	body;
-
+//### should remove
 nomask string query_name()
 {
-    return name;
+    return userid;
 }
+
 nomask string query_userid()
 {
-    return name;
-}
-nomask string query_real_name()		/* ### should remove */
-{
-    return stringp(name) ? name : "login";
+    /*
+    ** NOTE: allow this to return 0 so that callers can know that we
+    ** are still in the login sequence.
+    */
+    return userid;
 }
 static nomask void set_userid(string new_userid)
 {
-    name = new_userid;
-}
-
-
-nomask string query_body_fname()
-{
-//### extreme hack, until something better is done
-    if (name == "littlebeek") return "/std/race/elf.c";
-
-    /*
-    ** ### need to work out proper strategy.
-    ** ### elements: select appropriate body for wiz vs. player.  allow
-    ** ### for wizzes to permanent change their body until they are
-    ** ### dewizzed.
-    ** ### -> make use of 0 to mean default, non-zero is a wiz body
-    **
-    ** ### for now, hard-code one of two bodies
-    */
-
-    /* ### temp change to reset old users' fnames */
-    if ( body_fname == "/std/dev" )
-	body_fname = 0;
-
-    return PLAYER;
-
-//    return body_fname;
-}
-static nomask void set_body_fname(string new_body_fname)
-{
-    // ### see query_body_fname() discussion
-//    body_fname = new_body_fname;
-}
-
-nomask object query_body()
-{
-    return body;
-}
-static nomask void set_body(object new_body)
-{
-    body = new_body;
+    userid = new_userid;
 }
 
 void remove()
 {
+    object body = query_body();
+
     if ( !body || previous_object() == body )
     {
 	destruct(this_object());
@@ -92,17 +73,38 @@ void remove()
 
 static nomask void save_me()
 {
-    unguarded(1, (: save_object, LINK_PATH(name) :));
+    unguarded(1, (: save_object, LINK_PATH(userid) :));
 }
-varargs static nomask void restore_me(string some_name, int flag)
+
+static nomask void restore_me(string some_userid, int preserve_vars)
 {
-    if ( !some_name )
-	some_name = name;
-    unguarded(1, (: restore_object, LINK_PATH(some_name), flag :));
+//### always "read" this variable
+    data_version = 0;
+
+    unguarded(1, (: restore_object, LINK_PATH(some_userid), preserve_vars :));
+
+//### upgrade old files
+    if ( data_version == 0 )
+    {
+	if ( !query_body_fname() )
+	    set_body_fname(PLAYER);
+	data_version = 1;
+    }
+    if ( data_version == 1 )
+    {
+	if ( !userid )
+	{
+	    userid = name;
+	    name = 0;
+	}
+	data_version = 2;
+    }
 }
 
 private nomask void net_dead()
 {
+    object body = query_body();
+
     /*
     ** Tell the body about the net death.  The user object should stick
     ** around, though, so we can find it again if the user reconnects.
@@ -112,4 +114,8 @@ private nomask void net_dead()
 	body->net_dead();
     else
 	destruct(this_object());
+}
+
+void tell(string message) {
+    receive(message);
 }

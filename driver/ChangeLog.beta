@@ -1,3 +1,48 @@
+Sun Oct  8 19:52:11 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b3
+	* added Kalinash's fixes for FreeBSD compilation
+	* fixed some crashers in parse_command_users(): returning the
+	  environment of a user, returning an object unknown to the
+	  parser, or destructing objects involved in the parse
+	* added a possible workaround to get around a possible non-feature
+	  of FreeBSD/NetBSD make commands (can't find rule for malloc.o)
+	* added a patch from Yakko so bsdmalloc compiles on Linux
+	* fixed a crasher in the verbose version of functions() on objects
+	  with global class variables
+
+Fri Oct  6 20:26:51 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b2
+	* fixed a crasher in disabling a heartbeat from a heartbeat
+	  (usually only if a large number were deleted, like most of
+	  the heart_beats on the mud)
+	* reorganized the signal handling to be a bit simpler
+	* fixed some compilation problems with the matrix package	
+
+Fri Oct  6 20:26:51 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b1
+	* updated with respect to v21.6
+	* fixed the handling of call_outs (especially to function pointers)
+	  in the ref count checking code
+	* take objects on the destruct list into account in the ref checking
+	  code
+	* fixed a crasher when the master object self-destructs during
+	  connect()
+	* fixed a number of warnings and improved -pedantic support
+	* errors in get_save_file_name() will no longer cause zeros in
+	  users()
+	* fixed a memory leak in the cached ids of interactive objects
+	* fixed a crasher in replace_program()
+	* more verbose error message for inherit chain too deep
+
+--------------------------------------------------------------------------
+v21.6b7 promoted to v21.6 with the following changes:
+
+	* fixed a bug that would cause the driver to busy-wait when an
+	  object had it's heart_beat enabled, but had no such function.
+	* trap SIGFPE to avoid going down on floating point exceptions
+	* run runlib on the archives for systems that need it
+	* Actually use the limits.h configure info
+
 Thu Aug 24 06:53:08 EDT 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.6b6
 	* crasher fix in loading objects with a .c.c suffix.  The current

@@ -20,7 +20,7 @@ private void main( mixed *arg)
     rt = this_body()->move(arg[0]);
     env = environment(this_body());
 
-    if (!rt)
+    if (rt == MOVE_OK)
     { 
 	if (prev==env)
 	{ printf("You twitch briefly.\n");

@@ -1,11 +1,22 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+/*
+** global.h
+**
+** These are standard definitions for using the Lima Mudlib.  You probably
+** should not change anything in here unless you know what you're doing :-)
+*/
+
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
 #include <config.h>
+#include <mudlib.h>
 
-#define wiz_dir(x)		sprintf(WIZ_DIR"/%s",(x)->query_real_name())
+#define mud_name()		MUD_NAME
+#define driver_version()	__VERSION__
+
+#define wiz_dir(x)		sprintf(WIZ_DIR"/%s",(x)->query_userid())
 #define fail(x)			(: notify_fail, (x) :)
 #define un_article(x)		(stringp(x) ?\
 			implode(explode(x," ")-({"a","an","the"})," ") : x)
@@ -23,6 +34,5 @@
 #define DBBUG(x) TELL_BUG("deathblade",(x))
 #define ZBUG(x) TELL_BUG("zifnab",(x))
 
-#include <mudlib.h>
 
 #endif // __GLOBAL_H__

@@ -24,9 +24,9 @@ static void show_overload_warnings PROT((void));
 short compatible[11] = { 
     /* UNKNOWN */  0,
     /* ANY */      0xfff,
-    /* NOVALUE */  CT_SIMPLE(TYPE_NOVALUE) | CT(TYPE_VOID) | CT(TYPE_NUMBER),
-    /* VOID */     CT_SIMPLE(TYPE_VOID) | CT(TYPE_NOVALUE) | CT(TYPE_NUMBER),
-    /* NUMBER */   CT_SIMPLE(TYPE_NUMBER) | CT(TYPE_NOVALUE) | CT(TYPE_REAL) | CT(TYPE_VOID),
+    /* NOVALUE to*/CT_SIMPLE(TYPE_NOVALUE) | CT(TYPE_VOID) | CT(TYPE_NUMBER),
+    /* VOID to*/   CT_SIMPLE(TYPE_VOID) | CT(TYPE_NUMBER),
+    /* NUMBER to*/ CT_SIMPLE(TYPE_NUMBER) | CT(TYPE_REAL),
     /* STRING */   CT_SIMPLE(TYPE_STRING),
     /* OBJECT */   CT_SIMPLE(TYPE_OBJECT),
     /* MAPPING */  CT_SIMPLE(TYPE_MAPPING),
@@ -533,6 +533,7 @@ void type_error P2(char *, str, int, type)
  * Compare two types, and return true if they are compatible.
  */
 
+/* This one really is t1->t2; it isn't symmetric, since int->void isn't allowed. */
 int compatible_types P2(int, t1, int, t2)
 {
 #ifdef OLD_TYPE_BEHAVIOR
@@ -555,6 +556,34 @@ int compatible_types P2(int, t1, int, t2)
     } else if (t2 & TYPE_MOD_ARRAY)
 	return 0;
     return compatible[t1] & (1 << t2);
+#endif
+}
+
+/* This one is symmetric.  Used for comparison operators, etc */
+int compatible_types2 P2(int, t1, int, t2)
+{
+#ifdef OLD_TYPE_BEHAVIOR
+    /* The old version effectively was almost always was true */
+    return 1;
+#else
+    t1 &= TYPE_MOD_MASK;
+    t2 &= TYPE_MOD_MASK;
+    if (t1 == TYPE_ANY || t2 == TYPE_ANY) return 1;
+    if ((t1 == (TYPE_ANY | TYPE_MOD_ARRAY) && (t2 & TYPE_MOD_ARRAY)))
+	return 1;
+    if ((t2 == (TYPE_ANY | TYPE_MOD_ARRAY) && (t1 & TYPE_MOD_ARRAY)))
+	return 1;
+    if (t1 & TYPE_MOD_CLASS)
+	return t1 == t2;
+    if (t1 & TYPE_MOD_ARRAY) {
+	if (!(t2 & TYPE_MOD_ARRAY)) return 0;
+	return t1 == (TYPE_MOD_ARRAY | TYPE_ANY) ||
+	       t2 == (TYPE_MOD_ARRAY | TYPE_ANY) || (t1 == t2);
+    } else if (t2 & TYPE_MOD_ARRAY)
+	return 0;
+    if (compatible[t1] & (1 << t2))
+	return 1;
+    return compatible[t2] & (1 << t1);
 #endif
 }
 
@@ -854,7 +883,9 @@ char *get_type_name P1(int, type)
     }
     if (type & TYPE_MOD_CLASS) {
 	strcat(buff, "class ");
-	strcat(buff, PROG_STRING(CLASS(type & ~TYPE_MOD_CLASS)->name));
+	/* we're sometimes called from outside the compiler */
+	if (current_file)
+	    strcat(buff, PROG_STRING(CLASS(type & ~TYPE_MOD_CLASS)->name));
     } else {
 	DEBUG_CHECK(type >= sizeof compiler_type_names / sizeof compiler_type_names[0], "Bad type\n");
 	strcat(buff, compiler_type_names[type]);
@@ -1193,9 +1224,11 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 
 		CREATE_NUMBER(node, args->r.expr->v.expr->l.number);
 		ret = throw_away_call(args->r.expr->v.expr);
-		CREATE_TWO_VALUES(repl, TYPE_NUMBER, ret, node);
-		
-		return repl;
+		if (ret) {
+		    CREATE_TWO_VALUES(repl, TYPE_NUMBER, ret, node);
+		    return repl;
+		} else
+		    return node;
 	    }
 	}
 
@@ -1252,7 +1285,7 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 		/* this can happen for default args */
 		if (!enode->v.expr) break;
 		tmp = enode->v.expr->type;
-		for (i=0; !compatible_types(argp[i], tmp) && argp[i] != 0; i++)
+		for (i=0; !compatible_types(tmp, argp[i]) && argp[i] != 0; i++)
 		    ;
 
 		if (argp[i] == 0) {

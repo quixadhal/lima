@@ -56,7 +56,7 @@ static void goto_menu(MENU);
 static void display_current_menu();
 static void return_to_current_menu();
 static void prompt_then_return();
-static void finish_completion(int);
+private int finish_completion(int);
 
 
 MENU 	current_menu, previous_menu;
@@ -531,7 +531,7 @@ display_current_menu()
 	output += "   ";
     }
   output += "\n";
-  new(MORE_OB)->more_string(output);
+  this_user()->more(output);
 }
 
 
@@ -568,7 +568,7 @@ complete_choice(string input, string* choices, function f)
       modal_func((: finish_completion :),
 		 "[Enter number or r to return to menu] ");
       // Don't do this before the modal_func I'll bet...
-      new(MORE_OB)->more_string(output);
+      this_user()->more(output);
       completion_callback = f;
       cur_choices = matches;	
       return;

@@ -29,7 +29,8 @@ static int execute_command(string * argv, string original_input)
     winner = CMD_D->find_cmd_in_path(argv[0], ({ CMD_DIR_PLAYER "/" }));
     if ( !winner )
     {
-	this_body()->do_game_command(original_input);
+	if (!this_body()->do_game_command(original_input))
+	    write(this_body()->nonsense());
 	return 1;
     }
 

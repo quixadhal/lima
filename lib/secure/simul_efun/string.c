@@ -314,10 +314,6 @@ string truncate( string s, int length )
 int is_letter(int c)
 {
   return strsrch(lowercase+uppercase,c) != -1;
-
-
-
-
 }
 
 string format_list(string array list, string separator) {

@@ -1,5 +1,7 @@
 // file: globals.h
 
+#include "tests.h"
+
 #define SINGLE_DIR "/single"
 #define CONFIG_DIR "/etc"
 #define LOG_DIR    "/log"

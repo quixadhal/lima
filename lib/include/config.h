@@ -7,17 +7,14 @@
 #include "config_combat.h"
 // -----------------------------------------------------------
 
-#define mud_name()		MUD_NAME
-#define driver_version()	__VERSION__
-
-/* You don't have permission to change the next 2 lines w/o our consent.*/
+/* You don't have permission to change the next 2 lines w/o our consent. */
 #define lib_name()		"Lima"
-#define lib_version()		"0.9r5 (pre-alpha)"
+#define lib_version()		"0.9r6 (pre-alpha)"
 
 /* changes these as you please */
 #define lib_status()		"mudlib development"
 #define __HOST__		"lima.imaginary.com"
-#define ADMIN_EMAIL		"rust@virginia.edu or gstein@svpal.org"
+#define ADMIN_EMAIL		"user@host.name"
 
 #define START			"/domains/std/wizroom"
 
@@ -36,9 +33,10 @@
 # define USE_GUILDS
 # define USE_SKILLS
 # define USE_TITLES
+//# define USE_SIMPLE_LEVEL	// use the simple level number scheme for players
 #endif
 
-#undef NO_NEW_PLAYERS
+#undef NO_NEW_PLAYERS			/* disallow character creation */
 #define LOGIN_NAME_WAIT		300	/* seconds to wait for a name */
 #define LOGIN_PASSWORD_WAIT	180	/* seconds for the password */
 
@@ -67,16 +65,14 @@
 #define LINK_PATH(x)		sprintf("/data/links/%c/%s",x[0],x)
 #define USER_PATH(x)		sprintf("/data/players/%c/%s",x[0],x)
 #define PRELOAD_FILE		"/data/config/preload"
-#undef RCS_SERVER		"quendor"
 
 #define WIZ_DIR			"/wiz"
 #define LOG_DIR			"/log"
 
 
-#define BANISH_LOG			LOG_DIR "/banishes"
-#define WELCOME_FILE	"/data/config/WELCOME"
-#define NEW_PLAYER	"/data/config/NEW_PLAYER"
-#define MOTD_FILE	"/data/config/MOTD"
+#define BANISH_LOG		LOG_DIR "/banishes"
+#define WELCOME_FILE		"/data/config/WELCOME"
+#define NEW_PLAYER		"/data/config/NEW_PLAYER"
+#define MOTD_FILE		"/data/config/MOTD"
 
 #endif /* __CONFIG_H__ */
-

@@ -7,11 +7,12 @@ humanly possible.
 
 How to install Lima:
 
-1) You must compile the driver for your machine.
+1) You must compile the driver for your machine:
 	a) cd to the driver directory
-	b) type: ./build.MudOS
-	c) Type either "gmake install" or "make install", depending on
-	   what the last line of buld.MudOS tells you.
+	b) Type: ./build.MudOS
+	c) When it is done running, it will tell you to which make
+	   program to use: "make" or "gmake".  Type either "gmake install"
+	   or "make install", depending on which one it says.
 	d) When this is finished, you should have a driver and an
 	   addr_server in ../etc
 	
@@ -20,13 +21,15 @@ How to install Lima:
 	b) edit config.lima
 	c) follow the directions in the file
 
-3) Start your address server if one isn't running already:
+3) Start your address server if one isn't running already (type this while
+   you're in the "etc" directory):
 	./addr_server 9990 &
 
    Change the port number above as needed, ensuring that the config.lima
    file matches the command line used to start the address server.
 
-3) Start the driver with the command:
+3) Start the driver with the command (type this while in the "etc"
+   directory):
 	./driver config.lima &
 
    Your mud should now be starting up.  When it says:
@@ -35,8 +38,8 @@ How to install Lima:
    Then your mud is up.
 
 4) Log in to your mud.  Make sure you're the first person to do so --
-   whoever is first will become an admin.  After that, new users will
-   just be guest wizards.
+   whoever is first will become an admin!  After that, new users will
+   just be guest wizards (by default).
 
    Connect to the mud, type a name, password, etc.  Once you are logged
    in, you should be a full admin.  To verify this, type:
@@ -45,14 +48,29 @@ How to install Lima:
    It should come back with:
 	Verified.  You have privilege '1'
 
-5) You can convert other wizards after they log in into admins by adding
+5) Creating new admins;
+
+   You can convert other wizards after they log in into admins by adding
    them into the "admin" domain.  Use the "admtool" command for this.
 
-6) change any options you feel appropriate in /include/config.h
-   reboot the mud with the shutdown command to make those changes happen.
+6) Mudlib configuration:
+
+   Change any options you feel appropriate in /include/config.h.  You
+   MUST change the ADMIN_EMAIL define if you wish to use the Intermud
+   network.  The Intermud daemon will not load until you edit this line.
+
+   When you're done with any configuration changes, then shut down the
+   mud with the shutdown command.  Restart it, as described above, to
+   make those changes happen.
 
 7) You're done! Come see us on Lima Bean (lima.imaginary.com 7878) and
-   let us know how it went!
+   let us know how it went!  We are also keeping track of people who
+   are using the Lima Mudlib.  See our web pages at:
+
+	http://lima.imaginary.com/
+
+   Information is there on what and how to send us information for your
+   mud.  Thanx!
 
 8) If your machine has /bin/bash, you can modify LIMADIR in
    /etc/backup, /etc/startmud and /etc/keepup, and follow the usage

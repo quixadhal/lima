@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/* ### probably shouldn't be here (simul conversion) */
+//### probably shouldn't be here (simul conversion)
 #include <mudlib.h>
 #include <move.h>
 #include <hooks.h>
@@ -11,18 +11,19 @@ private object	last_location;
 
 void call_hooks(string, int);
 
-varargs int move(mixed dest, string where)
+varargs mixed move(mixed dest, string where)
 {
     object env;
     object tmp;
-    int ret;
+    mixed ret;
     mixed err;
 
 //:HOOK prevent_drop
 //A yes/no/error type hook that can be used to prevent the object from being
 //moved out of it's environment.  The error value is discarded.    
     err = call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
-    if (err == 0 || stringp(err)) return MOVE_NOT_ALLOWED;
+    if (err == 0) err = MOVE_PREVENTED;
+    if (stringp(err)) return err;
 
     if( stringp(dest) )
 	dest = load_object( dest );
@@ -30,10 +31,14 @@ varargs int move(mixed dest, string where)
     if (!objectp(dest)) return MOVE_NO_DEST;
 
     env=environment();
-    if (env && ret = env->release_object( this_object() ) )
-        return (ret == -1 ? ret : MOVE_NOT_RELEASED);
-    if (ret = dest->receive_object( this_object(), where ) )
-    {
+    if (env) {
+        ret = env->release_object( this_object() );
+        if (ret == 0) ret = MOVE_NOT_RELEASED;
+        if (stringp(ret)) return ret;
+    }
+    ret = dest->receive_object( this_object(), where );
+    if (ret == 0) ret = MOVE_NOT_RECIEVED;
+    if (stringp(ret)) {
 	if( env )
 	    env->update_capacity();
         return ret;

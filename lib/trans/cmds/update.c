@@ -17,14 +17,6 @@
 #include <daemons.h>
 inherit CMD;
 
-
-// Keep track of what we've done this round.  For technical reasons
-// involving virtual inheritance this can't be done globally.
-// Or maybe it can.  Who knows.  This is a kludge.
-
-// this probably isn't needed any more and should be removed :)
-mapping done;
-
 int do_update(string file, int deep);
 
 private void main(mixed *arg, mapping flags) {
@@ -44,10 +36,9 @@ private void main(mixed *arg, mapping flags) {
       return;
     }
 
-    done = ([]);
-
     if (flags["r"]) deep_up = 1;
     if (flags["R"]) deep_up = 2;
+    if (flags["z"]) deep_up = 3;
     file = arg[0];
     if (!file) file = this_body()->query_shell_ob()->get_variable("cwf");
     if (!file || file == "here") file = "/"+file_name(environment(this_body()));
@@ -76,7 +67,9 @@ private void main(mixed *arg, mapping flags) {
 	    }
 	}
     }
-    do_update(file,deep_up);
+    if (file[<2..<1] != ".c") file += ".c";
+    if (do_update(file,deep_up) < time())
+        write("No update necessary.\n");
 
     for (n=0; n<sizeof(obs); n++) {
 	if (obs[n]) obs[n]->move(file);
@@ -90,35 +83,40 @@ int do_update(string file, int deep)
     int master_flag;
     int i,n;
     string res;
-
+    int tmp;
+    int newest_inh = 0;
+    
     ob2 = find_object(file);
     if(ob2) {
 	if (deep) {
 	    obs = inherit_list(ob2);
 	    n = sizeof(obs);
 	    for (i=0; i<n; i++) {
-		if (done[obs[i]]) continue;
-		done[obs[i]] = 1;
-		do_update(obs[i], (deep==2?2:0));
+		tmp = do_update(obs[i], (deep>1?deep:0));
+		if (tmp > newest_inh) newest_inh = tmp;
 	    }
 	}
-	ob2->remove(1);		// pass 1: we're coming back soon
-	if(ob2) {
-	    destruct(ob2);
+	if (deep == 3) {
+	    mixed *info = stat(file);
+	    // the file itself.
+	    if (info[1] > newest_inh) newest_inh = info[1];
+
+	    // return if object isn't out of date.
+	    if (info[2] > newest_inh)
+		return info[2];
 	}
+	destruct(ob2, 1);      // pass 1: we're coming back soon
     }
-    res = catch(call_other(file,"???"));
-    if (res)
-	printf(file+": "+res);
-    else{
-	printf(file+": Updated and loaded.\n");
-    }
+    load_object(file);
+    if (file[0] != '/') file = "/" + file; // bug in inherit_list()
+    write(file +": Updated and loaded.\n");
+    return time();
 }
 
 int help()
 {
     write(wrap(
-	"Usage: update [-rR] <filename>\n"
+	"Usage: update [-rRz] <filename>\n"
 	"The update commands loads or reloads the specefied file.  If no "
 	"argument is given, the last file the wizard was working on is used "
 	"or the environment if there is no such file.  The update command "
@@ -126,6 +124,9 @@ int help()
 	"before.\nThe optional flags -r and -R will also update files "
 	"inherited by the file.  update -R will update this object, the "
 	"files that it inherits, any files that _those_ inherit, and so "
-	"on.  update -r just updates the files inherited by the object.\n"));
+	"on.  update -r just updates the files inherited by the object.  "
+	"update -z is the same as update -R, except that it only updates "
+	"files which are out of date with respect to their source or "
+	"objects they inherit.  Note that #includes are NOT checked.\n"));
     return 1;
 }

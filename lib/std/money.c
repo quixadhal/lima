@@ -50,6 +50,7 @@ mixed add_money(string type, int amount)
 }
 
 
+
 //   This function will return the current "types" of money you have
 //
 

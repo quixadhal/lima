@@ -58,6 +58,13 @@ map_ls_arrays(function f, mixed arr1, mixed arr2)
   return res;
 }
 
+private string path_join(string s1, string s2) {
+    if (s1[<1] == '/')
+	return s1 + s2;
+    else
+	return s1 + "/" + s2;
+}
+
 private void main(mixed argv, mapping flags)
 {
   string 	path;
@@ -71,9 +78,9 @@ private void main(mixed argv, mapping flags)
     argv[0] = glob(evaluate_path("./*"));
   else
     argv[0] = decompose(map(argv[0], (:is_directory($1) ?
-			  glob($1 + ($1[<1] == '/' ? "*" : "/*")): $1:)));
+			  glob(path_join($1, "*")) : $1 :)));
 
-#ifdef XMAX
+#ifdef XMAS
   uses_ansi = i_use_ansi();
 #else
   uses_ansi = 0;
@@ -84,6 +91,8 @@ private void main(mixed argv, mapping flags)
       info = ([]); is_dir = ([]); sizes = ([]);
       foreach(item in argv[0])
 	{
+//### This is cute, but it calls file_size() a number of times, when this
+//### info comes from stat().  [is_directory is a file_size call too]
 	  info[item] = stat(item);
 	  is_dir[item] = is_directory(item);
 	  sizes[item] = file_size(item);
@@ -100,7 +109,7 @@ private void main(mixed argv, mapping flags)
     {
       outarr = argv[0][path];
       // only make this once.
-      fullpatharr = map(outarr, (: $2 + ($2[<1] == '/' ? $1 :"/"+ $1) :), path);
+      fullpatharr = map(outarr, (: path_join($(path), $1) :));
 
       if(uses_ansi)
 	{
@@ -123,9 +132,10 @@ private void main(mixed argv, mapping flags)
       output += ansi(sprintf("%%^BOLD%%^%%^WHITE%%^%s%%^RESET%%^:\n%-#79s\n\n", 
 			     path, implode(outarr, "\n")));
     }
+  if (!sizeof(output))
+      output = "No matching files.";
 
-
-  new(MORE_OB)->more_string(output);
+  this_user()->more(output);
 }
 
 nomask int

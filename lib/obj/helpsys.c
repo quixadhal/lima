@@ -93,7 +93,7 @@ private nomask void parse_file(string fname)
 
     if ( directives["see"] )
     {
-	/* ### make this a bit more "in-your-face" ?? */
+//### make this a bit more "in-your-face" ??
 	lines += ({ "", "See also: " + directives["see"] });
     }
 }
@@ -149,7 +149,7 @@ private nomask void lookup_topic(string topic)
     {
 	write("\nSorry, there is no help on that topic (try: topics)\n\n");
 	unguarded(1, (: write_file, "/log/HELP_MISS",
-		      sprintf("%s: %s\n", this_user()->query_real_name(),
+		      sprintf("%s: %s\n", this_user()->query_userid(),
 			      topic) :) );
     }
     else if ( sizeof(files) == 1 )
@@ -158,13 +158,11 @@ private nomask void lookup_topic(string topic)
     }
     else
     {
-	/*
-	** ### need to devise a better scheme for presenting these.
-	** ### preferably, we can use the topic's "parent".  if one
-	** ### or more topics don't have parents, though... ??
-	** ### not to mention that we don't have their parents until
-	** ### we read the files.
-	*/
+//### need to devise a better scheme for presenting these.
+//### preferably, we can use the topic's "parent".  if one
+//### or more topics don't have parents, though... ??
+//### not to mention that we don't have their parents until
+//### we read the files.
 	
 	/* ack. must use a global to get the index to work */
 	i = 0;

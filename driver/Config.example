@@ -7,7 +7,7 @@
 ###############################################################################
 
 # name of this mud
-name : Basis
+name : testsuite
 
 # the address server is an external program that lets the mud translate
 # internet names to numbers (and vice versa).  select an unused port.
@@ -43,7 +43,7 @@ swap file : /single/swapfile
 debug log file : debug.log
 
 # This is an include file which is automatically #include'd in all objects
-global include file : <config.h>
+global include file : "/include/globals.h"
 
 # if an object is left alone for a certain time, then the
 # function clean_up will be called. This function can do anything,

@@ -14,7 +14,7 @@ private mapping errors = ([]);
 
 object compile_object(string path)
 {
-    /* ### virtual object stuff here */
+//### virtual object stuff here
     return 0;
 }
 
@@ -290,32 +290,22 @@ void log_error(string file, string message)
 	write_file(WIZ_DIR "/" + name + "/log", message);
 }
 
-int save_ed_setup(object who, int code) {
-    string file;
-
-    if (!intp(code))
-        return 0;
-    file = wiz_dir(who) + "/.edrc";
-    rm(file);
-    return write_file(file, code + "");
+private int save_ed_setup(object who, int code) {
+    who->set_ed_setup(code);
+    return 1;
 }
 
-int retrieve_ed_setup(object who) {
-    string file;
-    int code;
-
-    file = wiz_dir(who) + "/.edrc";
-    if (file_size(file) <= 0)
-        return 0;
-    sscanf(read_file(file), "%d", code);
-    return code;
+private int retrieve_ed_setup(object who) {
+    return who->query_ed_setup();
 }
 
 void destruct_env_of(object ob)
 {
     mixed error;
 
-    /* ### needs work to improve speed? */
+//### needs work to improve speed?
+//### Beek - why?  Is this known to be slow?  Is this still called anyway?
+//###        I don't think so.  Double check.
     if ( !ob->query_link() )
 	return;
 
@@ -365,7 +355,7 @@ object *parse_command_users()
     return users()->query_body();
 }
 
-string get_save_file_name(string file)
+string get_save_file_name(string file, object who)
 {
     file = "/" + file + "%";
     rm( file );
@@ -385,7 +375,7 @@ int valid_override(string file, string efun_name)
 	return 1;
     case "input_to":
     case "get_char":
-	return file == "/secure/modules/inputsys";
+	return file == "/secure/user/inputsys";
     }
     /*
     ** The simul efun ob can use efun:: all it wants.  Other objects are
@@ -470,7 +460,7 @@ mixed valid_write(mixed path, object caller, string call_fun)
 	       (this_user() ? this_user()->query_userid() : file_name(caller)) +
 	       ": attempted to write " + path + "\n");
 
-    printf("Bad file name: %s.\n",path);
+    printf("Permission denied: %s.\n",path);
     return 0;
 }
 
@@ -493,7 +483,7 @@ mixed valid_read(string path, object caller, string call_fun)
 	       (this_user() ? this_user()->query_userid() : file_name(caller)) +
 	       ": attempted to read " + path + "\n");
 
-    printf("Bad file name: %s.\n",path);
+    printf("Permission denied: %s.\n",path);
     return 0;
 }
 

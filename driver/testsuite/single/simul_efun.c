@@ -3,6 +3,38 @@
 
 #pragma show_error_context
 #include <globals.h>
+#include <lpctypes.h>
+
+int
+same(mixed x, mixed y) {
+    mixed r,s;
+
+    if (typeof(x) != typeof(y)) return 0;
+    switch (typeof(x)) {
+    case INT:
+    case STRING:
+    case OBJECT:
+    case FLOAT:
+	return x == y;
+    case MAPPING:
+	if (x == y) return 1; // speed up this case
+	if (sizeof(x) != sizeof(y)) return 0;
+	if (!same(keys(x), keys(y))) return 0;
+	if (!same(values(x), values(y))) return 0;
+	return 1;
+    case ARRAY:
+	if (x == y) return 1; // speed up this case
+	if (sizeof(x) != sizeof(y)) return 0;
+	for (int i = 0; i < sizeof(x); i++) {
+	    if (!same(x[i], y[i])) return 0;
+	}
+	return 1;
+    case BUFFER:
+    case FUNCTION:
+    case CLASS:
+	error("Not implemented.");
+    }
+}
 
 void
 cat(string file)
@@ -75,8 +107,8 @@ dump_variable(mixed arg)
        {
 	   rtn = "MAPPING\n" +
 	       implode(values(map_mapping(arg,
-					  (: sprintf("[%s] == %s", $1, $2) :))));
-	   return return;
+					  (: sprintf("[%s] == %s", $1, $2) :))), "\n");
+	   return rtn;
        }
   
      case FUNCTION:
@@ -105,8 +137,10 @@ string resolve_path(string curr, string newer) {
     case ".":
 	return curr;
 	
+#ifndef __NO_ENVIRONMENT__
     case "here":
 	return file_name(environment())+".c";
+#endif
 	
     default:
 	if (newer[0..1] == "~/") newer = user_path((string)this_player()->query_name()) + newer[2..];

@@ -588,14 +588,6 @@ filter_array P2(svalue_t *, arg, int, num_arg)
 	sp->u.arr = r;
     }
 }
-
-#ifdef FILTER_ARRAY
-void c_filter_array P5(svalue *, ret, svalue *, s0, svalue *, s1, svalue *, s2, svalue *, s3)
-{
-    error("c_filter_array needs to be written.\n");
-    /* TODO */
-}
-#endif
 #endif
 
 /* Unique maker

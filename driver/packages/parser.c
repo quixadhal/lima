@@ -553,6 +553,9 @@ static void free_words PROT((void)) {
 static void interrogate_object P1(object_t *, ob) {
     svalue_t *ret;
 
+    if (ob->pinfo->flags & PI_SETUP)
+	return;
+    
     DEBUG_P(("Interogating %s.", ob->name));
     
     DEBUG_PP(("[parse_command_id_list]"));
@@ -562,7 +565,11 @@ static void interrogate_object P1(object_t *, ob) {
 	parse_copy_array(ret->u.arr, &ob->pinfo->ids);
     } else ob->pinfo->num_ids = 0;
     if (ob->flags & O_DESTRUCTED) return;
+    /* in case of an error */
     ob->pinfo->flags |= PI_SETUP;
+    ob->pinfo->flags &= ~(PI_LIVING | PI_INV_ACCESSIBLE | PI_INV_VISIBLE);
+    ob->pinfo->num_adjs = 0;
+    ob->pinfo->num_plurals = 0;
 
     DEBUG_PP(("[parse_command_plural_id_list]"));
     ret = apply("parse_command_plural_id_list", ob, 0, ORIGIN_DRIVER);
@@ -671,6 +678,9 @@ static void add_to_hash_table P2(object_t *, ob, int, index) {
     parse_info_t *pi = ob->pinfo;
     hash_entry_t *he;
 
+    if (!pi) /* woops.  Dested during parse_command_users() or something
+	        similarly nasty. */
+	return;
     DEBUG_PP(("add_to_hash_table: %s", ob->name));
     for (i = 0; i < pi->num_ids; i++) {
 	he = add_hash_entry(pi->ids[i]);
@@ -756,7 +766,9 @@ static void load_objects PROT((void)) {
 	    if (ret->u.arr->item[i].type != T_OBJECT) continue;
 	    /* check if we got them already */
 	    ob = ret->u.arr->item[i].u.ob;
-	    env = ob->super;
+	    if (!(ob->pinfo))
+		continue;
+	    env = ob;
 	    while (env) {
 		if (env == parse_user->super)
 		    break;

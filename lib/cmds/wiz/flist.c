@@ -23,5 +23,5 @@ private void main( mixed *arg, mapping f)
 	sprintf("Function list for %s:\n%-79#s\n",
 	  file_name(target), implode(functions(target),"\n"));
 
-    clone_object(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }

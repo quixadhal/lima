@@ -22,8 +22,7 @@ create()
     set_adjectives( ({ "large" }) );
     set_in_room_desc( "\nThere is a large safe in the center of the room.");
 
-    set_gettable(-1);
-    set_getmsg("The safe is way too heavy for you to lift. \n");
+    set_gettable("The safe is way too heavy for you to lift. \n");
     set_locked("skeleton");
     set_closed(1);
     set_long("This is a very large safe");

@@ -15,7 +15,7 @@ inherit M_GLOB;
 
 private void main(mixed *arg)
 {
-    clone_object(MORE_OB)->more_files(filter(arg[0],(:is_file:)));
+    this_user()->more_file(filter(arg[0],(:is_file:)));
 }
 
 int help()

@@ -2362,7 +2362,7 @@ void save_ed_buffer P1(object_t *, who)
 
     push_string(P_FNAME, STRING_SHARED);
     push_object(who);
-    stmp = apply_master_ob(APPLY_GET_ED_BUFFER_SAVE_FILE_NAME, 2);
+    stmp = safe_apply_master_ob(APPLY_GET_ED_BUFFER_SAVE_FILE_NAME, 2);
     if (stmp && stmp != (svalue_t *)-1) {
 	if (stmp->type == T_STRING) {
 	    fname = stmp->u.string;

@@ -1,0 +1,2 @@
+single/efuns/query_ip_name.c line 3: Undefined variable 'this_player'
+single/efuns/query_ip_number.c line 3: Undefined variable 'this_player'

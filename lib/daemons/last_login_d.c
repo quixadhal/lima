@@ -7,7 +7,7 @@
 ** than with each user object so that we can review the information as a
 ** list without restoring a zillion objects.
 **
-** ### no security has been implemented.  Is any needed?
+//### no security has been implemented.  Is any needed?
 **
 ** 950930, Ranma@Koko Wa: log players entering and quitting the game
 ** 950608, Deathblade:  created

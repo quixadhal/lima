@@ -44,6 +44,6 @@ private void main(string arg)
       (sizeof(too_damn_long) ? ("\nSouls that are too damn long:\n" +
 				implode(too_damn_long,"\n")+"\n") : "") +
       sprintf(TRAILER, sizeof(list), count, sizeof(list) * 100 / count);
-    clone_object(MORE_OB)->more_string(str);
+    this_user()->more(str);
     return;
 }

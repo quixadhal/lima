@@ -1442,9 +1442,12 @@ call_function_pointer P2(funptr_t *, funp, int, num_arg)
 	    /* possibly we should add TRACE, OPC, etc here;
 	       also on eval_cost here, which is ok for just 1 efun */
 	    {
-		int j, n = instrs[i].min_arg;
+		int j, n = num_arg;
 		st_num_arg = num_arg;
-		
+
+		if (n >= 4 || instrs[i].max_arg == -1)
+		    n = instrs[i].min_arg;
+
 		for (j = 0; j < n; j++) {
 		    CHECK_TYPES(sp - num_arg + j + 1, instrs[i].type[j], j + 1, i);
 		}
@@ -3976,7 +3979,8 @@ int is_static P2(char *, fun, object_t *, ob)
  * frame set up. It is expected that there are no arguments. Returned
  * values are removed.
  */
-    
+/* used by heart_beat only now; should be looked at and generalized;
+   possible sefuns? */
 void call_function P2(program_t *, progp, function_t *, pr)
 {
     if (pr->flags & NAME_UNDEFINED)
@@ -3989,6 +3993,7 @@ void call_function P2(program_t *, progp, function_t *, pr)
     current_prog = progp;
     pr = setup_new_frame(pr);
     previous_ob = current_object;
+    current_object = current_heart_beat;
     tracedepth = 0;
     call_program(current_prog, pr->offset);
     pop_stack();

@@ -1,3 +1,65 @@
+Fri Nov  3 16:41:11 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a3
+	* updated with respect to v21.7b4
+	* couple changes to void handling, basically (int)->(void) is no longer
+	  legal.  The following are now errors:
+	  . int f(void x) { ... }
+	  . ... { void x; } ...
+	  . void x;
+	  . class foo { void x; }
+          . void f() { return 1; }
+	* defining a variable is now allowed in foreach, e.g.:
+	  . foreach (string x, object y in z)
+	* fixed a crasher in errors in parse_* callbacks
+
+Sun Oct  8 19:48:21 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a2
+	* updated with respect to v21.7b3
+	* COMPAT_BUSTER: previous_object() == 0 and not this_object() in
+	  heart_beats
+	* remove_call_out(/* no arg */) now returns 0 always, not -1
+	* fixed a bug in the replace_string() with all 5 arguments in
+	  some cases
+	* fixed a bug in restoring mappings which had arrays/mappings/
+	  floats as keys
+	* added some missing newlines to regexp() error messages
+	* fix to the center/left justify case for ints; remember to
+	  add the padding to the right side as well in sprintf()
+	* more testsuite efun tests; finished through 'sprintf()'
+	  or so
+	* made it illegal to undefine or redefine a global define like
+	  __VERSION__
+	* added a NO_RESETS option
+	* better error message for people who don't choose a malloc package
+	* fixed various crashers involving passing garbage back to the
+	  parser inside arrays
+	* fixed leak in sprintf() for printing recursive structures; attempting
+	  to do so no longer errors.
+
+Sun Oct  8 19:27:28 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a1
+	* removed some outdated code (c_filter() and f_creator())
+	* fixed a crasher in removing heart_beats during a heart_beat
+	* fixed a leak in call_outs with more than one extra argument
+	* fixed a leak in illegal arguments to call_stack()
+	* fixed set_light() to compile with NO_ENVIRONMENT (for the
+	  ultimate in bleeding edge uses of archaic efuns :) )
+	* added some checks to make compilation bomb more informatively
+	  if two malloc packages/wrappers are specified
+	* cleaned up the signal handling code a bit
+	* fixed compilation of the matrix package
+	* fixed compilation with NO_ENVIRONMENT and !NO_ADD_ACTION
+	* fixed compilation with DO_MSTATS and SYSMALLOC
+	* fixed testsuite to compile and work with either setting of
+	  INTERACTIVE_CATCH_TELL, NO_ADD_ACTION, PACKAGE_UIDS,
+	  NO_ENVIRONMENT, NO_WIZARDS, PRIVS
+	* revamped the testsuite efun tests, and added tests for most of
+	  the efuns 'a' through 'r' or so
+	* testsuite now logs compilation errors to /log/compile
+ 
+----------------------------------------------------------------------------
+v21.7a10 promoted to v21.7b1
+
 Fri Sep 22 22:51:20 EDT 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.7a10
 	* fixed a bug that caused case 0: to not work in string switches

@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+#include <move.h>
 
 inherit CMD;
 
@@ -15,8 +16,8 @@ private void main( mixed *arg ) {
 	return;
     }
     this_body()->do_player_message("clone", o);
-    if (o->get() <= 0 || o->move(this_body())) {
-	if (o->move(environment(this_body())))
+    if (o->get() || o->move(this_body()) != MOVE_OK) {
+	if (o->move(environment(this_body())) != MOVE_OK)
 	    printf("Ok. (It couldn't be moved.)\n");
 	else
 	    printf("Ok. (It is on the ground.)\n");

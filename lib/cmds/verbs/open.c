@@ -5,25 +5,14 @@
 
 inherit VERB_OB;
 
-mixed can_open_obj(object ob)
-{
-   return 1;
-}
-
-mixed can_open_up_obj(object ob) {
-    return 1;
-}
-
-mixed can_open_obj_with_obj(object ob1, object ob2) {
-    return 1;
-}
-
 /* open <something destroyable> with <weapon> */
 mixed direct_open_obj_with_obj(object ob1, object ob2) {
+    if (!ob1 || !ob2) return 0;
     return (ob1->test_flag(DESTROYABLE) && ob2->is_weapon());
 }
 
 mixed indirect_open_obj_with_obj(object ob1, object ob2) {
+    if (!ob1 || !ob2) return 0;
     return (ob1->test_flag(DESTROYABLE) && ob2->is_weapon());
 }
 

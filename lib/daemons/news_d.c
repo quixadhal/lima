@@ -129,11 +129,11 @@ private nomask int get_new_id(string group)
 
 private nomask void notify_users(string group, class news_msg msg)
 {
-    NCHANNEL_D->deliver_string("plyr_news",
-			       sprintf("[news] %s: %s [%s]\n",
-				       group,
-				       msg->subject[0..39],
-				       msg->poster));
+    NCHANNEL_D->deliver_channel("plyr_news",
+				sprintf("%s: %s [%s]",
+					group,
+					msg->subject[0..39],
+					msg->poster));
 }
 
 nomask int post(string group, string subject, string message)
@@ -266,7 +266,7 @@ nomask class news_msg get_message(string group, int id)
 	return 0;
 
     /* sigh */
-    /* ### oops... can't do this yet... leave this unsafe for now */
+//### oops... can't do this yet... leave this unsafe for now
 //    return copy(msg);
     return msg;
 }
@@ -380,7 +380,7 @@ nomask void archive_posts()
 	    if ( id == "next_id" )
 		continue;
 
-	    /* ### how to archive posts with strings as times? */
+//### how to archive posts with strings as times?
 	    if ( intp(msg->time) && msg->time < archive_time )
 		archive_post(group, id);
         }

@@ -36,7 +36,7 @@ nomask void set_shell_fname(string fname)
 {
     shell_fname = fname;
 
-    /* ### switch shells now? */
+//### switch shells now?
 }
 
 nomask object query_shell_ob()

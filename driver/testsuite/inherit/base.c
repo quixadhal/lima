@@ -11,16 +11,15 @@ remove()
 	destruct(this_object());
 }
 
+#ifndef __NO_ENVIRONMENT__
 int
 move(mixed dest)
 {
 	// add code here to prevent disallowed moves (target is full, object
-	// is immovable, etc.).  Also update attributes of source and target
-	// objects.  Note: /inherit/master/valid.c:valid_override() is
-	// currently
-	// set up to restrict calls to move_object() to this file only.
+	// is immovable, etc.).
 	move_object(dest);
 }
+#endif
 
 void
 set_ids(string *arg)

@@ -44,6 +44,9 @@
 #ifdef INCL_VALUES_H
 #  include <values.h>
 #endif
+#ifdef INCL_LIMITS_H
+#  include <limits.h>
+#endif
 
 #ifdef LATTICE
 #  undef VOID

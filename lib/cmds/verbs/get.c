@@ -30,37 +30,26 @@ mixed can_get_obj_with_obj(object ob1, object ob2) {
 // no multiple object support yet 
 private nomask void get_one(object ob, object with_ob)
 {
-    switch ( with_ob ? ob->get_with(with_ob) : ob->get() )
-    {
-    case 0:
-	write("You aren't able to take it.\n");
-	break;
-
-    case -1:
-	break;		/* get handled it's own message */
-
-    case 1:
-	switch( ob->move(this_body()) )
-	{
-	case MOVE_OK:
-	    write("Taken.\n");
-	    ob->set_flag(TOUCHED);
-	    this_body()->other_action("$N $vget a $o.\n", ob);
-	    break;
-
-	case MOVE_NO_ROOM:
-	    write("Your load is too heavy.\n");
-	    break;
-
-	case -1:
-	    break;
-
-	default:
-	    write("you aren't able to take it.\n");
-	    break;
-	}
-	break;
+    mixed msg = ( with_ob ? ob->get_with(with_ob) : ob->get() );
+    mixed tmp;
+    
+    if (!msg) msg = "You aren't able to take it.\n";
+    if (stringp(msg)) {
+	write(msg);
+	return;
     }
+
+    tmp = ob->move(this_body());
+    if (tmp == MOVE_OK) {
+	write("Taken.\n");
+	ob->set_flag(TOUCHED);
+	this_body()->other_action("$N $vtake a $o.\n", ob);
+	return;
+    }
+
+    if (tmp == MOVE_NO_ROOM) tmp = "Your load is too heavy.\n";
+    if (!tmp) tmp = "That doesn't seem possible.\n";
+    write(tmp);
 }
 
 void do_get_obj(object ob) {

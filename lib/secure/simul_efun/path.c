@@ -69,9 +69,11 @@ walk_dir( string path, function func, mixed arg )
  * Given a path name with the usual . or .. operands, it will parse and
  * return a path based of callers current working directory.
  *
-* Justice@Pandora, ZorkMUD
+ * Justice@Pandora, ZorkMUD
  *
  * Sep 4, 1993
+ *
+ * Rewritten by Beek to be more efficient.
  */
 
 private string array

@@ -16,6 +16,13 @@
 // Beek & Rust have both done a bit of work on this since....
 // August 24 - Beek added light
 // Sept. 5 - Yaynu added weather settings
+// Satan@ArcadiaF 10-29-95 Added the OBVIOUS_EXITS_BOTTOM, casue I don't like
+//      the way the exits look on the top, and Beek didn't want to fix it.
+// Satan@ArcadiaF 10-30-95 Added set_dark_exits(). This makes a list that
+//      of exits that are hidden from all in the room.
+//      Wizards can see DARK_EXITS as they are denoted with a *name format.
+// 951113, Deathblade: renamed "dark exits" to "hidden exits"
+//		       removed some obsolete vars; made them all private
 
 #include <mudlib.h>
 #include <playerflags.h>
@@ -30,18 +37,16 @@ inherit __DIR__ "room/weather";
 
 // global vars
 
-static int DEF_ITEM = 1;
-int rbits;
-int xtra_flags;
-string base;
-string remote_desc;
-private mixed def_exit;
-mapping exits = ([]);
-mapping items = ([]);
-mapping exit_msg = ([]);
-mapping enter_msg = ([ ]);
-int total_light;
-string map_type;
+private static string base;
+private static string remote_desc;
+private static mixed def_exit;
+private static mapping exits = ([]);
+private static string array hidden_exits = ({});
+private static mapping exit_msg = ([]);
+private static mapping enter_msg = ([ ]);
+private static mapping items = ([]);
+private static int total_light;
+private static string map_type;
 
 //:FUNCTION query_lit
 //Return the amount of light visible in this room
@@ -128,8 +133,15 @@ string show_exits()
 {
     string exit_str;
     string* exit_names;
-    exit_names = keys(exits);
+
+    exit_names = keys(exits) - hidden_exits;
     exit_str = ((sizeof(exit_names)) ? implode(exit_names,", ") : "none");
+
+    if ( wizardp(this_user()) && sizeof(hidden_exits) )
+    {
+       exit_str += ", *" + implode(hidden_exits, ", *");
+    }
+
     return exit_str;
 }
 
@@ -211,16 +223,25 @@ string print_map()
 
 //### either remove support for this or have a better interface than global
 //### vars
-string query_enter_msg(string arg){
+string query_enter_msg(string arg)
+{
     return enter_msg[arg]; 
 }
 
-nomask string long()
+private string long()
 {
+#ifdef OBVIOUS_EXITS_BOTTOM
+    return sprintf("%s%s\nObvious Exits: %s\n%s",
+                   container::simple_long(),
+                   weather(),
+                   show_exits(),
+                   show_objects());
+#else
     return sprintf("%s%s%s",
 		   container::simple_long(),
 		   weather(),
 		   show_objects());
+#endif
 }
 
 int move_player(string dest, string arg) {
@@ -231,8 +252,9 @@ int move_player(string dest, string arg) {
 
     if ((r = this_body()->move(dest)) != MOVE_OK)
 	if ((r = this_body()->move(evaluate_path(base + dest))) != MOVE_OK) {
+//### does notify_fail still work?  Should it be here anyway?
 	    notify_fail("You remain where you are.\n");
-	    return r;
+	    return r == MOVE_OK;
 	}
     env = environment(this_body());
     if (this_body()->test_flag(F_DISPLAY_PATH))
@@ -252,7 +274,7 @@ int move_player(string dest, string arg) {
     } else {
 	tell_room(this_object(), txt, ({ this_body() }) );
     }
-    return r;
+    return r == MOVE_OK;
 }
 
 /*
@@ -270,21 +292,21 @@ int evaluate_destination(mixed dest, string arg) {
 	    if (intp(foo) && !foo) return 0;
 	    if (intp(foo)) i+=foo;
 	    if (stringp(foo)) {
-		if (!move_player(foo, arg)) return 1;
+		if (move_player(foo, arg)) return 1;
 		i++;
 	    }
 	    if (functionp(foo)) {
 		tmp = evaluate(foo);
 		if (!tmp) return 0;
 		if (stringp(tmp)) {
-		    if (!move_player(tmp, arg)) return 1;
+		    if (move_player(tmp, arg)) return 1;
 		    i++;
 		} else i+=tmp;
 	    }
 	}
 	return 1;
     } else {
-	return !move_player(dest, arg);
+	return move_player(dest, arg);
     }
 }
 
@@ -292,7 +314,7 @@ int go_somewhere(string arg) {
     string dest;
     int ret;
 
-    if (!(dest = exits[arg])){
+    if (!(dest = exits[arg])) {
 	if (dest = def_exit) {
 	    ret = evaluate(dest);
 	    if (stringp(ret))
@@ -311,14 +333,21 @@ int go_somewhere(string arg) {
     return ret;
 }
 
-void add_exits(mapping new_exits) {
-    if (!mapp(new_exits)) return;
-    exits += new_exits;
+//:FUNCTION add_exit
+//Adds a single exit to the room.  The direction should be an exit name,
+//and the value should be a filename or a more complex structure as
+//described in the exits doc.
+void add_exit(mixed direction, mixed value)
+{
+    exits[direction] = value;
 }
 
-void delete_exits(mapping old){
-    if (!mapp(old)) return;
-    exits -= old;
+//:FUNCTION delete_exit
+//Remove a single exit from the room.  The direction should be an exit
+//name.
+void delete_exit(mixed direction)
+{
+    map_delete(exits, direction);
 }
 
 //:FUNCTION set_exits
@@ -327,32 +356,45 @@ void delete_exits(mapping old){
 //exits doc
 void set_exits( mapping new_exits )
 {
-    if(mapp(new_exits)) exits = new_exits;
+    if ( mapp(new_exits) )
+	exits = new_exits;
 }
 
-string query_name(){ return "the ground"; }
+//:FUNCTION set_hidden_exits
+//This is the list of exits to NOT be shown to the mortals in the room.
+void set_hidden_exits( string array exits_list )
+{
+    if ( arrayp(exits_list) )
+	hidden_exits = exits_list;
+}
+
+string query_name()
+{
+    return "the ground";
+}
 
 //### I think this should be torched :-)
 // I don't.
 // This should be overloaded if you want to be able to give different
 //descs from different rooms
-void
-remote_look(object o)
+void remote_look(object o)
 {
-	if(remote_desc)
-	{
-			printf("%s\n", remote_desc);
-	}
-	else
-	{
-		printf("You can't seem to make out anything.\n");
-	}
+    if ( remote_desc )
+    {
+	printf("%s\n", remote_desc);
+    }
+    else
+    {
+	printf("You can't seem to make out anything.\n");
+    }
 }
 
-string query_base() { return base; }
-
+string query_base()
+{
+    return base;
+}
 
 void set_remote_desc(string s)
 {
-	remote_desc = s;
+    remote_desc = s;
 }

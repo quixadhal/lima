@@ -291,9 +291,8 @@ void svalue_to_string P5(svalue_t *, obj, outbuffer_t *, outbuf, int, indent, in
     int i;
 
     /* prevent an infinite recursion on self-referential structures */
-    if (indent > 200) {
-	FREE_MSTR(outbuf->buffer);
-	error("structure too deep to print.\n");
+    if (indent > 20) {
+	outbuf_add(outbuf, "...");
 	return;
     }
     if (!indent2)
@@ -944,8 +943,6 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 		    finfo |= INFO_T_STRING;
 		    break;
 		case 'd':
-		    finfo |= INFO_T_INT;
-		    break;
 		case 'i':
 		    finfo |= INFO_T_INT;
 		    break;
@@ -1233,7 +1230,8 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 			if (tmpl < fs)
 			    add_justified(temp, pad, fs, finfo,
 					  (((format_str[fpos] != '\n') && (format_str[fpos] != '\0'))
-					   || ((finfo & INFO_ARRAY) && (nelemno < (argv + arg)->u.arr->size))));
+					   || ((finfo & INFO_ARRAY) && (nelemno < (argv + arg)->u.arr->size)))
+					  || temp[tmpl - 1] != '\n');
 			else
 			    for (i = 0; i < tmpl; i++)
 				ADD_CHAR(temp[i]);

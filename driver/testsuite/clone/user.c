@@ -8,14 +8,13 @@ inherit BASE;
 
 private string name;
 
-// replace this with a functioning version.
-
-string
-process_input(string arg)
-{
-	// possible to modify player input here before driver parses it.
-	return arg;
+#ifdef __INTERACTIVE_CATCH_TELL__
+void catch_tell(string str) {
+    receive(str);
 }
+#endif
+
+// replace this with a functioning version.
 
 string
 query_cwd()
@@ -56,6 +55,29 @@ id(string arg)
 	return (arg == query_name()) || base::id(arg);
 }
 
+#ifdef __NO_ADD_ACTION__
+void
+process_input(string arg) {
+    string *parts = explode(arg, " ");
+    string verb = sizeof(parts) ? parts[0] : "";
+    string rest = implode(parts[1..], " ");
+    string cmd_path = COMMAND_PREFIX + verb;
+    object cobj = load_object(cmd_path);
+
+    if (cobj) {
+		return (int)cobj->main(rest);
+    } else {
+		// maybe call an emote/soul daemon here
+    }
+}
+#else
+string
+process_input(string arg)
+{
+	// possible to modify player input here before driver parses it.
+	return arg;
+}
+
 int
 commandHook(string arg)
 {
@@ -87,13 +109,16 @@ init()
 		add_action("commandHook", "", 1);
 	}
 }
+#endif
 
 // create: called by the driver after an object is compiled.
 
 void
 create()
 {
-	seteuid(0); // so that login.c can export uid to us
+#ifdef __PACKAGE_UIDS__
+    seteuid(0); // so that login.c can export uid to us
+#endif
 }
 
 // receive_message: called by the message() efun.
@@ -112,11 +137,19 @@ void
 setup()
 {
     set_heart_beat(1);
-	seteuid(getuid(this_object()));
+#ifdef __PACKAGE_UIDS__
+    seteuid(getuid(this_object()));
+#endif
+#ifndef __NO_WIZARDS__
+    enable_wizard();
+#endif
+#ifndef __NO_ADD_ACTION__
     set_living_name(query_name());
-	enable_commands();
-	enable_wizard();
+    enable_commands();
     add_action("commandHook", "", 1);
+#else
+    set_this_player(this_object());
+#endif
 }
 
 // net_dead: called by the gamedriver when an interactive player loses
@@ -125,8 +158,10 @@ setup()
 void
 net_dead()
 {
-	set_heart_beat(0);
+    set_heart_beat(0);
+#ifndef __NO_ENVIRONMENT__
     tell_room(environment(), query_name() + " is link-dead.\n");
+#endif
 }
 
 // reconnect: called by the login.c object when a netdead player reconnects.
@@ -134,7 +169,9 @@ net_dead()
 void
 reconnect()
 {
-	set_heart_beat(1);
+    set_heart_beat(1);
+#ifndef __NO_ENVIRONMENT__
     tell_room(environment(), "Reconnected.\n");
     tell_room(environment(), query_name() + " has reconnected.\n");
+#endif
 }

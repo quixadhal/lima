@@ -201,9 +201,6 @@ SKTLOG("release_callback: err",err);
 
 private nomask void read_callback(int fd, mixed message)
 {
-    /* ### workaround an internal driver bug */
-    restore_variable("0");
-
 SKTLOG("read_callback: self",this_object());
 SKTLOG("read_callback: fd",fd);
     catch(evaluate(read_func, this_object(), message));
@@ -253,10 +250,7 @@ SKTLOG("send: # elem",sizeof(write_queue));
 	err = socket_write(fdOwned, message);
 SKTLOG("send: err",err);
 
-	/* ### workaround an internal driver bug */
-	restore_variable("0");
-
-	/* ### note: test for EEALREADY for now... need newer driver */
+//### note: test for EEALREADY for now... need newer driver
 	if ( err == EEALREADY )
 	{
 	    blocked = 1;
@@ -296,9 +290,6 @@ SKTLOG("write_callback: # elem",sizeof(write_queue));
 
 	err = socket_write(fd, write_queue[0]);
 SKTLOG("write_callback: err",err);
-
-	/* ### workaround an internal driver bug */
-	restore_variable("0");
 
 	/*
 	** Remove the item from the queue.  It has been written.

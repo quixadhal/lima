@@ -75,11 +75,14 @@ private nomask void send_message(string type, string target_mud,
         return;
 
     if ( this_user() )
-	orig_user = this_user()->query_real_name();
-    if(catch(router_socket->send(({ type, 5, mud_name(), orig_user,
-			       target_mud, target_user }) + message)))
-      write("Error, the router seems to be dead.\n"
-	    "Imud stuff isn't going to work till it's back up.\n");
+	orig_user = this_user()->query_userid();
+    if ( catch(router_socket->send(({ type, 5, mud_name(), orig_user,
+					  target_mud,
+					  target_user }) + message)))
+    {
+	write("Error, the router seems to be dead.\n"
+	      "Imud stuff isn't going to work till it's back up.\n");
+    }
 }
 
 static void send_to_router(string type, mixed * message)
@@ -117,7 +120,7 @@ if (message[0]!= "mudlist")
 
     if ( !dispatch[message[0]] )
     {
-	/* ### need logging facilities */
+//### need logging facilities
 
 	/* return an error packet */
 	send_message("error", message[2], message[3],
@@ -200,7 +203,19 @@ void create()
 {
     string err;
 
-    if (clonep()) destruct(this_object());
+    if ( clonep() )
+    {
+	destruct(this_object());
+	return;
+    }
+    if ( ADMIN_EMAIL == "user@host.name" )
+    {
+        write("ERROR:\n"
+	      "  The I3 daemon will not load until you set a proper ADMIN_EMAIL\n"
+	      "  value in /include/config.h\n");
+	destruct(this_object());
+	return;
+    }
 
     set_privilege(1);
 
@@ -249,11 +264,14 @@ private nomask void rcv_startup_reply(string orig_mud, string orig_user,
 {
     if ( message[0][0][0] != router_list[0][0] )
     {
-	/* ### need to disconnect and reconnect to new router */
+//### need to disconnect and reconnect to new router
     }
 
     router_list = message[0];
     password = message[1];
+
+    /* reset the reconnection timers so the next reconnect is 1 minute */
+    cancel_reconnection("router");
 }
 
 private nomask void rcv_error(string orig_mud, string orig_user,
@@ -272,10 +290,10 @@ private nomask void rcv_error(string orig_mud, string orig_user,
 		      sprintf("%s: %s\n%O\n", message[0], message[1],
 			      message[2]) :));
 
-	NCHANNEL_D->deliver_string("wiz_errors",
-				   iwrap(sprintf("[errors] I3 (%s): %s\n",
-						 message[0],
-						 message[1])));
+	NCHANNEL_D->deliver_channel("wiz_errors",
+				    sprintf("I3 (%s): %s\n",
+					    message[0],
+					    message[1]));
     }
 }
 

@@ -8,15 +8,9 @@
 #include <daemons.h>
 #include <commands.h>
 
-/* ### probably shouldn't be here (simul conversion) */
-// currently doesn't have to be here since we're #included in player which
-// inherits PARSER which inherits this
-
-
-
 object query_link();			// in /std/player.c
 string * query_path();			// in /std/player/path.c
-int move(object location);		// in /std/object/move.c
+string move(object location);		// in /std/object/move.c
 mixed expand_if_alias(string input);	// in /std/player/alias.c
 object query_mailer();			// in /std/player/mailbase.c
 
@@ -25,23 +19,14 @@ object query_mailer();			// in /std/player/mailbase.c
 string history_and_alias_processing( string arg );
 
 
-private static string * nonsense_msgs = ({
-"A valiant attempt.\n",
-"You can't be serious.\n",
-"Even a candle is not that dim!\n",
-"An interesting idea.\n",
-"What a concept!\n",
-"I think you've got better things to do.\n",
-"Get serious.\n",
-"Getting desperate?\n",
-});
+private static string * nonsense_msgs;
 
 string nonsense()
 {
-    return nonsense_msgs[random(sizeof(nonsense_msgs))];
+    if (!nonsense_msgs)
+	nonsense_msgs = MESSAGES_D->get_messages("nonsense");
+    return choice(nonsense_msgs);
 }
-
-
 
 varargs nomask int do_game_command(string str, int debug)
 {
@@ -106,6 +91,7 @@ varargs nomask int do_game_command(string str, int debug)
         write(result);
         return 1;
     }
+    return 0;
 }
 
 nomask void force_game_command(string str)
@@ -113,8 +99,8 @@ nomask void force_game_command(string str)
     object save_this_user = this_user();
 
     set_this_player(query_link());
-    do_game_command(str);
-    write(nonsense());
+    if (!do_game_command(str))
+	write(nonsense());
     set_this_player(save_this_user);
 }
 

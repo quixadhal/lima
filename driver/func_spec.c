@@ -204,7 +204,9 @@ void message(mixed, string, string | string * | object | object *,
     string lpc_info();
 #endif
 
+#ifndef NO_RESETS
     void set_reset(object, void | int);
+#endif
 
 #ifndef NO_SHADOWS
     object shadow(object, int default: 1);

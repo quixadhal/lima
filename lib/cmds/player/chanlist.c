@@ -55,7 +55,7 @@ private void main(string arg)
     s += implode(({ "" }) + keys(chanlist),
 		 (: $1 + fmt_imud_channel($2, $(chanlist)[$2]) :));
 
-    new(MORE_OB)->more_string(s);
+    this_user()->more(s);
     
     return;
 }

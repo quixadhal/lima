@@ -4,66 +4,39 @@
           date: 1993 November 8
 */
 
-inherit "/inherit/tests";
-
 #define TEST_STRING "ABC"
 
 buffer b;
 int i;
 
-int
-test(int which)
-{
-	string s;
+void do_tests() {
+    string s;
 
-	switch (which) {
-	case 0:
-		describe_test("string read_buffer(buffer b)");
-		s = read_buffer(b);
-		return (s == TEST_STRING);
-	break;
-	case 1:
-		describe_test("string read_buffer(buffer b, 0)");
-		s = read_buffer(b);
-		return (s == TEST_STRING);
-	break;
-	case 2:
-		describe_test("string read_buffer(buffer b, sizeof(b)-1)");
-		s = read_buffer(b, sizeof(b)-1);
-		return (s == TEST_STRING[i..i]);
-	break;
-	case 3:
-		describe_test("string read_buffer(buffer b, sizeof(b))");
-		s = read_buffer(b, sizeof(b));
-		return (s == 0);
-	break;
-	case 4:
-		describe_test("string read_buffer(buffer b, -sizeof(buffer))");
-		s = read_buffer(b, -sizeof(b));
-		return (s == TEST_STRING);
-	break;
-	case 5:
-		describe_test("string read_buffer(buffer b, -(sizeof(b)+1))");
-		s = read_buffer(b, -(sizeof(b) + 1));
-		return (s == 0);
-	break;
-	case 6:
-		describe_test("string read_buffer(buffer b, 1, 1)");
-		s = read_buffer(b, 1, 1);
-		return (s == TEST_STRING[1..1]);
-	break;
-	case 7:
-		describe_test("string read_buffer(buffer b, 1, sizeof(b))");
-		s = read_buffer(b, 1, sizeof(b));
-		return (s == TEST_STRING[1..i]);
-	break;
+    s = read_buffer(b);
+    ASSERT(s == TEST_STRING);
 
-	/* add cases here to handle reading from files */
+    s = read_buffer(b);
+    ASSERT(s == TEST_STRING);
 
-	default:
-	return -1;
-	break;
-	}
+    s = read_buffer(b, sizeof(b)-1);
+    ASSERT(s == TEST_STRING[i..i]);
+
+    s = read_buffer(b, sizeof(b));
+    ASSERT(s == 0);
+
+    s = read_buffer(b, -sizeof(b));
+    ASSERT(s == TEST_STRING);
+
+    s = read_buffer(b, -(sizeof(b) + 1));
+    ASSERT(s == 0);
+
+    s = read_buffer(b, 1, 1);
+    ASSERT(s == TEST_STRING[1..1]);
+
+    s = read_buffer(b, 1, sizeof(b));
+    ASSERT(s == TEST_STRING[1..i]);
+
+    /* add cases here to handle reading from files */
 }
 
 void
@@ -75,6 +48,6 @@ create()
 	limit = strlen(TEST_STRING);
 	b = allocate_buffer(limit);
 	for (j = 0; j < limit; j++) {
-		b[j] = TEST_STRING[j];
+	    b[j] = TEST_STRING[j];
 	}
 }

@@ -17,7 +17,7 @@ static private mapping group_map;
 void create()
 {
     group_map = ([
-    "admin" : ({ "beek", "deathblade","ohara","rust","zifnab",
+    "admin" : ({ "beek", "deathblade","ohara","rust","zifnab","zakk",
   }),
     "moderators" : ({
   }),

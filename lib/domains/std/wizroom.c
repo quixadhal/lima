@@ -11,9 +11,13 @@ create(){
     set_exits( ([
  "east" : "/domains/std/example_room1.c",
  "south" : "/domains/std/monster_room.c",
- "west" : "/domains/std/quiet_room.c"
+ "west" : "/domains/std/quiet_room.c",
+ "up" : "/domains/std/attic.c"
     ]) );
     set_default_exit( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales, and without foundation.  Exits to the east, south, and\nwest may prove more fruitful.\n");
+    set_objects( ([
+	   STAIRS : ({ 1, "/domains/std/attic", 0 })
+    ]) );
 }
 
 

@@ -101,7 +101,7 @@ varargs int generic_test_skill(string skill, object skill_user, float opposing_s
 #if 0
     return random(10) - 5 >= 0;
 #else
-// I think this is right, but should be checked. -Beek
+//###I think this is right, but should be checked. -Beek
     return random(10) - 5 >= total_skill;
 #endif
 }

@@ -10,14 +10,15 @@ inherit "/std/living/messages";
  * by a living object on LPmuds.  Note that find_living() won't
  * necessarily find it b/c the driver may not even know it's 
  * alive.  (Why the driver keeps track of livings is beyond me ...)
+ * [ed note: it doesn't any more; find_living() doesn't exist]
  * This is an object than can hold things and do actions.  If you
  * want it to be able to fight, inherit MONSTER instead.
  */
 
 create() {
-  container::create();
-  set_max_capacity(100);
-  set_def_msgs("living-default");
+    container::create();
+    set_max_capacity(100);
+    set_def_msgs("living-default");
 }
 
 string name;

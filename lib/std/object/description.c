@@ -184,7 +184,6 @@ int plural_id( mixed arg ){
 string *parse_command_id_list()
 {
     string * fake_ids;
-    string my_name;
 
     fake_ids = this_object()->fake_item_id_list();
     if ( !fake_ids )
@@ -193,7 +192,6 @@ string *parse_command_id_list()
     if ( !this_user() )
 	return ids + fake_ids;
 
-    my_name = this_user()->query_real_name();
     if ( !pointerp(ids) )
 	ids = ({ });
     return ids + fake_ids;
@@ -287,23 +285,7 @@ add_adj( string new_adj )
     parse_refresh();
 }
 
-static string *discarded_message = ({
-  "Someone has left %s lying on the ground.",
-  "It seems that someone has left %s lying here.",
-  "%s lies here, discarded.",
-  "%s lies at your feet.",
-  "Some luckless fool has left %s here.",
-  "%s lies here, abandoned.",
-});
-
-static string *plural_discarded_message = ({
-  "Someone has left %s lying on the ground.",
-  "It seems that someone has left %s lying here.",
-  "%s lie here, discarded.",
-  "%s lie at your feet.",
-  "Some luckless fool has left %s here.",
-  "%s lie here, abandoned.",
-});
+static string array discarded_message, plural_discarded_message;
 
 string untouched_long() {
     return untouched_long;
@@ -347,8 +329,10 @@ string show_in_room()
 
 	//	if( query_ob_flag( AUTO_IN_ROOM_DESC ) )
 
-	return sprintf( plural_discarded_message[random(sizeof(plural_discarded_message))],
-	  sprintf("%d %s", our_count, plural_short()));
+	if (!plural_discarded_message)
+	    plural_discarded_message = MESSAGES_D->get_messages("discarded-plural");
+	return sprintf( choice(plural_discarded_message),
+		       sprintf("%d %s", our_count, plural_short()));
     }
 
     if (!test_flag(TOUCHED) && (str = untouched_long()))
@@ -364,8 +348,10 @@ string show_in_room()
 
     //    if( query_ob_flag( AUTO_IN_ROOM_DESC ) )
 
-    return sprintf( discarded_message[random(sizeof(discarded_message))],
-      str );
+    if (!discarded_message)
+	discarded_message = MESSAGES_D->get_messages("discarded");
+    
+    return sprintf( choice(discarded_message), str );
 }
 
 //:FUNCTION set_in_room_desc

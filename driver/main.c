@@ -49,38 +49,29 @@ object_t *master_ob = (object_t *) -1;
 void init_addr_server();
 #endif				/* NO_IP_DEMON */
 
-#ifdef TRAP_CRASHES
 #ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_usr1 PROT((int));
-static void sig_term PROT((int));
-static void sig_int PROT((int));
-
-#ifndef DEBUG
-static void sig_hup PROT((int)),
-        sig_abrt PROT((int)),
-        sig_segv PROT((int)),
-        sig_ill PROT((int)),
-        sig_bus PROT((int)),
-        sig_fpe PROT((int)),
-        sig_iot PROT((int));
-
-#endif				/* DEBUG */
+#define SIGPROT PROT((int))
+#define PSIG(z) z P1(int, sig)
 #else
-static void sig_usr1 PROT((void));
-static void sig_term PROT((void));
-static void sig_int PROT((void));
+#define SIGPROT PROT((void))
+#define PSIG(z) z()
+#endif
+
+static void sig_fpe SIGPROT;
+
+#ifdef TRAP_CRASHES
+static void sig_usr1 SIGPROT;
+static void sig_term SIGPROT;
+static void sig_int SIGPROT;
 
 #ifndef DEBUG
-static void sig_hup PROT((void)),
-        sig_abrt PROT((void)),
-        sig_segv PROT((void)),
-        sig_ill PROT((void)),
-        sig_bus PROT((void)),
-        sig_fpe PROT((void)),
-        sig_iot PROT((void));
-
+static void sig_hup SIGPROT,
+        sig_abrt SIGPROT,
+        sig_segv SIGPROT,
+        sig_ill SIGPROT,
+        sig_bus SIGPROT,
+        sig_iot SIGPROT;
 #endif				/* DEBUG */
-#endif				/* SIGNAL_FUNC_TAKES_INT */
 #endif				/* TRAP_CRASHES */
 
 #ifdef DEBUG_MACRO
@@ -422,6 +413,9 @@ int main P2(int, argc, char **, argv)
     init_sockets();		/* initialize efun sockets           */
 #endif
     preload_objects(e_flag);
+#ifdef SIGFPE
+    signal(SIGFPE, sig_fpe);
+#endif
 #ifdef TRAP_CRASHES
 #ifdef SIGUSR1
     signal(SIGUSR1, sig_usr1);
@@ -440,9 +434,6 @@ int main P2(int, argc, char **, argv)
 #endif
 #ifdef SIGBUS
     signal(SIGBUS, sig_bus);
-#endif
-#ifdef SIGFPE
-    signal(SIGFPE, sig_fpe);
 #endif
 #ifndef LATTICE
     signal(SIGSEGV, sig_segv);
@@ -597,6 +588,11 @@ char *xalloc P1(int, size)
     return p;
 }
 
+static void PSIG(sig_fpe)
+{
+    signal(SIGFPE, sig_fpe);
+}
+
 #ifdef TRAP_CRASHES
 
 /* send this signal when the machine is about to reboot.  The script
@@ -604,11 +600,7 @@ char *xalloc P1(int, size)
    restart
  */
 
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_usr1 P1(int, sig)
-#else
-static void sig_usr1()
-#endif
+static void PSIG(sig_usr1)
 {
     push_string("Host machine shutting down", STRING_CONSTANT);
     push_undefined();
@@ -622,89 +614,46 @@ static void sig_usr1()
  * Actually, doing all this stuff from a signal is probably illegal
  * -Beek
  */
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_term P1(int, sig)
-#else
-static void sig_term()
-#endif
+static void PSIG(sig_term)
 {
     fatal("Process terminated");
 }
 
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_int P1(int, sig)
-#else
-static void sig_int()
-#endif
+static void PSIG(sig_int)
 {
     fatal("Process interrupted");
 }
 
 #ifndef DEBUG
-
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_segv P1(int, sig)
-
-#else
-static void sig_segv()
-#endif
+static void PSIG(sig_segv)
 {
     fatal("Segmentation fault");
 }
 
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_bus P1(int, sig)
-#else
-static void sig_bus()
-#endif
+static void PSIG(sig_bus)
 {
     fatal("Bus error");
 }
 
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_fpe P1(int, sig)
-#else
-static void sig_fpe()
-#endif
-{
-}
-
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_ill P1(int, sig)
-#else
-static void sig_ill()
-#endif
+static void PSIG(sig_ill)
 {
     fatal("Illegal instruction");
 }
 
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_hup P1(int, sig)
-#else
-static void sig_hup()
-#endif
+static void PSIG(sig_hup)
 {
     fatal("Hangup!");
 }
 
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_abrt P1(int, sig)
-#else
-static void sig_abrt()
-#endif
+static void PSIG(sig_abrt)
 {
     fatal("Aborted");
 }
 
-#ifdef SIGNAL_FUNC_TAKES_INT
-static void sig_iot P1(int, sig)
-#else
-static void sig_iot()
-#endif
+static void PSIG(sig_iot)
 {
     fatal("Aborted(IOT)");
 }
-
 #endif				/* !DEBUG */
 
 #endif				/* TRAP_CRASHES */

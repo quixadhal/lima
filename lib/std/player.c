@@ -14,30 +14,32 @@
 #include <setbit.h>
 #include <playerflags.h>
 #include <commands.h>
-
+#include <move.h>
 
 // Files we need to inherit --
 inherit MONSTER;
 //inherit M_GRAMMAR;
 inherit M_ACCESS;
 
-inherit "/std/player/quests";
-inherit "/std/player/mailbase";
-inherit "/std/player/newsdata";
-inherit "/std/player/path";
-inherit "/std/player/cmd";
-inherit "/std/player/help";
-inherit "/std/player/bodyshell";
-inherit "/std/player/wizfuncs";
+inherit __DIR__ "player/quests";
+inherit __DIR__ "player/mailbase";
+inherit __DIR__ "player/newsdata";
+inherit __DIR__ "player/path";
+inherit __DIR__ "player/cmd";
+inherit __DIR__ "player/help";
+inherit __DIR__ "player/bodyshell";
+inherit __DIR__ "player/wizfuncs";
 inherit "/std/money";
 
 #ifdef USE_SKILLS
-inherit "/std/player/skills";
+inherit __DIR__  "player/skills";
 #endif
 #ifdef USE_TITLES
-inherit "/std/player/title";
+inherit __DIR__ "player/title";
 #endif
-
+#ifdef USE_SIMPLE_LEVEL
+inherit __DIR__ "player/simple_level";
+#endif
 
 // Global variables --
 private string name = "guest";
@@ -46,7 +48,6 @@ private string invis_name;
 private string nickname;
 private string start_location;
 private string reply;
-private int more_chunk;
 private string * channel_list = ({ });
 private string plan;
 
@@ -87,7 +88,7 @@ string query_name()
     return cap_name;
 }
 
-nomask string query_real_name()
+nomask string query_userid()
 {
     return name;
 }
@@ -157,9 +158,9 @@ load_autoload() {
 	    ob = clone_object(auto_load[l]);
 	    ob->init_arg();  // Rust.  This should pass an arg?
 	    write("....");
-	    if (ob->move(this_object()))
-		if (ob->move(start_location))
-		    if (ob->move(START))
+	    if (ob->move(this_object()) != MOVE_OK)
+		if (ob->move(start_location) != MOVE_OK)
+		    if (ob->move(START) != MOVE_OK)
 			ob->remove();
 	}
     }
@@ -195,7 +196,7 @@ void init_cmd_hook()
 
     link = previous_object();
 
-    mailbox = MAIL_D->get_mailbox(query_real_name());
+    mailbox = MAIL_D->get_mailbox(query_userid());
 
     idx = mailbox->first_unread_message();
     if ( idx == -1 )
@@ -213,20 +214,14 @@ void init_cmd_hook()
 	add_id_no_plural(nickname);
 
     NCHANNEL_D->register_channels(channel_list);
-    NCHANNEL_D->deliver_string("wiz_announce", 
-			    sprintf("[announce] %s enters %s.\n",
-				    capitalize(name), mud_name()));
+    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+			      sprintf("enters %s.", mud_name()));
 
     set_mass(100);
     set_max_capacity(100);
 
     start_shell();
     load_autoload();
-
-#undef WORLD_IS_FLAT            
-#ifdef WORLD_IS_FLAT
-    call_out((: parse_sentence(name) :), 0);
-#endif
 }
 
 
@@ -234,7 +229,7 @@ void enter_game(int is_new)
 {
     init_cmd_hook();
 
-    if ( move(start_location) && move(START) )
+    if ( move(start_location) != MOVE_OK && move(START) != MOVE_OK )
     {
 	write("Uh-oh, you have no environment.\n");
 	return;
@@ -333,9 +328,9 @@ void remove()
 
     if ( ob = query_shell_ob() )
 	ob->remove();
-    MAIL_D->unload_mailbox(query_real_name());
+    MAIL_D->unload_mailbox(query_userid());
     unload_mailer();
-    LAST_LOGIN_D->register_last(query_real_name());
+    LAST_LOGIN_D->register_last(query_userid());
     if ( link )
     {
 	link->remove();
@@ -353,13 +348,16 @@ void quit()
 
     if (!test_flag(INVIS))
 	simple_action("$N $vhave left "+mud_name()+".\n");
+
     save_autoload();
-    NCHANNEL_D->deliver_string("wiz_announce", 
-			    sprintf("[announce] %s has left %s.\n",
-				    capitalize(name), mud_name()));
+
+    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+			      sprintf("has left %s.", mud_name()));
     NCHANNEL_D->unregister_all();
+
     if (environment() && !wizardp(link))
 	start_location = file_name(environment());
+
     remove();
 }
 
@@ -424,9 +422,8 @@ string query_reply(){ return reply; }
 void net_dead()
 {
     simple_action("$N $vhave gone link-dead.\n");
-    NCHANNEL_D->deliver_string("wiz_announce", 
-			    sprintf("[announce] %s has gone link-dead.\n",
-				    capitalize(name)));
+    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+			      sprintf("has gone link-dead.", mud_name()));
     call_out("remove",300);
     if(query_shell_ob()->get_variable("save_scrollback"))
       catching_scrollback = 1;
@@ -439,9 +436,9 @@ void reconnect()
     remove_call_out("remove");
     simple_action("$N $vhave reconnected.\n");
 
-    NCHANNEL_D->deliver_string("wiz_announce",
-			    sprintf("[announce] %s has reconnected.\n",
-				    capitalize(name)));
+    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+			      sprintf("has reconnected.", mud_name()));
+
     catching_scrollback = 0;
     if ( query_shell_ob() )
       query_shell_ob()->end_scrollback();
@@ -473,6 +470,19 @@ void die()
       "everyone up.  Oh well, you'll live.\n");
     rack_up_a_death();
     link->switch_body(GHOST, 1);
+
+#ifdef DEATH_MESSAGES
+    {
+	// another option is to choose the message here based on player level
+	// or something, instead of just letting action() pick at random.
+	// something like: 
+	//  action(({ this_object()}),
+	//     (MESSAGES_D->get_messages("player_death"))[query_level()/5])[1];
+	string msg = action(({this_object()}), 
+			    MESSAGES_D->get_messages("player-death"))[1];
+	(users() - ({ query_link() }))->tell(msg);
+    }
+#endif
 }
 
 
@@ -507,7 +517,10 @@ void set_description(string str) {
 }
 
 string our_description() {
-    return in_room_desc() + "\n" + describe +"\n";
+    if (describe)
+	return in_room_desc() + "\n" + describe +"\n";
+    else
+	return in_room_desc() + "\n" + cap_name + " is boring and hasn't described " + query_reflexive() + ".\n";
 }
 
 void set_nickname(string arg) {
@@ -558,14 +571,6 @@ private void create(string userid)
     cap_name = capitalize(userid);
     name = userid;
     unguarded(1, (: restore_object, USER_PATH(userid), 1 :));
-
-    if ( !describe )
-    {
-	describe = (cap_name +
-		    " is a boring player and hasn't described " +
-		    query_reflexive() + ".\n"
-		    );
-    }
 
     // up to the player
     set_attack_speed(0);
@@ -618,16 +623,35 @@ private nomask void catch_tell(string message)
       query_shell_ob()->add_scrollback(message);
 }
 
-/* ### temp hack. be both user and body */
+void tell(string message) {
+    tell_object(link, message);
+}
+
+//### temp hack. be both user and body
 nomask object query_body()
 {
     return this_object();
 }
+
 nomask mixed * query_failures()
 {
     return link->query_failures();
 }
+
 nomask void clear_failures()
 {
     return link->clear_failures();
+}
+
+nomask void more(mixed arg, int num) {
+    return link->more(arg, num);
+}
+
+nomask void more_file(mixed arg, int num) {
+    return link->more_file(arg, num);
+}
+
+/* verb interaction */
+mixed indirect_give_obj_to_liv(object ob, object liv) {
+    return 1;
 }

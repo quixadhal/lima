@@ -149,3 +149,9 @@ so these can be ignored, which requires a check every time current_line++
 is done ...
 
 There must be a better fix :)
+
+---
+
+({ x, y, z })[i] // constants
+
+should use throw_away_call()

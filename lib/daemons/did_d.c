@@ -55,7 +55,7 @@ void dump_did_info(int time, string * header, string pattern)
 					ctime(did[index][0]),
 					did[index][1])), "\n") + ({ "" });
     }
-    new(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }
 
 varargs void

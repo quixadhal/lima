@@ -15,6 +15,9 @@
 void create() {
     string badness = "";
 
+    if ( mud_name() == "Your Mud's name here" )
+	badness += "You must change your mud's name in config.lima\n";
+
 #ifndef __SANE_EXPLODE_STRING__
     need("#define SANE_EXPLODE_STRING");
 #endif

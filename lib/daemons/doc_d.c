@@ -20,8 +20,8 @@
 
 Rewritten by Beek; the equivalent of the above is now:
 
-[Start the comment at the left margin; these are indented so this daemon
- doesn't see these examples.]
+ [Start the comment at the left margin; these are indented so this daemon
+  doesn't see these examples.]
 
  //:MODULE
  //This is the description of this module.
@@ -79,7 +79,6 @@ void complete_rebuild() {
     scan_mudlib();
 }
 
-
 // Everything below here is
 private:
 // ---------------------------------------------------------------------
@@ -106,7 +105,7 @@ void process_file(string fname) {
     int idx = 0;
 
     rm("/help/autodoc/FIXME/" + mod_name(fname));
-    
+
     while (idx < sizeof(lines)) {
         if (lines[idx][2..4] == "###") {
             write_file("/help/autodoc/FIXME/" + mod_name(fname), lines[idx][5..] + "\n");
@@ -171,7 +170,14 @@ void continue_scan() {
     } else
     if (sizeof(files_to_do)) {
         printf("Updating docs for %s ...\n", files_to_do[0]);
-	process_file(files_to_do[0]);
+	/*
+	** We need an unguarded() for any writes that may occur... there
+	** is no user object, so protection checks will always fail.  This
+	** will terminate the checking at this daemon rather than fall
+	** off the stack and fail.  Note that we don't actually hit priv
+	** 1, but the maximum allowed.
+	*/
+	unguarded(1, (: process_file, files_to_do[0] :));
 	files_to_do[0..0] = ({ });
     } else {
         printf("Done.\n");

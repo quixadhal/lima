@@ -9,6 +9,8 @@
 ** SEP-NOV '94: Updated/revised by Deathblade (for all kinds of stuff).
 */
 
+//### Needs some work, I think.  Does it still work?
+
 #include <playerflags.h>
 #include <mudlib.h>
 #include <daemons.h>
@@ -109,7 +111,7 @@ private void Mh_cmd_help()
       "","Groups may also be mailed to, see help for groups on how to set them",
       "up.... you can mail to them like a regular name, or you can enclose"
       ,"The group in ().  Eg, Mm (admin) rust  will mail all the admins and rust."});
-    clone_object(MORE_OB)->more_string(output);
+    this_user()->more(output);
 }
 
 
@@ -133,8 +135,7 @@ nomask int parse_Mh_cmd(string input)
 {
     string	arg;
 
-    /* ### we need to validate the caller! */
-
+//### we need to validate the caller!
 
     if( strlen(input) > 2 && input[1] == ' ' )
 	arg = input[2..];

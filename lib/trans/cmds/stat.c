@@ -8,7 +8,7 @@
 // 
 // stat_me() {
 //  ::stat_me();
-//  if (this_user()->query_real_name()=="beek") {
+//  if (this_user()->query_userid()=="beek") {
 //    write("Debug info: i = "+i);
 //  }
 // }

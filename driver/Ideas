@@ -203,10 +203,6 @@ file; lex_loaded_inherit_hook() cues lex to just return L_ALREADY_LOADED
 as the next token (note: in deep inherits this could require a rather
 deep yacc stack)
 
-Use parse trees to simplify compile time optimizations.
-
-Rewrite strings to use counted strings (strlen and refcount).
-
 Set up grammar dir for pre-byacc'd and/or pre-bison'd parsers for people
   with broken 'yacc's.
 
@@ -265,30 +261,14 @@ should work.
 
 -----
 
-How about:
-
-private:
-
-int foo;
-
-void bar() { ... }
-
-need some way to turn it off, tho, since 'public' has a different meaning.
-(i.e. there is no specifier for the 'no modifier' state.)
-
------
-
-varargs foo(int bar, int *rest ... ) 
-
-foo(1, 2, 3) would give bar == 1, rest = ({ 2, 3 })
-
-Also allow foo( ({ 1, 2 })... ) ?
-
------
+maybe:
 
 foreach (i, x in ({ 1, 2 }))
 
 foreach (x in ([ 1 : 2, 3 : 4 ]))
+
+foreach (i, j in ({ 1, 2 }), ({ 3, 4, 5 }))
+   for parallel walking
 
 ---
 

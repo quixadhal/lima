@@ -334,12 +334,8 @@ void mark_svalue P1(svalue_t *, sv) {
 }
 
 static void mark_funp P1(funptr_t*, fp) {
-    svalue_t tmp;
-    if (fp->hdr.owner->extra_ref == 0 && fp->hdr.args) {
-	tmp.type = T_ARRAY;
-	tmp.u.arr = fp->hdr.args;
-	mark_svalue(&tmp);
-    }
+    if (fp->hdr.args)
+	fp->hdr.args->extra_ref++;
 
     fp->hdr.owner->extra_ref++;
     if ((fp->hdr.type & 0x0f) == FP_FUNCTIONAL) 
@@ -716,6 +712,10 @@ void check_all_blocks P1(int, flag) {
     master_ob->extra_ref++;
     simul_efun_ob->extra_ref++;
     for (ob = obj_list; ob; ob = ob->next_all) {
+	ob->extra_ref++;
+    }
+    /* objects on obj_list_destruct still have a ref too */
+    for (ob = obj_list_destruct; ob; ob = ob->next_all) {
 	ob->extra_ref++;
     }
     

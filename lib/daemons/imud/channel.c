@@ -53,7 +53,7 @@ nomask void channel_rcv_data(string channel_name,
 	break;
 
     case "soul":
-	/* ### need to work on using channel-t appropriately */
+//### need to work on using channel-t appropriately
 	data = data[1][<1];
 	if ( data[<1] == '\n' )
 	    data = data[0..<2];
@@ -91,7 +91,7 @@ static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 static nomask void rcv_chan_who_req(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
-    object * listeners = NCHANNEL_D->query_registered()["imud_" + message[0]];
+    object * listeners = NCHANNEL_D->query_listeners("imud_" + message[0]);
 
     if ( !listeners )
     {
@@ -152,9 +152,16 @@ static nomask void rcv_channel_e(string orig_mud, string orig_user,
 	return;
     }
 
-    filter_msg = 1;
+    /*
+    ** NOTE: we don't need to set filter_msg here.  The deliver_channel()
+    ** message will not pass these back to us.  Only the tell/emote/soul
+    ** will pass the data through to us.
+    */
     NCHANNEL_D->deliver_channel("imud_" + message[0],
-				replace_string(message[2], "$N", message[1]));
+				replace_string(message[2], "$N",
+					       sprintf("%s@%s",
+						       message[1],
+						       orig_mud)));
 }
 
 static nomask void rcv_channel_t(string orig_mud, string orig_user,

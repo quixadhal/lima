@@ -14,7 +14,8 @@
 
 string* complete(string partial, string* potentials)
 { 
-	return regexp(potentials, "^"+partial);
+    int n = sizeof(partial) - 1;
+    return filter(potentials, (: $1[0..$(n)] == $(partial) :));
 }
 
 //:FUNCTION case_insensitive_complete
@@ -31,15 +32,17 @@ string* case_insensitive_complete(string partial, string* potentials)
 
 mixed complete_user(string name)
 {
-  object* matches = filter(users(),(:strsrch($1->query_real_name(),lower_case($2)) != -1 :), name);
+    object* matches = filter(users(),
+			     (: strsrch($1->query_userid(),$2) != -1 :),
+			     lower_case(name));
 
-  switch(sizeof(matches))
+    switch(sizeof(matches))
     {
     case 0:
-      return 0;
+	return 0;
     case 1:
-      return matches[0]->query_real_name();
+	return matches[0]->query_userid();
     default:
-      return map(matches, (:$1->query_real_name():));
+	return map(matches, (: $1->query_userid() :));
     }
 }

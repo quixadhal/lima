@@ -24,7 +24,7 @@ private mapping mailbox = ([ ]);
 ** Flags for the mail
 */
 #define F_UNREAD	1
-/* ### code assumes zero/non-zero; fix if more flags are added */
+//### code assumes zero/non-zero; fix if more flags are added
 
 /*
 ** Who is this mailbox for?
@@ -150,7 +150,7 @@ nomask void delete_message(int message_key)
     save_me();
 }
 
-/* ### temp functions?  wait and see */
+//### temp functions?  wait and see
 
 nomask void receive_new_message(int message_key)
 {

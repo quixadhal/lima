@@ -59,8 +59,6 @@ string long(){
    return "They look just like "+pluralize(type)+".\n";
 }
 
-int get(){  return 1; }
-
 void create(){
    if(member_array(type,ids) == -1) ids+=({type});
    if(member_array("coin",ids)==-1)ids+=({"coin"});

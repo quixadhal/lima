@@ -13,7 +13,7 @@ private string invis_title;
 
 string in_room_desc();		/* in /std/player */
 object query_link();		/* in /std/player */
-string query_real_name();	/* in /std/player */
+string query_userid();		/* in /std/player */
 string query_idle_string();     /* in /std/player */
 string base_in_room_desc();     /* in /std/player */
 
@@ -45,7 +45,7 @@ int set_title(string str)
 	return -1;
 
     if ( !str )
-	title = sprintf("%s the title-less.", capitalize(query_real_name()));
+	title = sprintf("%s the title-less.", capitalize(query_userid()));
     else
-	title = replace_string(str,"$N", capitalize(query_real_name()));
+	title = replace_string(str,"$N", capitalize(query_userid()));
 }

@@ -36,7 +36,7 @@ object query_body() {
     return this_object();
 }
 
-static int valid_respond(string response){
+static int valid_respond(string response) {
   return active_script ? 0 : 1;
 }
 
@@ -44,6 +44,9 @@ object query_shell_ob() {
     return this_object();
 }
 
+//:FUNCTION do_game_command
+//Emulates handling of emotes and player commands for NPCs that inherit this
+//module.  E.g. do_game_command("wield sword").  do_game_command("smile hap*").
 static void do_game_command(string str) {
     object winner, save_tp;
     string verb, argument;
@@ -73,6 +76,14 @@ void do_respond() {
     response_queue = response_queue[1..];
 }
 
+//:FUNCTION respond
+//Does a command [using do_game_command] after a small delay.  This is the
+//best way to have NPCs react to events, as a slight delay makes it a bit
+//more believable, and also if you do things immediately, the action may
+//PRECEDE the thing you are responding to.  Example: Troll which attacks
+//anyone who says 'foo'.  I say 'foo', you and the troll are in the room.
+//If the message is delivered to the troll before you, the troll will attack
+//me BEFORE the message gets to you.
 void respond(string str) {
     if(!valid_respond(str))
       {
@@ -106,17 +117,18 @@ private void start_up() {
     }
 }
 
-// don't want people doing this to users ...
+//### Have set_actions() etc check if anyone is listening.
+
+//:FUNCTION set_actions
+//If you call set_actions(chance, actions), every 5 seconds, the monster has
+//a '1 in chance' probability of doing one of the commands from the array
+//of strings 'actions'.
 static void set_actions(int chance, string *actions) {
     cmd_mode = CMD_RANDOM;
     chance_or_delay = chance;
     my_actions = actions;
     start_up();
 }
-
-
-// This will be rewritten as soon as call_outs are.
-// By Rust.
 
 
 void cancel_all_scripts()

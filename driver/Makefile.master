@@ -91,6 +91,17 @@ OBJ=grammar.tab.o lex.o main.o rc.o interpret.o simulate.o file.o object.o \
 .c.o:
 	$(CC) $(CFLAGS) $(OPTIMIZE) -c $*.c
 
+# Some OS's can't deal with these being created during the make process?
+malloc.o: malloc.c
+
+mallocwrapper.o: mallocwrapper.c
+
+
+# Some OS's can't deal with these being created during the make process?
+malloc.o: malloc.c
+
+mallocwrapper.o: mallocwrapper.c
+
 lex.o: lex.c preprocess.c cc.h grammar.tab.c
 
 grammar.tab.o: grammar.tab.c opcodes.h
