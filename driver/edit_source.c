@@ -23,9 +23,11 @@
 #endif
 
 /* Using an include file at this point would be bad */
+#ifdef PEDANTIC
 char *malloc(int);
 char *realloc(char *, int);
 void free(char *);
+#endif
 
 char *outp;
 static int buffered = 0;
@@ -188,9 +190,9 @@ static void refill()
     register char *p, *yyp;
     int c;
 
-    if (fgets(p = yyp = defbuf + (DEFMAX >> 1), MAXLINE - 1, yyin)){
-      while (((c = *yyp++) != '\n') && (c != EOF)){
-          if (c == '/'){
+    if (fgets(p = yyp = defbuf + (DEFMAX >> 1), MAXLINE - 1, yyin)) {
+      while (((c = *yyp++) != '\n') && (c != EOF)) {
+          if (c == '/') {
               if ((c = *yyp) == '*') {
                   yyp = skip_comment(yyp, 0);
                   continue;
@@ -217,7 +219,7 @@ static void handle_define()
 
     q = namebuf;
     end = q + NSIZE - 1;
-    while (isalunum(*tmp)){
+    while (isalunum(*tmp)) {
 	if (q < end) *q++ = *tmp++;
 	else yyerror("Name too long.\n");
     }
@@ -235,11 +237,11 @@ static void handle_define()
 	} else {
             for (arg = 0; arg < NARGS;) {
                 end = (q = args[arg]) + NSIZE - 1;
-		while (isalunum(*tmp) || (*tmp == '#')){
+		while (isalunum(*tmp) || (*tmp == '#')) {
 		    if (q < end) *q++ = *tmp++;
 		    else yyerror("Name too long.\n");
 		}
-		if (q == args[arg]){
+		if (q == args[arg]) {
 		    char buff[200];
 		    sprintf(buff, "Missing argument %d in #define parameter list", arg + 1);
 		    yyerror(buff);
@@ -313,11 +315,11 @@ static void handle_define()
 
 #define SKPW while (isspace(*outp)) outp++
 
-static int cmygetc(){
+static int cmygetc() {
     int c;
 
-    for (;;){
-      if ((c = *outp++) == '/'){
+    for (;;) {
+      if ((c = *outp++) == '/') {
           if ((c = *outp) == '*') outp = skip_comment(outp, 0);
           else if (c == '/') return -1;
           else return c;
@@ -398,7 +400,7 @@ static int expand_define()
                         *q++ = c;
                   }
               }
-                if (!squote && !dquote){
+                if (!squote && !dquote) {
                     if ((c = cmygetc()) < 0) yyerror("End of macro in // comment");
               }
                 else c = *outp++;
@@ -443,7 +445,7 @@ static int exgetc()
     register char c, *yyp;
 
     SKPW;
-    while (isalpha(c = *outp) || c == '_'){
+    while (isalpha(c = *outp) || c == '_') {
       yyp = yytext;
       do {
           *yyp++ = c;
@@ -455,7 +457,7 @@ static int exgetc()
           if (*outp++ != '(') yyerror("Missing ( after 'defined'");
           SKPW;
           yyp = yytext;
-          if (isalpha(c = *outp) || c == '_'){
+          if (isalpha(c = *outp) || c == '_') {
               do {
                   *yyp++ = c;
               } while (isalnum(c = *++outp) || (c == '_'));
@@ -533,7 +535,7 @@ static int maybe_open_input_file P1(char *, fn) {
 	return 0;
     }
     if (current_file) free((char *)current_file);
-    current_file = malloc(strlen(fn) + 1);
+    current_file = (char *)malloc(strlen(fn) + 1);
     current_line = 0;
     strcpy(current_file, fn);
     return 1;
@@ -563,7 +565,7 @@ static char *protect P1(char *, p) {
     char *bufp = buf;
 
     while (*p) {
-	if (*p=='\"' || *p == '\\') *bufp++ = '\\';
+	if (*p=='"' || *p == '\\') *bufp++ = '\\';
 	*bufp++ = *p++;
     }
     *bufp = 0;
@@ -590,7 +592,7 @@ create_option_defines() {
 		    char *tmp, *t;
 		    
 		    len = strlen(p->name + 8);
-		    t = tmp = malloc(len + 1);
+		    t = tmp = (char *)malloc(len + 1);
 		    strcpy(tmp, p->name + 8);
 		    while (*t) {
 			if (isupper(*t))
@@ -609,11 +611,11 @@ create_option_defines() {
     close_output_file();
 }
 
-static void deltrail(){
+static void deltrail() {
     register char *p;
 
     p = outp;
-    while (*p && !isspace(*p) && *p != '\n'){
+    while (*p && !isspace(*p) && *p != '\n') {
       p++;
     }
     *p = 0;
@@ -655,7 +657,7 @@ handle_include P1(char *, name)
         is->next = inctop;
         inctop = is;
         current_line = 0;
-        current_file = malloc(strlen(name) + 1 /*, 62, "handle_include: 2" */);
+        current_file = (char *)malloc(strlen(name) + 1 /*, 62, "handle_include: 2" */);
         strcpy(current_file, name);
         yyin = f;
     } else {
@@ -686,7 +688,7 @@ preprocess() {
 	if (!buffered) current_line++;
 	else buffered = 0;
 	while (isspace(*yyp2)) yyp2++;
-	if ((c = *yyp2) == ppchar){
+	if ((c = *yyp2) == ppchar) {
 	    int quote = 0;
 	    char sp_buf = 0, *oldoutp;
 
@@ -699,8 +701,8 @@ preprocess() {
 	    for (;;) {
 		if ((c = *yyp2++) == '"') quote ^= 1;
 		else{
-		    if (!quote && c == '/'){
-			if (*yyp2 == '*'){
+		    if (!quote && c == '/') {
+			if (*yyp2 == '*') {
 			    yyp2 = skip_comment(yyp2, 0);
 			    continue;
 			}
@@ -721,7 +723,7 @@ preprocess() {
 	    *yyp = 0;
 	    yyp = defbuf + (DEFMAX >> 1) + 1;
 
-	    if (!strcmp("define", yyp)){
+	    if (!strcmp("define", yyp)) {
 		handle_define();
 	    } else if (!strcmp("if", yyp)) {
 		cond = cond_get_exp(0);
@@ -758,13 +760,13 @@ preprocess() {
 		handle_include(outp);
 	    } else if (!strcmp("pragma", yyp)) {
 		handle_pragma(outp);
-	    } else if (yyout){
-		if (!strcmp("line", yyp)){
+	    } else if (yyout) {
+		if (!strcmp("line", yyp)) {
 		    fprintf(yyout, "#line %d \"%s\"\n", current_line,
 			    current_file);
 		} else {
 		    if (sp_buf) *oldoutp = sp_buf;
-		    if (pragmas & PRAGMA_NOTE_CASE_START){
+		    if (pragmas & PRAGMA_NOTE_CASE_START) {
 			if (*yyp == '%') pragmas &= ~PRAGMA_NOTE_CASE_START;
 		    }
 		    fprintf(yyout, "%s\n", yyp-1);
@@ -775,34 +777,34 @@ preprocess() {
 		yyerror(buff);
 	    }
 	}
-	else if (c == '/'){
-	    if ((c = *++yyp2) == '*'){
+	else if (c == '/') {
+	    if ((c = *++yyp2) == '*') {
 		if (yyout) fputs(yyp, yyout);
 		yyp2 = skip_comment(yyp2, 1);
 	    } else if (c == '/' && !yyout) continue;
-	    else if (yyout){
+	    else if (yyout) {
 		fprintf(yyout, "%s", yyp);
 	    }
 	}
-	else if (yyout){
+	else if (yyout) {
 	    fprintf(yyout, "%s", yyp);
-	    if (pragmas & PRAGMA_NOTE_CASE_START){
+	    if (pragmas & PRAGMA_NOTE_CASE_START) {
 		static int line_to_print;
 		
 		line_to_print = 0;
 		
-		if (!in_c_case){
+		if (!in_c_case) {
 		    while (isalunum(*yyp2)) yyp2++;
 		    while (isspace(*yyp2)) yyp2++;
-		    if (*yyp2 == ':'){
+		    if (*yyp2 == ':') {
 			in_c_case = 1;
 			yyp2++;
 		    }
 		}
 		
-		if (in_c_case){
+		if (in_c_case) {
 		    while ((c = *yyp2++)) {
-			switch(c){
+			switch(c) {
 			  case '{':
 			    {
 				if (!cquote && (++block_nest == 1))
@@ -812,7 +814,7 @@ preprocess() {
 			    
 			  case '}':
 			    {
-				if (!cquote){
+				if (!cquote) {
 				    if (--block_nest < 0) yyerror("Too many }'s");
 				}
 				break;
@@ -831,10 +833,10 @@ preprocess() {
                             break;
 			    
 			  case '/':
-                            if (!cquote){
-                                if ((c = *yyp2) == '*'){
+                            if (!cquote) {
+                                if ((c = *yyp2) == '*') {
                                     yyp2 = skip_comment(yyp2, 1);
-                                } else if (c == '/'){
+                                } else if (c == '/') {
                                     *(yyp2-1) = '\n';
                                     *yyp2 = '\0';
                                 }
@@ -858,10 +860,10 @@ preprocess() {
 	    }
 	}
     }
-    if (iftop){
+    if (iftop) {
       ifstate_t *p = iftop;
 
-      while (iftop){
+      while (iftop) {
           p = iftop;
           iftop = p->next;
           free((char *)p);
@@ -872,7 +874,7 @@ preprocess() {
     free(current_file);
     current_file = 0;
     nexpands = 0;
-    if (inctop){
+    if (inctop) {
       incstate *p = inctop;
 
       current_file = p->file;
@@ -1100,6 +1102,59 @@ static void handle_build_efuns() {
     open_input_file(FUNC_SPEC_CPP);
     yyparse();
     make_efun_tables();
+}
+
+static handle_applies() {
+    FILE *f = fopen("applies", "r");
+    FILE *out = fopen("applies.h", "w");
+    FILE *table = fopen("applies_table.c", "w");
+    char buf[8192];
+    char *colon;
+    char *p;
+    int apply_number = 0;
+    
+    fprintf(out, "/* autogenerated from 'applies' */\n#ifndef APPLIES_H\n#define APPLIES_H\n\nextern char *applies_table[];\n\n/* the folowing must be the first character of __INIT */\n#define APPLY___INIT_SPECIAL_CHAR\t\t'#'\n");
+    fprintf(table, "/* autogenerated from 'applies' */\n\nchar *applies_table[] = {\n");
+    
+    while (fgets(buf, 8192, f)) {
+	buf[strlen(buf)-1] = 0;
+	if (buf[0] == '#') break;
+	if ((colon = strchr(buf, ':'))) {
+	    *colon++ = 0;
+	    fprintf(out, "#define APPLY_%-30s\t\"%s\"\n", buf, colon);
+	} else {
+	    fprintf(out, "#define APPLY_%-30s\t", buf);
+	    p = buf;
+	    while (*p) {
+		*p = tolower(*p);
+		p++;
+	    }
+	    fprintf(out, "\"%s\"\n", buf);
+	}
+    }
+    while (fgets(buf, 8192, f)) {
+	buf[strlen(buf)-1] = 0;
+	if ((colon = strchr(buf, ':'))) {
+	    *colon++ = 0;
+	    fprintf(table, "\t\"%s\",\n", colon);
+	    fprintf(out, "#define APPLY_%-30s\t%i\n", buf, apply_number++);
+	} else {
+	    fprintf(out, "#define APPLY_%-30s\t%i\n", buf, apply_number++);
+	    p = buf;
+	    while (*p) {
+		*p = tolower(*p);
+		p++;
+	    }
+	    fprintf(table, "\t\"%s\",\n", buf);
+	}
+    }
+    
+    fprintf(table, "};\n");
+    fprintf(out, "\n#define NUM_MASTER_APPLIES\t%i\n\n#endif\n", apply_number);
+
+    fclose(out);
+    fclose(table);
+    fclose(f);
 }
 
 static void handle_malloc() {
@@ -1374,6 +1429,7 @@ static void handle_configure() {
     check_include("INCL_SYS_WAIT_H", "sys/wait.h");
     check_include("INCL_SYS_CRYPT_H", "sys/crypt.h");
     check_include("INCL_CRYPT_H", "crypt.h");
+    check_include("INCL_MALLOC_H", "my_malloc.h");
 
     /* for NeXT */
     if (!check_include("INCL_MACH_MACH_H", "mach/mach.h"))
@@ -1550,6 +1606,9 @@ int main P2(int, argc, char **, argv) {
 	} else
 	if (strcmp(argv[idx], "-malloc")==0) {
 	    handle_malloc();
+	} else
+	if (strcmp(argv[idx], "-build_applies")==0) {
+	    handle_applies();
 	} else
 	if (strcmp(argv[idx], "-build_func_spec")==0) {
 	    handle_build_func_spec(argv[++idx]);

@@ -6,6 +6,7 @@
 #undef CUSTOM_CRYPT
 #undef SERVER_IP
 #undef SENSIBLE_MODIFIERS
+#undef USE_32BIT_ADDRESSES
 
 /*
 ** local_options for LIMA
@@ -433,7 +434,7 @@
  *   sent directly via add_message()).  This is useful if you want to
  *   build a smart client that does something different with snoop messages.
  */
-#undef RECEIVE_SNOOP
+#define RECEIVE_SNOOP
 
 /* PROFILE_FUNCTIONS: define this to be able to measure the CPU time used by
  *   all of the user-defined functions in each LPC object.  Note: defining

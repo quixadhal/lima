@@ -8,7 +8,7 @@
 
 #include <daemons.h>
 
-static private int weather;
+nosave private int weather;
 
 
 void set_weather(int new_weather)

@@ -52,23 +52,23 @@ OVERRIDES=$(MAKEOVERRIDES)
 # **** NOTE: If you add something here, also add it to the OBJ= rule below,
 # **** or non-GNU makes will die
 # **************************************************************************
-SRC=grammar.tab.c lex.c main.c rc.c interpret.c simulate.c file.c object.c \
+SRC=grammar$(TAB_EXT).c lex.c main.c rc.c interpret.c simulate.c file.c object.c \
   backend.c array.c mapping.c comm.c ed.c regexp.c swap.c buffer.c crc32.c \
   malloc.c mallocwrapper.c class.c efuns_main.c efuns_port.c \
   call_out.c otable.c dumpstat.c stralloc.c hash.c \
   port.c reclaim.c parse.c simul_efun.c sprintf.c program.c \
   compiler.c avltree.c icode.c trees.c generate.c scratchpad.c \
   socket_efuns.c socket_ctrl.c qsort.c eoperators.c socket_err.c md.c \
-  strstr.c disassembler.c binaries.c ualarm.c $(STRFUNCS) \
+  disassembler.c binaries.c $(STRFUNCS) \
   replace_program.c ccode.c cfuns.c compile_file.c master.c function.c \
-  debug.c crypt.c
+  debug.c crypt.c applies_table.c
 
 all: utils cc.h files main_build
 
+main_build: $(DRIVER_BIN) addr_server
 
-main_build: $(DRIVER_BIN) addr_server portbind
 
-OBJ=$(OBJDIR)\grammar.tab.obj $(OBJDIR)\lex.obj $(OBJDIR)\main.obj $(OBJDIR)\rc.obj $(OBJDIR)\interpret.obj \
+OBJ=$(OBJDIR)\grammar$(TAB_EXT).obj $(OBJDIR)\lex.obj $(OBJDIR)\main.obj $(OBJDIR)\rc.obj $(OBJDIR)\interpret.obj \
 	$(OBJDIR)\simulate.obj $(OBJDIR)\file.obj $(OBJDIR)\object.obj $(OBJDIR)\backend.obj $(OBJDIR)\array.obj \
 	$(OBJDIR)\mapping.obj $(OBJDIR)\comm.obj $(OBJDIR)\ed.obj $(OBJDIR)\regexp.obj $(OBJDIR)\swap.obj \
 	$(OBJDIR)\buffer.obj $(OBJDIR)\crc32.obj $(OBJDIR)\malloc.obj $(OBJDIR)\mallocwrapper.obj \
@@ -78,25 +78,25 @@ OBJ=$(OBJDIR)\grammar.tab.obj $(OBJDIR)\lex.obj $(OBJDIR)\main.obj $(OBJDIR)\rc.
 	$(OBJDIR)\program.obj $(OBJDIR)\compiler.obj $(OBJDIR)\avltree.obj $(OBJDIR)\icode.obj $(OBJDIR)\trees.obj \
 	$(OBJDIR)\generate.obj $(OBJDIR)\scratchpad.obj $(OBJDIR)\socket_efuns.obj $(OBJDIR)\socket_ctrl.obj \
 	$(OBJDIR)\qsort.obj $(OBJDIR)\eoperators.obj $(OBJDIR)\socket_err.obj $(OBJDIR)\md.obj \
-	$(OBJDIR)\strstr.obj $(OBJDIR)\disassembler.obj $(OBJDIR)\binaries.obj \
+	$(OBJDIR)\disassembler.obj $(OBJDIR)\binaries.obj \
 	$(OBJDIR)\replace_program.obj $(OBJDIR)\ccode.obj $(OBJDIR)\cfuns.obj $(OBJDIR)\compile_file.obj \
-	$(OBJDIR)\crypt.obj $(OBJDIR)\debug.obj
+	$(OBJDIR)\crypt.obj $(OBJDIR)\debug.obj $(OBJDIR)\master.obj $(OBJDIR)\function.obj $(OBJDIR)\applies_table.obj
 
 .c{$(OBJDIR)/}.obj:
 	$(CC) $(CFLAGS) $(OPTIMIZE) -Fo$(OBJDIR)\ -c $<
 
-$(OBJDIR)/lex.obj: lex.c preprocess.c cc.h grammar.tab.c
+$(OBJDIR)/lex.obj: lex.c preprocess.c cc.h grammar$(TAB_EXT).c
 
-$(OBJDIR)/grammar.tab.obj: grammar.tab.c opcodes.h
+$(OBJDIR)/grammar$(TAB_EXT).obj: grammar$(TAB_EXT).c opcodes.h
 
 which_makefile:
 	echo MakeIsNmake
 
-grammar.tab.c: grammar.y
+grammar$(TAB_EXT).c: grammar.y
 	$(YACC) grammar.y
-	-rm -f grammar.tab.*
-	sed "s/y.tab.c/grammar.tab.c/g" y.tab.c  > grammar.tab.c
-	-mv y.tab.h grammar.tab.h
+	-rm -f grammar$(TAB_EXT).*
+	sed "s/y$(TAB_EXT).c/grammar$(TAB_EXT).c/g" y$(TAB_EXT).c > grammar$(TAB_EXT).c
+	-mv y$(TAB_EXT).h grammar$(TAB_EXT).h
 
 packages/packages.lib: packages/parser.c packages/contrib.c
 	cd packages
@@ -124,10 +124,10 @@ addr_server.exe: $(OBJDIR)/addr_server.obj $(OBJDIR)/socket_ctrl.obj $(OBJDIR)/p
 
 remake: neat all
 
-customize:
-	-cp ../local_options .
-	-cp ../system_libs .
-	-cp ../configure.h .
+customize: cp.bat
+	-cp ..\local_options .
+	-cp ..\system_libs .
+	-cp ..\configure.h .
 
 cc.h: Makefile
 	rm -f cc.h
@@ -146,17 +146,17 @@ files: edit_source sysmalloc.c smalloc.c bsdmalloc.c debugmalloc.c wrappedmalloc
 	.\edit_source -process packages/GNUmakefile.pre
 	.\edit_source -process mudlib/Makefile.pre
 	.\edit_source -process mudlib/GNUmakefile.pre
-	.\edit_source -build_efuns
+	.\edit_source -build_efuns -build_applies
 	touch mallocwrapper.c
 	touch malloc.c
 	touch files
 
-make_func.tab.c: make_func.y cc.h
+make_func$(TAB_EXT).c: make_func.y cc.h
 	$(YACC) $(YFLAGS) make_func.y
-	-rm -f make_func.tab.c
-	mv y.tab.c make_func.tab.c
+	-rm -f make_func$(TAB_EXT).c
+	mv y$(TAB_EXT).c make_func$(TAB_EXT).c
 
-configure.h: edit_source build.MudOS
+configure.h: edit_source.exe build.MudOS
 	if not exist configure.h rm -f configuration
 	touch configuration
 	.\edit_source -configure
@@ -166,7 +166,7 @@ build.MudOS: buildMudOS.bat
 $(OBJDIR)/crypt.obj: ./amiga/crypt.c
 	$(CC) $(CFLAGS) $(OPTIMIZE) -Fo$(OBJDIR)\ -c .\amiga\crypt.c
 
-utils: touch.exe mudlib/ar.exe packages/ar.exe mv.bat rm.bat packages/rm.bat mudlib/rm.bat
+utils: touch.exe mudlib/ar.exe packages/ar.exe mv.bat rm.bat packages/rm.bat mudlib/rm.bat cp.bat
 
 rm.bat: Win32/rm.bat
 	copy Win32\rm.bat .
@@ -179,6 +179,9 @@ mudlib/rm.bat: Win32/rm.bat
 
 mv.bat: Win32/mv.bat
 	copy Win32\mv.bat .
+
+cp.bat: Win32/cp.bat
+	copy Win32\cp.bat .
 
 touch.exe: Win32/touch.c
 	$(CC) Win32/touch.c
@@ -194,30 +197,30 @@ $(OBJDIR)/edit_source.obj: edit_source.c preprocess.c cc.h
 
 edit_source: edit_source.exe
 
-edit_source.exe: $(OBJDIR)/edit_source.obj $(OBJDIR)/hash.obj $(OBJDIR)/make_func.tab.obj
-	$(CC) $(CFLAGS) $(OBJDIR)\edit_source.obj $(OBJDIR)\hash.obj $(OBJDIR)\make_func.tab.obj -Feedit_source.exe
+edit_source.exe: $(OBJDIR)/edit_source.obj $(OBJDIR)/hash.obj $(OBJDIR)/make_func$(TAB_EXT).obj
+	$(CC) $(CFLAGS) $(OBJDIR)\edit_source.obj $(OBJDIR)\hash.obj $(OBJDIR)\make_func$(TAB_EXT).obj -Feedit_source.exe
 
 # don't optimize these two
 $(OBJDIR)/edit_source.obj: edit_source.c
 	$(CC) $(CFLAGS) -Fo$(OBJDIR)\ -c edit_source.c
 
-$(OBJDIR)/make_func.tab.obj: make_func.tab.c
-	$(CC) $(CFLAGS) -Fo$(OBJDIR)\ -c make_func.tab.c
+$(OBJDIR)/make_func$(TAB_EXT).obj: make_func$(TAB_EXT).c
+	$(CC) $(CFLAGS) -Fo$(OBJDIR)\ -c make_func$(TAB_EXT).c
 
 install: all
 	-mkdir $(INSTALL_DIR)
 	$(INSTALL) $(DRIVER_BIN).exe $(INSTALL_DIR)
 	$(INSTALL) addr_server.exe $(INSTALL_DIR)
 
-Makefiles: Makefile.in GNUmakefile.in NMakefile.in
+Makefiles: utils Makefile.in GNUmakefile.in NMakefile.in
 
-Makefile.in: edit_source Makefile.in.pre Makefile.master
+Makefile.in: edit_source.exe Makefile.in.pre Makefile.master
 	.\edit_source -process Makefile.in.pre
 
-GNUmakefile.in: edit_source GNUmakefile.in.pre Makefile.master
+GNUmakefile.in: edit_source.exe GNUmakefile.in.pre Makefile.master
 	.\edit_source -process GNUmakefile.in.pre
 
-NMakefile.in: edit_source NMakefile.in.pre Makefile.master
+NMakefile.in: edit_source.exe NMakefile.in.pre Makefile.master
 	.\edit_source -process NMakefile.in.pre
 
 nothing:
@@ -226,9 +229,13 @@ nothing:
 spotless: clean
 	-rm -f configure.h local_options system_libs configuration
 	-rm -f options_incl.h
+	-rm -f *.diffs
+	-find . -name "*~" -print | xargs rm
+	-rm -f touch.exe mudlib\ar.exe packages\ar.exe mv.bat packages\rm.bat mudlib\rm.bat cp.bat
+	del rm.bat
 
 # get ready for recompile
-neat:
+neat: rm.bat packages/rm.bat mudlib/rm.bat
 	-cd packages
 	-$(MAKE) /nologo "O=$(O)" "A=$(A)" clean
 	-cd..
@@ -236,12 +243,12 @@ neat:
 	-$(MAKE) /nologo "O=$(O)" "A=$(A)" clean
 	-cd..
 	-deltree /y $(OBJDIR)
-	-rm *.obj *.tab.c *.tab.h trash_me.bat *.ilk *.pdb
+	-rm *.obj *$(TAB_EXT).c *$(TAB_EXT).h trash_me.bat *.ilk *.pdb
 	-mkdir $(OBJDIR)
 	-rm -f efun_defs.c option_defs.c
 	-rm -f opcodes.h efunctions.h opc.h efun_protos.h
 	-rm -f malloc.c mallocwrapper.c
-	-rm -f func_spec.cpp files
+	-rm -f func_spec.cpp applies.h applies_table.c files
 	-rm -f grammar.y comptest* a.out
 	-rm packages\Makefile packages\GNUmakefile packages\packages
 	-rm packages\*.pdb mudlib\*.pdb

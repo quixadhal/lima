@@ -2,23 +2,23 @@
 
 #include <more.h>
 
-private static string		stdoutstr = 0;
-private static string 		buf ;
-private static mixed		next_cmd;
-private static mixed		next_implode_info;
-private static int		no_redirect = 0;
-private static int		output_flags = 0;
+private nosave string		stdoutstr = 0;
+private nosave string 		buf ;
+private nosave mixed		next_cmd;
+private nosave mixed		next_implode_info;
+private nosave int		no_redirect = 0;
+private nosave int		output_flags = 0;
 
-static int set_output_flags(int x) {
+protected int set_output_flags(int x) {
     output_flags = x;
 }
 
-static void no_redirection()
+protected void no_redirection()
 {
   no_redirect = 1;
 }
 
-static int restrict_redirection()
+protected int restrict_redirection()
 {
   return no_redirect;
 }
@@ -37,7 +37,7 @@ string get_output()
   return buf;
 }
 
-static int end_of_pipeline()
+protected int end_of_pipeline()
 {
   return !next_cmd;
 }
@@ -78,7 +78,7 @@ private int determine_stdout(mixed args)
   return 1;
 }
 
-static void bare_init()
+protected void bare_init()
 {
   stdoutstr = 0;
   buf = "";
@@ -86,7 +86,7 @@ static void bare_init()
   output_flags = 0;
 }
 
-static mixed hello_stdio(mixed ininfo, mixed argstohold, mixed implode_info)
+protected mixed hello_stdio(mixed ininfo, mixed argstohold, mixed implode_info)
 {
   string	stdinfile;
   string	stdin;
@@ -130,7 +130,7 @@ static mixed hello_stdio(mixed ininfo, mixed argstohold, mixed implode_info)
   return stdin || 1;
 }
 
-static mixed done_outputing()
+protected mixed done_outputing()
 {
   object	stdoutobj;
   string	tmp;
@@ -155,14 +155,14 @@ static mixed done_outputing()
   return ({ next_cmd, tmp, next_implode_info });
 }
 
-static void out(string s)
+protected void out(string s)
 {
   if(!buf)
     buf = "";
   buf += s;
 }
 
-static void outf(string format, mixed args ... )
+protected void outf(string format, mixed args ... )
 {
   buf += sprintf(format, args...);
 }

@@ -1,8 +1,0 @@
-# Do not remove the headers from this file! see /USAGE for more info.
-
-is=sword,valuable
-primary_adj=stone cutter
-primary_id=sword
-weapon_class=20
-weight=3
-value=2000

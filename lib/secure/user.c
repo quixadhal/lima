@@ -21,6 +21,7 @@ inherit __DIR__ "user/inputsys";
 inherit __DIR__ "user/userinfo";
 inherit __DIR__ "user/messages";
 inherit __DIR__ "user/shell";
+inherit __DIR__ "user/newsdata";
 
 /*
 ** This users's userid (login id).
@@ -36,7 +37,7 @@ nomask string query_userid()
     */
     return userid;
 }
-static nomask void set_userid(string new_userid)
+protected nomask void set_userid(string new_userid)
 {
     userid = new_userid;
 }
@@ -63,12 +64,12 @@ void quit()
     remove();
 }
 
-static nomask void save_me()
+nomask void save_me()
 {
     unguarded(1, (: save_object, LINK_PATH(userid) :));
 }
 
-static nomask void restore_me(string some_userid, int preserve_vars)
+protected nomask void restore_me(string some_userid, int preserve_vars)
 {
     unguarded(1, (: restore_object, LINK_PATH(some_userid), preserve_vars :));
 }

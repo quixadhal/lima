@@ -5,7 +5,7 @@ inherit M_DAEMON_DATA;
 mapping birthdays = ([]);
 mapping reverse = ([]);
 
-static string today;
+nosave string today;
 
 void refresh() {
     today = ctime(time())[4..9];

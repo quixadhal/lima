@@ -14,10 +14,10 @@ nomask void modal_push_char(function callback);	// M_INPUT
 //:MODULE
 //Implements character mode key bindings.
 
-private static int escape_hit;
-private static string matchstr = "";
-private static mapping bindings;
-private static function default_func;
+private nosave int escape_hit;
+private nosave string matchstr = "";
+private nosave mapping bindings;
+private nosave function default_func;
 
 private nomask void handle_one_char(int);
 

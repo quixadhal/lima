@@ -18,17 +18,17 @@
 object query_owner();
 void   shell_input(mixed input);
 
-private static string* history = ({});
-private static int buffer_size = DEFAULT_HISTORY_BUFFER_SIZE;
-private static int array_index;
-private static int command_number;
+private nosave string* history = ({});
+private nosave int buffer_size = DEFAULT_HISTORY_BUFFER_SIZE;
+private nosave int array_index;
+private nosave int command_number;
 
 
 // Returns a string or -1 if the item is no longer in your history
 
 //:FUNCTION get_nth_item
 //returns the nth command if it's still in the history buffer.
-nomask static mixed 
+nomask protected mixed 
 get_nth_item(int n)
 {
     string item;
@@ -74,7 +74,7 @@ get_nth_item(int n)
 
 //:FUNCTION add_history_item
 //add a history item to a history buffer.
-static void 
+protected void 
 add_history_item(string item)
 {
     if(!buffer_size)
@@ -101,7 +101,7 @@ add_history_item(string item)
 
 //:FUNCTION get_buffer_size
 //returns the size of a history buffer.
-static int 
+protected int 
 get_buffer_size()
 {
     return buffer_size;
@@ -109,7 +109,7 @@ get_buffer_size()
 
 //:FUNCTION get_command_number
 //returns how many commands have been added to the history.
-static int
+protected int
 get_command_number()
 {
     return command_number;
@@ -117,7 +117,7 @@ get_command_number()
 
 //:FUNCTION get_ordered_history
 //returns the history buffer in order of least to most recent items
-static string*
+protected string*
 get_ordered_history()
 {
     if (buffer_size == -1)
@@ -163,7 +163,7 @@ allocate_history_buffer()
 
 //:FUNCTION set_history_buffer_size
 //sets the size of a history buffer.  -1 means no size limit.
-static int
+protected int
 set_history_buffer_size(int s)
 {
     if(!intp(s) || s < -1)
@@ -184,7 +184,7 @@ create()
 //returns the most recently added history item that matches
 //the regexp.  An implicit ^ is added to the beginning of the regexp.
 
-static int
+protected int
 pattern_history_match(string rgx)
 {
     mixed matches;
@@ -200,7 +200,7 @@ pattern_history_match(string rgx)
 **  for use by shells or whatever finds this stuff useful.
 */
 
-static void 
+protected void 
 display_history()
 {
     int i,j;
@@ -210,7 +210,7 @@ display_history()
 }
 
 
-static string
+protected string
 history_command(mixed input)
 {
     int cmdnumber;
@@ -284,7 +284,7 @@ query_history()
     }
 }
 
-static void cmd_history(string input)
+protected void cmd_history(string input)
 {
     mixed stuff = history_command(input);
     if(stuff)

@@ -12,7 +12,7 @@ void oob_initiate_connection(string target_mudname);
 void oob_svc_send(object socket, mixed * message);
 private nomask void mail_add_request(string, mixed array);
 
-static private mapping mail_requests = ([]);
+nosave private mapping mail_requests = ([]);
 
 private nomask void handle_mail(string mudname,
 				object socket,
@@ -31,12 +31,12 @@ private nomask void handle_mail_ack(string mudname,
   IMAIL_D->receive_ack(message[1]);
 }
 
-static nomask int mail_has_outgoing(string mudname)
+protected nomask int mail_has_outgoing(string mudname)
 {
     return sizeof(mail_requests[mudname]) != 0;
 }
 
-static nomask int mail_send_outgoing(string mudname, object socket)
+protected nomask int mail_send_outgoing(string mudname, object socket)
 {
     mixed array	requests = mail_requests[mudname];
 
@@ -49,7 +49,7 @@ static nomask int mail_send_outgoing(string mudname, object socket)
     mail_requests[mudname] = requests[1..];
 }
 
-static nomask void mail_startup()
+protected nomask void mail_startup()
 {
     oob_register_requests(([ "mail" : (: handle_mail :),
 				 ]));

@@ -40,7 +40,11 @@ enum msgtypes {
                                 /* understands telnet codes                */
 typedef struct interactive_s {
     object_t *ob;		/* points to the associated object         */
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
     sentence_t *input_to;	/* to be called with next input line       */
+    svalue_t *carryover;	/* points to args for input_to             */
+    int num_carry;		/* number of args for input_to             */
+#endif
     int connection_type;        /* the type of connection this is          */
     int fd;			/* file descriptor for interactive object  */
     struct sockaddr_in addr;	/* socket address of interactive object    */
@@ -71,8 +75,6 @@ typedef struct interactive_s {
     int message_length;		/* message buffer length */
     char message_buf[MESSAGE_BUF_SIZE];	/* message buffer */
     int iflags;                 /* interactive flags */
-    svalue_t *carryover;	/* points to args for input_to             */
-    int num_carry;		/* number of args for input_to             */
     int out_of_band;		/* Send a telnet sync operation            */
     int state;			/* Current telnet state.  Bingly wop       */
     int sb_pos;			/* Telnet suboption negotiation stuff      */
@@ -146,7 +148,7 @@ int replace_interactive PROT((object_t *, object_t *));
 int set_call PROT((object_t *, sentence_t *, int));
 void remove_interactive PROT((object_t *, int));
 int flush_message PROT((interactive_t *));
-int query_addr_number PROT((char *, char *));
+int query_addr_number PROT((char *, svalue_t *));
 char *query_ip_name PROT((object_t *));
 char *query_ip_number PROT((object_t *));
 char *query_host_name PROT((void));

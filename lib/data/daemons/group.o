@@ -1,2 +1,2 @@
-#daemons/group.c
+#/daemons/group_d.c
 group_map (["moderators":({}),])

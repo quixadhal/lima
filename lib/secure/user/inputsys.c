@@ -33,9 +33,9 @@ class input_info
     function	return_to_func;
     int		input_type;
 }
-private static class input_info *	modal_stack = ({ });
+private nosave class input_info *	modal_stack = ({ });
 
-private static int	dispatching_to;
+private nosave int	dispatching_to;
 
 private nomask void dispatch_modal_input(string str);
 
@@ -195,7 +195,7 @@ varargs nomask void modal_func(function input_func, mixed prompt, int secure)
     modal_stack[<1]->secure = secure;
 }
 
-static nomask void modal_recapture()
+protected nomask void modal_recapture()
 {
     class input_info info;
     string prompt;
@@ -354,14 +354,14 @@ nomask void force_me(string str)
 
 string stat_me()
 {
-    if ( check_previous_privilege(1) )
-    {
+  //    if ( check_previous_privilege(1) )
+  //    {
 	return sprintf("INPUT STACK:\n%O\n", modal_stack);
-    }
+	//   }
     return "";
 }
 
-static nomask void clear_input_stack()
+protected nomask void clear_input_stack()
 {
     class input_info top;
 
@@ -371,13 +371,14 @@ static nomask void clear_input_stack()
 	      top = get_top_handler(1);
 	      modal_pop();
 	      evaluate(top->input_func, -1);
-	    }) {
-	      write_file("/tmp/bad_handler",
-		sprintf("Error in input_func(-1):\n\tinput_func: %O\n\tprompt: %O\n", top->input_func, top->prompt));
-	  }
-      }
+	}) {
+	  write_file("/tmp/bad_handler",
+	  sprintf("Error in input_func(-1):\n\tinput_func: %O\n\tprompt: %O\n", top->input_func, top->prompt));
+	}
     }
-    nomask int modal_stack_size()
-    {
-	return sizeof(modal_stack);
-    }
+}
+
+nomask int modal_stack_size()
+{
+  return sizeof(modal_stack);
+}

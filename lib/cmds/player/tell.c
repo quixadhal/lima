@@ -77,10 +77,6 @@ private void main(string arg)
 		
 		arg = arg[1..];
 
-		// Heuristic: check for a use of a targetted emote with no
-		// arguments, and do the Right Thing.
-		if ((tmp = SOUL_D->query_emote(arg)) && tmp["LIV"])
-		    arg += " " + user + "@" + host;
 
 		soul_ret = SOUL_D->parse_imud_soul(arg);
 		if(!soul_ret)  {
@@ -126,10 +122,6 @@ private void main(string arg)
 	int tindex;
 
 	arg = arg[1..];
-	// Heuristic: check for a use of a targetted emote with no
-	// arguments, and do the Right Thing.
-	if ((tmp = SOUL_D->query_emote(arg)) && tmp["LIV"])
-	    arg += " " + user;
 
 	soul_ret = SOUL_D->parse_soul(arg);
 	if(!soul_ret)  {
@@ -151,7 +143,7 @@ private void main(string arg)
     }
     else
     {
-	mystring = sprintf("You tell %s: %s\n", who == this_body() ? "yourself" : who->query_name(), arg);
+	mystring = sprintf("%%^TELL%%^You tell %s:%%^RESET%%^ %s\n", who == this_body() ? "yourself" : who->query_name(), arg);
 	deststring = "%^TELL%^" + this_body()->query_name() + " tells you: %^RESET%^" + arg + "\n";
     }
 

@@ -6,11 +6,11 @@
 #include <security.h>
 #include <driver/origin.h>
 
-private static mixed privilege;
-private static mixed unguarded_privilege;
-private static mixed *security_handle;
+private nosave mixed privilege;
+private nosave mixed unguarded_privilege;
+private nosave mixed *security_handle;
 
-nomask static void set_privilege(mixed priv)
+nomask protected void set_privilege(mixed priv)
 {
   if (origin() != ORIGIN_LOCAL)
     return;
@@ -40,7 +40,7 @@ nomask int verify_privilege_granted(mixed *handle)
   return security_handle == handle;
 }
 
-nomask varargs static mixed unguarded(mixed priv,function code)
+nomask varargs protected mixed unguarded(mixed priv,function code)
 {
   if (origin() != ORIGIN_LOCAL)
     return 0;

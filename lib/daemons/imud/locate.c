@@ -17,7 +17,7 @@ nomask void do_locate(string username)
     send_to_all("locate-req", ({ lower_case(username) }));
 }
 
-static nomask void rcv_locate_req(string orig_mud, string orig_user,
+protected nomask void rcv_locate_req(string orig_mud, string orig_user,
 				  string targ_user, mixed * message)
 {
     object p;
@@ -35,7 +35,7 @@ static nomask void rcv_locate_req(string orig_mud, string orig_user,
     }
 }
 
-static nomask void rcv_locate_reply(string orig_mud, string orig_user,
+protected nomask void rcv_locate_reply(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
     object p;

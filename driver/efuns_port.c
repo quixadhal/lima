@@ -14,6 +14,7 @@
 #include "include/localtime.h"
 #include "port.h"
 #include "crypt.h"
+#include "efun_protos.h"
 
 /* get a value for CLK_TCK for use by times() */
 #if (defined(TIMES) && !defined(RUSAGE))

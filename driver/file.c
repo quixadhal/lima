@@ -5,9 +5,7 @@
 
 #include "std.h"
 #include "file.h"
-#include "file_incl.h"
 #include "comm.h"
-#include "strstr.h"
 #include "lex.h"
 #include "md.h"
 #include "port.h"
@@ -351,7 +349,7 @@ int legal_path P1(char *, path)
 	    if (p[1] == '/' || p[1] == '\0')
 		return 0;	/* check for `./', `..', or `../' */
 	}
-	p = (char *)_strstr(p, "/.");	/* search next component */
+	p = (char *)strstr(p, "/.");	/* search next component */
 	if (p)
 	    p++;		/* step over `/' */
     }
@@ -390,7 +388,7 @@ void smart_log P4(char *, error_file, int, line, char *, what, int, flag)
     else
 	sprintf(buff, "/%s line %d: %s", error_file, line, what);
 
-    if (pragmas & PRAGMA_ERROR_CONTEXT){
+    if (pragmas & PRAGMA_ERROR_CONTEXT) {
         char *ls = strrchr(buff, '\n');
 	char *tmp;
 	if (ls) {
@@ -408,7 +406,7 @@ void smart_log P4(char *, error_file, int, line, char *, what, int, flag)
 	sprintf(buff, "/%s line %d: %s%s", error_file, line, what,
 		(pragmas & PRAGMA_ERROR_CONTEXT) ? show_error_context() : "\n");
     
-    share_and_push_string(error_file);
+    push_malloced_string(add_slash(error_file));
     copy_and_push_string(buff);
     mret = safe_apply_master_ob(APPLY_LOG_ERROR, 2);
     if (!mret || mret == (svalue_t *)-1) {
@@ -446,23 +444,22 @@ int write_file P3(char *, file, char *, str, int, flags)
     fwrite(str, strlen(str), 1, f);
     fclose(f);
     return 1;
-}				/* write_file() */
+}
 
-char *read_file P3(char *, file, int, start, int, len)
-{
+char *read_file P3(char *, file, int, start, int, len) {
     struct stat st;
     FILE *f;
-    char *str, *end;
-    register char *p, *p2;
-    int size;
-
+    int lastchunk, chunk, ssize, fsize;
+    char *str, *p, *p2;
+    
     if (len < 0)
 	return 0;
+    
     file = check_valid_path(file, current_object, "read_file", 0);
-
+    
     if (!file)
 	return 0;
-
+    
     /*
      * file doesn't exist, or is really a directory
      */
@@ -472,176 +469,99 @@ char *read_file P3(char *, file, int, start, int, len)
     f = fopen(file, FOPEN_READ);
     if (f == 0)
 	return 0;
-
+    
 #ifndef LATTICE
     if (fstat(fileno(f), &st) == -1)
 	fatal("Could not stat an open file.\n");
 #endif
 
-    size = st.st_size;
-    if (size > READ_FILE_MAX_SIZE) {
-	if (start || len)
-	    size = READ_FILE_MAX_SIZE;
-	else {
-	    fclose(f);
-	    return 0;
-	}
-    }
-    if (start < 1)
-	start = 1;
-    if (!len)
-	len = READ_FILE_MAX_SIZE;
-    str = new_string(size, "read_file: str");
-    str[size] = '\0';
-    if (!size) {
-	/* zero length file */
+    /* lastchunk = the size of the last chunk we read
+     * chunk = size of the next chunk we will read (always < fsize)
+     * fsize = amount left in file
+     */
+    lastchunk = chunk = ssize = fsize = st.st_size;
+    if (fsize > READ_FILE_MAX_SIZE)
+	lastchunk = chunk = ssize = READ_FILE_MAX_SIZE;
+
+    /* Can't shortcut out if size > max even if start and len aren't
+       specified, since we still need to check for \0, and \r's may pull the
+       size into range */
+
+    if (start < 1) start = 1; 
+    if (len == 0) len = READ_FILE_MAX_SIZE; 
+    
+    str = new_string(ssize, "read_file: str"); 
+    if (fsize == 0) { 
+        /* zero length file */ 
+	str[0] = 0; 
 	fclose(f);
 	return str;
     }
-    
-#ifndef WIN32
+
     do {
-	if ((fread(str, size, 1, f) != 1) || !size) {
-	    fclose(f);
-	    FREE_MSTR(str);
-	    return 0;
+	/* read another chunk */
+	if (fsize == 0 || fread(str, chunk, 1, f) != 1)
+	    goto free_str;
+	p = str;
+	lastchunk = chunk;
+	fsize -= chunk;
+	if (chunk > fsize) chunk = fsize;
+    
+	while (start > 1) {
+	    /* skip newlines */
+	    p2 = memchr(p, '\n', str + lastchunk - p);
+	    if (p2) {
+		p = p2 + 1;
+		start--;
+	    } else
+		break; /* get another chunk */
+	}
+    } while (start > 1); /* until we've skipped enough */
+
+    p2 = str;
+    while (1) {
+	char c;
+
+	if (p == str + lastchunk) {
+	    /* need another chunk */
+	    if (chunk > ssize - (p2 - str))
+		chunk = ssize - (p2 - str); /* space remaining */
+	    if (fsize == 0) break; /* nothing left */
+	    if (chunk == 0 || fread(p2, chunk, 1, f) != 1)
+		goto free_str;
+	    p = p2;
+	    lastchunk = chunk + (p2 - str); /* fudge since we didn't
+					       start at str */
+	    fsize -= chunk;
+	    if (chunk > fsize) chunk = fsize;
 	}
 
-	st.st_size -= size;
-	end = str + size;
-	for (p = str; --start && (p2 = (char *) memchr(p, '\n', end - p));) {
-	    p = p2 + 1;
+	c = *p++;
+	if (c == '\0') {
+	    FREE_MSTR(str);
+	    fclose(f);
+	    error("Attempted to read '\\0' into string!\n");	
 	}
-    } while (start > 1);
-    
-    if (len != READ_FILE_MAX_SIZE || st.st_size) {
-        for (p2 = str; p != end;) {
-	    char c;
-	    
-	    c = *p++;
+	if (c != '\r' || *p != '\n') {
 	    *p2++ = c;
-	    if (c == '\n') {
-	        if (!--len)
-		    break;
-	    } else if (c == '\0') {
-		fclose(f);
-		FREE_MSTR(str);
-		error("Attempted to read '\\0' into string!\n");
-	    }
+	    if (c == '\n' && --len == 0)
+		break; /* done */
 	}
-	if (len && st.st_size) {
-	    size -= (p2 - str);
-	    
-	    if (size > st.st_size)
-		size = st.st_size;
+    }
 
-	    if ((fread(p2, size, 1, f) != 1) || !size) {
-		fclose(f);
-		FREE_MSTR(str);
-		return 0;
-	    }
-	    st.st_size -= size;
-	    /* end is same */
-	    for (; p2 != end;) {
-		if (*p2 == '\0') {
-		    fclose(f);
-		    FREE_MSTR(str);
-		    error("Attempted to read '\\0' into a string!\n");
-		}
-		if (*p2++ == '\n')
-		    if (!--len)
-			break;
-	    }
-
-	    if (st.st_size && len) {
-		/* tried to read more than READ_MAX_FILE_SIZE */
-		fclose(f);
-		FREE_MSTR(str);
-		return 0;
-	    }
-	}
-	*p2 = '\0';
-	str = extend_string(str, p2 - str);
-    } 
-#else
-    /* WIN32 defined */
-    do {
-	if ((fread(str, size, 1, f) != 1) || !size) {
-	    fclose(f);
-	    FREE_MSTR(str);
-	    return 0;
-	}
-
-	if (size > st.st_size) {
-	    size = st.st_size;
-	}		
-	st.st_size -= size;	/* It's OK, size is actual FILE size */
-	end = str + size;    /* OK */
-	for (p = str; --start && (p2 = (char *) memchr(p, '\n', end - p));) {
-	    p = p2 + 1;
-	}
-    } while (start > 1);
-
-    /* Now we have 'p' at desired position. From now on we have to translate \r\n to single \n */
-    
-    {
-	char *startline=p;
-	
-	if (len != READ_FILE_MAX_SIZE || st.st_size){
-	    for (p2 = str; p != end;) {
-		if ((*p == '\r') || (*p == 0x1a)) {
-		    p++;	/* \r will be skipped */
-		} else if ((*p2++ = *p++) == '\n') {
-		    if (!--len) break;
-		}
-	    }
-	    if (len && st.st_size) {
-		/* the next line is wrong; I have to compute this value according to 'p' (to count \r) */
-		/*	   	size -= (p2 - str); */
-		size -= (p-startline);
-		if (size > st.st_size)	size = st.st_size;
-		
-		if ((fread(p2, size, 1, f) != 1) || !size) {
-		    fclose(f);
-		    FREE_MSTR(str);
-		    return 0;
- 	    	}
-	    	st.st_size -= size;
-
-	    	end = p2 + size;
-
-	    	for (p=p2; p != end;) {
-		    if ((*p == '\r') || (*p == 0x1a)) {
-			p++;
-		    } else if ((*p2++ = *p++) == '\n') {
-			if (!--len) break;
-		    }
-	    	}
-	    	if (st.st_size && len) {
-		    /* tried to read more than READ_MAX_FILE_SIZE */
-		    fclose(f);
-		    FREE_MSTR(str);
-		    return 0;
-	    	}
-	    }
-	} else {
-	    /* I HAVE to translate \r\n ! */
-	    for (p2 = str; p != end;) {
-		if ((*p == '\r') || (*p == 0x1a)) {
-		    p++;	/* \r will be skipped */
-		} else if ((*p2++ = *p++) == '\n') {
-		    if (!--len) break;
-		}
-	    }
-	}
-	*p2 = '\0';
-	str = extend_string(str, p2 - str);
-    } 
-#endif
-
+    *p2 = 0;
+    str = extend_string(str, p2 - str); /* fix string length */
     fclose(f);
+    
     return str;
-}				/* read_file() */
+    
+    /* Error path: unwind allocated resources */
+
+  free_str:
+    FREE_MSTR(str);
+    fclose(f);
+    return 0;
+}
 
 char *read_bytes P4(char *, file, int, start, int, len, int *, rlen)
 {
@@ -832,18 +752,16 @@ char *check_valid_path P4(char *, path, object_t *, call_object, char *, call_fu
     if (v == (svalue_t *)-1)
 	v = 0;
     
-    if (v) {
-	if (v->type == T_NUMBER && v->u.number == 0) return 0;
-	if (v->type == T_STRING) {
-	    path = v->u.string;
-	} else {
-	    extern svalue_t apply_ret_value;
-	    
-	    free_svalue(&apply_ret_value, "check_valid_path");
-	    apply_ret_value.type = T_STRING;
-	    apply_ret_value.subtype = STRING_MALLOC;
-	    path = apply_ret_value.u.string = string_copy(path, "check_valid_path");
-	}
+    if (v && v->type == T_NUMBER && v->u.number == 0) return 0;
+    if (v && v->type == T_STRING) {
+	path = v->u.string;
+    } else {
+	extern svalue_t apply_ret_value;
+	
+	free_svalue(&apply_ret_value, "check_valid_path");
+	apply_ret_value.type = T_STRING;
+	apply_ret_value.subtype = STRING_MALLOC;
+	path = apply_ret_value.u.string = string_copy(path, "check_valid_path");
     }
     
     if (path[0] == '/')
@@ -896,27 +814,6 @@ static int match_string P2(char *, match, char *, str)
 	return 0;
     }
 }
-
-/*
- * Credits for some of the code below goes to Free Software Foundation
- * Copyright (C) 1990 Free Software Foundation, Inc.
- * See the GNU General Public License for more details.
- */
-#ifndef S_ISDIR
-#define	S_ISDIR(m)	(((m)&S_IFMT) == S_IFDIR)
-#endif
-
-#ifndef S_ISREG
-#define	S_ISREG(m)	(((m)&S_IFMT) == S_IFREG)
-#endif
-
-#ifndef S_ISCHR
-#define	S_ISCHR(m)	(((m)&S_IFMT) == S_IFCHR)
-#endif
-
-#ifndef S_ISBLK
-#define	S_ISBLK(m)	(((m)&S_IFMT) == S_IFBLK)
-#endif
 
 static struct stat to_stats, from_stats;
 
@@ -1082,14 +979,22 @@ void debug_perror P2(char *, what, char *, file) {
  * of the unix system call rename and the unix command mv.
  */
 
+static svalue_t from_sv = { T_NUMBER };
+static svalue_t to_sv = { T_NUMBER };
+
+#ifdef DEBUGMALLOC_EXTENSIONS
+void mark_file_sv() {
+    mark_svalue(&from_sv);
+    mark_svalue(&to_sv);
+}
+#endif
+
 #ifdef F_RENAME
 int do_rename P3(char *, fr, char *, t, int, flag)
 {
     char *from, *to, tbuf[3];
     char newfrom[MAX_FNAME_SIZE + MAX_PATH_LEN + 2];
     int flen;
-    static svalue_t from_sv = { T_NUMBER };
-    static svalue_t to_sv = { T_NUMBER };
     extern svalue_t apply_ret_value;
 
     /*
@@ -1154,25 +1059,42 @@ int copy_file P2(char *, from, char *, to)
     int from_fd, to_fd;
     int num_read, num_written;
     char *write_ptr;
-    static svalue_t from_sv = { T_NUMBER };
-    static svalue_t to_sv = { T_NUMBER };
     extern svalue_t apply_ret_value;
 
     from = check_valid_path(from, current_object, "move_file", 0);
-
     assign_svalue(&from_sv, &apply_ret_value);
 
     to = check_valid_path(to, current_object, "move_file", 1);
+    assign_svalue(&to_sv, &apply_ret_value);
+
     if (from == 0)
 	return -1;
     if (to == 0)
 	return -2;
 
-    assign_svalue(&to_sv, &apply_ret_value);
-
+    if (lstat(from, &from_stats) != 0) {
+	error("/%s: lstat failed\n", from);
+	return 1;
+    }
+    if (lstat(to, &to_stats) == 0) {
+#ifdef WIN32
+	if (!strcmp(from, to))
+#else
+	if (from_stats.st_dev == to_stats.st_dev
+	    && from_stats.st_ino == to_stats.st_ino)
+#endif
+	{
+	    error("`/%s' and `/%s' are the same file", from, to);
+	    return 1;
+	}
+    } else if (errno != ENOENT) {
+	error("/%s: unknown error\n", to);
+	return 1;
+    }
+    
     from_fd = open(from, OPEN_READ);
     if (from_fd < 0)
-	return (-1);
+	return -1;
 
     if (file_size(to) == -2) {
 	/* Target is a directory; build full target filename. */
@@ -1192,14 +1114,14 @@ int copy_file P2(char *, from, char *, to)
     to_fd = open(to, OPEN_WRITE | O_CREAT | O_TRUNC, 0666);
     if (to_fd < 0) {
 	close(from_fd);
-	return (-2);
+	return -2;
     }
     while ((num_read = read(from_fd, buf, 128)) != 0) {
 	if (num_read < 0) {
 	    debug_perror("copy_file: read", from);
 	    close(from_fd);
 	    close(to_fd);
-	    return (-3);
+	    return -3;
 	}
 	write_ptr = buf;
 	while (write_ptr != (buf + num_read)) {
@@ -1208,7 +1130,7 @@ int copy_file P2(char *, from, char *, to)
 		debug_perror("copy_file: write", to);
 		close(from_fd);
 		close(to_fd);
-		return (-3);
+		return -3;
 	    }
 	    write_ptr += num_written;
 	}

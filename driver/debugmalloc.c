@@ -7,7 +7,7 @@
 #define NO_OPCODES
 #include "std.h"
 #include "debugmalloc.h"
-#include "malloc.h"
+#include "my_malloc.h"
 #include "md.h"
 
 #undef NOISY_MALLOC

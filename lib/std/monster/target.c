@@ -8,12 +8,12 @@
  * the same object between get_target()'s
  */
 
-private static object target;
+private nosave object target;
 #ifdef TARGETTING_IS_RANDOM
-private static int explicit; // if this is on, don't take a random choice.
-                             // Attack the person we just switch_to()'ed
+private nosave int explicit; // if this is on, don't take a random choice.
+// Attack the person we just switch_to()'ed
 #endif
-private static object array other_targets = ({});
+private nosave object array other_targets = ({});
 
 object query_target() { return target; }
 
@@ -39,16 +39,18 @@ object get_target() {
     } else
 	explicit = 0;
 #endif
-    while (!target || target->query_ghost() || environment() != environment(target)) {
+    while (!target || target->query_ghost() ||
+      (member_array(target, deep_useful_inv(parser_root_environment(environment(this_body())))) != -1 ) ) {
 	if (!n) return (target = 0);
 	x = random(n);
 	target = other_targets[x];
 	other_targets[x..x] = ({ });
 	n--;
     }
+RABUG(sprintf("get_Target: (target: %O)", target));
     return target;
 }
-     
+
 //:FUNCTION switch_to
 //Make the specified target the primary target
 void switch_to(object who) {

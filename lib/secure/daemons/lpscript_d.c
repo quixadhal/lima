@@ -878,8 +878,8 @@ END + actions + "}}}}";
 	    ret += block[1] + ";\n";
 	ret += "}\n\n";
     }
-    
-    unguarded(1, (: write_file, outname, header + globals + protos + tail + ret, 1 :));
+ 
+    unguarded(1, (: write_file, outname,"#pragma no_warnings\n" + header + globals + protos + tail + ret, 1 :));
 }
 
 object compile(string scrname) {

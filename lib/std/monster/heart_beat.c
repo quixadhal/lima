@@ -7,7 +7,7 @@ void switch_to(object);
 void attack();
 object get_target();
 
-static int		attacking;
+nosave int		attacking;
 
 // player.c calls this
 void set_attack_speed(int x) {

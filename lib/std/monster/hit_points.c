@@ -6,7 +6,7 @@ void die();
 
 private int hp = 1;
 private int max_hp = 1;
-private static int hp_time = time();
+private nosave int hp_time = time();
 private int heal_rate = 60;
 
 void set_heal_rate(int x) {

@@ -8,6 +8,9 @@
 **
 ** 961209, Deathblade: updated to use classes and to record reasons in the
 **                     data file (rather than just the log)
+** 971226, Tigran: added registered users which are allowed to login from 
+**                 banished shites.  Previously anyone with an account could
+**                 log in from a banished site, which is not always desired.
 */
 
 #include <log.h>
@@ -19,12 +22,13 @@ inherit CLASS_BANISH_DATA;
 
 class banish_data * bad_names = ({ });
 class banish_data * bad_sites = ({ });
+string array registered=({});
 
 //### used to upgrade old banish information
 private void create()
 {
     ::create();
-
+    /* This looks like a conversion from an old system -- remove it? */
     if ( sizeof(bad_names) != 0 && stringp(bad_names[0]) )
     {
 	for ( int i = sizeof(bad_names); i--; )
@@ -38,7 +42,7 @@ private void create()
 	save_me();
     }
 }
-    
+
 void banish_name(string name, string reason)
 {
     if ( !check_privilege("Mudlib:daemons") )
@@ -87,7 +91,6 @@ void banish_site(string site, string reason)
 		       this_user()->query_userid(),
 		       site, 
 		       reason));
-
     bad_sites += ({ new(class banish_data, item: site, reason: reason) });
     save_me();
 }
@@ -96,7 +99,6 @@ void unbanish_site(string site)
 {
     if ( !check_privilege("Mudlib:daemons") )
 	return;
-
     bad_sites = filter(bad_sites, (: ((class banish_data)$1)->item != $(site) :));
     save_me();
 }
@@ -104,9 +106,9 @@ void unbanish_site(string site)
 int check_name(string name)
 {
     // return non-zero if banished
-    return sizeof(filter(bad_names,
-			 (: regexp($(name),
-				   ((class banish_data)$1)->item) :)));
+  return sizeof(filter(bad_names,
+		       (: regexp($(name),
+				 ((class banish_data)$1)->item) :)));
 }
 
 int check_site(string *check)
@@ -122,6 +124,34 @@ int check_site(string *check)
 					  translate(((class banish_data)$1)->item))) :)));
 }
 
+void add_registered(string who)
+{
+  if(!check_privilege("Mudlib:daemons") )
+    return;
+  registered+=({lower_case(who)});
+  save_me();
+}
+
+void remove_registered(string who)
+{
+  if(!check_privilege("Mudlib:daemons") )
+    return;
+  if(member_array(who=lower_case(who),registered)==-1)
+    return;
+  registered-=({who});
+  save_me();
+}
+
+varargs int check_registered(string *sites,string who)
+{
+  return (member_array(who,registered)+1);
+}
+
+string array get_registered()
+{
+  return registered;
+}
+      
 mixed *show_banishes()
 {
     return copy(({ bad_names, bad_sites }));

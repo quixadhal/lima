@@ -23,7 +23,7 @@ nomask string make_name_list(mixed * list);
 **
 ** Print moderator/speak infor for a moderated channel.
 */
-static nomask void print_mod_info(string channel_name)
+protected nomask void print_mod_info(string channel_name)
 {
     class channel_info ci = query_channel_info(channel_name);
 
@@ -54,7 +54,7 @@ static nomask void print_mod_info(string channel_name)
 
 
 /* this is used when signing off from a channel... */
-static nomask void moderation_signoff(string channel_name)
+protected nomask void moderation_signoff(string channel_name)
 {
     class channel_info ci = query_channel_info(channel_name);
 
@@ -76,7 +76,7 @@ static nomask void moderation_signoff(string channel_name)
     }
 }
 
-static nomask int cmd_moderation(string channel_name, string arg)
+protected nomask int cmd_moderation(string channel_name, string arg)
 {
     class channel_info ci = query_channel_info(channel_name);
     string user_channel_name = user_channel_name(channel_name);

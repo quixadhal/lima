@@ -10,14 +10,14 @@
 ** The client should fill in this function with the reconnection callback.
 ** The function prototype is:  void func(string key)
 */
-static function reconn_func;
+nosave function reconn_func;
 
 /*
 ** Store the retry time for each key as we try to reestablish contact.
 ** key -> ({ period, count }).  If a key has an entry here, then we are
 ** attempting to establish contact.
 */
-static private mapping retry_info = ([ ]);
+nosave private mapping retry_info = ([ ]);
 
 #define MAX_RETRY_PERIOD	3600	/* one hour */
 #define RETRY_PER_PERIOD	4	/* 4 retries at each time period */
@@ -34,12 +34,12 @@ private nomask void time_to_reconnect(string key)
     evaluate(reconn_func, key);
 }
 
-static nomask void cancel_reconnection(string key)
+protected nomask void cancel_reconnection(string key)
 {
     map_delete(retry_info, key);
 }
 
-static nomask void trigger_reconnect(string key)
+protected nomask void trigger_reconnect(string key)
 {
     int delay;
 

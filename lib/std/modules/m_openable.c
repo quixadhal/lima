@@ -31,6 +31,20 @@ void resync_visibility();
 int test_flag(int which);
 void assign_flag(int which, int state);
 
+//:FUNCTION do_on_open()
+// Called from open_with() so modules that inherit from M_OPENABLE
+// Don't have to catch the "open" hook.
+void do_on_open() {
+    /* Overload this later */
+}
+
+//:FUNCTION do_on_close()
+// Called from close() so modules that inherit from M_OPENABLE
+// Don't have to catch the "close" hook.
+void do_on_close() {
+    /* Overload this later */
+}
+
 int openable() { return 1; }
 
 int query_closed() { return !test_flag(F_OPEN); /* closed; */ }
@@ -106,6 +120,9 @@ varargs int open_with(object with)
     if (ex = inv_list(all_inventory())) {
 	write("Inside, you find:\n"+ex);
     }
+
+    do_on_open();
+
 //:HOOK open
 //called when an object is opened.  The return value is ignored.
     call_hooks("open", HOOK_IGNORE);
@@ -126,6 +143,8 @@ mixed close() {
     if (stringp(tmp)) return tmp;
     
     this_body()->simple_action(close_msg, this_object());
+    do_on_close();
+
 //:HOOK close
 //called when an object is closed.  The return value is ignored.
     call_hooks("close", HOOK_IGNORE);

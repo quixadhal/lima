@@ -24,8 +24,8 @@ MENU rm_annotations;
 MENU_ITEM quit_item;
 MENU_ITEM goto_main_menu_item;
 MENU_ITEM seperator;
-private static object annotation_target;
-private static class annotation new_annotation;
+private nosave object annotation_target;
+private nosave class annotation new_annotation;
 private void remove_annotation();
 
 

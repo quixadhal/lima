@@ -2,8 +2,8 @@
 
 #include <mudlib.h>
 
-private static mapping variables = ([]);
-private static mapping set_var_hooks = ([]);
+private nosave mapping variables = ([]);
+private nosave mapping set_var_hooks = ([]);
 
 
 //:FUNCTION setup_for_save
@@ -39,7 +39,7 @@ unset_variable(string var)
     this_object()->save();
 }
 
-static void
+protected void
 set_if_undefined(string var, mixed value)
 {
     if ( !is_variable(var) )
@@ -52,7 +52,7 @@ get_variable(string var)
     return variables[var];
 }
 
-static
+protected
 void
 print_variable(string v)
 {
@@ -62,7 +62,7 @@ print_variable(string v)
     printf("The value of %s is: %O\n", v, variables[v]);
 }
 
-varargs static mixed expand_if_variable(string arg, int only_expand_if_string)
+varargs protected mixed expand_if_variable(string arg, int only_expand_if_string)
 {
   mixed a;
 

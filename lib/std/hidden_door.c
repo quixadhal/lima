@@ -7,9 +7,11 @@ inherit DOOR;
 
 void do_hidden_stuff()
 {
-    object here = environment();
-    if( !here )
-	return;
+    object here;
+    string our_dir = "northeast";
+    here = environment(this_object());
+
+    if (!here) return;
     if( query_closed() )
 	here->add_hidden_exit( our_dir );
     else
@@ -27,16 +29,16 @@ void set_closed( int x )
 }
 
 
-void on_clone( string ident, string dir )
+varargs void on_clone( string ident, string dir, string room )
 {
-::on_clone( ident, dir );
+    ::on_clone( ident, dir, room );
     do_hidden_stuff();
 }
 
 
-void setup_door( string ident, string dir ) 
+void setup_door( string ident, string dir, string room ) 
 {
-    ::setup_door( ident, dir );
+    ::setup_door( ident, dir, room );
     set_flag( ATTACHED );
 }
 

@@ -9,8 +9,8 @@
 inherit CONTAINER;
 inherit M_GETTABLE;
 
-private static int at_beginning = 1;
-private static string transcript = "";
+private nosave int at_beginning = 1;
+private nosave string transcript = "";
 private string current_button = "stop";
 
 

@@ -15,7 +15,7 @@ inherit M_ACCESS;
 ** Map the symbolic log names to their respective log files.  Note that
 ** many names can map to a single file.
 */
-private static mapping legal_logs = ([
+private nosave mapping legal_logs = ([
     LOG_AUTODOC		: DIR_LOG "/autodoc",
     LOG_BANISH		: DIR_LOG "/banishes",
     LOG_BUG		: DIR_LOG "/bugs",
@@ -28,6 +28,7 @@ private static mapping legal_logs = ([
     LOG_LOGIN		: DIR_LOG "/logins",
     LOG_LOGIN_FAILURE	: DIR_LOG "/login_fail",
     LOG_MAIL_ERROR	: DIR_LOG "/mail_errs",
+    LOG_NEW_PLAYERS     : DIR_LOG "/new_players",
     LOG_QUEST		: DIR_LOG "/quests",
     LOG_QUIT            : DIR_LOG "/logins",
     LOG_SHUTDOWN	: DIR_LOG "/shutdown",
@@ -39,7 +40,7 @@ private static mapping legal_logs = ([
     LOG_FTP		: DIR_LOG "/ftp",
 ]);
 
-private static string * timestamps = ({
+private nosave string * timestamps = ({
     LOG_BANISH,
     LOG_CHANNEL,
     LOG_SHUTDOWN,

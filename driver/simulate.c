@@ -63,7 +63,7 @@ static void remove_sent PROT((object_t *, object_t *));
 
 INLINE void check_legal_string P1(char *, s)
 {
-    if (strlen(s) >= LARGEST_PRINTABLE_STRING) {
+    if (strlen(s) > LARGEST_PRINTABLE_STRING) {
 	error("Printable strings limited to length of %d.\n",
 	      LARGEST_PRINTABLE_STRING);
     }
@@ -102,18 +102,10 @@ char *strput_int P3(char *, x, char *, limit, int, num) {
 }
 
 #ifdef PRIVS
-static char *privs_file_fname = (char *) 0;
-
 static void
 init_privs_for_object P1(object_t *, ob)
 {
-    object_t *tmp_ob;
     svalue_t *value;
-
-    if (!master_ob)
-	tmp_ob = ob;
-    else
-	tmp_ob = master_ob;
 
     if (!current_object
 #ifdef PACKAGE_UIDS
@@ -124,9 +116,12 @@ init_privs_for_object P1(object_t *, ob)
 	return;
     }
     push_malloced_string(add_slash(ob->name));
-    if (!privs_file_fname)
-	privs_file_fname = make_shared_string(APPLY_PRIVS_FILE);
-    value = apply(privs_file_fname, tmp_ob, 1, ORIGIN_DRIVER);
+
+    if (master_ob)
+	value = apply_master_ob(APPLY_PRIVS_FILE, 1);
+    else
+	value = apply(applies_table[APPLY_PRIVS_FILE], ob, 1, ORIGIN_DRIVER);
+
     if (value == NULL || value->type != T_STRING)
 	ob->privs = NULL;
     else
@@ -138,8 +133,6 @@ init_privs_for_object P1(object_t *, ob)
  * Give the correct uid and euid to a created object.
  */
 #ifdef PACKAGE_UIDS
-static char *creator_file_fname = (char *) 0;
-
 static int give_uid_to_object P1(object_t *, ob)
 {
     svalue_t *ret;
@@ -158,16 +151,16 @@ static int give_uid_to_object P1(object_t *, ob)
      * Ask master object who the creator of this object is.
      */
     push_malloced_string(add_slash(ob->name));
-    if (!creator_file_fname)
-	creator_file_fname = make_shared_string(APPLY_CREATOR_FILE);
-    ret = apply_master_ob(creator_file_fname, 1);
+
+    ret = apply_master_ob(APPLY_CREATOR_FILE, 1);
     if (!ret)
-	error("master object: No function " APPLY_CREATOR_FILE "() defined!\n");
+	error("master object: No function %s() defined!\n",
+	      applies_table[APPLY_CREATOR_FILE]);
     if (!ret || ret == (svalue_t *)-1 || ret->type != T_STRING) {
 	destruct_object(ob);
-	if (!ret) error("Master object has no function " APPLY_CREATOR_FILE "().\n");
+	if (!ret) error("Master object has no function %s().\n", applies_table[APPLY_CREATOR_FILE]);
 	if (ret == (svalue_t *)-1) error("Can't load objects without a master object.");
-	error("Illegal object to load: return value of master::" APPLY_CREATOR_FILE "() was not a string.\n");
+	error("Illegal object to load: return value of master::%s() was not a string.\n", applies_table[APPLY_CREATOR_FILE]);
     }
     creator_name = ret->u.string;
     /*
@@ -226,7 +219,8 @@ static int init_object P1(object_t *, ob)
     add_objects(&ob->stats, 1);
 #endif
 #ifdef NO_ADD_ACTION
-    if (function_exists(APPLY_CATCH_TELL, ob, 1))
+    if (function_exists(APPLY_CATCH_TELL, ob, 1) ||
+	function_exists(APPLY_RECEIVE_MESSAGE, ob, 1))
 	ob->flags |= O_LISTENER;
 #endif
 #ifdef PACKAGE_UIDS
@@ -332,7 +326,7 @@ object_t *int_load_object P1(char *, lname)
 #endif
 
     if (++num_objects_this_thread > INHERIT_CHAIN_SIZE)
-	error("Inherit chain too deep: > %d when trying to load '%s'.", INHERIT_CHAIN_SIZE, lname);
+	error("Inherit chain too deep: > %d when trying to load '%s'.\n", INHERIT_CHAIN_SIZE, lname);
 #ifdef PACKAGE_UIDS
     if (current_object && current_object->euid == NULL)
 	error("Can't load objects when no effective user.\n");
@@ -513,7 +507,7 @@ object_t *int_load_object P1(char *, lname)
     mret = apply_master_ob(APPLY_VALID_OBJECT, 1);
     if (mret && !MASTER_APPROVED(mret)) {
 	destruct_object(ob);
-	error("master object: " APPLY_VALID_OBJECT "() denied permission to load '/%s'.\n", name);
+	error("master object: %s() denied permission to load '/%s'.\n", applies_table[APPLY_VALID_OBJECT], name);
     }
 
     if (init_object(ob))
@@ -698,7 +692,7 @@ int command_for_object P1(char *, str)
  */
 
 
-#ifndef NO_ENVIRONMENT
+#ifdef F_PRESENT
 static object_t *object_present2 PROT((char *, object_t *));
 
 object_t *object_present P2(svalue_t *, v, object_t *, ob)
@@ -922,7 +916,7 @@ void destruct_object P1(object_t *, ob)
     if (ob->flags & O_SNOOP) {
 	int i;
 	for (i = 0; i < max_users; i++) {
-	    if (all_users[i]->snooped_by == ob)
+	    if (all_users[i] && all_users[i]->snooped_by == ob)
 		all_users[i]->snooped_by = 0;
 	}
 	ob->flags &= ~O_SNOOP;
@@ -1156,7 +1150,7 @@ void tell_room P3(object_t *, room, svalue_t *, v, array_t *, avoid)
     object_t *ob;
     char *buff;
     int valid, j;
-    char txt_buf[LARGEST_PRINTABLE_STRING];
+    char txt_buf[LARGEST_PRINTABLE_STRING + 1];
 
     switch (v->type) {
     case T_STRING:
@@ -1272,6 +1266,7 @@ void enable_commands P1(int, num)
 }
 #endif
 
+#ifdef F_INPUT_TO
 /*
  * Set up a function in this object to be called with the next
  * user input string.
@@ -1316,11 +1311,13 @@ int input_to P4(svalue_t *, fun, int, flag, int, num_arg, svalue_t *, args)
     free_sentence(s);
     return 0;
 }
+#endif
 
 /*
  * Set up a function in this object to be called with the next
  * user input character.
  */
+#ifdef F_GET_CHAR
 int get_char P4(svalue_t *, fun, int, flag, int, num_arg, svalue_t *, args)
 {
     sentence_t *s;
@@ -1361,6 +1358,7 @@ int get_char P4(svalue_t *, fun, int, flag, int, num_arg, svalue_t *, args)
     free_sentence(s);
     return 0;
 }
+#endif
 
 void print_svalue P1(svalue_t *, arg)
 {
@@ -1373,7 +1371,7 @@ void print_svalue P1(svalue_t *, arg)
 	switch (arg->type) {
 	case T_STRING:
 	    len = SVALUE_STRLEN(arg);
-	    if (len >= LARGEST_PRINTABLE_STRING) {
+	    if (len > LARGEST_PRINTABLE_STRING) {
 		error("Printable strings limited to length of %d.\n",
 		      LARGEST_PRINTABLE_STRING);
 	    }
@@ -1783,7 +1781,7 @@ int user_parser P1(char *, buff)
 
 	if (!(s->flags & V_FUNCTION))
 	    debug(d_flag, ("Local command %s on /%s",
-			   s->function, s->ob->name));
+			   s->function.s, s->ob->name));
 
 	if (s->flags & V_NOSPACE) {
 	    int l1 = strlen(s->verb);
@@ -1983,8 +1981,10 @@ static void remove_sent P2(object_t *, ob, object_t *, user)
 	sentence_t *tmp;
 
 	if ((*s)->ob == ob) {
-	    if (!(s->flags & V_FUNCTION))
-		debug(d_flag, ("--Unlinking sentence %s\n", (*s)->function));
+#ifdef DEBUG
+	    if (!((*s)->flags & V_FUNCTION))
+		debug(d_flag, ("--Unlinking sentence %s\n", (*s)->function.s));
+#endif
 
 	    tmp = *s;
 	    *s = tmp->next;

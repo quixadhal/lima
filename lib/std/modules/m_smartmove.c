@@ -20,7 +20,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
   array obs...);
 
 
-private nomask int move_me_there(string dest, string arg)
+private nomask int move_me_there(string dest, string arg, mixed exit, mixed enter)
 {
     object last_loc = environment();
     object env;
@@ -29,9 +29,12 @@ private nomask int move_me_there(string dest, string arg)
     mixed txt;
     string *msgs;
     string m;
+//RABUG("move_me_there exit message: " + exit);
+//RABUG("move_me_there enter message: " + enter);
+//RABUG("move_me_there dest: " + dest);
 
-    if ( (r = move(dest)) != MOVE_OK)
-    {
+
+    if ( (r = move(dest)) != MOVE_OK) {
 	if(!stringp(r)) {
 	    if(r == MOVE_NO_ERROR) 
 		return 1;
@@ -50,10 +53,12 @@ private nomask int move_me_there(string dest, string arg)
 		if(sizeof(filter(all_inventory(d),(:$1->is_living():)))) {
 		    write("You might be able to fit if there weren't "
 		      "something moving around there already.\n");
-		} else {
+		} 
+                else {
 		    write("You're unable to fit.\n");
 		}
-	    } else {
+	    }
+            else {
 		write("You aren't able to fit with the load you're "
 		  "carrying.\n");
 	    }
@@ -69,52 +74,42 @@ private nomask int move_me_there(string dest, string arg)
 
     env = environment();
 
-    txt = last_loc->query_exit_msg(arg);
+    txt = exit;
 
-    // This should be done better when smartmove gets cleaned up.  Right now
-    // Furniture uses it, and anything else inheriting NON_ROOM probably does.
-    if(!txt)
-	txt = environment()->handle_exit_msgs(last_loc);
-    if ( !txt )
-    {
+    if ( !txt ) {
 	msgs = get_player_message("leave", arg);
 
 	// filter the object where you're going
 	tell_from_inside(last_loc, msgs[1], 0, ({ env }));
     }
-    else if ( arrayp(txt) )
-    {
-	if ( txt[0] )
-	{
-	    m = compose_message(this_object(), txt[0], ({ this_object() }));
-	    tell(this_object(), m);
-	}
-	if ( txt[1] )
-	{
-	    m = compose_message(0, txt[1], ({ this_object() }));
+    else 
+        if ( arrayp(txt) ) {
+            if ( txt[0] ) {
+	        m = compose_message(this_object(), txt[0], ({ this_object() }));
+	        tell(this_object(), m);
+	    }
+	    if ( txt[1] ) {
+    	        m = compose_message(0, txt[1], ({ this_object() }));
 
-	    // filter the object where you're going
-	    tell_from_inside(last_loc, m, 0, ({ env }));
-	}
-    }
-    else
-    {
-    m = compose_message( 0, txt, ({ this_object() }) );
-	tell_from_inside( last_loc, m, 0, ({ env }));
-    }
+	        // filter the object where you're going
+	        tell_from_inside(last_loc, m, 0, ({ env }));
+	    }
+        }
+        else {
+            m = compose_message( 0, txt, ({ this_object() }) );
+    	    tell_from_inside( last_loc, m, 0, ({ env }));
+        }
 
     //### should we be adding this extra line? I think so...
     write("\n");
 
     //###there is a note in room.c about this being bogus
-    txt = env->query_enter_msg(arg);
-    if ( !txt )
-    {
+    txt = enter;
+    if ( !txt ) {
 	msgs = get_player_message("enter", arg);
 	tell_from_inside(env, msgs[1], 0, ({ this_object() }));
     }
-    else if ( arrayp(txt) )
-    {
+    else if ( arrayp(txt) ) {
 	if ( txt[0] )
 	{
 	    m = compose_message(this_object(), txt[0], ({ this_object() }));
@@ -154,14 +149,18 @@ void notify_move()
 //Called when a person successfully leaves a room in a certain direction
 //(called by the room).  The return value is ignored.  The person moving
 //is given by this_body().  The direction is passed as an argument.
-int move_to(string dest, mixed dir)
+
+//:HOOK person_arrived
+//Called when a person successfully enters a room from a direction.
+//The return value is ignored. The person moving is given by this_body(). 
+//The direction is passed as an argument.
+varargs int move_to(string dest, mixed dir, mixed exit, mixed enter)
 {
     object where = environment();
 
-    dest = evaluate(dest);
-    if (move_me_there(dest, dir)) {
+    if (move_me_there(dest, dir, exit, enter)) {
 	where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
-
+        environment()->call_hooks("person_arrived", HOOK_IGNORE, 0, dir);
     }
 
     if ( where != environment() )
@@ -172,36 +171,4 @@ int move_to(string dest, mixed dir)
     return 0;
 }
 
-int go_somewhere(string arg)
-{
-    object env = environment( this_object());
-    string value = env->query_exit_value(arg);
 
-
-    // This should have been trapped already, but just in case:
-    if( !value )
-	return call_other( env, "do_go_" + arg );
-    if (value[0] == '#') {
-	write(value[1..]);
-	return 0;
-    }
-
-    if (env->call_hooks("block_" + arg, HOOK_LOR, 0, arg)
-      || env->call_hooks("block_all", HOOK_LOR, 0, arg))
-	return 0;
-
-    return move_to(value, arg);
-}
-
-void do_go_somewhere( string arg )
-{
-    int ret = 0;
-    object env = environment( this_object());
-
-    // allowed by the room itself; some sort of 'special' exit
-    if( function_exists( "do_go_" + arg, env ))
-	ret = call_other(env, "do_go_" + arg);
-    if(!ret)
-	go_somewhere( arg );
-    return;
-}

@@ -21,7 +21,7 @@ private string array  spell_dirs = ({});
 
 // Map the name of the spell to its object name.
 // We build this each create.
-private static mapping spell_table = ([ ]);
+private nosave mapping spell_table = ([ ]);
 
 
 void add_spell_dir(string dir)

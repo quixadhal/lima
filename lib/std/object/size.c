@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-private static int size = MEDIUM;
+private nosave int size = MEDIUM;
 
 //:FUNCTION get_size
 //get_size() returns the size of an object

@@ -3,17 +3,16 @@
 #include <mudlib.h>
 
  
-inherit VERB_OB;
+inherit NVERB_OB;
  
 void do_wind_obj(object ob) {
-    ob->wind();
+    ob->do_wind();
 }
 
 void do_wind_obj_with_obj(object ob1, object ob2) {
-    ob2->use("wind", ob1);
+    ob2->do_wind(ob1);
 }
  
-array query_verb_info()
-{
-  return ({ ({ "OBJ", "OBJ with OBJ" }) });
+void create() {
+    add_rules( ({ "OBJ", "OBJ with OBJ" }) );
 }

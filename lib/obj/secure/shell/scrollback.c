@@ -4,8 +4,8 @@
 
 object query_owner();	// in SHELL
 
-private static string scrollback = "";
-private static string last_scrollback = "";
+private nosave string scrollback = "";
+private nosave string last_scrollback = "";
 
 private nomask void cmd_scrollback()
 {

@@ -43,7 +43,7 @@ mixed can_read_word_str_word_obj(string p1, string str, string p2, object ob) {
 }
 
 
-static void read_it(object ob, string str) {
+protected void read_it(object ob, string str) {
     string text;
 
     if(ob->is_gettable() && !try_to_acquire(ob))

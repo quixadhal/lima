@@ -16,7 +16,6 @@ void setup()
 	"east" : river,
 	"northeast" : river,
 	"northwest" : "Inside_Cave",
-	"south" :  "Navigation_Room",
       ]) );
 
     set_exit_msg("south", "$N $vscurry through the opening.\n");

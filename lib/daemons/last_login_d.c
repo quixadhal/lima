@@ -36,6 +36,14 @@ nomask void register_last(string userid, string addr)
 		    userid, addr, ctime(time()));
 	LOG_D->log(LOG_LOGIN, s);
 
+
+        if (!lastdata[userid])
+        {
+          s = sprintf("%s created from %s [%s]\n",
+                      userid, addr, ctime(time()));
+          LOG_D->log(LOG_NEW_PLAYERS, s);
+        }
+
 	lastdata[userid] = ({ time(), addr });
     }
     save_me();

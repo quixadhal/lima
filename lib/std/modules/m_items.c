@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 
-private static object my_item_mgr;
+private nosave object my_item_mgr;
 
 void add_item(mixed array stuff ...)
 {

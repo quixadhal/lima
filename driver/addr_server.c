@@ -51,6 +51,8 @@ void conn_data_handler PROT((int));
 int index_by_fd PROT((int));
 void terminate PROT((int));
 
+void debug_perror PROT((char *, char *));
+
 void debug_perror P2(char *, what, char *, file) {
     if (file)
 	fprintf(stderr, "System Error: %s:%s:%s\n", what, file, port_strerror(errno));
@@ -149,7 +151,7 @@ void init_conn_sock P1(int, port_num)
     /*
      * listen on socket for connections.
      */
-    if (listen(conn_fd, SOMAXCONN) == -1) {
+    if (listen(conn_fd, 128) == -1) {
 	socket_perror("init_conn_sock: listen", 0);
 	exit(10);
     }
@@ -496,7 +498,7 @@ int ip_by_name P2(int, conn_index, char *, buf)
     hp = gethostbyname(&buf[sizeof(int)]);
     if (hp == NULL) {
 /* Failed :( */
-	sprintf(out_buf, "%s %s\n", &buf[sizeof(int)], "0");
+	sprintf(out_buf, "%s 0\n", &buf[sizeof(int)]);
 	DBG(("%s", out_buf));
 	OS_socket_write(all_conns[conn_index].fd, out_buf, strlen(out_buf));
 	return 0;
@@ -518,7 +520,9 @@ int name_by_ip P2(int, conn_index, char *, buf)
     static char out_buf[OUT_BUF_SIZE];
 
     if ((addr = inet_addr(&buf[sizeof(int)])) == -1) {
+	sprintf(out_buf, "%s 0\n", &buf[sizeof(int)]);
 	DBG(("name_by_ip: malformed address request."));
+	OS_socket_write(all_conns[conn_index].fd, out_buf, strlen(out_buf));
 	return 0;
     }
     if ((hp = gethostbyaddr((char *) &addr, sizeof(addr), AF_INET))) {
@@ -620,3 +624,19 @@ int main P2(int, argc, char **, argv)
     /*NOTREACHED*/
     return 0;			/* never reached */
 }
+
+#ifdef WIN32
+void debug_message P1V(char *, fmt)
+{
+    static char deb_buf[100];
+    static char *deb = deb_buf;
+    va_list args;
+    V_DCL(char *fmt);
+
+    V_START(args, fmt);
+    V_VAR(char *, fmt, args);
+    vfprintf(stderr, fmt, args);
+    fflush(stderr);
+    va_end(args);
+}
+#endif

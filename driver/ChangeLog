@@ -1416,7 +1416,7 @@ Mon Nov 14 12:56:40 EST 1994 (tim@handel.princeton.edu (Beek))
 	  with NO_MUDLIB_STATS off
 	* fixed a line in scratchpad.c that caused a compilation error
 	  for some compilers
-	* optimized variable name lookup for restore_object alot.  Now
+	* optimized variable name lookup for restore_object a lot.  Now
 	  uses shared string comparisions, and is optimized for the
 	  case where the variables are in the order they're defined
 	  in the object (i.e. guesses that the save file was made
@@ -1612,7 +1612,7 @@ Wed Oct 12 01:56:14 EDT 1994 (tim@handel.princeton.edu (Beek))
 	  the fix for the lvalue lifetime bug, etc
 	* removed some code duplication in checking efuns
 	* removed F_JUMP; all branches are relative now (F_BBRANCH added)
-	* renamed alot of stuff to be more informative:
+	* renamed a lot of stuff to be more informative:
 	  F_GLOBAL, F_GLOBAL_LVALUE, F_LOCAL, F_LOCAL_LVALUE
 	  instead of the previous inconsistent names
 	* only put () after the instruction name if it's an efun
@@ -1971,7 +1971,7 @@ Mon Sep 12 07:53:11 EDT 1994 (tim@handel.princeton.edu (Beek))
 	* optimized load_mapping_from_aggregate
 	* write_file now takes a second arg, 1 means overwrite instead of
 	  append.  Idea from Decker@TMI-2
-	* Improved alot of compile time error messages
+	* Improved a lot of compile time error messages
 	* Added type checking to save_object()
 	* Fixed a crasher in updating of the simul_efun object on
 	  some systems

@@ -1,8 +1,0 @@
-# Do not remove the headers from this file! see /USAGE for more info.
-
-is=armor,valuable
-primary_id=armor
-primary_adj=leather
-armor_class=3
-value=110
-weight=3

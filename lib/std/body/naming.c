@@ -12,7 +12,7 @@ private string name = "guest";
 private string describe;
 private string invis_name;
 private string nickname;
-private static string cap_name;
+private nosave string cap_name;
 
 int is_visible();
 int test_flag(int which);
@@ -133,6 +133,7 @@ void set_nickname(string arg)
 
     nickname = arg;
     add_id_no_plural(nickname);
+    parse_refresh();
 }
 
 string query_nickname()
@@ -140,13 +141,13 @@ string query_nickname()
     return nickname;
 }
 
-static void naming_create(string userid)
+protected void naming_create(string userid)
 {
     cap_name = capitalize(userid);
     name = userid;
 }
 
-static void naming_init_ids()
+protected void naming_init_ids()
 {
     add_id_no_plural(name);
 

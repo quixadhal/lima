@@ -26,7 +26,7 @@ inherit M_REGEX;
     ({1, 15}), ({2,5}), ({5, 12}), ({ 9, 17 }) })
 
 
-static private string * headers = ({
+private nosave string * headers = ({
     "Up",                                 // 0
     "Address",                            // 1
     "",		/* port */                // 2

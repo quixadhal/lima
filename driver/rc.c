@@ -120,7 +120,8 @@ static int scan_config_line P3(char *, fmt, void *, dest, int, required)
     return 1;
 }
 
-char *process_config_string(char *str) {
+#if 0
+static char *process_config_string(char *str) {
     char *p = str;
     char *q;
     int n;
@@ -136,6 +137,7 @@ char *process_config_string(char *str) {
     q[1] = 0;
     return alloc_cstring(p, "process_config_string()");
 }
+#endif
 
 void set_defaults P1(char *, filename)
 {
@@ -290,8 +292,8 @@ void set_defaults P1(char *, filename)
     /* check for ports */
     if (port_start == 1) {
 	if (scan_config_line("external_port_1 : %[^\n]", tmp, 0)) {
-	    int p = CONFIG_INT(__MUD_PORT__);
-	    fprintf(stderr, "Warning: external_port_1 already defined to be 'telnet %i' by the line\n    'port number : %i'; ignoring the line 'external_port_1 : %s'\n", p, p, tmp);
+	    int port = CONFIG_INT(__MUD_PORT__);
+	    fprintf(stderr, "Warning: external_port_1 already defined to be 'telnet %i' by the line\n    'port number : %i'; ignoring the line 'external_port_1 : %s'\n", port, port, tmp);
 	}
     }
     for (i = port_start; i < 5; i++) {
@@ -313,7 +315,11 @@ void set_defaults P1(char *, filename)
 		} else
 		if (!strcmp(kind, "ascii"))
 		    external_port[i].kind = PORT_ASCII;
-		else {
+		else
+		if (!strcmp(kind, "MUD"))
+		    external_port[i].kind = PORT_MUD;
+		else
+		    {
 		    fprintf(stderr, "Unknown kind of external port: %s\n",
 				  kind);
 		    exit(-1);

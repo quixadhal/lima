@@ -16,8 +16,8 @@
 inherit M_INPUT;
 inherit M_ACCESS;
 
-static private function	end_func;
-static private object	user;
+nosave private function	end_func;
+nosave private object	user;
 
 private int already_editing = 0;
 
@@ -28,7 +28,7 @@ private nomask void receive_ed_input(mixed s)
 	return;
     }
 
-    write(ed_cmd(s));
+    tell(this_user(), ed_cmd(s), NO_ANSI);
     if ( query_ed_mode() == -1 )
     {
 	modal_pop();

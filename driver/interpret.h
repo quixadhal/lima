@@ -95,6 +95,11 @@ typedef struct error_context_s {
     struct error_context_s *save_context;
 } error_context_t;
 
+typedef struct {
+    function_t *func;
+    int index;
+} function_lookup_info_t;
+
 #define IS_ZERO(x) (!(x) || (((x)->type == T_NUMBER) && ((x)->u.number == 0)))
 #define IS_UNDEFINED(x) (!(x) || (((x)->type == T_NUMBER) && \
 	((x)->subtype == T_UNDEFINED) && ((x)->u.number == 0)))
@@ -253,6 +258,7 @@ extern svalue_t apply_ret_value;
 #ifdef LPC_TO_C
 void call_program PROT((program_t *, POINTER_INT));
 #endif
+void call_direct PROT((object_t *, int, int, int));
 void eval_instruction PROT((char *p));
 INLINE void assign_svalue PROT((svalue_t *, svalue_t *));
 INLINE void assign_svalue_no_free PROT((svalue_t *, svalue_t *));
@@ -289,7 +295,8 @@ INLINE void pop_stack PROT((void));
 INLINE void pop_n_elems PROT((int));
 INLINE void pop_2_elems PROT((void));
 INLINE void pop_3_elems PROT((void));
-INLINE compiler_function_t *setup_inherited_frame PROT((int));
+INLINE function_t *setup_inherited_frame PROT((int));
+INLINE program_t *find_function_by_name PROT((object_t *, char *, int *, int *));
 char *function_name PROT((program_t *, int));
 void remove_object_from_stack PROT((object_t *));
 void setup_fake_frame PROT((funptr_t *));
@@ -330,6 +337,7 @@ void reset_machine PROT((int));
 void unlink_string_svalue PROT((svalue_t *));
 void copy_lvalue_range PROT((svalue_t *));
 void assign_lvalue_range PROT((svalue_t *));
+void debug_perror PROT((char *, char *));
 
 #ifndef NO_SHADOWS
 int validate_shadowing PROT((object_t *));
@@ -344,7 +352,7 @@ void restore_context PROT((error_context_t *));
 int save_context PROT((error_context_t *));
 
 void pop_control_stack PROT((void));
-INLINE compiler_function_t *setup_new_frame PROT((int));
+INLINE function_t *setup_new_frame PROT((int));
 INLINE void push_control_stack PROT((int));
 
 void break_point PROT((void));

@@ -79,7 +79,7 @@ void respond(string str) {
 //If you call set_actions(chance, actions), every 5 seconds, the monster has
 //a '1 in chance' probability of doing one of the commands from the array
 //of strings 'actions'.
-static void set_actions(int chance, string *actions) {
+protected void set_actions(int chance, string *actions) {
 //### use scripts?
 #if 0
 cmd_mode = CMD_RANDOM;

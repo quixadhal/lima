@@ -77,12 +77,12 @@ mixed move_this_monster(int cloned)
     }
     else
     {
-	obvious_exits = environment(this_object())->query_exit_directions();
+	obvious_exits = environment(this_object())->query_exit_directions(0);
 	i = sizeof(obvious_exits);
 	if(!i) {return;}
 	random_exit = random(i);
 	my_exit = obvious_exits[random_exit];
-	monster_exit = environment(this_object())->query_exit_value(my_exit);
+	monster_exit = environment(this_object())->query_exit_destination(my_exit);
 
 #ifdef DEBUG
 write(my_exit); write(monster_exit);

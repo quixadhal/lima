@@ -14,7 +14,7 @@
 
 /* More simul conversion fall out */
 string punctuate(string);
-static private string vowels = "aeiouAEIOU";
+nosave private string vowels = "aeiouAEIOU";
 
 #define A_SHORT(x) (objectp(x) ? x->a_short() : (member_array(x[0], vowels) == -1 ? "a " : "an ") + x)
 #define SHORT(x) (objectp(x) ? x->short() : x)
@@ -56,6 +56,29 @@ string *query_msg_types() {
     return clean_array(keys(messages) + keys(def_messages));
 }
 
+array handle_ob(mixed ob, string res, mapping has) {
+    string bit;
+    
+    if (objectp(ob) && has[ob]) bit = "it";
+    else {
+	if (res[<2..<1]=="a ") {
+	    res = res[0..<3];
+	    bit = A_SHORT(ob);
+	} else if (res[<4..<1] == "the ") {
+	    res = res[0..<5];
+	    bit = THE_SHORT(ob);
+	} else if (res[<2..<1] == "A ") {
+	    res = res[0..<3];
+	    bit = capitalize(A_SHORT(ob));
+	} else if (res[<4..<1] == "The ") {
+	    res = res[0..<5];
+	    bit = capitalize(THE_SHORT(ob));
+	} else bit = SHORT(ob);
+	has[ob]++;
+    }
+    return ({ res, bit });
+}
+
 //:FUNCTION compose_message
 //The lowest level message composing function; it is passed the object
 //for whom the message is wanted, the message string, the array of people
@@ -73,7 +96,8 @@ varargs string compose_message(object forwhom, string msg, object *who,
     string str;
     string bit;
     mapping has = ([]);
-
+    mixed tmp;
+    
     fmt = reg_assoc(msg, ({ "\\$[NnVvTtPpOoRr][a-z0-9]*" }), ({ 1 }) );
     fmt = fmt[0]; // ignore the token info for now
     
@@ -100,22 +124,18 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	case 'o':
 	case 'O':
 	    ob = obs[num];
-	    if (objectp(ob) && has[ob]) bit = "it";
-	    else {
-		if (res[<2..<1]=="a ") {
-		    res = res[0..<3];
-		    bit = A_SHORT(ob);
-		} else if (res[<4..<1] == "the ") {
-		    res = res[0..<5];
-		    bit = THE_SHORT(ob);
-		} else if (res[<2..<1] == "A ") {
-		    res = res[0..<3];
-		    bit = capitalize(A_SHORT(ob));
-		} else if (res[<4..<1] == "The ") {
-		    res = res[0..<5];
-		    bit = capitalize(THE_SHORT(ob));
-		} else bit = SHORT(ob);
-		has[ob]++;
+	    if (arrayp(ob)) {
+		tmp = ({ res });
+		for (int z = 0; z < sizeof(ob); z++) {
+		    tmp = handle_ob(ob[z], res, has);
+		    ob[z] = tmp[1];
+		}
+		res = tmp[0];
+		bit = format_list(ob);
+	    } else {
+		tmp = handle_ob(ob, res, has);
+		res = tmp[0];
+		bit = tmp[1];
 	    }
 	    break;
 	case 't':
@@ -200,7 +220,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	    res += bit + fmt[i+1];
 	i+=2;
     }
-    if( res[<1] != '\n' ) 
+    if ( strlen(res) > 0 && res[<1] != '\n' )
 	res += "\n";
     return res;
 }

@@ -17,7 +17,7 @@ int query_ilog_time()
 {
     return ilog_time;
 }
-static void set_ilog_time(int t)
+protected void set_ilog_time(int t)
 {
     ilog_time = t;
 }

@@ -406,7 +406,7 @@ static void call_heart_beat()
 	    /* is it time to do a heart beat ? */
 	    curr_hb->heart_beat_ticks--;
 
-	    if (ob->prog->heart_beat != -1) {
+	    if (ob->prog->heart_beat != 0) {
 		if (curr_hb->heart_beat_ticks < 1) {
 		    curr_hb->heart_beat_ticks = curr_hb->time_to_heart_beat;
 		    current_heart_beat = ob;
@@ -423,8 +423,11 @@ static void call_heart_beat()
 		    add_heart_beats(&ob->stats, 1);
 #endif
 		    eval_cost = max_cost;
-		    /* this should be looked at ... */
-		    call_function(ob->prog, ob->prog->heart_beat);
+
+		    call_direct(ob, ob->prog->heart_beat - 1,
+				ORIGIN_DRIVER, 0);
+		    pop_stack();
+
 		    command_giver = 0;
 		    current_object = 0;
 		}

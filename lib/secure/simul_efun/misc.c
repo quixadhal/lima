@@ -5,6 +5,20 @@
 string evaluate_path(string);
 object find_body(string);
 object this_body();
+private nosave string array normal_directions = ({ "up", "down",
+                                                   "north", "northeast",
+                                                   "northwest", "east",
+                                                   "southeast", "southwest",
+                                                   "south", "west" });
+
+//: FUNCTION is_normal_direction
+//returns the stack of objects and functions
+int
+is_normal_direction(string dir) {
+     if (member_array(dir, normal_directions) != -1)
+         return 1;
+     return 0;
+}
 
 //:FUNCTION call_trace
 //returns the stack of objects and functions
@@ -45,14 +59,20 @@ clean_array(mixed* r) {
     n = sizeof(r) - 1;
     while (i < n) {
 	if (r[i] == r[i+1]) {
-	    r[i..i] = ({});
-	    n--;
-	} else
-	    i++;
+	    int j = i+1;
+	    
+	    while (j < n && r[i] == r[j + 1])
+		j++;
+
+	    r[i..j-1] = ({});
+	    n -= j - i;
+	}
+	i++;
     }
 
     return r;
 }
+
 
 //:FUNCTION cmp
 //returns whether its two arguments are equivalent.  This is about
@@ -354,7 +374,7 @@ mixed* decompose( mixed* org )
 
 //:FUNCTION choice
 //Returns a random element of the structure passed, if that
-//structure is an aggregate type (i.e., A string, array or mapping).
+// is an aggregate type (i.e., A string, array or mapping).
 
 mixed choice( mixed f ){
     mixed *k;
@@ -417,7 +437,7 @@ flatten_array(mixed arr)
 //Does a call_out to a list of functions, one following
 //another, with each returning the delay till the next one is called.
 
-static void handle_chain(object ob, array funcs, array args) {
+protected void handle_chain(object ob, array funcs, array args) {
     int delay;
     if(!sizeof(funcs))
       return;
@@ -619,4 +639,16 @@ string convert_time(int sec, int type) {
 //value of the function f
 array sort_by_value(array arr, function value_func) {
     return sort_array(arr, (: evaluate($(value_func), $1) - evaluate($(value_func), $2) :));
+}
+
+/* Replacement for the dump_socket_status() efun */
+string dump_socket_status() {
+  string ret = 
+    "Fd    State      Mode       Local Address          Remote Address\n"
+    "--  ---------  --------  ---------------------  ---------------------\n";
+  foreach (array item in socket_status()) {
+    ret += sprintf("%2d  %|9s  %|8s  %-21s  %-21s\n", item[0], item[1], item
+		   [2], item[3], item[4]);
+  }
+  return ret;
 }

@@ -13,31 +13,31 @@ inherit NON_ROOM;
 inherit M_SMARTMOVE;
 inherit M_MESSAGES;
 
-private static string arrival_msg;
-private static string departure_msg;
+private nosave string arrival_msg;
+private nosave string departure_msg;
 // Something like: sitting, standing, for: sitting on the horse you see...
 // This is really a gerundive, but we'll call it a verb so as not to confuse
 // people.
-private static string primary_verb;
-private static int notify_all = 1;
+private nosave string primary_verb;
+private nosave int notify_all = 1;
 
 
-static void set_move_notification(int a)
+protected void set_move_notification(int a)
 {
     notify_all = a;
 }
 
-static void set_arrival_msg(string s)
+protected void set_arrival_msg(string s)
 {
   arrival_msg = s;
 }
 
-static void set_departure_msg(string s)
+protected void set_departure_msg(string s)
 {
   departure_msg = s;
 }
 
-static void set_primary_verb(string s)
+protected void set_primary_verb(string s)
 {
   primary_verb = s;
 }

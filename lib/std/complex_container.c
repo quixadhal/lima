@@ -17,7 +17,7 @@ private mapping max_capacities = ([]);
 void set_relations(string array...);
 
 
-static int valid_prep(string prep) {
+protected int valid_prep(string prep) {
     return !!relations[prep];
 }
 

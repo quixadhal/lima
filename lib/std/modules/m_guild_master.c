@@ -65,7 +65,7 @@ void guildmsg_leave_as_enemy(object who)
 /* --------------------------------------------------- */
 
 
-static nomask void set_which_guild(string new_guild)
+protected nomask void set_which_guild(string new_guild)
 {
     which_guild = new_guild;
 }

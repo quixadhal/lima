@@ -19,8 +19,8 @@ inherit M_SMARTMOVE;
 
 void follow_callback(string);
 
-private static object target, target_where;
-private static function f_follow = (: follow_callback :);
+private nosave object target, target_where;
+private nosave function f_follow = (: follow_callback :);
 private string array masters = ({ "Beek", "Zifnab", "Ohara", "Rackain" });
 
 void i_moved() {

@@ -3,7 +3,7 @@ void lfun() {
 }
 
 void co() {
-    ASSERT(origin() == "call_out");
+    ASSERT(origin() == "internal");
 }
 
 void ef() {

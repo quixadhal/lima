@@ -1,10 +1,144 @@
+Mon Nov 10 17:56:57 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b19
+	* added support for classes in != and == [reported by Emeradii]
+	* fix for float += int [fix from Symmetry]
+
+Tue Nov  4 22:55:49 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b18
+	* fixed program size check to check correct size
+
+Tue Nov  4 15:57:10 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b17
+	* fixed typo in grammar.y.pre
+	* fixed restore_object() to choose the nonstatic version when more
+	  than one var has the same name
+	* fixed compilation with NO_ADD_ACTION off
+
+Sat Oct  4 23:17:32 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b16
+	* pluralize() fixes from DrFeelgood: skiff, sniff, gaff, etc.
+	  Handle staff as an exception.
+	* fixed crasher in function() {} [reported by Kaolin]
+	* Enforce the 64k bytecode limit
+	* fixed unterminated comment in options.h
+
+Thu Oct  2 01:21:02 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b15
+	* typo fix in addr_server.c [from Cloud@IdeaExchange]
+	* fixed the type of '((mixed)class)->member' [reported by Mystic]
+	* fixed parsing of code like (: identifier identifier :)
+	* took filter(string, ...) back out of func_spec.c since it isn't
+	  implemented yet
+
+Wed Sep 24 23:38:36 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b14
+	* fixed resolve() to pass (0, "255.255.255.255", key) and not
+	  (0, 0, key) to the callback when the lookup fails
+	* resolve() now calls the callback even when inet_ntoa() fails
+	  [both reported by ekusters@wabi.curinfo.an]
+
+Fri Sep  5 00:40:03 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b13
+	* added prototype for allocate_empty_class_by_size() to class.h
+	  [from Turrican@Discworld]
+	* fixed 'alot' -> 'a lot' everwhere it occurs
+	* compilation fixes for IRIX 6.2; <malloc.h> handled by configure,
+	  "my_malloc.h" is now "my_malloc.h"
+	* fixed read_file() to only strip '\r's before '\n's [reported by
+	  Burty]
+	* fixed unused local variable errors to report the correct variable
+	  name in the presence of nested blocks of variables (e.g. {int x;
+	  { int y; } } )
+	  [reported by Aragorn]
+	* some unused local variables that were previously overlooked are now
+	  reported
+	* the parser now accepts "my xth obj" [reported by Lathander]
+
+Tue Sep  2 20:40:31 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b12
+	* really fixed those invalid declarations this time
+	* added Dworkin's patches for RUNTIME_LOADING support on NetBSD
+	* updated Credits.MudOS a bunch.  If you have submitted anything,
+	  or your entry is incomplete or inaccurate, email me.
+
+Sat Aug 30 19:14:34 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b11
+	* fixed invalid declarations in the named_livings() contrib efun
+	  [reported by Qualin and others]
+	* added Maarten de Jong's updated README-gcc for Amiga compilation
+	* added missing fclose(f) to read_file()
+
+Wed Jul 23 17:43:48 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b10
+	* updated with respect to v22pre10
+	* more fixes for set_hide disabled (named_livings() and find_living())
+	  [patch from Alaron@RetroMud]
+	* fixed crasher in (array) x += x [reported by Qualin]
+	* added leading slash to log_error() filename [reported by Jihad]
+	* fixed func_spec to allow filter(string, ...)
+	* rewrote read_file().  New version is:
+	  1. readable
+	  2. platform independent (\r translation is now done on UNIX too)
+	  3. catches \0's in all cases
+	  4. doesnt ignore start when called with 2 args [reported by Nameless]
+	* fixed compilation warnings about S_IS*()
+	* fixed set_inc_list not to mangle the include list, so get_config()
+	  reports the right value
+	* fixed array stat bug when copy() is used on classes [reported by
+	  Alaron@RetroMud]
+	* foreach (x, y in z) { ... } no longer warns about x,y being unused
+	  [reported by Qualin]
+	* fixed unsafe uses of push_svalue() in link()
+
+Thu May 15 14:08:11 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b9
+	* added a missing newline to the end of trace lines when 
+	  MUDLIB_ERROR_HANDLER is off
+	* added Burty's fix for the macro expansion bug
+	* fixed compilation with set_hide disabled and add_action enabled
+	  [reported by Mystic]
+	* fixed compilation with input_to and get_char disabled [patch from
+	  Mystic]
+	* typo fixes in the break_string() simul [reported by Randor]
+	* some minor changes to ChangeLog.beta
+	* some changes to IT_CRASHED
+	* fixed compilation of tail() with COMPAT_TAIL on
+
+Wed Apr 16 07:34:13 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b8
+	* updated with respect to v22pre8
+	* fixed type checking for functions that don't use all there arguments
+	  [SUPPRESS_ARGUMENT_WARINGS off; fix from Wodan@Discworld]
+	* added missing #ifdef DEBUG in simulate.c [fix from Jesse@Doom]
+
+Sun Apr 13 23:36:52 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b7
+	* added Belgarat's Win32 compilation fixes
+	* fixed compile error in simulate.c [Ailima, Aragorn, Avenger, etc]
+	* fixed dumpstat() not to crash on recursive structures
+
+Sat Apr 12 14:57:49 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b6
+	* updated with respect to v22pre7
+	* fixed the max_eval_cost error check in call_out.c to pop the
+	  error context correctly [fix from Ceda]
+	* Don't crash if an object which is snooping another object gets
+	  destructed
+
+Sun Apr  6 17:55:11 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b5
+	* updated with respect to v22pre6
+ 	* fixed a bug in the (mixed)->y code that caused it to never find
+	  a class member.  Code like: mixed x; x->y or mapping m; m["foo"]->y
+	  should work now assuming it is unambiguous.
+
 Wed Apr  2 14:15:48 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
 	* raised patchlevel to v22.1b4
 	* updated with respect to v22pre5
 	* check if my_string is allocated before trying to mark it
-	  [reported by Fermat]
+	  [reported by Ceda]
 	* mark the master_user_list in the parser package
-	  [reported by Fermat]
+	  [reported by Ceda]
 	* 255 -> LEX_EOF in lex.c [reported by Avenger@CoreDump]
 
 Sat Mar  1 23:32:01 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
@@ -40,6 +174,68 @@ Fri Feb  7 15:22:52 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
 	* updated with respect to v22pre2
 
 ----------------------------------------------------------------------------
+Sat Aug 30 19:24:51 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre11
+	* fixed ed_start() with no args to set the type of its return value
+	  [fix from Jalh@LimaBean]
+	* fixed 'buffer[i] = 0' to work again
+	* fixed save_object() to save '0.000' as a float and not as int '0'
+	  [reported by Descartes; patch from Aragorn]
+
+Wed Jul 23 17:39:48 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre10
+	* added workaround for Ultrix sh bug (returns error code on if
+	  without else) [patch from Hamlet@IdeaExchange]
+	* disabled function argument checking for foo::bar() since the patch
+	  that was added could find the wrong function entry if the function
+	  was overloaded, and the fix isn't trivial.  'private' is now handled
+	  as a special case.  [bug reported by Qualin]
+
+Thu May 15 13:58:13 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre9
+	* when NO_ADD_ACTION is defined, set O_LISTENER for objects which
+	  define a receive_message() function so message() calls it
+
+Fri Apr 25 13:58:36 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre8
+	* using line numbers with quit in ed ('12q') no longer clears the
+	  buffer [reported by Jihad]
+	* fixed replaceable() not to consider the internal function
+	  #global_init# [reported by Donky]
+	* added Wodan@Discworld's fixes for PACKAGE_EXTERNAL
+	* another fix for file operations when the master object isn't loaded
+	  yet or doesn't have a valid_{read,write} function
+	* Use 128 instead of SOMAXCONN for listen(2) since some BSD derived
+	  operating systems have a ridiculously low value for SOMAXCONN.
+	  [fix from Aule@The Two Towers]
+	* clear in_mblock in the ed indentor in case a block was unterminated
+	  during the last use [fix from Aule@The Two Towers]
+
+Sat Apr 12 05:25:31 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre7
+	* __OPTIMIZATION__ and __COMPILER__ are defined again; lex.c needed
+	  to include cc.h [reported by Decker]
+	* fixed false alarm ("Bad stack after evaluation") when 
+	  time_expression { ... } was used with DEBUG defined
+	* fixed foo::bar() not to allow all sorts of nasties:
+	  . type checking is now done
+	  . private functions can't be called
+	  . (: foo::bar() :) is not a bindable function pointer
+
+Sun Apr  6 17:45:49 EDT 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre6
+	* fixed terminal_colour() to add indentation to lines which just barely
+	  didn't fit (i.e. were one character short of fitting) on the 
+	  previous line [reported by Jihad]
+	* fixed a bug that caused synonyms for OBJ rules not to work
+	* removed a #include that caused some malloc packages to fail to work
+	  on Solaris [reported by Aragorn]
+	* fixed an incorrect typecheck in socket_connect() which disallowed
+	  function pointers as one of the callbacks [reported by Deathblade]
+	* fixed the LARGEST_PRINTABLE_STRING checks to allow printing of
+	  strings with length == LARGEST_PRINTABLE_STRING
+	* added a missing newline to the Inherit chain too deep error message
+
 Wed Apr  2 13:31:44 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
 	* raised patchlevel to v22pre5
 	* fixed leak in check_valid_path() [reported by Fermat]
@@ -701,7 +897,7 @@ Thu Aug  3 11:29:56 EDT 1995 (tim@handel.princeton.edu (Beek))
 	    occur in global initializers
 	  . fixed continue and break branches for files which generate > 32k
 	    of source
-	  . added alot of prototypes to cfuns.h so LPC->C code compiles more
+	  . added a lot of prototypes to cfuns.h so LPC->C code compiles more
 	    quietly
 	  . fixed a crasher in __TREE__ { /* something involving foreach */ }
 
@@ -967,7 +1163,7 @@ Sat May 20 10:21:58 1995 (tim@handel.princeton.edu (Beek))
 	* fixed a problem where edit_source would abort if a define
 	  in local_options and options.h had different values (it died
 	  with a redefinition warning)
-	* fixed alot of compilation warnings under SGI cc -fullwarn
+	* fixed a lot of compilation warnings under SGI cc -fullwarn
 	* fixed a bug where __PORT__ was zero when specifying sockets
 	  as external_port_x
 	* fixed a crasher in socket_address()
@@ -1006,7 +1202,7 @@ Mon May 15 02:46:10 EDT 1995 (tim@handel.princeton.edu (Beek))
 Sat Apr 29 23:59:18 CDT 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.3b4
 	* fixed a badly indented line in the GNUmakefile
-	* fixed some OBJDIR rules to not cause recompilation of alot of
+	* fixed some OBJDIR rules to not cause recompilation of a lot of
 	  things when using GNU make
 	* fixed generation of package Makefiles
 

@@ -21,8 +21,8 @@
 
 inherit BASE_OBJ;
 
-private static mapping descs = ([]);
-private static string my_name;
+private nosave mapping descs = ([]);
+private nosave string my_name;
 
 
 varargs void create(string long, string array ids, object dest)

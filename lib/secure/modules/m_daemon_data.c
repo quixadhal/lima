@@ -26,13 +26,13 @@ private nomask string create_file_name() {
 
 //:FUNCTION save_me
 //Save the variable data to the save file
-static nomask void save_me() {
+protected nomask void save_me() {
     unguarded(1, (: save_object, create_file_name() :));
 }
 
 //:FUNCTION restore_me
 //Restore the data from the save file.  Automatically called by create().
-static nomask void restore_me() {
+protected nomask void restore_me() {
     string fn = create_file_name();
     if ( unguarded(1, (: file_size, fn + ".o" :)) > 0 )
 	unguarded(1, (: restore_object, fn, 1 :));

@@ -29,7 +29,7 @@ private string		body_fname;
 /*
 ** The body object once it has been instantiated
 */
-static private object	body;
+nosave private object	body;
 
 
 nomask string query_body_fname()
@@ -43,7 +43,7 @@ nomask object query_body()
 }
 
 //### temp hack for upgrading link files. see restore_me()
-static nomask void set_body_fname(string new_body_fname)
+protected nomask void set_body_fname(string new_body_fname)
 {
     body_fname = new_body_fname;
 }
@@ -127,7 +127,7 @@ private nomask void rcv_try_to_boot(object who, string answer)
 	who->receive_private_msg("You are taken over by yourself, or something.\n");
 	who->quit();
 
-	sw_body_handle_existing_logon(1);
+	sw_body_handle_existing_logon(0);
 	return;
     }
     if( answer == "n" || answer == "no" )
@@ -146,7 +146,7 @@ private nomask void rcv_try_to_boot(object who, string answer)
     modal_simple((: rcv_try_to_boot, who :));
 }
 
-static nomask void sw_body_handle_existing_logon(int enter_now) {
+protected nomask void sw_body_handle_existing_logon(int enter_now) {
     remove_call_out();	/* all call outs */
 
     if (!enter_now) {
@@ -209,7 +209,7 @@ nomask void steal_body()
 ** A new character has been created and all inputs have been entered.
 ** Do a bit of additional work and go for a body.
 */
-static nomask void sw_body_handle_new_logon()
+protected nomask void sw_body_handle_new_logon()
 {
     remove_call_out();	/* all call outs */
 

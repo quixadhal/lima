@@ -18,7 +18,20 @@
 **  o Fixed send so that larger files can be handled without difficulty.
 ** Jan 21, 1997
 **  o Fixed the mkd command.
+** 
+** Tigran Sept 16, 1997
+**  o Fixed nlst and list (which are now identicle) so that they accept
+**    flags.  This ftp server should now be able to be used by most 
+**    GUI based clients, and should also work w/ ange-ftp and efs (from 
+**    emacs and Xemacs.  Note there is still work that can be done here.
+**    Acceptable flags are -a -l -C and -F
 **
+** Naebator (sgt@israel.ru) Jan 9, 1998
+**  o Fixed LIST and NLST:
+**    o Added -1 flag
+**    o unless specified otherwize, forces -l flag on LIST and -1 flag on NLST.
+**    o directories report size 0.
+**  o If home directory does not exist, it defaults to "/".
 */
 
 #include <socket.h>
@@ -30,9 +43,12 @@
 
 inherit M_ACCESS;
 
-private static mapping sessions = ([]);
-private static mapping dataports = ([]);
-private static mapping dispatch = 
+#define LTYPE_LIST 0
+#define LTYPE_NLST 1
+
+private nosave mapping sessions = ([]);
+private nosave mapping dataports = ([]);
+private nosave mapping dispatch = 
 ([
   "user" : (: FTP_CMD_user :),
   "pass" : (: FTP_CMD_pass :),
@@ -57,8 +73,36 @@ private object sock;
 private mixed outfile=([]);
 
 #ifdef ALLOW_ANON_FTP
-private static string array anon_logins = ({"anonymous", "ftp"});
+private nosave string array anon_logins = ({"anonymous", "ftp"});
 #endif
+
+varargs
+private string find_flags(string incoming)
+{
+  string array parts;
+  string array flags=({});
+  if(!incoming)
+    return 0;
+  parts=explode(incoming,
+		" ");
+  parts=filter(parts,
+	       (: $1[0]=='-' :));
+  foreach(string part in parts)
+    flags+=explode(part,"");
+  clean_array(flags);
+  return implode(flags-=({"-"}),"");
+}
+
+varargs private string strip_flags(string incoming)
+{
+  string array parts;
+  if(!incoming)
+    return 0;
+  parts=explode(incoming," ");
+  parts=filter(parts,
+	       (: $1[0]!='-' :));
+  return implode(parts," ");
+}
 
 private void FTPLOGF(string format, string array args...)
 {
@@ -187,7 +231,6 @@ private void FTP_read(object socket, string data)
 	  return;
 	}
     }
-
   /* We are connected, so dispatch to the proper handler. */
   dispatchTo = dispatch[cmd];
   if (!dispatchTo)
@@ -329,6 +372,8 @@ private void FTP_CMD_pass(class ftp_session info, string arg)
       info->priv = info->user;
     }
   info->pwd = join_path(WIZ_DIR,info->user);
+  if (!is_directory(info->pwd))
+    { info->pwd = "/"; }
   return;
 }
 
@@ -390,54 +435,14 @@ private void FTP_CMD_port(class ftp_session info, string arg)
   return;
 }
 
-private void FTP_CMD_nlst(class ftp_session info, string arg)
+private void do_list(class ftp_session info, string arg, int ltype)
 {
   string array 	files;
-
-  if(!arg || arg == "")
-    {
-      arg = ".";
-    }
-  arg = evaluate_path(arg, info->pwd);
-
-  ANON_CHECK(arg);
-
-  if(unguarded(1, (:is_directory($(arg)):)))
-    {
-      arg = join_path(arg, "*");
-    }
-  if(unguarded(info->priv, (:file_size(base_path($(arg))):)) == -1)
-    {
-      info->cmdPipe->send(sprintf("550 %s: No such file OR directory.\n", arg));
-      destruct(info->dataPipe);
-      return;
-    }
-
-  files = unguarded(info->priv, (:get_dir($(arg)):));
-  if(!files)
-    {
-	  info->cmdPipe->send(sprintf("550 %s: Permission denied.\n", arg));
-	  destruct(info->dataPipe);
-	  return;
-    }
-  files -= ({".",".."});
-  if(!sizeof(files))
-    {
-      info->cmdPipe->send("550 No files found.\n");
-      destruct(info->dataPipe);
-      return;
-    }
-  info->cmdPipe->send("150 Opening ascii mode data connection for "
-		      "file list\n");
-
-  info->dataPipe->send(implode(files, "\r\n") + "\r\n");
-}
-
-private void FTP_CMD_list(class ftp_session info, string arg)
-{
-  string array 	files;
-  string array  output;
-
+  string flags;
+  string output;
+  
+  flags=find_flags(arg);
+  arg=strip_flags(arg);
   if(!arg || arg == "")
     {
       arg = ".";
@@ -447,7 +452,7 @@ private void FTP_CMD_list(class ftp_session info, string arg)
   ANON_CHECK(arg);
 
   if(unguarded(1, (:is_directory($(arg)):)))
-    {
+    {      
       arg = join_path(arg, "*");
     }
   if(unguarded(info->priv, (:file_size(base_path($(arg))):)) == -1)
@@ -463,7 +468,9 @@ private void FTP_CMD_list(class ftp_session info, string arg)
 	  destruct(info->dataPipe);
 	  return;
     }
-  files = filter(files, (: member_array($1[0], ({".",".."})) == -1 :));
+  if(flags)
+    if(strsrch(flags,'a')==-1)
+      files = filter(files, (: member_array($1[0], ({".",".."})) == -1 :));
   if(!sizeof(files))
     {
       info->cmdPipe->send("550 No files found.\n");
@@ -471,12 +478,117 @@ private void FTP_CMD_list(class ftp_session info, string arg)
       return;
     }
 
-  output = map(files, (:sprintf("%s %=9s %s %s", $1[1] == -2 ? "drwxrwsr-x" : "-rwxrw-r--",
-         $1[1] == -2 ? "/" : sprintf("%d", $1[1]), ctime($1[2])[4..], $1[0])
-		       :));
+  /* in case of LIST imply -l */
+  /* in case of NLST imply -1 */
+  if (ltype == LTYPE_LIST)
+    {
+      if (flags)
+	{
+	  if ( (strsrch(flags, 'l') == -1) &&
+	       (strsrch(flags, 'C') == -1) &&
+	       (strsrch(flags, '1') == -1) )
+	    flags += "l";
+	}
+      else
+	flags = "l";
+    }
+  else
+    {
+      if (flags)
+	{
+	  if ( (strsrch(flags, 'l') == -1) &&
+	       (strsrch(flags, 'C') == -1) &&
+	       (strsrch(flags, '1') == -1) )
+	    flags += "1";
+	}
+      else
+	flags = "1";
+    }
+
+  /* Check the flags for output now */
+
+  /* Check the F flag */
+  if(strsrch(flags,'F')>-1)
+    {
+      foreach(mixed array file in files)
+	if(file[1]==-2)
+	  file[0]=sprintf("%s/",file[0]);
+    }
+  /* The C flag */
+  if(strsrch(flags,'C')>-1)
+    {
+      int lines;
+      int size;
+      int i;
+      if((strsrch(flags,'l')>-1) || (strsrch(flags,'1')>-1))
+	{
+	  info->cmdPipe->send("550: LIST -C flag is incompatible with -1 or -l.\n");
+	  destruct(info->dataPipe);
+	  return;
+	}
+      lines=((size=sizeof(files))/3)+1;
+      output="";
+      for(i=0;i<lines;i++)
+	{
+	  mixed array these_files;
+	  if((i*3+2)<size)
+	    {
+	      these_files=files[(i*3)..(i*3+2)];
+	    }
+	  else if(i*3<size)
+	    {
+	      these_files=files[(i*3)..];
+	      while(sizeof(these_files)<3)
+		these_files+=({ ({"",0,0}) });
+	    }
+	  else 
+	    break;
+	  output=sprintf("%s%-=25s %-=25s %-=25s\n",
+			 output,
+			 these_files[0][0],
+			 these_files[1][0],
+			 these_files[2][0]
+			 );
+	}
+    }
+  if(strsrch(flags,'l')>-1)
+    {
+      if(strsrch(flags,'1')>-1)
+	{
+	  info->cmdPipe->send("550: LIST -l and -1 flags incompatible.\n");
+	  destruct(info->dataPipe);
+	  return;
+	}
+      
+      output = implode(map(files, 
+			   (:sprintf("%s %3i %=9s %=8s %=7s %s%5s %s",
+				     $1[1]==-2?"drwxrwxr-x":"-rw-rw-r--",
+				     1,
+				     lower_case(replace_string(mud_name(), " ", "_"))[0..7],
+				     lower_case(replace_string(mud_name(), " ", "_"))[0..7],
+				     $1[1]==-2?"0":sprintf("%d",$1[1]),
+				     ctime($1[2])[4..10],
+				     (time()-$1[2])>31536000?ctime($1[2])[20..]:ctime($1[2])[11..15],
+				     $1[0])
+			    :)),"\n");
+    }
+
+  if(strsrch(flags,'1')>-1)
+    output=implode(map(files,(:sprintf("%s",$1[0]) :)),"\n");
+
   info->cmdPipe->send("150 Opening ascii mode data connection for file list\n");
-  info->dataPipe->send(implode(output, "\r\n")+"\r\n");
+  info->dataPipe->send(implode(explode(output,"\n"), "\r\n")+"\r\n");
   return;
+}
+
+private void FTP_CMD_list(class ftp_session info, string arg)
+{
+  do_list(info, arg, LTYPE_LIST);
+}
+
+private void FTP_CMD_nlst(class ftp_session info,string arg)
+{
+  do_list(info,arg, LTYPE_NLST);
 }
 
 private void FTP_CMD_retr(class ftp_session info, string arg)

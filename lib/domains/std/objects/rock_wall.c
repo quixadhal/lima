@@ -34,5 +34,5 @@ void setup()
 set_long( "You are unable to quite see where it slides." );
     set_close_msg( "The rock slides back." );
     set_open_msg( "The rock slides open, allowing you to exit northwards.");
-    setup_door("dock wall", "north");
+    setup_door("dock wall", "north", "Small_Dock");
 }

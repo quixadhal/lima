@@ -19,6 +19,12 @@
  *  o removed CGI security for a bit. Fixed up a bunch of stuff,
  *    and added POST support.
  *
+ * Jan 18, 1988 Tigran
+ *  o Fixed CGI stuff so that Content-type: is sent
+ *  o Made more errors pass properly
+ *  o \n is translated to \r\n
+ *  o other miscellaneous changes.
+ * 
  * TODO: 
  *      * Hit logging and related stats
  *      * Support for multiple arguments to cgis
@@ -47,8 +53,8 @@ class client_request
 }
 
 
-private static mapping sending=([]);
-private static object http_sock;
+private nosave mapping sending=([]);
+private nosave object http_sock;
 
 
 // This only operates on the first 2 chars.
@@ -219,11 +225,51 @@ private void remove_connection(object s)
     }
 }
 
+private nomask void http_send(mixed text,object socket)
+{
+  string send;
+  string day_of_week;
+  string month;
+  int day_of_month;
+  int hour;
+  int minute;
+  int second;
+  int year;
+
+  string time_string=ctime(time());
+  sscanf(time_string,
+	 "%s %s %d %d:%d:%d %d",
+	 day_of_week,
+	 month,
+	 day_of_month,
+	 hour,
+	 minute,
+	 second,
+	 year);
+  time_string=sprintf("%s, %d %s %d %d:%d:%d GMT",
+		      day_of_week,
+		      day_of_month,
+		      month,
+		      year,
+		      hour,
+		      minute,
+		      second);
+  send=sprintf("HTTP/1.1 200 OK\n"
+	       "Date: %s\n"
+	       "Server: Lima/1.1\n"
+	       "Connection: close\n"
+	       "Content-Type: text/html\n\n"
+	       "%s",
+	       time_string,
+	       stringp(text)?text:read_buffer(text));;
+  socket->send(replace_string(send,"\n","\r\n"));
+  return;
+}
+
 private nomask void output_error(string header, string text, object socket)
 {
-    socket->send(sprintf("<html><title>%s</title><body><h1>%s</h1><p>%s\n</body></html>\n",
-	header, header, text));
-
+  socket->send(sprintf("<html><head><title>%s</title></head><body><h1>%s</h1><p>%s\n</body></html>\r\n",
+		       header, header, text) );
     /* Hack to avoid connection reset by peer */
     call_out((:remove_connection($(socket)):), 0);
 }
@@ -235,15 +281,18 @@ private nomask void handle_post_request(class client_request req, object sock)
     string result, err;
 
     if ( file_size(file) < 1 ) {
-	output_error("404 Not found", "The requested URL was not found",
-	  sock);
+	output_error("404 Not found",
+		     "The requested URL was not found",
+		     sock);
 	return;
     }
 
     err = catch(result = file->main(form_info, req->headers));
     if(!result)
     {
-	result = "<title>ERROR</title><h1>Error in gateway</h1>" + err;
+      output_error("502 Bad Gateway",
+		   err,
+		   sock);
     }
     sock->send(result + "\n");
     sock->remove();
@@ -260,8 +309,9 @@ private nomask void handle_get_request(class client_request req, object socket)
     }
     file = convert_to_actual_path(file);
     if ( file_size(file) < 1 ) {
-	output_error("404 Not found", "The requested URL was not found",
-	  socket);
+	output_error("404 Not found", 
+		     "The requested URL was not found",
+		     socket);
 	return;
     }
     sscanf(file, "%s.%s", file, extention);
@@ -277,15 +327,17 @@ private nomask void handle_get_request(class client_request req, object socket)
 	else
 	    err = catch(result = call_other(file, "main"));
 	if ( !result )
-	    result = "<title>ERROR</title><h1>Error in gateway</h1>" + err;
-	socket->send(result+"\n");
+	  output_error("502 Bad Gateway",
+		       err,
+		       socket);
+	http_send(result+"\n",socket);
 	socket->remove();
 	break;
 
     default:
 	sending[socket]=({ file+"."+extention,0});
 	socket->set_write_callback( (:write_callback:) );
-	socket->send(write_callback(socket));
+	http_send(write_callback(socket),socket);
 	break;
     }
 }
@@ -318,6 +370,8 @@ private nomask void handle_request(object socket)
 	// A read sometimes gets called after we've groked everything...
 	return;
     }
+    if(!req->reached_end_of_headers)
+      return;
     req->end_of_input = 1;
     //  BBUG(req);
     // uncommenting this will cause the req->method in the next line of
@@ -333,9 +387,9 @@ private nomask void handle_request(object socket)
 	handle_post_request(req, socket);
 	break;
     default:
-	output_error("404 Method not implemented.", 
-	  "Right now only the GET method is implemented.",
-	  socket);
+	output_error("501 Method not implemented.", 
+		     "Right now only the GET and POST methods are implemented.",
+		     socket);
     }
 }
 
@@ -394,16 +448,18 @@ string parse_headers(string text, object socket)
 
     req = requests[socket];
     lines = explode(text, "\n");
-
     if(!req->any_input_yet_p)
-    {
+      {
 	string array request_line = explode(lines[0], " ");
-	req->method = request_line[0];
+	request_line-=({"\r"});
+	if(sizeof(request_line)==0)
+	  return;
+      	req->method = request_line[0];
 	req->request = request_line[1];
 	req->http_version = request_line[2][0..<2];
 	i = 1;
 	req->any_input_yet_p = 1;
-    }
+      }
     for(;i<sizeof(lines);i++)
     {
 	string line = trim_spaces(lines[i]);
@@ -428,10 +484,12 @@ string parse_headers(string text, object socket)
 	req->headers[header_name] = header_value;
     }
     look_for_useful_header_info(socket);
+    /* 
     if (!req->keepalive)
     {
 	req->reached_end_of_headers = 1;
     }
+    */
     return 0;
 }
 

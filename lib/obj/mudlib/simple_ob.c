@@ -27,7 +27,7 @@
 
 inherit BASE_OBJ;
 
-private static mapping msgs = ([]);
+private nosave mapping msgs = ([]);
 
 varargs void create(mapping long, string array ids, object dest)
 {

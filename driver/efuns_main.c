@@ -17,16 +17,15 @@
 #include "backend.h"
 #include "port.h"
 #include "swap.h"
-#include "strstr.h"
 #include "otable.h"
 #include "crc32.h"
 #include "reclaim.h"
 #include "dumpstat.h"
-#include "efuns_main.h"
 #include "call_out.h"
 #include "ed.h"
 #include "md.h"
 #include "master.h"
+#include "efun_protos.h"
 #ifdef LPC_TO_C
 #include "interface.h"
 #include "compile_file.h"
@@ -47,12 +46,12 @@ f_add_action PROT((void))
 	flag = (sp--)->u.number;
     } else flag = 0;
 
-    if (sp->type == T_ARRAY){
+    if (sp->type == T_ARRAY) {
 	int i, n = sp->u.arr->size;
 	svalue_t *sv = sp->u.arr->item;
 
-	for (i = 0; i < n; i++){
-	    if (sv[i].type == T_STRING){
+	for (i = 0; i < n; i++) {
+	    if (sv[i].type == T_STRING) {
 		add_action(sp-1, sv[i].u.string, flag & 3);
 	    }
 	}
@@ -331,7 +330,7 @@ f_call_out_info PROT((void))
 #endif
 
 #if defined(F_CALL_STACK) || defined(F_ORIGIN)
-char *origin_name P1(int, orig) {
+static char *origin_name P1(int, orig) {
     /* FIXME: this should use ffs() if available (BSD) */
     int i = 0;
     static char *origins[] = {
@@ -388,7 +387,7 @@ f_call_stack PROT((void))
 	    if (((csp - i)->framekind & FRAME_MASK) == FRAME_FUNCTION) {
 		program_t *prog = (i ? (csp-i+1)->prog : current_prog);
 		int index = (csp-i)->fr.table_index;
-		compiler_function_t *cfp = &prog->function_table[index];
+		function_t *cfp = &prog->function_table[index];
 
 		ret->item[i].subtype = STRING_SHARED;
 		ret->item[i].u.string = cfp->name;
@@ -482,7 +481,7 @@ f_clear_bit PROT((void))
 void
 f_clonep PROT((void))
 {
-    if ((sp->type == T_OBJECT) && (sp->u.ob->flags & O_CLONE)){
+    if ((sp->type == T_OBJECT) && (sp->u.ob->flags & O_CLONE)) {
         free_object(sp->u.ob, "f_clonep");
         *sp = const1;
     } else {
@@ -771,7 +770,10 @@ void f_ed_start PROT((void))
     res = object_ed_start(current_object, fname, restr);
 
     if (fname) free_string_svalue(sp);
-    else ++sp;
+    else {
+	++sp;
+	sp->type = T_STRING;
+    }
     
     if (res) {
 	sp->subtype = STRING_MALLOC;
@@ -910,6 +912,7 @@ f_filter PROT((void))
     svalue_t *arg = sp - st_num_arg + 1;
 
     if (arg->type == T_MAPPING) filter_mapping(arg, st_num_arg);
+    else if (arg->type == T_STRING) filter_string(arg, st_num_arg);
     else filter_array(arg, st_num_arg);
 }
 #endif
@@ -1344,11 +1347,12 @@ f_values PROT((void))
 void
 f_link PROT((void))
 {
-    svalue_t *ret;
+    svalue_t *ret, *arg;
     int i;
 
-    push_svalue(sp - 1);
-    push_svalue(sp);
+    arg = sp;
+    push_svalue(arg - 1);
+    push_svalue(arg);
     ret = apply_master_ob(APPLY_VALID_LINK, 2);
     if (MASTER_APPROVED(ret))
         i = do_rename((sp - 1)->u.string, sp->u.string, F_LINK);
@@ -1364,7 +1368,7 @@ f_link PROT((void))
 void
 f_living PROT((void))
 {
-    if (sp->u.ob->flags & O_ENABLE_COMMANDS){
+    if (sp->u.ob->flags & O_ENABLE_COMMANDS) {
         free_object(sp->u.ob, "f_living:1");
         *sp = const1;
     }
@@ -1488,7 +1492,7 @@ f_map_delete PROT((void))
 void
 f_mapp PROT((void))
 {
-    if (sp->type == T_MAPPING){
+    if (sp->type == T_MAPPING) {
         free_mapping(sp->u.map);
         *sp = const1;
     } else {
@@ -1696,7 +1700,7 @@ f_message PROT((void))
 	     * Well, there is one in contrib now ...
 	     */
 	    /* for compatibility (write() simul_efuns, etc)  -bobf */
-	    if (len >= LARGEST_PRINTABLE_STRING)
+	    if (len > LARGEST_PRINTABLE_STRING)
 		error("Printable strings limited to length of %d.\n",
 		      LARGEST_PRINTABLE_STRING);
 
@@ -1736,7 +1740,7 @@ f_mkdir PROT((void))
     char *path;
 
     path = check_valid_path(sp->u.string, current_object, "mkdir", 1);
-    if (!path || OS_mkdir(path, 0770) == -1){
+    if (!path || OS_mkdir(path, 0770) == -1) {
         free_string_svalue(sp);
         *sp = const0;
     }
@@ -1883,7 +1887,7 @@ f_notify_fail PROT((void))
 void
 f_objectp PROT((void))
 {
-    if (sp->type == T_OBJECT){
+    if (sp->type == T_OBJECT) {
         free_object(sp->u.ob, "f_objectp");
         *sp = const1;
     } else {
@@ -1917,7 +1921,7 @@ f_origin PROT((void))
 void
 f_pointerp PROT((void))
 {
-    if (sp->type == T_ARRAY){
+    if (sp->type == T_ARRAY) {
         free_array(sp->u.arr);
         *sp = const1;
     } else {
@@ -1978,7 +1982,7 @@ f_previous_object PROT((void))
 	} while (--p >= control_stack);
         v = allocate_empty_array(i);
         p = csp;
-        if (previous_ob){
+        if (previous_ob) {
 	    if (!(previous_ob->flags & O_DESTRUCTED)) {
 		v->item[0].type = T_OBJECT;
 		v->item[0].u.ob = previous_ob;
@@ -2291,7 +2295,7 @@ f_receive PROT((void))
 	if (current_object->interactive) {
 	    int len = SVALUE_STRLEN(sp);
 	    
-	    if (len >= LARGEST_PRINTABLE_STRING)
+	    if (len > LARGEST_PRINTABLE_STRING)
 		error("Printable strings limited to length of %d.\n",
 		      LARGEST_PRINTABLE_STRING);
 		
@@ -2715,13 +2719,13 @@ f_replace_string PROT((void))
 void
 f_resolve PROT((void))
 {
-    int i, query_addr_number PROT((char *, char *));
+    int i, query_addr_number PROT((char *, svalue_t *));
 
-    i = query_addr_number((sp - 1)->u.string, sp->u.string);
-    free_string_svalue(sp--);
+    i = query_addr_number((sp - 1)->u.string, sp);
+    pop_stack();
     free_string_svalue(sp);
     put_number(i);
-}				/* f_resolve() */
+}
 #endif
 
 #ifdef F_RESTORE_OBJECT
@@ -2770,7 +2774,7 @@ f_rmdir PROT((void))
     char *path;
 
     path = check_valid_path(sp->u.string, current_object, "rmdir", 1);
-    if (!path || rmdir(path) == -1){
+    if (!path || rmdir(path) == -1) {
         free_string_svalue(sp);
         *sp = const0;
     }
@@ -3213,7 +3217,7 @@ f_strsrch PROT((void))
         if (!little[1])         /* 1 char srch pattern */
             pos = strchr(big, (int) little[0]);
         else
-            pos = (char *)_strstr(big, little);
+            pos = (char *)strstr(big, little);
         /* start at right */
     } else {                    /* XXX: maybe test for -1 */
         if (!little[1])         /* 1 char srch pattern */
@@ -3265,7 +3269,7 @@ f_strcmp PROT((void))
 void
 f_stringp PROT((void))
 {
-    if (sp->type == T_STRING){
+    if (sp->type == T_STRING) {
         free_string_svalue(sp);
         *sp = const1;
     }
@@ -3504,7 +3508,7 @@ f__to_float PROT((void))
 {
     double temp = 0;
 
-    switch(sp->type){
+    switch(sp->type) {
         case T_NUMBER:
             sp->type = T_REAL;
             sp->u.real = (double) sp->u.number;
@@ -3595,7 +3599,7 @@ f_typeof PROT((void))
 void
 f_undefinedp PROT((void))
 {
-    if (sp->type == T_NUMBER){
+    if (sp->type == T_NUMBER) {
         if (!sp->u.number && (sp->subtype == T_UNDEFINED)) {
 	    *sp = const1;
         } else *sp = const0;
@@ -3673,7 +3677,7 @@ f_write_bytes PROT((void))
 {
     int i;
 
-    switch(sp->type){
+    switch(sp->type) {
         case T_NUMBER:
         {
             int netint;
@@ -3725,12 +3729,12 @@ f_write_buffer PROT((void))
 {
     int i;
 
-    if ((sp-2)->type == T_STRING){
+    if ((sp-2)->type == T_STRING) {
         f_write_bytes();
         return;
     }
 
-    switch(sp->type){
+    switch(sp->type) {
         case T_NUMBER:
         {
             int netint;
@@ -3892,7 +3896,7 @@ f_set_reset PROT((void))
 void
 f_floatp PROT((void))
 {
-    if (sp->type == T_REAL){
+    if (sp->type == T_REAL) {
         sp->type = T_NUMBER;
         sp->u.number = 1;
     }

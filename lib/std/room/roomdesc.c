@@ -3,7 +3,7 @@
 #include <playerflags.h>
 
 
-private static string remote_desc;
+private nosave string remote_desc;
 
 int query_light();
 string short();
@@ -74,9 +74,9 @@ varargs string show_objects(object except)
 }
 
 //### major hack
-private static int this_look_is_forced;
+private nosave int this_look_is_forced;
 
-static int dont_show_long()
+protected int dont_show_long()
 {
     return !this_look_is_forced && this_body()->test_flag(F_BRIEF);
 }

@@ -12,29 +12,29 @@
 string verb = split_path(file_name())[1];
 int flags = NEED_TO_SEE | NEED_TO_BE_ALIVE | NEED_TO_THINK;
 
-static varargs
+protected varargs
 void add_rules(array rules, array syns) {
     parse_init();
 
-    foreach (string rule in rules)
+    foreach (string rule in rules) {
 	parse_add_rule(verb, rule);
-
-    if (syns)
-	foreach (string syn in syns)
-	    parse_add_synonym(syn, verb);
+        if (syns)
+    	foreach (string syn in syns)
+    	    parse_add_synonym(syn, verb, rule);
+    }
 }
 
-static
+protected
 void set_flags(int f) {
     flags = f;
 }
 
-static
+protected
 void add_flag(int f) {
     flags |= f;
 }
 
-static
+protected
 void clear_flag(int f) {
     flags &= ~f;
 }
@@ -119,7 +119,7 @@ mixed can_verb_rule(string verb, string rule) {
 }
 
 /* default behavior for OBJ rules */
-void do_verb_obj(object ob) {
+void do_verb_obj(string verb, object ob) {
     if ((flags & TRY_TO_ACQUIRE) && !try_to_acquire(ob))
 	return;
     

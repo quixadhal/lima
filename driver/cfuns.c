@@ -8,7 +8,7 @@
 #include "parse.h"
 #include "qsort.h"
 
-IF_DEBUG(extern int foreach_in_progress);
+IF_DEBUG(extern int stack_in_use_as_temporary);
 
 /* temporaries for LPC->C code */
 int lpc_int;
@@ -68,7 +68,7 @@ void c_return_zero() {
 }
 
 void c_foreach P3(int, flags, int, idx1, int, idx2) {
-    IF_DEBUG(foreach_in_progress++);
+    IF_DEBUG(stack_in_use_as_temporary++);
     
     if (flags & 4) {
 	CHECK_TYPES(sp, T_MAPPING, 2, F_FOREACH);
@@ -146,7 +146,7 @@ void c_expand_varargs P1(int, where) {
 }
 
 void c_exit_foreach PROT((void)) {
-    IF_DEBUG(foreach_in_progress--);
+    IF_DEBUG(stack_in_use_as_temporary--);
     if ((sp-1)->type == T_LVALUE) {
 	/* mapping */
 	sp -= 3;
@@ -193,7 +193,7 @@ int c_next_foreach PROT((void)) {
 void c_call_inherited P3(int, inh, int, func, int, num_arg) {
     inherit_t *ip = current_prog->inherit + inh;
     program_t *temp_prog = ip->prog;
-    compiler_function_t *funp;
+    function_t *funp;
     
     push_control_stack(FRAME_FUNCTION);
 
@@ -213,7 +213,7 @@ void c_call_inherited P3(int, inh, int, func, int, num_arg) {
 }
 
 void c_call P2(int, func, int, num_arg) {
-    compiler_function_t *funp;
+    function_t *funp;
     
     func += function_index_offset;
     /*
@@ -222,7 +222,8 @@ void c_call P2(int, func, int, num_arg) {
      * must look in the last table, which is pointed to by
      * current_object.
      */
-    DEBUG_CHECK(func >= current_object->prog->num_functions_total,
+    DEBUG_CHECK(func >= current_object->prog->last_inherited +
+		current_object->prog->num_functions_defined,
 		"Illegal function index\n");
     
     if (current_object->prog->function_flags[func] & FUNC_UNDEFINED)
@@ -257,11 +258,11 @@ void c_void_assign() {
     if (sp->type != T_LVALUE) fatal("Bad argument to F_VOID_ASSIGN\n");
 #endif
     lval = (sp--)->u.lvalue;
-    if (sp->type != T_INVALID){
-	switch(lval->type){
+    if (sp->type != T_INVALID) {
+	switch(lval->type) {
 	case T_LVALUE_BYTE:
 	    {
-		if (sp->type != T_NUMBER){
+		if (sp->type != T_NUMBER) {
 		    error("Illegal rhs to char lvalue\n");
 		} else {
 		    *global_lvalue_byte.u.lvalue_byte = (sp--)->u.number & 0xff;
@@ -380,7 +381,7 @@ void c_assign() {
 #ifdef DEBUG
     if (sp->type != T_LVALUE) fatal("Bad argument to F_ASSIGN\n");
 #endif
-    switch(sp->u.lvalue->type){
+    switch(sp->u.lvalue->type) {
     case T_LVALUE_BYTE:
 	if ((sp - 1)->type != T_NUMBER) {
 	    error("Illegal rhs to char lvalue\n");
@@ -750,7 +751,7 @@ void c_add_eq P1(int, is_void) {
 }
 
 void c_divide() {
-    switch((sp-1)->type|sp->type){
+    switch((sp-1)->type|sp->type) {
     case T_NUMBER:
 	{
 	    if (!(sp--)->u.number) error("Division by zero\n");
@@ -767,7 +768,7 @@ void c_divide() {
 	
     case T_NUMBER|T_REAL:
 	{
-	    if ((sp--)->type == T_NUMBER){
+	    if ((sp--)->type == T_NUMBER) {
 		if (!((sp+1)->u.number)) error("Division by zero\n");
 		sp->u.real /= (sp+1)->u.number;
 	    } else {
@@ -789,7 +790,7 @@ void c_divide() {
 }
 
 void c_multiply() {
-    switch((sp-1)->type|sp->type){
+    switch((sp-1)->type|sp->type) {
     case T_NUMBER:
 	{
 	    sp--;
@@ -806,7 +807,7 @@ void c_multiply() {
 	
     case T_NUMBER|T_REAL:
 	{
-	    if ((--sp)->type == T_NUMBER){
+	    if ((--sp)->type == T_NUMBER) {
 		sp->type = T_REAL;
 		sp->u.real = sp->u.number * (sp+1)->u.real;
 	    }
@@ -879,7 +880,7 @@ void c_dec() {
 void c_le() {
     int i = sp->type;
 
-    switch((--sp)->type|i){
+    switch((--sp)->type|i) {
     case T_NUMBER:
 	sp->u.number = sp->u.number <= (sp+1)->u.number;
 	break;
@@ -890,7 +891,7 @@ void c_le() {
 	break;
 	
     case T_NUMBER|T_REAL:
-	if (i == T_NUMBER){
+	if (i == T_NUMBER) {
 	    sp->type = T_NUMBER;
 	    sp->u.number = sp->u.real <= (sp+1)->u.number;
 	} else sp->u.number = sp->u.number <= (sp+1)->u.real;
@@ -906,7 +907,7 @@ void c_le() {
 	
     default:
 	{
-	    switch((sp++)->type){
+	    switch((sp++)->type) {
 	    case T_NUMBER:
 	    case T_REAL:
 		bad_argument(sp, T_NUMBER | T_REAL, 2, F_LE);
@@ -1231,18 +1232,18 @@ int c_loop_cond_compare P2(svalue_t *, s1, svalue_t *, s2) {
 	if (s1->type == T_NUMBER) return s1->u.number < s2->u.real;
 	else return s1->u.real < s2->u.number;
     default:
-	if (s1->type == T_OBJECT && (s1->u.ob->flags & O_DESTRUCTED)){
+	if (s1->type == T_OBJECT && (s1->u.ob->flags & O_DESTRUCTED)) {
 	    free_object(s1->u.ob, "do_loop_cond:1");
 	    *s1 = const0;
 	}
-	if (s2->type == T_OBJECT && (s2->u.ob->flags & O_DESTRUCTED)){
+	if (s2->type == T_OBJECT && (s2->u.ob->flags & O_DESTRUCTED)) {
 	    free_object(s2->u.ob, "do_loop_cond:2");
 	    *s2 = const0;
 	}
 	if (s1->type == T_NUMBER && s2->type == T_NUMBER)
 	    return 0;
 	
-	switch(s1->type){
+	switch(s1->type) {
 	case T_NUMBER:
 	case T_REAL:
 	    error("2nd argument to < is not numeric when the 1st is.\n");

@@ -53,10 +53,10 @@ class oob_info
 }
 
 /* map socket objects to oob connection information. */
-static private mapping	oob_socket_map = ([ ]);
+nosave private mapping	oob_socket_map = ([ ]);
 
 /* map remote (canonical) mudnames to oob connection information. */
-static private mapping	oob_mudname_map = ([ ]);
+nosave private mapping	oob_mudname_map = ([ ]);
 
 /*
 ** General OOB connection states: originator states and target states
@@ -74,8 +74,8 @@ static private mapping	oob_mudname_map = ([ ]);
 #define OOB_STATE_WAIT_CLOSE	"[t] sent oob-end; awaiting data or close"
 
 /* request and reply packets and their corresponding handlers */
-static private mapping oob_requests = ([ ]);
-static private mapping oob_replies = ([ ]);
+nosave private mapping oob_requests = ([ ]);
+nosave private mapping oob_replies = ([ ]);
 
 /* how long to wait between oob-req and connection */
 #define OOB_OPEN_DELAY	2
@@ -90,14 +90,14 @@ static private mapping oob_replies = ([ ]);
 #define OOB_CLEANUP_TIME	150	/* how often for timeout/cleanup */
 
 void oob_cleanup();
-static private function oob_cleanup_func = (: oob_cleanup :);
-static private int oob_cleanup_running;
+nosave private function oob_cleanup_func = (: oob_cleanup :);
+nosave private int oob_cleanup_running;
 
 //### driver can't remove a func ptr callout. need a string
 #define oob_cleanup_func "oob_cleanup"
 
 /* the OOB listening socket */
-static private object	oob_socket;
+nosave private object	oob_socket;
 
 
 private nomask void oob_close(class oob_info info)
@@ -133,7 +133,7 @@ private nomask void oob_error(class oob_info info,
     log_error_snd(info->remote_mudname, message);
 }
 
-static nomask void oob_svc_send(object socket, mixed * message)
+protected nomask void oob_svc_send(object socket, mixed * message)
 {
     class oob_info info = oob_socket_map[socket];
 
@@ -142,7 +142,7 @@ static nomask void oob_svc_send(object socket, mixed * message)
 
     oob_send(info, message);
 }
-static nomask void oob_svc_error(object socket,
+protected nomask void oob_svc_error(object socket,
 				 string errcode, string errmsg,
 				 mixed * errpacket)
 {
@@ -495,7 +495,7 @@ varargs nomask void oob_initiate_connection(string mudname, function fail_func)
     }
 }
 
-static nomask void oob_handle_auth_mud_reply(string mudname, int session_key)
+protected nomask void oob_handle_auth_mud_reply(string mudname, int session_key)
 {
     class oob_info info = oob_mudname_map[mudname];
 
@@ -505,11 +505,11 @@ static nomask void oob_handle_auth_mud_reply(string mudname, int session_key)
     oob_open_connection(mudname, OOB_AUTH_TYPE_MUD, session_key);
 }
 
-static nomask void oob_register_requests(mapping requests)
+protected nomask void oob_register_requests(mapping requests)
 {
     oob_requests += requests;
 }
-static nomask void oob_register_replies(mapping replies)
+protected nomask void oob_register_replies(mapping replies)
 {
     oob_replies += replies;
 }
@@ -528,7 +528,7 @@ nomask void oob_debug_close()
     }
 }
 
-static string stat_me()
+protected string stat_me()
 {
     class oob_info *info_list;
     string result;
@@ -560,7 +560,7 @@ static string stat_me()
     return result;
 }
 
-static nomask void oob_shutdown()
+protected nomask void oob_shutdown()
 {
     foreach ( object socket in keys(oob_socket_map) )
 	if ( objectp(socket) )
@@ -570,7 +570,7 @@ static nomask void oob_shutdown()
 	oob_socket->remove();
 }
 
-static nomask void oob_startup()
+protected nomask void oob_startup()
 {
     string err;
 

@@ -20,7 +20,7 @@ inherit GRID_SERVER;
 
 #define DATA_FILE	__DIR__ "v_plains.data"
 
-static private string * my_descriptions = ({
+nosave private string * my_descriptions = ({
     "A dry, harsh wind blows over the gentle rolling hills of these plains.",
     "Wild grains and grasses push up through the hard earth.",
     "The clear blue sky heats the surrounding area, hardening the ground into baked clay.",

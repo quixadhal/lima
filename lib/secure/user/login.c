@@ -49,7 +49,6 @@ mixed unguarded(mixed priv, function fp);
 /*
 ** The user's password (duh!)
 */
-//### this has a bad salt in it (the password itself)... this should be fixed
 private string password;
 
 private nomask void get_lost_now()
@@ -78,7 +77,7 @@ private nomask void get_lost()
 
 nomask int matches_password(string str)
 {
-    return crypt(str, str) == password;
+    return crypt(str, password) == password;
 }
 
 nomask void set_password(string str)
@@ -86,24 +85,19 @@ nomask void set_password(string str)
     if ( base_name(previous_object()) != CMD_OB_PASSWD )
 	error("illegal attempt to set a password\n");
 
-    password = crypt(str, str);
+    password = crypt(str, 0);
     save_me();
 }
 
-private nomask int check_site()
+varargs private nomask int check_site(string name)
 {
-    if ( BANISH_D->check_site() )
+  if ( BANISH_D->check_site() )
     {
-	printf("Sorry, your site has been banished from " + mud_name() + ".  To ask for\n"
-	  "a character, please mail %s.\n",
-	  ADMIN_EMAIL);
-
-	get_lost();
-
-	return 0;
+      if(BANISH_D->check_registered(0,name))
+	return 1;
+      return 0;
     }
-
-    return 1;
+  return 1;
 }
 
 private nomask int valid_name(string str)
@@ -115,9 +109,15 @@ private nomask int valid_name(string str)
 	write("Sorry, that name is forbidden by the implementors.  Please choose another.\n");
 	return 0;
     }
-
-    if ( !check_site() )
+    if ( !check_site(str) )
+      {
+	printf("Sorry, your site has been banished from %s.  To ask for\n"
+	       "a character, please mail %s.\n",
+	       mud_name(),
+	       ADMIN_EMAIL);
+	get_lost();
 	return 0;
+      }
 
     len = strlen(str);
     if ( len > 12 )
@@ -246,7 +246,7 @@ void login_handle_logon(int state, mixed extra, string arg) {
 	 * extensively modified/rewritten more than half of the base mudlib first
 	 * (intend to modify ... doesn't cut it)
 	 */
-	printf("%s is running Lima 1.0a6 on %s\n\n",
+	printf("%s is running Lima 1.0a7 on %s\n\n",
 	       mud_name(), driver_version());
 	
 #ifdef ZORKMUD
@@ -271,14 +271,10 @@ void login_handle_logon(int state, mixed extra, string arg) {
 	arg = lower_case(arg);
 	if ( !check_special_commands(arg) )
 	    return;
-
+	if(!valid_name(arg) )
+	  return;
 	if ( unguarded(1, (: file_size,
 			   LINK_PATH(arg) + __SAVE_EXTENSION__ :)) <= 0 ) {
-	    if ( !valid_name(arg) ) {
-		/* return for another user id */
-		return;
-	    }
-
 	    modal_func((: login_handle_logon, CONFIRM_NEW_NAME, arg :),
 		       "Is '" + capitalize(arg) + "' correct? ");
 	    return;
@@ -370,20 +366,20 @@ void login_handle_logon(int state, mixed extra, string arg) {
 
 	write("\n");	/* needed after a no-echo input */
 
-	modal_func((: login_handle_logon, CONFIRM_PASSWORD, crypt(arg, arg) :),
+	modal_func((: login_handle_logon, CONFIRM_PASSWORD, crypt(arg, 0) :),
 		   "Again to confirm: ", 1);
 	break;
 	
 	/************ CONFIRM PASSWORD *************/
     case CONFIRM_PASSWORD:
-	if ( crypt(arg, arg) != extra ) {
+	if ( crypt(arg, extra) != extra ) {
 	    write("\nSocks don't need to, but passwords have to match.\n");
 
 	    modal_func((: login_handle_logon, NEW_PASSWORD, 0 :), "Password: ", 1);
 	    return;
 	}
 
-	password = crypt(arg, arg);
+	password = extra;
 
 	write("\n");	/* needed after a no-echo input */
 

@@ -12,7 +12,7 @@
 inherit SPELL;
 
 
-private static int cast_time;
+private nosave int cast_time;
 
 void do_effects(object target, object reagent);
 

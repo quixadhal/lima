@@ -7,7 +7,7 @@ inherit CONTAINER;
 
 private string array obs = ({ });
 
-void set_objects(mapping m) {
+mixed *set_objects(mapping m) {
     foreach( string key, mixed value in m )
     {
 	if( arrayp( value ))
@@ -23,7 +23,7 @@ void set_objects(mapping m) {
 	    m[key] = 1;
 	    obs += ({ absolute_path(key) });
 	}
-	::set_objects( m );
+	return ::set_objects( m );
     }
 }
 

@@ -32,10 +32,10 @@ private mapping topics;
 */
 private mapping restrict;
 
-private static int	pending_count;
-private static object	initiator;
+private nosave int	pending_count;
+private nosave object	initiator;
 
-private static array	ignore = ({ DIR_HELP "/autodoc/FIXME/" });
+private nosave array	ignore = ({ DIR_HELP "/autodoc/FIXME/" });
 
 nomask void process_dir(string path);
 

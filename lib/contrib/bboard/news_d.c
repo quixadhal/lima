@@ -54,13 +54,13 @@ void archive_posts();
 nomask string * get_groups();
 
 private mapping data = ([]);
-private static mapping recent_changes = ([]);
+private nosave mapping recent_changes = ([]);
 private int new_format;
 
 // No info on a group means never archive.
 private mapping archive_info = ([ ]);
 
-private static mapping restrictions = 
+private nosave mapping restrictions = 
 ([
   "wiz" : ({ (: wizardp :), (: wizardp :) }),
   "admin" : ({ (: adminp :), (: adminp :) }),

@@ -29,7 +29,7 @@ private mapping mailbox = ([ ]);
 /*
 ** Who is this mailbox for?
 */
-private static string owner;
+private nosave string owner;
 
 /*
 ** What is the current message index.  This value is 0-based and represents
@@ -37,7 +37,7 @@ private static string owner;
 ** corresponds to the first key in the (ordered) set of message keys in the
 ** mailbox.
 */
-private static int message_index = 0;
+private nosave int message_index = 0;
 
 
 private nomask string get_fname()

@@ -15,6 +15,7 @@
 #include "../include/socket_err.h"
 #include "../socket_efuns.h"
 #include "../comm.h"
+#include "../efun_protos.h"
 #endif
 
 #define VALID_SOCKET(x) check_valid_socket((x), fd, get_socket_owner(fd), addr, port)
@@ -114,7 +115,7 @@ f_socket_connect PROT((void))
     if (!((sp - 1)->type & (T_FUNCTION | T_STRING))) {
 	bad_arg(3, F_SOCKET_CONNECT);
     }
-    if (!(sp->type & (T_STRING | T_STRING))) {
+    if (!(sp->type & (T_FUNCTION | T_STRING))) {
 	bad_arg(4, F_SOCKET_CONNECT);
     }
     fd = (sp - 3)->u.number;
@@ -291,16 +292,29 @@ f_socket_address PROT((void))
 }				/* f_socket_address() */
 #endif
 
-#ifdef F_DUMP_SOCKET_STATUS
+#ifdef F_SOCKET_STATUS
 void
-f_dump_socket_status PROT((void))
+f_socket_status PROT((void))
 {
-    outbuffer_t out;
-
-    outbuf_zero(&out);
-    dump_socket_status(&out);
-    outbuf_push(&out);
+     array_t *info;
+     int i;
+     
+     if (st_num_arg) {
+	 info = socket_status(sp->u.number);
+	 
+	 if (!info) {
+	     sp->u.number = 0;
+	 } else {
+	     sp->type = T_ARRAY;
+	     sp->u.arr = info;
+	 }
+     } else {
+	 info = allocate_empty_array(max_lpc_socks);
+	 for (i = 0; i < max_lpc_socks; i++) {
+	     info->item[i].type = T_ARRAY;
+	     info->item[i].u.arr = socket_status(i);
+	 }
+	 push_refed_array(info);
+     }
 }
 #endif
-
-

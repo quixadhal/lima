@@ -107,6 +107,7 @@ INLINE funptr_t *
 make_lfun_funp P2(int, index, svalue_t *, args)
 {
     funptr_t *fp;
+    int newindex;
     
     fp = (funptr_t *)DXALLOC(sizeof(funptr_hdr_t) + sizeof(local_ptr_t),
 			     TAG_FUNP, "make_efun_funp");
@@ -114,7 +115,10 @@ make_lfun_funp P2(int, index, svalue_t *, args)
     add_ref( current_object, "make_efun_funp" );
     fp->hdr.type = FP_LOCAL | FP_NOT_BINDABLE;
     
-    fp->f.local.index = index + function_index_offset;
+    newindex = index + function_index_offset;
+    if (current_object->prog->function_flags[newindex] & FUNC_ALIAS)
+	newindex = current_object->prog->function_flags[newindex] & ~FUNC_ALIAS;
+    fp->f.local.index = newindex;
     
     if (args->type == T_ARRAY) {
 	fp->hdr.args = args->u.arr;
@@ -260,11 +264,12 @@ call_function_pointer P2(funptr_t *, funp, int, num_arg)
 	    }
 	}
     case FP_LOCAL | FP_NOT_BINDABLE: {
-	compiler_function_t *func;
+        function_t *func;
+
 	fp = sp - num_arg + 1;
 
-	if (current_object->prog->function_flags[funp->f.local.index] & FUNC_UNDEFINED)
-	    error("Undefined function: %s\n", function_name(current_object->prog, funp->f.local.index));
+	if (current_object->prog->function_flags[funp->f.local.index] & (FUNC_PROTOTYPE|FUNC_UNDEFINED))
+	    error("Undefined lfun pointer called: %s\n", function_name(current_object->prog, funp->f.local.index));
 
 	push_control_stack(FRAME_FUNCTION);
 	current_prog = funp->hdr.owner->prog;

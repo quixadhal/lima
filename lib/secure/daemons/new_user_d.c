@@ -41,7 +41,7 @@ void create_user(function when_done)
 
     if( sizeof(races) == 1 )
     {
-	string default_race = races[ keys(races)[0]];
+        string default_race = keys(races)[0];
 	write( "You will be a " + default_race + ".\n" );
 	evaluate( when_done, DIR_RACES + "/" + default_race );
     }

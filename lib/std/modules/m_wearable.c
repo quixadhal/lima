@@ -20,7 +20,7 @@ void assign_flag(int which, int state);
 private string wearmsg = "$N $vwear a $o.";
 
 #ifdef USE_BODYSLOTS
-private static string	slot;
+private nosave string	slot;
 #endif
 
 

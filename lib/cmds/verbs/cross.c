@@ -3,10 +3,6 @@
 
 inherit NVERB_OB;
 
-void do_cross_obj(object ob)
-{
-    ob->cross();
-}
 
 void create() {
     add_rules( ({ "OBJ" }) );

@@ -52,20 +52,20 @@ class menu {
 }
 
 
-static void goto_menu(MENU);
-static void display_current_menu();
-static void prompt_then_return();
+protected void goto_menu(MENU);
+protected void display_current_menu();
+protected void prompt_then_return();
 
 
 MENU 	current_menu, previous_menu;
 int 	need_refreshing;
 
-static void remove()
+protected void remove()
 {
     destruct();
 }
 
-varargs static MENU 
+varargs protected MENU 
 new_menu(string title, string prompt, int allow_enter,
 	    function no_match_function)
 {
@@ -81,7 +81,7 @@ new_menu(string title, string prompt, int allow_enter,
   return new_menu;
 }
 
-varargs static MENU
+varargs protected MENU
 new_prompt(string prompt, function callback, string* completions)
 {
   MENU new_menu;
@@ -95,7 +95,7 @@ new_prompt(string prompt, function callback, string* completions)
 }
 
 
-varargs static MENU_ITEM
+varargs protected MENU_ITEM
 new_seperator (string description, function constraint)
 {
   MENU_ITEM new_menu_item;
@@ -109,7 +109,7 @@ new_seperator (string description, function constraint)
 }
 
 
-varargs static MENU_ITEM
+varargs protected MENU_ITEM
 new_menu_item(string description, mixed action, string choice_name, 
 	      int prompt, function constraint)
 {
@@ -126,26 +126,26 @@ new_menu_item(string description, mixed action, string choice_name,
 }
 
 
-static void
+protected void
 add_menu_item(MENU menu, MENU_ITEM menu_item)
 {
   menu->items += ({ menu_item });
 }
 
-static void
+protected void
 set_menu_items(MENU menu, MENU_ITEM* menu_items)
 {
   menu->items = menu_items;
 }
 
 
-static void
+protected void
 set_menu_title(MENU menu, string title)
 {
   menu->title = title;
 }
 
-static void
+protected void
 set_menu_prompt(MENU menu, mixed prompt)
 {
   if(!(stringp(prompt) || functionp(prompt)))
@@ -157,49 +157,49 @@ set_menu_prompt(MENU menu, mixed prompt)
   menu->prompt = prompt;
 }
 
-static void 
+protected void 
 allow_empty_selection(MENU menu)
 {
   menu->allow_enter = 1;
 }
 
-static void 
+protected void 
 disallow_empty_selection(MENU menu)
 {
   menu->allow_enter = 0;
 }
 
-static void
+protected void
 set_no_match_function(MENU menu, function f)
 {
   menu->no_match_function = f;
 }
 
-static void 
+protected void 
 set_number_of_columns(MENU menu, int n)
 {
   menu->num_columns = n;
 }
 
-static void
+protected void
 disable_menu_item(MENU_ITEM item)
 {
   item->disabled = 1;
 }
 
-static void
+protected void
 enable_menu_item(MENU_ITEM item)
 {
   item->disabled = 0;
 }
 
-static void
+protected void
 set_menu_item_description(MENU_ITEM item, string description)
 {
   item->description = description;
 }
 
-static void
+protected void
 set_menu_item_action(MENU_ITEM item, mixed action)
 {
   //  Should type check here, but I can't figure out how
@@ -207,13 +207,13 @@ set_menu_item_action(MENU_ITEM item, mixed action)
   item->action = action;
 }
 
-static void
+protected void
 set_menu_item_choice_name (MENU_ITEM item, string choice_name)
 {
   item->choice_name = choice_name;
 }
 
-static void
+protected void
 constrain_menu_item (MENU_ITEM item, function f)
 {
   item->constraint = f;
@@ -226,7 +226,7 @@ constrain_menu_item (MENU_ITEM item, function f)
 // every single action 
 private MENU menu_after_selection;
 
-static void
+protected void
 new_parse_menu_input(string input)
 {
   string* 	matches;
@@ -314,7 +314,7 @@ new_parse_menu_input(string input)
 
 
 
-static void
+protected void
 parse_menu_input(mixed input)
 {
   int		counter;
@@ -358,7 +358,7 @@ parse_menu_input(mixed input)
 
 }
 
-static string
+protected string
 get_current_prompt()
 {
   mixed	prompt;
@@ -408,7 +408,7 @@ get_current_prompt()
   return stringp(prompt) ? prompt : evaluate(prompt);
 }
     
-static void
+protected void
 init_menu_application(MENU toplevel)
 {
   modal_push((: parse_menu_input :), (: get_current_prompt :));
@@ -416,14 +416,14 @@ init_menu_application(MENU toplevel)
   goto_menu(toplevel);
 }
 
-static void 
+protected void 
 quit_menu_application()
 {
     modal_pop();
     destruct(this_object());
 }
   
-static void
+protected void
 goto_menu(MENU m)
 {
   previous_menu = current_menu;
@@ -431,14 +431,14 @@ goto_menu(MENU m)
   display_current_menu();
 }
 
-static void 
+protected void 
 goto_menu_silently(MENU m)
 {
   previous_menu = current_menu;
   current_menu = m;
 }
 
-static void
+protected void
 goto_previous_menu()
 {
   MENU swap;
@@ -447,7 +447,7 @@ goto_previous_menu()
   previous_menu = swap;
 }
 
-static void
+protected void
 display_current_menu()
 {
   int leftwidth;
@@ -563,7 +563,7 @@ private void finish_completion(
 }
 
 
-varargs static void 
+varargs protected void 
 complete_choice(string input, string* choices, function f)
 {
     string* 	matches;
@@ -601,18 +601,18 @@ complete_choice(string input, string* choices, function f)
 }
 
 
-static void get_input_then_call(function thencall, string prompt)
+protected void get_input_then_call(function thencall, string prompt)
 {
     input_one_arg(prompt, thencall);
 }
   
-static void prompt_then_return()
+protected void prompt_then_return()
 {
     /* just ignore the input... */
     modal_simple((: 0 :), "[Hit enter to return to menu] ");
 }
 
-//### probably should be static too
+//### probably should be protected too
 void quit_if_cr(string input)
 {
   if(input == "")

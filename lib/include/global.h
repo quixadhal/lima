@@ -10,6 +10,11 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
+#ifndef __SENSIBLE_MODIFIERS__
+#define nosave static
+#define protected static
+#endif
+
 #include <config.h>
 #include <mudlib.h>
 
@@ -24,5 +29,7 @@
 #define DBBUG(x) TELL_BUG("deathblade",(x))
 #define ZBUG(x) TELL_BUG("zifnab",(x))
 #define ZABUG(x) TELL_BUG("zakk", (x))
+#define TBUG(x) TELL_BUG("tigran",(x))
+#define RABUG(x) TELL_BUG("rassilon",(x))
 
 #endif // __GLOBAL_H__

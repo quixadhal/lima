@@ -9,8 +9,8 @@ inherit M_ACCESS;
 
 varargs void main(mixed arg1, mixed arg2);
 
-private void create() {
-    set_privilege(1);
+protected void create() {
+  set_privilege(1);
 }
 
 varargs nomask 
@@ -41,7 +41,7 @@ mixed call_main(mixed arg1, mixed arg2, mixed arg3, mixed arg4,
     return done_outputing();
 }
 
-static nomask varargs
+protected nomask varargs
 void resend(string ob, mixed arg1, mixed arg2) {
     if (ob->valid_resend(base_name()))
 	ob->do_resend(arg1, arg2);

@@ -26,6 +26,7 @@
 #define LOG_LOGIN		"login"
 #define LOG_LOGIN_FAILURE	"login failure"
 #define LOG_MAIL_ERROR		"mail error"
+#define LOG_NEW_PLAYERS         "new players"
 #define LOG_QUEST		"quest"
 #define LOG_QUESTION		"question"
 #define LOG_QUIT		"quit"

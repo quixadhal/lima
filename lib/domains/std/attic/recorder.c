@@ -8,9 +8,9 @@ inherit M_GETTABLE;
 #define INACTIVE  0
 #define RECORDING 1
 
-private static int state;
-private static int at_beginning = 1;
-private static string transcript = "";
+private nosave int state;
+private nosave int at_beginning = 1;
+private nosave string transcript = "";
 
 void setup() {
   set_adj( "fast forward", "rewind", "stop", "play", "record");

@@ -78,7 +78,7 @@ int random(int);
 #ifndef NO_ENVIRONMENT
 object environment(void | object);
 object *all_inventory(object default: F__THIS_OBJECT);
-object *deep_inventory(object);
+object *deep_inventory(object default: F__THIS_OBJECT);
 object first_inventory(object|string default: F__THIS_OBJECT);
 object next_inventory(object default: F__THIS_OBJECT);
 void say(string, void | object | object *);
@@ -92,7 +92,7 @@ void add_action(string | function, string | string *, void | int);
 string query_verb();
 int command(string);
 int remove_action(string, string);
-int living(object);
+int living(object default: F__THIS_OBJECT);
 mixed *commands();
 void disable_commands();
 void enable_commands();
@@ -325,7 +325,7 @@ void message(mixed, mixed, string | string * | object | object *,
     string cache_stats();
 #endif
 
-    mixed filter(mixed * | mapping, string | function, ...);
+    mixed filter(string | mixed * | mapping, string | function, ...);
     mixed filter_array filter(mixed *, string | function, ...);
     mapping filter_mapping filter(mapping, string | function, ...);
 
@@ -375,7 +375,7 @@ void message(mixed, mixed, string | string * | object | object *,
 #ifdef DEBUG
     void swap(object);		/* Only used for debugging */
 #endif
-    int resolve(string, string);
+    int resolve(string, string|function);
 
 /* shutdown is at the end because it is only called once per boot cycle :) */
     void shutdown(void | int);

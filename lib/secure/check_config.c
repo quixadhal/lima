@@ -12,7 +12,7 @@
                "* and recompile.                                         *\n" \
                FOOTER
 
-static
+protected
 void create() {
     string badness = "";
     string version = __VERSION__;

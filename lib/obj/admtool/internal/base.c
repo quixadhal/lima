@@ -55,7 +55,7 @@ private nomask string parent_name() {
     return path;
 }
 
-static void heading() {
+protected void heading() {
     write("Administration Tool: " + module_name() + " administration\n\n");
 }
 
@@ -94,11 +94,11 @@ nomask void do_quit() {
     destruct();
 }
 
-static nomask void do_help() {
+protected nomask void do_help() {
     write_menu();
 }
 
-static nomask int write_error(string err) {
+protected nomask int write_error(string err) {
     if (err) {
 	write("Error: " + err + ".\n");
 	return 1;
@@ -106,10 +106,10 @@ static nomask int write_error(string err) {
     return 0;
 }
 
-static class command_info array defaults() {
+protected class command_info array defaults() {
     return  ({
 	    new(class command_info), // blank line
-	    new(class command_info, key : "m", desc : "main menu", 
+	    new(class command_info, key : "m", desc : "previous menu", 
 		action : (: do_main_menu :)),
 	    new(class command_info, key : "q", desc : "quit", 
 		action : (: do_quit :)),
@@ -163,8 +163,8 @@ private void handle_input(string str) {
 
     foreach (class command_info comm in commands) {
 	if (str == comm->key) {
-	    if (comm->priv && !check_privilege(comm->priv)) {
-		printf("Permission denied; need privilege '%s'.\n",
+	    if (comm->priv && !check_previous_privilege(comm->priv)) {
+		printf("Permission denied; need privilege '%O'.\n",
 		       comm->priv);
 		return;
 	    }
@@ -192,7 +192,7 @@ private void handle_input(string str) {
     write("** Unknown option (? for help)\n");
 }
 
-static nomask void do_modal_func() {
+protected nomask void do_modal_func() {
     modal_func((: handle_input :), prompt);
 }
 

@@ -13,6 +13,7 @@
 enum socket_mode {
     MUD, STREAM, DATAGRAM, STREAM_BINARY, DATAGRAM_BINARY
 };
+
 enum socket_state {
     CLOSED, FLUSHING, UNBOUND, BOUND, LISTEN, DATA_XFER
 };
@@ -54,6 +55,8 @@ extern int max_lpc_socks;
 #define S_CLOSE_FP      0x80
 #define S_EXTERNAL	0x100
 
+array_t *socket_status PROT((int));
+array_t *socket_status_by_fd PROT((int));
 int check_valid_socket PROT((char *, int, object_t *, char *, int));
 void socket_read_select_handler PROT((int));
 void socket_write_select_handler PROT((int));

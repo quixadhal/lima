@@ -17,7 +17,7 @@
 
 #include <clean_up.h>
 
-private static mapping mailboxes = ([ ]);
+private nosave mapping mailboxes = ([ ]);
 
 private nomask void create()
 {

@@ -15,10 +15,10 @@ inherit M_READABLE;
 inherit CLASS_NEWSMSG;
 
 // The group to which this board is linked. Set by setup().
-private static string linked_group;
+private nosave string linked_group;
 
 // The name of this board. Set by setup().
-private static string board_name;
+private nosave string board_name;
 
 // Function prototypes.
 void set_group(string new_group);

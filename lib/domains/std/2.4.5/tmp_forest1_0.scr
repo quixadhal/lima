@@ -1,9 +1,0 @@
-# Do not remove the headers from this file! see /USAGE for more info.
-
-is=armor,valuable
-primary_adj=leather
-primary_id=jacket
-long=A worn but sturdy leather jacket.\nOn the back is a lot of rivets making the pattern of a star.
-value=50
-weight=2
-armor_class=2

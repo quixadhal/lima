@@ -304,7 +304,7 @@ Range/switch search should be binary, not linear. (in LPC->C)
 -----
 
 Probably need a test to see if bison's output actually compiles in
-./build.Mudos;  on alot of AIX systems bison's use of alloca() fails.
+./build.Mudos;  on a lot of AIX systems bison's use of alloca() fails.
 
 -Beek
 

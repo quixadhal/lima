@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 /* %^RESET%^ gets used early in the login sequence by tell() */
-private static mapping translations = (["RESET" : ""]);
+private nosave mapping translations = (["RESET" : ""]);
 #ifdef CONFIGURABLE_COLOUR
 private mapping colours;
 #endif

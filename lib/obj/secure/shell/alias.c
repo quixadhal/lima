@@ -24,12 +24,12 @@ inherit CLASS_ALIAS;
 ** and the rest of your command.  It's got it's own structure so we can limit 
 ** our search (That is, the side list is an optimization).
 */
-private static mapping aliases = ([]);
-private static string * xaliases = ({});
-private static mapping alias_save = ([]);
-private static string* xalias_save = ({});
+private nosave mapping aliases = ([]);
+private nosave string * xaliases = ({});
+private nosave mapping alias_save = ([]);
+private nosave string* xalias_save = ({});
 
-static void init_alias_editor()
+protected void init_alias_editor()
 {
     new(ALIASMENU)->begin_menu(this_object());
 }
@@ -148,7 +148,7 @@ private string* prep_aliases_for_save(string state)
 void setup_for_save()
 {
     /*
-    ** Use the call_other() interface so that we are not statically
+    ** Use the call_other() interface so that we are not protectedally
     ** bound to require M_SAVE.  This object this modules is applied
     ** to may save natively rather than via M_SAVE.
     */
@@ -281,11 +281,15 @@ void create()
 {
     if ( clonep(this_object()) && base_name(this_object()) != M_ALIAS )
     {
+#if 1
+        initialize_aliases();
+#else
 	call_out((: initialize_aliases :), 0);
+#endif
     }
 }
 
-varargs static void cmd_alias(mixed argv, string array implode_info)
+varargs protected void cmd_alias(mixed argv, string array implode_info)
 {
     switch(sizeof(argv))
     {
@@ -316,7 +320,7 @@ varargs static void cmd_alias(mixed argv, string array implode_info)
     }
 }
 
-varargs static void cmd_remove_alias(mixed argv)
+varargs protected void cmd_remove_alias(mixed argv)
 {
     if ( sizeof(argv) != 2 )
     {

@@ -11,15 +11,15 @@
 #define P_NAME		6
 #define P_TIME		7
 
-private static int* replacements;
+private nosave int* replacements;
 
-private static string prompt;
+private nosave string prompt;
 
 
 int get_command_number();
 mixed get_variable(string);
 
-static void set_prompt(string s)
+protected void set_prompt(string s)
 {
     string*	bits;
     int		i;
@@ -71,7 +71,7 @@ static void set_prompt(string s)
 }
 
 
-static string get_prompt()
+protected string get_prompt()
 {
 
     string	s;
@@ -119,7 +119,7 @@ static string get_prompt()
 }
 
 
-static void create()
+protected void create()
 {
     this_object()->add_variable_hook("PROMPT", (:set_prompt:));
 }

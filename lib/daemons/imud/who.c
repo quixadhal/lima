@@ -18,7 +18,7 @@ nomask void do_who(string mudname)
     send_to_mud("who-req", canon_mudname(mudname), ({ }));
 }
 
-static nomask void rcv_who_req(string orig_mud, string orig_user,
+protected nomask void rcv_who_req(string orig_mud, string orig_user,
 			       string targ_user, mixed * message)
 {
     mixed * who_data;
@@ -49,7 +49,7 @@ static nomask void rcv_who_req(string orig_mud, string orig_user,
     send_to_user("who-reply", orig_mud, orig_user, ({ who_data }));
 }
 
-static nomask void rcv_who_reply(string orig_mud, string orig_user,
+protected nomask void rcv_who_reply(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)
 {
     object p;

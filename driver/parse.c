@@ -249,26 +249,6 @@ Example:
 #define EQN(x,y) (strncmp(x,y,strlen(x))==0)
 #define EMPTY(x) (strcmp(x,"")==0)
 
-/* Function in LPC which returns a list of ids
-*/
-#define QGET_ID "parse_command_id_list"
-
-/* Function in LPC which returns a list of plural ids
-*/
-#define QGET_PLURID "parse_command_plural_id_list"
-
-/* Function in LPC which returns a list of adjectiv ids
-*/
-#define QGET_ADJID "parse_command_adjectiv_id_list"
-
-/* Function in LPC which returns a list of prepositions
-*/
-#define QGET_PREPOS "parse_command_prepos_list"
-
-/* Function in LPC which returns the 'all' word
-*/
-#define QGET_ALLWORD "parse_command_all_word"
-
 /* Global arrays for 'caching' of ids
 
    The main 'parse' routine stores these on call, making the entire
@@ -355,7 +335,7 @@ load_lpc_info P2(int, ix, object_t *, ob)
 	gPluid_list->size > ix &&
 	gPluid_list->item[ix].type == T_NUMBER &&
 	gPluid_list->item[ix].u.number == 0) {
-	ret = apply(QGET_PLURID, ob, 0, ORIGIN_DRIVER);
+	ret = apply(APPLY_QGET_PLURID, ob, 0, ORIGIN_DRIVER);
 	if (ret && ret->type == T_ARRAY)
 	    assign_svalue_no_free(&gPluid_list->item[ix], ret);
 	else {
@@ -368,7 +348,7 @@ load_lpc_info P2(int, ix, object_t *, ob)
 	gId_list->item[ix].type == T_NUMBER &&
 	gId_list->item[ix].u.number == 0 &&
 	!(ob->flags & O_DESTRUCTED) ) {
-	ret = apply(QGET_ID, ob, 0, ORIGIN_DRIVER);
+	ret = apply(APPLY_QGET_ID, ob, 0, ORIGIN_DRIVER);
 	if (ret && ret->type == T_ARRAY) {
 	    assign_svalue_no_free(&gId_list->item[ix], ret);
 	    if (make_plural) {
@@ -395,7 +375,7 @@ load_lpc_info P2(int, ix, object_t *, ob)
 	gAdjid_list->item[ix].type == T_NUMBER &&
 	gAdjid_list->item[ix].u.number == 0 &&
 	!(ob->flags & O_DESTRUCTED)) {
-	ret = apply(QGET_ADJID, ob, 0, ORIGIN_DRIVER);
+	ret = apply(APPLY_QGET_ADJID, ob, 0, ORIGIN_DRIVER);
 	if (ret && ret->type == T_ARRAY)
 	    assign_svalue_no_free(&gAdjid_list->item[ix], ret);
 	else
@@ -541,31 +521,31 @@ parse P5(char *, 	cmd,		/* Command to parse */
     /*
      * Get the default ids of 'general references' from master object
      */
-    pval = apply_master_ob(QGET_ID, 0);
+    pval = apply(APPLY_QGET_ID, master_ob, 0, ORIGIN_DRIVER);
     if (pval && pval->type == T_ARRAY) {
 	gId_list_d = pval->u.arr;
 	pval->u.arr->ref++;	/* Otherwise next sapply will free it */
     }
 
-    pval = apply_master_ob(QGET_PLURID, 0);
+    pval = apply(APPLY_QGET_PLURID, master_ob, 0, ORIGIN_DRIVER);
     if (pval && pval->type == T_ARRAY) {
 	gPluid_list_d = pval->u.arr;
 	pval->u.arr->ref++;	/* Otherwise next sapply will free it */
     }
 
-    pval = apply_master_ob(QGET_ADJID, 0);
+    pval = apply(APPLY_QGET_ADJID, master_ob, 0, ORIGIN_DRIVER);
     if (pval && pval->type == T_ARRAY) {
 	gAdjid_list_d = pval->u.arr;
 	pval->u.arr->ref++;	/* Otherwise next sapply will free it */
     }
 
-    pval = apply_master_ob(QGET_PREPOS, 0);
+    pval = apply_master_ob(APPLY_QGET_PREPOS, 0);
     if (pval && pval->type == T_ARRAY) {
 	gPrepos_list = pval->u.arr;
 	pval->u.arr->ref++;	/* Otherwise next sapply will free it */
     }
 
-    pval = apply_master_ob(QGET_ALLWORD, 0);
+    pval = apply_master_ob(APPLY_QGET_ALLWORD, 0);
     if (pval && pval->type == T_STRING)
 	gAllword = alloc_cstring(pval->u.string, "parse");
 

@@ -24,7 +24,7 @@ inherit M_INPUT;
 inherit CLASS_MAILMSG;
 
 //### make it private so it can't be changed?
-static object	mailbox_ob;
+nosave object	mailbox_ob;
 
 
 /*
@@ -32,7 +32,7 @@ static object	mailbox_ob;
 **
 ** Return a temporary filename for editing mail messages
 */
-static nomask string tmp_fname()
+protected nomask string tmp_fname()
 {
     return "/tmp/tmail." + this_user()->query_userid();
 }
@@ -43,7 +43,7 @@ static nomask string tmp_fname()
 ** Get a message key from a user's message number.
 ** 0 is returned if the user number is out of bounds.
 */
-static nomask int get_message_key(int user_num)
+protected nomask int get_message_key(int user_num)
 {
     int * mail_keys;
 
@@ -67,7 +67,7 @@ static nomask int get_message_key(int user_num)
 **
 ** Format a list of names (as in To: or CC:).  Returns an array of lines.
 */
-static nomask string * format_name_list(string prompt, string * names)
+protected nomask string * format_name_list(string prompt, string * names)
 {
     if ( !names || !sizeof(names) )
 	return ({ });
@@ -82,7 +82,7 @@ static nomask string * format_name_list(string prompt, string * names)
 **
 ** Build an array of strings containing a mail message.
 */
-static nomask string * build_message(int mail_key, int supress_header)
+protected nomask string * build_message(int mail_key, int supress_header)
 {
     string *	output;
     class mail_msg msg;
@@ -114,7 +114,7 @@ static nomask string * build_message(int mail_key, int supress_header)
 ** Write the array of lines to the wizard's dead.letter.  Does nothing
 ** if the player is not a wizard or no home dir exists.
 */
-static nomask void write_dead_letter(string * buf)
+protected nomask void write_dead_letter(string * buf)
 {
     if ( wizardp(this_user()) && 
       file_size("/wiz/"+this_user()->query_userid()) == -2 )
@@ -132,7 +132,7 @@ static nomask void write_dead_letter(string * buf)
 ** Build an array of lines for the body of a message to be included into
 ** another message (prefixed with "> ")
 */
-static nomask string * build_body_inclusion(string * body)
+protected nomask string * build_body_inclusion(string * body)
 {
     return map_array(body, (: "> " + $1 :));
 }
@@ -190,7 +190,7 @@ private nomask void send_mail_message(string subject,
 ** entry -- usage information cannot be printed from these commands.
 */
 
-static nomask void cmd_read(int user_num,
+protected nomask void cmd_read(int user_num,
   string outputfile,
   int supress_header)
 {
@@ -224,7 +224,7 @@ static nomask void cmd_read(int user_num,
 }
 
 
-static nomask void cmd_headers(string rangestr)
+protected nomask void cmd_headers(string rangestr)
 {
     int   i;
     string* output;
@@ -319,7 +319,7 @@ private nomask void mailer_get_subject(string to_list, string arg)
       (: mailer_done_edit, to_list, subject :));
 }
 
-static nomask void cmd_mail(string to_list)
+protected nomask void cmd_mail(string to_list)
 {
     //Until a new maskable editor is in place, don't allow a null
     // to line.
@@ -333,7 +333,7 @@ static nomask void cmd_mail(string to_list)
     modal_simple((: mailer_get_subject, to_list :));
 }
 
-static nomask void cmd_reply(int user_num, int reply_all)
+protected nomask void cmd_reply(int user_num, int reply_all)
 {
     int key;
     class mail_msg msg;
@@ -374,7 +374,7 @@ static nomask void cmd_reply(int user_num, int reply_all)
 }
 
 
-static nomask void cmd_delete(string arg)
+protected nomask void cmd_delete(string arg)
 {
     int *	mail_keys;
     int		i;
@@ -397,7 +397,7 @@ static nomask void cmd_delete(string arg)
 }
 
 
-static nomask void cmd_setcurrent(mixed arg)
+protected nomask void cmd_setcurrent(mixed arg)
 {
     int count;
 
@@ -420,7 +420,7 @@ static nomask void cmd_setcurrent(mixed arg)
 }
 
 
-static nomask void cmd_forward(int user_num, string newto)
+protected nomask void cmd_forward(int user_num, string newto)
 {
     int			key;
     string *		body;

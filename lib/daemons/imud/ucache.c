@@ -16,9 +16,9 @@ class user_info
 ** The (remote) user cache.  It maps mudnames to mappings of usernames to
 ** user information.
 */
-static private mapping ucache = ([ ]);
+nosave private mapping ucache = ([ ]);
 
-static nomask void add_cache_entry(string mudname, string username,
+protected nomask void add_cache_entry(string mudname, string username,
 				   string visname, int gender)
 {
     class user_info user;
@@ -33,10 +33,10 @@ static nomask void add_cache_entry(string mudname, string username,
     ucache[mudname][username] = user;
 }
 
-static nomask void rcv_ucache_update(string orig_mud, string orig_user,
+protected nomask void rcv_ucache_update(string orig_mud, string orig_user,
 				     string target_user, mixed * message)
 {
-    int gender = (message[2] + 2) % 3;	/* I3 -> Lima */
+    int gender = (message[2] + 1) % 3;	/* I3 -> Lima */
 
     add_cache_entry(orig_mud, message[0], message[1], gender);
 }

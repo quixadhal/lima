@@ -2,5 +2,5 @@
 
 string main(mapping form)
 {
-  return "/obj/secure/webed"->main(form);
+  return  "/obj/secure/webed"->main(form);
 }

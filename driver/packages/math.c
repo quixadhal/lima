@@ -9,6 +9,7 @@
 #include "/lpc_incl.h"
 #else
 #include "../lpc_incl.h"
+#include "../efun_protos.h"
 #endif
 
 #ifdef F_COS

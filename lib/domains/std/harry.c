@@ -1,4 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+#include <triggers.h>
 
 inherit LIVING;
 inherit M_ACTIONS;
@@ -39,8 +40,8 @@ void setup()
 				+ " take " + $2 + " ?" :));
     add_pattern("%s drops %s.", (: "say Why did " + $1
 				 + " drop " + $2 + " ?" :));
-    add_pattern("%s kicks you.", (: "kick " + $1 :));
-    add_pattern("%s kisses you.", "blush");
+    add_pattern("%s kicks at you.", (: "kick " + $1 :),0,0,LISTEN_PRIVATE);
+    add_pattern("%s kisses you.", "blush",0,0,LISTEN_PRIVATE);
     add_pattern("%s nods.", function() {
 	respond("nod sol*");
 	respond("think did I miss something?");

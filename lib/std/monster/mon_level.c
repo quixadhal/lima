@@ -16,7 +16,7 @@
 #define SKILLS_MUL 5
 
 
-private static int mon_level;
+private nosave int mon_level;
 
 void set_hp(int i);
 void set_max_hp(int i);

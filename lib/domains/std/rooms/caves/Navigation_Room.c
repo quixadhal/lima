@@ -10,9 +10,6 @@ void setup()
 
 set_long( "Maps of the seven seas, marked up with what is probably travel routes, line the walls of this cave. The ceiling has a painting of the stars. In the centre of the room is a small table, while on the north wall is a button." );
     set_light(0);
-    set_exits( ([
-	"north" : "Small_Dock",
-      ]) );
     set_hidden_exits( "north" );
     add_item("ceiling", "stars" ,
       "It is a map of the stars, used for navigation.");

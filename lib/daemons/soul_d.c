@@ -310,6 +310,7 @@ void do_verb_rule(string verb, string rule, mixed args...)
 {
     mixed soul;
     
+//    RABUG(sprintf("do_verb_rule: (args: %O)", args));
     soul = get_soul(verb, rule, args);
     if (!soul) return;
     if ( sizeof(soul[0]) == 2 &&

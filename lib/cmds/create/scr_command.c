@@ -95,7 +95,7 @@ int add_exit(string fname, string dir, string value) {
 	    ind = 2;
 	parts += ({ repeat_string(" ", ind) + dir + ": " + value });
     }
-    write_file(fname, before + "\nexits=\n  " + implode(parts, "\n") + "\nend\n" + after, 1);
+    write_file(fname, before + "\nexits=\n" + implode(parts, "\n") + "\nend\n" + after, 1);
     return 1;
 }
 

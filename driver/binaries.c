@@ -165,9 +165,13 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
      * write out prog.  The prog structure is mostly setup, but strings will
      * have to be stored specially.
      */
+
+
+    /* program name */
     len = SHARED_STRLEN(p->name);
     fwrite((char *) &len, sizeof len, 1, f);
     fwrite(p->name, sizeof(char), len, f);
+
 
     fwrite((char *) &p->total_size, sizeof p->total_size, 1, f);
     fwrite((char *) p, p->total_size, 1, f);
@@ -217,6 +221,7 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
     fwrite((char *) &len, sizeof len, 1, f);
     fwrite((char *) p->file_info, len, 1, f);
 
+
     /*
      * patches
      */
@@ -229,7 +234,7 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
 
 static program_t *comp_prog;
 
-static int compare_compiler_funcs P2(int *, x, int *, y) {
+static int compare_funcs P2(unsigned short *, x, unsigned short *, y) {
     char *n1 = comp_prog->function_table[*x].name;
     char *n2 = comp_prog->function_table[*y].name;
 
@@ -250,22 +255,32 @@ static int compare_compiler_funcs P2(int *, x, int *, y) {
 }
 
 static void sort_function_table P1(program_t *, prog) {
-    int *temp, *inverse, *sorttmp, *invtmp;
-    int i;
+    unsigned short *sorttmp, *invtmp;
+    int i, last_inherited, j;
     int num = prog->num_functions_defined;
     
     if (!num) return;
 
-    temp = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
-    for (i = 0; i < num; i++)
-	temp[i] = i;
-
     comp_prog = prog;
-    quickSort(temp, num, sizeof(int), compare_compiler_funcs);
+    sorttmp = CALLOCATE(num, unsigned short, TAG_TEMPORARY, "sort_function_table");
 
-    inverse = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
-    for (i = 0; i < num; i++) 
-	inverse[temp[i]] = i;
+    i = num;
+    while (i--) sorttmp[i] = i;
+    quickSort(sorttmp, num,sizeof(unsigned short), compare_funcs);
+
+    invtmp = CALLOCATE(num, unsigned short, TAG_TEMPORARY, "sort_function_table");
+
+    i = num;
+    while (i--) {
+	invtmp[sorttmp[i]] = i;
+    }
+
+    i = num;
+    while (i--) {
+	prog->sorted_funcs[i] = invtmp[prog->sorted_funcs[i]];
+    }
+
+    FREE((char *) invtmp);
 
     /* We're not copying, so we have to do the sort in place.  This is a
      * bit tricky to do based on a permutation table, but can be done.
@@ -275,80 +290,49 @@ static void sort_function_table P1(program_t *, prog) {
      * know; I made this one up.  The basic idea is to do a swap, and then
      * figure out the correct permutation on the remaining n-1 elements.
      */
-    sorttmp = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
-    invtmp = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
-    for (i = 0; i < num; i++) {
-	sorttmp[i] = temp[i];
-	invtmp[i] = inverse[i];
-    }
-    
-    for (i = 0; i < num - 1; i++) { /* moving n-1 of them puts the last one
-				       in place too */
-	compiler_function_t cft;
-	int where = sorttmp[i];
 
-	if (i == where) /* Already in the right spot */
-	    continue;
-	
-	cft = prog->function_table[i];
-	prog->function_table[i] = prog->function_table[where];
-	DEBUG_CHECK(sorttmp[invtmp[i]] != i, "sorttmp is messed up.");
-	sorttmp[invtmp[i]] = where;
-	invtmp[where] = invtmp[i];
-	prog->function_table[where] = cft;
-    }
+    /* Well, we can think of permutations as composed 
+     * of disjoint cycles and 
+     * just complete the cycles one at a time - Sym                         
+     */
 
-#ifdef COMPRESS_FUNCTION_TABLES
-    {
-	compressed_offset_table_t *cftp = prog->function_compressed;
-	int f_ov = cftp->first_overload;
-	int f_def = cftp->first_defined;
-	int n_ov = f_def - cftp->num_compressed;
-	int n_def = prog->num_functions_total - f_def;
-	int n_real = f_def - cftp->num_deleted;
-	
-	for (i = 0; i < n_ov; i++) {
-	    int j = cftp->index[i];
-	    int ri = f_ov + i;
-	    if (j == 255)
-		continue;
-	    if (!(prog->function_flags[ri] & FUNC_INHERITED)) {
-		int oldix = prog->function_offsets[j].def.f_index;
-		DEBUG_CHECK(oldix >= num, "Function index out of range");
-		prog->function_offsets[j].def.f_index = inverse[oldix];
-	    }
-	}
-	for (i = 0; i < n_def; i++) {
-	    int ri = f_def + i;
-	    if (!(prog->function_flags[ri] & FUNC_INHERITED)) {
-		int oldix = prog->function_offsets[n_real + i].def.f_index;
-		DEBUG_CHECK(oldix >= num, "Function index out of range");
-		prog->function_offsets[n_real + i].def.f_index = inverse[oldix];
-	    }
-	}
-    }
-#else
-    { 
-	int num_runtime = prog->num_functions_total;
-	for (i = 0; i < num_runtime; i++) {
-	    if (!(prog->function_flags[i] & FUNC_INHERITED)) {
-		int oldix = prog->function_offsets[i].def.f_index;
-		DEBUG_CHECK(oldix >= num, "Function index out of range");
-		prog->function_offsets[i].def.f_index = inverse[oldix];
-	    }
-	}
-    }
-#endif
+    last_inherited = prog->last_inherited;
 
-    if (prog->type_start) {
-	for (i = 0; i < num; i++)
-	    prog->type_start[i] = prog->type_start[temp[i]];
+    for (i = 0; i < num - 1; i++) {
+	function_t cft;
+	int next, orig;
+
+	if ((next = sorttmp[i]) == i) continue;
+
+	orig = j = i;
+
+	cft = prog->function_table[j];
+	do {
+	    prog->function_table[j] = prog->function_table[next];
+	    j = next;
+	    next = sorttmp[j];
+	} while (next != orig);
+
+	prog->function_table[j] = cft;
+
+	if (prog->type_start) {
+	    int orig_type_start = prog->type_start[j = orig];
+
+	    while ((next = sorttmp[j]) != orig) {
+		prog->type_start[j] = prog->type_start[next];
+		j = next;
+	    }
+	    prog->type_start[j] = orig_type_start;
+	}
+
+	j = sorttmp[orig];
+	do {
+	    next = sorttmp[j];
+	    sorttmp[j] = j;
+	} while ((j = next) != orig);
     }
 
     FREE(sorttmp);
-    FREE(invtmp);
-    FREE(temp);
-    FREE(inverse);
 }
 
 #define ALLOC_BUF(size) \
@@ -564,12 +548,11 @@ program_t *int_load_binary P1(char *, name)
 
     fclose(f);
     FREE(buf);
-
+    
     /*
      * Now finish everything up.  (stuff from epilog())
      */
     prog = p;
-    prog->id_number = get_id_number();
 
     total_prog_block_size += prog->total_size;
     total_num_prog_blocks += 1;
@@ -673,7 +656,7 @@ static void patch_out P3(program_t *, prog, short *, patches, int, len)
 	    COPY_SHORT(&break_addr, p + i + 4);
 
 	    while (offset < break_addr) {
-		COPY_PTR(&s, p + offset);
+		COPY_PTR(&s, p + i + 1 + offset);
 		/*
 		 * take advantage of fact that s is in strings table to find
 		 * it's index.
@@ -682,7 +665,7 @@ static void patch_out P3(program_t *, prog, short *, patches, int, len)
 		    s = (char *)(POINTER_INT)-1;
 		else
 		    s = (char *)(POINTER_INT)store_prog_string(s);
-		COPY_PTR(p + offset, &s);
+		COPY_PTR(p + i + 1 + offset, &s);
 		offset += SWITCH_CASE_SIZE;
 	    }
 	}
@@ -717,7 +700,7 @@ static void patch_in P3(program_t *, prog, short *, patches, int, len)
 
 	    start = offset;
 	    while (offset < break_addr) {
-		COPY_PTR(&s, p + offset);
+		COPY_PTR(&s, p + offset + i + 1);
 		/*
 		 * get real pointer from strings table
 		 */
@@ -725,14 +708,14 @@ static void patch_in P3(program_t *, prog, short *, patches, int, len)
 		    s = 0;
 		else
 		    s = prog->strings[(POINTER_INT)s];
-		COPY_PTR(p + offset, &s);
+		COPY_PTR(p + offset + i + 1, &s);
 		offset += SWITCH_CASE_SIZE;
 	    }
 	    /* sort so binary search still works */
 	    quickSort(&p[start], (break_addr - start) / SWITCH_CASE_SIZE, 
 		      SWITCH_CASE_SIZE, str_case_cmp);
 	}
-    }
+    } 
 }				/* patch_in() */
 
 #endif
@@ -769,4 +752,5 @@ FILE *crdir_fopen P1(char *, file_name)
     }
 
     return fopen(file_name, "wb");
-}				/* crdir_fopen() */
+}				
+/* crdir_fopen() */

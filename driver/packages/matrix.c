@@ -9,6 +9,7 @@
 #include "/lpc_incl.h"
 #else
 #include "../lpc_incl.h"
+#include "../efun_protos.h"
 #endif
 
 #include "matrix.h"
@@ -324,6 +325,7 @@ void f_lookat_rotate2 PROT((void))
 }
 #endif
 
+#ifdef DEBUG
 static void print_matrix P2(Matrix, m, char *, label)
 {
     int i;
@@ -342,7 +344,7 @@ static void print_array P2(Vector *, v, char *, label)
 {
     fprintf(stderr, "%s:\t%f\t%f\t%f\n", label, v->x, v->y, v->z);
 }
-
+#endif
 
 static Vector *normalize_array P1(Vector *, v)
 {

@@ -37,7 +37,7 @@
 
 inherit M_ACCESS;
 
-static private string *	legal_user_query =
+nosave private string *	legal_user_query =
 ({
     "failures",
     "email",
@@ -45,20 +45,20 @@ static private string *	legal_user_query =
     "password",
     "url",
 });
-static private string *	legal_user_set =
+nosave private string *	legal_user_set =
 ({
     "failures",
     "password",
 });
 
-static private string *	legal_body_query =
+nosave private string *	legal_body_query =
 ({
     "nickname",
     "plan",		/* only when EVERYONE_HAS_A_PLAN */
     "wiz_position",
     "title",		/* only when USE_TITLES */
 });
-static private string *	legal_body_set =
+nosave private string *	legal_body_set =
 ({
     "plan",		/* only when EVERYONE_HAS_A_PLAN */
     "wiz_position",

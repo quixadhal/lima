@@ -33,7 +33,6 @@ private inherit M_SAVE; // don't want people calling load_from_string()
 
 inherit __DIR__ "body/quests";
 inherit __DIR__ "body/mailbase";
-inherit __DIR__ "body/newsdata";
 inherit __DIR__ "body/cmd";
 inherit __DIR__ "body/help";
 inherit __DIR__ "body/wizfuncs";
@@ -71,7 +70,7 @@ inherit M_BODY_STATS;
 private string reply;
 private string array channel_list = ({ });
 private string plan;
-private static object link;
+private nosave object link;
 private mixed saved_items;
 
 // interfaces for other objects to manipulate our global variables
@@ -106,7 +105,7 @@ nomask void set_plan(string new_plan)
 
 #endif /* EVERYONE_HAS_A_PLAN */
 
-static void update_for_new_body(mapping tmp) {
+protected void update_for_new_body(mapping tmp) {
     /* nothing for now; can be overloaded for races that need it */
 }
 
@@ -401,7 +400,10 @@ void die()
       "A pity, really.  Way too many people dying these days for me to just patch\n"
       "everyone up.  Oh well, you'll live.\n",0,0);
     rack_up_a_death();
-
+    /* Someone forgot to ::die() in here so corpses are created -- Tigran */
+#ifdef DEATH_USES_CORPSES
+    ::die();
+#endif
 #ifdef DEATH_MESSAGES
     {
 	// another option is to choose the message here based on player level
@@ -442,7 +444,7 @@ string stat_me()
     return result;
 }
 
-private void create(string userid)
+void create(string userid)
 {
     if ( !clonep() )
 	return;
@@ -521,17 +523,6 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
     if( previous_object() == liv && ob->is_in( liv )) 
 	return "You already have that.";
     return 1;
-}
-
-int go_somewhere(string arg)
-{
-    object env = environment( this_object());
-    int    ret;
-
-    if(!(ret=::go_somewhere(arg)) && (env))
-	return env->do_go_somewhere(arg);
-
-    return ret;
 }
 
 string inventory_header()

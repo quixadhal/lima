@@ -10,13 +10,13 @@
 /*
 ** The current weather types
 */
-static private string * types = ({ "sunny", "rainy", "foggy", "snowy" });
-static private string * type_nouns = ({ "sun", "rain", "fog", "snow" });
+nosave private string * types = ({ "sunny", "rainy", "foggy", "snowy" });
+nosave private string * type_nouns = ({ "sun", "rain", "fog", "snow" });
 
 /*
 ** Globals.
 */
-static private int weather_state;
+nosave private int weather_state;
 
 
 string show_weather_change(int last_state)

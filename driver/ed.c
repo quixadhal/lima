@@ -1711,7 +1711,8 @@ static int indent_code()
     quote = '\0';
     in_ppcontrol = FALSE;
     in_comment = 0;
-
+    in_mblock = 0;
+    
     P_FCHANGED = TRUE;
     last = P_LASTLN;
     errs = 0;
@@ -1967,9 +1968,9 @@ static int docmd P1(int, glob)
 	    return SYNTAX_ERROR;
 	if (glob)
 	    return SYNTAX_ERROR;
-	clrbuf();
 	if (P_NLINES > 0)
 	    return LINE_OR_RANGE_ILL;
+	clrbuf();
 	return (EOF);
 
     case 'r':

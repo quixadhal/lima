@@ -198,7 +198,7 @@ void init_user_conn()
 	/*
 	 * listen on socket for connections.
 	 */
-	if (listen(external_port[i].fd, SOMAXCONN) == -1) {
+	if (listen(external_port[i].fd, 128) == -1) {
 	    socket_perror("init_user_conn: listen", 0);
 	    if (i != fd6_which) {
 		CLEANUP;
@@ -437,7 +437,7 @@ void add_vmessage P2V(object_t *, who, char *, format)
 {
     int len;
     interactive_t *ip;
-    char *cp, new_string_data[LARGEST_PRINTABLE_STRING];
+    char *cp, new_string_data[LARGEST_PRINTABLE_STRING + 1];
     va_list args;
     V_DCL(char *format);
     V_DCL(object_t *who);
@@ -1016,12 +1016,17 @@ static void new_user_handler P1(int, which)
      * initialize new user interactive data structure.
      */
     master_ob->interactive->ob = master_ob;
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
     master_ob->interactive->input_to = 0;
+#endif
     master_ob->interactive->iflags = 0;
     master_ob->interactive->text[0] = '\0';
     master_ob->interactive->text_end = 0;
     master_ob->interactive->text_start = 0;
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
     master_ob->interactive->carryover = NULL;
+    master_ob->interactive->num_carry = 0;
+#endif
 #ifndef NO_SNOOP
     master_ob->interactive->snooped_by = 0;
 #endif
@@ -1036,7 +1041,6 @@ static void new_user_handler P1(int, which)
     master_ob->interactive->message_producer = 0;
     master_ob->interactive->message_consumer = 0;
     master_ob->interactive->message_length = 0;
-    master_ob->interactive->num_carry = 0;
     master_ob->interactive->state = TS_DATA;
     master_ob->interactive->out_of_band = 0;
     all_users[i] = master_ob->interactive;
@@ -1156,7 +1160,12 @@ int process_user_command()
 #ifdef OLD_ED
 	      ip->ed_buffer ||
 #endif
-	      (ip->input_to && !(ip->iflags & NOESC)))) {
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
+	      (ip->input_to && !(ip->iflags & NOESC))
+#else
+	      0
+#endif
+	    )) {
             if (ip->iflags & SINGLE_CHAR) {
                 /* only 1 char ... switch to line buffer mode */
                 ip->iflags |= WAS_SINGLE_CHAR;
@@ -1195,8 +1204,10 @@ int process_user_command()
 	} else if (ip->ed_buffer) {
 	    ed_cmd(user_command);
 #endif				/* ED */
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
 	} else if (call_function_interactive(ip, user_command)) {
 	    ;			/* do nothing */
+#endif
 	} else {
 	    /*
 	     * send a copy of user input back to user object to provide
@@ -1336,27 +1347,36 @@ static void get_user_data P1(interactive_t *, ip)
      */
     if (ip->connection_type == PORT_TELNET) {
 	text_space = (MAX_TEXT - ip->text_end - 1) / 3;
+	/*
+	 * Check if we need more space.
+	 */
+	if (text_space < MAX_TEXT/16) {
+	    int l = ip->text_end - ip->text_start;
+	    
+	    memmove(ip->text, ip->text + ip->text_start, l + 1);
+	    ip->text_start = 0;
+	    ip->text_end = l;
+	    text_space = (MAX_TEXT - ip->text_end - 1) / 3;
+	    if (text_space < MAX_TEXT/16) {
+		/* almost 2k data without a newline.  Flush it, otherwise
+		   text_space will eventually go to zero and dest the user. */
+		ip->text_start = 0;
+		ip->text_end = 0;
+		text_space = MAX_TEXT / 3;
+	    }
+	}    
+    } else if (ip->connection_type == PORT_MUD) {
+	int len = ip->text_end - 4;
+	
+	if (len < 0) {
+	    text_space = -len;
+	} else {
+	    text_space = *(int *)ip->text - len;
+	}
     } else {
 	text_space = sizeof(buf) - 1;
     }
-    /*
-     * Check if we need more space.
-     */
-    if (text_space < MAX_TEXT/16) {
-	int l = ip->text_end - ip->text_start;
-	
-	memmove(ip->text, ip->text + ip->text_start, l + 1);
-	ip->text_start = 0;
-	ip->text_end = l;
-	text_space = (MAX_TEXT - ip->text_end - 1) / 3;
-	if (text_space < MAX_TEXT/16) {
-	    /* almost 2k data without a newline.  Flush it, otherwise
-	       text_space will eventually go to zero and dest the user. */
-	    ip->text_start = 0;
-	    ip->text_end = 0;
-	    text_space = MAX_TEXT / 3;
-	}
-    }
+
     /*
      * read user data.
      */
@@ -1415,12 +1435,20 @@ static void get_user_data P1(interactive_t *, ip)
 	case PORT_ASCII:
 	    {
 		char *nl, *str;
-		char *p = ip->text + ip->text_start;
+		char *p;
 		
+		memcpy(ip->text + ip->text_end, buf, num_bytes);
+		ip->text_end += num_bytes;
+
+		p = ip->text + ip->text_start;
+
 		while ((nl = memchr(p, '\n', ip->text_end - ip->text_start))) {
 		    ip->text_start = (nl + 1) - ip->text;
 
 		    *nl = 0;
+		    if (*(nl-1) == '\r') 
+			*--nl = 0;
+		    
 		    str = new_string(nl - p, "PORT_ASCII");
 		    memcpy(str, p, nl - p + 1);
 		    if (!(ip->ob->flags & O_DESTRUCTED)) {
@@ -1437,17 +1465,43 @@ static void get_user_data P1(interactive_t *, ip)
 		}
 		break;
 	    }
+	case PORT_MUD:
+	{
+	    memcpy(ip->text + ip->text_end, buf, num_bytes);
+	    ip->text_end += num_bytes;
+
+	    if (num_bytes == text_space) {
+		if (ip->text_end == 4) {
+		    int len;
+		    
+		    /* complete header recieved */
+		    len = *(int *)ip->text = ntohl(*(int *)ip->text);
+		    if (len > MAX_TEXT - 5)
+			remove_interactive(ip->ob, 0);
+		} else {
+		    svalue_t value;
+		    
+		    ip->text[ip->text_end] = 0;
+		    if (restore_svalue(ip->text+4, &value) == 0)
+			*(++sp) = value;
+		    else
+			push_undefined();
+		    ip->text_end = 0;
+		    apply(APPLY_PROCESS_INPUT, ip->ob, 1, ORIGIN_DRIVER);
+		}
+	    }
+	    break;
+	}
 #ifndef NO_BUFFER_TYPE
 	case PORT_BINARY:
 	    {
 		buffer_t *buffer;
-		svalue_t *ret;
 		
 		buffer = allocate_buffer(num_bytes);
 		memcpy(buffer->item, buf, num_bytes);
 		
 		push_refed_buffer(buffer);
-		ret = apply(APPLY_PROCESS_INPUT, ip->ob, 1, ORIGIN_DRIVER);
+		apply(APPLY_PROCESS_INPUT, ip->ob, 1, ORIGIN_DRIVER);
 		break;
 	    }
 #endif
@@ -1719,6 +1773,7 @@ void remove_interactive P2(object_t *, ob, int, dested)
 #ifndef NO_ADD_ACTION
     clear_notify(ip);
 #endif
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
     if (ip->input_to) {
 	free_object(ip->input_to->ob, "remove_interactive");
 	free_sentence(ip->input_to);
@@ -1728,6 +1783,7 @@ void remove_interactive P2(object_t *, ob, int, dested)
 	ip->num_carry = 0;
 	ip->input_to = 0;
     }
+#endif
     for (idx = 0; idx < max_users; idx++)
 	if (all_users[idx] == ip) break;
     DEBUG_CHECK(idx == max_users, "remove_interactive: could not find and remove user!\n");
@@ -1739,6 +1795,7 @@ void remove_interactive P2(object_t *, ob, int, dested)
     return;
 }				/* remove_interactive() */
 
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
 static int call_function_interactive P2(interactive_t *, i, char *, str)
 {
     object_t *ob;
@@ -1846,6 +1903,7 @@ int set_call P3(object_t *, ob, sentence_t *, sent, int, flags)
 	add_message(ob, telnet_yes_single, sizeof(telnet_yes_single));
     return (1);
 }				/* set_call() */
+#endif
 
 void set_prompt P1(char *, str)
 {
@@ -1861,7 +1919,9 @@ static void print_prompt P1(interactive_t*, ip)
 {
     object_t *ob = ip->ob;
     
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
     if (ip->input_to == 0) {
+#endif
 	/* give user object a chance to write its own prompt */
 	if (!(ip->iflags & HAS_WRITE_PROMPT))
 	    tell_object(ip->ob, ip->prompt, strlen(ip->prompt));
@@ -1874,7 +1934,9 @@ static void print_prompt P1(interactive_t*, ip)
 	    ip->iflags &= ~HAS_WRITE_PROMPT;
 	    tell_object(ip->ob, ip->prompt, strlen(ip->prompt));
 	}
+#if defined(F_INPUT_TO) || defined(F_GET_CHAR)
     }
+#endif
     if (!IP_VALID(ip, ob)) return;
     /*
      * Put the IAC GA thing in here... Moved from before writing the prompt;
@@ -2021,7 +2083,8 @@ static void query_addr_name P1(object_t *, ob)
 
 #define IPSIZE 200
 typedef struct {
-    char *name, *call_back;
+    char *name;
+    svalue_t call_back;
     object_t *ob_to_call;
 } ipnumberentry_t;
 
@@ -2030,7 +2093,7 @@ static ipnumberentry_t ipnumbertable[IPSIZE];
 /*
  * Does a call back on the current_object with the function call_back.
  */
-int query_addr_number P2(char *, name, char *, call_back)
+int query_addr_number P2(char *, name, svalue_t *, call_back)
 {
     static char buf[100];
     static char *dbuf = &buf[sizeof(int) + sizeof(int) + sizeof(int)];
@@ -2041,7 +2104,10 @@ int query_addr_number P2(char *, name, char *, call_back)
 		  100 - (sizeof(msgtype) + sizeof(msglen) + sizeof(int)))) {
 	share_and_push_string(name);
 	push_undefined();
-	apply(call_back, current_object, 2, ORIGIN_INTERNAL);
+	if (call_back->type == T_STRING)
+	    apply(call_back->u.string, current_object, 2, ORIGIN_INTERNAL);
+	else
+	    call_function_pointer(call_back->u.fp, 2);
 	return 0;
     }
     strcpy(dbuf, name);
@@ -2068,7 +2134,10 @@ int query_addr_number P2(char *, name, char *, call_back)
 	}
 	share_and_push_string(name);
 	push_undefined();
-	apply(call_back, current_object, 2, ORIGIN_INTERNAL);
+	if (call_back->type == T_STRING)
+	    apply(call_back->u.string, current_object, 2, ORIGIN_INTERNAL);
+	else
+	    call_function_pointer(call_back->u.fp, 2);
 	return 0;
     } else {
 	int i;
@@ -2081,12 +2150,15 @@ int query_addr_number P2(char *, name, char *, call_back)
 /* We need to error...  */
 	    share_and_push_string(name);
 	    push_undefined();
-	    apply(call_back, current_object, 2, ORIGIN_INTERNAL);
+	    if (call_back->type == T_STRING)
+		apply(call_back->u.string, current_object, 2, ORIGIN_INTERNAL);
+	    else
+		call_function_pointer(call_back->u.fp, 2);
 	    return 0;
 	}
 /* Create our entry... */
 	ipnumbertable[i].name = make_shared_string(name);
-	ipnumbertable[i].call_back = make_shared_string(call_back);
+	assign_svalue_no_free(&ipnumbertable[i].call_back, call_back);
 	ipnumbertable[i].ob_to_call = current_object;
 	add_ref(current_object, "query_addr_number: ");
 	return i + 1;
@@ -2102,7 +2174,7 @@ static void got_addr_number P2(char *, number, char *, name)
     for (i = 0; i < IPSIZE; i++)
 	if (ipnumbertable[i].name
 	    && ipnumbertable[i].ob_to_call->flags & O_DESTRUCTED) {
-	    free_string(ipnumbertable[i].call_back);
+	    free_svalue(&ipnumbertable[i].call_back, "got_addr_number");
 	    free_string(ipnumbertable[i].name);
 	    free_object(ipnumbertable[i].ob_to_call, "got_addr_number: ");
 	    ipnumbertable[i].name = NULL;
@@ -2125,15 +2197,19 @@ static void got_addr_number P2(char *, number, char *, name)
 	    } else {
 		push_undefined();
 	    }
-	    if (strcmp(number, "0")) {
+	    if (strcmp(theNumber, "0")) {
 		share_and_push_string(theNumber);
 	    } else {
 		push_undefined();
 	    }
 	    push_number(i + 1);
-	    safe_apply(ipnumbertable[i].call_back, ipnumbertable[i].ob_to_call,
-		       3, ORIGIN_INTERNAL);
-	    free_string(ipnumbertable[i].call_back);
+	    if (ipnumbertable[i].call_back.type == T_STRING)
+		safe_apply(ipnumbertable[i].call_back.u.string, 
+			   ipnumbertable[i].ob_to_call,
+			   3, ORIGIN_INTERNAL);
+	    else
+		safe_call_function_pointer(ipnumbertable[i].call_back.u.fp, 3);
+	    free_svalue(&ipnumbertable[i].call_back, "got_addr_number");
 	    free_string(ipnumbertable[i].name);
 	    free_object(ipnumbertable[i].ob_to_call, "got_addr_number: ");
 	    ipnumbertable[i].name = NULL;
@@ -2461,7 +2537,7 @@ void outbuf_addchar P2(outbuffer_t *, outbuf, char, c)
 
 void outbuf_addv P2V(outbuffer_t *, outbuf, char *, format)
 {
-    char buf[LARGEST_PRINTABLE_STRING];
+    char buf[LARGEST_PRINTABLE_STRING + 1];
     va_list args;
     V_DCL(char *format);
     V_DCL(outbuffer_t *outbuf);

@@ -52,7 +52,7 @@ inherit __DIR__ "channel/cmd";
 /*
 ** This channel information.  It specifies channel_name -> channel_info.
 */
-private static mapping info;
+private nosave mapping info;
 
 /*
 ** This mapping contains which channels should not be auto-purged (keys)
@@ -86,12 +86,12 @@ private nomask string extract_channel_name(string channel_name)
     return channel_name[idx+1..];
 }
 
-static nomask class channel_info query_channel_info(string channel_name)
+protected nomask class channel_info query_channel_info(string channel_name)
 {
     return info[channel_name];
 }
 
-static nomask void create_channel(string channel_name)
+protected nomask void create_channel(string channel_name)
 {
     class channel_info	ci;
 
@@ -148,7 +148,7 @@ private void register_one(int add_hook, object listener, string channel_name)
     }
 }
 
-static nomask void test_for_purge(string channel_name)
+protected nomask void test_for_purge(string channel_name)
 {
     class channel_info ci = info[channel_name];
 
@@ -180,7 +180,7 @@ private void register_body(object body)
     map_array(names, (: register_one, 0, body :));
 }
 
-static nomask void set_permanent(string channel_name, int is_perm)
+protected nomask void set_permanent(string channel_name, int is_perm)
 {
     int no_exist = undefinedp(permanent_channels[channel_name]);
 
@@ -198,7 +198,7 @@ static nomask void set_permanent(string channel_name, int is_perm)
     }
 }
 
-static nomask void set_flags(string channel_name, int flags)
+protected nomask void set_flags(string channel_name, int flags)
 {
     class channel_info ci = info[channel_name];
 

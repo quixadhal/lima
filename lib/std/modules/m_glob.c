@@ -2,7 +2,7 @@
 
 #define CARET_AS_NOT
 
-static private mapping cache = ([]);
+nosave private mapping cache = ([]);
 
 
 int has_magic( string s ){

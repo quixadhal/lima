@@ -10,7 +10,7 @@ inherit M_COMPLETE;
 inherit M_GETOPT;
 inherit M_REGEX;
 
-private static string path;
+private nosave string path;
 int	expand_vars;
 
 void set_expand_vars(int i)
@@ -115,7 +115,7 @@ private void create()
     arg_to_words_func = (: argument_explode :);
 }
 
-static void prepare_shell()
+protected void prepare_shell()
 {
     ::prepare_shell();
 
@@ -138,7 +138,7 @@ string query_shellname()
     return "wish (Lima wizard shell) v. 0.9";
 }
 
-varargs static void execute_command(string original_input) 
+varargs protected void execute_command(string original_input) 
 {
     string * argv = explode(original_input, " ");
     mixed	tmp;
@@ -338,12 +338,12 @@ void setup_for_save()
     shellvars::setup_for_save();
 }
 
-static mixed what_prompt()
+protected mixed what_prompt()
 {
     return (: get_prompt :);
 }
 
-static nomask string query_save_path(string userid)
+protected nomask string query_save_path(string userid)
 {
     return WSHELL_PATH(userid);
 }

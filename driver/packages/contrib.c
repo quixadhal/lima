@@ -1,4 +1,4 @@
-#define SUPRESS_COMPILER_INLINES
+#define SUPPRESS_COMPILER_INLINES
 #ifdef LATTICE
 #include "/lpc_incl.h"
 #include "/comm.h"
@@ -19,6 +19,7 @@
 #include "../compiler.h"
 #include "../main.h"
 #include "../eoperators.h"
+#include "../efun_protos.h"
 #endif
 
 /* should be done in configure */
@@ -35,12 +36,17 @@
 #ifdef F_NAMED_LIVINGS
 void f_named_livings() {
     int i;
-    int nob, apply_valid_hide, hide_is_valid = 0;
+    int nob;
+#ifdef F_SET_HIDE
+    int apply_valid_hide, hide_is_valid = 0;
+#endif
     object_t *ob, **obtab;
     array_t *vec;
 
     nob = 0;
+#ifdef F_SET_HIDE
     apply_valid_hide = 1;
+#endif
 
     obtab = CALLOCATE(max_array_size, object_t *, TAG_TEMPORARY, "named_livings");
 
@@ -48,6 +54,7 @@ void f_named_livings() {
 	for (ob = hashed_living[i]; ob; ob = ob->next_hashed_living) {
 	    if (!(ob->flags & O_ENABLE_COMMANDS))
 		continue;
+#ifdef F_SET_HIDE
 	    if (ob->flags & O_HIDDEN) {
 		if (apply_valid_hide) {
 		    apply_valid_hide = 0;
@@ -56,6 +63,7 @@ void f_named_livings() {
 		if (hide_is_valid)
 		    continue;
 	    }
+#endif
 	    if (nob == max_array_size)
 		break;
 	    obtab[nob++] = ob;
@@ -134,7 +142,7 @@ f_store_variable PROT((void)) {
     svalue_t *sv;
     unsigned short type;
     
-    idx = find_global_variable(current_object->prog, (sp-1)->u.string, &type);
+    idx = find_global_variable(current_object->prog, (sp-1)->u.string, &type, 0);
     if (idx == -1)
 	error("No variable named '%s'!\n", (sp-1)->u.string);
     sv = &current_object->variables[idx];
@@ -151,7 +159,7 @@ f_fetch_variable PROT((void)) {
     svalue_t *sv;
     unsigned short type;
     
-    idx = find_global_variable(current_object->prog, sp->u.string, &type);
+    idx = find_global_variable(current_object->prog, sp->u.string, &type, 0);
     if (idx == -1)
 	error("No variable named '%s'!\n", sp->u.string);
     sv = &current_object->variables[idx];
@@ -186,43 +194,54 @@ f_set_prompt PROT((void)) {
 #ifdef F_COPY
 static int depth;
 
-void deep_copy_svalue PROT((svalue_t *, svalue_t *));
+static void deep_copy_svalue PROT((svalue_t *, svalue_t *));
 
-array_t *deep_copy_array P1( array_t *, arg ) {
+static array_t *deep_copy_array P1( array_t *, arg ) {
     array_t *vec;
     int i;
     
     vec = allocate_empty_array(arg->size);
     for (i = 0; i < arg->size; i++)
 	deep_copy_svalue(&arg->item[i], &vec->item[i]);
+
     return vec;
 }
 
-int doCopy P3( mapping_t *, map, mapping_node_t *, elt, mapping_t *, dest) {
-    svalue_t *sp;
+static array_t *deep_copy_class P1(array_t *, arg) {
+    array_t *vec;
+    int i;
     
-    sp = find_for_insert(dest, &elt->values[0], 1);
-    if (!sp) {
+    vec = allocate_empty_class_by_size(arg->size);
+    for (i = 0; i < arg->size; i++)
+	deep_copy_svalue(&arg->item[i], &vec->item[i]);
+
+    return vec;
+}
+
+static int doCopy P3( mapping_t *, map, mapping_node_t *, elt, mapping_t *, dest) {
+    svalue_t *sv;
+    
+    sv = find_for_insert(dest, &elt->values[0], 1);
+    if (!sv) {
 	mapping_too_large();
 	return 1;
     }
     
-    deep_copy_svalue(&elt->values[1], sp);
+    deep_copy_svalue(&elt->values[1], sv);
     return 0;
 }
 
-mapping_t *deep_copy_mapping P1( mapping_t *, arg ) {
+static mapping_t *deep_copy_mapping P1( mapping_t *, arg ) {
     mapping_t *map;
     
     map = allocate_mapping( 0 ); /* this should be fixed.  -Beek */
-    mapTraverse( arg, (int (*)()) doCopy, map);
+    mapTraverse( arg, (int (*)()) doCopy, map); /* Not horridly efficient either */
     return map;
 }
 
-void deep_copy_svalue P2(svalue_t *, from, svalue_t *, to) {
+static void deep_copy_svalue P2(svalue_t *, from, svalue_t *, to) {
     switch (from->type) {
     case T_ARRAY:
-    case T_CLASS:
 	depth++;
 	if (depth > MAX_SAVE_SVALUE_DEPTH) {
 	    depth = 0;
@@ -231,6 +250,17 @@ void deep_copy_svalue P2(svalue_t *, from, svalue_t *, to) {
 	}
 	*to = *from;
 	to->u.arr = deep_copy_array( from->u.arr );
+	depth--;
+	break;
+    case T_CLASS:
+	depth++;
+	if (depth > MAX_SAVE_SVALUE_DEPTH) {
+	    depth = 0;
+	    error("Mappings, arrays and/or classes nested too deep (%d) for copy()\n",
+		  MAX_SAVE_SVALUE_DEPTH);
+	}
+	*to = *from;
+	to->u.arr = deep_copy_class( from->u.arr );
 	depth--;
 	break;
     case T_MAPPING:
@@ -266,8 +296,7 @@ void f_copy PROT((void))
 void f_functions PROT((void)) {
     int i, j, num, index;
     array_t *vec, *subvec;
-    runtime_function_u *func_entry;
-    compiler_function_t *funp;
+    function_t *funp;
     program_t *prog;
     int flag = (sp--)->u.number;
     unsigned short *types;
@@ -279,7 +308,7 @@ void f_functions PROT((void)) {
 	load_ob_from_swap(sp->u.ob);
 
     progp = sp->u.ob->prog;
-    num = progp->num_functions_total;
+    num = progp->num_functions_defined + progp->last_inherited;
     if (num && progp->function_table[progp->num_functions_defined-1].name[0]
 	== APPLY___INIT_SPECIAL_CHAR)
 	num--;
@@ -288,18 +317,36 @@ void f_functions PROT((void)) {
     i = num;
     
     while (i--) {
+	unsigned short low, high, mid;
+	
 	prog = sp->u.ob->prog;
 	index = i;
-	func_entry = FIND_FUNC_ENTRY(prog, index);
 
-	/* Walk up the inheritance tree to the real definition */
-	while (prog->function_flags[index] & FUNC_INHERITED) {
-	    prog = prog->inherit[func_entry->inh.offset].prog;
-	    index = func_entry->inh.function_index_offset;
-	    func_entry = FIND_FUNC_ENTRY(prog, index);
+	/* Walk up the inheritance tree to the real definition */	
+	if (prog->function_flags[index] & FUNC_ALIAS) {
+	    index = prog->function_flags[index] & ~FUNC_ALIAS;
 	}
+	
+	while (prog->function_flags[index] & FUNC_INHERITED) {
+	    low = 0;
+	    high = prog->num_inherited -1;
+	    
+	    while (high > low) {
+		mid = (low + high + 1) >> 1;
+		if (prog->inherit[mid].function_index_offset > index)
+		    high = mid -1;
+		else low = mid;
+	    }
+	    index -= prog->inherit[low].function_index_offset;
+	    prog = prog->inherit[low].prog;
+	}
+    
+	index -= prog->last_inherited;
+#ifdef BINARIES
+	index = prog->sorted_funcs[index];
+#endif
 
-	funp = prog->function_table + func_entry->def.f_index;
+	funp = prog->function_table + index;
 
 	if (flag) {
 	    if (prog->type_start && prog->type_start[index] != INDEX_START_NONE)
@@ -308,7 +355,7 @@ void f_functions PROT((void)) {
 		types = 0;
 
 	    vec->item[i].type = T_ARRAY;
-	    subvec = vec->item[i].u.arr = allocate_empty_array(3 + func_entry->def.num_arg);
+	    subvec = vec->item[i].u.arr = allocate_empty_array(3 + funp->num_arg);
 	    
 	    subvec->item[0].type = T_STRING;
 	    subvec->item[0].subtype = STRING_SHARED;
@@ -316,14 +363,14 @@ void f_functions PROT((void)) {
 
 	    subvec->item[1].type = T_NUMBER;
 	    subvec->item[1].subtype = 0;
-	    subvec->item[1].u.number = func_entry->def.num_arg;
+	    subvec->item[1].u.number = funp->num_arg;
 
 	    get_type_name(buf, end, funp->type);
 	    subvec->item[2].type = T_STRING;
 	    subvec->item[2].subtype = STRING_SHARED;
 	    subvec->item[2].u.string = make_shared_string(buf);
 
-	    for (j = 0; j < func_entry->def.num_arg; j++) {
+	    for (j = 0; j < funp->num_arg; j++) {
 		if (types) {
 		    get_type_name(buf, end, types[j]);
 		    subvec->item[3 + j].type = T_STRING;
@@ -441,7 +488,7 @@ void f_heart_beats PROT((void)) {
 #define TC_FIRST_CHAR '%'
 #define TC_SECOND_CHAR '^'
 
-int at_end(int i, int imax, int z, int *lens) {
+static int at_end(int i, int imax, int z, int *lens) {
     if (z + 1 != lens[i])
 	return 0;
     for (i++; i < imax; i++) {
@@ -452,7 +499,7 @@ int at_end(int i, int imax, int z, int *lens) {
 }
 
 void 
-f_terminal_colour P2( int, num_arg, int, instruction)
+f_terminal_colour PROT((void))
 {
     char *instr, *cp, *savestr, *deststr, **parts;
     int num, i, j, k, col, start, space, *lens, maybe_at_end;
@@ -612,7 +659,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 			    continue;
 		    }
 		    /* If we get here, we ended a line */
-		    if (z + 1 != lens[i]) {
+		    if (z + 1 != lens[i] || col) {
 			j += indent;
 			col += indent;
 		    } else
@@ -708,7 +755,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 		}
 		memmove(tmp, tmp + n, len);
 		pt = tmp + len;
-		if (!at_end(i, num, k, lens)) {
+		if (col || !at_end(i, num, k, lens)) {
 		    memset(cp, ' ', indent);
 		    cp += indent;
 		    col += indent;
@@ -750,7 +797,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 /* number to chop is added */
 #define PLURAL_CHOP    2
 
-char *pluralize P1(char *, str) {
+static char *pluralize P1(char *, str) {
     char *pre, *rel, *end;
     char *p, *of_buf;
     int of_len = 0, plen, slen;
@@ -942,6 +989,11 @@ char *pluralize P1(char *, str) {
 	    suffix = "ges";
 	    break;
 	}
+	if (!strcasecmp(rel + 1, "taff")) {
+	    found = PLURAL_CHOP + 2;
+	    suffix = "ves";
+	    break;
+	}
 	if (!strcasecmp(rel + 1, "afe")) {
 	    found = PLURAL_SUFFIX;
 	    break;
@@ -986,7 +1038,6 @@ char *pluralize P1(char *, str) {
      * *sh -> *shes (brush -> brushes)
      */
     /*
-     * *ff -> *ves (staff -> staves)
      * *fe -> *ves (knife -> knives)
      */
     /*
@@ -1022,11 +1073,6 @@ char *pluralize P1(char *, str) {
 	case 'F': case 'f':
 	    if (end[-2] == 'e' || end[-2] == 'E')
 		break;
-	    if (end[-2] == 'f' || end[-2] == 'F') {
-		found = PLURAL_CHOP + 2;
-		suffix = "ves";
-		break;
-	    }
 	    found = PLURAL_CHOP + 1;
 	    suffix = "ves";
 	    break;
@@ -1133,7 +1179,7 @@ f_pluralize PROT((void))
  * file_length() efun, returns the number of lines in a file.
  * Returns -1 if no privs or file doesn't exist.
  */
-int file_length P1(char *, file)
+static int file_length P1(char *, file)
 {
   struct stat st;
   FILE *f;
@@ -1227,12 +1273,12 @@ void f_replaceable PROT((void)) {
 	prog = sp->u.ob->prog;
     }
     
-    num = prog->num_functions_total;
+    num = prog->num_functions_defined + prog->last_inherited;
     
     for (i = 0; i < num; i++) {
 	if (prog->function_flags[i] & (FUNC_INHERITED | FUNC_NO_CODE)) continue;
 	for (j = 0; j < numignore; j++)
-	    if (ignore[j] == prog->function_table[FIND_FUNC_ENTRY(prog, i)->def.f_index].name)
+	    if (ignore[j] == find_func_entry(prog, i)->name)
 		break;
 	if (j == numignore)
 	    break;
@@ -1267,20 +1313,20 @@ void f_program_info PROT((void)) {
 	if (!(ob->flags & (O_CLONE|O_SWAPPED))) {
 	    hdr_size += sizeof(program_t);
 	    prog_size += prog->program_size;
-	    func_size += 2 * prog->num_functions_total; /* function flags */
-#ifdef COMPRESS_FUNCTION_TABLES
-	    /* compressed table header */
-	    func_size += sizeof(compressed_offset_table_t) - 1;
-	    /* it's entries */
-	    func_size += (prog->function_compressed->first_defined - prog->function_compressed->num_compressed);
-	    /* offset table */
-	    func_size += sizeof(runtime_function_u) * (prog->num_functions_total - prog->function_compressed->num_deleted);
-#else
-	    /* offset table */
-	    func_size += prog->num_functions_total * sizeof(runtime_function_u);
+	    
+	    /* function flags */
+	    func_size += (prog->last_inherited +
+			  prog->num_functions_defined) *sizeof(unsigned short); 
+	         
+#ifdef BINARIES
+	    /* sorted function indices */
+	    func_size += prog->num_functions_defined * sizeof(unsigned short);
 #endif
+
 	    /* definitions */
-	    func_size += prog->num_functions_defined * sizeof(compiler_function_t);
+	    func_size += prog->num_functions_defined * 
+	     sizeof(function_t);
+
 	    string_size += prog->num_strings * sizeof(char *);
 	    var_size += prog->num_variables_defined * (sizeof(char *) + sizeof(unsigned short));
 	    inherit_size += prog->num_inherited * sizeof(inherit_t);
@@ -1288,19 +1334,15 @@ void f_program_info PROT((void)) {
 		class_size += prog->num_classes * sizeof(class_def_t) + (prog->classes[prog->num_classes - 1].index + prog->classes[prog->num_classes - 1].size) * sizeof(class_member_entry_t);
 	    type_size += prog->num_functions_defined * sizeof(short);
 	    n = 0;
-	    for (i = 0; i < prog->num_functions_defined; i++) {
-		int start;
+	    if (prog->type_start) {
 		unsigned short *ts = prog->type_start;
-		int ri;
-		
-		if (!ts) continue;
-		start = ts[i];
-		if (start == INDEX_START_NONE)
-		    continue;
-		ri = prog->function_table[i].runtime_index;
-		start += FIND_FUNC_ENTRY(prog, ri)->def.num_arg;
-		if (start > n)
-		    n = start;
+		int nfd = prog->num_functions_defined;
+
+		for (i = 0; i < nfd; i++) {
+		    if (ts[i] == INDEX_START_NONE)
+			continue;
+		    n += prog->function_table[i].num_arg;
+		}
 	    }
 	    type_size += n * sizeof(short);
 	    total_size += prog->total_size;
@@ -1312,20 +1354,21 @@ void f_program_info PROT((void)) {
 	    prog = ob->prog;
 	    hdr_size += sizeof(program_t);
 	    prog_size += prog->program_size;
-	    func_size += prog->num_functions_total; /* function flags */
-#ifdef COMPRESS_FUNCTION_TABLES
-	    /* compressed table header */
-	    func_size += sizeof(compressed_offset_table_t) - 1;
-	    /* it's entries */
-	    func_size += (prog->function_compressed->first_defined - prog->function_compressed->num_compressed);
-	    /* offset table */
-	    func_size += sizeof(runtime_function_u) * (prog->num_functions_total - prog->function_compressed->num_deleted);
-#else
-	    /* offset table */
-	    func_size += prog->num_functions_total * sizeof(runtime_function_u);
+
+#ifdef BINARIES
+	    /* sorted function indices */
+	    func_size += prog->num_functions_defined * sizeof(unsigned short);
 #endif
+
+	    /* function flags */
+	    func_size += (prog->last_inherited +
+			  prog->num_functions_defined) << 1; 
+	                  
 	    /* definitions */
-	    func_size += prog->num_functions_defined * sizeof(compiler_function_t);
+	    func_size += prog->num_functions_defined * 
+	      sizeof(function_t);
+
+
 	    string_size += prog->num_strings * sizeof(char *);
 	    var_size += prog->num_variables_defined * (sizeof(char *) + sizeof(unsigned short));
 	    inherit_size += prog->num_inherited * sizeof(inherit_t);
@@ -1333,19 +1376,15 @@ void f_program_info PROT((void)) {
 		class_size += prog->num_classes * sizeof(class_def_t) + (prog->classes[prog->num_classes - 1].index + prog->classes[prog->num_classes - 1].size) * sizeof(class_member_entry_t);
 	    type_size += prog->num_functions_defined * sizeof(short);
 	    n = 0;
-	    for (i = 0; i < prog->num_functions_defined; i++) {
-		int start;
-		int ri;
-		
+	    if (prog->type_start) {
 		unsigned short *ts = prog->type_start;
-		if (!ts) continue;
-		start = ts[i];
-		if (start == INDEX_START_NONE)
-		    continue;
-		ri = prog->function_table[i].runtime_index;
-		start += FIND_FUNC_ENTRY(prog, ri)->def.num_arg;
-		if (start > n)
-		    n = start;
+		int nfd = prog->num_functions_defined;
+
+		for (i = 0; i < nfd; i++) {
+		    if (ts[i] == INDEX_START_NONE)
+			continue;
+		    n += prog->function_table[i].num_arg;
+		}
 	    }
 	    type_size += n * sizeof(short);
 	    total_size += prog->total_size;
@@ -1396,7 +1435,7 @@ void f_remove_interactive PROT((void)) {
  * mud.
  */
 #ifdef F_QUERY_IP_PORT
-int query_ip_port P1(object_t *, ob)
+static int query_ip_port P1(object_t *, ob)
 {
     if (!ob || ob->interactive == 0)
 	return 0;
@@ -1708,3 +1747,5 @@ void f_memory_summary PROT((void)) {
 #endif
 
 #endif
+
+

@@ -8,6 +8,7 @@
 #include "../comm.h"
 #include "../md.h"
 #include "../sprintf.h"
+#include "../efun_protos.h"
 #endif
 
 static object_t *ob;
@@ -93,12 +94,12 @@ f_debug_info PROT((void))
 	outbuf_addv(&out, "Name /%s\n", ob->prog->name);
 	outbuf_addv(&out, "program size %d\n",
 		    ob->prog->program_size);
-	outbuf_addv(&out, "runtime function table %d (%d) \n", 
-		    ob->prog->num_functions_total,
-		    ob->prog->num_functions_total * (sizeof(runtime_function_u)+1));
+	outbuf_addv(&out, "function flags table %d (%d) \n", 
+		    ob->prog->last_inherited + ob->prog->num_functions_defined,
+		    (ob->prog->last_inherited + ob->prog->num_functions_defined)* sizeof(unsigned short));
 	outbuf_addv(&out, "compiler function table %d (%d) \n", 
 		    ob->prog->num_functions_defined,
-		    ob->prog->num_functions_defined * sizeof(compiler_function_t));
+		    ob->prog->num_functions_defined * sizeof(function_t));
 	outbuf_addv(&out, "num strings %d\n", ob->prog->num_strings);
 	outbuf_addv(&out, "num vars %d (%d)\n", ob->prog->num_variables_defined,
 		    ob->prog->num_variables_defined * (sizeof(char *) + sizeof(short)));

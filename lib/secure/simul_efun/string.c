@@ -2,15 +2,15 @@
 
 string chr( int i );
 
-static private string ascii = "";
-static private string whitespace = " \t\n\r";
-static private string lowercase = "abcdefghijklmnopqrstuvwxyz";
-static private string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+nosave private string ascii = "";
+nosave private string whitespace = " \t\n\r";
+nosave private string lowercase = "abcdefghijklmnopqrstuvwxyz";
+nosave private string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 
-static private string _lower, _upper, _swapcase;
+nosave private string _lower, _upper, _swapcase;
 
-static void create()
+protected void create()
 {
   int i;
 

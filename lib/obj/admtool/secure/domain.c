@@ -200,6 +200,7 @@ nomask class command_info array module_commands() {
 	    desc : "remove a user from a domain",
 	    who : "[lord]",
 	    proto : "[user] [domain]",
-	    args : ({ "Remove which user? ", "Remove '%s' from which domain? " }))
+            args : ({ "Remove which user? ", "Remove '%s' from which domain? " }),
+            action : (: remove_user_from_domain :) ),
     });
 }

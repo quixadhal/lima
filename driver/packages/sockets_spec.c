@@ -14,4 +14,13 @@
     int socket_acquire(int, string | function, string | function, string | function);
     string socket_error(int);
     string socket_address(int | object);
-    string dump_socket_status();
+
+    /*
+     * ret[0] = (int) fd
+     * ret[1] = (string) state
+     * ret[2] = (string) mode
+     * ret[3] = (string) local address
+     * ret[4] = (string) remote address
+     * ret[5] = (object) owner
+     */
+    mixed *socket_status(void | int);

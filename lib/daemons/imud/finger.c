@@ -22,7 +22,7 @@ nomask void do_finger(string mudname, string username)
     send_to_mud("finger-req", canon_mudname(mudname), ({ lower_case(username) }));
 }
 
-static nomask void rcv_finger_req(string orig_mud, string orig_user,
+protected nomask void rcv_finger_req(string orig_mud, string orig_user,
 				  string targ_user, mixed * message)
 {
     class finger info;
@@ -50,7 +50,7 @@ static nomask void rcv_finger_req(string orig_mud, string orig_user,
     }
 }
 
-static nomask void rcv_finger_reply(string orig_mud, string orig_user,
+protected nomask void rcv_finger_reply(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
     object p;

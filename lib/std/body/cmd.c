@@ -18,7 +18,7 @@ object query_mailer();			// in /std/body/mailbase.c
 string history_and_alias_processing( string arg );
 
 
-private static string array nonsense_msgs;
+private nosave string array nonsense_msgs;
 
 string nonsense()
 {
@@ -31,6 +31,7 @@ varargs nomask int do_game_command(string str, int debug)
 {
     mixed result;
     mixed go_result;
+    object *objs;
 
     /*
     ** We can't try parsing the user has no environment.  We should
@@ -43,10 +44,18 @@ varargs nomask int do_game_command(string str, int debug)
 	force_look(0);
     }
 
+/*
+** First we have to get the list of objects that are going to be available
+** in the parse.
+*/
+    objs = deep_useful_inv(parser_root_environment(
+                                 environment(this_object()) ));
+//RABUG(sprintf("do_game_command: (parseable objects: %O)", objs));
+
     /*
     ** Parse the player's input
     */
-    result = parse_sentence(str, debug);
+    result = parse_sentence(str, debug, objs);
 
     /*
     ** If a string was returned, then the parser figured something out.

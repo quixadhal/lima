@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-private static object victim;
+private nosave object victim;
 
 int start_shadowing(object ob) {
     if (!shadow(ob)) return 0;

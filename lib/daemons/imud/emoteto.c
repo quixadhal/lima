@@ -24,7 +24,7 @@ nomask void do_emoteto(string mudname, string username, string message)
 		 ({ this_body()->query_name(), message }));
 }
 
-static nomask void rcv_emoteto(string orig_mud, string orig_user,
+protected nomask void rcv_emoteto(string orig_mud, string orig_user,
 			    string targ_user, mixed * message)
 {
     object p;

@@ -32,14 +32,20 @@
  * 950811, Deathblade: converted to classes. added remove_post().
  * 9606xx, Ohara: added move_post() and reply_post.
  * 961205, Ohara: added change_subject at DB's grovel^H^H^H^H^H^Hrequest.
-
- * 
+ * 9711xx, Tigran: minor change, added a couple of threading functions, and 
+ *                 prevented removed posts from being completely deleted, as 
+ *                 other data in the post is needed for threading information.
+ * 971112, Tigran: Improved newsgroup restrictions, and placed calls to the
+ *                 restriction functions in many places they previously 
+ *                 weren't.  Also improved the mail_forward interface.
+ *                 Restricted dump() to Mudlib:daemons
  */
 
 #include <mudlib.h>
 #include <security.h>
 #include <commands.h>
 #include <classes.h>
+#include <socket.h>
 
 inherit M_ACCESS;
 
@@ -55,19 +61,18 @@ nomask string * get_groups();
 
 private mapping data = ([]);
 private mapping removed = ([]);
-private static mapping recent_changes = ([]);
-private int new_format = 1;
+private nosave mapping recent_changes = ([]);
 
 // No info on a group means never archive.
 private mapping archive_info = ([ ]);
 
-private static mapping restrictions = 
-([
-  "wiz" : ({ (: wizardp :), (: wizardp :) }),
-  "admin" : ({ (: adminp :), (: adminp :) }),
-  "." : ({ 0, (: adminp :) }),
-    "lima.todo" : ({ (: wizardp :), (: adminp :) }),
-]);
+/* The purpose of this variable is for placing additional restrictions to 
+ * newsgroup hierarchies.  These should all be fpointers */
+private nosave mapping additional_restrictions = ([]);
+
+private mapping restrictions=([]);
+
+private mapping mail_forward =([]);
 
 #define is_group(x) (member_array(x,get_groups()) != -1)
 
@@ -79,8 +84,6 @@ nomask void save_recent() {
 nomask void save_me()
 {
     unguarded(1, (: save_object, SAVE_FILE :));
-    foreach (string key in keys(recent_changes))
-    recent_changes[key] = ([]);
     save_recent();
 }
 
@@ -89,7 +92,7 @@ nomask void save_me()
 */
 nomask void set_archive_time(string group, int numDays)
 {
-    if (!check_previous_privilege(1))
+    if (!check_privilege("Mudlib:daemons"))
     {
         error("Insufficient privs");
     }
@@ -117,50 +120,11 @@ nomask void set_archive_time(string group, int numDays)
     save_me();
 }
 
-
-
-
-
-/*
-** Convert the storage format from (old-style) mappings to classes
-*/
-private nomask void convert_news()
-{
-    string group;
-    mapping contents;
-
-    foreach ( group, contents in data )
-    {
-        mixed id;
-        mapping post;
-
-        foreach ( id, post in contents )
-        {
-            class news_msg msg;
-
-            if ( id == "next_id" )
-                continue;
-
-#define MSG_TIME        1
-#define MSG_THREAD      2
-#define MSG_SUBJECT     3
-#define MSG_MESSAGE     4
-#define MSG_POSTER      5
-
-            msg = new(class news_msg,
-              time : post[MSG_TIME],
-              thread_id : post[MSG_THREAD],
-              subject : post[MSG_SUBJECT],
-              poster : post[MSG_POSTER],
-              body : post[MSG_MESSAGE]);
-            msg->userid         = lower_case(msg->poster);
-
-            contents[id] = msg;
-        }
-    }
-
-    new_format = 1;
-    save_me();
+nomask mapping get_archive_info()
+{    
+  if (!check_privilege("Mudlib:daemons"))
+    error("Insufficient privs");
+  return archive_info;
 }
 
 nomask void create()
@@ -179,33 +143,30 @@ nomask void create()
         recent_changes = restore_variable(rec);
     else
         recent_changes = 0;
-
-    if ( !new_format )
-        convert_news();
     if (!recent_changes) {
         recent_changes = ([]);
         foreach (string key in keys(data))
-	    recent_changes[key] = ([]);
+            recent_changes[key] = ([]);
     } else {
         foreach (string key, mixed value in recent_changes) {
             if (value == "#removed#") {
-                map_delete(data, key);
-                map_delete(recent_changes, key);
-		map_delete(removed, key);
+	      map_delete(data, key);
+	      map_delete(recent_changes, key);
+	      map_delete(removed, key);
             } else {
                 /* possible for new groups */
                 if (!data[key])
-		    data[key] = ([]);
-		if (!removed[key])
-		    removed[key] = ({});
+                    data[key] = ([]);
+                if (!removed[key])
+                    removed[key] = ({});
 
-		recent_changes[key] = ([]);
+                recent_changes[key] = ([]);
                 foreach (string key2 in keys(value)) {
                     data[key][key2] = value[key2];
-		    if (classp(value[key2]) &&
-			((class news_msg)value[key2])->body == 0)
-			removed[key] += ({ key2 });
-		}
+                    if (classp(value[key2]) &&
+                        ((class news_msg)value[key2])->body == 0)
+                        removed[key] += ({ key2 });
+                }
             }
         }
     }
@@ -239,19 +200,274 @@ private nomask void notify_users(string group, class news_msg msg)
         msg->poster));
 }
 
+nomask mapping get_mail_forward()
+{
+  if(!check_privilege("Mudlib:daemons"))
+    return 0;
+  return mail_forward;
+}
+
+nomask string query_mail_forward(string group)
+{
+  if(!check_privilege("Mudlib:daemons"))
+    return 0;
+  if(member_array(group,
+		  keys(mail_forward) )==-1)
+    return 0;
+  return mail_forward[group];
+}
+
+nomask void add_mail_forward(string group,string destination)
+{
+  if(!check_privilege("Mudlib:daemons"))
+    return;
+  if(member_array(group,
+		  keys(mail_forward) )==-1 )
+    {
+      mail_forward+=([group:({destination})]);
+      return;
+    }
+  if(member_array(destination,mail_forward[group])>-1)
+    return;
+  mail_forward[group]+=({destination});
+  return;
+}
+
+nomask varargs void remove_mail_forward(string group,string destination)
+{
+  if(!check_privilege("Mudlib:daemons"))
+    return;
+  if(member_array(group,
+		  keys(mail_forward) ) == -1 )
+    return;
+  if(!destination)
+    map_delete(mail_forward,group);
+  else
+    mail_forward[group]-=({destination});
+  return;
+}
+
+private nomask void do_mail_forward(string group,class news_msg msg ) 
+{  
+  string body;
+  body=sprintf("Posted by %s to %s on %s:\n\n%s\n",
+	       msg->poster,
+	       group,
+	       MUD_NAME,
+	       replace_string(msg->body,"\n.\n","\n..\n") );
+  foreach(string destination in mail_forward[group])
+    unguarded(1, (:SMTP_D->send_mail($(destination),$(msg->subject),$(body)) :) );
+}
+
+nomask mapping list_restrictions()
+{
+  if(!check_privilege("Mudlib:daemons"))
+    return 0;
+  return restrictions+additional_restrictions;
+}
+
+nomask int is_write_restricted(string group)
+{
+  string closest="";
+  mixed array restrict;
+  string whoami=this_user()->query_userid();
+  string rest;
+  mixed array priv;
+  /* Never ever restrict the administration from being able to access a
+   * newsgroup */
+  if(adminp(whoami))
+    return 0;
+  foreach(rest,priv in restrictions)
+    {
+      int i;
+      if(rest!=group[0..((i=strlen(rest))-1)]||i<strlen(closest))
+	continue;
+      closest=rest;
+      restrict=priv;
+    }
+  foreach(rest,priv in additional_restrictions)
+    {
+      int i;
+      if(rest!=group[0..((i=strlen(rest))-1)]||i<strlen(closest))
+	continue;
+      closest=rest;
+      restrict=priv;
+    }
+  /* No restriction */
+  if(closest==""||restrict[0]==""||!restrict[0])
+    return 0;
+  /* If the restriction is a function pointer evaluate it and return 
+   * 1 if it returns nonzero */
+  if(functionp(restrict[0]))
+    {
+      if(evaluate(restrict[0],whoami))
+	return 1;
+      return 0;
+    }
+  /* Check the status of the user here, if they aren't a wizard, no 
+   * sense checking any farther */
+  if(!wizardp(whoami) )
+    return 1;
+   /* Handle special case "wiz", which really should be wizardp() but is the
+   * only obvious contingency which isn't part of an existing dmoain (like 
+   * admin). */
+  if(restrict[0]=="wiz")
+    return 0;
+  /* If the domains doesn't exist that is in the restriction, we might 
+   * as well stop here because the rest of the calls will fail, */
+  if(member_array(restrict[0],SECURE_D->query_domains())==-1)
+    return 0;
+  /* If the first character of the restriction is a capital letter the 
+   * user must be a lord of the domain */
+  if('A'<=closest[0]&&closest[0]<='Z')
+    {
+      if(member_array(lower_case(restrict[0]),
+		      SECURE_D->query_domains(whoami) ) >-1&& 
+	 member_array(whoami,SECURE_D->query_domain_lords(lower_case(restrict[0]) ) ) >-1 )
+	return 0;
+      else
+	return 1;
+    }
+  if(member_array(restrict[0],
+		  SECURE_D->query_domains(whoami) ) >-1)
+    return 0;
+  return 1;
+}
+
+nomask int is_read_restricted(string group)
+{
+  string closest="";
+  mixed array restrict;
+  string whoami=this_user()->query_userid();
+  string rest;
+  mixed array priv;
+  /* Never ever restrict the administration from being able to access a
+   * newsgroup */
+  if(adminp(whoami))
+    return 0;
+  foreach(rest,priv in restrictions)
+    {
+      int i;
+      if(rest!=group[0..((i=strlen(rest))-1)]||i<strlen(closest))
+	continue;
+      closest=rest;
+      restrict=restrictions[rest];
+    }
+  foreach(rest,priv in additional_restrictions)
+    {
+      int i;
+      if(rest!=group[0..((i=strlen(rest))-1)]||i<strlen(closest))
+	continue;
+      closest=rest;
+      restrict=priv;
+    }
+  /* No restriction */
+  if(closest==""||restrict[1]==""||!restrict[1])
+    return 0;
+  /* If the restriction is a function pointer evaluate it and return 
+   * 1 if it returns nonzero */
+  if(functionp(restrict[1]))
+    {
+      if(evaluate(restrict[1],whoami))
+	return 0;
+      return 1;
+    }
+  /* Check the status of the user here, if they aren't a wizard, no 
+   * sense checking any farther */
+  if(!wizardp(whoami) )
+     return 1;
+   /* Handle special case "wiz", which really should be wizardp() but is the
+   * only obvious contingency which isn't part of an existing dmoain (like 
+   * admin). */
+  if(restrict[1]=="wiz")
+    return 0;
+  /* If the domains doesn't exist that is in the restriction, we might 
+   * as well stop here because the rest of the calls will fail, */
+  if(member_array(restrict[1],SECURE_D->query_domains())==-1)
+    return 1;
+  /* If the first character of the restriction is a capital letter the 
+   * user must be a lord of the domain */
+  if('A'<=closest[0]&&closest[0]<='Z')
+    {
+      if(member_array(lower_case(restrict[1]),
+		      SECURE_D->query_domains(whoami) ) >-1&& 
+	 member_array(whoami,
+		      SECURE_D->query_domain_lords(lower_case(restrict[1]) ) ) >-1 )
+	return 0;
+      else
+	return 1;
+    }
+  if(member_array(restrict[1],
+		  SECURE_D->query_domains(whoami) ) >-1)
+    return 0;
+  return 1;
+}
+
+nomask string query_write_restriction(string prefix)
+{
+  if(restrictions[prefix])
+    return restrictions[prefix][0];
+  if(additional_restrictions[prefix])
+    return sprintf("%O",additional_restrictions[prefix][0]);
+}
+
+nomask string query_read_restriction(string prefix)
+{
+  if(restrictions[prefix])
+    return restrictions[prefix][1];
+  if(additional_restrictions[prefix])
+    return sprintf("%O",additional_restrictions[prefix][1]);
+}
+
+varargs nomask void set_write_restriction(string prefix,string restriction)
+{
+  if(!check_privilege("Mudlib:daemons"))
+    return;
+  if(restriction=="0"||restriction=="")
+    restriction=0;
+  if(!restrictions[prefix])
+    restrictions[prefix]=({restriction,0});
+  else 
+    restrictions[prefix][0]=restriction;
+  if(restrictions[prefix][0]==0&&restrictions[prefix][1]==0)
+    map_delete(restrictions,prefix);
+  save_me();
+}
+
+varargs nomask void set_read_restriction(string prefix,string restriction)
+{
+  if(!check_privilege("Mudlib:daemons"))
+    return;  
+  if(restriction=="0"||restriction=="")
+    restriction=0;
+  if(!restrictions[prefix])
+    restrictions[prefix]=({0,restriction});
+  else 
+    restrictions[prefix][1]=restriction;
+  if(restrictions[prefix][0]==0&&restrictions[prefix][1]==0)
+    map_delete(restrictions,prefix);
+  save_me();
+}
+
+
 nomask int post(string group, string subject, string message)
 {
     int post_id;
     class news_msg msg;
 
     if (!data[group]) return 0;
+    if(is_write_restricted(group))
+      {
+	write("You cannot post messages to this group.\n");
+	return 0;
+      }
     post_id = get_new_id(group);
     msg = new(class news_msg,
-	      time : 		time(),
-	      thread_id : 	post_id,
-	      subject : 	subject,
-	      userid : 		this_user()->query_userid(),
-	      body : 		message);
+              time :            time(),
+              thread_id :       post_id,
+              subject :         subject,
+              userid :          this_user()->query_userid(),
+              body :            message);
     msg->poster          = capitalize( msg->userid );
 
     data[group][post_id] = msg;
@@ -259,6 +475,9 @@ nomask int post(string group, string subject, string message)
     save_recent();
 
     notify_users(group, msg);
+
+    if (mail_forward[group])
+        do_mail_forward(group,msg);
 
     return post_id;
 }
@@ -275,9 +494,16 @@ varargs nomask int system_post(string group,
 //### ... especially since even *this* object doesn't have that.  And
 //### just checking the previous object is a no-no.
 //### 
+//### Set up to check for Mudlib:daemons because otherwise this is WIDE
+//### open and I don't believe this is the desired effect -- Tigran
 //### check for Mudlib:daemons maybe?
-//    if ( get_privilege(previous_object()) != 1 )
-//  return 0;
+    if(is_write_restricted(group))
+      {
+	write("Invalid group to post.\n");
+	return 0;
+      }
+    if(!check_privilege("Mudlib:daemons"))
+      return 0;
     if ( !data[group] )
         return 0;
     post_id = get_new_id(group);
@@ -312,6 +538,9 @@ varargs nomask int system_post(string group,
 
     notify_users(group, msg);
 
+    if (mail_forward[group])
+        do_mail_forward(group,msg);
+
     return post_id;
 }
 
@@ -341,6 +570,7 @@ nomask int followup(string group, int id, string message)
 
     if (!data[group]) return 0;
     if (!data[group][id]) return 0;
+    if(is_write_restricted(group)) return 0;
     post_id = get_new_id(group);
     subject = ">" + ((class news_msg)data[group][id])->subject;
 
@@ -360,16 +590,21 @@ nomask int followup(string group, int id, string message)
 
     notify_users(group, msg);
 
+    if (mail_forward[group])
+        do_mail_forward(group,msg);
+
     return post_id;
 }
 
 nomask class news_msg get_message(string group, int id)
 {
     class news_msg msg;
-
+    
     if ( !data[group] )
         return 0;
 
+    if(is_read_restricted(group))
+      return 0;
     msg = data[group][id];
     if ( !msg )
         return 0;
@@ -390,7 +625,6 @@ nomask void remove_post(string group, int id)
     msg = data[group][id];
     if ( !msg || !msg->body )
         return;
-
     if ((this_user() && !adminp(this_user()) && msg->userid != this_user()->query_userid()) &&
       (msg->userid != base_name(previous_object())))
     {
@@ -405,19 +639,42 @@ nomask void remove_post(string group, int id)
 nomask int * get_messages(string group, int no_removed)
 {
     array ret = keys(data[group]) - ({ "next_id" });
-
+    
+    if(is_read_restricted(group))
+      return 0;
     if (no_removed)
-	ret -= removed[group];
+        ret -= removed[group];
     
     return ret;
 }
 
+nomask int get_thread_id(string group,int id)
+{
+  if(!id||!group)
+    return 0;
+  if(is_read_restricted(group))
+    return 0;
+  /* Check to make sure that the article exists */
+  if(!data[group][id])
+    return 0;
+  return ((class news_msg)data[group][id])->thread_id;
+}
+
 nomask int * get_thread(string group, int thread)
 {
-    return filter_array(keys(data[group]),
-      (: $1 != "next_id" &&
-        ((class news_msg)data[$(group)][$1])->thread_id
-        == $(thread) :) );
+  if(is_read_restricted(group))
+    return 0;
+  return filter_array(keys(data[group]),
+		      (: $1 != "next_id" &&
+		       ((class news_msg)data[$(group)][$1])->thread_id
+		       == $(thread) :) );
+}
+
+nomask int array get_thread_ids(string group)
+{
+  if(is_read_restricted(group))
+     return 0;
+  return filter_array(get_messages(group,1),(: $1!=get_thread_id($(group),$1) :) );
 }
 
 nomask string * get_groups()
@@ -427,44 +684,9 @@ nomask string * get_groups()
     // filter before sorting; the func is typically pretty cheap, and
     // and calling them all is O(n).  Sorting the list first is more
     // expensive
-    ret = filter(keys(data), function(string group)
-      {
-          array a;
-          string prefix;
-          function f;
-          int i = member_array('.', group, 1) - 1;
-          if( i == -2) i = sizeof(group);
-
-          prefix = group[0..i];
-          a = restrictions[prefix];
-
-          if( !sizeof(a)) return 1;
-          f = a[0];
-    if(!f) return 1;
-          return evaluate(f, this_user());
-      }
-    );
+    ret = filter(keys(data),(: is_read_restricted($1)?0:1 :) );
     return sort_array(ret, 1);
 }
-
-nomask int query_write_to_group( string group )
-{
-    function f;
-    array a;
-
-    string prefix;
-    int i = member_array('.', group, 1) - 1;
-    if( i == -2) i = sizeof(group);
-
-    prefix = group[0..i];
-
-    a = restrictions[prefix];
-    if( !sizeof(a)) return 1;
-    f = a[1];
-    if( !f) return 1;
-    return evaluate(f, this_user());
-}
-
 
 nomask int get_group_last_id(string group)
 {
@@ -475,7 +697,8 @@ nomask void dump_to_file(string group, string fname)
 {
     mapping contents = data[group];
     int id;
-
+    if(is_read_restricted(group))
+      return;
     foreach ( id in sort_array(keys(contents) - ({ "next_id" }), 1) )
     {
         class news_msg msg = contents[id];
@@ -491,19 +714,24 @@ nomask void dump_to_file(string group, string fname)
     }
 }
 
-private nomask void archive_post(string group, int id)
+/* these functions need work IMHO, first off a post should never be
+ * archived if the thread is still active.  I also need to look into 
+ * how the newsreader should handle things like this because it will 
+ * currently choke on anything that doesn't exist...  -- Tigran*/
+private  nomask void archive_post(string group, int id)
 {
     class news_msg msg = data[group][id];
 
     unguarded(1, (: write_file, 
-        sprintf("%s/%s", ARCHIVE_DIR, group),
-        sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
-          msg->poster, msg->subject,
-          intp(msg->time) ? ctime(msg->time) : msg->time,
-          msg->body)
-      :) );
+		  sprintf("%s/%s", ARCHIVE_DIR, group),
+		  sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
+			  msg->poster, msg->subject,
+			  intp(msg->time) ? ctime(msg->time) : msg->time,
+			  msg->body)
+		  :) );
 
     /* This doesn't give w/ the newsreader. */
+    /* the newsreader will learn */
 #if 0
     map_delete(data[group], id);
 #else
@@ -512,14 +740,12 @@ private nomask void archive_post(string group, int id)
 #endif
 }
 
-nomask void archive_posts()
+private nomask void archive_posts()
 {
     int archive_days;
     int archive_time;
     string group;
     mapping contents;
-
-
 
     foreach ( group, contents in data )
     {
@@ -549,7 +775,6 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
 {
     class  news_msg msg;
     int new_id;
-
     msg = copy( data[curr_group][curr_id]);
     if( !adminp(this_user()) && msg->userid != this_user()->query_userid())
     {
@@ -561,7 +786,7 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
         write( "Same group. Post not moved.\n");
         return;
     }
-    if( !query_write_to_group( to_group ))
+    if( is_write_restricted(to_group))
     {
         write( "You don't have permission to move posts to " + to_group + "\n");
         return;
@@ -598,19 +823,21 @@ nomask void change_header( string group, int id, string header )
     return;
 }
 
+/* This should probably be protected in some way. */
 void dump(string path) {
     string ret = "";
-    
+    if(!check_privilege("Mudlib:daemons"))
+       return;
     foreach (string group in get_groups()) {
-	foreach (int id in get_messages(group, 1)) {
-	    class news_msg post = get_message(group, id);
+        foreach (int id in get_messages(group, 1)) {
+            class news_msg post = get_message(group, id);
 
-	    ret += "Group: " + group + "\n" +
-		   "Subject: " + post->subject + "\n" +
-		   "Date: " + ctime(post->time) + "\n" +
-		   "Poster: " + post->poster + "\n\n" +
-		   post->body + "\n---------------------------------------------------------------------------\n\n";
-	}
+            ret += "Group: " + group + "\n" +
+                   "Subject: " + post->subject + "\n" +
+                   "Date: " + ctime(post->time) + "\n" +
+                   "Poster: " + post->poster + "\n\n" +
+                   post->body + "\n---------------------------------------------------------------------------\n\n";
+        }
     }
     write_file(path, ret);
 }
@@ -619,15 +846,14 @@ array search_for(string what) {
     array ret = ({});
     
     foreach (string group, mapping contents in data) {
-	foreach (mixed id, class news_msg post in contents) {
-	    if (id == "next_id" || !post->body)
-		continue;
+        foreach (mixed id, class news_msg post in contents) {
+            if (id == "next_id" || !post->body)
+                continue;
 
-	    if (regexp(post->body, what) && query_write_to_group(group))
-		ret += ({ ({ group, id }) });
-	}
+            if (regexp(post->body, what) && !is_read_restricted(group))
+                ret += ({ ({ group, id }) });
+        }
     }
-
     return ret;
 }
 
@@ -635,13 +861,13 @@ array search_for_author(string who) {
     array ret = ({});
     
     foreach (string group, mapping contents in data) {
-	foreach (mixed id, class news_msg post in contents) {
-	    if (id == "next_id" || !post->body || !post->poster)
-		continue;
+        foreach (mixed id, class news_msg post in contents) {
+            if (id == "next_id" || !post->body || !post->poster)
+                continue;
 
-	    if (lower_case(post->poster) == lower_case(who) && query_write_to_group(group))
-		ret += ({ ({ group, id }) });
-	}
+            if (lower_case(post->poster) == lower_case(who) && !is_read_restricted(group))
+                ret += ({ ({ group, id }) });
+        }
     }
 
     return ret;

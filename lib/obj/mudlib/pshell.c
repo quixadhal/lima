@@ -78,7 +78,7 @@ private nomask string expand_one_argument(string arg)
     return arg;
 }
 
-static void execute_command(string original_input)
+protected void execute_command(string original_input)
 {
     string * argv = explode(original_input, " ");
     mixed tmp;
@@ -145,7 +145,7 @@ static void execute_command(string original_input)
     winner[0]->call_main(argument,0,0,0,0,0,argument);
 }
 
-static nomask string query_save_path(string userid)
+protected nomask string query_save_path(string userid)
 {
     return PSHELL_PATH(userid);
 }

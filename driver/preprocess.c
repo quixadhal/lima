@@ -18,7 +18,7 @@ static void handle_cond PROT((int));
 static defn_t *defns[DEFHASH];
 static ifstate_t *iftop = 0;
 
-defn_t *lookup_definition P1(char *, s)
+static defn_t *lookup_definition P1(char *, s)
 {
     defn_t *p;
     int h;

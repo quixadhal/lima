@@ -39,7 +39,7 @@ int total(mapping *info) {
     return ret;
 }
 
-static void top_ten() {
+protected void top_ten() {
     mixed *tmp;
     int i, j;
 

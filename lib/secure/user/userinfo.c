@@ -41,10 +41,10 @@ private string  url;
 
 
 //temporary new user vars
-static private int n_gen = -1;
+nosave private int n_gen = -1;
 
 //### wah! get rid of this. need by sw_body.c; should move to NEW_USER_D
-static nomask int query_n_gen() { return n_gen; }
+protected nomask int query_n_gen() { return n_gen; }
 
 
 nomask void set_ed_setup(int code)
@@ -89,7 +89,7 @@ nomask string query_url()
     return url;
 }
 
-static nomask varargs
+protected nomask varargs
 void userinfo_handle_logon(int state, mixed extra, string arg) {
     switch (state) {
     case GENDER_QUERY:

@@ -9,8 +9,8 @@ void simple_action(string, object);
 object give_new_obj( object obj, string str, int recurse );
 
 
-private static object weapon;
-static string weapon_damage_kind;
+private nosave object weapon;
+nosave string weapon_damage_kind;
 
 string query_weapon_damage_kind() {
     return weapon_damage_kind;

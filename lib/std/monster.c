@@ -63,7 +63,7 @@ inherit __DIR__ "monster/combat/" S_COMBAT_MODULE ;
 #ifdef USE_BODYSLOTS
 object get_random_clothing();
 #else
-static object* armors = ({ });
+nosave object* armors = ({ });
 #endif
 
 

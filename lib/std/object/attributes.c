@@ -22,7 +22,7 @@
 ** displayed.  Each object will then use this information to display that
 ** data.
 */
-private static mapping attribute_info = ([
+private nosave mapping attribute_info = ([
     F_OPEN : ({ "closed", "open", "is_openable" }),
     F_LIGHTED : "providing light",
     F_WIELDED : "wielded",

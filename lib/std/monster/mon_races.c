@@ -6,7 +6,7 @@
 // Vette  April 15, 1997
 //
 
-private static string monster_race;
+private nosave string monster_race;
 
 string query_mon_race() {
   return monster_race;

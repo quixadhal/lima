@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-private static string mount_msg;
-private static string dismount_msg;
+private nosave string mount_msg;
+private nosave string dismount_msg;
 
 string the_short();
 string short();
@@ -14,12 +14,12 @@ string show_exits()
 }
 
 
-static void set_get_on_msg(string s)
+protected void set_get_on_msg(string s)
 {
   mount_msg = s;
 }
 
-static void set_get_off_msg(string s)
+protected void set_get_off_msg(string s)
 {
   dismount_msg = s;
 }

@@ -22,7 +22,7 @@ class timer_info
 /*
 ** This maps timer owners to a timer_info structure.
 */
-static private mapping timers;
+nosave private mapping timers;
 
 void create()
 {

@@ -12,13 +12,13 @@ inherit M_SHELLFUNCS;
 inherit M_SAVE;
 inherit M_SCROLLBACK;
 
-private static object owner;
+private nosave object owner;
 
 varargs void execute_command();
 string query_shellname();
 string query_save_path(string userid);
 
-static function arg_to_words_func = (: explode($1," ") :);
+protected function arg_to_words_func = (: explode($1," ") :);
 
 //### goofy fucking hack cuz the shell doesn't save for shit. only M_SAVE,
 //### even though in the alias code it professes to "not require it to be
@@ -44,7 +44,7 @@ void save_me()
     save_info = save_to_string();
     unguarded(1, (: save_object, query_save_path(owner->query_userid()) :));
 }
-static void restore_me(string userid)
+protected void restore_me(string userid)
 {
     unguarded(1, (: restore_object, query_save_path(userid) :));
     if ( save_info )
@@ -63,7 +63,7 @@ void remove()
     destruct();
 }
 
-static void shell_input(mixed input)
+protected void shell_input(mixed input)
 {
     if ( input == -1 )
     {
@@ -129,7 +129,7 @@ private void cmd_exit()
     remove();
 }
 
-private void create()
+void create()
 {
     if ( !clonep() )
 	return;
@@ -153,7 +153,7 @@ private void create()
 ** Subclasses will typically override to set up bindings and variables
 ** with shell_bind_if_undefined() or set_if_undefined(), respectively.
 */
-static void prepare_shell()
+protected void prepare_shell()
 {
     shell_bind_if_undefined("alias",	(: cmd_alias :));
     shell_bind_if_undefined("unalias",	(: cmd_remove_alias($1,1) :));
@@ -162,7 +162,7 @@ static void prepare_shell()
 //    shell_bind_if_undefined("exit",	(: cmd_exit :));
 }
 
-static mixed what_prompt()
+protected mixed what_prompt()
 {
     return "> ";
 }

@@ -10,6 +10,7 @@
 #define PORT_TELNET      1
 #define PORT_BINARY      2
 #define PORT_ASCII       3
+#define PORT_MUD	 4
 
 typedef struct {
     int kind;

@@ -47,6 +47,7 @@ echo O=obj >>Makefile.tmp
 echo A=lib >>Makefile.tmp
 echo EDIT_SOURCE=.\edit_source >>Makefile.tmp
 echo EXE=.exe >>Makefile.tmp
+echo TAB_EXT=_tab >> Makefile.tmp
 
 echo ***************** Configuration completed **************
 echo Installing MudOS on %ARCH%

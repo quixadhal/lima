@@ -2,6 +2,7 @@
 #include "replace_program.h"
 #include "simul_efun.h"
 #include "swap.h"
+#include "efun_protos.h"
 
 /*
  * replace_program.c
@@ -136,7 +137,7 @@ static replace_ob_t *retrieve_replace_program_entry()
 }
 
 void
-f_replace_program P2(int, num_arg, int, instruction)
+f_replace_program PROT((void))
 {
     replace_ob_t *tmp;
     int name_len;
@@ -145,7 +146,7 @@ f_replace_program P2(int, num_arg, int, instruction)
     int var_offset;
 
     if (sp->type != T_STRING)
-	bad_arg(1, instruction);
+	bad_arg(1, F_REPLACE_PROGRAM);
     debug(d_flag, ("replace_program called"));
 
     if (!current_object)

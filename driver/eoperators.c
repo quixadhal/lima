@@ -15,6 +15,7 @@
 #endif
 #include "compiler.h"
 #include "simul_efun.h"
+#include "eoperators.h"
 
 INLINE void f_and()
 {
@@ -55,7 +56,7 @@ f_div_eq()
 {
     svalue_t *argp = (sp--)->u.lvalue;
 
-    switch (argp->type | sp->type){
+    switch (argp->type | sp->type) {
 
 	case T_NUMBER:
 	{
@@ -74,7 +75,7 @@ f_div_eq()
 
 	case T_NUMBER|T_REAL:
 	{
-	    if (sp->type == T_NUMBER){
+	    if (sp->type == T_NUMBER) {
 		if (!sp->u.number) error("Division by 0rn\n");
 		sp->u.real = argp->u.real /= sp->u.number;
 		sp->type = T_REAL;
@@ -118,7 +119,7 @@ f_eq()
 	
     case T_NUMBER|T_REAL:
 	{
-	    if ((--sp)->type == T_NUMBER){
+	    if ((--sp)->type == T_NUMBER) {
 		sp->u.number = sp->u.number == (sp+1)->u.real;
 	    }
 	    else {
@@ -136,7 +137,15 @@ f_eq()
 	    free_array(sp->u.arr);
 	    break;
 	}
-	
+
+    case T_CLASS:
+        {
+	    i = (sp-1)->u.arr == sp->u.arr;
+	    free_class((sp--)->u.arr);
+	    free_class(sp->u.arr);
+	    break;
+	}
+    
     case T_MAPPING:
 	{
 	    i = (sp-1)->u.map == sp->u.map;
@@ -277,7 +286,7 @@ INLINE void
 f_le()
 {
     int i = sp->type;
-    switch((--sp)->type|i){
+    switch((--sp)->type|i) {
     case T_NUMBER:
 	sp->u.number = sp->u.number <= (sp+1)->u.number;
 	break;
@@ -288,7 +297,7 @@ f_le()
 	break;
 	
     case T_NUMBER|T_REAL:
-	if (i == T_NUMBER){
+	if (i == T_NUMBER) {
 	    sp->type = T_NUMBER;
 	    sp->u.number = sp->u.real <= (sp+1)->u.number;
 	} else sp->u.number = sp->u.number <= (sp+1)->u.real;
@@ -304,7 +313,7 @@ f_le()
 	
     default:
 	{
-	    switch((sp++)->type){
+	    switch((sp++)->type) {
 	    case T_NUMBER:
 	    case T_REAL:
 		bad_argument(sp, T_NUMBER | T_REAL, 2, F_LE);
@@ -470,7 +479,7 @@ f_ne()
 
     case T_NUMBER|T_REAL:
         {
-            if ((--sp)->type == T_NUMBER){
+            if ((--sp)->type == T_NUMBER) {
                 sp->u.number = sp->u.number != (sp+1)->u.real;
 	    }
             else {
@@ -486,6 +495,14 @@ f_ne()
             i = (sp-1)->u.arr != sp->u.arr;
 	    free_array((sp--)->u.arr);
 	    free_array(sp->u.arr);
+            break;
+	}
+
+    case T_CLASS:
+        {
+            i = (sp-1)->u.arr != sp->u.arr;
+	    free_class((sp--)->u.arr);
+	    free_class(sp->u.arr);
             break;
 	}
 
@@ -674,7 +691,7 @@ f_range P1(int, code)
                 return;
             }
 
-            if (to >= len - 1){
+            if (to >= len - 1) {
                 put_malloced_string(string_copy(res + from, "f_range"));
             } else {
                 char *tmp;
@@ -700,13 +717,13 @@ f_range P1(int, code)
             from = (--sp)->u.number;
             if (code & 0x10) from = len - from;
 #ifdef OLD_RANGE_BEHAVIOR
-            if (from < 0){
+            if (from < 0) {
                 if ((from += len) < 0) from = 0;
             }
 #else
             if (from < 0) from = 0;
 #endif
-            if (to < from || from >= len){
+            if (to < from || from >= len) {
                 free_buffer(rbuf);
                 put_buffer(null_buffer());
                 return;
@@ -747,7 +764,7 @@ f_extract_range P1(int, code)
     if ((sp-1)->type != T_NUMBER)
         error("Start of range [ .. ] interval must be a number.\n");
 
-    switch(sp->type){
+    switch(sp->type) {
         case T_STRING:
         {
             char *res = sp->u.string;
@@ -756,7 +773,7 @@ f_extract_range P1(int, code)
             from = (--sp)->u.number;
             if (code) from = len - from;
 #ifdef OLD_RANGE_BEHAVIOR
-            if (from < 0){
+            if (from < 0) {
                 if ((from += len) < 0) from = 0;
             }
 #else
@@ -782,7 +799,7 @@ f_extract_range P1(int, code)
             from = (--sp)->u.number;
             if (code) from = len - from;
 #ifdef OLD_RANGE_BEHAVIOR
-            if (from < 0){
+            if (from < 0) {
                 if ((from += len) < 0) from = 0;
             }
 #else
@@ -838,7 +855,7 @@ f_sub_eq()
 {
     svalue_t *argp = (sp--)->u.lvalue;
 
-    switch(argp->type | sp->type){
+    switch(argp->type | sp->type) {
 	case T_NUMBER:
 	{
 	    sp->u.number = argp->u.number -= sp->u.number;
@@ -854,7 +871,7 @@ f_sub_eq()
 
 	case T_NUMBER|T_REAL:
 	{
-	    if (sp->type == T_NUMBER){
+	    if (sp->type == T_NUMBER) {
 		sp->type = T_REAL;
 		sp->u.real = argp->u.real -= sp->u.number;
 	    } else sp->u.real = argp->u.number -= sp->u.real;
@@ -941,6 +958,7 @@ f_switch()
 
     COPY_SHORT(&offset, pc + SW_TABLE);
     COPY_SHORT(&end_off, pc + SW_ENDTAB);
+
     if ((i = EXTRACT_UCHAR(pc) >> 4) != 0xf) {	/* String table, find correct
 						 * key */
 	if (sp->type == T_NUMBER && !sp->u.number) {
@@ -962,7 +980,7 @@ f_switch()
 		 * ZERO_AS_STR_CASE_LABEL.
 		 */
 		COPY_SHORT(&offset, pc + SW_DEFAULT);
-		pc = current_prog->program + offset;
+		pc += offset;
 		return;
 	    }
 	} else {
@@ -973,27 +991,30 @@ f_switch()
 	s = (sp--)->u.number;
 	i = (int) pc[0] & 0xf;
     }
-    end_tab = current_prog->program + end_off;
+    end_tab = pc + end_off;
     /*
      * i is the table size as a power of 2.  Tells us where to start
      * searching.  i==14 is a special case.
      */
     if (i >= 14)
 	if (i == 14) {
+	    char *zz = end_tab - 4;
+	    
 	    /* fastest switch format : lookup table */
-	    l = current_prog->program + offset;
-	    COPY_INT(&d, end_tab - 4);
+	    l = pc + offset;
+	    COPY_INT(&d, zz);
 	    /* d is minimum value - see if in range or not */
-	    if (s >= d && l + (s = (s - d) * sizeof(short)) < (end_tab - 4)) {
-		COPY_SHORT(&offset, &l[s]);
+	    s -= d;
+	    if (s >= 0 && s < (zz-l)/sizeof(short)) {
+		COPY_SHORT(&offset, l + s * sizeof(short));
 		if (offset) {
-		    pc = current_prog->program + offset;
+		    pc += offset;
 		    return;
 		}
 	    }
 	    /* default */
 	    COPY_SHORT(&offset, pc + SW_DEFAULT);
-	    pc = current_prog->program + offset;
+	    pc += offset;
 	    return;
 	} else
 	    fatal("unsupported switch table format.\n");
@@ -1004,7 +1025,7 @@ f_switch()
      * s - key we're looking for 
      * r - key l is pointing at
      */
-    l = current_prog->program + offset + off_tab[i];
+    l = pc + offset + off_tab[i];
     d = (int) (off_tab[i] + SWITCH_CASE_SIZE) >> 1;
     if (d < SWITCH_CASE_SIZE)
 	d = 0;
@@ -1022,7 +1043,7 @@ f_switch()
 			COPY_SHORT(&offset, l + U_ADDR);
 			if (!offset) {
 			    /* range with lookup table */
-			    l = current_prog->program + offset +
+			    l = pc + offset +
 				(s - r) * sizeof(short);
 			    COPY_SHORT(&offset, l);
 			}	/* else normal range and offset is correct */
@@ -1048,8 +1069,7 @@ f_switch()
 			COPY_SHORT(&offset, l + L_ADDR);
 			if (!offset) {
 			    /* range with lookup table */
-			    l = current_prog->program + offset +
-				(s - r) * sizeof(short);
+			    l = pc + offset + (s - r) * sizeof(short);
 			    COPY_SHORT(&offset, l);
 			}	/* else normal range and offset is correct */
 			break;
@@ -1083,14 +1103,14 @@ f_switch()
 	    if (!l[U_TYPE] && !l[U_TYPE + 1]) {
 		/* end of range with lookup table */
 		COPY_PTR(&r, l + U_LOWER);
-		l = current_prog->program + offset + (s - r) * sizeof(short);
+		l = pc + offset + (s - r) * sizeof(short);
 		COPY_SHORT(&offset, l);
 	    }
 	    if (offset <= 1) {
 		COPY_SHORT(&offset, l + L_ADDR);
 		if (!offset) {
 		    /* start of range with lookup table */
-		    l = current_prog->program + offset;
+		    l = pc + offset;
 		    COPY_SHORT(&offset, l);
 		}		/* else normal range, offset is correct */
 	    }
@@ -1098,14 +1118,13 @@ f_switch()
 	}
     }
     /* now do jump */
-    pc = current_prog->program + offset;
+    pc += offset;
 }
 
 void
 call_simul_efun P2(unsigned short, index, int, num_arg)
 {
     extern object_t *simul_efun_ob;
-    compiler_function_t *funp;
     
     if (current_object->flags & O_DESTRUCTED) {	/* No external calls allowed */
 	pop_n_elems(num_arg);
@@ -1123,16 +1142,10 @@ call_simul_efun P2(unsigned short, index, int, num_arg)
 	 * this saves function lookup.
 	 */
 	DEBUG_CHECK(simul_efun_ob->flags & O_SWAPPED, "Simulefun object swapped!\n");
-	simul_efun_ob->time_of_ref = current_time;
-	push_control_stack(FRAME_FUNCTION | FRAME_OB_CHANGE);
-	caller_type = ORIGIN_SIMUL_EFUN;
-	csp->num_local_variables = num_arg;
-	current_prog = simul_efun_ob->prog;
-	funp = setup_new_frame(simuls[index].index);
-	previous_ob = current_object;
-	current_object = simul_efun_ob;
-	call_program(current_prog, funp->address);
-    } else error("Function is no longer a simul_efun.\n");
+	call_direct(simul_efun_ob, simuls[index].index, 
+		    ORIGIN_SIMUL_EFUN, num_arg);
+    } else
+	error("Function is no longer a simul_efun.\n");
 }
 
 INLINE void

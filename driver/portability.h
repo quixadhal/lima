@@ -160,11 +160,7 @@
 #  if defined(linux) || defined(_M_UNIX)
 /* This has FD_SETSIZE on some Linux's (Linuces?) */
 #    include <sys/time.h>
-/* This has SOMAXCONN on newer Linux */
 #    include <sys/socket.h>
-#    ifndef SOMAXCONN
-#      define SOMAXCONN 5
-#    endif
 #    ifndef FD_SETSIZE
 #      define FD_SETSIZE 256
 #    endif

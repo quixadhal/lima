@@ -37,5 +37,5 @@ void setup()
     set_text ("It says:\n\tThis space intentionally left blank.");
     set_close_msg( "The passage slides shut.");
     set_open_msg( "The rock underneath the inscription slides open, revealing a passage.\n");
-    setup_door("dock wall", "south");
+    setup_door("dock wall", "south", "Navigation_Room");
 }

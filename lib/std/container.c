@@ -14,7 +14,7 @@
 inherit OBJ;
 
 private int max_capacity = LARGE;
-private static int capacity;
+private nosave int capacity;
 private mapping objects;
 private string main_prep = "in";
 private int hide_contents = 0;
@@ -25,7 +25,7 @@ private int contained_light_added;
 
 //:FUNCTION valid_prep
 //Overloaded by complex_container
-static int valid_prep(string prep) {
+protected int valid_prep(string prep) {
     return prep == main_prep;
 }
 
@@ -58,7 +58,7 @@ int query_aggregate_size()
 //:FUNCTION set_capacity
 //Sets the amount of mass inside a container; this function should probably
 //never be called as the value is kept internally.
-static void
+protected void
 set_capacity( int c )
 {
     //### what calls this?  Is it needed?
@@ -122,7 +122,7 @@ varargs mixed release_object( object target, int force )
 
 //:FUNCTION set_max_capacity
 //Change the maximum capacity of an object.
-static void
+protected void
 set_max_capacity(int x) {
     max_capacity = x;
 }
@@ -205,10 +205,12 @@ int inventory_visible()
 //Determine whether an object should be grouped with other objects of the
 //same kind as it.  -1 is unique, otherwise if objects will be grouped
 //according to the return value of the function.
-int ob_state() {
+mixed ob_state() {
     /* if we have an inventory, and it can be seen, we should be unique */
     if (first_inventory(this_object()) && inventory_visible()) return -1;
-    return this_object()->query_closed();
+    //### hack
+    if (this_object()->query_closed()) return "#closed#";
+    return ::ob_state();
 }
 
 //:FUNCTION inventory_accessible
@@ -217,6 +219,13 @@ int inventory_accessible() {
     if (!is_visible()) return 0;
     if (!short()) return 0;
     return !this_object()->query_closed();
+}
+
+//:FUNCTION parent_environment_accessible
+//Return 1 if the parser should include the outside world in its
+//decisions, overloaded in non_room descendants
+int parent_environment_accessible() {
+    return 0;
 }
 
 //:FUNCTION inventory_header
@@ -250,7 +259,7 @@ string simple_long() {
 }
 
 
-void make_objects_if_needed()
+mixed *make_objects_if_needed()
 {
     int tally, num;
     mixed *rest;
@@ -259,9 +268,11 @@ void make_objects_if_needed()
     mixed oids;
     object *inv;
     int ret;
+    mixed *objs = allocate(sizeof(objects));
+    int i = 0;
 
     if(!mapp(objects))
-	return;
+	return ({ });
 
     inv = all_inventory();
     foreach (file, value in objects) {
@@ -287,25 +298,15 @@ void make_objects_if_needed()
 	} else
 	    continue;
 
-#ifdef NOPE
-	if (!potential_object = load_object(file))
-	    error("Bad file name '" + file + "' in " + base_name());
-	oids = file->query_id();
-	if( pointerp(oids) && sizeof(oids) )
-	    name = oids[0];
-	else if (stringp(oids))
-	    name = oids;
-	else
-	    name = "";
-	tally = sizeof(filter_array(inv, (: $1->id($(name)) :) ));
-#endif
-	tally = sizeof(filter(inv, (: cannonical_form($1) == $(file) :)));
+	objs[i] = filter(inv, (: cannonical_form($1) == $(file) :));
+	tally = sizeof(objs[i]);
 
 	num -= tally;
 	for (int j = 0; j < num; j++)
 	{
 	    object ob = new(evaluate_path(file), rest...);
 	    if (!ob) error("Couldn't find file '" + file + "' to clone!\n");
+	    objs[i] += ({ ob });
 	    ret = ob->move(this_object(), "#CLONE#");
 	    if ( ret != MOVE_OK )
 	    {
@@ -313,7 +314,9 @@ void make_objects_if_needed()
 	    }
 	    ob->on_clone( rest... );
 	}
+	i++;
     }
+    return objs;
 }
 
 void reset()
@@ -332,9 +335,9 @@ void reset()
 //Note:  the number already present is determined by counting the number of
 //objects with the same first id, and objects are only cloned to bring the
 //count up to that number.
-void set_objects(mapping m) {
+mixed *set_objects(mapping m) {
     objects = m;
-    make_objects_if_needed();
+    return make_objects_if_needed();
 }
 
 //:FUNCTION can_take_from
@@ -384,18 +387,23 @@ varargs string inventory_recurse(int depth, mixed avoid) {
     else
 	obs = all_inventory();
 
-    foreach (object ob in obs) {
-	if (!(ob->is_visible())) continue;
-	if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
-	    str += ob->untouched_long()+"\n";
-	    if (ob->inventory_visible())
-		str += ob->inventory_recurse(0, avoid);
+    if (!this_object()->is_living()) {
+	foreach (object ob in obs) {
+	    if (!(ob->is_visible())) continue;
+	    if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
+		str += ob->untouched_long()+"\n";
+		if (ob->inventory_visible())
+		    if (!ob->is_living())
+			str += ob->inventory_recurse(0, avoid);
+	    }
 	}
     }
-    res = introduce_contents();
-    if (tmp = inv_list(obs, 1, depth)) {
-	for (i=0; i<depth; i++) str += "  ";
-	str += res + tmp;
+    if (!this_object()->is_living()) {
+	res = introduce_contents();
+	if (tmp = inv_list(obs, 1, depth)) {
+	    for (i=0; i<depth; i++) str += "  ";
+	    str += res + tmp;
+	}
     }
     return str;
 }

@@ -204,7 +204,11 @@ varargs string inv_list(object array obs, int flag, int depth) {
 		if (j > 4) res += "many " + ob->plural_short();
 		else res += j + " " + ob->plural_short();
 	    } else {
-		res += ob->a_short() + M_OBJ_ATTRIBUTES->get_attributes(ob);
+		if (ob->is_living()) {
+		    res += ob->in_room_desc();
+		} else {
+		    res += ob->a_short() + M_OBJ_ATTRIBUTES->get_attributes(ob);
+		}
 	    }
 	    res += "\n";
 	    if( ob->inventory_visible() && !ob->query_hide_contents())
@@ -254,4 +258,13 @@ string object_event_message(mixed msg) {
 
 void object_event(mixed msg) {
     tell_environment(previous_object(), object_event_message(msg));
+}
+
+mixed
+parser_root_environment( object ob ) {
+    object tmp;
+    while ( (tmp = environment(ob)) &&
+      ob->parent_environment_accessible() )
+	ob = tmp;
+    return ob;
 }

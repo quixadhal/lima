@@ -91,7 +91,7 @@ void complete_rebuild() {
 private:
 // ---------------------------------------------------------------------
 
-static private string * filtered_dirs = ({
+nosave private string * filtered_dirs = ({
   "/data/", "/ftp/", "/help/", "/include/",
   "/log/", "/open/", "/tmp/", "/user/", "/wiz/",
   "/contrib/",
@@ -232,7 +232,7 @@ void continue_scan() {
 	return;
     }
   }	    
-  call_out( (: continue_scan :), 0);
+  call_out( (: continue_scan :), 1);
 }
 
 void

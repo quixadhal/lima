@@ -50,7 +50,7 @@ int external_start P5(int, which, char *, args,
     } else {
 	int flag = 1;
 	int i = 1;
-	int n = 0;
+	int n = 1;
 	char *p;
 	
 	p = args;
@@ -63,6 +63,7 @@ int external_start P5(int, which, char *, args,
 		    flag = 0;
 		}
 	    }
+	    p++;
 	}
 
 	argv = CALLOCATE(n, char *, TAG_TEMPORARY, "external args");

@@ -17,7 +17,7 @@ private mixed *	failures = ({ });
 private int notify_time;	/* time user notified of bad logins */
 
 
-static nomask void register_failure(string addr)
+protected nomask void register_failure(string addr)
 {
     string s;
 
@@ -49,7 +49,7 @@ nomask void clear_failures()
     save_me();
 }
 
-static nomask void report_login_failures()
+protected nomask void report_login_failures()
 {
     int count;
 

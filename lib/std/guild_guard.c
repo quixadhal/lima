@@ -7,7 +7,7 @@
 inherit MONSTER;
 inherit M_BLOCKEXITS;
 
-private static string guard_for = "<no guild assigned yet>";
+private nosave string guard_for = "<no guild assigned yet>";
 
 
 private mixed handle_blocks(string dir)

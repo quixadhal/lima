@@ -25,17 +25,17 @@
 */
 #define REQUIRE_PRIV	"Mudlib:socket"
 
-static private int	style;
-static private int	fdOwned = -1;	/* no socket yet */
-static private function	read_func;
-static private function	close_func;
-static private function write_func;
+nosave private int	style;
+nosave private int	fdOwned = -1;	/* no socket yet */
+nosave private function	read_func;
+nosave private function	close_func;
+nosave private function write_func;
 
-static private mixed *	write_queue = ({ });
-static private int	blocked;
+nosave private mixed *	write_queue = ({ });
+nosave private int	blocked;
 
 /* For debug purposes only */
-static private mixed addr;
+nosave private mixed addr;
 
 void set_write_callback(function f)
 {
@@ -86,7 +86,7 @@ int stat_me()
 
 
 //### socket_connect() doesn't take funcptr yet...
-/* private */ static nomask void read_callback(int fd, mixed message)
+/* private */ protected nomask void read_callback(int fd, mixed message)
 {
 SKTLOG("read_callback: self",this_object());
 SKTLOG("read_callback: fd",fd);
@@ -119,7 +119,7 @@ SKTLOG("close_callback: close_func",close_func);
 }
 
 //### socket_connect() doesn't take a funcptr yet
-/* private */ static nomask void write_callback(int fd)
+/* private */ protected nomask void write_callback(int fd)
 {
     mixed tmp;
 SKTLOG("write_callback: self",this_object());
@@ -203,7 +203,7 @@ SKTLOG("release_callback: err",err);
 }
 
 //### socket_listen doesn't take funcptrs yet...
-/* private */ static nomask void listen_callback(int fd)
+/* private */ protected nomask void listen_callback(int fd)
 {
     object	s;
     int		err;

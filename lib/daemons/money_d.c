@@ -103,8 +103,11 @@ nomask void remove_area_currency(string area, string type)
 
     if ( !rates[type] )
 	error("unknown currency type");
+/* If the currency type doesn't exist, wht's it doing in the area?
+ * Furthermore, why can't we remove it  -- Tigran
     if ( !areas[area] )
 	error("unknown area");
+*/
 
     areas[area] -= ({ type });
     if ( !sizeof(areas[area]) )

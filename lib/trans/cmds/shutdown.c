@@ -15,6 +15,8 @@
 
 inherit CMD;
 
+int call_number;
+
 private void do_shutdown(string s)
 {
     if ( !check_privilege(1) )
@@ -43,7 +45,7 @@ private void count_down(int num, string s)
 
     tell_all(THE_BIG_GUY " tells you: Shutdown in " + M_GRAMMAR->number_of(num, "minute") + ".\n");
     num--;
-    call_out((: count_down, num, s :), 60);
+    call_number=call_out((: count_down, num, s :), 60);
 }
 
 private void main(mixed *args, mapping flags)
@@ -61,7 +63,7 @@ private void main(mixed *args, mapping flags)
 
     // handle cancelation checking first!
     if(flags["c"]) {
-	if (remove_call_out("do_shutdown") == -1) {
+      if (remove_call_out(call_number) == -1) {
 	    out("There is no shutdown in progress.\n");
 	    return;
 	}
@@ -71,6 +73,13 @@ private void main(mixed *args, mapping flags)
 	tell_all(THE_BIG_GUY " tells you: Shutdown has been cancelled.\n");
 	return;
     }
+    /* Check to make sure that a shutdown isn't already in progress */
+    if(call_number)
+      {
+	out("Shutdown is already in progress.\n");
+	call_number=0;
+	return;
+      }
 
     // Check to see if a -t # switch was given.  If so, don't shut down,
     // just start the shutdown daemon.

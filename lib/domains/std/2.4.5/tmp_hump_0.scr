@@ -1,6 +1,0 @@
-# Do not remove the headers from this file! see /USAGE for more info.
-
-is=torch
-primary_id=stick
-fuel=500
-weight=1

@@ -3,7 +3,7 @@
 #	Rust July 7, 1994
 
 # modify as necessary
-limadir=/home/mud/lima-1.0a6
+limadir=/home/mud/lima-1.0a7
 
 ########################################
 logdir=$limadir/lib/log
@@ -13,6 +13,9 @@ logfile=$logdir/driver.log
 bindir=$limadir/etc
 driver=./driver
 config=./config.lima
+
+# set ulimit values here
+# ulimit -c unlimited
 
 while true; do
 

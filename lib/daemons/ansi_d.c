@@ -37,7 +37,7 @@ inherit M_DAEMON_DATA;
 #define HOME "\e[H"
 
 #ifdef CONFIGURABLE_COLOUR
-static
+protected
 #endif
 mapping translations, null_translations, identity_translations;
 

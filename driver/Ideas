@@ -1,4 +1,4 @@
-The current implementation of swapping could use alot of work.  Swapping
+The current implementation of swapping could use a lot of work.  Swapping
 an object in/out isn't that expensive CPU wise, and can save a decent amount
 of memory.  The problem is that cloned programs can't swap, which disables
 swapping for much of the mud ...

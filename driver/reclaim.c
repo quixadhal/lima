@@ -8,6 +8,7 @@
 #include "std.h"
 #include "lpc_incl.h"
 #include "reclaim.h"
+#include "call_out.h"
 
 #define MAX_RECURSION 25
 
@@ -96,10 +97,13 @@ int reclaim_objects()
     int i;
     object_t *ob;
 
+    reclaim_call_outs();
+
     cleaned = nested = 0;
     for (ob = obj_list; ob; ob = ob->next_all)
 	if (ob->prog)
 	    for (i = 0; i < (int) ob->prog->num_variables_total; i++)
 		check_svalue(&ob->variables[i]);
+    
     return cleaned;
 }

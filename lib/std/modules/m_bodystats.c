@@ -89,8 +89,8 @@ private int	cur_cha;
 //
 // where there is an implied sum over j
 //
-static private mixed *trans_matrix;
-static private int *constant_vector;
+nosave private mixed *trans_matrix;
+nosave private int *constant_vector;
 
 #define DEFAULT_RANGE	6
 #define BASE_VALUE	20

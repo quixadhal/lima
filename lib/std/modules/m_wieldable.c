@@ -20,7 +20,7 @@ inherit M_DAMAGE_SOURCE;
 void hook_state(string, mixed, int);
 void assign_flag(int which, int state);
 
-static function move_hook = (: unwield_me :);
+nosave function move_hook = (: unwield_me :);
 
 int valid_wield()
 {

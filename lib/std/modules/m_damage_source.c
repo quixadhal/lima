@@ -14,7 +14,7 @@ private int to_hit_bonus;
 private string damage_kind = "blow";
 private object wielded_by;
 
-private static mapping def_combat_messages;
+private nosave mapping def_combat_messages;
 private mapping combat_messages = ([]);
 
 mixed adjust_my_result(mixed result)

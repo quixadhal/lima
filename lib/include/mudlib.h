@@ -215,12 +215,10 @@
 #define M_ACTIONS               "/std/modules/m_actions"
 #define M_BLOCKEXITS		"/std/modules/m_blockexits"
 #define M_AGGRESSIVE		"/std/modules/m_aggressive"
-#define M_CLIMBABLE		"/std/modules/m_climbable"
 #define M_DAMAGE_SINK		"/std/modules/m_damage_sink"
 #define M_DAMAGE_SOURCE		"/std/modules/m_damage_source"
 #define M_DIGGABLE		"/std/modules/m_diggable"
 #define M_DIGGER		"/std/modules/m_digger"
-#define M_ENTERABLE		"/std/modules/m_enterable"
 #define M_FLOW_ROOM		"/std/modules/m_flow_room"
 #define M_GETTABLE		"/std/modules/m_gettable"
 #define M_GUILD_MASTER          "/std/modules/m_guild_master"
@@ -242,6 +240,8 @@
 #define M_WEARABLE		"/std/modules/m_wearable"
 #define M_WIELDABLE		"/std/modules/m_wieldable"
 #define M_WRITING_SURFACE	"/std/modules/m_writing_surface"
+#define M_EXIT                  "/std/modules/m_exit"
+#define M_EXIT_OBJ              "/std/modules/m_exit_obj"
 
 #define M_LIB_LOCKABLE		"/domains/std/lockable"
 #define M_LIB_OPENABLE		"/domains/std/openable"
@@ -301,6 +301,7 @@
 #define SWORD			"/std/sword"
 #define TORCH			"/std/torch"
 #define VEHICLE			"/std/vehicle"
+#define EXIT_OBJ "/std/exit_obj"
 #define INF_SUPPLY "/std/inf_supply"
 
 #endif /* __MUDLIB_H__ */

@@ -17,7 +17,7 @@ void stun();
 void knock_out();
 void hurt_us(int);
 
-static void print_one_result(class combat_result result) {
+protected void print_one_result(class combat_result result) {
     string *msgs;
     string message, mess;
     object *combat_who;
@@ -68,7 +68,7 @@ class combat_result array negotiate_result(class combat_result array result) {
     return result;
 }
 
-static void do_one_result(class combat_result res) {
+protected void do_one_result(class combat_result res) {
     int s = res->special;
 
     if (s & RES_NONE)

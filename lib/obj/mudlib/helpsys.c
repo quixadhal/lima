@@ -19,13 +19,13 @@ inherit M_ACCESS;
 inherit M_INPUT;
 
 
-private static string * topic_files;
-private static string *	lines;
-private static int	cur_line;
-private static mapping	directives;
+private nosave string * topic_files;
+private nosave string *	lines;
+private nosave int	cur_line;
+private nosave mapping	directives;
 
 /* hack. */
-private static int	i;
+private nosave int	i;
 
 nomask void display_topics(mixed);
 private nomask void receive_choice(string arg);

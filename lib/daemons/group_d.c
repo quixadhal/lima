@@ -19,25 +19,26 @@ inherit M_DAEMON_DATA;
 ** Mudlib:daemons could do it (by editing this file), but we'll make
 ** it a bit tougher for people who want to try to do that.
 */
-#define PRIV_NEEDED	"Mudlib:"
+#define PRIV_NEEDED     "Mudlib:daemons"
 
 private mapping group_map = ([ ]);
 
 nomask void add_group(string group)
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
-	error("illegal attempt to add a system group\n");
+    if ( !check_privilege(PRIV_NEEDED) )
+        error("illegal attempt to add a system group\n");
 
     if ( !group_map[group] )
     {
-	group_map[group] = ({ });
-	save_me();
+        group_map[group] = ({ });
+        save_me();
     }
 }
+
 nomask void remove_group(string group)
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
-	error("illegal attempt to remove a system group\n");
+    if ( !check_privilege(PRIV_NEEDED) )
+        error("illegal attempt to remove a system group\n");
 
     map_delete(group_map, group);
     save_me();
@@ -45,27 +46,27 @@ nomask void remove_group(string group)
 
 nomask void add_group_member(string group, string new_member)
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
-	error("illegal attempt to add a member to a system group\n");
+    if ( !check_privilege(PRIV_NEEDED) )
+        error("illegal attempt to add a member to a system group\n");
 
     if ( !group_map[group] )
-	error("group does not exist\n");
+        error("group does not exist\n");
 
     if ( member_array(new_member, group_map[group]) == -1 )
     {
-	group_map[group] += ({ new_member });
-	save_me();
+        group_map[group] += ({ new_member });
+        save_me();
     }
 }
 nomask void remove_group_member(string group, string new_member)
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
-	error("illegal attempt to remove a member from a system group\n");
+    if ( !check_privilege(PRIV_NEEDED) )
+        error("illegal attempt to remove a member from a system group\n");
 
     if ( group_map[group] )
     {
-	group_map[group] -= ({ new_member });
-	save_me();
+        group_map[group] -= ({ new_member });
+        save_me();
     }
 }
 
@@ -79,21 +80,21 @@ nomask mixed get_group(string group)
     mixed res;
 
     if ( !stringp(group) )
-	return 0;
+        return 0;
     if ( group[0] == '(' && group[<1] == ')' )
-	group = group[1..<2];
+        group = group[1..<2];
     else
       return group;
     group = lower_case( group );
     if ( !(res = group_map[group]) )
     {
-	if ( this_body() && (res = this_body()->query_perm("groups")) )
-	{
-	    return res[group] ? res[group] : group;
-	}
+        if ( this_body() && (res = this_body()->query_perm("groups")) )
+        {
+            return res[group] ? copy(res[group]) : group;
+        }
     }
 
-    return res ? res : group;
+    return res ? copy(res) : group;
 }
 
 nomask string * process_list(string * name_list)

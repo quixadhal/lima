@@ -187,7 +187,7 @@ void remove_living_name PROT((object_t *));
 void stat_living_objects PROT((outbuffer_t *));
 void tell_npc PROT((object_t *, char *));
 void tell_object PROT((object_t *, char *, int));
-int find_global_variable PROT((program_t *, char *, unsigned short *));
+int find_global_variable PROT((program_t *, char *, unsigned short *, int));
 void dealloc_object PROT((object_t *, char *));
 
 #endif

@@ -54,8 +54,8 @@ class proto_info
 }
 
 
-private static mapping cmd_info = ([]);
-private static mapping proto_info = ([]);
+private nosave mapping cmd_info = ([]);
+private nosave mapping proto_info = ([]);
 
 void create()
 {
@@ -291,7 +291,8 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 	cmd_name = info[2];
     }
 
-    if(undefinedp(proto_info[this_path]) || undefinedp(pstuff=proto_info[this_path][cmd_name]))
+    if(undefinedp(proto_info[this_path]) || 
+       undefinedp(pstuff=proto_info[this_path][cmd_name]))
     {
 	// no prototypes, so don't do no globbing or nothin'.
 	// In fact, just send back the raw string.
@@ -413,16 +414,11 @@ private mixed parse_arg(int this_arg, mixed argv)
 
   if(stringp(argv)) {
     argv = trim_spaces(argv);
-
     if (this_arg & IS_PATH) {
       string path = evaluate_path(argv);
-
       result = glob(path);
-
       if((this_arg & IS_CFILE))
-	{
-	  result = filter(result, (:!is_directory($1):));
-	}
+	result = filter(result, (:!is_directory($1):));
       if (!sizeof(result) && (this_arg & IS_OBFILE)) {
 	object ob = get_object(argv);
 	if (ob)

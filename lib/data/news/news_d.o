@@ -1,5 +1,6 @@
 #/daemons/news_d.c
 data (["reporter.typos":(["next_id":1,]),"general":(["next_id":2,1:(/861097463,1,"Welcome to the Lima Mudlib","Deathblade","deathblade","Welcome!Please take a moment of time to read the /README file and ourpolicy in /USAGE.Feel free to stop by Lima Bean at any time.  You're alwayswelcome to come spend time with us!-Deathblade",/),]),"reporter.question":(["next_id":1,]),"reporter.ideas":(["next_id":1,]),"reporter.todo":(["next_id":1,]),"reporter.bugs":(["next_id":1,]),])
 removed (["reporter.typos":({}),"reporter.question":({}),"general":({}),"reporter.ideas":({}),"reporter.bugs":({}),"reporter.todo":({}),])
-new_format 1
 archive_info ([])
+restrictions ([])
+mail_forward ([])

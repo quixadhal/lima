@@ -13,7 +13,7 @@ string extra_long_stuff()
 }
 
 
-private int block()
+int door_check()
 {
     string ret = environment( this_object())->get_default_exit();
     if( query_closed())

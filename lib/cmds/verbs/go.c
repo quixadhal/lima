@@ -2,84 +2,61 @@
 
 /*
 ** go.c
-**
+** 072197 Completely rewritten by Rassilon in the great exit rewrite.
 */
 
-#include <mudlib.h>
+#include <verbs.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
-int need_to_be_alive() {
-    return 0;
+string array normal_directions = ({ "north", "south", "west", "east",
+                                    "northwest", "northeast", 
+                                    "southwest", "southeast", 
+                                    "up", "down" });
+
+// All of these rules direct all movement descisions through
+// environment(this_body()).
+
+
+void do_go_word_obj(string prep, object ob) {
+    environment(this_body())->do_go_obj(ob, prep);
 }
-
-int need_to_see() {
-    return 0;
-}
-
-//###should be shared somehow with drive.c
-string array normal_dirs = ({  "up", "down", "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
 
 void do_go_wrd_obj(string prep, object ob) {
-    ob->go(prep);
+    // The driver calls this for WRD OBJ rules instead of do_go_word_o()
+    do_go_word_obj(prep, ob);
 }
 
-// This is one of the most heinous functions in this lib. Sorry.
+void do_go_obj(object ob) {
+    environment(this_body())->do_go_obj(ob, 0);
+}
+
 mixed can_go_str(string str) {
-    int is_normal = (member_array(str, normal_dirs) != -1);
-    mixed value;
-    object env = environment(this_body());
-
-    if( env->is_vehicle()) env = environment( env );
-    // Be careful what errors you return here since "go " + str is tried for
-    // all input
-
-    if (is_normal) {
-	mixed ret = 0;
-	if( function_exists( "can_go_" + str, env ))
-	{
-	    ret = call_other( env, "can_go_" + str );
-    if( ret == 1 ) return 1;
-    return ret;
-	}
-    }
-
-    value = env->query_exit_value(str, is_normal);
-    if (stringp(value) && value[0] == '#')
-    {
-	string other_value;
-	if(environment(env) && env->can_travel() && (other_value = 
-	    env->query_final_exit_value(str,is_normal)))
-	{
-	    if(stringp(other_value) && other_value[0] != '#')
-	    {
-		return default_checks();
-	    }
-	    else
-	    {
-		if(stringp(other_value))
-		    return other_value[1..];
-		else
-		    return default_checks();
-	    }
-	}
-	return value[1..];
-    }
-    if (value)
+    mixed value = environment(this_body())->can_go_somewhere(str);
+    if (!stringp(value) && ( value == 1)) 
 	return default_checks();
-    if( is_normal )
-	return "It doesn't appear possible to go that way.\n";
+    if (!stringp(value) && (member_array(str, normal_directions) != -1))
+        return "It doesn't appear you can go that way\n";
+    return value;
 }
 
 
 void do_go_str(string str) {
-
-    this_body()->do_go_somewhere(str);
+    environment(this_body())->do_go_somewhere(str);
 }
 
-array query_verb_info()
-{
-    return ({ ({ "STR" }), ({ "leave" }), ({ "down OBJ", "up OBJ", "around OBJ:v", "to OBJ:v", "over OBJ", "on OBJ", "into OBJ", "in OBJ", "STR" }) });
+void create() {
+    add_rules( ({ "STR" }), ({ "leave" }) );
+    add_rules( ({ "WRD OBJ", "OBJ" }), ({ "climb", "enter" }) );
+    add_rules( ({ "WRD OBJ" }), ({ "stand" }) );
+//    add_rules( ({ "down OBJ", "up OBJ", "around OBJ:v", "to OBJ:v",
+//                  "out of OBJ",
+//                  "over OBJ", "on OBJ", "into OBJ", "in OBJ", "out OBJ", "OBJ" }),
+//               ({ "climb", "enter" }) );
+    clear_flag(NEED_TO_SEE);
+    clear_flag(NEED_TO_BE_ALIVE);
+
+}
 
     /*
     ** exit 1 -> go 1
@@ -92,4 +69,3 @@ array query_verb_info()
     ** exit into OBJ -> go into OBJ
     ** exit in OBJ -> go in OBJ
     */
-}

@@ -2,9 +2,15 @@
 // Folded out from DOOR.   --OH.
 
 
-string our_ident;
-string our_dir;
-object cached_sibling;
+private string our_ident;
+private string sibling_room;
+private object cached_sibling;
+
+
+void setup_sibling(string ident, string room) {
+    our_ident = ident;
+    sibling_room = absolute_path(room, environment(this_object()));
+}
 
 
 int respond_to_sibling_ident(string id) {
@@ -14,12 +20,9 @@ int respond_to_sibling_ident(string id) {
 object get_sibling() {
     if(!environment()) { ZABUG("ENV 0"); return 0; }
     if (!cached_sibling) {
-	string tmp;
 	object ob;
     
-	tmp = environment()->query_exit_value(our_dir);
-        if(!tmp) { ZABUG("NO EXIT VAL"); return 0; }
-	ob = load_object(tmp);
+	ob = load_object(sibling_room);
         if(!ob) { ZABUG("NO LOAD"); return 0; }
 
 	foreach (object ob2 in all_inventory(ob)) {

@@ -4,7 +4,7 @@ if test $# -ne 0; then
     case $1 in
         develop)
 	    echo Preparing to build developmental version of MudOS driver ...
-	    OPTIMIZE="-Wall -DPEDANTIC -pedantic"
+	    OPTIMIZE="-Wall -DPEDANTIC -pedantic -Wmissing-declarations"
 	    DEBUG="-g -DDEBUG -DDEBUG_MACRO"
             ;;
         debug)
@@ -182,8 +182,9 @@ else
         CC=gcc
         if test "${DEBUG-x}" = "x"; then
             OPTIMIZE=${OPTIMIZE-"-O2 -fomit-frame-pointer -fstrength-reduce"}
-	    GNUC=1
         fi
+	GNUC=1
+	CCFLAGS=-D__USE_FIXED_PROTOTYPES__
     else
         clcc comptest.c
         if test $? -eq 0; then
@@ -325,7 +326,7 @@ else
 fi
 
 # Some of these are probably unnecessary
-CFLAGS="$OSFLAGS $WARN $PROFIL $DEBUG $DEBUG_MACRO $DEBUG_NON_FATAL $STR $PIPE $NEED_OLD_CPP"
+CFLAGS="$CCFLAGS $OSFLAGS $WARN $PROFIL $DEBUG $DEBUG_MACRO $DEBUG_NON_FATAL $STR $PIPE $NEED_OLD_CPP $LINUX_DYNAMIC"
 
 #
 # Determine system type
@@ -349,6 +350,8 @@ case $ARCH in
 	OSFLAGS="$OSFLAGS -DSunOS_5"
 	CFLAGS="$CFLAGS -DSunOS_5"
 	;;
+    Linux*)
+        LINUX_DYNAMIC=-rdynamic
 esac
 
 #
@@ -376,7 +379,7 @@ if test ! -f a.out; then
     STRFUNCS=strfuncs.o
 fi
 
-CFLAGS="$OSFLAGS $WARN $PROFIL $DEBUG $DEBUG_MACRO $DEBUG_NON_FATAL $STR $PIPE $NEED_OLD_CPP $INCLUDE"
+CFLAGS="$CCFLAGS $OSFLAGS $WARN $PROFIL $DEBUG $DEBUG_MACRO $DEBUG_NON_FATAL $STR $PIPE $NEED_OLD_CPP $INCLUDE $LINUX_DYNAMIC"
 mkdir $OBJDIR
 
 echo SHELL=/bin/sh >>Makefile.tmp
@@ -398,7 +401,7 @@ echo O=o >>Makefile.tmp
 echo "***************** Configuration completed **************"
 echo "Installing MudOS on $ARCH"
 echo
-echo "Using $INSTALL to install binaries in $INSTALL_DIR."
+echo "../etc"
 echo "Using $CPP for preprocessing."
 echo "Using $CC $CFLAGS $OPTIMIZE to compile."
 echo "Using $YACC $YFLAGS to make the compiler."

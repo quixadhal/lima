@@ -21,10 +21,10 @@
 
 inherit M_ACCESS;
 
-static private string * descriptions;
-static private string * grid_desc_id;
-static private string * edge_rooms;
-static private string	brief_desc;
+nosave private string * descriptions;
+nosave private string * grid_desc_id;
+nosave private string * edge_rooms;
+nosave private string	brief_desc;
 
 #define GRID_HEIGHT	sizeof(grid_desc_id)
 #define GRID_WIDTH	sizeof(grid_desc_id[0])
@@ -127,7 +127,7 @@ object virtual_create(string arg)
 }
 
 // Disappear if no longer needed
-static void clean_up() {
+protected void clean_up() {
     destruct(this_object());
 }
 

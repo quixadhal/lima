@@ -24,18 +24,10 @@
 #include "parser.h"
 #include "../md.h"
 #include "../master.h"
+#include "../efun_protos.h"
 
-/* Most of these names are, unfortunately, historical accidents.  Feel free
- * to change them to something sane. 
- */
-/* Named this just for consistency */
-#define APPLY_USERS 		"parse_command_users"
-/* These match routines used by parse_command() */
-#define APPLY_LITERALS		"parse_command_prepos_list"
-#define APPLY_NOUN		"parse_command_id_list"
-#define APPLY_PLURAL		"parse_command_plural_id_list"
-#define APPLY_ADJECTIVE		"parse_command_adjectiv_id_list"
-/* These match routines in the LIMA mudlib.  [The fact that this file was
+/*
+ * These match routines in the LIMA mudlib.  [The fact that this file was
  * written by an author of the LIMA mudlib is just a coincidence.  Honest.]
  */
 #define IS_LIVING		"is_living"
@@ -89,6 +81,10 @@ static int best_num_errors;
 static parse_result_t *best_result = 0;
 static match_t matches[MAX_MATCHES];
 static int found_level = 0;
+static mapping_t *parse_nicks = 0;
+static array_t *parse_env = 0;
+
+static int direct_object, indirect_object;
 
 static parser_error_t current_error_info;
 static parser_error_t best_error_info;
@@ -97,7 +93,7 @@ static parser_error_t second_parallel_error_info;
 
 static saved_error_t *parallel_errors = 0;
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(PARSE_DEBUG)
 static int debug_parse_depth = 0;
 static int debug_parse_verbose = 0;
 
@@ -206,9 +202,9 @@ void parser_mark P1(parse_info_t *, pinfo) {
 }
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(PARSE_DEBUG)
 /* Usage:  DEBUG_P(("foo: %s:%i", str, i)); */
-void debug_parse P1V(char *, fmt) {
+static void debug_parse P1V(char *, fmt) {
     va_list args;
     char buf[2048];
     char *p = buf;
@@ -291,7 +287,7 @@ static int bitvec_count P1(bitvec_t *, bv) {
     return ret;
 }
 
-void all_objects P2(bitvec_t *, bv, int, remote_flag) {
+static void all_objects P2(bitvec_t *, bv, int, remote_flag) {
     int i;
     int num = (remote_flag ? num_objects : num_objects - num_people);
     int last = BV_WHICH(num);
@@ -395,7 +391,7 @@ static void interrogate_master PROT((void)) {
 	    master_user_list = 0;
 	}
     
-	DEBUG_PP(("[%s]", APPLY_USERS));
+	DEBUG_PP(("[%s]", applies_table[APPLY_USERS]));
 	ret = apply_master_ob(APPLY_USERS, 0);
 	if (ret && ret->type == T_ARRAY) {
 	    master_user_list = ret->u.arr;
@@ -416,7 +412,7 @@ static void interrogate_master PROT((void)) {
 	    literals = 0;
 	}
 	
-	DEBUG_PP(("[%s]", APPLY_LITERALS));
+	DEBUG_PP(("[%s]", applies_table[APPLY_LITERALS]));
 	ret = apply_master_ob(APPLY_LITERALS, 0);
 
 	if (ret && ret->type == T_ARRAY)
@@ -514,11 +510,16 @@ void f_parse_refresh PROT((void)) {
     }
     
     if (!(pi = current_object->pinfo))
-	error("/%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.	Call parse_init() first.\n",
 	      current_object->name);
 
-    remove_ids(pi);
-    pi->flags &= PI_VERB_HANDLER;
+    if (pi->flags & PI_SETUP) {
+	pi->flags &= PI_VERB_HANDLER;
+	pi->flags |= PI_REFRESH;
+    } else {
+	pi->flags &= PI_VERB_HANDLER;
+    }
+    
     /* Recheck this immediately since we don't resync handler objects, only
      * object involved in the parse.
      */
@@ -585,8 +586,8 @@ static void free_parse_result P1(parse_result_t *, pr) {
     for (i = 0; i < 4; i++) {
 	if (pr->res[i].func) FREE_MSTR(pr->res[i].func);
 	if (pr->res[i].args) {
-    	    for (j = 0; j < pr->res[i].num; j++)
-	        free_svalue(((svalue_t *)pr->res[i].args) + j, "free_parse_result");
+	    for (j = 0; j < pr->res[i].num; j++)
+		free_svalue(((svalue_t *)pr->res[i].args) + j, "free_parse_result");
 	    FREE(pr->res[i].args);
 	}
     }
@@ -607,6 +608,14 @@ static void clear_result P1(parse_result_t *, pr) {
 
 static void free_parse_globals PROT((void)) {
     int i;
+
+    if (parse_nicks)
+	free_mapping(parse_nicks);
+    if (parse_env)
+	free_array(parse_env);
+    
+    parse_nicks = 0;
+    parse_env = 0;
     
     pi = 0;
     hash_clean();
@@ -615,7 +624,7 @@ static void free_parse_globals PROT((void)) {
 	    free_object(loaded_objects[i], "free_parse_globals");
 	objects_loaded = 0;
     }
-#ifdef DEBUG
+#if defined(DEBUG) || defined(PARSE_DEBUG)
     debug_parse_depth = 0;
 #endif
 }
@@ -671,6 +680,9 @@ static int tokenize P2(char **, rule, int *, weightp) {
 			case 'p':
 			    i |= PLURAL_MODIFIER;
 			    break;
+			case 'c':
+			    i |= CHOOSE_MODIFIER;
+			    break;
 			default:
 			    error("Unknown modifier '%c'\n", start[-1]);
 			}
@@ -681,7 +693,7 @@ static int tokenize P2(char **, rule, int *, weightp) {
 		    /* some kind of object */
 		    (*weightp) += 2;
 		    /* This next one is b/c in the presence of a singular
-		     * and plural match, we want the singular.  Consider
+		     * and plural match, we want the singular.	Consider
 		     * 'take fish' with >1 fish. */
 		    if (i & PLURAL_MODIFIER)
 			(*weightp)--;
@@ -758,6 +770,9 @@ static void free_words PROT((void)) {
 static void interrogate_object P1(object_t *, ob) {
     svalue_t *ret;
 
+    if (ob->pinfo->flags & PI_REFRESH)
+	remove_ids(ob->pinfo);
+    
     if (ob->pinfo->flags & PI_SETUP)
 	return;
     
@@ -840,7 +855,7 @@ static object_t *next_inv P2(object_t *, parent, object_t *, sibling) {
     push_object(sibling);
     ret = apply_master_ob(APPLY_NEXT_INVENTORY, 2);
     if (ret && ret != (svalue_t *)-1 && ret->type == T_OBJECT)
-        return ret->u.ob;
+	return ret->u.ob;
     return (object_t *)NULL;
 #endif
 }
@@ -854,7 +869,7 @@ static object_t *super P1(object_t *, ob) {
     push_object(ob);
     ret = apply_master_ob(APPLY_ENVIRONMENT, 1);
     if (ret && ret != (svalue_t *)-1 && ret->type == T_OBJECT)
-        return ret->u.ob;
+	return ret->u.ob;
     return (object_t *)NULL;
 #endif
 }
@@ -888,18 +903,79 @@ static void rec_add_object P2(object_t *, ob, int, flags) {
 	rec_add_object(o, flags);
 }
 
+static void add_objects_from_array P2(array_t *, arr, int, flags) {
+    int i, f;
+    int last_flags = 0;
+    int last_was_me = 0;
+    
+    for (i = 0; i < arr->size; i++) {
+	object_t *ob;
+	
+	if (arr->item[i].type == T_ARRAY) {
+	    f = flags;
+	    if (last_flags & PI_INV_VISIBLE) {
+		if (!(last_flags & PI_INV_ACCESSIBLE))
+		    f &= ~RAO_INREACH;
+		if (last_was_me)
+		    f |= RAO_MY;
+		add_objects_from_array(arr->item[i].u.arr, f);
+	    }
+	}
+	last_flags = 0;
+	last_was_me = 0;
+	if (arr->item[i].type == T_OBJECT &&
+	    !((ob = arr->item[i].u.ob)->flags & O_DESTRUCTED)) {
+	    if (ob->pinfo) {
+		if (num_objects == MAX_NUM_OBJECTS)
+		    return;
+		if (flags & RAO_MY)
+		    bitvec_set(&my_objects, num_objects);
+		if (ob == parse_user) {
+		    me_object = num_objects;
+		    last_was_me = 1;
+		}
+		object_flags[num_objects] = flags & RAO_INREACH;
+		loaded_objects[num_objects++] = ob;
+		add_ref(ob, "rec_add_object");
+		last_flags = ob->pinfo->flags;
+	    }
+	}
+    }
+}
+
+static void get_objects_from_array P1(array_t *, arr) {
+    int i;
+    
+    for (i = 0; i < arr->size; i++) {
+	object_t *ob;
+
+	if (arr->item[i].type == T_ARRAY)
+	    get_objects_from_array(arr->item[i].u.arr);
+	if (arr->item[i].type != T_OBJECT) continue;
+	ob = arr->item[i].u.ob;
+
+	if (ob->flags & O_DESTRUCTED) continue;
+	if (ob->pinfo && !(ob->pinfo->flags & (PI_SETUP|PI_REFRESH))) {
+	    if (num_objects == MAX_NUM_OBJECTS)
+		return;
+	    loaded_objects[num_objects++] = ob;
+	    add_ref(ob, "find_uninited_objects");
+	}
+    }
+}
+
 static void find_uninited_objects P1(object_t *, ob) {
     object_t *o;
     
     if (!ob) return;
     if (ob->flags & O_DESTRUCTED) return;
-    if (ob->pinfo && !(ob->pinfo->flags & PI_SETUP)) {
+    if (ob->pinfo && !(ob->pinfo->flags & (PI_SETUP|PI_REFRESH))) {
 	if (num_objects == MAX_NUM_OBJECTS)
 	    return;
 	loaded_objects[num_objects++] = ob;
-	add_ref(ob, "find_united_objects");
+	add_ref(ob, "find_uninited_objects");
     }
-    for (o = first_inv(ob);  o;  o = next_inv(ob, o))
+    for (o = first_inv(ob); o; o = next_inv(ob, o))
 	find_uninited_objects(o);
 }    
 
@@ -924,6 +1000,30 @@ static hash_entry_t *add_hash_entry P1(char *, str) {
     he->flags = 0;
     hash_table[h] = he;
     return he;
+}
+
+void mark_hash_entry P1(char *, str) {
+    int h = DO_HASH(str, HASH_SIZE);
+    hash_entry_t *he;
+
+    DEBUG_PP(("mark_hash_entry: %s", str));
+    he = hash_table[h];
+    while (he) {
+	if (he->name == str) {
+	    he->flags |= HV_NICKNAME;
+	    return;
+	}
+	he = he->next;
+    }
+
+    he = ALLOCATE(hash_entry_t, TAG_PARSER, "mark_hash_entry");
+    he->name = ref_string(str);
+    bitvec_zero(&he->pv.noun);
+    bitvec_zero(&he->pv.plural);
+    bitvec_zero(&he->pv.adj);
+    he->next = hash_table[h];
+    he->flags = HV_NICKNAME;
+    hash_table[h] = he;
 }
 
 static void add_to_hash_table P2(object_t *, ob, int, index) {
@@ -969,12 +1069,30 @@ static void init_users() {
     for (i = 0; i < master_user_list->size; i++) {
 	if (master_user_list->item[i].type == T_OBJECT
 	    && (ob = master_user_list->item[i].u.ob)->pinfo
-	    && !(ob->pinfo->flags & PI_SETUP)) {
+	    && !(ob->pinfo->flags & (PI_SETUP|PI_REFRESH))) {
 	    DEBUG_PP(("adding: /%s", ob->name));
 	    if (num_objects == MAX_NUM_OBJECTS)
 		return;
 	    loaded_objects[num_objects++] = ob;
 	    add_ref(ob, "init_users");
+	}
+    }
+}
+
+/* Note extremely clever delayed evaluation to avoid having to lookup object
+ * pointer -> index 
+ */
+static void add_nicknames P1(mapping_t *, map) {
+    int i;
+    
+    for (i = 0; i < map->table_size; i++) {
+	mapping_node_t *mn;
+	
+	for (mn = map->table[i]; mn; mn = mn->next) {
+	    if (mn->values[0].type == T_STRING) {
+		hash_entry_t *he = add_hash_entry(mn->values[0].u.string);
+		he->flags |= HV_NICKNAME;
+	    }
 	}
     }
 }
@@ -1000,10 +1118,15 @@ static void load_objects PROT((void)) {
     bitvec_zero(&cur_accessible);
     /* Step 1: */
     num_objects = 0;
-    if (!parse_user || parse_user->flags & O_DESTRUCTED)
-	error("No this_player()!\n");
 
-    find_uninited_objects(super(parse_user));
+    if (parse_env) {
+	get_objects_from_array(parse_env);
+    } else {
+	if (!parse_user || parse_user->flags & O_DESTRUCTED)
+	    error("No this_player()!\n");
+	
+	find_uninited_objects(super(parse_user));
+    }
     /* get users from master object */
     interrogate_master();
     init_users();
@@ -1018,10 +1141,16 @@ static void load_objects PROT((void)) {
     me_object = -1;
     
     bitvec_zero(&my_objects);
-    rec_add_object(super(parse_user), RAO_INREACH);
+    if (parse_env) {
+	add_objects_from_array(parse_env, RAO_INREACH);
+    } else {
+	rec_add_object(super(parse_user), RAO_INREACH);
+    }
     he = add_hash_entry(my_string);
     he->flags |= HV_ADJ;
     bitvec_copy(&he->pv.adj, &my_objects);
+    if (parse_nicks)
+	add_nicknames(parse_nicks);
     
     num_people = 0;
     for (i = 0; i < master_user_list->size; i++) {
@@ -1160,6 +1289,29 @@ static void free_parser_error P1(parser_error_t *, p) {
     p->error_type = 0;
 }
 
+/* They actually used the word, so do the work of looking it up */
+static void expand_node P1(hash_entry_t *, he) {
+    svalue_t *sv;
+    object_t *ob;
+    int i;
+    
+    he->flags &= ~HV_NICKNAME;
+    sv = find_string_in_mapping(parse_nicks, he->name);
+    if (sv->type != T_OBJECT) return;
+    ob = sv->u.ob;
+    if (ob->flags & O_DESTRUCTED) return;
+    if (ob->pinfo == 0) return;
+
+    /* linear, but we only do this once per nickname they use */
+    for (i = 0; i < num_objects; i++) {
+	if (loaded_objects[i] == ob) {
+	    he->flags |= HV_NOUN;
+	    bitvec_set(&he->pv.noun, i);
+	    return;
+	}
+    }
+}
+
 static void parse_obj P3(int, tok, parse_state_t *, state,
 			 int, ordinal) {
     parse_state_t local_state;
@@ -1193,6 +1345,7 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
 	    }
 	    local_state = *state;
 	    if (tok & PLURAL_MODIFIER) {
+		local_state.num_objs++;
 		mp = add_match(&local_state, tok,
 			       start, state->word_index - 1);
 		bitvec_copy(&mp->val.obs, &objects);
@@ -1209,6 +1362,7 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
 	    {
 		if (me_object != -1) {
 		    local_state = *state;
+		    local_state.num_objs++;
 		    mp = add_match(&local_state, tok,
 				   start, state->word_index - 1);
 		    bitvec_zero(&mp->val.obs);
@@ -1225,10 +1379,18 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
 	    }
 	    break;
 	}
-	ord_legal = 0;
+	/* This is a hack; in the future we are going to have to handle
+	   <possessive> <ordinal> better.  The problem is we don't want
+	   to accept "red 1st sword" but we do want "my first sword" and
+	   "my 1st red sword", and right now we don't distinguish between
+	   ordinals and adjectives.  Woops. */
+	if (str != my_string) ord_legal = 0;
 	hnode = hash_table[DO_HASH(str, HASH_SIZE)];
 	while (hnode) {
 	    if (hnode->name == str) {
+		if (hnode->flags & HV_NICKNAME)
+		    expand_node(hnode);
+
 		if (singular_legal && (hnode->flags & HV_NOUN)) {
 		    int explore_errors = !best_match &&
 			state->num_errors < best_num_errors;
@@ -1273,6 +1435,7 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
 				   start, state->word_index - 1);
 		    bitvec_copy(&mp->val.obs, &objects);
 		    mp->ordinal = ordinal;
+		    local_state.num_objs++;
 		    goto do_the_parse;
 
 		we_have_an_error:
@@ -1336,6 +1499,7 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
 				   start, state->word_index - 1);
 		    bitvec_copy(&mp->val.obs, &objects);
 		    mp->ordinal = ordinal;
+		    local_state.num_objs++;
 		    goto p_do_the_parse;
 
 		p_we_have_an_error:
@@ -1513,7 +1677,7 @@ static int push_real_names P2(int, try, int, which) {
     return match + (try >= 2);
 }
 
-char *rule_string P1(verb_node_t *, vn) {
+static char *rule_string P1(verb_node_t *, vn) {
     int index = 0;
     int tok;
     static char buf[1024];
@@ -1523,7 +1687,7 @@ char *rule_string P1(verb_node_t *, vn) {
     p = buf;
     
     while (1) {
-	switch (tok = vn->token[index++]) {
+	switch ((tok = vn->token[index++]) & ~CHOOSE_MODIFIER) {
 	case OBJ_A_TOKEN:
 	case OBJ_TOKEN:
 	    p = strput(p, end, "OBJ ");
@@ -1553,7 +1717,7 @@ char *rule_string P1(verb_node_t *, vn) {
 	    } else {
 		*(p-1) = 0; /* nuke last space */
 	    }
-            return buf;
+	    return buf;
 	default:
 	    p = strput(p, end, literals[-(tok + 1)]);
 	    *p++ = ' ';
@@ -1627,7 +1791,13 @@ static void push_bitvec_as_array P2(bitvec_t *, bv, int, errors_too) {
     }
 }
 
-static char *prefixes[] = { "can_", "direct_", "indirect_", "do_" };
+/* Belgarat: this function has been extended to handle 
+ *  two more parser apply calls. direct_ and indirect_ applies are
+ *  called sometimes more than once
+ */
+static char *prefixes[] = { "can_", "direct_", "indirect_", "do_",
+  /* Belgarat: names for the second pass with filled object arguments */
+  "direct_", "indirect_" };
 
 static int make_function P6(char *, buf, char *, end, int, which,
 			    parse_state_t *, state, int, try,
@@ -1660,7 +1830,7 @@ static int make_function P6(char *, buf, char *, end, int, which,
     }
     while ((tok = parse_vn->token[index++])) {
 	*buf++ = '_';
-	switch (tok) {
+	switch (tok & ~CHOOSE_MODIFIER) {
 	case OBJ_TOKEN:
 	case OBJ_A_TOKEN:
 	    buf = strput(buf, end, "obj");
@@ -1669,7 +1839,7 @@ static int make_function P6(char *, buf, char *, end, int, which,
 	case OBS_TOKEN:
 	case ADD_MOD(OBS_TOKEN, VIS_ONLY_MODIFIER):
 	    if (omatch + 1 >= which ||
-		!(matches[match].token & PLURAL_MODIFIER))
+		!(matches[match].token & PLURAL_MODIFIER) || (which >= 4))
 		buf = strput(buf, end, "obj");
 	    else
 		buf = strput(buf, end, "obs");
@@ -1678,7 +1848,7 @@ static int make_function P6(char *, buf, char *, end, int, which,
 	case LVS_TOKEN:
 	case ADD_MOD(LVS_TOKEN, VIS_ONLY_MODIFIER):
 	    if (omatch +1 >= which ||
-		!(matches[match].token & PLURAL_MODIFIER))
+		!(matches[match].token & PLURAL_MODIFIER) || (which >= 4))
 		buf = strput(buf, end, "liv");
 	    else
 		buf = strput(buf, end, "lvs");
@@ -1688,25 +1858,32 @@ static int make_function P6(char *, buf, char *, end, int, which,
 	case LIV_A_TOKEN:
 	    buf = strput(buf, end, "liv");
 
-	put_obj_value:
+	  put_obj_value:
 	    omatch++;
-	    if (omatch == which) {
+	    /* Belgarat: this part was rewritten; behaviour for `which <= 4' was
+	     * retained and two more calls were added. There seemed to be some kind
+	     * of bug in the original code, but I'm not quite sure.
+	     */
+	    if (which >= 4) {
+		if (omatch == 1) {
+		    push_object(loaded_objects[direct_object >= 0 ? direct_object : 0]);
+		} else {
+		    push_object(loaded_objects[indirect_object >= 0 ? indirect_object : 0]);
+		}
+	    } else if (omatch == which) {
 		push_object(target);
-	    } else
-	    if (omatch > which) {
+	    } else if (omatch > which) {
 		push_number(0);
-	    } else
-	    if (matches[match].token == ERROR_TOKEN) {
+	    } else if (matches[match].token == ERROR_TOKEN) {
 		push_number(0);
-	    } else
-	    if (matches[match].token & PLURAL_MODIFIER) {
+	    } else if (matches[match].token & PLURAL_MODIFIER) {
 		push_bitvec_as_array(&matches[match].val.obs, which == 3);
-	    } else
-	    if (loaded_objects[matches[match].val.number]->flags & O_DESTRUCTED) {
+	    } else if (matches[match].val.number < 0) {
 		push_number(0);
-	    } else
+	    } else if (loaded_objects[matches[match].val.number]->flags & O_DESTRUCTED) {
+		push_number(0);
+	    } else 
 		push_object(loaded_objects[matches[match].val.number]);
-
 	    match++;
 	    on_stack++;
 	    break;
@@ -1880,6 +2057,12 @@ static void singular_check_functions P3(int, which, parse_state_t *, state,
 				    was_error = 0;
 				    match = 32 * i + k;
 				}
+				if (m->token & CHOOSE_MODIFIER) {
+				    if (match >= 0) m->val.number = match;
+				    return;
+				}
+			    } else {
+				match = -1;
 			    }
 			}
 		    } else {
@@ -1962,6 +2145,341 @@ static void plural_check_functions P3(int, which, parse_state_t *, state,
 	m->token = ERROR_TOKEN;
 }
 
+/* Belgarat: The next functions are used for tests and error
+ * reporting in the second pass of parsing when all parameters are exactly
+ * filled (including the object ones)
+ */
+static int cache_last_parallel_error(parser_error_t *storage) {
+    if (!parallel_error_info.error_type) 
+	return 0;
+    free_parser_error(storage);
+    *storage = parallel_error_info;
+    parallel_error_info.error_type = 0;
+    return 1;
+}
+
+static int use_cached_parallel_error P2(parse_state_t *, state,
+					parser_error_t*, err) {
+    if (!err->error_type) 
+	return 0;
+    if (state->num_errors++ == 0) {
+	free_parser_error(&current_error_info);
+	current_error_info = *err;
+	err->error_type = 0;
+    }
+    return 1;
+}
+
+static void dependent_check_functions P3(int, which, parse_state_t *, state,
+					 match_t *, m) {
+    bitvec_t *bv = &m->val.obs;
+    int i, k;
+    unsigned int j;
+    int found_one = 0;
+    parser_error_t errinfo;
+    
+    errinfo.error_type = 0;
+    for (i = 0; i < bv->last; i++) {
+	if (bv->b[i]) {
+	    j = 1;
+	    k = 0;
+	    while (j) {
+		if (bv->b[i] & j) {
+		    int ret = parallel_check_functions(loaded_objects[32 * i + k], state, which);
+		    if (!ret || cache_last_parallel_error(&errinfo))
+			bv->b[i] &= ~j;
+		    else {
+			if (!found_one) m->val.number = 32*i+k;
+			found_one = 1;
+		    }
+		}
+		j <<= 1;
+		k++;
+	    }
+	}
+    }
+    if (!found_one && (
+	use_cached_parallel_error(state, &errinfo) || 
+	use_last_parallel_error(state)) ) {
+	m->token = ERROR_TOKEN;
+    }
+    /* Translate me!
+     * Nepotrebuji, aby se mi v pameti flakaly errorove hlasky, ktere
+     * se ani nepouziji.
+     */
+    free_parser_error(&errinfo);
+}
+
+#define CHECK_DIRECT_OK		  1
+#define CHECK_INDIRECT_OK	  2
+#define CHECK_ERROR_RELATION	  4
+#define CHECK_RELATION_COMPLETE	  8
+
+/* Translate me!
+ * Z funkce vypadne DIRECT_OK, kdyz je kombinace schvalena directem,
+ * INDIRECT_OK, kdyz je kombinace schvalena indirectem
+ * a ERROR_RELATION kdyz dojde k nejake (libovolne) chybe
+ * Jinymi slovy, je li zaroven DIRECT_OK a INDIRECT_OK,
+ * je to platna kombinace a ERROR_RELATION urcuje, zda doslo k chybe
+ * Jestlize jedno z DIRECT a INDIRECT schazi, je vztah neuplny
+ * a nebude zaznamenan
+ */
+
+/* Belgarat:
+ * This function checks if two object can be used together in two-object rule.
+ * The function returns DIRECT_OK, when only direct object agrees to the action,
+ * IDIRECT_OK if only indirect object agrees or combination of both, if both
+ * objects agree (in this case flag CHECK_RELATION_COMPLETE is set as well).
+ * If it returns ERROR_RELATION, there's some error (that should be saved for
+ * further processing).
+ */
+static int check_one_relation(parse_state_t * state, int direct_first, 
+			      parser_error_t *errinfo) 
+{
+    int res;
+    int ob;
+    parser_error_t err;
+    
+    res = 0;
+    err.error_type = 0;
+    ob = direct_first ? direct_object : indirect_object;
+    res = parallel_check_functions(
+	loaded_objects[direct_first ? direct_object : indirect_object], state, 
+	direct_first ? 4 : 5);
+    if (!res) {
+	/* The object doesn't exist, returned 0 or "#error". This object
+	 * can not be used for the rule.
+	 */
+	return CHECK_ERROR_RELATION;
+    }
+    res |= direct_first ? CHECK_DIRECT_OK : CHECK_INDIRECT_OK;
+    if (cache_last_parallel_error(&err)) {
+	/* The object could be used in general, but not at this time.
+	 * mark the rule with error flag so it won't be used for action,
+	 * but continue the processing.
+	 * If both objects returns "error message", then the objects are
+	 * valid for the rule, but they cannot be used right now.
+	 */
+	res |= CHECK_ERROR_RELATION;
+    }
+    /* checking the other object in the pair */
+    res = parallel_check_functions(
+	loaded_objects[direct_first ? indirect_object: direct_object], state, 
+	direct_first ? 5 : 4);
+    if (!res) {
+	/* the same as above, but for the other object */
+	if (err.error_type) {
+	    *errinfo = err;
+	}
+	return res | CHECK_ERROR_RELATION;
+    }
+    res |= direct_first ? CHECK_INDIRECT_OK : CHECK_DIRECT_OK;
+    /* don't cache the new error if the previous check returned eror too */
+    if (!err.error_type && cache_last_parallel_error(&err)) {
+	/* The same as above - the object can be used for the action,
+	 * but not right now. Mark the pair as error and keep the error 
+	 * cached
+	 */
+	res |= CHECK_ERROR_RELATION;
+    }
+    /* mark the relation as complete. The relation is complete even if some
+     * error has occured. In general the relation is complete when both objects
+     * can operate together, but not now (they returned string error
+     * description without # as the first character)
+     */
+    res |= CHECK_RELATION_COMPLETE;
+    if (err.error_type)
+	*errinfo = err;
+    return res;
+}
+
+/* Belgarat:
+ * This function checks if the objects in two-object rule can really 
+ * operate together. It checks each object that matched the first OBJ token
+ * with each object that matched the second OBJ.
+ */
+static void check_object_relations P1 (parse_state_t *, state) {
+    int i, direct = -1, indirect = -1;
+    int use_indirect;
+    bitvec_t *dir_objs, *indir_objs;
+    int j, k, l, m, n, ret;
+    int found_direct = -1, found_indirect = -1;
+    int direct_unique, indirect_unique;
+    int found_something;
+    int direct_ordinal, finished = 0;
+    bitvec_t indirects, directs;
+    parser_error_t err;
+    
+    bitvec_zero(&directs);
+    bitvec_zero(&indirects);
+    err.error_type = 0;
+    for (i = 0; i < state->num_matches; i++) {
+	if (matches[i].token & OBJ_A_TOKEN) {
+	    if (direct < 0) direct = i; else indirect = i;
+	} else if (matches[i].token == ERROR_TOKEN) return;
+    }
+    if (matches[indirect].ordinal) {
+	/* if the indirect object is used with ordinal number, choose only
+	 * that single indirect object. Imagine how it would be confusing if
+	 * you enter "get apple from the second cask" and the REAL second
+	 * cask would be skipped, because there is no apple there... without
+	 * error message.
+	 */
+	int ord;
+	bitvec_t *bv = &matches[indirect].val.obs;
+	/* FIXME: this gets a gross line of the year award */
+	for (ord = matches[indirect].ordinal, (ord > 0) && (i = 0); i < bv->last; i++) {
+	    if (bv->b[i]) {
+		j = 1, k = 0;
+		while(j) {
+		    if (bv->b[i] & j) {
+			/* found some object, decrement counter */
+			if (!--ord) {
+			    bitvec_zero(bv);
+			    bitvec_set(bv, use_indirect = sizeof(int)*i + k);
+			    break;
+			}
+		    }
+		    j <<= 1, k++;
+		}
+	    }
+	}
+	if (ord) {
+	    /* there's less indirect objs than specified --> error */
+	    matches[indirect].token = ERROR_TOKEN;
+	    if (state->num_errors++ == 0) {
+		free_parser_error(&current_error_info);
+		current_error_info.error_type = ERR_ORDINAL;
+		current_error_info.err.ord_error = -(bitvec_count(bv) + 1);
+	    }
+	    return; 
+	}
+    } else { 
+	/* check if there's no SO much possibilities. if so, error out. */
+	int direct_count = bitvec_count(&directs);
+	int indirect_count = bitvec_count(&indirects);
+	/* if you want to increase performance, reduce the number in the if
+	 * below.  if it will be at least 20, the players should not complain
+	 * too much 
+	 */
+	if (direct_count * indirect_count >= 80) {
+	    state->num_errors++;
+	    free_parser_error(&current_error_info);
+	    current_error_info.error_type = ERR_MANY_PATHS;
+	    return;
+	}
+    }
+    dir_objs = &matches[direct].val.obs;
+    indir_objs = &matches[indirect].val.obs;
+    
+    direct_unique = !(matches[direct].token & PLURAL_MODIFIER);
+    indirect_unique = !(matches[indirect].token & PLURAL_MODIFIER);
+    
+    if (!(direct_ordinal = matches[direct].ordinal)) direct_ordinal = -1;
+    
+    for (i = 0; !finished && i < dir_objs->last; i++) if (dir_objs->b[i]) {
+	for(j = 1, k = 0; j ; j <<=1, k++) if (dir_objs->b[i] & j) {
+	    int direct_ok = 0;
+	    /* found direct object.
+	     * I have to test it against either use_indirect or against
+	     * all indirect objects I have.
+	     */
+	    direct_object = 32 * i + k;
+	    found_something = 0;
+	    for (l = 0; l < indir_objs->last; l++) if (indir_objs->b[l]) {
+		for (m = 1, n = 0; m ; m <<= 1, n++) if (indir_objs->b[l] & m) {
+		    /* found direct/indirect object combination.
+		     * test if that can succeed.
+		     * if yes, remember that indirect obj.
+		     */
+		    indirect_object = 32 * l + n;
+		    /* indirect unique --> check indirect_ first. */
+		    ret = check_one_relation(state, indirect_unique, &err);
+		    
+		    /* If it is not complete relation, I can do nothing
+		     * because both the direct and indirect objects have to agree
+		     * on the relation.
+		     */
+		    if (!(ret & CHECK_RELATION_COMPLETE)) continue;
+		    
+		    /* from now on, direct and indirect object are OK */
+		    if (indirect_unique && found_indirect >= 0) {
+			if (found_indirect != indirect_object) {
+			    matches[indirect].token = ERROR_TOKEN;
+			    if (state->num_errors++ == 0) {
+				free_parser_error(&current_error_info);
+				
+				current_error_info.error_type = ERR_AMBIG;
+				bitvec_copy(&current_error_info.err.obs, 
+					    &matches[indirect].val.obs);
+			    }
+			    free_parser_error(&err);
+			    return;
+			}
+		    }
+		    if (direct_ordinal > 0) direct_ordinal--;
+		    
+		    if (direct_ordinal <= 0 && direct_unique && found_direct >= 0) {
+			if (found_direct != direct_object) {
+			    matches[indirect].token = ERROR_TOKEN;
+			    if (state->num_errors++ == 0) {
+				free_parser_error(&current_error_info);
+				
+				current_error_info.error_type = ERR_AMBIG;
+				bitvec_copy(&current_error_info.err.obs, 
+					    &matches[direct].val.obs);
+			    }
+			    free_parser_error(&err);
+			    return;
+			}
+		    }
+		    /* If there's no error, mark direct and indirect object
+		     * in the tables. Note that insufficient directs that have
+		     * been found result in no error, so indirect object is
+		     * marked in case there's some ambiguity
+		     */
+		    if (!(ret & CHECK_ERROR_RELATION)) {
+			if (direct_ordinal <= 0) {
+			    bitvec_set(&directs, direct_object);
+			}
+			bitvec_set(&indirects, indirect_object);
+		    }
+		    /* regardles of error state mark found direct/indirect pair
+		     * for possible future ambiguity checks
+		     */
+		    if (direct_ordinal <= 0)
+			found_direct = direct_object;
+		    found_indirect = indirect_object;
+		}
+	    }
+	    /* end of processing of direct object */
+	    if (found_direct && (!direct_ordinal || 
+				 (direct_unique && (matches[direct].token & CHOOSE_MODIFIER)))) {
+		finished = 1;
+		break;
+	    }
+	}
+    }
+    /* all searched, now evaluate the results. */
+    bitvec_copy(dir_objs, &directs);
+    bitvec_copy(indir_objs, &indirects);
+    if (direct_unique) matches[direct].val.number = found_direct; 
+    else matches[direct].val.number = 0; 
+    if (indirect_unique) matches[indirect].val.number = found_indirect;
+    else matches[indirect].val.number = 0;
+    
+    if (found_direct < 0) {
+	if (use_cached_parallel_error(state, &err) ||
+	    use_last_parallel_error(state)) 
+	    matches[direct].token = ERROR_TOKEN;
+    } else if (found_indirect < 0) {
+	if (use_cached_parallel_error(state, &err) ||
+	    use_last_parallel_error(state)) 
+	    matches[indirect].token = ERROR_TOKEN;
+    }
+    free_parser_error(&err);
+}
+
 static void we_are_finished P1(parse_state_t *, state) {
     char func[256];
     char *p;
@@ -1973,7 +2491,7 @@ static void we_are_finished P1(parse_state_t *, state) {
     DEBUG_P(("we_are_finished"));
     
     if (found_level < 2) found_level = 2;
-
+    
     /* ignore it if we already have somethign better */
     if (best_match >= parse_vn->weight) {
 	DEBUG_P(("Have a better match; aborting ..."));
@@ -1986,10 +2504,10 @@ static void we_are_finished P1(parse_state_t *, state) {
 	if (state->num_errors == best_num_errors
 	    && parse_vn->weight < best_error_match) return;
     } else local_error = 1; /* if we have an error, it was local */
-
+    
     if (!check_functions(parse_user, state))
 	return;
-
+    
     clear_parallel_errors(&parallel_errors);
     which = 1;
     for (which = 1, mtch = 0; which < 3 && mtch < state->num_matches; mtch++) {
@@ -2005,21 +2523,27 @@ static void we_are_finished P1(parse_state_t *, state) {
 	
 	if (tok & PLURAL_MODIFIER)
 	    plural_check_functions(which, state, &matches[mtch]);
+	else if (state->num_objs == 2)
+	    dependent_check_functions(which, state, &matches[mtch]);
 	else
 	    singular_check_functions(which, state, &matches[mtch]);
 	which++;
     }
-
+    
+    if (state->num_objs == 2 && !state->num_errors) {
+	check_object_relations(state);
+    }
     if (state->num_errors) {
 	int weight = parse_vn->weight;
 	
 	if (current_error_info.error_type == ERR_THERE_IS_NO) {
 	    /* ERR_THERE_IS_NO is basically a STR in place of an OBJ,
-	       so is weighted far too highly.  Give it approximately
-	       the same weight as a STR. */
+	     * so is weighted far too highly.  Give it approximately
+	     * the same weight as a STR.
+	     */
 	    weight = 1;
 	}
-
+	
 	if (state->num_errors == best_num_errors &&
 	    weight <= best_error_match) {
 	    DEBUG_P(("Have better match; aborting ..."));
@@ -2105,7 +2629,7 @@ static void parse_rule P1(parse_state_t *, state) {
 	    DEBUG_DEC;
 	    return;
 	}
-	switch (tok) {
+	switch (tok & ~CHOOSE_MODIFIER) {
 	case 0:
 	    if (state->word_index == num_words)
 		we_are_finished(state);
@@ -2257,6 +2781,7 @@ static void parse_rules PROT((void)) {
 		local_state.word_index = 1;
 		local_state.num_matches = 0;
 		local_state.num_errors = 0;
+		local_state.num_objs = 0;
 		parse_rule(&local_state);
 	    }
 	}
@@ -2311,7 +2836,7 @@ static void parse_recurse P3(char **, iwords, char **, ostart, char **, oend) {
 	    *p++ = ' ';
 	} while (*iwp[0]);
     } else {
-#ifdef DEBUG
+#if defined(DEBUG) || defined(PARSE_DEBUG)
 	if (debug_parse_depth) {
 	    char dbuf[1024];
 	    char *end = EndOf(dbuf);
@@ -2465,6 +2990,8 @@ static svalue_t * get_the_error P2(parser_error_t *, err, int, obj) {
 	return apply_master_ob(APPLY_PARSER_ERROR_MESSAGE, 3);
     case ERR_BAD_MULTIPLE:
 	return apply_master_ob(APPLY_PARSER_ERROR_MESSAGE, 2);
+    case ERR_MANY_PATHS:
+  return apply_master_ob(APPLY_PARSER_ERROR_MESSAGE, 5);
     default:
 	pop_stack();
 	sp--;
@@ -2475,22 +3002,28 @@ static svalue_t * get_the_error P2(parser_error_t *, err, int, obj) {
 
 void f_parse_sentence PROT((void)) {
     if (!current_object->pinfo)
-	error("/%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.	Call parse_init() first.\n",
 	      current_object->name);
 
     if (pi)
 	error("Illegal to call parse_sentence() recursively.\n");
     
     /* may not be done in case of an error, or in case of tail recursion.
-       if we are called tail recursively, we don't need this any more.
-       */
+     * if we are called tail recursively, we don't need this any more.
+     */
     if (best_result) {
 	free_parse_result(best_result);
 	best_result = 0;
     }
 
-    if (st_num_arg == 2 && (sp--)->u.number) {
-#ifdef DEBUG
+    if (st_num_arg == 4) 
+	parse_nicks = (sp--)->u.map;
+    
+    if (st_num_arg >= 3)
+	parse_env = (sp--)->u.arr;
+
+    if (st_num_arg >= 2 && (sp--)->u.number) {
+#if defined(DEBUG) || defined(PARSE_DEBUG)
 	debug_parse_depth = 1;
 	if ((sp + 1)->u.number > 1)
 	    debug_parse_verbose = 1;
@@ -2499,7 +3032,7 @@ void f_parse_sentence PROT((void)) {
     } else {
 	debug_parse_depth = 0;
 #else
-	error("Parser debugging not enabled. (compile with -DDEBUG).\n");
+	error("Parser debugging not enabled. (compile with -DDEBUG or -DPARSE_DEBUG).\n");
 #endif
     }
 
@@ -2543,10 +3076,10 @@ void f_parse_my_rules PROT((void)) {
     int flag = (st_num_arg == 3 ? (sp--)->u.number : 0);
     
     if (!(sp-1)->u.ob->pinfo)
-	error("/%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.	Call parse_init() first.\n",
 	      (sp-1)->u.ob->name);
     if (!current_object->pinfo)
-	error("/%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.	Call parse_init() first.\n",
 	      current_object->name);
 
     if (pi)
@@ -2643,7 +3176,7 @@ void f_parse_add_rule() {
     verb_entry = 0;
     handler = current_object;
     if (!(handler->pinfo))
-	error("/%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.	Call parse_init() first.\n",
 	      handler->name);
 
     /* We need the literals */
@@ -2708,7 +3241,7 @@ void f_parse_add_rule() {
 
     ret = apply(LIVINGS_ARE_REMOTE, handler, 0, ORIGIN_DRIVER);
     if (!IS_ZERO(ret))
-        handler->pinfo->flags |= PI_REMOTE_LIVINGS;
+	handler->pinfo->flags |= PI_REMOTE_LIVINGS;
 
     /* return */
     free_string_svalue(sp--);
@@ -2809,6 +3342,12 @@ void f_parse_add_synonym() {
 	verb_node = (verb_node_t *)DXALLOC(sizeof(verb_node_t) + sizeof(int)*i,
 					   TAG_PARSER, "parse_add_rule");
 	memcpy(verb_node, vn, sizeof(verb_node_t) + sizeof(int)*i);
+	for (i = 0; vn->token[i]; i++)
+	    if (vn->token[i] >= OBJ_A_TOKEN) {
+		verb_entry->flags |= VB_HAS_OBJ;
+		break;
+	    }
+	
 	verb_node->next = verb_entry->node;
 	verb_entry->node = verb_node;
     } else {

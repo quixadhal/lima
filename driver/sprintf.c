@@ -184,7 +184,7 @@ static int add_table PROT((cst ** table));
  * Anything that has been allocated should be somewhere it can be found and
  * freed later.
  */
-void sprintf_error P2(int, which, char *, premade) {
+static void sprintf_error P2(int, which, char *, premade) {
     char lbuf[2048];
     char *err;
     
@@ -395,7 +395,7 @@ void svalue_to_string P5(svalue_t *, obj, outbuffer_t *, outbuf, int, indent, in
 		{
 		    int i;
 		    i = obj->u.fp->f.efun.index;
-		    outbuf_add(outbuf, instrs[i].name);
+		    outbuf_add(outbuf, query_instr_name(i));
 		    break;
 		}
 	    }
@@ -525,6 +525,13 @@ static void add_justified P6(char *, str, int, slen, pad_info_t *, pad,
 	    break;
 	case INFO_J_CENTRE:
 	    i = fs / 2 + fs % 2;
+	    add_pad(pad, i);
+	    add_nstr(str, slen);
+	    if (trailing)
+	    add_pad(pad, fs - i);
+	    break;
+	case INFO_J_CENTRE | INFO_J_LEFT:
+	    i = fs / 2;
 	    add_pad(pad, i);
 	    add_nstr(str, slen);
 	    if (trailing)
@@ -660,7 +667,7 @@ static int get_curpos() {
 /* We can't use a pointer to a local in a table or column, since it
  * could get overwritten by another on the same line.
  */
-pad_info_t *make_pad P1(pad_info_t *, p) {
+static pad_info_t *make_pad P1(pad_info_t *, p) {
     pad_info_t *x;
     if (p->len == 0) return 0;
     x = ALLOCATE(pad_info_t, TAG_TEMPORARY, "make_pad");

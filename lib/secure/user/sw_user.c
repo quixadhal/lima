@@ -48,7 +48,7 @@ private nomask int do_su(string old_userid, string new_userid, string new_body)
 
     /*
     ** switch user, then switch body.  Note on switching user:  pass
-    ** flag == 1 so that we do not blow away static variables (the
+    ** flag == 1 so that we do not blow away nosave variables (the
     ** old body).
     */
     restore_me(new_userid, 1);

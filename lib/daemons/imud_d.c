@@ -32,9 +32,9 @@ inherit __DIR__ "imud/oob";
 inherit __DIR__ "imud/file";
 inherit __DIR__ "imud/mail";
 
-static private object	router_socket;
+nosave private object	router_socket;
 
-private string *	router_list = ({ ({ "*gjs", "206.151.209.131 9000"}) });
+private string *	router_list = ({ ({ "*gjs", "208.192.43.105 9000"}) });
 private int		password;
 
 void rcv_startup_reply(string orig_mud, string orig_user,
@@ -45,7 +45,7 @@ void rcv_oob_req(string orig_mud, string orig_user,
 		 string targ_user, mixed * message);
 
 
-static private mapping	dispatch =
+nosave private mapping	dispatch =
 ([
   "tell" : (: rcv_tell :),
   "emoteto" : (: rcv_emoteto :),
@@ -100,28 +100,28 @@ private nomask void send_message(string type, string target_mud,
     }
 }
 
-static void send_to_router(string type, mixed * message)
+protected void send_to_router(string type, mixed * message)
 {
     send_message(type, "*gjs", 0, message);
 }
 
-static void send_to_mud(string type, string mudname, mixed * message)
+protected void send_to_mud(string type, string mudname, mixed * message)
 {
     send_message(type, mudname, 0, message);
 }
 
-static void send_to_user(string type, string mudname, string username,
+protected void send_to_user(string type, string mudname, string username,
 			 mixed * message)
 {
     send_message(type, mudname, username, message);
 }
 
-static void send_to_all(string type, mixed * message)
+protected void send_to_all(string type, mixed * message)
 {
     send_message(type, 0, 0, message);
 }
 
-static void return_error(string mudname, string username,
+protected void return_error(string mudname, string username,
 			 string errcode, string errmsg)
 {
     send_message("error", mudname, username, ({ errcode, errmsg, 0 }));
@@ -202,7 +202,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 1.0a6",
+			      "Lima 1.0a7",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -225,6 +225,7 @@ private nomask void reconnect()
 			      0,	/* other_data */
 			      }));
     }
+  call_out("relisten_all_channels", 5);
 }
 
 void create()
@@ -281,7 +282,7 @@ void remove(int coming_back_soon)
     destruct();
 }
 
-static nomask void log_error_rcv(string mudname, mixed * message)
+protected nomask void log_error_rcv(string mudname, mixed * message)
 {
     LOG_D->log(LOG_I3_ERROR, sprintf("(<- %s) %s: %s\n%O\n", mudname,
 				     message[0], message[1], message[2]));
@@ -291,7 +292,7 @@ static nomask void log_error_rcv(string mudname, mixed * message)
 					message[0],
 					message[1]));
 }
-static nomask void log_error_snd(string mudname, mixed * message)
+protected nomask void log_error_snd(string mudname, mixed * message)
 {
     LOG_D->log(LOG_I3_ERROR, sprintf("(-> %s) %s: %s\n%O\n", mudname,
 				     message[0], message[1], message[2]));

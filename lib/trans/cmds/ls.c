@@ -64,7 +64,7 @@ private string path_join(string s1, string s2) {
 	return s1 + "/" + s2;
 }
 
-private int do_ls(mixed argv, mapping flags)
+int do_ls(mixed argv, mapping flags)
 {
     string 	path;
     mixed 	files;

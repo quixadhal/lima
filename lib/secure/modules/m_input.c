@@ -3,7 +3,7 @@
 /*
 ** input.c -- modules to aid in working with the input system
 **
-** All functions in the interface are "static" so that only the object
+** All functions in the interface are "protected" so that only the object
 ** inheriting this module can call them.
 **
 **    modal_push()
@@ -22,9 +22,9 @@
 ** 950501, Deathblade: Created.
 */
 
-private static object	input_user;
+private nosave object	input_user;
 
-static varargs nomask void modal_push(
+protected varargs nomask void modal_push(
     function input_func,
     mixed prompt_func,
     function secure,
@@ -38,18 +38,18 @@ static varargs nomask void modal_push(
     input_user->modal_push(input_func, prompt_func, secure, return_to_func);
 }
 
-static nomask void modal_push_char(function callback)
+protected nomask void modal_push_char(function callback)
 {
     input_user->modal_push_char(callback);
 }
 
-static nomask void modal_pop()
+protected nomask void modal_pop()
 {
     input_user->modal_pop();
     input_user = 0;
 }
 
-static varargs nomask void modal_func(
+protected varargs nomask void modal_func(
     function input_func,
     mixed prompt_func,
     int secure
@@ -58,7 +58,7 @@ static varargs nomask void modal_func(
     input_user->modal_func(input_func, prompt_func, secure);
 }
 
-static varargs nomask void modal_simple(
+protected varargs nomask void modal_simple(
     function input_func,
     mixed prompt,
     int secure
@@ -67,12 +67,12 @@ static varargs nomask void modal_simple(
     this_user()->modal_simple(input_func, prompt, secure);
 }
 
-static nomask void modal_pass(string str)
+protected nomask void modal_pass(string str)
 {
     input_user->modal_pass(str);
 }
 
-static nomask int modal_stack_size()
+protected nomask int modal_stack_size()
 {
     return input_user->modal_stack_size();
 }
@@ -82,7 +82,7 @@ static nomask int modal_stack_size()
 //Get a single argument and call a given function pointer with it.  If the
 //argument isn't present (arg == 0), then the prompt is used to ask for
 //the value.
-static varargs nomask void input_one_arg(
+protected varargs nomask void input_one_arg(
     string arg_prompt,
     function fp,
     string arg
@@ -124,7 +124,7 @@ private nomask void rcv_first_of_two(string arg2_prompt,
 //Get two one-word arguments and call a given function pointer with them.
 //Some or all of the arguments may be passed in initially; if they are not
 //all present, then the prompts are used to ask for the values.
-static varargs nomask void input_two_args(
+protected varargs nomask void input_two_args(
     string arg1_prompt,
     string arg2_prompt,
     function fp,
@@ -200,7 +200,7 @@ private nomask void rcv_second_of_three(string arg2_prompt,
 //Get three one-word arguments and call a given function pointer with them.
 //Some or all of the arguments may be passed in initially; if they are not
 //all present, then the prompts are used to ask for the values.
-static varargs nomask void input_three_args(
+protected varargs nomask void input_three_args(
     string arg1_prompt,
     string arg2_prompt,
     string arg3_prompt,

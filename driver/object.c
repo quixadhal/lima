@@ -22,8 +22,8 @@ int tot_alloc_object, tot_alloc_object_size;
 char *save_mapping PROT ((mapping_t *m));
 INLINE_STATIC int restore_array PROT((char **str, svalue_t *));
 INLINE_STATIC int restore_class PROT((char **str, svalue_t *));
-int restore_hash_string PROT((char **str, svalue_t *));
 
+#ifdef F_SET_HIDE
 INLINE int
 valid_hide P1(object_t *, obj)
 {
@@ -36,7 +36,7 @@ valid_hide P1(object_t *, obj)
     ret = apply_master_ob(APPLY_VALID_HIDE, 1);
     return (!IS_ZERO(ret));
 }
-
+#endif
 
 int save_svalue_depth = 0, max_depth;
 int *sizes = 0;
@@ -62,7 +62,7 @@ INLINE int svalue_save_size P1(svalue_t *, v)
 	    svalue_t *sv = v->u.arr->item;
 	    int i = v->u.arr->size, size = 0;
 
-	    if (++save_svalue_depth > MAX_SAVE_SVALUE_DEPTH){
+	    if (++save_svalue_depth > MAX_SAVE_SVALUE_DEPTH) {
 		too_deep_save_error();
 	    }
 	    while (i--) size += svalue_save_size(sv++);
@@ -75,7 +75,7 @@ INLINE int svalue_save_size P1(svalue_t *, v)
 	    svalue_t *sv = v->u.arr->item;
 	    int i = v->u.arr->size, size = 0;
 
-	    if (++save_svalue_depth > MAX_SAVE_SVALUE_DEPTH){
+	    if (++save_svalue_depth > MAX_SAVE_SVALUE_DEPTH) {
 		too_deep_save_error();
 	    }
 	    while (i--) size += svalue_save_size(sv++);
@@ -88,11 +88,11 @@ INLINE int svalue_save_size P1(svalue_t *, v)
 	    mapping_node_t **a = v->u.map->table, *elt;
 	    int j = v->u.map->table_size, size = 0;
 
-	    if (++save_svalue_depth > MAX_SAVE_SVALUE_DEPTH){
+	    if (++save_svalue_depth > MAX_SAVE_SVALUE_DEPTH) {
                 too_deep_save_error();
 	    }
 	    do {
-		for (elt = a[j]; elt; elt = elt->next){
+		for (elt = a[j]; elt; elt = elt->next) {
 		    size += svalue_save_size(elt->values) +
 			    svalue_save_size(elt->values+1);
 		}
@@ -112,7 +112,7 @@ INLINE int svalue_save_size P1(svalue_t *, v)
     case T_REAL:
 	{
 	    char buf[256];
-	    sprintf(buf, "%g", v->u.real);
+	    sprintf(buf, "%#g", v->u.real);
 	    return (int)(strlen(buf)+1);
 	}
 
@@ -125,7 +125,7 @@ INLINE int svalue_save_size P1(svalue_t *, v)
 
 INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 {
-    switch(v->type){
+    switch(v->type) {
     case T_STRING:
 	{
 	    register char *cp = *buf, *str = v->u.string;
@@ -133,7 +133,7 @@ INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 
 	    *cp++ = '"';
 	    while ((c = *str++)) {
-		if (c == '"' || c == '\\'){
+		if (c == '"' || c == '\\') {
 		    *cp++ = '\\';
 		    *cp++ = c;
 		}
@@ -152,7 +152,7 @@ INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 
 	    *(*buf)++ = '(';
 	    *(*buf)++ = '{';
-	    while (i--){
+	    while (i--) {
 		save_svalue(sv++, buf);
 		*(*buf)++ = ',';
 	    }
@@ -169,7 +169,7 @@ INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 
 	    *(*buf)++ = '(';
 	    *(*buf)++ = '/';  /* Why yes, this *is* a kludge! */
-	    while (i--){
+	    while (i--) {
 		save_svalue(sv++, buf);
 		*(*buf)++ = ',';
 	    }
@@ -198,7 +198,7 @@ INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 
     case T_REAL:
 	{
-	    sprintf(*buf, "%g", v->u.real);
+	    sprintf(*buf, "%#g", v->u.real);
 	    (*buf) += strlen(*buf);
 	    return;
 	}
@@ -211,7 +211,7 @@ INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 	    *(*buf)++ = '(';
 	    *(*buf)++ = '[';
 	    do {
-		for (elt = a[j]; elt; elt = elt = elt->next){
+		for (elt = a[j]; elt; elt = elt = elt->next) {
 		    save_svalue(elt->values, buf);
 		    *(*buf)++ = ':';
 		    save_svalue(elt->values + 1, buf);
@@ -236,11 +236,11 @@ restore_internal_size P3(char **, str, int, is_mapping, int, depth)
 
     delim = is_mapping ? ':' : ',';
     while ((c = *cp++)) {
-	switch(c){
+	switch(c) {
 	case '"':
 	    {
 		while ((c = *cp++) != '"')
-		    if ((c == '\0') || (c == '\\' && !*cp++)){
+		    if ((c == '\0') || (c == '\\' && !*cp++)) {
 			return 0;
 		    }
 		if (*cp++ != delim) return 0;
@@ -250,15 +250,15 @@ restore_internal_size P3(char **, str, int, is_mapping, int, depth)
 
 	case '(':
 	    {
-		if (*cp == '{'){
+		if (*cp == '{') {
 	            *str = ++cp;
-		    if (!restore_internal_size(str, 0, save_svalue_depth++)){
+		    if (!restore_internal_size(str, 0, save_svalue_depth++)) {
 			return 0;
 		    }
 		}
-		else if (*cp == '['){
+		else if (*cp == '[') {
 		    *str = ++cp;
-		    if (!restore_internal_size(str, 1, save_svalue_depth++)){ return 0;}
+		    if (!restore_internal_size(str, 1, save_svalue_depth++)) { return 0;}
 		}
 		else if (*cp == '/') {
 		    *str = ++cp;
@@ -266,7 +266,7 @@ restore_internal_size P3(char **, str, int, is_mapping, int, depth)
 			return 0;
 		} else { return 0;}
 		
-		if (*(cp = *str) != delim){ return 0;}
+		if (*(cp = *str) != delim) { return 0;}
 		cp++;
 		size++;
 		break;
@@ -274,7 +274,7 @@ restore_internal_size P3(char **, str, int, is_mapping, int, depth)
 
 	case ']':
 	    {
-		if (*cp++ == ')' && is_mapping){
+		if (*cp++ == ')' && is_mapping) {
 		    *str = cp;
 		    if (!sizes) {
 			max_depth = 128;
@@ -282,7 +282,7 @@ restore_internal_size P3(char **, str, int, is_mapping, int, depth)
 			sizes = CALLOCATE(max_depth, int, TAG_TEMPORARY,
 					  "restore_internal_size");
 		    }
-		    else if (depth >= max_depth){
+		    else if (depth >= max_depth) {
 			while ((max_depth <<= 1) <= depth);
 			sizes = RESIZE(sizes, max_depth, int, TAG_TEMPORARY,
 				       "restore_internal_size");
@@ -296,15 +296,15 @@ restore_internal_size P3(char **, str, int, is_mapping, int, depth)
 	case '/':
 	case '}':
 	    {
-		if (*cp++ == ')' && !is_mapping){
+		if (*cp++ == ')' && !is_mapping) {
 		    *str = cp;
-                    if (!sizes){
+                    if (!sizes) {
                         max_depth = 128;
                         while (max_depth <= depth) max_depth <<= 1;
 			sizes = CALLOCATE(max_depth, int, TAG_TEMPORARY,
 					  "restore_internal_size");
 		    }
-                    else if (depth >= max_depth){
+                    else if (depth >= max_depth) {
                         while ((max_depth <<= 1) <= depth);
 			sizes = RESIZE(sizes, max_depth, int, TAG_TEMPORARY,
 				       "restore_internal_size");
@@ -347,28 +347,28 @@ restore_size P2(char **, str, int, is_mapping)
     delim = is_mapping ? ':' : ',';
 
     while ((c = *cp++)) {
-	switch(c){
+	switch(c) {
 	case '"':
 	    {
 		while ((c = *cp++) != '"')
 		    if ((c == '\0') || (c == '\\' && !*cp++)) return 0;
 
-		if (*cp++ != delim){ return -1; }
+		if (*cp++ != delim) { return -1; }
 		size++;
 		break;
 	    }
 
 	case '(':
 	    {
-		if (*cp == '{'){
+		if (*cp == '{') {
 	            *str = ++cp;
 		    if (!restore_internal_size(str, 0, save_svalue_depth++)) return -1;
 		}
-		else if (*cp == '['){
+		else if (*cp == '[') {
 		    *str = ++cp;
 		    if (!restore_internal_size(str, 1, save_svalue_depth++)) return -1;
 		}
-		else if (*cp == '/'){
+		else if (*cp == '/') {
 		    *str = ++cp;
 		    if (!restore_internal_size(str, 0, save_svalue_depth++)) return -1;
 		} else { return -1; }
@@ -382,7 +382,7 @@ restore_size P2(char **, str, int, is_mapping)
 	case ']':
 	    {
 		save_svalue_depth = 0;
-		if (*cp++ == ')' && is_mapping){
+		if (*cp++ == ')' && is_mapping) {
 		    *str = cp;
 		    return size;
 		}
@@ -393,7 +393,7 @@ restore_size P2(char **, str, int, is_mapping)
 	case '}':
 	    {
 		save_svalue_depth = 0;
-		if (*cp++ == ')' && !is_mapping){
+		if (*cp++ == ')' && !is_mapping) {
 		    *str = cp;
 		    return size;
 		}
@@ -429,7 +429,7 @@ restore_interior_string P2(char **, val, svalue_t *, sv)
     int len;
 
     while ((c = *cp++) != '"') {
-	switch (c){
+	switch (c) {
 	case '\r':
 	    {
 		*(cp-1) = '\n';
@@ -441,7 +441,7 @@ restore_interior_string P2(char **, val, svalue_t *, sv)
 		char *new = cp - 1;
 
 		if ((*new++ = *cp++)) {
-		    while ((c = *cp++) != '"'){
+		    while ((c = *cp++) != '"') {
 			if (c == '\\') {
 			    if (!(*new++ = *cp++)) return ROB_STRING_ERROR;
 			}
@@ -577,8 +577,6 @@ INLINE_STATIC void add_map_stats P2(mapping_t *, m, int, count)
     m->count = count;
 }
 
-int growMap PROT((mapping_t *));
-
 static int
 restore_mapping P2(char **,str, svalue_t *, sv)
 {
@@ -623,7 +621,7 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 		    if ((err = restore_mapping(str, &key)))
 			goto key_error;
 		}
-		else if (*cp == '{'){
+		else if (*cp == '{') {
 		    *str = ++cp;
 		    if ((err = restore_array(str, &key)))
 			goto key_error;
@@ -667,7 +665,7 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 	/* At this point, key is a valid, referenced svalue and we're
 	   responsible for it */
 	
-	switch (c = *cp++){
+	switch (c = *cp++) {
 	case '"':
 	    {
 		*str = cp;
@@ -681,12 +679,12 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 	case '(':
 	    {
 		save_svalue_depth++;
-		if (*cp == '['){
+		if (*cp == '[') {
 		    *str = ++cp;
 		    if ((err = restore_mapping(str, &value)))
 			goto value_error;
 		}
-		else if (*cp == '{'){
+		else if (*cp == '{') {
 		    *str = ++cp;
 		    if ((err = restore_array(str, &value)))
 			goto value_error;
@@ -735,8 +733,8 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 	    } while ((elt = elt->next));
 	    if (elt)
 		continue;
-	} else if (!(--m->unfilled)){
-	    if (growMap(m)){
+	} else if (!(--m->unfilled)) {
+	    if (growMap(m)) {
 		a = m->table;
 		if (oi & ++mask) elt2 = a[i |= mask];
 		mask <<= 1;
@@ -821,12 +819,12 @@ restore_class P2(char **, str, svalue_t *, ret)
 	case '(':
 	    {
 		save_svalue_depth++;
-		if (*cp == '['){
+		if (*cp == '[') {
 		    *str = ++cp;
 		    if ((err = restore_mapping(str, sv)))
 			goto error;
 		}
-		else if (*cp == '{'){
+		else if (*cp == '{') {
 		    *str = ++cp;
 		    if ((err = restore_array(str, sv)))
 			goto error;
@@ -908,12 +906,12 @@ restore_array P2(char **, str, svalue_t *, ret)
 	case '(':
 	    {
 		save_svalue_depth++;
-		if (*cp == '['){
+		if (*cp == '[') {
 		    *str = ++cp;
 		    if ((err = restore_mapping(str, sv)))
 			goto error;
 		}
-		else if (*cp == '{'){
+		else if (*cp == '{') {
 		    *str = ++cp;
 		    if ((err = restore_array(str, sv)))
 			goto error;
@@ -960,7 +958,7 @@ restore_array P2(char **, str, svalue_t *, ret)
     return err;
 }
 
-INLINE int
+INLINE_STATIC int
 restore_string P2(char *, val, svalue_t *, sv)
 {
     register char *cp = val;
@@ -981,8 +979,8 @@ restore_string P2(char *, val, svalue_t *, sv)
                 char *new = cp - 1;
 
                 if ((*new++ = *cp++)) {
-                    while ((c = *cp++) != '"'){
-                        if (c == '\\'){
+                    while ((c = *cp++) != '"') {
+                        if (c == '\\') {
                             if (!(*new++ = *cp++)) return ROB_STRING_ERROR;
 			}
                         else {
@@ -1069,7 +1067,7 @@ restore_svalue P2(char *, cp, svalue_t *, v)
 
 /* for this case, we're being careful and want to leave the value alone on
    an error */
-INLINE int
+INLINE_STATIC int
 safe_restore_svalue P2(char *, cp, svalue_t *, v)
 {
     int ret;
@@ -1083,7 +1081,7 @@ safe_restore_svalue P2(char *, cp, svalue_t *, v)
 	break;
     case '(':
 	{
-	    if (*cp == '{'){
+	    if (*cp == '{') {
 		cp++;
 		ret = restore_array(&cp, &val);
 	    } else if (*cp == '[') {
@@ -1121,18 +1119,20 @@ safe_restore_svalue P2(char *, cp, svalue_t *, v)
     return 0;
 }
 
-static int fgv_recurse P4(program_t *, prog, int *, idx, 
-			  char *, name, unsigned short *, type) {
+static int fgv_recurse P5(program_t *, prog, int *, idx, 
+			  char *, name, unsigned short *, type,
+			  int, check_nosave) {
     int i;
     for (i = 0; i < prog->num_inherited; i++) {
-	if (fgv_recurse(prog->inherit[i].prog, idx, name, type)) {
+	if (fgv_recurse(prog->inherit[i].prog, idx, name, type, check_nosave)) {
 	    *type = DECL_MODIFY(prog->inherit[i].type_mod, *type);
 
 	    return 1;
 	}
     }
     for (i = 0; i < prog->num_variables_defined; i++) {
-	if (prog->variable_table[i] == name) {
+	if (prog->variable_table[i] == name &&
+	    (!check_nosave || !(prog->variable_types[i] & DECL_NOSAVE))) {
 	    *idx += i;
 	    *type = prog->variable_types[i];
 	    return 1;
@@ -1142,18 +1142,18 @@ static int fgv_recurse P4(program_t *, prog, int *, idx,
     return 0;
 }
 
-int find_global_variable P3(program_t *, prog, char *, name,
-			    unsigned short *, type) {
+int find_global_variable P4(program_t *, prog, char *, name,
+			    unsigned short *, type, int, check_nosave) {
     int idx = 0;
     char *str = findstring(name);
     
-    if (str && fgv_recurse(prog, &idx, str, type))
+    if (str && fgv_recurse(prog, &idx, str, type, check_nosave))
 	return idx;
 
     return -1;
 }
 
-void
+static void
 restore_object_from_buff P3(object_t *, ob, char *, theBuff,
 			    int, noclear)
 {
@@ -1185,8 +1185,8 @@ restore_object_from_buff P3(object_t *, ob, char *, theBuff,
         }
         (void)strncpy(var, buff, space - buff);
         var[space - buff] = '\0';
-	idx = find_global_variable(current_object->prog, var, &t);
-        if (idx == -1 || t & DECL_NOSAVE)
+	idx = find_global_variable(current_object->prog, var, &t, 1);
+        if (idx == -1)
 	    continue;
 
         v = &sv[idx];
@@ -1625,10 +1625,12 @@ object_t *find_living_object P2(char *, str, int, user)
     hl = &hashed_living[hash_living_name(str)];
     for (obp = hl; *obp; obp = &(*obp)->next_hashed_living) {
 	search_length++;
+#ifdef F_SET_HIDE
 	if ((*obp)->flags & O_HIDDEN) {
 	    if (!valid_hide(current_object))
 		continue;
 	}
+#endif
 	if (user && !((*obp)->flags & O_ONCE_INTERACTIVE))
 	    continue;
 	if (!((*obp)->flags & O_ENABLE_COMMANDS))

@@ -9,9 +9,9 @@
  * plural_in_room_desc: Message for more than 1.
  */
 /* if these are zero, sane defaults are used based on 'names'. */
-private static mixed long;
-private static mixed in_room_desc;
-private static string plural_in_room_desc;
+private nosave mixed long;
+private nosave mixed in_room_desc;
+private nosave string plural_in_room_desc;
 /* our description when we haven't been touched.  Really an
  * in_room_desc, not a long */
 private string untouched_long;
@@ -70,7 +70,7 @@ string long()
   return get_base_long() + get_extra_long();
 }
 
-static string array discarded_message, plural_discarded_message;
+protected string array discarded_message, plural_discarded_message;
 
 string untouched_long() {
     return untouched_long;
@@ -141,7 +141,7 @@ string show_in_room()
 
 //:FUNCTION set_in_room_desc
 //Set the description an object has when it is sitting in a room
-static void set_in_room_desc( string arg )
+protected void set_in_room_desc( string arg )
 {
   in_room_desc = arg;
 }

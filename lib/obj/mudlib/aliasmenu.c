@@ -15,12 +15,12 @@ inherit M_ACCESS;
 
 inherit CLASS_ALIAS;
 
-private static object shell_ob;	/* which shell ob we're editing aliases for */
-private static string * display_menu_options;
-private static class alias new_alias_in_progress;
-private static string new_alias_name;
-private static int num_defaults;
-private static int default_index;
+private nosave object shell_ob;	/* which shell ob we're editing aliases for */
+private nosave string * display_menu_options;
+private nosave class alias new_alias_in_progress;
+private nosave string new_alias_name;
+private nosave int num_defaults;
+private nosave int default_index;
 
 
 /*
@@ -32,7 +32,7 @@ private static int default_index;
 void input_from_main_menu(string);
 string main_menu_prompt();
 void display_main_menu();
-static void init_alias_editor();
+protected void init_alias_editor();
 
 nomask void begin_menu(object for_shell_ob)
 {

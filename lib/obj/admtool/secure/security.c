@@ -247,7 +247,7 @@ nomask class command_info array module_commands() {
 	    desc : "set a directory's read protection",
 	    who : "[admin]",
 	    args : ({ "Set which directory's read privilege? ", "Set '%s' to what privilege? " }),
-	    action : (: perform_set_dir_priv :)),
+	    action : (: perform_set_dir_priv, 0 :)),
 	new(class command_info,
 	    key : "c",
 	    proto : "[dir]",

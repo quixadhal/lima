@@ -4,7 +4,7 @@
 
 inherit CMD;
 
-private static mapping locks = ([]);
+private nosave mapping locks = ([]);
 
 private nomask void unlock(string fname)
 {

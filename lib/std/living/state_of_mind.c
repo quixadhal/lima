@@ -2,7 +2,7 @@
 
 //### This stuff needs to be linked to affect commands.
 //### some of these also should probably be bits
-private static int stunned, asleep, chance, prone;
+private nosave int stunned, asleep, chance, prone;
 
 int query_ghost() {
     return 0;

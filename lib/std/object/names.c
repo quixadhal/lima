@@ -1,23 +1,23 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 /* grammar related stuff */
-private static string array ids;
-private static string array plurals;
-private static string array adjs;
+private nosave string array ids;
+private nosave string array plurals;
+private nosave string array adjs;
 
 private string primary_id, primary_adj;
 
 /* calculated internally */
-private static mixed internal_short;
+private nosave mixed internal_short;
 /* unique objects are refered to as 'the' instead of 'a' */
-private static int unique;
+private nosave int unique;
 /* ... As are plural objects (eg: stairs) */
-private static int plural;
+private nosave int plural;
 /*
  * proper_name: Proper_name should only be set for objects who should not
  *     be refered to as "a xxx" or "the xxx"
  */
-private static mixed proper_name;
+private nosave mixed proper_name;
 
 
 /*
@@ -95,6 +95,10 @@ private void resync() {
     } else
 	internal_short = proper_name;
     parse_refresh();
+}
+
+mixed ob_state() {
+    return internal_short;
 }
 
 //:FUNCTION short
@@ -231,7 +235,7 @@ void set_adj( string array adj... ) {
 /****** remove_ ******/
 //:FUNCTION remove_id
 //Remove the given id
-static
+protected
 void remove_id( string array id... )
 {
     if(!arrayp(ids))

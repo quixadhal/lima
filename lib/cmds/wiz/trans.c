@@ -5,7 +5,7 @@ inherit CMD;
 // Rust/Belboz
 private void main( mixed *arg)
 {
-
+    object save_tp;
     object      start_place, end_place;
     object	target;
     string	target_name;
@@ -46,8 +46,10 @@ private void main( mixed *arg)
 	tell_environment( target, sprintf("%s arrives in a puff of smoke.\n",
 	    target_name ), 0, ({ target, this_body() }) );
     }
-
+    save_tp = this_user();
+    set_this_player(target->query_link() || target);
     target->force_look();
+    set_this_player(save_tp);
     return;
 }
 

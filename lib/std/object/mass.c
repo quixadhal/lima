@@ -6,7 +6,7 @@ private int	mass;
 
 //:FUNCTION set_mass
 //Change the mass of an object
-static
+protected
 void
 set_mass( int m )
 {

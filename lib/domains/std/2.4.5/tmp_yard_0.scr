@@ -1,7 +1,0 @@
-# Do not remove the headers from this file! see /USAGE for more info.
-
-is=weapon,valuable
-primary_id=knife
-weapon_class=5
-value=8
-weight=2

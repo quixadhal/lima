@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 /* This is our property implementation.  Use as little as possible */
-private static mapping sets ;
+private nosave mapping sets ;
 private mapping psets ;
 
 

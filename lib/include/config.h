@@ -17,7 +17,7 @@
 #define START			"/domains/std/rooms/beach/Sandy_Beach"
 #define WIZARD_START		"/domains/std/Wizroom"
 
-#define LOGIN_PROMPT		"Your name? "
+#define LOGIN_PROMPT		"Please enter your username: "
 
 /* ! will give you problems since it's used as input escape. */
 #define HISTORY_CHAR		'%'
@@ -98,8 +98,15 @@
 #define IDEA_NEWSGROUP "reporter.ideas"
 #define TODO_NEWSGROUP "reporter.todo"
 #define QUESTION_NEWSGROUP "reporter.question"
-#define FEEDBACK_NEWSGROUP "lima.discussion"
+#define FEEDBACK_NEWSGROUP "reporter.discussion"
 
+
+/* Define this if you want news data to be stored in the user object rather 
+ * than the body.  If you are using multiple bodies for a user object, this 
+ * it is recommended that you undef this.  If you do define this, and previously used 
+ * to store newsdata in the user object you need to make sure that both /std/body.c and
+ * /secure/user.c inherit /secure/user/newsdata.c */
+#undef NEWS_DATA_IN_USER
 
 #define BUG_MSG \
 "You have just encountered a bug.  Please use the bug command to report it.\n"

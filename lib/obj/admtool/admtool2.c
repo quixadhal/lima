@@ -47,7 +47,7 @@ class command_info array module_commands() {
     return ret;
 }
 
-static void heading() {
+protected void heading() {
     write("\n"
 	  "--- Administration Tool ---\n"
 	  "\n");

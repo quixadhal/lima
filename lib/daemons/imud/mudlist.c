@@ -10,17 +10,17 @@
 private int	mudlist_id;
 private mapping	mud_info = ([ ]);
 
-static private mapping	mud_names = ([ ]);
-static private function	remap_name =
+nosave private mapping	mud_names = ([ ]);
+nosave private function	remap_name =
 	(: lower_case(replace_string($1, " ", ".")) :);
 
-static nomask int query_mudlist_id()
+protected nomask int query_mudlist_id()
 {
     return mudlist_id;
 }
 
 /* this is called at restore/disconnect time to mark muds as Down */
-static nomask void mudlist_reset_entries()
+protected nomask void mudlist_reset_entries()
 {
     foreach ( string mudname, mixed data in mud_info )
     {
@@ -33,7 +33,7 @@ nomask string canon_mudname(string mudname)
     return mud_names[evaluate(remap_name, mudname)];
 }
 
-static nomask void rcv_mudlist(string orig_mud, string orig_user,
+protected nomask void rcv_mudlist(string orig_mud, string orig_user,
 			       string targ_user, mixed * message)
 {
     string mudname;

@@ -27,23 +27,23 @@ class auth_data
 ** time we issue a session key and the time when a connection attempt is
 ** made.
 */
-static private mapping auth_info = ([ ]);
+nosave private mapping auth_info = ([ ]);
 
 void auth_cleanup();
-static private function auth_cleanup_func = (: auth_cleanup :);
-static private int auth_cleanup_running;
+nosave private function auth_cleanup_func = (: auth_cleanup :);
+nosave private int auth_cleanup_running;
 
 //### driver can't remove a func ptr callout. need a string
 #define auth_cleanup_func "auth_cleanup"
 
 /* the mudname should be in its canonical form */
-static nomask void do_auth_mud_req(string mudname)
+protected nomask void do_auth_mud_req(string mudname)
 {
     send_to_mud("auth-mud-req", canon_mudname(mudname), ({ }));
 }
 
 /* the mudname should be in its canonical form */
-static nomask int validate_auth(string mudname, int provided_key)
+protected nomask int validate_auth(string mudname, int provided_key)
 {
     class auth_data data = auth_info[mudname];
     int result = data && data->session_key == provided_key;
@@ -53,7 +53,7 @@ static nomask int validate_auth(string mudname, int provided_key)
     return result;
 }
 
-static nomask void rcv_auth_mud_req(string orig_mud, string orig_user,
+protected nomask void rcv_auth_mud_req(string orig_mud, string orig_user,
 				    string target_user, mixed * message)
 {
     class auth_data auth = new(class auth_data);
@@ -71,7 +71,7 @@ static nomask void rcv_auth_mud_req(string orig_mud, string orig_user,
     }
 }
 
-static nomask void rcv_auth_mud_reply(string orig_mud, string orig_user,
+protected nomask void rcv_auth_mud_reply(string orig_mud, string orig_user,
 				      string target_user, mixed * message)
 {
     /* only the OOB system needs this reply */

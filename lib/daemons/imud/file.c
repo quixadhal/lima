@@ -18,9 +18,9 @@ void oob_svc_error(object socket, string errcode, string errmsg,
 /*
 ** Store the lists of requests for each target mud
 */
-static private mapping file_requests = ([ ]);
+nosave private mapping file_requests = ([ ]);
 
-static private string * file_status = ({
+nosave private string * file_status = ({
     "request failed (write permission)",
     "request failed (read  permission)",
     "request failed (fpath error)",
@@ -338,12 +338,12 @@ private nomask void handle_file_get_reply(string mudname,
 	info[0]->receive_private_msg(msg);
 }
 
-static nomask int file_has_outgoing(string mudname)
+protected nomask int file_has_outgoing(string mudname)
 {
     return sizeof(file_requests[mudname]) != 0;
 }
 
-static nomask int file_send_outgoing(string mudname, object socket)
+protected nomask int file_send_outgoing(string mudname, object socket)
 {
     mixed * requests = file_requests[mudname];
     mixed * request;
@@ -367,7 +367,7 @@ static nomask int file_send_outgoing(string mudname, object socket)
     }
 }
 
-static nomask void file_startup()
+protected nomask void file_startup()
 {
     oob_register_requests(([ "file-list-req" : (: handle_file_list_req :),
 				 "file-put" : (: handle_file_put :),

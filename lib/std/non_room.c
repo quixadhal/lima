@@ -96,5 +96,14 @@ void do_looking(int force_long_desc)
     }
 }
 
+int is_player_inside() {
+    return (environment(this_body()) == this_object());
+}
 
+//:FUNCTION parent_environment_accessible
+//Return 1 if the outside should be included in the parse
+//Non-rooms default to returning 1
+int parent_environment_accessible() {
+    return 1;
+}
 

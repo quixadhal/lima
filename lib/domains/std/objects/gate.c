@@ -7,7 +7,7 @@ void do_on_open()
 {
    object env = environment( this_body() );
 
-load_object("/domains/std/rooms/caves/north_tunnel.c")->set_room_state("gate_open");
+load_object("/domains/std/rooms/caves/North_Tunnel.c")->set_room_state("gate_open");
    env->set_room_state("gate_open");
 }
 
@@ -15,15 +15,14 @@ void do_on_close()
 {
    object env = environment( this_body() );
 
-load_object("/domains/std/rooms/caves/north_tunnel.c")->clear_room_state("gate_open");
+load_object("/domains/std/rooms/caves/North_Tunnel.c")->clear_room_state("gate_open");
    env->clear_room_state( "gate_open");
 }
-void setup(string dir) {
-   add_hook("open", (:do_on_open:) );
-   add_hook("close", (:do_on_close :) );
+
+void setup(string dir, string dest) {
     set_id("gate");
     set_adj("rusty" , "rusty gate" );
   set_long("The gate is very rusty and doesnt look like it could stop anything anymore");
-    setup_door("rusty gate", dir);
+    setup_door("rusty gate", dir, dest);
     set_flag(ATTACHED);
 }

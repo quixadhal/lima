@@ -4,14 +4,17 @@
 ** channel.c -- intermud channel processing
 **
 ** 95-May-15.  Deathblade.  Created.
+** July 5, 1997:  Midhir@Mutants and Machinery added some 
+**                channel listening/ignoring capabilities.
 */
 
 #include <daemons.h>
 
-static private int	filter_msg;
+nosave private int	filter_msg;
 
 private int		chanlist_id;
 private mapping		chanlist = ([ ]);
+string*			listened_channels = ({});
 
 void send_to_all(string type, mixed * message);
 void send_to_user(string type, string mudname, string username,
@@ -25,7 +28,7 @@ void add_cache_entry(string mudname, string username,
 string get_visname( string mudname, string username );
 
 
-static nomask int query_chanlist_id()
+protected nomask int query_chanlist_id()
 {
     return chanlist_id;
 }
@@ -70,7 +73,8 @@ nomask void channel_rcv_data(string channel_name,
 	    string target_name = data[0][1]->query_userid();
 	    string all_mess = data[<1][<1];
 	    string targ_mess = data[<1][1];
-	    
+
+	    DBBUG(data);
 	    if ( all_mess[<1] == '\n' ) all_mess = all_mess[0..<2];
 	    if ( targ_mess[<1] == '\n' ) targ_mess = targ_mess[0..<2];
 	    
@@ -89,7 +93,7 @@ nomask void channel_rcv_data(string channel_name,
     }
 }
 
-static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
+protected nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 				      string targ_user, mixed * message)
 {
     string channel_name;
@@ -114,7 +118,7 @@ static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
     }
 }
 
-static nomask void rcv_chan_who_req(string orig_mud, string orig_user,
+protected nomask void rcv_chan_who_req(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
     object * listeners = CHANNEL_D->query_listeners(message[0]);
@@ -132,7 +136,7 @@ static nomask void rcv_chan_who_req(string orig_mud, string orig_user,
     }
 }
 
-static nomask void rcv_chan_who_reply(string orig_mud, string orig_user,
+protected nomask void rcv_chan_who_reply(string orig_mud, string orig_user,
 				      string targ_user, mixed * message)
 {
     object p;
@@ -152,7 +156,7 @@ static nomask void rcv_chan_who_reply(string orig_mud, string orig_user,
 }
 
 /* ### to support the April Fool's stuff below... */
-static private string * april_phrases = ({
+nosave private string * april_phrases = ({
     // "yes, you are!",
     "not you... Ohara is the fool!",
     "but Zakk is a bigger fool!",
@@ -179,7 +183,7 @@ string query_userid()
     return "limabean";
 }
 
-static nomask void rcv_channel_m(string orig_mud, string orig_user,
+protected nomask void rcv_channel_m(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)
 {
     if ( orig_mud == mud_name() )
@@ -205,7 +209,7 @@ static nomask void rcv_channel_m(string orig_mud, string orig_user,
 }
 
 
-static nomask void rcv_channel_e(string orig_mud, string orig_user,
+protected nomask void rcv_channel_e(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)
 {
     if ( orig_mud == mud_name() )
@@ -230,7 +234,7 @@ static nomask void rcv_channel_e(string orig_mud, string orig_user,
 						       orig_mud)));
 }
 
-static nomask void rcv_channel_t(string orig_mud, string orig_user,
+protected nomask void rcv_channel_t(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)
 {
     
@@ -271,7 +275,7 @@ static nomask void rcv_channel_t(string orig_mud, string orig_user,
     CHANNEL_D->deliver_channel( "imud_"+message[0], all_mess );
 }
 
-static nomask void rcv_chan_user_req(string orig_mud, string orig_user,
+protected nomask void rcv_chan_user_req(string orig_mud, string orig_user,
 				     string target_user, mixed * message)
 {
     object p;
@@ -288,29 +292,29 @@ static nomask void rcv_chan_user_req(string orig_mud, string orig_user,
 
 	/* map to I3's concept of gender: male(0), female(1), neuter(2)
 	   ours is: neuter(0), male(1), female(2) */
-	gender = (gender + 1) % 3;	/* Lima -> I3 */
+	gender = (gender + 2) % 3;	/* Lima -> I3 */
 	
 	send_to_mud("chan-user-reply", orig_mud,
 		    ({ message[0], p->query_name(), gender }));
     }
 }
 
-static nomask void rcv_chan_user_reply(string orig_mud, string orig_user,
+protected nomask void rcv_chan_user_reply(string orig_mud, string orig_user,
 				       string target_user, mixed * message)
 {
-    int gender = (message[2] + 2) % 3;	/* I3 -> Lima */
+    int gender = (message[2] + 1) % 3;	/* I3 -> Lima */
 
     add_cache_entry(orig_mud, message[0], message[1], gender);
 
     /* ### do rest of emote now... */
 }
 
-static nomask void chan_startup()
+protected nomask void chan_startup()
 {
     CHANNEL_D->register_channels(map_array(keys(chanlist),
 					    (: "imud_" + $1 :)));
 }
-static nomask void chan_shutdown()
+protected nomask void chan_shutdown()
 {
     CHANNEL_D->unregister_channels();
 }
@@ -334,3 +338,31 @@ nomask void remote_listeners(string mudname, string channel_name)
 {
     send_to_mud("chan-who-req", mudname, ({ channel_name }));
 }
+
+nomask void listen_to_channel(string channel_name) {
+    if (member_array(channel_name, listened_channels) == -1) 
+       listened_channels += ({ channel_name });
+
+    send_to_router("channel-listen", ({ channel_name, 1 }));
+}
+
+nomask void ignore_channel(string channel_name) {
+    if (member_array(channel_name, listened_channels) != -1) 
+       listened_channels -= ({ channel_name });
+    send_to_router("channel-listen", ({ channel_name, 0 }));
+}
+
+nomask void relisten_all_channels() {
+  foreach (string str in listened_channels) listen_to_channel(str);
+  return;
+}
+
+nomask void listen_to_all_channels() {
+  foreach (string str in keys(this_object()->query_chanlist())) {
+          listen_to_channel(str);
+          listened_channels += ({ str });
+          continue;
+  }
+}
+
+nomask string *query_listened_channels() { return copy(listened_channels); }

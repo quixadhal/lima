@@ -46,62 +46,6 @@ private nomask void receive_banish_site(string name, string reason)
     }
 }
 
-private nomask void pave_user(string userid, int skip_save)
-{
-    object o;
-    mixed err;
-
-    if ( o = find_user(userid) )
-    {
-	o->receive_private_msg("Sorry.  You're being nuked.\n");
-	o->quit();
-    }
-
-    MAILBOX_D->get_mailbox(userid)->nuke_mailbox(1);
-    MAILBOX_D->unload_mailbox(userid);
-
-    /* remove a bunch of files. note: some might not exist. */
-    err = rm(LINK_PATH(userid) + __SAVE_EXTENSION__);
-    err = rm(USER_PATH(userid) + __SAVE_EXTENSION__);
-    err = rm(PSHELL_PATH(userid) + __SAVE_EXTENSION__);
-    err = rm(WSHELL_PATH(userid) + __SAVE_EXTENSION__);
-
-    LAST_LOGIN_D->remove_user(userid, skip_save);
-
-    err = SECURE_D->delete_wizard(userid);
-
-//### deal with clearing privs and stuff
-//### this should be enough, but may need more thought (this was a quicky)
-//### need to set it to something like @disabled so that unguarded() code
-//### in the wiz dir doesn't have priv 1 now.
-    SECURE_D->set_protection(WIZ_DIR "/" + userid, 1, -1);
-    
-    printf("'%s' has been nuked.\n", capitalize(userid));
-
-    BANISH_D->banish_name(userid, "Nuked and paved over.");
-}
-
-
-private nomask void confirm_paving(string name, string str)
-{
-    str = lower_case(str);
-    if ( str != "y" && str != "yes" )
-    {
-	write("Nuke aborted!\n");
-	return;
-    }
-
-    pave_user(name, 0);
-}
-
-private nomask void receive_name_for_paving(string name)
-{
-    name = lower_case(name);
-    modal_simple((: confirm_paving, name :),
-		 sprintf("Are you sure you want to nuke '%s' ? ",
-			 capitalize(name)));
-}
-
 private nomask void show_banishes(string header, class banish_data *list)
 {
     string result = header + "\n" + repeat_string("-", 73) + "\n";
@@ -111,6 +55,21 @@ private nomask void show_banishes(string header, class banish_data *list)
 	result += sprintf("%-20s : %s\n", b->item, b->reason);
     }
     more(result);
+}
+
+nomask void show_registered_users()
+{
+  string array users=BANISH_D->get_registered();
+  string array result;
+  if(!sizeof(users))
+    {
+      write("No users registered.\n");
+      return;
+    }
+  result=({"Users Registered to login from banished sites  ---------------"});
+  result+=users;
+  more(result);
+  return;
 }
 
 nomask class command_info array module_commands() {
@@ -148,11 +107,20 @@ nomask class command_info array module_commands() {
 	    action : (: call_other, BANISH_D, "unbanish_site" :),
 	    desc : "unbanish a site"),
 	new(class command_info,
-	    key : "n",
+	    key : "R",
+	    proto : "[who]",
+	    args : ({ "Who? " }),
+	    action : (: call_other,BANISH_D,"add_registered" :),
+	    desc : "add a registered user" ) ,
+	new(class command_info,
+	    key : "r",
 	    proto : "[name]",
-	    priv : 1,
-	    args : ({ "Who should be nuked and paved? " }),
-	    desc : "Nuke and Pave a user",
-	    who : "[admin]")
+	    args : ({ "Who? ", }),
+    action : (: call_other,BANISH_D, "remove_registered" :),
+	    desc : "remove a registered user" ),
+	new(class command_info,
+	    key : "s",
+	    action : (: show_registered_users :),
+	    desc : "show the registered users of a site"),
     });
 }

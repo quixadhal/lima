@@ -53,10 +53,37 @@ int check_valid_socket P5(char *, what, int, fd, object_t *, owner,
     return MASTER_APPROVED(mret);
 }
 
+static void clear_socket P2(int, which, int, dofree) {
+    if (dofree) {
+	set_read_callback(which, 0);
+	set_write_callback(which, 0);
+	set_close_callback(which, 0);
+    }
+    
+    lpc_socks[which].fd = -1;
+    lpc_socks[which].flags = 0;
+    lpc_socks[which].mode = MUD;
+    lpc_socks[which].state = CLOSED;
+    memset((char *) &lpc_socks[which].l_addr, 0, sizeof(lpc_socks[which].l_addr));
+    memset((char *) &lpc_socks[which].r_addr, 0, sizeof(lpc_socks[which].r_addr));
+    lpc_socks[which].name[0] = '\0';
+    lpc_socks[which].owner_ob = NULL;
+    lpc_socks[which].release_ob = NULL;
+    lpc_socks[which].read_callback.s = 0;
+    lpc_socks[which].write_callback.s = 0;
+    lpc_socks[which].close_callback.s = 0;
+    lpc_socks[which].r_buf = NULL;
+    lpc_socks[which].r_off = 0;
+    lpc_socks[which].r_len = 0;
+    lpc_socks[which].w_buf = NULL;
+    lpc_socks[which].w_off = 0;
+    lpc_socks[which].w_len = 0;
+}
+
 /*
  * Get more LPC sockets structures if we run out
  */
-int more_lpc_sockets()
+static int more_lpc_sockets()
 {
     int i;
 
@@ -68,26 +95,9 @@ int more_lpc_sockets()
 	lpc_socks = RESIZE(lpc_socks, max_lpc_socks, lpc_socket_t, TAG_SOCKETS, "more_lpc_sockets");
     
     i = max_lpc_socks;
-    while (--i >= max_lpc_socks - 10) {
-	lpc_socks[i].fd = -1;
-	lpc_socks[i].flags = 0;
-	lpc_socks[i].mode = MUD;
-	lpc_socks[i].state = CLOSED;
-	memset((char *) &lpc_socks[i].l_addr, 0, sizeof(lpc_socks[i].l_addr));
-	memset((char *) &lpc_socks[i].r_addr, 0, sizeof(lpc_socks[i].r_addr));
-	lpc_socks[i].name[0] = '\0';
-	lpc_socks[i].owner_ob = NULL;
-	lpc_socks[i].release_ob = NULL;
-	lpc_socks[i].read_callback.s = 0;
-	lpc_socks[i].write_callback.s = 0;
-	lpc_socks[i].close_callback.s = 0;
-	lpc_socks[i].r_buf = NULL;
-	lpc_socks[i].r_off = 0;
-	lpc_socks[i].r_len = 0;
-	lpc_socks[i].w_buf = NULL;
-	lpc_socks[i].w_off = 0;
-	lpc_socks[i].w_len = 0;
-    }
+    while (--i >= max_lpc_socks - 10)
+	clear_socket(i, 0);
+
     return max_lpc_socks - 10;
 }
 
@@ -186,11 +196,8 @@ find_new_socket PROT((void)) {
     int i;
     
     for (i = 0; i < max_lpc_socks; i++) {
-	if (lpc_socks[i].state != CLOSED) continue;
-	set_read_callback(i, 0);
-	set_write_callback(i, 0);
-	set_close_callback(i, 0);
-	return i;
+	if (lpc_socks[i].state == CLOSED) 
+	    return i;
     }
     return more_lpc_sockets();
 }
@@ -786,11 +793,8 @@ socket_read_select_handler P1(int, fd)
 	    debug(sockets, ("read_socket_handler: apply\n"));
 	    call_callback(fd, S_READ_FP, 3);
 	    return;
-#ifdef DEBUG
-	    /* shut up gcc */
 	case STREAM_BINARY:
 	case DATAGRAM_BINARY:
-#endif
 	    ;
 	}
 	break;
@@ -890,11 +894,8 @@ socket_read_select_handler P1(int, fd)
 	    debug(sockets, ("read_socket_handler: apply read callback\n"));
 	    call_callback(fd, S_READ_FP, 2);
 	    return;
-#ifdef DEBUG
-	    /* shut up gcc */
 	case STREAM_BINARY:
 	case DATAGRAM_BINARY:
-#endif
 	    ;
 	}
 	break;
@@ -984,7 +985,7 @@ socket_close P2(int, fd, int, flags)
 	return EESECURITY;
 
     if (flags & SC_DO_CALLBACK) {
-	debug(8192, ("read_socket_handler: apply close callback\n"));
+	debug(sockets, ("read_socket_handler: apply close callback\n"));
 	push_number(fd);
 	call_callback(fd, S_CLOSE_FP, 1);
     }
@@ -1003,12 +1004,12 @@ socket_close P2(int, fd, int, flags)
     
     while (OS_socket_close(lpc_socks[fd].fd) == -1 && socket_errno == EINTR)
 	;	/* empty while */
-    lpc_socks[fd].state = CLOSED;
     if (lpc_socks[fd].r_buf != NULL)
 	FREE(lpc_socks[fd].r_buf);
     if (lpc_socks[fd].w_buf != NULL)
 	FREE(lpc_socks[fd].w_buf);
-
+    clear_socket(fd, 1);
+    
     debug(sockets, ("socket_close: closed fd %d\n", fd));
     return EESUCCESS;
 }
@@ -1194,63 +1195,65 @@ inet_address P1(struct sockaddr_in *, sin)
     return (addr);
 }
 
+char *socket_modes[] = {
+    "MUD",
+    "STREAM",
+    "DATAGRAM",
+    "STREAM_BINARY",
+    "DATAGRAM_BINARY"
+};
+
+char *socket_states[] = {
+    "CLOSED",
+    "CLOSING",
+    "UNBOUND",
+    "BOUND",
+    "LISTEN",
+    "DATA_XFER"
+};
+
 /*
- * Dump the LPC efun socket array
+ * Return an array containing info for a socket
  */
-void dump_socket_status P1(outbuffer_t *, out)
+array_t *
+socket_status P1(int, which)
 {
-    int i;
+    array_t *ret;
+    
+    if (which < 0 || which >= max_lpc_socks) return 0;
 
-    outbuf_add(out, "Fd    State      Mode       Local Address          Remote Address\n");
-    outbuf_add(out, "--  ---------  --------  ---------------------  ---------------------\n");
+    ret = allocate_empty_array(6);
+    
+    ret->item[0].type = T_NUMBER;
+    ret->item[0].subtype = 0;
+    ret->item[0].u.number = lpc_socks[which].fd;
+    
+    ret->item[1].type = T_STRING;
+    ret->item[1].subtype = STRING_CONSTANT;
+    ret->item[1].u.string = socket_states[lpc_socks[which].state];
 
-    for (i = 0; i < max_lpc_socks; i++) {
-	outbuf_addv(out, "%2d  ", lpc_socks[i].fd);
+    ret->item[2].type = T_STRING;
+    ret->item[2].subtype = STRING_CONSTANT;
+    ret->item[2].u.string = socket_modes[lpc_socks[which].mode];
 
-	switch (lpc_socks[i].state) {
-	case FLUSHING:
-	    outbuf_add(out, " CLOSING ");
-	    break;
-	case CLOSED:
-	    outbuf_add(out, "  CLOSED ");
-	    break;
-	case UNBOUND:
-	    outbuf_add(out, " UNBOUND ");
-	    break;
-	case BOUND:
-	    outbuf_add(out, "  BOUND  ");
-	    break;
-	case LISTEN:
-	    outbuf_add(out, " LISTEN  ");
-	    break;
-	case DATA_XFER:
-	    outbuf_add(out, "DATA_XFER");
-	    break;
-	default:
-	    outbuf_add(out, "    ??    ");
-	    break;
-	}
-	outbuf_add(out, "  ");
+    ret->item[3].type = T_STRING;
+    ret->item[3].subtype = STRING_MALLOC;
+    ret->item[3].u.string = string_copy(inet_address(&lpc_socks[which].l_addr),
+					"socket_status");
+    
+    ret->item[4].type = T_STRING;
+    ret->item[4].subtype = STRING_MALLOC;
+    ret->item[4].u.string = string_copy(inet_address(&lpc_socks[which].r_addr),
+					"socket_status");
 
-	switch (lpc_socks[i].mode) {
-	case MUD:
-	    outbuf_add(out, "   MUD  ");
-	    break;
-	case STREAM:
-	    outbuf_add(out, " STREAM ");
-	    break;
-	case DATAGRAM:
-	    outbuf_add(out, "DATAGRAM");
-	    break;
-	default:
-	    outbuf_add(out, "   ??   ");
-	    break;
-	}
-	outbuf_add(out, "  ");
-
-	outbuf_addv(out, "%-21s  ", inet_address(&lpc_socks[i].l_addr));
-	outbuf_addv(out, "%-21s\n", inet_address(&lpc_socks[i].r_addr));
+    if (lpc_socks[which].owner_ob && !(lpc_socks[which].owner_ob->flags & O_DESTRUCTED)) {
+	ret->item[5].type = T_OBJECT;
+	ret->item[5].u.ob = lpc_socks[which].owner_ob;
+	add_ref(lpc_socks[which].owner_ob, "socket_status");
+    } else {
+	ret->item[5] = const0;
     }
+    
+    return ret;
 }
-
 #endif				/* SOCKET_EFUNS */

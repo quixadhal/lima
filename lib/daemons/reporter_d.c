@@ -28,7 +28,7 @@ inherit M_ACCESS;
 ** change this file, but that is a necessity if this will be writing
 ** to restricted directories.
 */
-private static mapping log_files = ([
+private nosave mapping log_files = ([
 				     "Bug" : LOG_BUG,
 				     "Typo" : LOG_TYPO,
 				     "Idea" : LOG_IDEA,
@@ -36,7 +36,7 @@ private static mapping log_files = ([
                                     "Question" : LOG_QUESTION,
                                     "Feedback" : LOG_FEEDBACK,
 				     ]);
-private static mapping news_groups = ([
+private nosave mapping news_groups = ([
 				       "Bug" : BUG_NEWSGROUP,
 				       "Typo" : TYPO_NEWSGROUP,
 				       "Idea" : IDEA_NEWSGROUP,

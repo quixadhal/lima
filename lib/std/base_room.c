@@ -27,7 +27,7 @@ inherit __DIR__ "room/exits";
 inherit __DIR__ "room/roomdesc";
 inherit __DIR__ "room/state";
 
-private static string area_name;
+private nosave string area_name;
 
 //:FUNCTION stat_me
 //Returns some debugging info about the object.  Shows the container info,

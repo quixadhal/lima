@@ -209,9 +209,11 @@ void call_out()
 	    } else {
 		if (SETJMP(econ.context)) {
 		    restore_context(&econ);
-		    if (max_eval_error) 
+		    if (max_eval_error) {
 			debug_message("Maximum evaluation cost reached while trying to process call_outs\n");
-		    return;
+			pop_context(&econ);
+			return;
+		    }
 		} else {
 		    object_t *ob;
 		    
@@ -520,4 +522,24 @@ remove_all_call_out P1(object_t *, obj)
 		    copp = &(*copp)->next;
 	}
     }
+}
+
+void reclaim_call_outs() {
+    pending_call_t *cop;
+    int i;
+    
+    remove_all_call_out(0); /* removes call_outs to destructed objects */
+    
+#ifdef THIS_PLAYER_IN_CALL_OUT
+    for (i = 0; i < CALLOUT_CYCLE_SIZE; i++) {
+	cop = call_list[i];
+	while (cop) {
+	    if (cop->command_giver) {
+		free_object(cop->command_giver, "reclaim_call_outs");
+		cop->command_giver = 0;
+	    }
+	    cop = cop->next;
+	}
+    }
+#endif
 }

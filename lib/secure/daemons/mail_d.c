@@ -28,7 +28,7 @@ inherit CLASS_MAILMSG;
 
 private class mail_msg saved_msg;
 
-private static mapping mailboxes = ([ ]);
+private nosave mapping mailboxes = ([ ]);
 
 
 private nomask void create()

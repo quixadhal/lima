@@ -6,8 +6,8 @@
 ** 96...., Rust: created
 */
 
-private static string array room_state = ({});
-private static mapping room_state_extra_longs = ([]);
+private nosave string array room_state = ({});
+private nosave mapping room_state_extra_longs = ([]);
 
 string array get_room_state_info()
 {

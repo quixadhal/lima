@@ -1,7 +1,0 @@
-# Do not remove the headers from this file! see /USAGE for more info.
-
-is=monster
-proper_name=giant
-in_room_desc=A giant
-weapon_class=20
-armor_class=2

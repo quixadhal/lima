@@ -22,6 +22,7 @@
 #define MESSAGES_D	"/daemons/messages_d"
 #define MONEY_D		"/daemons/money_d"
 #define NEWS_D		"/daemons/news_d"
+#define PREPOSITION_D   "/daemons/preposition_d"
 #define QUEST_D		"/daemons/quest_d"
 #define REPORTER_D	"/daemons/reporter_d"
 #define SOUL_D		"/daemons/soul_d"
@@ -43,6 +44,7 @@
 #define SECURE_D        "/secure/daemons/secure_d"
 #define USER_D		"/secure/daemons/user_d"
 #define LPSCRIPT_D	"/secure/daemons/lpscript_d"
+#define SMTP_D          "/secure/daemons/smtp_d"
 
 // Define these only if you want intermud services.
 #define REMOTE_D        "/secure/daemons/remote"

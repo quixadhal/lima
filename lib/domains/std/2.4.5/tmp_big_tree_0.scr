@@ -1,8 +1,0 @@
-# Do not remove the headers from this file! see /USAGE for more info.
-
-is=object
-primary_adj=big
-primary_id=tree
-direct_climb_obj:
-  return "There are no low branches.\n"
-end

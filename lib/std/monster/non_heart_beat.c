@@ -7,9 +7,9 @@ void switch_to(object);
 void attack();
 object get_target();
 
-private static int	attack_time = time();
+private nosave int	attack_time = time();
 private int 		attack_speed = 5;
-static int 		attacking;
+nosave int 		attacking;
 
 void remove() {
     remove_call_out();

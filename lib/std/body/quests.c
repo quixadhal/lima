@@ -41,7 +41,7 @@ query_quests()
 }
 
 
-static
+protected
 void
 rack_up_a_death()
 {

@@ -53,14 +53,14 @@ class connection
 }
 
 
-private static class connection *sessions = ({});
-private static int 		active_session = -1;
-private static string	 	active_session_name;
-private static int 		actively_elsewhere;
-private static int 		notify_on_activity = 1;
-private static object           owner;
-private static string           control_char;
-private static int              hide_all_output;
+private nosave class connection *sessions = ({});
+private nosave int 		active_session = -1;
+private nosave string	 	active_session_name;
+private nosave int 		actively_elsewhere;
+private nosave int 		notify_on_activity = 1;
+private nosave object           owner;
+private nosave string           control_char;
+private nosave int              hide_all_output;
 
 
 private nomask string get_address(string);

@@ -73,6 +73,8 @@ void check_all_blocks PROT((int));
 
 outbuffer_t out;
 
+void MDmemcheck();
+
 void MDmemcheck() {
     check_all_blocks(2);
     if (out.buffer)
@@ -783,6 +785,7 @@ void check_all_blocks P1(int, flag) {
 #ifdef LPC_TO_C
 	mark_switch_lists();
 #endif
+	mark_file_sv();
 	mark_all_defines();
 	mark_free_sentences();
 	mark_iptable();

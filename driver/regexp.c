@@ -254,7 +254,7 @@ STATIC void regoptail PROT((char *, char *));
 STATIC int strcspn();
 #endif
 
-void regerror P1(char *, s) {
+STATIC void regerror P1(char *, s) {
     switch (regexp_user) {
     case ED_REGEXP:
 	ED_OUTPUTV(ED_DEST, "ed: regular expression error: %s", s);

@@ -9,7 +9,7 @@ string query_race() {
 string short_description() {
     return "Elves get bonuses to charisma and wisdom.  Their strength is below average, their agility is average, their intelligence is above average, and thier willpower is slightly below average.  If this had been a real race instead of an example, this would have been much more interesting to read.\n";
 }
-
+#ifdef USE_STATS
 int racial_con_bonus() {
     return 0;
 }
@@ -39,3 +39,4 @@ class stat_roll_mods query_roll_mods() {
 
     return ret;
 }
+#endif

@@ -5,6 +5,18 @@
 #ifndef _OPTIONS_H_
 #define _OPTIONS_H_
 
+/* 
+ * YOU PROBABLY DO NOT WANT TO MODIFY THIS FILE.
+ *
+ * Do 'cp options.h local_options' and edit that instead.  local_options,
+ * if it exists, overrides this file.
+ *
+ * The advantage is that when you upgrade to a newer MudOS driver, you can
+ * simply copy your local_options file into the src directory.  The build
+ * process will warn you if new options have been added that you should
+ * choose settings for.
+ */
+
 /****************************************************************************
  * EVERY time you change ANYTHING in this file, RECOMPILE from scratch.     *
  * (type "make clean" then "make" on a UNIX system) Failure to do so may    *
@@ -118,6 +130,14 @@
  * The MudOS driver has evolved quite a bit over the years.  These defines  *
  * are mainly to preserve old behavior in case people didn't want to        *
  * rewrite the relevant portions of their code.                             *
+ *									    *
+ * In most cases, code which needs these defines should be rewritten when   *
+ * possible.  The 'Compat status' field is designed to give an idea how     *
+ * likely it is that support for that option will be removed in the near    *
+ * future.  Certain options are fairly easy to work around, and double      *
+ * the size of the associated code, as well as the maintenance workload,    *
+ * and can make the code significantly more complex or harder to read, so   *
+ * supporting them indefinitely is impractical.                             *
  *                                                                          *
  * WARNING: If you are using software designed to run with the MudOS driver *
  *          it may assume certain settings of these options.  Check the     *
@@ -126,6 +146,8 @@
 
 /* HAS_STATUS_TYPE: old MudOS drivers had a 'status' type which was
  * identical to the 'int' type.  Define this to bring it back.
+ *
+ * Compat status: very archaic, but easy to support.
  */
 #undef HAS_STATUS_TYPE
 
@@ -149,19 +171,35 @@
 
 /* CAST_CALL_OTHERS: define this if you want to require casting of call_other's;
  *   this was the default behavior of the driver prior to this addition.
+ *
+ * Compat status: code that requires it doesn't break, and it promotes
+ * sloppy coding with no benefits.
  */
 #undef CAST_CALL_OTHERS
 
 /* NONINTERACTIVE_STDERR_WRITE: if defined, all writes/tells/etc to
  *   noninteractive objects will be written to stderr prefixed with a ']'
  *   (old behavior).
+ *
+ * Compat status: Easy to support, and also on the "It's a bug!  No, it's
+ * a feature!" religious war list.
  */
 #define NONINTERACTIVE_STDERR_WRITE
 
 /* NO_LIGHT: define this to disable the set_light() and driver maintenance
  *   of light levels in objects.  You can simulate it via LPC if you want...
+ *
+ * Compat status: Very dated, easy to simulate, and gross.
  */
 #define NO_LIGHT
+
+/* NO_ADD_ACTION: define this to remove add_action, commands, livings, etc.
+ * process_input() then becomes the only way to deal with player input. 
+ *
+ * Compat status: next to impossible to simulate, hard to replace, and 
+ * very, very widely used.
+ */
+#undef NO_ADD_ACTION
 
 /* NO_SNOOP: disables the snoop() efun and all related functionality.
  */
@@ -169,19 +207,32 @@
 
 /* NO_ADD_ACTION: define this to remove add_action, commands, livings, etc.
    process_input() then becomes the only way to deal with player input. */
-#undef NO_ADD_ACTION
 
 /* NO_ENVIRONMENT: define this to remove the handling of object containment
-   relationships by the driver */
+ * relationships by the driver 
+ *
+ * Compat status: hard to simulate efficiently, and very widely used.
+ */
 #undef NO_ENVIRONMENT
 
 /* NO_WIZARDS: for historical reasons, MudOS used to keep track of who
-   is and isn't a wizard.  Defining this removes that completely.
-   If this is defined, the wizardp() and related efuns don't exist */
+ * is and isn't a wizard.  Defining this removes that completely.
+ * If this is defined, the wizardp() and related efuns don't exist.
+ *
+ * Also note that if it is not defined, then non-wizards are always put
+ * in restricted mode when ed() is used, regardless of the setting of
+ * the restrict parameter.
+ *
+ * Compat status: easy to simulate and dated.
+ */
 #define NO_WIZARDS
 
 /* OLD_TYPE_BEHAVIOR: reintroduces a bug in type-checking that effectively
  * renders compile time type checking useless.  For backwards compatibility.
+ *
+ * Compat status: dealing with all the resulting compile errors can be
+ * a huge pain even if they are correct, and the impact on the code is
+ * small.
  */
 #undef OLD_TYPE_BEHAVIOR
 
@@ -189,11 +240,16 @@
  * or buffer range values (not lvalue, i.e. x[-2..-1]; for e.g. not 
  * x[-2..-1] = foo, the latter is always illegal) to mean counting from the 
  * end 
+ *
+ * Compat status: Not horribly difficult to replace reliance on this, but not
+ * trivial, and cannot be simulated.
  */
 #undef OLD_RANGE_BEHAVIOR
 
 /* OLD_ED: ed() efun backwards compatible with the old version.  The new
  * version requires/allows a mudlib front end.
+ *
+ * Compat status: Easily simulated.
  */
 #define OLD_ED
 
@@ -256,7 +312,7 @@
 /* LOG_CATCHES: define this to cause errors that are catch()'d to be
  *   sent to the debug log anyway.
  *
- * On by default, because newer libs use catch() alot, and it's confusing
+ * On by default, because newer libs use catch() a lot, and it's confusing
  * if the errors don't show up in the logs.
  */
 #define LOG_CATCHES
@@ -358,12 +414,6 @@
  *   reloaded that otherwise would).
  */
 #undef LAZY_RESETS
-
-/* COMPRESS_FUNCTION_TABLES: Causes function tables to take up significantly
- * less memory, at the cost of a slight increase in function call overhead
- * (speed).
- */
-#define COMPRESS_FUNCTION_TABLES
 
 /* SAVE_EXTENSION: defines the file extension used by save_object().
  *   and restore_object().  Some sysadmins run scripts that periodically
@@ -633,6 +683,19 @@
  * Most of these options will probably be of no interest to many users.  *
  *************************************************************************/
 
+/* USE_32BIT_ADDRESSES: Use 32 bits for addresses of function, instead of 
+ * the usual 16 bits.  This increases the maximum program size from 64k
+ * of LPC bytecode (NOT source) to 4 GB.  Branches are still 16 bits,
+ * imposing a 64k limit on catch(), if(), switch(), loops, and most other
+ * control structures.  It would take an extremely large function to hit
+ * those limits, though.
+ *
+ * Overhead: 2 bytes/function with LPC->C off.  Having LPC->C on forces
+ * this option, since it needs 4 bytes to store the function pointers
+ * anyway, and this setting is ignored.
+ */
+#undef USE_32BIT_ADDRESSES
+
 /* HEARTBEAT_INTERVAL: define heartbeat interval in microseconds (us).
  *   1,000,000 us = 1 second.  The value of this macro specifies
  *   the frequency with which the heart_beat method will be called in
@@ -666,10 +729,19 @@
 #define MESSAGE_BUFFER_SIZE 4096
 
 /* APPLY_CACHE_BITS: defines the number of bits to use in the call_other cache
- *   (in interpret.c).  Somewhere between six (6) and ten (10) is probably
- *   sufficient for small muds.
+ *   (in interpret.c).
+ * 
+ * Memory overhead is (1 << APPLY_CACHE_BITS)*18.
+ *
+ * ACB:    entries:     overhead:
+ *  6         64          1152b
+ *  8        256          4608b
+ * 10       1024            18k
+ * 12       4096            72k
+ * 14      16384           288k
+ * 16      65536          1152k
  */
-#define APPLY_CACHE_BITS 11
+#define APPLY_CACHE_BITS 12
 
 /* CACHE_STATS: define this if you want call_other (apply_low) cache 
  * statistics.  Causes HAS_CACHE_STATS to be defined in all LPC objects.

@@ -9,8 +9,8 @@
 
 inherit M_INPUT;
 
-private static string remote_mudname;
-private static string remote_dir = "/";
+private nosave string remote_mudname;
+private nosave string remote_dir = "/";
 
 private nomask string local_dir()
 {

@@ -6,7 +6,7 @@ inherit CLASS_BODYSLOTS;
 
 // Set some defaults. If you want other ones, override this.
 
-static mapping slots =
+nosave mapping slots =
  ([  TORSO : new(class slot, howmany:1, name:TORSO, max_size:LARGE, stuff:({ })),
      HEAD : new(class slot, howmany:1,name:HEAD,max_size:SMALL,stuff:({ })),
      ARMS : new(class slot,howmany:1,name:ARMS,max_size:MEDIUM,stuff:({ })),
@@ -18,12 +18,12 @@ static mapping slots =
 
  
 //For those of us who just want to roll our own.
-static nomask void set_body_slots(mapping what)
+protected nomask void set_body_slots(mapping what)
 {
     slots = what;
 }
 
-static nomask int add_body_slot(string sname, int num, int maxsize)
+protected nomask int add_body_slot(string sname, int num, int maxsize)
 {
     class slot tmp;
 
@@ -96,7 +96,7 @@ nomask mixed get_random_clothing()
 
     
         
-static nomask int reset_body_slots()
+protected nomask int reset_body_slots()
 {
 
     

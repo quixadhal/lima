@@ -128,7 +128,7 @@
 
 #  else
 
-#    include "malloc.h"
+#    include "my_malloc.h"
 
 #  endif
 #endif

@@ -3,8 +3,8 @@
 // John
 // Sep 7 94
 
-private static mixed	throw_response = 1;
-private static function	my_throw_hook;
+private nosave mixed	throw_response = 1;
+private nosave function	my_throw_hook;
 
 void add_hook(string, function);
 mixed move (object);

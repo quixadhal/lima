@@ -75,7 +75,7 @@ void set_block_action(mixed ba) {
 
 varargs void targetted_action();
 
-private mixed handle_blocks(string dir) {
+mixed handle_blocks(string dir) {
     // sanity check
     if (env != environment(this_object())) {
 	we_moved();

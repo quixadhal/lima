@@ -2,11 +2,11 @@
 
 #include <assert.h>
 
-private static string spell_name;
+private nosave string spell_name;
 
-static void cast_spell(object target, object reagent);
+protected void cast_spell(object target, object reagent);
 
-static void set_spell_name(string s)
+protected void set_spell_name(string s)
 {
     spell_name = s;
 }
@@ -21,7 +21,7 @@ string get_spell_name()
 // is a scroll present?
 // Return a string error message or 1 if it is cool.
 
-static mixed valid_reagent(object reagent)
+protected mixed valid_reagent(object reagent)
 {
     /* DEFAULT: if there is a reagent, then it can't be used */
     if ( reagent )
@@ -31,7 +31,7 @@ static mixed valid_reagent(object reagent)
     return 1;
 }
 
-static mixed valid_target(object target)
+protected mixed valid_target(object target)
 {
     /* DEFAULT: if there is a target, then it is invalid */
     if ( target )
@@ -41,18 +41,18 @@ static mixed valid_target(object target)
     return 1;
 }
 
-static mixed valid_circumstances(mixed target, mixed reagent)
+protected mixed valid_circumstances(mixed target, mixed reagent)
 {
     /* DEFAULT: spells can be cast at any time */
     return 1;
 }
 
-static mixed check_valid_spell(int has_target, int has_reagent)
+protected mixed check_valid_spell(int has_target, int has_reagent)
 {
     return valid_circumstances(has_target, has_reagent);
 }
 
-static mixed check_valid_target(object target, mixed has_reagent)
+protected mixed check_valid_target(object target, mixed has_reagent)
 {
     mixed res;
 
@@ -63,7 +63,7 @@ static mixed check_valid_target(object target, mixed has_reagent)
     return valid_target(target);
 }
 
-static mixed check_valid_reagent(object reagent, mixed has_target)
+protected mixed check_valid_reagent(object reagent, mixed has_target)
 {
     mixed res;
 
@@ -122,7 +122,7 @@ nomask mixed _check_valid_reagent(object reagent, mixed has_target)
 }
 
 // The daemon calls this, we check if it came from the daemon, and then call
-// the local (static) cast_spell
+// the local (protected) cast_spell
 nomask void _cast_spell(object target, object reagent)
 {
     ENSURE(previous_object() == find_object(SPELL_D));
