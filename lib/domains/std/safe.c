@@ -16,7 +16,10 @@ inherit CONTAINER;
 create()
 {
     container::create();
+    openable::create();
+
     set_id("safe");
+    set_adjectives( ({ "large" }) );
     set_in_room_desc( "\nThere is a large safe in the center of the room.");
 
     set_gettable(-1);

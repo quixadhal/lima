@@ -12,9 +12,13 @@ inherit VERB_OB;
 mixed can_look_str(string str) {
     mapping exits;
 
+//###FIXME
+
+#if 0 // deprecated
     exits = environment(this_body())->get_exits();
     if (stringp(exits[str]))
 	return 1;
+#endif
     return "That doesn't seem to be possible.\n";
 }
 
@@ -39,7 +43,7 @@ void do_look_at_obj(object ob, string name) {
 // if you're looking for what happened to that code, that's why I removed it.
 // -Beek
 void do_look_str_obj(string prep, object ob) {
-    ob->look_in(prep);
+    write(ob->look_in(prep));
 }
 
 void do_look_obj(object ob, string name) {

@@ -69,7 +69,9 @@ varargs string ansi(string str, object forwho) {
     }
     if (!forwho)
         forwho = this_body();
-    if (forwho && forwho->query_shell_ob()->get_variable("ansi"))
+    if (forwho)
+	forwho = forwho->query_shell_ob();
+    if (forwho && forwho->get_variable("ansi"))
 	return terminal_colour(str, translations);
     else
 	return terminal_colour(str, null_translations);

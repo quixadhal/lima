@@ -130,7 +130,8 @@ execute_command(string * argv, string original_input)
     {
       if(!cmd_info || cmd_info == -1) 
 	{
-	  this_body()->do_game_command(original_input);
+	  if (!this_body()->do_game_command(original_input))
+	      write(this_body()->nonsense());
 	  return 1;
 	}
       if(cmd_info != 1)

@@ -35,6 +35,7 @@ string pluralize(string str)
     case "are": return "is";
     case "laf": return "lafs";
     case "have": return "has";
+    case "snarf": return "snarfs";
     default:
 	return efun::pluralize(str);
     }

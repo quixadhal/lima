@@ -8,40 +8,21 @@
 **
 ** ??-Aug-94 Created.  By Beek.  Originally was /std/weapon.
 ** 12-Dec-94 Converted to modules approach.  Deathblade.
+** 22-Oct-95 Beek separated out the combat stuff into M_DAMAGE_SOURCE, since
+**           we don't want living objects to have the verb interaction
 */
 
-private int wield_bonus;
-private string wield_type = "blow";
-private object wielded_by;
+inherit M_DAMAGE_SOURCE;
 
-private string extra_short() {
-    if (wielded_by && wielded_by != this_object())
-	return "wielded";
-}
+void hook_state(string, mixed, int);
 
-int adjust_result(int result)
-{
-    return result;
-}
+void mark_wielded_by(object);
 
-int query_wield_bonus()
-{
-    return wield_bonus;
-}
-
-string query_wield_type()
-{
-    return wield_type;
-}
+static function move_hook = (: unwield_me :);
 
 int valid_wield()
 {
     // return 1 if they can wield this.
-    return 1;
-}
-
-int is_weapon()
-{
     return 1;
 }
 
@@ -52,16 +33,15 @@ string query_wield_message()
 
 void mark_wielded_by(object which)
 {
-//    hook_state("extra_short", "wielded, which && which != this_object);
-    wielded_by = which;
-}
+    hook_state("extra_short", "wielded", which && which != this_object());
+    hook_state("move", move_hook, which && which != this_object());
 
-object query_wielded_by()
-{
-    return wielded_by;
+    damage_source::mark_wielded_by(which);
 }
 
 mixed ob_state()
 {
-    return wielded_by;
+    return query_wielded_by();
 }
+
+int direct_wield_obj() { return 1; }

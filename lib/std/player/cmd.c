@@ -43,7 +43,7 @@ string nonsense()
 
 
 
-varargs nomask void do_game_command(string str, int debug)
+varargs nomask int do_game_command(string str, int debug)
 {
     mixed result;
     string tmp;
@@ -76,7 +76,7 @@ varargs nomask void do_game_command(string str, int debug)
     ** If a 1 was returned, then nothing more needs to be done.
     */
     if ( result == 1 )
-	return;
+	return 1;
 
     /*
     ** If a string was returned, then the parser figured something out.
@@ -85,18 +85,18 @@ varargs nomask void do_game_command(string str, int debug)
     if ( stringp(result) )
     {
 	write(result);
-	return;
+	return 1;
     }
 
-  // If in debug mode, we're done
-  if (debug) return;
+    // If in debug mode, we're done
+    if (debug) return 1;
 
     /*
     ** Check if they typed an exit
     */
     result = parse_sentence("go " + str);
     if (result == 1)
-        return;
+        return 1;
 
     /* 'You can't go ...' is a parser generated message for general
        failure.  The go command is careful to return explicit
@@ -104,9 +104,8 @@ varargs nomask void do_game_command(string str, int debug)
        ignore it. */
     if (stringp(result) && result[0..12] != "You can't go ") {
         write(result);
-        return;
+        return 1;
     }
-    write(nonsense());
 }
 
 nomask void force_game_command(string str)
@@ -115,6 +114,7 @@ nomask void force_game_command(string str)
 
     set_this_player(query_link());
     do_game_command(str);
+    write(nonsense());
     set_this_player(save_this_user);
 }
 

@@ -40,7 +40,7 @@ nomask private void main(string arg)
 	break;
 
     default:
-	notify_fail(USAGE);
+	write(USAGE);
 	return;
     }
 

@@ -5,10 +5,11 @@
 **
 ** This object provides base open/close capabilities for an OBJ
 **
-** ### doc forthcoming...
+**
+//### doc forthcoming...
 */
 
-/* ### this probably shouldn't be here... but for now (simul conversion)... */
+//### this probably shouldn't be here... but for now (simul conversion)...
 #include <mudlib.h>
 #include <hooks.h>
 
@@ -22,7 +23,6 @@ string the_short();
 string* query_adj();
 void set_adj(string*);
 
-
 private int closed;
 private string open_msg =  "$N $vopen a $o.\n";
 private string close_msg = "$N $vclose a $o.\n";
@@ -33,7 +33,9 @@ void hook_state(string, string, int);
 void add_hook(string, function);
 
 int openable() { return 1; }
+
 int query_closed() { return closed; }
+
 void set_closed(int x) { 
   string* adjs;
   
@@ -148,9 +150,11 @@ mixed direct_close_obj(object ob) {
 
 // You should do this, or call set_closed() when you create an openable,
 // so that the proper adjective gets initialized.
-void create(){
-    if (!clonep()) return;
-    
+void create() {
+    if (file_name() + ".c" == __FILE__) return;
+
     set_closed(1);
+    
     add_hook("extra_long", (: capitalize(the_short()) + " is " + (query_closed() ? "closed" : "open") + ".\n" :));
+    add_hook("prevent_look_in", (: closed ? "It is closed.\n" : (mixed)1 :));
 }

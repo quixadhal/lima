@@ -22,9 +22,9 @@
 #
 # CONFIGURABLE STUFF
 #
-LIMADIR=/home/rust/lima0.9-alpha
-backupdir=$LIMADIR/backups
-targetdir=$LIMADIR/lib
+limadir=/home/mud/lima-0.9r5
+backupdir=$limadir/backups
+targetdir=$limadir/lib
 COMPRESSCMD=gzip
 #
 # END
@@ -38,6 +38,11 @@ log=$backupdir/$base.log
 echo Backup begun: $(date) >> $log
 
 cd $targetdir/..
+
+if [ -f ./$base/core ]; then
+  mv ./$base/core ./core.$base.$(date +%y%m%d)
+fi
+
 tar -cf $backupdir/$base.tar ./$base
 $COMPRESSCMD $backupdir/$base.tar
 

@@ -19,10 +19,10 @@ set_long("This is an example room for the lima mudlib.  It is fairly non-desscri
  
     set_light(1);
  
-    exits = ([
+    set_exits( ([
     "west" : "/domains/std/wizroom",
     "south" : "/domains/std/room2"
-  ]);
+    ]) );
  
     set_items ( ([
 

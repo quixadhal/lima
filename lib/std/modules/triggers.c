@@ -63,7 +63,7 @@ void catch_tell(string str) {
     mixed ret;
     
     // strip trailing newline and whitespace
-    while (member_array(str[<1], " \t\n") != -1)
+    while (str != "" && member_array(str[<1], " \t\n") != -1)
 	str = str[0..<2];
     
     foreach (pat in patterns[0]) {

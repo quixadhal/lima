@@ -3,12 +3,16 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+// ------- options which have been moved to other files:
+#include "config_combat.h"
+// -----------------------------------------------------------
+
 #define mud_name()		MUD_NAME
 #define driver_version()	__VERSION__
 
 /* You don't have permission to change the next 2 lines w/o our consent.*/
 #define lib_name()		"Lima"
-#define lib_version()		"0.9r4 (pre-alpha)"
+#define lib_version()		"0.9r5 (pre-alpha)"
 
 /* changes these as you please */
 #define lib_status()		"mudlib development"
@@ -32,14 +36,11 @@
 # define USE_GUILDS
 # define USE_SKILLS
 # define USE_TITLES
-# define USE_COMBAT
 #endif
-
 
 #undef NO_NEW_PLAYERS
 #define LOGIN_NAME_WAIT		300	/* seconds to wait for a name */
 #define LOGIN_PASSWORD_WAIT	180	/* seconds for the password */
-
 
 // Auto wiz means guest wizard only.  You still have to use the admtool
 // command to make the person a full wizard w/ a directory.
@@ -58,6 +59,9 @@
 #define BUG_MSG \
 "You have just encountered a bug.  Please use the bug command to report it.\n"
 
+// Define this next one to limit how many aliases a person can have.
+#undef MAX_NUMBER_OF_ALIASES	30
+
 
 // I'd recommend not changing anything below this point.
 #define LINK_PATH(x)		sprintf("/data/links/%c/%s",x[0],x)
@@ -75,3 +79,4 @@
 #define MOTD_FILE	"/data/config/MOTD"
 
 #endif /* __CONFIG_H__ */
+

@@ -38,12 +38,10 @@ string query_truncated_title(int num_chars)
 
 int set_title(string str)
 {
-    string foo;
-
     if(this_body() != this_object())
       return;
 
-    if ( str && !sscanf(str,"%s$N%s", foo, foo) )
+    if ( str && strsrch(str, "$N") == -1 )
 	return -1;
 
     if ( !str )

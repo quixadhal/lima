@@ -8,6 +8,7 @@ string evaluate_path(string);
 
 string 
 base_name(mixed val) {
+    if (!val) val = previous_object();
     if (objectp(val))
 	val = file_name(val);
     else if (!stringp(val))

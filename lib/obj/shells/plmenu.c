@@ -222,6 +222,7 @@ void
 finish_mudinfo(string mudname)
 {
 do_cmd( "mudinfo " + mudname );
+
 printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
 }
  
@@ -229,7 +230,7 @@ void
 remote_mudinfo()
 {
    write("Which mud do you want to query?\n");
-   complete_choice(0, IMUD_D->query_mudnames(), (: finish_mudinfo :));
+complete_choice(0, IMUD_D->query_mudnames(), (: finish_mudinfo :));
 }
 
 void

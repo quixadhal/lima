@@ -46,6 +46,9 @@ static nomask void set_userid(string new_userid)
 
 nomask string query_body_fname()
 {
+//### extreme hack, until something better is done
+    if (name == "littlebeek") return "/std/race/elf.c";
+
     /*
     ** ### need to work out proper strategy.
     ** ### elements: select appropriate body for wiz vs. player.  allow

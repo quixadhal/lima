@@ -723,7 +723,7 @@ nomask varargs int check_privilege(mixed prot,int ignore)
   ob = this_user();
   if (!ob)
     {
-      syslog("Secvio: Missing user");
+      syslog("Secvio: Missing user\n" + call_trace()[0..<2]);
       return 0;
     }
   if (function_exists("query_privilege",ob)!=M_ACCESS)
@@ -739,4 +739,3 @@ nomask varargs int check_privilege(mixed prot,int ignore)
     }
   return 1;
 }
-

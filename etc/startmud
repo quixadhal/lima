@@ -2,21 +2,21 @@
 #	Bash script to keep the mud up forever
 #	Rust July 7, 1994
 
-LIMADIR=/home/rust/lima0.9-alpha
+limadir=/home/mud/lima-0.9r5
 
-logdir=$LIMADIR/lib/log
+logdir=$limadir/lib/log
 logfile=$logdir/driver.log
 lastlog=$logdir/driver.log.old
 
-bindir=$LIMADIR/etc
+bindir=$limadir/etc
 driver=./driver
 config=./config.lima
 
 while true; do
 
 cd $bindir
-rm -f $lastlog
-mv $logfile $lastlog
+
+mv -f $logfile $lastlog
 
 date > $logfile
 $driver $config >> $logfile 2>&1

@@ -28,11 +28,7 @@ private void reload_verb(string file)
     object ob;
 
     if ( ob = find_object(CMD_DIR_VERBS "/" + file) )
-    {
-	ob->remove();
-	if ( ob )
-	    destruct(ob);
-    }
+	destruct(ob);
 
     call_other(CMD_DIR_VERBS "/" + file, "???");
 }

@@ -56,6 +56,13 @@ nomask void add_xalias(string alias_name)
 {
     if ( base_name(previous_object()) != ALIASMENU )
 	error("invalid attempt to add an xalias\n");
+#ifdef MAX_NUMBER_OF_ALIASES
+    if (query_alias_count() >= MAX_NUMBER_OF_ALIASES)
+      {
+	write("Sorry, you already have too many aliases.\n");
+	return;
+      }
+#endif
 
     xaliases += ({ alias_name });
 }
@@ -75,6 +82,15 @@ nomask void add_alias_simple(string alias_name, class alias the_alias)
 {
     if ( base_name(previous_object()) != ALIASMENU )
 	error("invalid attempt to add an alias\n");
+
+#ifdef MAX_NUMBER_OF_ALIASES
+    if (query_alias_count() >= MAX_NUMBER_OF_ALIASES)
+      {
+	write("Sorry, you already have too many aliases.\n");
+	return;
+      }
+#endif
+
 
     aliases[alias_name] = the_alias;
 
@@ -152,6 +168,14 @@ add_alias(string name, string template, string* defaults, int xverb)
 {
   class alias new_alias;
   int i;
+
+#ifdef MAX_NUMBER_OF_ALIASES
+    if (query_alias_count() >= MAX_NUMBER_OF_ALIASES)
+      {
+	write("Sorry, you already have too many aliases.\n");
+	return;
+      }
+#endif
 
   if(strsrch(template,"$*") == -1)
     template += " $*";

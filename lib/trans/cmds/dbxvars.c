@@ -38,7 +38,7 @@ private void main(string str) {
 
     write("Matches:\n");
     foreach (var in vars) {
-        printf("%20s: %O\n", var, evaluate(f, var));
+        printf("%-20s: %O\n", var, evaluate(f, var));
     }
     return;
 }

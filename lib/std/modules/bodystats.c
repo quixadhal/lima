@@ -48,48 +48,52 @@
 */
 
 #include <classes.h>
+#include <hooks.h>
 
 private inherit CLASS_STATMODS;
+
+mixed call_hooks(string, int);
 
 private int	stat_str;	/* strength */
 private int	stat_agi;	/* agility */
 private int	stat_int;	/* intelligence */
 private int	stat_wil;	/* willpower */
 
-static private int adj_str;	/* adjustment for str */
-static private int adj_agi;	/* adjustment for agi */
-static private int adj_int;	/* adjustment for int */
-static private int adj_wil;	/* adjustment for wil */
+private int	stat_con;	/* constitution */
+private int	stat_wis;	/* wisdom */
+private int	stat_cha;	/* charisma */
 
-static private class stat_extra_mods extra_mods;
+/* Because of the complexity of the system, a bonus to strength affects
+ * str as well as con and wis and cha.  To avoid having to recall all
+ * the hooks for all the base stats every time one of the derived stats
+ * is queried, we cache the bonus here, reducing the number of hook
+ * calls from O(N^2) in stats to O(N).  One should make sure refresh_stats()
+ * gets called occasionally; it gets called automatically once a round
+ * during combat, but if you are using stats in a non-combat setting you
+ * might want to manually call it to make sure the latest modifications
+ * are being used (some of the hooks might time out and remove themselves,
+ * etc, but haven't done so yet b/c they haven't been checked in a while)
+ */
+private int	cur_str;
+private int	cur_agi;
+private int	cur_int;
+private int	cur_wil;
+private int	cur_con;
+private int	cur_wis;
+private int	cur_cha;
+
+// This is defined in such a way that:
+//
+// derived_stat[i] = trans_matrix[i][j] * base_stat[j]
+//                   + constant_vector[i] + skill contribution
+//
+// where there is an implied sum over j
+//
+static private mixed *trans_matrix;
+static private int *constant_vector;
 
 #define DEFAULT_RANGE	6
 #define BASE_VALUE	20
-
-
-/*
-** Effects of the base stats on the derived stats
-*/
-#define CON_STR_FACTOR		15
-#define CON_AGI_FACTOR		15
-#define CON_WIL_FACTOR		40
-#define CON_RACE_FACTOR		30
-
-#define WIS_STR_FACTOR		5
-#define WIS_AGI_FACTOR		5
-#define WIS_INT_FACTOR		25
-#define WIS_WIL_FACTOR		15
-#define WIS_RACE_FACTOR		25
-#define WIS_SKILL_FACTOR	25
-
-#define CHA_STR_FACTOR		10
-#define CHA_AGI_FACTOR		10
-#define CHA_INT_FACTOR		20
-#define CHA_WIL_FACTOR		20
-#define CHA_WIS_FACTOR		20	/* note: derived */
-#define CHA_SKILL_FACTOR	20
-/* plus self/target race modifier */
-
 
 /*
 ** Base statistics
@@ -104,14 +108,17 @@ nomask int query_str_pure()
 {
     return stat_str;
 }
+
 nomask int query_agi_pure()
 {
     return stat_agi;
 }
+
 nomask int query_int_pure()
 {
     return stat_int;
 }
+
 nomask int query_wil_pure()
 {
     return stat_wil;
@@ -119,70 +126,127 @@ nomask int query_wil_pure()
 
 nomask int query_str()
 {
-    return stat_str + adj_str;
+    return cur_str;
 }
+
 nomask int query_agi()
 {
-    return stat_agi + adj_agi;
+    return cur_agi;
 }
 nomask int query_int()
 {
-    return stat_int + adj_int;
+    return cur_int;
 }
+
 nomask int query_wil()
 {
-    return stat_wil + adj_wil;
+    return cur_wil;
 }
+
+#define CON 0
+#define WIS 1
+#define CHA 2
+
+#define STR 0
+#define AGI 1
+#define INT 2
+#define WIL 3
 
 /*
 ** Derived statistics
 */
-nomask int query_con()
-{
-    int con;
-    int bonus;
-    
-    con = ( (stat_str + adj_str) * CON_STR_FACTOR +
-	    (stat_agi + adj_agi) * CON_AGI_FACTOR +
-	    (stat_wil + adj_wil) * CON_WIL_FACTOR );
+void refresh_stats() {
+//:HOOK str_bonus
+//Used to modify strength
+//:HOOK agi_bonus
+//Used to modify agility
+//:HOOK int_bonus
+//Used to modify intelligence
+//:HOOK wil_bonus
+//Used to modify willpower
+    int adj_str, adj_agi, adj_int, adj_wil;
 
-    bonus = ( con
-	      - (con * extra_mods->con_bonus + 50) / 100
-	      + extra_mods->con_bonus ) * CON_RACE_FACTOR;
+    cur_str = stat_str + (adj_str = call_hooks("str_bonus", HOOK_SUM));
+    cur_agi = stat_agi + (adj_agi = call_hooks("agi_bonus", HOOK_SUM));
+    cur_int = stat_int + (adj_int = call_hooks("int_bonus", HOOK_SUM));
+    cur_wil = stat_wil + (adj_wil = call_hooks("wil_bonus", HOOK_SUM));
 
-    return (con * 100 + bonus + 5000) / 10000;
+    // optimize common case
+    if (!(adj_str || adj_agi || adj_int || adj_wil)) {
+	cur_con = stat_con;
+	cur_wis = stat_wis;
+	cur_cha = stat_cha;
+	return;
+    }
+
+    cur_con = stat_con + (trans_matrix[CON][STR] * adj_str +
+	trans_matrix[CON][AGI] * adj_agi +
+	trans_matrix[CON][INT] * adj_int +
+	trans_matrix[CON][WIL] * adj_wil + 5000) / 10000;
+    cur_wis = stat_wis + (trans_matrix[WIS][STR] * adj_str +
+	trans_matrix[WIS][AGI] * adj_agi +
+	trans_matrix[WIS][INT] * adj_int +
+	trans_matrix[WIS][WIL] * adj_wil + 5000) / 10000;
+    cur_cha = stat_cha + (trans_matrix[CHA][STR] * adj_str +
+	trans_matrix[CHA][AGI] * adj_agi +
+	trans_matrix[CHA][INT] * adj_int +
+	trans_matrix[CHA][WIL] * adj_wil + 5000) / 10000;
 }
-nomask int query_wis()
-{
-    int wis;
-    int bonus;
 
-    wis = ( (stat_str + adj_str) * WIS_STR_FACTOR +
-	    (stat_agi + adj_agi) * WIS_AGI_FACTOR +
-	    (stat_int + adj_int) * WIS_INT_FACTOR +
-	    (stat_wil + adj_wil) * WIS_WIL_FACTOR );
-
-    bonus = ( wis
-	      - (wis * extra_mods->wis_bonus + 50) / 100
-	      + extra_mods->wis_bonus ) * WIS_RACE_FACTOR;
-
-    /* add in portion of Eval */
-
-    return (wis * 100 + bonus + 5000) / 10000;
+void recompute_derived() {
+    stat_con = (constant_vector[CON] * 10000 + 
+	trans_matrix[CON][STR] * stat_str +
+	trans_matrix[CON][AGI] * stat_agi +
+	trans_matrix[CON][INT] * stat_int +
+	trans_matrix[CON][WIL] * stat_wil + 5000) / 10000;
+    stat_wis = (constant_vector[WIS] * 10000 +
+	trans_matrix[WIS][STR] * stat_str +
+	trans_matrix[WIS][AGI] * stat_agi +
+	trans_matrix[WIS][INT] * stat_int +
+	trans_matrix[WIS][WIL] * stat_wil + 5000) / 10000;
+    stat_cha = (constant_vector[CHA] * 10000 +
+	trans_matrix[CHA][STR] * stat_str +
+	trans_matrix[CHA][AGI] * stat_agi +
+	trans_matrix[CHA][INT] * stat_int +
+	trans_matrix[CHA][WIL] * stat_wil + 5000) / 10000;
+    refresh_stats();
 }
-nomask int query_cha()
-{
-    int wis = query_wis();
 
-    /* add in portion of Eval */
-    /* add in self/target race compatibility modifier */
+//### these are also in race.c
+#define WIS_SKILL_FACTOR	30
+#define CHA_SKILL_FACTOR	25
 
-    return ( (stat_str + adj_str) * CHA_STR_FACTOR +
-	     (stat_agi + adj_agi) * CHA_AGI_FACTOR +
-	     (stat_int + adj_int) * CHA_INT_FACTOR +
-	     (stat_wil + adj_wil) * CHA_WIL_FACTOR +
-	     wis * CHA_WIS_FACTOR +
-	     50 ) / 100;
+//### these should come from skills
+int skill_wis_sum() {
+    return 0;
+}
+
+int skill_cha_sum() {
+    return 0;
+}
+
+nomask int query_con_pure() {
+    return stat_con;
+}
+
+nomask int query_wis_pure() {
+    return stat_wis + (WIS_SKILL_FACTOR * skill_wis_sum()/100);
+}
+
+nomask int query_cha_pure() {
+    return stat_cha + (CHA_SKILL_FACTOR * skill_cha_sum()/100);
+}
+
+nomask int query_con() {
+    return cur_con;
+}
+
+nomask int query_wis() {
+    return cur_wis + (WIS_SKILL_FACTOR * skill_wis_sum()/100);
+}
+
+nomask int query_cha() {
+    return cur_cha + (CHA_SKILL_FACTOR * skill_cha_sum()/100);
 }
 
 /*
@@ -191,18 +255,23 @@ nomask int query_cha()
 ** query_roll_mods() may be overriden by subclasses to provide for changes
 **   in the statistics generation.
 **
-** query_extra_mods() may be overriden to provide bonus advancements in
-**   the statistics.
-**
 ** init_stats() may only be called once (admins may call whenever)
 */
 class stat_roll_mods query_roll_mods()
 {
+    // should be overloaded
     return new(class stat_roll_mods);
 }
-class stat_extra_mods query_extra_mods()
+
+mixed *query_transformation_matrix()
 {
-    return new(class stat_extra_mods);
+    // should be overloaded
+    return ({ allocate(4), allocate(4), allocate(4) });
+}
+
+int *query_constant_vector() {
+    // should be overloaded
+    return allocate(3);
 }
 
 private nomask int roll_stat(int adjust, int range)
@@ -229,13 +298,16 @@ nomask void init_stats()
     stat_agi = roll_stat(mods->agi_adjust, mods->agi_range);
     stat_int = roll_stat(mods->int_adjust, mods->int_range);
     stat_wil = roll_stat(mods->wil_adjust, mods->wil_range);
-}
 
+    recompute_derived();
+    refresh_stats();
+}
 
 /*
 ** Object inheriting this module should be sure to call this.
 */
 void create()
 {
-    extra_mods = query_extra_mods();
+    trans_matrix = query_transformation_matrix();
+    constant_vector = query_constant_vector();
 }

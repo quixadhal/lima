@@ -8,13 +8,11 @@
 
 inherit VERB_OB;
 
-mixed can_wield_obj()
-{
-    return 1;
-}
-
 void do_wield_obj(object ob)
 {
+    if (!try_to_acquire(ob))
+	return;
+    
     this_body()->do_wield(ob);
 }
  

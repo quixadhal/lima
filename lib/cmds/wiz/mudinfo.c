@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+
 inherit CMD;
 inherit M_REGEX;
 inherit M_GLOB;
@@ -8,64 +9,67 @@ inherit M_GLOB;
 
 private void main(string arg)
 {
+    mapping mudlist = IMUD_D->query_mudlist();
+    string* muds = keys(mudlist);
+    string* matches;
+    string  match;
+    mixed*  mudinfo;
+    string  output;
 
-  mapping mudlist = IMUD_D->query_mudlist();
-  string* muds = keys(mudlist);
-  string* matches;
-  string  match;
-  mixed*  mudinfo;
-  string  output;
-
-  if(!arg || arg == "")
+    if(!arg || arg == "")
     {
-      printf("Usage: mudinfo <mudname>\n");
-      return;
+	printf("Usage: mudinfo <mudname>\n");
+	return;
     }
-  else
+    else
     {
-      matches = insensitive_regexp(muds, "^"+translate(arg));
-      if(!sizeof(matches))
+	matches = insensitive_regexp(muds, "^"+translate(arg));
+	if(!sizeof(matches))
 	{
-	  printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
-	  return;
+	    printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
+	    return;
 	}
     }
-  output = "";
-  matches = sort_array(matches,1);
-  foreach(match in matches)
+    output = "";
+    matches = sort_array(matches,1);
+    foreach(match in matches)
     {
-      mudinfo = mudlist[match];
-      output += implode(explode(match,"")," ") + "\n";
-      output += "___________________________________\n";
-      output += sprintf("Type: %s\n", mudinfo[8]);
-      output += sprintf("Address: %s %d\n", mudinfo[1], mudinfo[2]);
-      output += sprintf("Current Mudlib: %s\n", mudinfo[5]);
-      output += sprintf("Base Mudlib: %s\n", mudinfo[6]);
-      output += sprintf("Driver: %s\n", mudinfo[7]);
-      output += "Status:  ";
-      if(mudinfo[0] == -1)
+	mudinfo = mudlist[match];
+	output += implode(explode(match,"")," ") + "\n";
+	output += "___________________________________\n";
+	output += sprintf("Type: %s\n", mudinfo[8]);
+	output += sprintf("Address: %s %d\n", mudinfo[1], mudinfo[2]);
+	output += sprintf("Current Mudlib: %s\n", mudinfo[5]);
+	output += sprintf("Base Mudlib: %s\n", mudinfo[6]);
+	output += sprintf("Driver: %s\n", mudinfo[7]);
+	output += "Status:  ";
+	if(mudinfo[0] == -1)
 	{
-	  output += "Up\n";
+	    output += "Up\n";
 	}
-      else if(!mudinfo[0])
+	else if(!mudinfo[0])
 	{
-	  output += "Down\n";
+	    output += "Down\n";
 	}
-      else
+	else
 	{
-	  output += sprintf("Down (Expected up in %d minutes)\n",
-			    (mudinfo[0]+60)/60);
+	    output += sprintf("Down (Expected up in %d minutes)\n",
+			      (mudinfo[0]+60)/60);
 	}
-      output += sprintf("Open Status: %s\n", mudinfo[9]);
-      output += sprintf("TCP Imud port: %d\n", mudinfo[3]);
-      output += sprintf("UDP Imud port: %d\n", mudinfo[4]);
-      output += "Services available: ";
-      if(!sizeof(mudinfo[10]))
-	output += "None given\n\n";
-      else
-	output += implode(keys(mudinfo[10]), ", ") + "\n\n";
+	output += sprintf("Open Status: %s\n", mudinfo[9]);
+	output += sprintf("Admin email: %s\n", mudinfo[10]);
+	output += sprintf("TCP Imud port: %d\n", mudinfo[3]);
+	output += sprintf("UDP Imud port: %d\n", mudinfo[4]);
+	output += "Services available: ";
+	if(!sizeof(mudinfo[11]))
+	    output += "None given\n";
+	else
+	    output += implode(keys(mudinfo[11]), ", ") + "\n";
+	if ( mudinfo[12] )
+	    output += "Other data: " + implode(keys(mudinfo[12]), ", ") + "\n";
+	output += "\n";
     }
   
-  clone_object(MORE_OB)->more_string(output);
+    clone_object(MORE_OB)->more_string(output);
 }
 

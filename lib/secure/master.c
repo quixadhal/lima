@@ -197,7 +197,8 @@ private void report_context(string src, int line, string context) {
     string txt;
     int len, clen;
     int pos = strlen(INDENT);
-
+    int tmp;
+    
     if (!context || context == "") return;
     if (context[<1] == '\n') context = context[0..<2];
     
@@ -226,7 +227,10 @@ private void report_context(string src, int line, string context) {
 	clen = funky_strlen(context, pos);
 	pos += clen;
 	printf("^%-*' 's", clen - 1, "");
-	while (sscanf(src, "%s" + context + "%s", txt, src) == 2) {
+	while ((tmp = strsrch(src, context)) != -1) {
+	    txt = src[0..tmp-1];
+	    src = src[tmp + strlen(context)..];
+
 	    len = funky_strlen(txt, pos);
 	    pos += len;
 	    clen = funky_strlen(context, pos);
@@ -268,8 +272,8 @@ void log_error(string file, string message)
 	}
 	else
 	{
-#ifdef OLD_STYLE_COMPILATION_ERRORS
 	    sscanf(message, "%s: %s", where, err);
+#ifdef OLD_STYLE_COMPILATION_ERRORS
 	    printf(INDENT "Compilation error: %s   %s\n", err, where);
 #else
 	    /* for safety; it'll look wierd but have the right info */
@@ -375,8 +379,14 @@ string make_path_absolute(string path)
 
 int valid_override(string file, string efun_name)
 {
-    // M_GRAMMAR overrides this
-    if (efun_name == "pluralize") return 1;
+    switch (efun_name) {
+    case "pluralize":
+	// M_GRAMMAR overrides this
+	return 1;
+    case "input_to":
+    case "get_char":
+	return file == "/secure/modules/inputsys";
+    }
     /*
     ** The simul efun ob can use efun:: all it wants.  Other objects are
     ** completely restricted.
@@ -389,11 +399,7 @@ int valid_socket(object ob, string what, mixed * info)
     string fname;
 
     sscanf(file_name(ob), "%s#%*s", fname);
-    if ( fname == SOCKET )
-    {
-	return 1;
-    }
-    return 0;
+    return fname == SOCKET;
 }
 
 
@@ -461,7 +467,7 @@ mixed valid_write(mixed path, object caller, string call_fun)
         return path;
 
     write_file(ACCESS_LOG,
-	       (this_user() ? this_user()->query_userid() : "<Master>") +
+	       (this_user() ? this_user()->query_userid() : file_name(caller)) +
 	       ": attempted to write " + path + "\n");
 
     printf("Bad file name: %s.\n",path);
@@ -484,7 +490,7 @@ mixed valid_read(string path, object caller, string call_fun)
         return path;
 
     write_file(ACCESS_LOG,
-	       (this_user() ? this_user()->query_userid() : "<Master>") +
+	       (this_user() ? this_user()->query_userid() : file_name(caller)) +
 	       ": attempted to read " + path + "\n");
 
     printf("Bad file name: %s.\n",path);

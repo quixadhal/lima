@@ -80,6 +80,11 @@
 ** PLAYER_MENU
 */
 
+// These next few are 'high level' inheritables and probably should have
+// their own dir.
+#define SWORD			"/std/sword"
+#define BOOK			"/std/book"
+
 #define PLAYER			"/std/player"
 #define GHOST			"/std/ghost"
 #define USER_OB			"/secure/user"
@@ -88,7 +93,6 @@
 #define SIMUL_OB		"/secure/simul_efun"
 
 #define ROOM			"/std/room"
-#define BOOK			"/std/book"
 #define ENTERABLE		"/std/enterable"
 #define WATER_ROOM		"/std/water_room"
 
@@ -97,10 +101,12 @@
 
 #define OBJ 			"/std/object"
 #define WEAPON			"/std/weapon"
+#define ARMOR			"/std/armor"
 #define MONSTER			"/std/monster"
 #define CONTAINER		"/std/container"
 #define DOOR			"/std/door"
 #define LIVING			"/std/living"
+#define RACE			"/std/race"
 
 #define M_GLOB		        "/std/modules/glob"
 #define M_GRAMMAR		"/std/modules/grammar"
@@ -124,6 +130,8 @@
 #define M_OPENABLE		"/std/modules/openable"
 #define M_LOCKABLE		"/std/modules/lockable"
 #define M_READABLE		"/std/modules/readable"
+#define M_DAMAGE_SOURCE		"/std/modules/damage_source"
+#define M_DAMAGE_SINK		"/std/modules/damage_sink"
 #define M_WIELDABLE		"/std/modules/wieldable"
 #define M_MESSAGES		"/std/modules/messages"
 #define M_ACTIONS               "/std/modules/actions"

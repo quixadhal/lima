@@ -29,15 +29,13 @@ inherit "/std/player/cmd";
 inherit "/std/player/help";
 inherit "/std/player/bodyshell";
 inherit "/std/player/wizfuncs";
+inherit "/std/money";
 
 #ifdef USE_SKILLS
 inherit "/std/player/skills";
 #endif
 #ifdef USE_TITLES
 inherit "/std/player/title";
-#endif
-#ifdef USE_STATS
-inherit M_BODY_STATS;
 #endif
 
 
@@ -59,6 +57,17 @@ private static object link;
 private static string cap_name;
 private static int catching_scrollback;
 
+#ifdef USE_STATS
+inherit M_BODY_STATS;
+
+int to_hit_base() {
+    return 50 - query_agi();
+}
+
+void refresh_stats() {
+    bodystats::refresh_stats();
+}
+#endif
 
 // interfaces for other objects to manipulate our global variables
 
@@ -398,8 +407,7 @@ string base_in_room_desc()
     /* if they are link-dead, then prepend something... */
     if ( !link || !interactive(link) )
 	result = "The lifeless body of " + result;
-    /* titles may include a %s in them. substitute their name */
-    return punctuate(sprintf(result, cap_name));
+    return result;
 }
 
 string in_room_desc()
@@ -412,48 +420,6 @@ void set_reply(string o){
 }
 
 string query_reply(){ return reply; }
-
-string add_default_message(string message) {
-    string str;
-    switch (message) {
-    case "leave": str = "$N $vleave $o\n"; break;
-    case "mleave": str = "$N $vdisappear in a puff of smoke.\n"; break;
-    case "enter": str = "$N $venter.\n"; break;
-    case "menter": str = "$N $vappear in a puff of smoke.\n"; break;
-    case "invis": str = "$N $vfade from view.\n"; break;
-    case "vis": str = "$N $vfade into view.\n"; break;
-    case "home": str = "$N $vgo home.\n"; break;
-    case "clone": str = "$N $vclone the $o.\n"; break;
-    case "destruct": str = "$N $vdest the $o.\n"; break;
-    default: str = "$N $vdo not have a message for '"+message+"'.\n";
-    }
-    messages[message] = str;
-    return str;
-}
-
-void do_player_message(string message, mixed arg) {
-    mixed mess;
-    mixed foo;
-
-    if(!mapp(messages))
-	messages = ([]);
-    mess = messages[message];
-    if (!mess) mess = add_default_message(message);
-    if (pointerp(mess)) mess = mess[random(sizeof(mess))];
-
-    simple_action(mess, arg);
-}
-
-string *get_player_message(string message, mixed arg) {
-    mixed mess;
-    mixed foo;
-
-    mess = messages[message];
-    if (!mess) mess = add_default_message(message);
-    if (pointerp(mess)) mess = mess[random(sizeof(mess))];
-
-    return action( ({ this_object() }), mess, arg);
-}
 
 void net_dead()
 {
@@ -495,13 +461,14 @@ void die()
 {
     if ( wizardp(link) )
     {
-	simple_action("If $N $vwere mortal, $n would now no longer be mortal.\n");
-	set_hp(10);
+	simple_action("If $n $vwere mortal, $n would now no longer be mortal.\n");
+	heal_us(10000);
+	stop_fight();
 	return;
     }
 
     simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.\n");
-    tell_object(this_object(), "   ****  You have died  ****\n"
+    tell_object(this_object(), "\n\n   ****  You have died  ****\n\n"
       "A pity, really.  Way too many people dying these days for me to just patch\n"
       "everyone up.  Oh well, you'll live.\n");
     rack_up_a_death();
@@ -599,6 +566,9 @@ private void create(string userid)
 		    query_reflexive() + ".\n"
 		    );
     }
+
+    // up to the player
+    set_attack_speed(0);
 }
 
 

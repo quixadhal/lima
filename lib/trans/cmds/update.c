@@ -72,8 +72,7 @@ private void main(mixed *arg, mapping flags) {
 	    if (obs[n]->query_link() && interactive(obs[n]->query_link()))
 		obs[n]->move(VOID_ROOM);
 	    else {
-		obs[n]->remove();
-		if (obs[n]) destruct(obs[n]);
+		destruct(obs[n]);
 	    }
 	}
     }

@@ -1,320 +1,441 @@
-PRIVILEGES & PROTECTIONS
-
-In most multi-user environments it is necessary to restrict manipulation
-of files and data in certain ways. MUDs are now exceptions. For example,
-as the administrator of a MUD, you don't want the average wizard to tamper
-with the login object (for example by logging passwords) and most wizards
-don't want their files writeable by other wizards unless they are
-specifically granted permission to do so.
-
-Therefore, we need means to enforce a scheme that protects data (in
-particular files) from arbitrary manipulation. To do so, we introduce
-the concept of privileges (what a particular piece of code is allowed
-to do) and protections (the barrier that must be bypassed in order to
-manipulate a particular file).
-
-Both privileges and protections are drawn from the same set of values:
-The integers 1 and 0 (representing the top- and bottommost levels) as
-well as almost arbitrary strings. Most values will fit one of the
-following templates:
-
-"wizard"	The privilege that this wizard's player object has.
-"wizard:"	The privilege that most of this wizard's objects have
-		by default (unless changed).
-"wizard:sub"	One of many possible sub-privileges that a wizard may
-		create (for example, to make a sub directory where other
-		wizards may write to, it will typically have such a
-		string as its protection and - as we will see later -
-		the maximum privilege for objects residing therein).
-"Domain"	The controlling privilege for a domain. Note that the
-		domain name is capitalized. Although there will not be
-		a 'player object' with this privilege, it is used for
-		certain internal manipulation.
-"Domain:"	Default privilege/protection for the domain's objects.
-"Domain:sub"	Special privileges/protections for the domain.
-"@data"		Privileges beginning with "@" are reserved for administrative
-		purposes.
-1		Not a string, but the integer 1. It is the topmost privilege
-		in the hierarchy. Objects with this privilege can do
-		anything if they desire to do so. Using 1 as a file protection
-		means restricting access to administrators.
-0		Again not a string, but the integer 0. It is the bottommost
-		privilege in the hierarchy. Objects with this privilege
-		can do almost nothing in terms of file access except accessing
-		publicly available data. But since most files are publicly
-		readable, you only need a different privilege for write
-		access.
-
-THE HIERARCHY
-
-As mentioned above, there is a highest privilege (1) and a lowest privilege
-(0). All the other privileges lie in between. In fact, we may write a graph
-for a simple system comprising two wizards "a" and "b" and a domain "D":
-
-		1
-	      / | \
-	    /   |   \
-	  "a"  "D"  "b"
-	   |    |    |
-	  "a:" "D:" "b:"
-	    \   |   /
-	      \ | /
-	        0
-
-It is noteworthy that none of "a", "b" or "D" is higher or lower than any
-of the other privileges except 0. This is what we want, because by default
-neither wizard "a" nor wizard "b" should be able to write to each other's
-directory. On the other hand, what if both "a" and "b" are members of the
-domain "D"?
-
-Let us assume that "a" becomes member of "D". Then we will have the
-following diagram:
-
-		1
-	      / | \
-	    /   |   \
-	  "a"  "D"  "b"
-	   | \  |    |
-	   |  \ |    |
-	  "a:" "D:" "b:"
-	    \   |   /
-	      \ | /
-	        0
-
-Note that there is no link between nodes "a" and "D" in the above graph.
-This is because privileges without a ":" are so-called control
-privileges and privileges with a ":" are so-called data privileges. This
-means that only by by access to a control privilege new data privileges
-with this prefix can be created or deleted. Example: Wizard "a" can
-create privileges "a:data", "a:log", "a:foo" or in general anything with
-an "a:" in front. He cannot create something with a "D:" in front,
-because he'd need access to privilege "D" for that and access to a
-domain's control privilege is reserved for the lords of that domain.
-
-Besides privileges bound to wizards or domains there is also a third
-type for general purpose stuff. Such privileges start with a "@". For
-example, "@doc" or "@syslog". Normally they can only be created by
-wizards with privilege 1. However, once a wizard is given access to,
-say, "@doc", it acts as a control privilege and he can create data
-privileges like "@doc:open" etc.
-
-FILES AND ACCESS TO THEM
-
-In general, access is controlled in a simple manner. Files have a
-protection level and objects have access to them if and only if they
-have the same or a higher privilege.
-
-However, not every single file will have a different protection level.
-In fact, protection levels are assigned on a per-directory basis. Thus
-you can for example assign the privilege "@doc:open" to /doc/open if it
-is a directory, but not "@doc:open1" to /doc/open/file1 and "@doc:open2"
-to /doc/open/file2.
-
-Note that a directory can have different protection levels for read and
-write access. There will, however, be only a few files that are
-read-protected, like mail files or players' data files.
-
-The access mechanism is a bit more complicated than outlined above, but
-far from difficult.
-
-All security is based on the simul_efun check_privilege(). It gets a
-privilege as its argument, checks whether it is safe to do operations at
-this privilege level and returns 1 (true) or 0 (false) accordingly.
-
-It works as follows: The entire object stack is checked. For every
-single object on the stack its privilege is compared to the argument of
-check_privilege(). If the object's privilege is too low, computation is
-aborted and 0 is returned. Otherwise we proceed until the entire object
-stack is checked.
-
-You may wonder what this thing called 'object stack' is. A simple
-example will illustrate this: Let us assume, a wizard uses an alias tool
-to execute a roommaker command. In particular this will imply that the
-wizard calls some routine in the alias tool which in turn calls a
-routine in the roommaker. Thus the object stack is made up of the three
-element list (wizard, alias tool, roommaker).
-
-This procedure seems overly complicated but prevents 99% of all
-possibilities to do mischief. For example, if someone gave you a fake
-alias tool (or roommaker), its privilege would be his and it would be
-impossible to access your files unless you explicitly gave him access to
-them in which case there wouldn't be a need for him to use such a
-complicated way anyway.
+LIMA MUDLIB SECURITY
 
-The same idea enables us to give most system tools privilege 1 without
-having to worry about security since all file accesses will be
-restricted by the wizard's privilege.
+[ ed. this is a work in progress.  It is more a description of the
+  system rather than how to run the system.  Working with the
+  "admtool" program and the background presented here should help
+  quite a bit.  As always, come to Lima Bean for more details, but
+  ensure that you've read this whole document before asking questions
+  about security :-) ]
 
-There is, however, a problem. For example, there will be no interactive
-player in a heart_beat() or call_out() and thus the top of the object
-stack would be undefined and all file accesses would fail. Or what if a
-player wants to do a 'save'? Surely we can't make the players' data
-files publicly accessible lest somebody goes there and edits the
-password or other security realetd stuff and poses as somebody else?
+There are many elements that work together to create the security
+system with a Lima mud.  Here are the various pieces that you need to
+be aware of to fully understand Lima's security system:
 
-To solve these problems, there is the unguarded() call. It takes two or
-three arguments. The first is a privilege, the second a closure and the
-third a list of optional arguments to that closure. unguarded() will
-proceed to evaluate the closure at the privilege level given by the
-first argument. It will also pass the third parameter as arguments to
-the closure as in the efun apply(). In addition, all objects in the
-object list above the one that did that call will no longer be checked
-for their privilege. In particular, if in the above example the
-roommaker wants to save its current state to "/save/roommaker.o" for
-debugging, independent of who uses it, it would do something like:
+- SECURE_D
+- privileges
+- protections
+- stack-based security concepts
+- the user object
+- wizards
+- domains
+- admins
+- the unguarded() function
+- other security-related functions
 
-unguarded(1,#'save_object,"/save/roommaker");
-
-This would (a) perform the save at privilege level 1 (of course the
-roommaker must be able to use that privilege) and (b) ignore the alias
-tool and the wizard in the above example.
-
-TECHNICAL DETAILS
-
-If you just were trying the above example, you'd notice that it fails
-spectacularly. In particular, the compiler will complain about a missing
-function unguarded() (and probably a lot more).
-
-The reason is that most of the above stuff is hidden in a module that
-you have to inherit to use it. This is done as follows:
-
-#include <kernel.h>
-inherit ACCESS;
-
-Including kernel.h provides you, among other things, with a definition
-of ACCESS. Inheriting ACCESS then gives you the following routines:
-
-set_privilege()		This routine takes a privilege as its argument
-			and will set the object's current privilege to
-			it (if possible).
-
-query_privilege()	Returns the current privilege an object has.
-			However, it is preferable to use the simul_efun
-			get_privilege(obj) to get the current privilege
-			for an object, because there is a chance that
-			obj->query_privilege() is faked if somebody has
-			been careless. get_privilege() has appropriate
-			safeguards built in.
-
-unguarded()		This routine has been described above. Take care,
-			however, when using it. It is the only possibility
-			to introduce security leaks in the system (besides
-			other stupid stuff like inheriting files like
-			"/open/anybody_can_change_me.c" or the like).
-
-			However, a few simple precautions make it quite safe
-			to use. For example, if all the arguments are safe,
-			like if they are constants or have been checked
-			for correctness then there is no problem. Avoid,
-			however, stuff like:
-
-			foo(file,data)
-			{
-			  unguarded(1,#'write-file, ({ file, data }) );
-			}
-
-			This would make a nice security leak.
-
-COMMANDS
-
-Several command to manipulate the access structure are supplied in the
-tool /bin/admin. First, there are the commands beginning with 'access':
-
-access define <privilege>
-
-   Defines a new privilege. You need to have access to the control
-   privilege, though.
-
-access undefine <privilege>
-
-   Gets rid of this privilege again.
-
-access link <privilege> to <directory>
-
-   Binds the given privilege to the given directory as its protection
-   level for write access.
-
-access link -read <privilege> to <directory>
-
-   Same as above, but for read access.
-
-access unlink <directory>
-
-   Gives the directory its default write protection level again (i.e.
-   the one it has inherited from the directory containing it.
-
-access unlink -read <directory>
-
-   Same as above, but for read access.
-
-access open <privilege1> for <privilege2>
-
-   Gives any object with <privilege2> access to <privilege1>
-
-access close <privilege1> for <privilege2>
-
-   Denies access again.
-
-access show <privilege> (not yet implemented)
-
-   Shows the privilege, all dependent privileges and all other
-   privileges that have access to them.
-
-access list <directory> (not yet implemented)
-
-  Shows the directory tree beginning at <directory> and all
-  protection levels therein.
-
-access makewiz <name>
-
-  Tells the security server that the named player is now a
-  wizard. This is required to define privileges for him.
-  Note that this is normally done implicitly by the player
-  object when promoting him to wizard and there is no need
-  to repeat it manually.
-
-access zapwiz <name>
-
-  Tells the security server that the named player is not
-  longer a wizard.
-
-Second, there are commands to administrate domains:
-
-domain create <name>
-
-  Creates the domain <name>.
-
-domain delete <name>
-
-  Deletes it.
-
-domain add <member> to <domain>
-
-  Adds a new member to said domain.
-
-domain add -lord <member> to <domain>
-
-  Adds a new lord to a domain or promotes an existing member to lord.
-
-domain remove <member> from <domain>
-
-  Gets rid of him again.
-
-domain show <domain>
-
-  Shows the lords and members of a domain (or of more than one, if given).
-
-domain list
-
-  Lists all existing domains.
-
-domain list <wizard>
-
-  Lists all domains, the wizard is a member of.
-
-(remark: the add, remove, show and list commands take also multiple arguments.)
-
-EXAMPLES
-
-This section has yet to be written.
-
+This document will also cover how to maintain a secure mud and how to
+look for holes in your security.  One of the benefits of the Lima
+security system is a simple and direct way to look for problems.
+
+
+SECURE_D
+
+This daemon, located at /secure/daemons/secure_d.c is the heart of
+the Lima security system.  It manages the core set of data that is
+responsible for maintaining proper security.
+
+At a high level, it maintains the follow items of information:
+
+- what privileges exist, and who "has" those privileges
+- what domains exist, and who is within those domains (and who are
+  the "lords" of a domain)
+- what protections have been applied to directories
+- which users are wizards
+
+The daemon defines functions for manipulating, querying, and verifying
+these pieces of information.  There are a few support files to provide
+additional high level capability; these are M_ACCESS (which is the
+/secure/modules/access.c file) and /secure/simul_efun/security.c.
+
+In standard practice, you will never need to interact directly with
+the SECURE_D, but rather through the interface functions in M_ACCESS
+and the sefuns.  These functions are summarized later.
+
+
+PRIVILEGES
+
+The security revolves around defining and using sets of privileges.
+These privileges are assigned to objects (and via a user object, to a
+particular user when they connect to the mud).  Privileges are applied
+to directories, where they are called "protections".  A particular
+object must have enough privilege to overcome the protection on a
+directory before it can read/write to that directory.
+
+In its simplest form, a privilege is a string of alphabetic, lower
+case characters.  There are few additional forms that are used:
+
+1) A lower case alphabetic string, followed by a colon, optionally
+   followed by another lower case alphabetic string.
+
+   For example: deathblade:objects
+
+2) Simple privileges or those with a colon in them (as in (1)) that
+   have their first letter capitalized.
+
+3) An @ character followed by alphabetic characters.  For example:
+   @secure.
+
+4) The integers 0 and 1.
+
+Now, a discussions of the privilege heirarchy and ordering among them
+is needed, before the above forms can be fully understood.
+
+1 is the "highest" privilege of all.  All other privileges are "lower"
+than this privilege.  Comparisons are made often between privileges to
+determine if a given privilege is equal to or higher than another.  1
+will always be higher (or equal).
+
+0 is the lowest privilege of all.  It is the exact opposite of 1.  All
+other privileges are (equal to or) higher than 0.
+
+Named privileges are, orderwise, between 0 and 1.  Two named
+privileges are neither higher nor lower than each other.  They are
+"disjoint" and a comparison will always fail.
+
+A small graphic portrays this very well:
+
+          1
+         /|\
+        / | \
+       /  |  \
+    foo  bar  @blah
+       \  |  /
+        \ | /
+         \|/
+          0
+
+This graphic shows how 1 is the highest, foo/bar/@blah are between 1
+and 0 (but have no order compared to each other), and all are higher
+than 0.
+
+Privileges may have "subprivileges".  The subprivileges have a colon
+after their "owner privilege", possibly followed by a subprivilege
+name.  The privileges and subprivileges are organized as follows:
+
+   1  -->  foo  -->  foo:  -->  foo:bar  ->  foo:barlonger -> 0
+                           -->  foo:blatz  ->  0
+
+The privilege "foo" is called the "control privilege".  Having that
+privilege allows you to define the subprivileges.  It is not as high
+as 1, but is higher than all subprivileges of itself.  The "foo"
+subprivileges are called "data privileges".  The "foo" privilege may
+also be called an "owner privilege", as it "owns" the subprivileges.
+
+Privileges such as "foo" are created when the user "foo" becomes a
+wizard (the "foo:" subprivilege is also defined at wizard creation
+time).  There is a one to one correspondence between wizards and these
+privileges; there is no way to create these control privileges except
+through creating wizards.  Take note that wizard privileges are
+entirely in lower case.  The wizards "user object" will receive their
+privilege when they connect to the mud (see the USER OBJECT section).
+As it is the control privilege, the wizard may define subprivileges as
+needed.  Why this is handy will be discussed in a bit.
+
+Administrators may also define privileges that begin with "@".  These
+can be applied as protections to a directory or as the privilege of a
+certain object.  Note that it is impossible for a wizard to have a
+name beginning with "@", so it would not be possible to spoof the
+privilege.  As with wizard-based privileges, subprivileges may be
+created as needed.
+
+Lastly, there are domain privileges.  These are automatically created
+when a domain is created.  They are like wizard privileges, but have
+their first letter capitalized (thus preventing a wizard spoofing the
+privilege).  When a domain is created, two associated privileges are
+created for it: the control privilege and a data privilege.  For
+example, let's say you create the domain "telaria".  The two
+privileges that are created are: "Telaria" and "Telaria:".
+
+Now comes the complicated part.  Providing additional privileges to a
+wizard.  This is done by linking parts of the privilege graph
+together.  This definitely calls for a graphic:
+
+           1
+          / \
+         /   \
+       joe   sue
+        | \   |
+        |   \ |
+       joe:  sue:
+         \   /
+          \ /
+           0
+
+The wizard Joe now has access to directories with that are protected
+by the "sue:" privilege.  Note that you do not want to give the
+control privilege "sue" to Joe, because that would allow him to
+create, remove, or alter subprivileges of the wizard Sue.  He could
+even use the control privilege to allow other wizards access to Sue's
+directories.
+
+One other caveat: when the security system is considering whether an
+object has the privilege to access something protected by "sue:", it
+will require that the object has a privilege higher than "sue:" ("sue"
+or 1), or that the object's privilege is on the list of privileges
+"sue:" has been opened up to.  Note that it requires these assigned
+privileges to match exactly.  Therefore, even if the "joe:" privilege
+was added to the list for "sue:", the "joe" privilege won't match
+(even though it "should" since it is higher than "joe:").
+
+For this reason, when assigning privileges to another (like "joe" to
+"sue:"), you need to consider what objects will need to access the
+protected directories (protected by "sue:" in this example).  In this
+example, We want the wizard Joe to have access, so we use Joe's
+privilege.  If we wanted one of Joe's objects (typically "joe:" or
+another subprivilege of that) to access "sue:" then we would open that
+specific subprivilege.
+
+Lastly, any privilege can be opened to any other.  Typically, these
+capabilities will be used to provide a wizard access to specific parts
+of the mudlib.  Domains are a more general mechanism, so investigate
+using that before considering the opening of specific privileges.
+
+
+PROTECTIONS
+
+A directory can have a privilege associated with it.  Any objects
+within that directory are limited to that as a maximum privilege
+attainable.  In addition, an object must have at least that privilege
+to write into the directory.
+
+Directories can also have read privileges assigned to them to limit
+what objects can read files in the directory.
+
+
+STACK-BASED SECURITY CONCEPTS
+
+The Lima security system uses a method called "stack-based security".
+Simply put, when a privileged operation needs to occur, every object
+on the current execution stack will be examined to ensure that all of
+them have the necessary privileges to perform the operation.
+
+As an example, let's say that the wizard Joe wants to write a file
+into Sue's directory (/wiz/sue).  We'll also say the directory has a
+protection of "sue:" (which Joe has had opened up to him).  Joe will
+use a command called "writefile" which is in a directory that has a
+protection of 1.
+
+Okay: when Joe uses the command, the stack might have the following
+objects on it:
+   /secure/user    priv=joe
+   /bin/writefile  priv=1
+   /secure/master  priv=1    (the valid_write() call)
+
+valid_write() is going to verify that the current privilege is enough
+to overcome the protection of "sue:" on the /wiz/sue directory.
+SECURE_D is called to check the privilege.  It steps backwards through
+the stack, finding privilege 1 a couple times.  This is higher than
+"sue:" so SECURE_D continues back through the stack.  It finds the
+/secure/user object and that it has privilege "joe".  "joe" is on the
+access list for "sue:" so it passes.  The stack has been verified, so
+the SECURE_D makes one final check and verifies that this_user() has
+enough privileges.  this_user() is Joe, with the "joe" privilege, and
+it, again, succeeds.  The result is that Joe and the writefile command
+are allowed to write into /wiz/sue.
+
+For another example, let's say that the wizard John tries to write
+into Sue's directory with the writefile command.  When the stack is
+checked, it would find the privilege "john" which is NOT open to
+"sue:" and so the operation would be denied.
+
+Lastly, how about the case where an evil wizard tries to code an
+object that calls writefile.  He then gives that to an admin, hoping
+that the admin's privileges would allow the operation to succeed.  A
+simple examination of the stack reveals this won't happen, though:
+   /secure/user     priv=1   (the admin)
+   /wiz/evil/mytoy  priv=evil:  (wiz directories are always name:)
+   /bin/writefile   priv=1
+   /secure/master   priv=1
+
+As soon as the stack system saw the "evil:" it would cause the
+operation to fail.  It is also very interesting to note, now, that the
+evil wizard doesn't have any privileges higher than "evil" and,
+therefore, cannot place his mytoy object into a priv=1 directory
+(causing it to pass inspection).
+
+
+THE USER OBJECT
+
+As you may have seen from the discussions above, the user object is
+rather central to the security system.  It defines the privilege that
+a particular user has, and therefore limits their operations.
+
+When a user connects to the mud and logs in successfully, the user
+object will then be assigned a privilege.  For players, this will be 0
+(no privileges at all).  From there on, players are restricted to only
+the most basic of operations.  Wizards will be assigned their own
+privilege (the privilege named after them).  Admins will receive
+privilege 1 (the highest).  The SECURE_D is quite involved in
+determining what a user actually is (player, wizard, admin); the user
+object will use that information to decide on the privilege.
+
+Note that the /secure/user object is tightly locked up to prevent any
+potential alteration of its privilege or faking out what it will be
+set to.
+
+
+WIZARDS
+
+The SECURE_D daemon records which users have been marked as wizards.
+There is no other record of this fact, so there is no other way to
+become a wizard, other than convincing the SECURE_D that you are one.
+Of course, to convince it of this, you must be an admin (which implies
+you are a wizard already).
+
+There is a simul-efun named wizardp() that should be used to detect if
+somebody is a wizard.  This helps isolate you from the details of how
+to ask the SECURE_D and it also provides a bit more flexibility.
+wizardp() takes a single argument: a user object, or a string
+containing the user's name in lower case.
+
+When a wizard is created, their associated privilege is created along
+with the subprivilege "name:" (where <name> is the wizard's name).  If
+the wizard will also receive a directory, then that directory has the
+"name:" protection applied to it.  It is very important that the
+subprivilege is used for the directory.  You do not want the wizard's
+objects to have the control privilege!  Only the wizard himself should
+have that privilege.
+
+
+DOMAINS
+
+Domains are a mechanism that simplifies assigning (groups of)
+privileges to wizards and protections to directories.
+
+Also, since the creation of domains and the inclusion of members in
+those domains is tightly controlled by SECURE_D, domains and their
+membership can be trusted in all contexts.  This trust is used in
+certain parts of the mudlib to classify wizards and the commands and
+options available to them.  More on this later.
+
+Each domain has a name, a set of "domain lords", and a set of members.
+Typically, it will also have a directory associated with it, such as
+/domains/name/.  The name must be lower case, alphabetic characters.
+The domain lords are the wizards who allow/revoke membership in the
+domain and have the control privilege for the domain.  The domain
+members simply have domain data privileges.
+
+
+ADMINS
+
+Admins are defined solely by being a member of the "admin" domain.
+Members of this domain will have privilege 1 assigned to their user
+object, meaning they have the highest possible privilege.
+
+
+THE UNGUARDED() FUNCTION
+
+An obvious problem appears with a stack-based security system.  How is
+it possible for a player (with privilege 0) to cause entries to appear
+in the /log directory (protection 1) ?  The short answer is that it is
+impossible for a user to reach privilege 1.  On the other hand, if the
+player can ask a high privilege object to do it for him and then
+somehow avoid being seen in the stack, then it would work.
+
+The unguarded() function is used for just this purpose.  When an
+object uses unguarded(), then the call stack tracing used by the
+security system stops at that point and ignores all previous callers.
+A simple example should demonstrate:
+
+   /secure/user            priv=0   the player
+   /secure/daemons/log_d   priv=1   theoretical logging daemon
+   unguarded()
+   /secure/daemons/log_d   priv=1   func used in the unguarded()
+   /secure/master          priv=1
+
+In this example, the security system will only look back as far as the
+unguarded(), ignoring that the prior object had a privilege of 0.
+
+Now, the one big, major, super-duper, never forget, tattoo it to your
+forehead, inscribe on your toes, end-all of all rules:
+
+--> Use unguarded() VERY VERY carefully <--
+
+Why?  unguarded() is the ONLY (*) way that you can create a security
+hole in your mudlib.  This is by virtue of the fact that this is how a
+low-privilege user can gain a high-privilege status to execute certain
+functions.  Therefore, you must take particular care to how it is
+used.  The parameters to unguarded are:
+
+unguarded(mixed privilege, function func)
+  Evaluate the specified function at the specified privilege
+
+The function that is passed to unguarded() should be extremely limited
+and if it is parameterized at all, ensure that your parameters are
+validated.  For example:
+
+  unguarded(1, (: save_object, SAVE_FILE :));
+
+This is the "best" kind of use of unguarded(): the function does one
+thing and one thing only.  The file that it uses is hard-coded.
+Another example:
+
+  unguarded(1, (: write_file, LOG_DIR + fname, contents :))
+
+This is tricky: before using something like this, you must ensure that
+somebody cannot get this line of code to be executed with an fname of
+something like "../data/secure/access.o".  So... before this is
+called, it would be very important to ensure fname is one of a few
+legal values (/std/reporter.c does something like this) or that it
+contains no "." characters in it (or alternatively, only alphabetic
+characters).
+
+Here is an absolute WORST thing to do. This is the perfect security
+hole:
+
+void security_hole(string fname, string contents)
+{
+  unguarded(1, (: write_file, fname, contents :));
+}
+
+This allows anybody to write anything to any file in any directory.
+Generally, not a good idea. :-)
+
+Therefore, it is usually a good idea to scan your mudlib every now and
+then and examine your uses of unguarded() to see if there any are
+potential holes.  The Lima Team does this, so unless you are coding
+with unguarded() yourself (shouldn't be necessary), then you won't
+have to worry about this.
+
+(*) Okay: technically, there are a couple other ways you can create a
+security hole.  One is to have a high privilege object inherit a low
+privilege object.  Second is to have a high privilege object #include
+a low privilege file.  A simple example: let's say /secure/user did a
+#include "/tmp/somefile.h".  Any Joe Wizard could rewrite somefile.h
+to include the security_hole() function from above.  This would then
+become part of your high security object, and is then usuable by
+anybody to execute high privilege operations.
+
+At this point, the Lima Team investigating a couple ways to prevent
+the inherit/include problem to avoid accidents on the behalf of admins
+(note that only admins can edit priv 1 objects and thereby create this
+hole).
+
+
+OTHER SECURITY-RELATED FUNCTIONS
+
+check_privilege()             [ SIMUL_EFUN ]
+check_previous_privilege()    [ SIMUL_EFUN ]
+get_protection()              [ SIMUL_EFUN ]
+get_privilege()               [ SIMUL_EFUN ]
+query_domain_members()        [ SECURE_D ]
+query_domains()               [ SECURE_D ]
+set_privilege()               [ M_ACCESS ]
+
+
+THE ADMTOOL SYSTEM
+
+
+GLOSSARY
+
+admin
+administrative privilege
+control privilege
+data privilege
+domain
+domain privilege
+owner privilege
+privilege
+protection
+subprivilege
+wizard
+wizard privilege

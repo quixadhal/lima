@@ -6,12 +6,19 @@ inherit CMD;
 inherit M_GLOB;
 inherit M_REGEX;
 
+/*
+** Pairs of info for each column.  ( header-index, field-width )
+** The header indices can be seen from the headers[] array below.
+**
+** NOTE: at the moment, the first two elements must specify the "Up"
+**       state and the mud name
+*/
 #define INFO_DEFAULT	({ \
-    ({ 0, 2 }), ({ 10, 16 }), \
+    ({ 0, 2 }), ({ 11, 16 }), \
     ({ 1, 15 }), ({ 2, 5 }), ({ 5, 15 }), ({ 9, 19 }) })
 
 #define INFO_MUDTYPE	({ \
-    ({ 0, 2 }), ({ 10, 20 }), \
+    ({ 0, 2 }), ({ 11, 20 }), \
     ({ 1, 15 }), ({ 2, 5 }), ({ 8, 8 }), ({ 9, 19 }) })
 
 
@@ -26,8 +33,9 @@ static private string * headers = ({
     "Driver",
     "Type",
     "Open Status",
+    "Admin Email",
 
-    "Mud",	/* special... not part of the mud info */
+    "Mud",	/* special... mudname. not part of the mud info */
 });
 
 

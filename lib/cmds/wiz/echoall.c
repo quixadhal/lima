@@ -9,6 +9,7 @@ inherit CMD;
 
 private void main(mixed * arg)
 {
-    write("You echoall: " + arg[0] + "\n");
-    shout(arg[0] + "\n");
+    string msg = implode(arg[0], " ");
+    write("You echoall: " + msg + "\n");
+    shout(msg + "\n");
 }

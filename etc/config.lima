@@ -1,64 +1,130 @@
-###############################################################################
-#              Customizable runtime config file for MudOS 0.9.19              #
-###############################################################################
-# NOTE: All paths specified here are relative to the mudlib directory except  #
-#       for mudlib directory, and binary directory.                           #
-# Lines beginning with a # or a newline are ignored.
-###############################################################################
- 
-# name of this mud
-## Change the next line!
+#
+# Configuration file for the MudOS LPmud driver.
+#
+# This file is intended for use with the Lima Mudlib and its corresponding
+# version of the driver.
+#
+# The current versions are:
+#
+#    Lima Mudlib:  Lima 0.9r5 (pre-alpha)
+#    MudOS:        MudOS v21.7a10
+#
+#
+# 951030, Deathblade: updated - reorganized, commented, etc
+#
+
+# ------------------------------------------------------------------------
+#
+# Users of Lima:  you should change the following definitions to match
+# your desires, needs, and setup.  Simply follow the directions for each
+# option and things should work okay.  Each option will be labeled on
+# whether it is required to be changed, or if it is optional.  Anything
+# that is optional is subject to your discretion.
+#
+
+#
+# [ REQUIRED ]
+#
+# This will be the name of your mud.
+#
 name : Your Mud's name here
 
-global include file : <global.h>
-
-# port number to accept users on
-
-## Change the next line if you want
+#
+# [ optional ]
+#
+# This will be the port number that your users will connect to
+#
 port number : 7878
- 
-# the address server is an external program that lets the mud translate
-# internet names to numbers (and vice versa).  select an unused port.
+
+#
+# [ optional ]
+#
+# The address server is an external program that lets the mud translate
+# internet names to numbers (and vice versa).  This program is typically
+# named "addr_server" and is built along with your driver executable.
+# Do not confuse this with a Domain Name Server.
+#
+# This IP address should match where you started the program.  This is
+# almost always "localhost".  The port number should match the command
+# line argument that you gave the addr_server program.  The example
+# below corresponds to running the addr_server on the same machine as
+# your mud and using the following command to start it up:
+#
+#    % addr_server 9990
+#
 address server ip : localhost
 address server port : 9990
- 
-# absolute pathname of mudlib
-## Change the next line!
-mudlib directory : /home/rust/lima0.9-alpha/lib
- 
+
+#
+# [ REQUIRED ]
+#
+# This should be the absolute pathname to where you placed your copy of
+# the Lima Mudlib.
+#
+mudlib directory : /home/mud/lima-0.9r5/lib
+
+#
+# [ REQUIRED ]
+#
+# This should be the absolute pathname to where you placed your copy of
+# the driver that you built.
+#
+binary directory : /home/mud/lima-0.9r5/etc
 
 
+# ------------------------------------------------------------------------
+#
+# You shouldn't change anything below this point unless you know what
+# you're changing.... =)
+#
 
-## You shouldn't change anything below this point unless you know what
-## you're changing.... =)
+#
+# NOTE: all paths below here are relative to the "mudlib directory"
+#
 
 
+#
+# this include file is found in the include directories specified below
+#
+global include file : <global.h>
 
-
-
-# absolute pathname of driver/config dir
- 
+#
 # debug.log and author/domain stats are stored here
+#
 log directory : /log
+ 
+#
+# alternate debug.log file name (assumed to be in specified 'log directory')
+#
+debug log file : execute
 
+#
 # the directories which are searched by #include <...>
 # for multiple dirs, separate each path with a ':'
+#
 include directories : /include
  
-# Directory to save binaries in.  (if BINARIES is defined)
-save binaries directory : /secure/binaries
- 
+#
 # the file which defines the master object
+#
 master file : /secure/master
  
+#
 # the file where all global simulated efuns are defined.
+#
 simulated efun file : /secure/simul_efun
- 
+
+#
 # file to swap to.  not used if time to swap is 0
+# (not used by Lima)
+#
 swap file : /secure/swap/MudOS_swapfile
- 
-# alternate debug.log file name (assumed to be in specified 'log directory')
-debug log file : execute
+
+#
+# Directory to save binaries in.  (if BINARIES is defined)
+# (not used by Lima)
+#
+save binaries directory : /secure/binaries
 
 # if an object is left alone for a certain time, then the
 # function clean_up will be called. This function can do anything,
@@ -154,4 +220,3 @@ maximum call depth : 30
 # There is a hash table for living objects, used by find_living().
 # (unused currently)
 living hash table size : 100
-binary directory : /usr/local/bin

@@ -4,7 +4,7 @@
 
 inherit CONTAINER;
 inherit "/std/living/grammar";
-inherit M_MESSAGES;
+inherit "/std/living/messages";
 
 /* This is a pure 'living' object, not what is traditionally meant
  * by a living object on LPmuds.  Note that find_living() won't
@@ -17,15 +17,16 @@ inherit M_MESSAGES;
 create() {
   container::create();
   set_max_capacity(100);
+  set_def_msgs("living-default");
 }
 
 string name;
 
-string query_name() {return name; }
+string query_name() { return name; }
 
 void set_name(string n) {
   name = n;
-  set_id( ({ n, lower_case(n) }) );
+  set_id( ({ lower_case(n) }) );
 }
 
 string in_room_desc() {
@@ -39,6 +40,8 @@ string inventory_header() {
 int is_living() {
   return 1;
 }
+
+
 
 /* verb interaction */
 mixed direct_cross_obj(object ob) {

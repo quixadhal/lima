@@ -79,9 +79,15 @@ void complete_rebuild() {
     scan_mudlib();
 }
 
+
 // Everything below here is
 private:
 // ---------------------------------------------------------------------
+
+static private string * filtered_dirs = ({
+  "/data/", "/ftp/", "/help/", "/include/",
+  "/log/", "/open/", "/tmp/", "/wiz/"
+});
 
 void save_me() {
     unguarded(1, (: save_object, SAVE_FILE :));
@@ -103,7 +109,7 @@ void process_file(string fname) {
     
     while (idx < sizeof(lines)) {
         if (lines[idx][2..4] == "###") {
-            write_file("/help/autodoc/FIXME/" + mod_name(fname), lines[idx][5..]);
+            write_file("/help/autodoc/FIXME/" + mod_name(fname), lines[idx][5..] + "\n");
         }
 	if (last_line != lines[idx+1] - 1 && sizeof(lines[idx]) > 2 &&
             lines[idx][2] == ':') {
@@ -133,7 +139,7 @@ void process_file(string fname) {
             printf("Writing to: %O\n", outfile);
 	} else {
 	    if (last_line == lines[idx+1] - 1) {
-		if (outfile) write_file(outfile, lines[idx][2..]);
+		if (outfile) write_file(outfile, lines[idx][2..] + "\n");
 	    } else
 		outfile = 0;
 	}
@@ -152,7 +158,10 @@ void continue_scan() {
         files = get_dir(dirs_to_do[0], -1);
         foreach (item in files) {
             if (item[1] == -2) {
-                dirs_to_do += ({ dirs_to_do[0] + item[0] + "/" });
+		string dir = dirs_to_do[0] + item[0] + "/";
+		if ( member_array(dir, filtered_dirs) != -1 )
+		    continue;
+                dirs_to_do += ({ dir });
             } else
 	    if (item[2] > last_time && item[0][<2..<1] == ".c") {
 		files_to_do += ({ dirs_to_do[0] + item[0] });

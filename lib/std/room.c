@@ -21,6 +21,7 @@
 #include <playerflags.h>
 #include <setbit.h>
 #include <move.h>
+#include <hooks.h>
 
 inherit CONTAINER;
 inherit M_ITEMS;
@@ -53,9 +54,8 @@ void adjust_light(int x) {
 }
 
 int stat_me() {
-    printf("Room: %s [ %s ]\nItems: %s\nLong: %s\n",
-      short(), implode(keys(exits),", "), implode(keys(items), ", "),
-      container::long() );
+    printf("Room: %s [ %s ]\nItems: %s\n",
+      short(), implode(keys(exits),", "), implode(keys(items), ", "));
     container::stat_me();
     return 1;
 }
@@ -301,8 +301,13 @@ int go_somewhere(string arg) {
 	else write("You can't go that way!\n");
 	return 0;
     }
-    this_object()->pre_exit();
-    if (ret = evaluate_destination(dest, arg)) this_object()->post_exit();
+    if (ret = evaluate_destination(dest, arg)) {
+//:HOOK person_left
+//Called when a person successfully leaves a room in a certain direction
+//(called by the room).  The return value is ignored.  The person moving
+//is given by this_body().  The direction is passed as an argument.
+        call_hooks("person_left", HOOK_IGNORE, 0, arg);
+    }
     return ret;
 }
 
@@ -328,17 +333,26 @@ void set_exits( mapping new_exits )
 string query_name(){ return "the ground"; }
 
 //### I think this should be torched :-)
-string
-remote_look( object o )
+// I don't.
+// This should be overloaded if you want to be able to give different
+//descs from different rooms
+void
+remote_look(object o)
 {
-    // This isn't right.  exits don't necessarily match full filenames
-    if (member_array(file_name(this_object()), values(o->query_exits())) != -1
-      && remote_desc )
-    {
-	// if well lit....
-	return remote_desc;
-    }
-    return "You can't seem to make out anything.\n";
+	if(remote_desc)
+	{
+			printf("%s\n", remote_desc);
+	}
+	else
+	{
+		printf("You can't seem to make out anything.\n");
+	}
 }
 
 string query_base() { return base; }
+
+
+void set_remote_desc(string s)
+{
+	remote_desc = s;
+}

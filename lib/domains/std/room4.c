@@ -16,7 +16,7 @@ create(){
 place.");
     set_weather(1);
     
-    exits = ([
+    set_exits( ([
     "west": "/domains/std/room2",
-            ]);
+    ]) );
 }   

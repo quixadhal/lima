@@ -139,11 +139,11 @@ private nomask void push_handler(function input_func,
 
     if ( info->input_type == INPUT_CHAR_MODE )
     {
-	get_char((: dispatch_modal_input :), info->secure);
+	efun::get_char((: dispatch_modal_input :), info->secure);
     }
     else	
     {
-	input_to((: dispatch_modal_input :), info->secure);
+	efun::input_to((: dispatch_modal_input :), info->secure);
     }
 }
 
@@ -214,11 +214,11 @@ static nomask void modal_recapture()
     }
     if ( info->input_type == INPUT_CHAR_MODE )
     {
-	get_char((: dispatch_modal_input :), info->secure);
+	efun::get_char((: dispatch_modal_input :), info->secure);
     }
     else
     {
-	input_to((: dispatch_modal_input :), info->secure);
+	efun::input_to((: dispatch_modal_input :), info->secure);
     }
 }
 

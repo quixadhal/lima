@@ -2,7 +2,7 @@ asnoop 		user str*
 clean		[obj]
 clone		cfile
 dest		obj|user
-echoall		str
+echoall		str*
 echoto		user str*
 findfunc	str obj|user
 flist -i	obj|user
@@ -18,3 +18,4 @@ timer -r        num [str] [num]
 trans		obj|user
 where		[user*]
 which		str
+msg             str str*

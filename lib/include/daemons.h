@@ -21,6 +21,7 @@
 #define ALIAS_D		"/daemons/alias_d"
 #define TIMER_D		"/daemons/timer_d"
 #define WEATHER_D	"/daemons/weather_d"
+#define MESSAGES_D	"/daemons/messages"
 
 #define CMDPATH_CACHE	"/daemons/cmdpath_cache_d"
 

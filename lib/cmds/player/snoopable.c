@@ -21,7 +21,7 @@ private void main(string arg){
                 break;
     case "off": this_body()->clear_flag(F_SNOOPABLE);
                 break;
-    default:    notify_fail("Syntax: snoopable (on|off)\n");
+    default:    write("Syntax: snoopable (on|off)\n");
                 return;
   }
   write("Ok.\n");

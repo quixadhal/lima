@@ -3,6 +3,7 @@
 // Wizard command "scan"
 // list the filenames of objects in an inventory.
 // Peregrin@ZorkMUD
+// Updated 1995/10/9 by Ohara,
 
 #include <mudlib.h>
 
@@ -43,11 +44,21 @@ scan_object(object ob, int depth) {
 private void main(mixed *arg, mapping flags)
 {
     string outstr;
+    string objs;
+    string itemstr;
 
     if(flags["d"]) deep_scan = 1;
 
     if (!arg[0]) arg[0] = environment(this_body());
-    outstr = "Scanning: "+file_name(arg[0])+"\n"
-	+scan_object(arg[0],0) + "Done.\n";
-    write(outstr);
+    outstr = "Scanning " + file_name( arg[0] ) + ":\n";
+    outstr += "\nReal Objects:\n";
+    objs = scan_object( arg[0], 0 );
+    outstr += (objs != "")? objs : "    None";
+    if( itemstr = implode(environment( this_body())->fake_item_id_list(), ", "))
+    {
+        outstr += "\n\nFake Objects:\n    ";
+        outstr += (itemstr != "") ? itemstr : "None";
+        outstr += "\n\n";
+    }
+    write( outstr );
 }

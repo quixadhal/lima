@@ -4,17 +4,12 @@
 
 inherit VERB_OB;
 
-mixed can_wear_obj(object ob)
-{
-    return 1;
-}
-
 void do_wear_obj(object ob)
 {
     if (!try_to_acquire(ob))
 	return;
 
-    ob->wear();
+    ob->do_wear();
 }
 
 mixed *query_verb_info() {

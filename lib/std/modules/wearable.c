@@ -12,9 +12,6 @@
 
 #include <mudlib.h>
 
-/* from M_GETTABLE */
-void set_dropmsg(string msg);
-
 void hook_state(string, string, int);
 
 private static string	wearmsg;
@@ -41,29 +38,27 @@ set_is_on( int g )
   hook_state("prevent_drop", "You'll have to take it off first.\n", is_on);
 }
 
-
-int
-wear()
+void
+do_wear()
 {
     set_is_on(1);
     this_body()->simple_action("$N $vwear a $o.\n", this_object());
 }
 
-/*
-** Can't call this remove() because of the lib-dependent lfun
-*/
-int
-remove_me()
-{
-  if( !is_on )
-	return write("But it's already off!\n"),-1;
-
-  set_is_on(0);
-  return 1;
+void
+do_remove() {
+    set_is_on(0);
+    this_body()->simple_action("$N $vremove $p $o.\n", this_object());
 }
 
 mixed direct_wear_obj() {
     if( is_on )
 	return "But you're already wearing it!\n";
+    return 1;
+}
+
+mixed direct_remove_obj() {
+    if (environment() != this_body() || !is_on)
+	return "But you aren't wearing it!\n";
     return 1;
 }

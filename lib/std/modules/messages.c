@@ -19,7 +19,13 @@ private string vowels = "aeiouAEIOU";
 #define A_SHORT(x) (objectp(x) ? x->a_short() : (member_array(x[0], vowels) == -1 ? "a " : "an ") + x)
 #define SHORT(x) (objectp(x) ? x->short() : x)
 #define THE_SHORT(x) (objectp(x) ? x->the_short() : "the " + x)
-mapping messages;
+mapping messages = ([]);
+mapping def_messages = ([]);
+
+void set_def_msgs(string type) {
+    if (!(def_messages = MESSAGES_D->get_messages(type)))
+	error("No messages of that type.\n");
+}
 
 void add_msg(string cls, string msg) {
     if (!messages) messages = ([]);
@@ -31,15 +37,19 @@ void add_msg(string cls, string msg) {
 	messages[cls]=msg;
 }
 
-string query_msg(string which) { return messages[which]; }
+string query_msg(string which) { return messages[which] || def_messages[which]; }
 
 void set_msgs(string cls, string *msgs) {
     if (!messages) messages = ([]);
     messages[cls]= msgs;
 }
 
+void clear_messages() {
+    messages = ([]);
+}
+
 string *query_msg_types() {
-    return keys(messages);
+    return keys(messages) + keys(def_messages);
 }
 
 //:FUNCTION compose_message

@@ -239,7 +239,8 @@ private nomask void next_group()
     }
 }
 
-private nomask string format_message_line(int short_fmt, int id)
+private nomask varargs
+string format_message_line(int short_fmt, int id, int noremoved)
 {
     class news_msg msg;
     string subject;
@@ -247,9 +248,13 @@ private nomask string format_message_line(int short_fmt, int id)
     msg = NEWS_D->get_message(current_group, id);
 
     subject = msg->subject;
-    if ( !msg->body )
-	subject = subject[0..24] + " (removed)";
-
+    if ( !msg->body ) {
+	if (noremoved)
+	    return 0;
+	else
+	    subject = subject[0..24] + " (removed)";
+    }
+	
     return sprintf(short_fmt ? "%d. %s  [%s on %s]" :
 			   "%4d. %-35s [%-10s on %s]",
 		   id,
@@ -273,7 +278,7 @@ private nomask void display_messages(int display_all)
 	ids = filter_array(ids, (: $1 > $(read_thru_id) :) );
     }
 
-    lines = map_array(sort_array(ids, 1), (: format_message_line, 0 :));
+    lines = map_array(sort_array(ids, 1), (: format_message_line(0, $1, 1) :)) - ({ 0 });
     lines = ({sprintf("Messages on %s are:", current_group)}) + lines + ({""});
     clone_object(MORE_OB)->more_string(lines);
 }

@@ -71,10 +71,16 @@ mixed direct_get_obj_with_obj(object ob1, object ob2) {
     return direct_get_obj(ob1);
 }
 
+ 
+mixed direct_drop_wrd_wrd_wrd(string type)
+{
+      return 1;
+}
 mixed direct_drop_obj(object ob)
 {
     if ( environment() != this_body() )
 	return "You don't have it!\n";
+
 
 //:HOOK prevent_drop
 //A yes/no/error hook called by direct_drop_obj() if the standard conditions

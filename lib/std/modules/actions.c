@@ -55,8 +55,9 @@ static void do_game_command(string str) {
     sscanf(verb, "%s %s", verb, argument);
     
     winner = CMD_D->find_cmd_in_path(verb, ({ CMD_DIR_PLAYER "/" }));
-    if (winner)
-	winner->call_main(argument);
+    if (winner) {
+        winner->call_main(argument);
+    }
     else if (environment()) {
 	mixed result = parse_sentence(str);
 

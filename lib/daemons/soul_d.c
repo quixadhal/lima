@@ -104,7 +104,8 @@ mixed * internal_get_soul(string verb, string rule,
     num = (sizeof(args) - 1)/2;
     
     for (i = 0; i < num; i++) {
-	if (stringp(args[i]) && strlen(args[i]) && args[i][<1] == '*') {
+	if (stringp(args[i]) && strlen(args[i]) && args[i][<1] == '*'
+	    && member_array(' ', args[i]) == -1) {
 	    args[i] = get_completion(args[i][0..<2]);
 	    if (!args[i])
 		return 0;

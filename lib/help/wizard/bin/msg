@@ -1,0 +1,23 @@
+
+USAGE:  msg (message type) [clear] [message]
+
+  This command allows you to change your default messages.  You can
+add more than one message for each message type.  When you use the 
+matching command (i.e. clone ) one of the messages will be 
+choosen at random from the appropriate messages.
+
+You can also remove all the messages of a given type by using the "clear"
+option.  You will not be able to remove a particular message from a group
+of messages.
+
+msg clone clear
+
+     This will remove all messages from the type clone.
+
+
+msg clone $N $vreach back to his workroom and vgrab $o.
+
+     Next time you use clone, you will see the above message.
+     If you do the above again you will add another message.
+
+SEE ALSO:  messages, review

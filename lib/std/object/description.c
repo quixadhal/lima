@@ -228,7 +228,7 @@ void add_id_no_plural( string id ) {
         return;
     if (!pointerp(ids))
 	ids = ({ id });
-    else ids += ({ id });
+    else ids = ({ id }) + ids;
     parse_refresh();
 }
 

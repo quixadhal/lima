@@ -71,18 +71,7 @@ varargs void generic_train_skill(string skill, object trainee, int value)
   p = pow(2,sizeof(pieces)-1);
   for(i=1;i<sizeof(pieces);i++)
     {
-	// *Beek*
-	// This is to to_int(to_float(value)/p) which is essentially the
-	// same as value/p, but slower.  You might want to look at
-	// fuzzy_divide, which should work well here.
-	    
-	// BTW, 6a12 will be sensible enough not to take a dive here
-
-#ifndef HAVE_COMPILER_PERFORM_CLIFF_DIVING_DEMONSTRATION_ONTO_PAVEMENT
-      my_skill->skill_points += (int)((float)value/p);
-#else
-      my_skill->skill_points += (float)value/p;
-#endif
+      my_skill->skill_points += fuzzy_divide(value, p);
       my_skill->level = 
 	calculate_level(my_skill->skill_points, my_skill->level);
       p/=2;
@@ -104,19 +93,17 @@ varargs int generic_test_skill(string skill, object skill_user, float opposing_s
   total_skill = my_skill->level - opposing_skill;
   coef = pow(2,sizeof(my_skill->higher_levels));
   for(i=0;i<sizeof(my_skill->higher_levels);i++)
-
     {
-      // *Beek* See above
-#ifndef HAVE_COMPILER_PERFORM_CLIFF_DIVING_DEMONSTRATION_ONTO_PAVEMENT
-      total_skill += (int)((float)my_skill->higher_levels/coef);
-#else
-      total_skill += (float)my_skill->higher_levels/coef;
-#endif
+      total_skill += fuzzy_divide(my_skill->higher_levels,coef);
       coef /= 2;
     }
-  return random(10)-5 >= 0; // erm, random(10) >= 5.  MudOS unfortunately
-                            // won't catch that.  Never though of constant
-                            // folding across logical ops :)
+//### This is obviously wrong, but it isn't obvious what is right
+#if 0
+    return random(10) - 5 >= 0;
+#else
+// I think this is right, but should be checked. -Beek
+    return random(10) - 5 >= total_skill;
+#endif
 }
 
 

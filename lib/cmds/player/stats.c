@@ -34,7 +34,7 @@ private void main(string arg)
     printf("%76'-='s-\n", "");
 
     printf("Eval: %d   Guild: %s   Race: %s\n",
-	   1, "Goober", "Slime");
+	   1, "Goober", (capitalize(this_body()->query_race() || "none")));
     /* ### xp, advancement info */
     write("<< xp, advancement info goes here >>\n");
 

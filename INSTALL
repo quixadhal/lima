@@ -17,14 +17,15 @@ How to install Lima:
 	
 2) You must edit the mudlib configuration file.
 	a) cd ../etc
-	b) edit config.lima   and  change all the lines that say:
+	b) edit config.lima
+	c) follow the directions in the file
 
-	## Change the next line!
-	
-   You may also change lines that say:
+3) Start your address server if one isn't running already:
+	./addr_server 9990 &
 
-	## Change the next line if you want
-   
+   Change the port number above as needed, ensuring that the config.lima
+   file matches the command line used to start the address server.
+
 3) Start the driver with the command:
 	./driver config.lima &
 

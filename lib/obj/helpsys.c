@@ -82,6 +82,12 @@ private nomask void parse_file(string fname)
     cur_line = 0;
     directives = ([ ]);
     
+    if( file_size( fname ) == -1 )
+    {
+    lines = ({ "This helpfile no longer exists.", "Its reference will vanish next time help_d is updated" });
+
+        return;
+    }
     lines = explode(read_file(fname), "\n");
     lines = filter_array(lines, (: f_parse :));
 

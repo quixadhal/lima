@@ -161,7 +161,7 @@ private nomask void reconnect()
     }
     else
     {
-	send_to_router("startup-req-1",
+	send_to_router("startup-req-2",
 		       ({ password,
 			      query_mudlist_id(),
 			      query_chanlist_id(),
@@ -173,6 +173,7 @@ private nomask void reconnect()
 			      driver_version(),
 			      "LP",
 			      lib_status(),
+			      ADMIN_EMAIL,
 			      ([
 				  "tell" : 1,
 				  "who" : 1,
@@ -180,6 +181,7 @@ private nomask void reconnect()
 				  "locate" : 1,
 				  "channel" : 1,
 				  ]),
+			      0,	/* other_data */
 			      }));
     }
 }

@@ -4,6 +4,11 @@
 
 inherit CMD;
 
+private nomask void do_shutdown()
+{
+    unguarded(1, (: shutdown :));
+}
+
 private void main(string s)
 {
     if ( !check_privilege(1) )
@@ -33,7 +38,7 @@ private void main(string s)
 			   ctime(time()), this_body()->query_name(), s));
 	shout("LPmud shut down by "+this_body()->query_name()+".\n");
 	bodies()->quit();
-	shutdown();
+	call_out((: do_shutdown :), 0);
     }
 }
 

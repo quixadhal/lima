@@ -14,6 +14,9 @@ mapping		info;
 mapping		is_dir;
 mapping		sizes;
 
+// for those who like their screens looking like Christmas trees
+#undef XMAS
+
 // We don't do this for everyone to save LOTS of processing.
 private string
 make_ansi_string(string file, string path)
@@ -70,7 +73,13 @@ private void main(mixed argv, mapping flags)
     argv[0] = decompose(map(argv[0], (:is_directory($1) ?
 			  glob($1 + ($1[<1] == '/' ? "*" : "/*")): $1:)));
 
-  if(uses_ansi = i_use_ansi() || flags["l"] || flags["s"] || flags["F"])
+#ifdef XMAX
+  uses_ansi = i_use_ansi();
+#else
+  uses_ansi = 0;
+#endif
+
+  if(uses_ansi || flags["l"] || flags["s"] || flags["F"])
     {
       info = ([]); is_dir = ([]); sizes = ([]);
       foreach(item in argv[0])

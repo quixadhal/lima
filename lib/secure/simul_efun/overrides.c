@@ -8,20 +8,23 @@ object this_body();
 int check_privilege(mixed priv);
 int adminp(mixed m);
 
-
 nomask varargs void ed(string file, mixed func)
 {
-    error("ed() not available");
+    error("ed() not available\n");
 }
 
 nomask int exec(object target, object src)
 {
-    error("exec() not available");
+    error("exec() not available\n");
+}
+
+nomask varargs int input_to() {
+    error("input_to() should not be used.  Use modal_push()/modal_func()\n");
 }
 
 nomask object find_player(string str)
 {
-    error("find_player() is obsolete.  Use find_body() instead.");
+    error("find_player() is obsolete.  Use find_body() instead.\n");
 }
 
 nomask int notify_fail(string msg)
@@ -31,6 +34,11 @@ nomask int notify_fail(string msg)
     return 0;
 }
 
+nomask void destruct(object ob) {
+    if (ob != previous_object())
+	catch(ob->remove());
+    if (ob) efun::destruct(ob);
+}
 
 nomask void shutdown()
 {

@@ -6,9 +6,9 @@
 #include <move.h>
 #include <setbit.h>
 #include <driver/origin.h>
+#include <hooks.h>
 
 inherit OBJ;
-
 
 private int max_capacity = 10;
 private static int capacity;
@@ -27,7 +27,7 @@ int query_capacity();
 int stat_me() {
     write("Container capacity: "+query_capacity()+"/"+max_capacity+"\n");
     write("main_prep: " + main_prep + "\n");
-    write("It contains: "+
+    write("It contains:\n"+
       inv_list(this_object(), 0, 1)+"\n");
     return ::stat_me();
 }
@@ -132,7 +132,17 @@ string look_in( string relation )
 {
     object* obs;
     string inv;
-
+    mixed ex;
+    
+//:HOOK prevent_look
+//A set of yes/no/error hooks which can prevent looking <relation> OBJ
+//The actual hook is prevent_look_<relation>, so to prevent looking
+//in something use prevent_look_in.
+    ex = call_hooks("prevent_look_" + relation, HOOK_YES_NO_ERROR);
+    if (!ex) ex = "That doesn't seem possible.";
+    if (stringp(ex))
+	return ex;
+    
     if (relation && relation != main_prep)
         return "There is nothing there.\n";
 
@@ -189,9 +199,11 @@ string simple_long() {
 }
 
 void reset(){
-    int j, tally, value;
+    int tally, num;
+    mixed *rest;
+    mixed value;
     string file, name;
-    string *oids;
+    mixed oids;
     object *inv;
     int ret;
     
@@ -200,20 +212,29 @@ void reset(){
 
     inv = all_inventory();
     foreach (file, value in objects) {
-	if (intp(value))
-	{
-	    oids = file->query_id();
-	    if( pointerp(oids) && sizeof(oids) )
-		name = oids[0];
-	    else if (!stringp(oids))
-		name = "";
+	if (intp(value)) {
+	    num = value;
+	    rest = ({ });
+	} else
+	if (arrayp(value) && sizeof(value)) {
+	    num = value[0];
+	    rest = value[1..];
+	} else
+	    continue;
 
-	    tally = sizeof(filter_array(inv, (: $1->id($(name)) :) ));
-	    value -= tally;
-	    for (j = 0; j < value; j++) {
-		if (ret = clone_object(file)->move(this_object(), "#CLONE#"))
-		    error("Initial clone failed for '" + file +"' with error " + ret + "\n");
-	    }
+	oids = file->query_id();
+	if( pointerp(oids) && sizeof(oids) )
+	    name = oids[0];
+	else if (stringp(oids))
+	    name = oids;
+	else
+	    name = "";
+
+	tally = sizeof(filter_array(inv, (: $1->id($(name)) :) ));
+	num -= tally;
+	for (int j = 0; j < num; j++) {
+	    if (ret = new(file, rest...)->move(this_object(), "#CLONE#"))
+		error("Initial clone failed for '" + file +"' with error " + ret + "\n");
 	}
     }
 }
