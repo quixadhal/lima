@@ -59,12 +59,8 @@ static void read_it(object ob, string str) {
 	text = ob->read_entry(str);
     else
         text = ob->read();
-    if (sizeof(text) > 200) {
-	// Don't use more on short strings
-	this_user()->more(text);
-    } else {
-	write(text);
-    }
+
+    more(text);
 }
 
 void do_read_obj(object ob) {

@@ -28,7 +28,7 @@ varargs mixed unguarded(mixed priv, function code);
 void clear_input_stack();
 
 
-private nomask int do_su(string old_userid, string new_userid)
+private nomask int do_su(string old_userid, string new_userid, string new_body)
 {
     object body;
     string old_name;
@@ -51,7 +51,7 @@ private nomask int do_su(string old_userid, string new_userid)
     ** old body).
     */
     restore_me(new_userid, 1);
-    switch_body();
+    switch_body(new_body);
 
     /* alter privileges */
     if ( adminp(query_userid()) )
@@ -73,6 +73,7 @@ private nomask int do_su(string old_userid, string new_userid)
 
 private nomask void confirm_valid_su(string old_userid,
 				     string new_userid,
+				     string new_body,
 				     string arg)
 {
     string pwd = USERLIST_D->query_password(new_userid);
@@ -84,10 +85,10 @@ private nomask void confirm_valid_su(string old_userid,
 	return;
     }
 
-    do_su(old_userid, new_userid);
+    do_su(old_userid, new_userid, new_body);
 }
 
-nomask void switch_user(string str)
+nomask void switch_user(string str, string new_body)
 {
     string old_userid = query_userid();
     string new_userid = lower_case(str);
@@ -116,12 +117,12 @@ nomask void switch_user(string str)
 
     if ( is_admin || new_userid == old_userid )
     {
-	do_su(old_userid, new_userid);
+	do_su(old_userid, new_userid, new_body);
 	return;
     }
 
     printf("switching to: '%s'\n", new_userid);
 
     write("Password: ");
-    modal_simple((: confirm_valid_su, old_userid, new_userid :), 1);
+    modal_simple((: confirm_valid_su, old_userid, new_userid, new_body :), 1);
 }

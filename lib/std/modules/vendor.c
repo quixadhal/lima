@@ -1,4 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+#include <move.h>
 
 string short();
 string query_subjective();

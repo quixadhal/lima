@@ -1,23 +1,18 @@
-Without an argument shows a list of all quest points currently in place. 
-The a and d flags may be used by admins only to add new quests 
-or remove old ones.  The a flag overwrites an existing quest if 
-there is a desire to change it.  You can add and/or delete 
-multiple quests in the same command by invoking the relevent flag 
-multiple times, however, 'quest -d foo bar' will not delete a 
-quest named bar, it will delete foo then show you the quest info 
-on bar as if you had typed only: 'quest bar'. 'quest -d foo -d bar' 
-would work, as would 2 seperate uses of the quest command. 
+ADDING A QUEST:
+
 Quest points should be given at any stage of your area or quest that is 
-a challenge to get to.  To grant points, you must first have an 
-admin add the points with this command, then in the filename 
-with the permission to grant the points, you must call: 
-QUEST_D->grant_points(solver,quest) Where solver is 
-probably going to be this_player().  QUEST_D is defined in mudlib.h
-Quests in the sense refered to by this command are any milestones 
-achieved in the course of questing.  All milestones worthy of granting points 
-are considered individual quests.  You should submit requests for adding 
-quests to the game often, don't be afraid to do that.  However, 
-I would recommend submitting several requests at once, instead 
-of doing them all one at a time, to make life easier on your friendly 
-ZorkMud admins.
+a challenge to get to.  To grant points, you must first tell an admin what
+file will grant the points. Then, in that file, make the following call:
+
+QUEST_D->grant_points(solver,quest) 
+Where solver is probably going to be this_body(), and quest will be a string
+given to you by your admin.  
+
+You should submit requests for adding quests to the game often, don't
+be afraid to do that.  However, I would recommend submitting several
+requests at once, instead of doing them all one at a time, to make
+life easier on your friendly admins.
+
+To view all the quest points available on the mud, use the admtool command.
+
 

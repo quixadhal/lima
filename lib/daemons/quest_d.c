@@ -26,18 +26,27 @@ calculate_total_points()
 }
 
 int
-add_quest( string quest, int value, string base )
+add_quest( string quest, int value, string base, string major_milestone )
 {
 
   
   if(!check_privilege(1)) return 0;
+  if(quests[quest])
+    {
+      write("D'oh, that quest already exists.\n");
+      return 0;
+    }
   if(!
   unguarded( 1, (: write_file, "/log/quests",
 		 sprintf("%-30s worth %d pts, added by %s.\n", base, value,
 			 this_body()->query_name()) :) )
  ) return 0;
 
-  quests[quest] = ({ base , value , 0 });
+  if(base[<2..] == ".c")
+    {
+      base = base[0..<3];
+    }
+  quests[quest] = ({ base , value , 0, major_milestone });
   calculate_total_points();
   save_object(QUEST_FILE);
   return 1;
@@ -55,6 +64,11 @@ delete_quest( string quest )
   return 1;
 }
 
+int quest_exists(string q)
+{
+  return quests[q];
+}
+
 int
 grant_points( object solver, string quest )
 {
@@ -64,12 +78,51 @@ grant_points( object solver, string quest )
   if( !solver->add_quest( quest, quests[quest][1] ) )
     return 0;
   quests[quest][2]++;
-  tell_object( solver, sprintf("Your score has gone up by %d points.\n",
+  tell_object( solver, sprintf("Your score has gone up by %d points.\n",
 	quests[quest][1]) );
   unguarded(1, (: save_object, QUEST_FILE :));
   return 1;
 }
 
+
+string array get_goals_for_quests_cmd()
+{
+  return map(filter(keys(quests), (: quests[$1][3] :)), 
+	     (: sprintf("%s (%s)", $1, quests[$1][3]) :));
+}
+
+string dump_final_goals()
+{
+  string*	keys;
+  int		i;
+  string	logfile;
+  string	output;
+  int		total1;
+  int		total2;
+  
+  keys = keys( quests );
+  keys = sort_array( keys, -1);
+ 
+  i = sizeof( keys );
+  output = "";
+  while( i-- )
+  {
+    if(quests[keys[i]][3])
+      {
+	output += sprintf("%-17s-> %-2d pts, %d solves (%s)\n",
+	  keys[i], quests[keys[i]][1], quests[keys[i]][2], quests[keys[i]][0]);
+	total1 += quests[keys[i]][1];
+      }
+    total2 += quests[keys[i]][1];
+  }
+
+  output += sprintf("\nTotal points: %d in main goals, %d total\n",total1, total2);
+
+  return output;
+}
+  
+
+// Dumps all the quest items, and not just the final goals
 string
 quest_dump()
 {
@@ -83,18 +136,18 @@ quest_dump()
   unguarded( 1, (: rm, logfile :) );
 
   keys = keys( quests );
-  keys = sort_array( keys, 1);
+  keys = sort_array( keys, -1);
  
   i = sizeof( keys );
   output = "";
   while( i-- )
   {
-    output += sprintf("%-20s-> %-2d points, %d solves, home: %s\n",
+    output += sprintf("%-17s-> %-2d pts, %d solves (%s)\n",
       keys[i], quests[keys[i]][1], quests[keys[i]][2], quests[keys[i]][0]);
     total += quests[keys[i]][1];
   }
 
-  output += sprintf("Total points: %d\n",total);
+  output += sprintf("\nTotal points: %d\n",total);
 
   unguarded(1, (: write_file, logfile, output :) );
   return output;

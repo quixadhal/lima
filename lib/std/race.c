@@ -2,6 +2,7 @@
 
 inherit PLAYER;
 
+#ifdef USE_STATS
 /*
  * Ok, quick explanation:
  *
@@ -75,3 +76,17 @@ nomask int *query_constant_vector() {
 
     return ({ racial_con_bonus(), racial_wis_bonus(), racial_cha_bonus() });
 }
+#else
+// Maybe make these level based ?
+int to_hit_base() {
+    return 50;
+}
+
+int hit_skill() {
+    return 10;
+}
+
+int damage_bonus() {
+    return 0;
+}
+#endif

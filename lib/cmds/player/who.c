@@ -58,10 +58,10 @@ string get_who_string(string arg)
                 u = users();
         }
         if(!wizardp(this_user()))
-            u = filter_array(u, (: !call_other($1, "test_flag", F_INVIS) :));
+	  u = filter_array(users(), (: $1->query_body()->is_visible() :));
     }
     else
-        u = filter_array(users(), (: !call_other($1, "test_flag", F_INVIS) :));
+	  u = filter_array(users(), (: $1->query_body()->is_visible() :));
 
 #ifdef ZORKMUD
     retval += sprintf("%s:  (GUE Time is: %s) %28s\n%s",
@@ -80,9 +80,8 @@ string get_who_string(string arg)
         bits = u[i]->query_body()->get_flags(PLAYER_FLAGS);
         if(!name)
             name = capitalize(u[i]->query_userid());
-//        else
-//            name = capitalize(name);
-        if(bits & (1 << FlagIndex(F_INVIS)))
+
+        if(!(u[i]->query_body()->is_visible()))
             name = "("+name+")";
         if(bits & (1 << FlagIndex(F_HIDDEN)))
             name = "["+name+"]";

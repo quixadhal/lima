@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-// Belboz
+// Rust
 
 #include <mudlib.h>
 
@@ -18,12 +18,12 @@ private void main( string who )
 	string test;
 
 	matches = case_insensitive_complete(M_GLOB->translate(mud),
-					    IMUD_D->query_mudnames());
+					    IMUD_D->query_up_muds());
 
 	switch ( sizeof(matches) )
 	{
 	case 0:
-	    printf("No such known mud: %s\n", mud);
+	    printf("No matching mud currently up.");
 	    return;
 
 	case 1:

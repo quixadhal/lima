@@ -34,6 +34,8 @@ mixed unguarded(mixed priv, function fp);
 private string 	email;
 private string 	real_name;
 private int 	ed_setup;
+private string  url;
+
 
 void set_ed_setup(int code) {
     ed_setup = code;
@@ -58,6 +60,18 @@ nomask void set_email(string new_email)
     email = new_email;
 }
 
+nomask void set_url(string new_url)
+{
+    if ( this_body() != query_body() )
+	error("illegal attempt to set URL\n");
+
+    url = new_url;
+}
+
+nomask string query_url()
+{
+  return url;
+}
 
 
 /*
@@ -68,16 +82,19 @@ nomask void set_email(string new_email)
 private nomask void done_with_more()
 {
     /*
-    ** Okay.  This input sequence is done.  Setup the body and go.
+    ** Okay.  This input sequence and 'more' is done.  Setup the body
+    ** and go.
     */
-    modal_pop();
-
     test_interactives(1);
 }
 
-private nomask void rcv_real_name(string str)
+private nomask void done_with_inputs()
 {
-    real_name = str;
+
+    /*
+    ** Done with this series of inputs
+    */
+    modal_pop();
 
     /*
     ** Let's move on to introducing the character to the mud.
@@ -94,9 +111,21 @@ private nomask void rcv_real_name(string str)
 	return;
     }
 
-//### set up continuation to done_with_more() rather return_to_func
-    this_user()->more_file(NEW_PLAYER);
+    more_file(NEW_PLAYER, 0, (: done_with_more :));
 }
+
+private nomask void rcv_url(string s)
+{
+    url = s;
+    done_with_inputs();
+}
+
+private nomask void rcv_real_name(string str)
+{
+    real_name = str;
+    modal_func((: rcv_url :), "Your home page address (if any): ");
+}
+
 
 private nomask void rcv_email_address(string str)
 {
@@ -114,6 +143,5 @@ static nomask void begin_info_collection()
 	  "You cannot gain wizard status without valid responses to these questions:\n"
 	);
 
-    modal_push((: rcv_email_address :), "Your email address: ", 0,
-	       (: done_with_more :));
+    modal_push((: rcv_email_address :), "Your email address: ");
 }

@@ -7,12 +7,18 @@
 inherit CMD;
 
 
-private void main( mixed *arg) {
+private void main( mixed *arg )
+{
     object ob;
     mixed msg_ob;
 
     ob = arg[0];
     msg_ob = (ob->short() ? ob : this_object());
+    if( ob == environment( this_body()))
+    {
+        this_body()->simple_action( "$N $vattempt something Dumb.\n" );
+    return;
+    }
     this_body()->do_player_message("destruct", msg_ob);
     destruct(ob);
     return;

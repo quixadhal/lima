@@ -6,6 +6,6 @@ inherit LIVING;
 
 void create() {
     ::create();
-    set_id( ({ "beekjr" }) );
+    set_name("beekjr");
     set_in_room_desc("Beek Jr is here, standing off to one side of the room.");
 }

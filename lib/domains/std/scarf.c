@@ -8,7 +8,7 @@ inherit M_WEARABLE;
 
 void create() {
     ::create();
+    set_adj("red");
     set_id("scarf");
-    set_adjectives(({ "red" }));
     set_gettable(1);
 }

@@ -111,7 +111,7 @@ private void Mh_cmd_help()
       "","Groups may also be mailed to, see help for groups on how to set them",
       "up.... you can mail to them like a regular name, or you can enclose"
       ,"The group in ().  Eg, Mm (admin) rust  will mail all the admins and rust."});
-    this_user()->more(output);
+    more(output);
 }
 
 

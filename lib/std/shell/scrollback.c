@@ -14,7 +14,7 @@ private nomask void cmd_scrollback()
 	write("You have no scrollback.\n");
 	return;
     }
-    this_user()->more(last_scrollback);
+    more(last_scrollback);
 }
 
 

@@ -181,7 +181,7 @@ private nomask void list_dir_privs(string arg)
 
     output = implode(({ "" }) + sort_array(keys(w_tree), 1),
 		     (: $1 + $2 + "   " + $(w_tree)[$2] + "\n" :)) + "\n";
-    this_user()->more_string(output);
+    more(output);
 }
 
 private nomask void perform_set_dir_priv(int rw, string dir, mixed priv)

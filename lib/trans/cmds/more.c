@@ -6,7 +6,6 @@
 #include <mudlib.h>
 
 inherit CMD;
-inherit M_GLOB;
 
 
 
@@ -15,7 +14,7 @@ inherit M_GLOB;
 
 private void main(mixed *arg)
 {
-    this_user()->more_file(filter(arg[0],(:is_file:)));
+    more_file(filter(arg[0], (:is_file:)));
 }
 
 int help()

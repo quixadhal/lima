@@ -39,6 +39,11 @@ private nomask void get_one(object ob, object with_ob)
 	return;
     }
 
+    if(msg == MOVE_NO_ERROR)
+      {
+	return;
+      }
+
     tmp = ob->move(this_body());
     if (tmp == MOVE_OK) {
 	write("Taken.\n");
@@ -46,6 +51,10 @@ private nomask void get_one(object ob, object with_ob)
 	this_body()->other_action("$N $vtake a $o.\n", ob);
 	return;
     }
+    if (tmp == MOVE_NO_ERROR)
+      {
+	return;
+      }
 
     if (tmp == MOVE_NO_ROOM) tmp = "Your load is too heavy.\n";
     if (!tmp) tmp = "That doesn't seem possible.\n";

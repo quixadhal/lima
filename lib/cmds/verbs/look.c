@@ -37,6 +37,22 @@ void do_look() {
 
 void do_look_at_obj(object ob, string name) {
     string str;
+    switch(strsrch(name,' '))
+      {
+      case 1:
+	if(name[0] == 'a' && strlen(name) > 2)
+	  {
+	    name = name[2..];
+	    break;
+	  }
+      case 3:
+	if(name[0..2] == "the" && strlen(name) > 4)
+	  {
+	    name = name[4..];
+	    break;
+	  }
+      }
+
     if (!(str = ob->get_item_desc(name)))
 	str = ob->long();
     if (str[<1] != '\n') str += "\n";

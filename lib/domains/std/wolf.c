@@ -82,11 +82,11 @@ void create()
     ::create();
     set_name("Wolf");
     set_gender(1);
-    set_proper_name("The White Timber Wolf");
     set_in_room_desc("A White Timber Wolf");
-    add_id("wolf");
-    add_adj(({"timber", "white"}));
-
+    set_adj("White Timber", "timber", "white");
+    set_id("Wolf", "wolf");
+    set_unique(1);
+    
     set_long("A White Timber Wolf");
 
     add_pattern("%s says: Timber, %s", (: do_command :));

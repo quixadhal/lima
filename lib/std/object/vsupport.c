@@ -26,6 +26,10 @@ mixed direct_give_obj_to_liv(string rule)
 mixed direct_eat_obj(object ob) {
     return "I don't think " + ob->the_short() + " would agree with you.\n";
 }
+
+mixed direct_look_str_obj(string prep, object ob) {
+    return "There is nothing " + prep + " " + ob->the_short() + ".\n";
+}
      
 mixed direct_put_obj_wrd_obj(object ob1, object ob2) {
     return 1;
@@ -92,3 +96,21 @@ mixed direct_flip_obj(object ob) {
     return call_hooks("direct_flip", HOOK_YES_NO_ERROR,
 		     M_PARSING->useless("Fiddling with " + ob->the_short()));
 }
+
+
+mixed direct_throw_obj(object ob1, object ob2)
+{
+  return 1;
+}
+
+mixed direct_throw_obj_at_obj(object ob1, object ob2)
+{
+  return 1;
+}
+
+ mixed indirect_throw_obj_at_obj(object ob1, object ob2)
+ {
+   return 1;
+ }
+
+

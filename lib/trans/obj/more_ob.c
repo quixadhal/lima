@@ -29,6 +29,7 @@ private int file_index;
 private string * lines;
 private int line_index;
 private int chunk_size;
+private function continue_func;
 
 private nomask string query_prompt()
 {
@@ -90,6 +91,10 @@ private void print_help()
 private void finish()
 {
     modal_pop();
+
+    if ( continue_func )
+	evaluate(continue_func);
+
     destruct(this_object());
 }
 
@@ -263,7 +268,9 @@ nomask void do_more(mixed arg) {
     return;
 }
 
-void create(int kind, mixed arg, int c) {
+void create(int kind, mixed arg, int c, function continuation) {
+    ::create();
+
     switch (kind) {
     case 0: // blueprint
 	return;
@@ -279,6 +286,7 @@ void create(int kind, mixed arg, int c) {
     }
     direction = 1;
     chunk_size = c;
+    continue_func = continuation;
     modal_push((: do_more :), (: query_prompt :));
     do_more(0);
 }

@@ -35,27 +35,39 @@ someone_did(string str) {
     who->ilog_hook(str);
 }
 
-void dump_did_info(int time, string * header, string pattern)
+varargs void dump_did_info(int time, string * header, string pattern,
+			   function continuation)
 {
     int index;
     string * output = header;
     mixed *matches;
 
+    if ( !header )
+	output = ({ "Change Log",
+		    "**********",
+		    "" });
+
     index = sizeof(did) - 1;
-    while (index > 0 && time < did[index][0]) index--;
+    while (index > 0 && time < did[index][0])
+	index--;
     index++;
 
-    if(index >= sizeof(did))
-      return;
+    if ( index >= sizeof(did) )
+    {
+	if ( continuation )
+	    evaluate(continuation);
+	return;
+    }
 
     for ( ; index < sizeof(did); index++)
     {
-	if (!pattern || regexp(did[index][1], translate(pattern,1)))
-        output += explode(iwrap(sprintf("%s: %s",
-					ctime(did[index][0]),
-					did[index][1])), "\n") + ({ "" });
+	if ( !pattern || regexp(did[index][1], translate(pattern,1)) )
+	    output += explode(iwrap(sprintf("%s: %s",
+					    ctime(did[index][0]),
+					    did[index][1])), "\n") + ({ "" });
     }
-    this_user()->more(output);
+
+    more(output, 0, continuation);
 }
 
 varargs void

@@ -15,11 +15,14 @@
 #include <playerflags.h>
 #include <commands.h>
 #include <move.h>
+#include <hooks.h>
+#include <size.h>
 
 // Files we need to inherit --
 inherit MONSTER;
 //inherit M_GRAMMAR;
 inherit M_ACCESS;
+inherit M_SMARTMOVE;
 
 inherit __DIR__ "player/quests";
 inherit __DIR__ "player/mailbase";
@@ -48,12 +51,9 @@ private string invis_name;
 private string nickname;
 private string start_location;
 private string reply;
-private string * channel_list = ({ });
+private string array channel_list = ({ });
 private string plan;
-
-// part of patch for handling auto loading  -- Pere@ZorkMUD
-private string * auto_load = ({ });
-
+private string array auto_load = ({ });
 private static object link;
 private static string cap_name;
 private static int catching_scrollback;
@@ -83,7 +83,7 @@ string the_short() { return query_name(); }
 string query_name()
 {
     if ( invis_name == cap_name || !invis_name ) invis_name = "Someone";
-    if ( test_flag(INVIS) ) return invis_name;
+    if ( !is_visible() ) return invis_name;
     if ( test_flag(F_DEAD) ) return "A ghost";
     return cap_name;
 }
@@ -111,6 +111,10 @@ string query_start_location()
 {
     if ( start_location )
 	return start_location;
+    if(wizardp(this_user()))
+       {
+	 return WIZARD_START;
+       }
     return START;
 }
 
@@ -134,15 +138,15 @@ nomask void set_plan(string new_plan)
 #endif /* EVERYONE_HAS_A_PLAN */
 
 
-// load info for auto_loading   -- Peregrin@ZorkMUD
 
 void
-load_autoload() {
+load_autoload() 
+{
     object ob;
     int l;
 
-    if(!auto_load || (pointerp(auto_load)&&!sizeof(auto_load)))return;
-    //    write("Autoloading");
+    if(!auto_load || (arrayp(auto_load)&&!sizeof(auto_load)))return;
+
     if (l = sizeof(auto_load)) {
 	while (l--) {
 	    if (!stringp(auto_load[l]))  {
@@ -160,36 +164,34 @@ load_autoload() {
 	    write("....");
 	    if (ob->move(this_object()) != MOVE_OK)
 		if (ob->move(start_location) != MOVE_OK)
-		    if (ob->move(START) != MOVE_OK)
+		    if (ob->move(wizardp(this_user()) ? WIZARD_START : START) 
+			!= MOVE_OK)
 			ob->remove();
 	}
     }
     auto_load = ({ });
-    //    write(" complete.\n");
 }
 
-// store info for auto_loading   -- Peregrin@ZorkMUD
 
-void save_autoload() {
+void save_autoload() 
+{
     object *inv;
     string *str;
     int    l;
 
-    //    tell_object(this_object(),"Saving autoload");
+
     auto_load = ({ });
     inv = all_inventory(this_object());
     l = sizeof(inv);
     while (l--) {
 	if (inv[l]->query_autoload()) {
-	    //	    tell_object(this_object(),"....");
 	    auto_load += ({ base_name( inv[l] ) });
 	}
     }
-    //    tell_object(this_object()," complete.\n");
 }
 
-
-void init_cmd_hook()
+/* initialize various internal things */
+private nomask void init_cmd_hook()
 {
     object mailbox;
     int idx;
@@ -213,62 +215,87 @@ void init_cmd_hook()
     if (nickname)
 	add_id_no_plural(nickname);
 
-    NCHANNEL_D->register_channels(channel_list);
-    NCHANNEL_D->deliver_emote("wiz_announce", 0,
-			      sprintf("enters %s.", mud_name()));
-
+#ifdef USE_MASS
     set_mass(100);
-    set_max_capacity(100);
+#endif
+#ifdef USE_SIZE
+    set_size(VERY_LARGE);
+#endif
+    set_max_capacity(VERY_LARGE);
 
     start_shell();
     load_autoload();
 }
 
-
-void enter_game(int is_new)
+private nomask void finish_enter_game()
 {
-    init_cmd_hook();
+    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+			      sprintf("enters %s.", mud_name()));
 
-    if ( move(start_location) != MOVE_OK && move(START) != MOVE_OK )
+    /* move the body.  make sure this comes before the simple_action */
+    if ( move(start_location) != MOVE_OK &&
+	 move(wizardp(this_user()) ? WIZARD_START : START) != MOVE_OK &&
+	 move(VOID_ROOM) != MOVE_OK )
     {
 	write("Uh-oh, you have no environment.\n");
 	return;
     }
 
-    simple_action("$N $venter "+mud_name()+".\n");
+    /* we don't want other people to get the extra newlines */
+    write("\n");
+    if(is_visible())
+      simple_action("$N $venter "+mud_name()+".\n");
+    write("\n");
+
+    NCHANNEL_D->register_channels(channel_list);
+
+    do_game_command("look");
+}
+
+nomask void su_enter_game()
+{
+    init_cmd_hook();
+
+    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+			      sprintf("enters %s.", mud_name()));
+
+    if(is_visible())
+      simple_action("$N $venter "+mud_name()+".\n");
+
+    NCHANNEL_D->register_channels(channel_list);
+}
+
+void enter_game(int is_new)
+{
+    init_cmd_hook();
 
     if ( is_new && wizardp(link) )
     {
-	write("\nHi, new wiz! Tuning you in to all the mud's important channels.\n");
-	write("Doing: wiz /on\n");
-//	link->force_me("wchan wiz /on");
-	write("Doing: chan news /on   (you'll see when new news is posted.)\n");
-// for some reason aliases don't catch from a force_me from here, so use the
-// full cmd. (probably a better idea anyway P-)
-//	link->force_me("chan news /on");
-	write("Doing: gossip /on\n");
-//	link->force_me("chan gossip /on");
-	write("Doing: newbie /on\n");
-//	link->force_me("chan newbie /on");
-        write("Doing: announce /on\n\n");
-//        link->force_me("wchan announce /on");
+	write("\n"
+	      "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
+	      "Doing: wiz /on\n"
+	      "Doing: chan news /on   (you'll see when new news is posted.)\n"
+	      "Doing: gossip /on\n"
+	      "Doing: newbie /on\n"
+	      "Doing: announce /on\n"
+	      "\n");
 
+	/* these will be registered later */
 	channel_list = ({ "wiz_wiz", "plyr_news", "plyr_gossip",
 			  "plyr_newbie", "wiz_announce" });
-	NCHANNEL_D->register_channels(channel_list);
 
 	/* So the hapless new wizard doesn't get spammed. */
 	set_ilog_time(time());
     }
     else if ( is_new )
     {
-	write("\nTuning in the newbie channel for you.  (newbie /on)\n");
-//	link->force_me("chan newbie /on");
-	write("Tuning in the gossip channel for you.  (gossip /on)\n\n");
-//	link->force_me("chan gossip /on");
+	write("\n"
+	      "Tuning in the newbie channel for you.  (newbie /on)\n"
+	      "Tuning in the gossip channel for you.  (gossip /on)\n"
+	      "\n");
 
+	/* these will be registered later */
 	channel_list = ({ "plyr_gossip", "plyr_newbie" });
-	NCHANNEL_D->register_channels(channel_list);
     }
 
     if ( wizardp(link) )
@@ -282,24 +309,19 @@ void enter_game(int is_new)
 	    map_array(explode(read_file(login_file),"\n"),
 		      (: this_user()->force_me($1) :));
 	}
-    }
 
-    do_game_command("look");
-
-    /*
-    ** For now, this must be after all other printed stuff cuz it will
-    ** start a MORE_OB, which doesn't block the above printing.  At
-    ** some point, we'll add continuation functions to MORE_OB and then
-    ** this can be anywhere in the login sequence, with a continuation
-    ** for the rest of the sequence.
-    */
-    if ( wizardp(link) )
-    {
 	DID_D->dump_did_info(query_ilog_time(),
-			     ({ "Changes since you last logged in",
+			     ({ "",
+				"Changes since you last logged in",
 				"********************************",
-				"" }));
+				"" }),
+			     0,
+			     (: finish_enter_game :));
 	set_ilog_time(time());
+    }
+    else
+    {
+	finish_enter_game();
     }
 }
 
@@ -314,7 +336,7 @@ void save_me()
     unguarded( 1, (: save_object , USER_PATH(name) :) );
 }
 
-void remove()
+void remove(int leave_link)
 {
     object ob;
 
@@ -331,14 +353,14 @@ void remove()
     MAIL_D->unload_mailbox(query_userid());
     unload_mailer();
     LAST_LOGIN_D->register_last(query_userid());
-    if ( link )
+    if ( link && !leave_link)
     {
 	link->remove();
     }
     ::remove();
 }
 
-void quit()
+varargs void quit(int leave_link)
 {
     if ( !clonep() )
     {
@@ -346,7 +368,7 @@ void quit()
 	return;
     }
 
-    if (!test_flag(INVIS))
+    if (is_visible())
 	simple_action("$N $vhave left "+mud_name()+".\n");
 
     save_autoload();
@@ -358,7 +380,7 @@ void quit()
     if (environment() && !wizardp(link))
 	start_location = file_name(environment());
 
-    remove();
+    remove(leave_link);
 }
 
 
@@ -391,7 +413,6 @@ string base_in_room_desc()
     string result;
 
     /* no description if invisible */
-    if ( test_flag(INVIS) ) return 0;
 
     /* ensure the player has a title. set it if none (yet) */
 #ifdef USE_TITLES
@@ -421,7 +442,8 @@ string query_reply(){ return reply; }
 
 void net_dead()
 {
-    simple_action("$N $vhave gone link-dead.\n");
+    if(is_visible())
+      simple_action("$N $vhave gone link-dead.\n");
     NCHANNEL_D->deliver_emote("wiz_announce", 0,
 			      sprintf("has gone link-dead.", mud_name()));
     call_out("remove",300);
@@ -434,7 +456,8 @@ void reconnect()
 {
     link = previous_object();
     remove_call_out("remove");
-    simple_action("$N $vhave reconnected.\n");
+    if(is_visible())
+      simple_action("$N $vhave reconnected.\n");
 
     NCHANNEL_D->deliver_emote("wiz_announce", 0,
 			      sprintf("has reconnected.", mud_name()));
@@ -458,12 +481,14 @@ void die()
 {
     if ( wizardp(link) )
     {
+      if(is_visible())
 	simple_action("If $n $vwere mortal, $n would now no longer be mortal.\n");
 	heal_us(10000);
 	stop_fight();
 	return;
     }
 
+    if(is_visible())
     simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.\n");
     tell_object(this_object(), "\n\n   ****  You have died  ****\n\n"
       "A pity, really.  Way too many people dying these days for me to just patch\n"
@@ -494,7 +519,7 @@ void clean_up()
 
 int id(string arg)
 {
-    if(test_flag(INVIS) && arg == lower_case(invis_name))
+    if(!is_visible() && arg == lower_case(invis_name))
 	return 1;
 
     return ::id(arg);
@@ -641,14 +666,6 @@ nomask mixed * query_failures()
 nomask void clear_failures()
 {
     return link->clear_failures();
-}
-
-nomask void more(mixed arg, int num) {
-    return link->more(arg, num);
-}
-
-nomask void more_file(mixed arg, int num) {
-    return link->more_file(arg, num);
 }
 
 /* verb interaction */

@@ -1,10 +1,12 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <move.h>
+
 // John
 // Sep 7 94
 
 private static mixed	get_response;
-private static mixed	drop_response;
+private static mixed	drop_response = 1;
 private static function	my_drop_hook, my_get_hook;
 
 void add_hook(string, function);
@@ -34,14 +36,24 @@ query_getmsg()
 }
 
 void
-set_gettable( int g )
+set_gettable( mixed g )
 {
-    if (g == -1 || !g)
+    if (g == -1 || !g || !intp(g))
 	get_response = 0;
     else
 	get_response = 1;
 
-    if (!my_get_hook) {
+    if(functionp(g))
+      {
+	my_get_hook = g;
+	add_hook("prevent_get", my_get_hook);
+      }
+    else if(stringp(g))
+      {
+	my_get_hook = (: write($(g)) :);
+	add_hook("prevent_get", my_get_hook);
+      }
+    else if (!my_get_hook) {
 	my_get_hook = (: prevent_get :);
 	add_hook("prevent_get", my_get_hook);
     }
@@ -53,7 +65,7 @@ get()
     object env;
     int tmp;
     
-    if (get_response != 1)
+    if (get_response != MOVE_OK)
 	return get_response;
     
     env = environment();
@@ -62,7 +74,7 @@ get()
 	    return tmp;
 	env = environment(env);
     }
-    return 1;
+    return MOVE_OK;
 }
 
 void

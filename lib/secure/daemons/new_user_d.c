@@ -20,8 +20,8 @@ void create_user(function when_done) {
     string file;
     int width = 0;
 
-    foreach (file in get_dir("/std/race/*.c")) {
-	string tmp = "/std/race/" + file;
+    foreach (file in get_dir(DIR_RACES + "*.c")) {
+	string tmp = DIR_RACES + file;
 	string name;
 	
         if ( !load_object(tmp) )
@@ -34,7 +34,7 @@ void create_user(function when_done) {
 
     format = "%#-75." + (75/(width + 3)) + "s\n\n";
 
-    write("Please select a race from the following list:\n");
+    write("\nPlease select a race from the following list:\n");
     printf(format, implode(keys(races), "\n"));
 
     printf("Type 'help race' for a brief description.  Type 'list' to show the choices again.\n");

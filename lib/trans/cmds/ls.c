@@ -135,7 +135,7 @@ private void main(mixed argv, mapping flags)
   if (!sizeof(output))
       output = "No matching files.";
 
-  this_user()->more(output);
+  more(output);
 }
 
 nomask int

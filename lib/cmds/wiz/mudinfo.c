@@ -70,6 +70,6 @@ private void main(string arg)
 	output += "\n";
     }
   
-    this_user()->more(output);
+    more(output);
 }
 

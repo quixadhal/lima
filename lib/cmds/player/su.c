@@ -11,8 +11,33 @@ inherit CMD;
 
 private void main(string arg)
 {
-    if (!arg)
-	arg = this_user()->query_userid();
+    string name, race;
+    if (!arg) {
+	name = this_user()->query_userid();
+	race = 0;
+    } else
+    if (sscanf(arg, "(%s)%s", race, name) == 2) {
+	if (name == "") name = this_user()->query_userid();
+    } else {
+	name = arg;
+	race = 0;
+    }
+
+    if (race) {
+	string array dirs = ({ DIR_RACES });
+	while (sizeof(dirs)) {
+	    foreach (string file in get_dir(dirs[0])) {
+		if (race + ".c" == file) race = dirs[0] + file;
+		if (file_size(dirs[0] + file) == -2)
+		    dirs += ({ dirs[0] + file + "/" });
+	    }
+	    dirs = dirs[1..];
+	}
+	if (race[<2..] != ".c") {
+	    write("No such race.\n");
+	    return;
+	}
+    }
 
     if ( this_body() )
     {
@@ -20,5 +45,5 @@ private void main(string arg)
 	this_body()->save_autoload();  
     }
 
-    this_user()->switch_user(arg);
+    this_user()->switch_user(name, race);
 }

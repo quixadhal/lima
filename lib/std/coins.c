@@ -23,15 +23,15 @@ void create(int amount, string type)
     long_amount = amount;
     long_type = type;
 
-  set_in_room_desc("A pile of coins");
-    set_id( ({ "coins",  "coin", "pile", "pile of coins" }) );
+    set_in_room_desc("A pile of coins");
+    add_id( "coins",  "coin", "pile", "pile of coins" );
     set_long( (: long_descr :) );
 
-set_gettable(1);
+    set_gettable(1);
 }
 
 mixed prevent_get()
 {
    write ("debugging to see if i get here");
-return 1;
+   return 1;
 }

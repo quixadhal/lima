@@ -69,13 +69,15 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
     body = new(new_body_fname, query_userid());
 
     old_body->move(VOID_ROOM);
-    old_body->quit();
+//### This dests this_object(), which causes a number of the latter calls
+//### to fail.
+    old_body->quit(1);
     if(old_body)
 	catch(old_body->remove());
 
     report_login_failures();
 
-    body->init_cmd_hook();
+    body->su_enter_game();
     body->move(where);
 }
 

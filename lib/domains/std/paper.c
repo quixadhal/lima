@@ -7,8 +7,8 @@ inherit M_WRITING_SURFACE;
 void create() {
     ::create();
 	
-    set_id(({ "paper", "scrap" }));
-    set_adj(({ "piece of", "scrap of" }));
+    set_adj("piece of", "scrap of");
+    set_id("paper", "scrap");
     set_long("It's a rather plain scrap of white paper.\n");
     set_gettable(1);
     set_space(100);

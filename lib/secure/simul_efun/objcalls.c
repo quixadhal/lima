@@ -171,10 +171,10 @@ varargs string inv_list(object o, int flag, int depth) {
     }
     res = "";
     for (i=0; i<n; i++) {
-	if (obs[i]->test_flag(INVIS)) continue;
+	if (!obs[i]->is_visible()) continue;
 	if (!obs[i]->short()) continue;
 	if (flag && !obs[i]->test_flag(TOUCHED) && obs[i]->untouched_long()) continue;
-        if (obs[i]->test_flag(ATTACHED)) {
+        if (obs[i]->is_attached()) {
             if (obs[i]->inventory_visible())
                 res += (string)obs[i]->inventory_recurse(depth+1);
             continue;

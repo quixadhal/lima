@@ -24,12 +24,9 @@ set_long("This is an example room for the lima mudlib.  It is fairly non-desscri
     "south" : "/domains/std/room2"
     ]) );
  
-    set_items ( ([
-
-	  ({ "suit" , "armor" , "suit of armor" }) : "The armor is very old and well worn.  While examining the armor you imagine you hear the sounds of combat coming from behind you" ]) );
+    add_item( "suit" , "armor" , "suit of armor" , "The armor is very old and well worn.  While examining the armor you imagine you hear the sounds of combat coming from behind you.");
 
     set_objects ( ([
-		    "/domains/std/sign.c" : 1,
 		    "/domains/std/safe.c" : 1 
 		    ]));
 }

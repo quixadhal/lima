@@ -1,11 +1,11 @@
 #
-# File: restrict
+# File: _restrict
 # Created: 25-OCT-94. Deathblade.
 #
 # This file is used to describe the level-restrictions of the
 # sub-directories located in this directory.  The help system
-# can restrict help based on level only at this level of the
-# directory tree -- further restrictions are not available.
+# can restrict help based on user "level" only at this level
+# of the directory tree -- further restrictions are not available.
 #
 # The format of this file is simple:
 #
@@ -15,12 +15,21 @@
 # only be seen by somebody with the given level.  If a
 # sub-directory exists and is not listed here, then it is
 # assumed to have a min-level of 0 (players can see the
-# topics).
+# topics).  Level 99 means the help_d will ignore it.
 #
 # And, of course, lines beginning with # are ignored
 #
 # This file is parsed by help_d.c.
 #
 player : 0
+
 wizard : 1
+autodoc : 1
+
 admin : 5
+
+#
+# we want the help_d to ignore this directory; the hint system
+# uses it instead
+#
+hints : 99

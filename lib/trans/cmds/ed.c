@@ -4,6 +4,13 @@
 
 inherit CMD;
 
+private static mapping locks = ([]);
+
+private nomask void unlock(string fname)
+{
+  map_delete(locks, fname);
+}
+
 nomask private void main(string* argv)
 {
     string fname;
@@ -23,7 +30,15 @@ nomask private void main(string* argv)
     else
 	fname = evaluate_path(fname);
 
+    if(objectp(locks[fname]))
+      {
+	printf("Sorry, that file is already being edited by %s.\n",
+	       locks[fname]->query_userid());
+	return;
+      }
+
+    locks[fname] = this_user();
     this_body()->query_shell_ob()->set_cwf(fname);
 
-    clone_object(ED_SESSION)->begin_editing(fname);
+    clone_object(ED_SESSION)->begin_editing(fname, 0, (: unlock($(fname)) :));
 }

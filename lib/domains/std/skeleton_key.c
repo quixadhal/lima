@@ -8,8 +8,8 @@ inherit M_LOCKABLE;
 create()
 {
     object::create();
+    set_adj("small", "shiny");
     set_id("key");
-    set_adjectives( ({ "small", "shiny" }) );
     set_in_room_desc("A small shiny safe key");
 
     set_gettable(1);

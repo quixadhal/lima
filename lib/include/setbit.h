@@ -10,14 +10,11 @@
 #ifndef __SETBIT_H__
 #define __SETBIT_H__
 
-// NOTE: use absolute cuz of simuls usage
-#include "/include/flags.h"
+#include <flags.h>
 
 
 #define FLAMING			MakeFlag(STD_FLAGS, 1)
 #define TURN_ON_OFF		MakeFlag(STD_FLAGS, 3)
-/* prevent redeclaration problem */
-#undef INVIS
 #define INVIS			MakeFlag(STD_FLAGS, 2)
 #define TOUCHED			MakeFlag(STD_FLAGS, 4)
 #define DESTROYABLE		MakeFlag(STD_FLAGS, 5)

@@ -223,7 +223,7 @@ static nomask void cmd_read(int user_num,
     mailbox_ob->set_message_index(user_num - 1);
     mailbox_ob->set_message_read(timestamp);
 
-    this_user()->more(output);
+    more(output);
 }
 
 
@@ -274,7 +274,7 @@ static nomask void cmd_headers(string rangestr)
 		   });
     }
 
-    this_user()->more(output);
+    more(output);
 }
 
 

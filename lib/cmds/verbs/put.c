@@ -12,13 +12,22 @@ inherit VERB_OB;
 
 void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
     mixed tmp;
+
     if (!try_to_acquire(ob1))
 	return;
 
     tmp = ob1->move(ob2, p);
     if (tmp == MOVE_OK) {
+	switch (p) {
+	case "in":
+	    prep = "into";
+	    break;
+	case "on":
+	    prep = "onto";
+	    break;
+	}
 	write("Done.\n");
-	this_body()->other_action("$N $vput a $o into the $o1.\n", ob1, ob2);
+	this_body()->other_action("$N $vput a $o " + prep + " the $o1.\n", ob1, ob2);
 	return;
     }
     if (!tmp) tmp = "That doesn't seem possible.\n";

@@ -82,7 +82,7 @@ fix_path()
 private void
 show_shell_help()
 {
-    this_user()->more_file("/help/wizard/shell");
+    more_file("/help/wizard/shell");
 }
 
 private void create()
@@ -133,12 +133,17 @@ execute_command(string * argv, string original_input)
 	cmd_info[0]->call_main(cmd_info[2], cmd_info[1]);
 	return 1;
     }
-    if ( cmd_info != 0 && cmd_info != -1 )
+    if ( cmd_info != 0 && cmd_info >= 0 )
     {
 	if ( cmd_info != 1 )
 	    printf("Found command is uncallable.\n");
 	return -1;
     }
+    if( cmd_info == -2)
+      {
+	printf("Unable to finish command.\n");
+	return -1;
+      }
 
     /* use the parser to try the command */
     if ( this_body()->do_game_command(original_input) )
@@ -167,7 +172,11 @@ execute_command(string * argv, string original_input)
 
 #endif /* AUTOMATIC_REHASH */
 
-    write(this_body()->nonsense());
+	    if(is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
+	      write(this_body()->nonsense());
+	    else
+	      printf("I don't know the verb '%s'.\n", argv[0]);
+
     return 1;
 }
 

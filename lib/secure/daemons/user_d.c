@@ -43,12 +43,14 @@ static private string *	legal_user_query =
     "email",
     "real_name",
     "password",
+    "url",
 });
 static private string *	legal_user_set =
 ({
     "failures",
     "email",
     "password",
+    "url",
 });
 
 static private string *	legal_body_query =

@@ -214,7 +214,7 @@ private nomask void display_groups_with_new()
 	list = ({"Groups with new messages:", ""}) +
 	    map_array(groups, (: format_group_line :));
 
-	this_user()->more(list);
+	more(list);
     }
 }
 
@@ -280,7 +280,7 @@ private nomask void display_messages(int display_all)
 
     lines = map_array(sort_array(ids, 1), (: format_message_line(0, $1, 1) :)) - ({ 0 });
     lines = ({sprintf("Messages on %s are:", current_group)}) + lines + ({""});
-    this_user()->more(lines);
+    more(lines);
 }
 
 private nomask void receive_post_subject(mixed subject)
@@ -436,7 +436,7 @@ private nomask int read_next_message(int skip_allowed)
 		   msg->subject,
 		   msg->body ? msg->body : "*** REMOVED ***");
 
-    this_user()->more(post);
+    more(post);
 
     return 0;
 }
@@ -608,7 +608,7 @@ private nomask void receive_top_cmd(mixed cmd)
 
 	list = map_array(NEWS_D->get_groups(), (: format_group_line :));
 	list = ({ "", "Available groups are:" }) + list;
-	this_user()->more(list);
+	more(list);
     }
     else
     {

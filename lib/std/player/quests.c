@@ -37,6 +37,7 @@ query_quests()
   return quests;
 }
 
+
 static
 void
 rack_up_a_death()
@@ -51,6 +52,7 @@ query_deaths()
 {
   return deaths;
 }
+
 
 int
 query_score()

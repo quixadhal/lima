@@ -20,7 +20,7 @@ private void main(string arg)
 
     map_array(objects( (: clonep :) ), (: counts[base_name($1)]++ :) );
 
-    this_user()->more(sprintf("%O\n", counts));
+    more(sprintf("%O\n", counts));
 
     counts = 0;
 }

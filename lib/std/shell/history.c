@@ -213,7 +213,7 @@ static string
 history_command(string input)
 {
   int cmdnumber;
-  int lastcmdnum = command_number - 1;
+  int lastcmdnum = command_number;
   string rest;
 
   switch(strlen(input))

@@ -19,7 +19,7 @@ string long_func() {
 
 void create() {
     ::create();
-    set_id( ({ "crowd" }) );
+    set_id("crowd");
     set_in_room_desc("A crowd of LPC coders mills around.");
     set_long( (: long_func :) );
 }

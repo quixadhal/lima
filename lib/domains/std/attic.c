@@ -13,7 +13,8 @@ create(){
     ]) );
     set_default_exit( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales, and without foundation.  Exits to the east, south, and\nwest may prove more fruitful.\n");
     set_objects( ([
-	   STAIRS : ({ 1, 0, "/domains/std/wizroom" })
+	   STAIRS : ({ 1, 0, "/domains/std/wizroom" }),
+	   "/domains/std/magic_flame" : 1
     ]) );
 }
 

@@ -28,9 +28,7 @@ private void main(string arg)
         return;
     }
 
-    this_user()->more(
-        sprintf(HEADER "%-#79s\n" TRAILER, 
-        implode(sort_array(list, 1), "\n"),
-        sizeof(list), count, sizeof(list) * 100 / count));
-    return;
+    more(sprintf(HEADER "%-#79s\n" TRAILER, 
+		 implode(sort_array(list, 1), "\n"),
+		 sizeof(list), count, sizeof(list) * 100 / count));
 }

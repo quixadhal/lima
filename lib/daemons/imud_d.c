@@ -171,8 +171,9 @@ private nomask void reconnect()
 			      __PORT__,
 			      OOB_PORT,
 			      0,
-			      lib_name() + " " + lib_version(),
-			      lib_name(),
+/* DO NOT change this; see comments in /secure/user/login.c */
+			      "Lima 0.9r7 (pre-alpha)",
+			      "Lima",
 			      driver_version(),
 			      "LP",
 			      lib_status(),

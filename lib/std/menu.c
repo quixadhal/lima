@@ -531,7 +531,7 @@ display_current_menu()
 	output += "   ";
     }
   output += "\n";
-  this_user()->more(output);
+  more(output);
 }
 
 
@@ -568,7 +568,7 @@ complete_choice(string input, string* choices, function f)
       modal_func((: finish_completion :),
 		 "[Enter number or r to return to menu] ");
       // Don't do this before the modal_func I'll bet...
-      this_user()->more(output);
+      more(output);
       completion_callback = f;
       cur_choices = matches;	
       return;
@@ -601,6 +601,7 @@ finish_completion(string input)
   need_refreshing = 1;
 }
 
+//### probably should be static too
 void
 receive_string(function thencall, string input)
 {
@@ -621,4 +622,14 @@ prompt_then_return()
 {
     modal_func((: return_to_current_menu :),
 	       "[Hit enter to return to menu] ");
+}
+
+//### probably should be static too
+void quit_if_cr(string input)
+{
+  if(input == "")
+    {
+      quit_menu_application();
+      return;
+    }
 }

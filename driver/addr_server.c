@@ -7,6 +7,7 @@
 #include "addr_server.h"
 #include "socket_ctrl.h"
 #include "debug.h"
+#include "file_incl.h"
 
 #ifdef DEBUG_MACRO
 int debug_level = 512;

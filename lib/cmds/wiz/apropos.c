@@ -62,11 +62,5 @@ main(string s)
 
     apropos_info = DOC_D->apropos_function(translate(s,1));
     map_array(sort_array(keys(apropos_info),1), (: add_info_to_output :));
-    this_user()->more(output);
+    more(output);
 }
-
-
-
-
-    
-    

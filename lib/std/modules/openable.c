@@ -20,8 +20,8 @@ mixed call_hooks(string, int);
 */
 void set_in_room_desc(string arg);
 string the_short();
-string* query_adj();
-void set_adj(string*);
+varargs void add_adj();
+varargs void remove_id();
 
 private int closed;
 private string open_msg =  "$N $vopen a $o.\n";
@@ -42,12 +42,8 @@ void set_closed(int x) {
   closed = x; 
   hook_state("extra_short", "open", !closed);
 
-  adjs = query_adj();
-  if(!arrayp(adjs))
-    adjs = ({});
-  else adjs -= ({"closed","open"});
-  set_adj(adjs + (string *)(closed ? ({"closed"}) : ({"open"})));
-  parse_refresh(); 
+  remove_id("closed", "open");
+  if (closed) add_adj("closed"); else add_adj("open");
 }
 
 

@@ -20,7 +20,6 @@ inherit __DIR__ "user/sw_user";
 inherit __DIR__ "user/loginfail";
 inherit __DIR__ "user/inputsys";
 inherit __DIR__ "user/userinfo";
-inherit __DIR__ "user/more";
 
 /*
 ** This users's userid (login id).

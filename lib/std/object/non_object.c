@@ -2,8 +2,12 @@
 
 #include <move.h>
 #include <hooks.h>
+#include <setbit.h>
 
 mixed call_hooks(string, int);
+void set_flag(string);
+int test_flag(string);
+void clear_flag(string);
 
 int
 remove()
@@ -29,3 +33,14 @@ varargs mixed release_object( object target, int force )
 {
   return 1;
 }
+
+void set_attached(int a)
+{
+  a ? set_flag(ATTACHED) : clear_flag(ATTACHED);
+}
+
+int is_attached()
+{
+  return test_flag(ATTACHED);
+}
+

@@ -6,35 +6,38 @@ Lima Mudlib.
 - skills: examples, combat skills, spell skills, advancement
 - spells
 - money
+- invis /  (hide?)
 - guilds
 - I3: emoteto, OOB services, better channels, ucache, auth
 - /std must be Mudlib:xxxx, /obj must be Mudlib:objects
 - wiz positions
 - channels: restrictions, last, auto-"aliases"
-- MORE_OB / EDIT_OB continuations
-- mail unsend
-- use of parser for commands
-- admtool: quest, banish, wizdir administration
-- msg/review
-- multiple guest logins
-- login handling: who, ^D
-- "enterable" objects: vehicles, large containers, etc
+- revise EDIT_OB API (use continuations)
 - damage types
-- File locking
-- mudlist -p <pattern>
 - smell, listen support
+- : and ; w/ tells
+- mail unsend
 - mail group administration
-- fix location of mail messages
+- multiple guest logins
+- finish new fake items
+
+
 
 Non-features that won't define alpha:
+- use of parser for commands
+- admtool: wizdir administration
+- msg/review
+- fix location of mail messages
+- ambiguity on drop, throw, etc...
 - organize all files properly
 - bug fixes
 - conversion of SECURE_D to array of paths, not a tree
 - RCP
+- Tk interface
 - newsreader changes, mailer changes
-- I3: disallow tell/finger to DOWN muds; better mudname handling
 - widespread nickname usage
 - more ANSI usage
+
 
 Undecided features:
 - water/underwater rooms
@@ -42,4 +45,4 @@ Undecided features:
 - >, <, |
 
 These have been requested for sooner, rather than later:
-skills, money, channels, admtool, enterables
+skills, money, channels, admtool

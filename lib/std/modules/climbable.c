@@ -1,7 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <hooks.h>
-
 mixed up_dest, down_dest;
 
 mixed direct_climb_obj() {
@@ -32,14 +30,7 @@ void set_down_destination(mixed x) {
 }
 
 void use(mixed dest, mixed dir) {
-    mixed ret;
-    object where = environment(this_body());
-    dest = evaluate(dest);
-//### This code we call should be modularized, so we don't need this hack
-    if (where->evaluate_destination(dest, dir))
-        where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
-    if (where != environment(this_body()))
-        force_look();
+    this_body()->move_to(dest, dir);
 }
 
 // we assume direction is "up", "down" or 0

@@ -22,8 +22,13 @@ private void main(string arg)
   int i, j;
   object who;
 
+  if(!arg)
+    {
+	write("Usage: tell <user> <message>\n");
+	return;
+    }
   if(sscanf(arg,"%s@%s", user, tmp) == 2){
-    muds = IMUD_D->query_mudnames();
+    muds = IMUD_D->query_up_muds();
     words = explode(tmp, " ");
     j = sizeof(words);
     tmp = "";

@@ -9,6 +9,7 @@
 
 inherit VERB_OB;
 
+//###should be shared somehow with drive.c
 string *normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
 
 mixed can_go_wrd_obj(string prep, object ob) {
@@ -26,7 +27,8 @@ mixed can_go_str(string str) {
     if (undefinedp(m[str])) {
 	int is_normal = (member_array(str, normal_dirs) != -1);
 	
-	if (environment(this_body())->is_default_exit(str, is_normal)) return 1;
+	if (environment(this_body())->is_default_exit(str, is_normal))
+	    return 1;
 	if (is_normal)
 	    return "It doesn't seem possible to go that direction.\n";
 	return 0;
@@ -35,11 +37,7 @@ mixed can_go_str(string str) {
 }
 
 void do_go_str(string str) {
-    object here = environment(this_body());
-
-    here->go_somewhere(str);
-    if ( here != environment(this_body()) )
-	force_look();
+    this_body()->go_somewhere(str);
 }
 
 mixed * query_verb_info()
@@ -59,53 +57,3 @@ mixed * query_verb_info()
     ** exit in OBJ -> go in OBJ
     */
 }
-
-
-#ifdef OLD_CODE
-
-
-#include <parse.h>
-#include <security.h>
-
-
-// GO <string>
-
-int go( int rule, mixed *stack, string originial_input )
-{
-    object	here;
-
-    // this is so that if the verb is north it gets converted to north north
-    // so hat it's stack[1] later.
-    if( rule == 4 )
-	stack += stack;
-
-    if( rule > 2 )
-    {
-	here = environment( this_body() );
-	if (!here) return 0;
-
-	here->go_somewhere( stack[1] );
-
-	if( here != environment( this_body() ) )
-	{
-	    force_look();
-	}
-	else
-	    return 0;
-
-	return 1;
-
-    }
-    if( rule == 2 )
-	stack = ({ "to", stack[1] });
-
-    here = environment( this_body() );
-
-
-    if( here == environment( this_body() ) && stack[1] == "to" )
-	write( "That's not so tough, you remain where you are.\n" );
-    write( "That doesn't seem to be possible.\n" );
-    return stack[2]->go( stack[1] );
-}
-
-#endif /* OLD_CODE */

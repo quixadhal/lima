@@ -57,7 +57,6 @@ shell_input(mixed input)
       return;
     }
 
-  add_history_item(input);
 
 // is this history manipulation?
   if(input[0] == HISTORY_CHAR)
@@ -65,6 +64,8 @@ shell_input(mixed input)
       input = history_command(input);
       if(!input) return;
     }
+
+  add_history_item(input);
 
 // convert input into words
   argv = evaluate(arg_to_words_func, input);

@@ -4,8 +4,8 @@ inherit ARMOR;
 
 create() {
     ::create();
-    add_id(({ "shirt", "chainmail" }));
-    add_adj("chainmail");
+    set_adj("chainmail");
+    set_id("shirt", "chainmail");
     set_armor_class(4);
     set_resist("blade", 2); // a little better against blades
 }

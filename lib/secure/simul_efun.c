@@ -16,3 +16,4 @@ inherit "/secure/simul_efun/userfuncs";
 inherit "/secure/simul_efun/path";
 inherit "/secure/simul_efun/string";
 inherit "/secure/simul_efun/misc";
+inherit "/secure/simul_efun/more";

@@ -25,7 +25,7 @@ Mudlib Features:
  o Very modular, with clear code.
  o Support for the new Intermud-3.
  o Modal input, and fully featured interactive shells.
- o Real, secure security authored by Ellery@TMI-2 (Remier Behrends).
+ o Real, secure security authored by Ellery @ TMI-2 (Remier Behrends).
  o Emphasis on player usability:
 	better news, channels, menus, etc...
 	than any other mudlib
@@ -35,30 +35,56 @@ Mudlib Features:
  
 Credits:
   The Lima Mudlib was authored by:
-	o John Viega, Rust@Lima Bean
+	o John Viega, Rust @ Lima Bean
 		(rust@virginia.edu, http://www.cs.virginia.edu/~jtv2j/)
-	o Greg Stein, Deathblade@Lima Bean
+	o Greg Stein, Deathblade @ Lima Bean
 		(gstein@svpal.org, http://www.imaginary.com/~db/)
- 	o Tim Hollebeek, Beek@Lima Bean
+ 	o Tim Hollebeek, Beek @ Lima Bean
 		 (tim@hollebeek.hep.upenn.edu, http://www.imaginary.com/~beek/)
 
   Security system contributed by:
-	o Reimer Behrends, Ellery@TMI-2
-		(behrends@buran.fb10.tu-berlin.de)
+	o Reimer Behrends, Ellery @ TMI-2  (behrends@buran.fb10.tu-berlin.de)
+
+  Special thanks to:
+	o Taro Ogawa, Ohara @ Lima Bean  (bb161@freenet.carleton.ca)
+	  Scott Gamble, Zifnab @ Lima Bean  (zifnab@lima.imaginary.com)
+
+	  For pushing this lib to it's limits on ZorkMud, and for always
+	  being there to lend a helping hand with the coding and design of
+	  the lib.
+
+	o Anthon Pang, Robocoder @ Lima Bean (apang@mindlink.net)
+
+	  For maintaining the lima.imaginary.com web site and the Lima
+	  Mudlib web pages.
+
+  Lima Bean staff:
+
+	Admins:  
+	  John Viega, Rust @ Lima Bean
+	  Greg Stein, Deathblade @ Lima Bean
+          Tim Hollebeek, Beek @ Lima Bean
+          Taro Ogawa, Ohara @ Lima Bean
+          Scott Gamble, Zifnab @ Lima Bean
+	  Zachary Girouard, Zakk @ Lima Bean (zakk@intersurf.com)
+
+	Staff:
+	  Anthon Pang, Robocoder @ Lima Bean
+	  Darrin Wilson, Satan @ Lima Bean
+	  Yaynu @ Lima Bean
+	
 
   Many thanks to:
-	o Henrik Bengtsson, Megadeath@TMI-2
-		(sa215@utb.shv.hb.se) for providing us with very
-	  dependable resources for our development.
-	o Taro Ogawa (bb161@freenet.carleton.ca) and 
-	  Scott Gamble (g10517@email.mot.com) for pushing this lib to it's 
-	  limits on Zorkmud, and for many of the player verbs.  
+	o Henrik Bengtsson, Megadeath @ TMI-2  (sa215@utb.shv.hb.se)
+	  For providing us with very dependable resources during the
+	  initial stages of ZorkMud and the Lima Mudlib.
 	o Marc Blank and David Lebling for Zork.
 	o Mark St. Louis (leblany@bosoleil.ci.umoncton.ca) for
 		contributing almost all of the adverbs in our soul.
-	o Everyone who's put a helping hand into Zorkmud and Lima in 
-	the past 18 months, especially:
-		Dave Tyler (Nevyn@ZorkMud)
-		Devon Tuck (Cleave@ZorkMud)
-		Scott Dawson (Peregrin@ZorkMud)
-		Fred Tarabay (Megaboz@ZorkMud)
+	o Everyone not on staff who's put a helping hand into ZorkMud 
+          and Lima, especially:
+		Dave Tyler (Nevyn @ ZorkMud)
+		Devon Tuck (Cleave @ ZorkMud)
+		Scott Dawson (Peregrin @ ZorkMud)
+		Fred Tarabay (Megaboz @ ZorkMud)
+

@@ -55,5 +55,5 @@ private void main()
 	    "\n\n";
     }
 
-    this_user()->more(output);
+    more(output);
 }

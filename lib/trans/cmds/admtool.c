@@ -20,9 +20,10 @@ inherit __DIR__ "admtool/security";
 inherit __DIR__ "admtool/domain";
 inherit __DIR__ "admtool/news";
 inherit __DIR__ "admtool/alias";
+inherit __DIR__ "admtool/quest";
+inherit __DIR__ "admtool/banish";
 
-#define PROMPT_MAIN	"(AdmTool:main) [usdbiq?] > "
-#define PROMPT_BANISH	"(AdmTool:banish) [mq?] > "
+#define PROMPT_MAIN	"(AdmTool:main) [usdQbiq?] > "
 
 private nomask void receive_main_input(string str);
 
@@ -34,6 +35,7 @@ private nomask void write_main_menu()
 	  "    u - user adminstration      [admin]\n"
 	  "    s - security adminstration\n"
 	  "    d - domain adminstration\n"
+	  "    Q - quest administration\n"
 	  "    b - site/name banishment    [admin]\n"
 	  "    i - Intermud channel admin  [admin]\n"
 	  "    n - news administration     [admin]\n"
@@ -45,18 +47,6 @@ private nomask void write_main_menu()
 	  );
 }
 
-private nomask void write_banish_menu()
-{
-    write("Administration Tool: site/name banishment\n"
-	  "\n"
-	  "    ### options forthcoming\n"
-	  "\n"
-	  "    m - main menu\n"
-	  "    q - quit\n"
-	  "    ? - help\n"
-	  "\n"
-	  );
-}
 
 static nomask void std_handler(string str)
 {
@@ -80,20 +70,6 @@ static nomask void std_handler(string str)
 }
 
 
-private nomask void receive_banish_input(string str)
-{
-    switch ( str )
-    {
-    case "?":
-	write_banish_menu();
-	break;
-
-    default:
-	std_handler(str);
-	break;
-    }
-}
-
 private nomask void receive_main_input(string str)
 {
     switch ( str )
@@ -109,6 +85,10 @@ private nomask void receive_main_input(string str)
     case "d":
 	begin_domain_menu();
 	break;
+
+    case "Q":
+        begin_quest_menu();
+	break;
 	
     case "b":
 	if ( !check_privilege(1) )
@@ -116,8 +96,7 @@ private nomask void receive_main_input(string str)
 	    write("Sorry... admin only.\n");
 	    return;
 	}
-	modal_func((: receive_banish_input :), PROMPT_BANISH);
-	write_banish_menu();
+	begin_banish_menu();
 	break;
 
     case "n":

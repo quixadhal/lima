@@ -33,7 +33,8 @@ private mapping topics;
 */
 private mapping restrict;
 
-#define SAVE_PATH "/data/daemons/help_d"
+#define SAVE_FILE	"/data/daemons/help_d"
+#define BASE_DIR	"/help/"
 
 private static int	pending_count;
 private static object	initiator;
@@ -43,9 +44,9 @@ nomask void process_dir(string path);
 
 private void reload_data()
 {
-    if ( file_size(SAVE_PATH + ".o") <= 0 )
+    if ( file_size(SAVE_FILE + ".o") <= 0 )
 	return;
-    unguarded(1, (: restore_object, SAVE_PATH, 1 :) );
+    unguarded(1, (: restore_object, SAVE_FILE, 1 :) );
 }
 
 private int f_restrict(string s)
@@ -91,7 +92,7 @@ nomask void process_dir(string path)
     map_array(get_dir(path + "*"), (: process_file, path :));
     if ( !--pending_count )
     {
-	unguarded(1, (: save_object, SAVE_PATH :));
+	unguarded(1, (: save_object, SAVE_FILE :));
 
 	if ( initiator )
 	{
@@ -104,6 +105,7 @@ nomask void process_dir(string path)
 nomask void rebuild_data()
 {
     string * lines;
+    string * dirs;
 
     if ( pending_count )
     {
@@ -120,12 +122,17 @@ nomask void rebuild_data()
     lines = explode(read_file("/help/_restrict"), "\n");
     map_array(lines, (: f_restrict :));
 
-    pending_count = 1;
-    process_dir("/help/");
+    dirs = filter(get_dir("/help/*"), (: $(restrict)[$1] != 99 :));
+
+    pending_count = 0;
+    map_array(dirs, (: process_file, "/help/" :));
 }
 
 nomask void create()
 {
+    reload_data();
+
+    if ( topics == 0 )
 	rebuild_data();
 }
 
@@ -168,7 +175,7 @@ nomask void conflict_report()
 
     values = values(topics);
     values = filter_array(values, (: sizeof($1) > 1 :));
-    this_user()->more(sprintf("%O", values));
+    more(sprintf("%O", values));
 }
 
 /*

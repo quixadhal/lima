@@ -2,6 +2,9 @@
 
 // Written by Rust.
 // I wrote this? I thought Beek did.
+// I did.  People should be more careful adding attributions if they aren't
+// sure. -Beek
+
 #include <mudlib.h>
 
 inherit OBJ;
@@ -9,7 +12,7 @@ inherit M_GETTABLE;
 
 void create() {
     ::create();
-    set_id( ({ "camera", "button" }) );
+    set_id("camera", "button");
     set_long("It's a polaroid camera!  There is a button on top.\n");
     set_gettable(1);
 }

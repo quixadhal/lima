@@ -1,11 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-
 inherit CMD;
 
 private nomask void do_shutdown()
 {
+    bodies()->save_me();
     unguarded(1, (: shutdown :));
 }
 

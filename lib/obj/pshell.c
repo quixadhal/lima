@@ -30,7 +30,13 @@ static int execute_command(string * argv, string original_input)
     if ( !winner )
     {
 	if (!this_body()->do_game_command(original_input))
-	    write(this_body()->nonsense());
+	  {
+//## This is a hack until the parser can tell me if a word is a verb.
+	    if(is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
+	      write(this_body()->nonsense());
+	    else
+	      printf("I don't know the word: %s.\n", argv[0]);
+	  }
 	return 1;
     }
 

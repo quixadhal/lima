@@ -47,12 +47,27 @@ nomask string get_player_fname()
     return 0;
 }
 
+#ifdef  DEBUG_CONNECTIONS
+void debug_connections(object ob)
+{
+   map(filter(bodies(), (:wizardp:)), 
+	(: tell_object($1, sprintf("Debugger tells you: There's a new "
+				   "connection from %s.\n", 
+				   query_ip_name($(ob)))) :));
+}
+#endif
+
 object connect()
 {
     object ob;
     string ret;
 
     ret = catch(ob = clone_object(get_player_fname()));
+
+#ifdef DEBUG_CONNECTIONS
+    call_out((: debug_connections($(ob)):), 2);
+#endif
+						    
     write("\n");
     if ( ret )
     {

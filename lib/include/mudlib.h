@@ -4,6 +4,9 @@
 #define __MUDLIB_H__
 
 #include <daemons.h>
+#include <dirs.h>
+#include <size.h>
+#include <setbit.h>
 
 /*
 ** PLAYER	main player object (body)
@@ -21,6 +24,7 @@
 ** WIZ_ROOM	a room for wizards
 **
 ** OBJ		generic objects
+** SPARSE_OBJ	simple do-nothing objects.
 ** WEAPON	weapons
 ** ARMOR	armor
 ** MONSTER	monsters -- living objects that fight
@@ -47,6 +51,7 @@
 ** M_LIGHTABLE
 ** M_ITEMS	provides virtual/fake items for an object
 ** M_GETTABLE	objects that can be picked up
+** M_THROWABLE  objects that can be thrown
 ** M_OPENABLE	objects that can be opened/closed
 ** M_LOCKABLE	openables that can be locked
 ** M_READABLE	something that can be read
@@ -58,6 +63,9 @@
 ** M_TRIGGERS
 ** M_WRITING_SURFACE
 ** M_VENDOR
+** M_OUTSIDE	outside of an object that also has an inside
+** M_DIGGER	items that can dig.
+** M_DIGGABLE   items that you can dig in.
 **
 ** M_GETOPT	functions for command processing
 ** M_HISTORY 	module for handling command history
@@ -110,13 +118,14 @@
 #define SIMUL_OB		"/secure/simul_efun"
 
 #define ROOM			"/std/room"
-#define ENTERABLE		"/std/enterable"
+#define INSIDE			"/std/inside"
 #define WATER_ROOM		"/std/water_room"
 
 #define VOID_ROOM		"/domains/std/void"
 #define WIZ_ROOM		"/domains/std/wizroom"
 
 #define OBJ 			"/std/object"
+#define SPARSE_OBJ		"/std/sparse_obj"
 #define WEAPON			"/std/weapon"
 #define ARMOR			"/std/armor"
 #define MONSTER			"/std/monster"
@@ -137,12 +146,14 @@
 #define M_SAVE			"/std/modules/save"
 
 #define M_BODY_STATS		"/std/modules/bodystats"
+#define M_SMARTMOVE		"/std/modules/smartmove"
 
 #define M_WEARABLE		"/std/modules/wearable"
 #define M_SWITCHABLE		"/std/modules/switchable"
 #define M_LIGHTABLE		"/std/modules/lightable"
 #define M_ITEMS			"/std/modules/items"
 #define M_GETTABLE		"/std/modules/gettable"
+#define M_THROWABLE		"/std/modules/throwable"
 #define M_OPENABLE		"/std/modules/openable"
 #define M_CLIMBABLE		"/std/modules/climbable"
 #define M_LOCKABLE		"/std/modules/lockable"
@@ -155,6 +166,9 @@
 #define M_TRIGGERS		"/std/modules/triggers"
 #define M_WRITING_SURFACE	"/std/modules/writing_surface"
 #define M_VENDOR		"/std/modules/vendor"
+#define M_OUTSIDE		"/std/modules/outside"
+#define M_DIGGER		"/std/modules/digger"
+#define M_DIGGABLE		"/std/modules/diggable"
 
 #define M_GETOPT		"/std/shell/getopt"
 #define M_HISTORY	   	"/std/shell/history"
@@ -201,5 +215,7 @@
 #define BOOK			"/std/book"
 #define LADDER			"/std/ladder"
 #define STAIRS			"/std/stairs"
+#define TORCH			"/std/torch"
+#define VEHICLE			"/std/vehicle"
 
 #endif /* __MUDLIB_H__ */

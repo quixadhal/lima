@@ -12,7 +12,7 @@ $(OBJDIR)/%.o: %.c
 
 all: $(OBJ)
 	ar rcu packages.a $(OBJ)
-	ranlib packages.a
+	-ranlib packages.a
 
 clean:
 	-rm -f *.o

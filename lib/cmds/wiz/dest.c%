@@ -13,9 +13,9 @@ private void main( mixed *arg) {
 
     ob = arg[0];
     msg_ob = (ob->short() ? ob : this_object());
+here
     this_body()->do_player_message("destruct", msg_ob);
-    ob->remove();
-    if(ob)destruct(ob);
+    destruct(ob);
     return;
 }
 

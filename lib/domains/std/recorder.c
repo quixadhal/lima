@@ -14,7 +14,8 @@ private static string transcript = "";
 
 void create() {
   ::create();
-  set_id( ({ "recorder", "player", "button", "buttons", "rewind", "rewind button", "fast forward", "fast forward button", "stop", "stop button", "play", "play button", "record", "record button" }) );
+  set_adj( "fast forward", "rewind", "stop", "play", "record");
+  set_id("recorder", "player", "button", "buttons", "rewind", "fast forward", "stop", "play", "record");
   set_long("It seems to be a tape recorder, and has the standard pannel of buttons.\nHowever, there seems to be no place to put a tape.");
   set_gettable(1);
 }

@@ -303,6 +303,10 @@ smart_arg_parsing(mixed argv, string* path){
       if((opstr = pstuff->options))
 	{
 	  info = getopt(argv, opstr);
+	  if(!pointerp(info))
+	    {
+	      return -2;
+	    }
 	  argv = info[1];
 	  ops = info[0];
 	}

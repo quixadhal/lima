@@ -1,13 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 //
+// written by Rust Jan 12, 1994
 // Underwent a mighty transformation at the hands of Deathblade on
 //	Apr 30, 1995 to move to new user/body system.
 //
-// written by Rust Jan 12, 1994
-// su was the 13th or 14th    Extended and rewritten into the body system
-// 2-5 
-// stats were done the 29th.
+
 
 #include <mudlib.h>
 #include <daemons.h>
@@ -59,6 +57,24 @@ void rcv_new_password(string arg);
 static nomask int query_n_gen() { return n_gen; }
 
 
+private nomask void get_lost_now()
+{
+    destruct(this_object());
+}
+
+/*
+** This is used when we want to get rid of somebody... we have to wait a
+** bit for MudOS to flush the buffer before disconnecting them (desting
+** this_object()).
+*/
+//### if MudOS waits before closing the socket, this system may be obsolete
+private nomask void get_lost()
+{
+    remove_call_out();
+    modal_func((: 1 :), "");	/* ignore all input */
+    call_out((: get_lost_now :), 2);
+}
+
 /*
 ** Name and password processing
 */
@@ -80,7 +96,23 @@ nomask void set_password(string str)
 private nomask void time_up()
 {
     write("\nSorry, you've taken too long.\n");
-    destruct(this_object());
+    get_lost();
+}
+
+private nomask int check_site()
+{
+    if ( BANISH_D->check_site() )
+    {
+	printf("Sorry, your site has been banished from " + mud_name() + ".  To ask for\n"
+	       "a character, please mail %s.\n",
+	       ADMIN_EMAIL);
+
+	get_lost();
+
+	return 0;
+    }
+
+    return 1;
 }
 
 private nomask int valid_name(string str)
@@ -92,33 +124,69 @@ private nomask int valid_name(string str)
 	return 0;
     }
 
-    if(BANISH_D->check_site()){
-	printf(
-	  "Sorry, your site has been banished from " + mud_name() + " To ask for a \n"
-	  "Character, please mail %s\n",ADMIN_EMAIL);
-	remove_call_out();
-	destruct(this_object());
-	return;
-    }
+    if ( !check_site() )
+	return 0;
 
     len = strlen(str);
     if(len>12){
 	write("Sorry, that name's too long.  Try again.\n> ");
 	return 0;
     }
-    while(len--)
-	if((str[len] < 'a' || str[len] > 'z') && 
-	  (len && str[len] != '-')){
-	    write(
-	      "You can only use lower-case letters, or a dash if it doesn't start your name.\nTry again.\n> ");
-	    return 0;
-	}
+/* This code isn't necessary, since a regexp in the banish code does this. */
+//    while(len--)
+//	if((str[len] < 'a' || str[len] > 'z') && 
+//	  (len && str[len] != '-')){
+//	    write(
+//	      "You can only use lower-case letters, or a dash if it doesn't start your name.\nTry again.\n> ");
+//	    return 0;
+//        }
     return 1;
 }
+
+
+private nomask int check_special_commands(string arg)
+{
+    string array b;
+
+    switch(arg)
+    {
+    case "who":
+	b = bodies()->query_name();
+	if(!sizeof(b))
+	{
+	    write("No one appears to be logged on.\n");
+	    return 0;
+	}
+	printf("The following people are logged on:\n%s\n",
+	       wrap(implode(b,", ")));
+	return 0;
+
+    case "":
+    case "quit":
+    case "exit":
+    case "leave":
+	write("Bye.\n");
+	get_lost();
+	return 0;
+
+    default:
+	return 1;
+    }
+}  
 
 private nomask void rcv_gender(string arg)
 {
     arg = lower_case(arg);
+    if (arg == "y" || arg == "yes")
+      {
+	write("Ha, ha, ha. Which one are you?\n");
+	return;
+      }
+    if (arg == "n" || arg == "no")
+      {
+	write("Well, which one would you have liked to be, then?\n");
+	return;
+      }
     if ( arg == "f" || arg == "female")
 	n_gen = 2;
     else if (arg != "m" && arg != "male")
@@ -190,9 +258,8 @@ private nomask void rcv_check_new_user(string the_userid, string str)
 #ifdef NO_NEW_PLAYERS
 	write(wrap("Unfortunately, "+mud_name()+" is still in the " 
 		   "developmental stage, and is not accepting new users. " 
-		   "If it is urgent, please use the guest character.")+"\n"); 
-	remove_call_out();
-	destruct(this_object());
+		   "If it is urgent, please use the guest character.")+"\n");
+	get_lost();
 	return;
 #endif /* NO_NEW_PLAYERS */
 
@@ -239,8 +306,7 @@ private nomask void rcv_password(int fails, string arg)
     {
 	write("\nYou're just too much for me.\nSorry.\n");
 
-	remove_call_out();
-	destruct(this_object());
+	get_lost();
 	return;
     }
 
@@ -258,6 +324,10 @@ private nomask void rcv_userid(string arg)
     }
 
     arg = lower_case(arg);
+    if(!check_special_commands(arg))
+      {
+	return;
+      }
 
     if ( unguarded(1, (: file_size,
 		       LINK_PATH(arg) + __SAVE_EXTENSION__ :)) <= 0 )
@@ -272,6 +342,10 @@ private nomask void rcv_userid(string arg)
 		   "Is '" + capitalize(arg) + "' correct? ");
 	return;
     }
+
+    /* always check the site */
+    if ( arg == "guest" && !check_site() )
+	return;
 
     /* restore the object, without worrying about preserving variables */
     restore_me(arg, 0);
@@ -303,8 +377,19 @@ private nomask void logon()
 
     write("");
     write(read_file(WELCOME_FILE));
-    printf("%s is running %s v. %s on %s\n\n",
-	   mud_name(), lib_name(), lib_version(), driver_version());
+/*
+ * Warning: We have put literally thousands of hours of work into this
+ * mudlib, and given it to you for free, and all we ask is that you give
+ * us credit by leaving the lib version alone and visible on the login
+ * screen.  Is that really so much to ask?
+ *
+ * If you think you have changed the lib to the point where you should
+ * be allowed to change this, ask us first.  Please make sure you have
+ * extensively modified/rewritten more than half of the base mudlib first
+ * (intend to modify ... doesn't cut it)
+ */
+    printf("%s is running Lima v. 0.9r7 (pre-alpha) on %s\n\n",
+	   mud_name(), driver_version());
 
 #ifdef ZORKMUD
     write("Hello, Zorker!\n");
@@ -312,7 +397,7 @@ private nomask void logon()
     write("Hello, Player!\n");
 #endif
 
-    modal_push((: rcv_userid :), "Your name? ");
+    modal_push((: rcv_userid :), LOGIN_PROMPT);
 
     /* do this to kick off the modal system and print a prompt */
     modal_recapture();

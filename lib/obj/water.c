@@ -13,8 +13,8 @@ create() {
   set_flag(NO_AUTO_TAKE);
   set_flag(DRINKABLE);
   set_weight(4);
-  set_adjectives( ({ "quantity of", "pool of", "puddle of" }) );
-  set_id( ({ "water", "liquid", "h2o" }) );
+  set_adj( "quantity of", "pool of", "puddle of" );
+  set_id( "water", "liquid", "h2o" );
   set_long("You see nothing special about the water.\n");
   set_gettable("Try putting it in something.\n");
   set_dropable("Try pouring it into or on something.\n");

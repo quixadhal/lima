@@ -9,7 +9,7 @@ create()
 {
     object::create();
     set_id("sign");
-set_gettable(0);
+    set_gettable(0);
 
   set_in_room_desc("A small sign floats comfortably in mid-air.");
 

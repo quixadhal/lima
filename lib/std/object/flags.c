@@ -156,16 +156,5 @@ nomask void assign_flag(int which, int state)
 
 void create()
 {
-#ifdef NOPE
-    if ( flag_sets )
-    {
-	unguarded(1, #'write_file,
-		  ({ "/log/log",
-			 sprintf("%s does not inherit create() properly.\n",
-				 file_name())
-		 }));
-    }
-#endif /* NOPE */
-
     init_vars();
 }

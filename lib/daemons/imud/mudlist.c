@@ -55,6 +55,11 @@ nomask string * query_mudnames()
     return keys(mud_info);
 }
 
+nomask string * query_up_muds()
+{
+  return filter(keys(mud_info), (: mud_info[$1][0] == -1 :));
+}
+
 nomask int mud_exists(string mudname)
 {
     return canon_mudname(mudname) != 0;

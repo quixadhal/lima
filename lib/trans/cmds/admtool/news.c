@@ -41,7 +41,7 @@ private nomask void list_groups()
 	return;
     }
     grouplist = sort_array(grouplist, 1);
-    this_user()->more(grouplist,"\n");
+    more(grouplist,"\n");
 
 }
 

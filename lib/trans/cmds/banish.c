@@ -20,7 +20,7 @@ private void main( mixed arg, mapping flags )
 	tmp = BANISH_D->show_banishes();
 	tmp = wrap(sprintf("Banished names: %s\nBanished sites: %s\n",
 	    implode( tmp[0], ", " ), implode( tmp[1],", " )));
-        this_user()->more(tmp);
+        more(tmp);
 	return;
     }
 

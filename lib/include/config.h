@@ -7,16 +7,15 @@
 #include "config_combat.h"
 // -----------------------------------------------------------
 
-/* You don't have permission to change the next 2 lines w/o our consent. */
-#define lib_name()		"Lima"
-#define lib_version()		"0.9r6 (pre-alpha)"
-
 /* changes these as you please */
 #define lib_status()		"mudlib development"
 #define __HOST__		"lima.imaginary.com"
 #define ADMIN_EMAIL		"user@host.name"
 
-#define START			"/domains/std/wizroom"
+#define START			"/domains/std/rooms/beach/sandy_beach"
+#define WIZARD_START		"/domains/std/wizroom"
+
+#define LOGIN_PROMPT		"Your name? "
 
 #define HISTORY_CHAR	'%' /* ! will give you problems since it's used as input escape. */
 #define AUTOMATIC_REHASH
@@ -33,6 +32,10 @@
 # define USE_GUILDS
 # define USE_SKILLS
 # define USE_TITLES
+# define USE_SIZE
+# ifndef USE_SIZE  // Mass and Size do the same thing, so you can only use 1
+#  define USE_MASS
+# endif
 //# define USE_SIMPLE_LEVEL	// use the simple level number scheme for players
 #endif
 

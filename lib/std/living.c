@@ -26,8 +26,9 @@ string name;
 string query_name() { return name; }
 
 void set_name(string n) {
-  name = n;
-  set_id( ({ lower_case(n) }) );
+    if (name) remove_id(lower_case(n));
+    name = n;
+    add_id(lower_case(n));
 }
 
 string in_room_desc() {

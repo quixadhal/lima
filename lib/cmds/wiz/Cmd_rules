@@ -9,7 +9,7 @@ findfunc	str obj|user
 flist -i	obj|user
 goto		obj|user
 locate		str
-light		num
+lightme		num
 move		obj obj
 review -cd	[user]
 scan -d		[obj|user]

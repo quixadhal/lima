@@ -17,7 +17,6 @@ create() {
 	     "cave.  To the east, it looks like the weather changes alot.");
     set_exits( ([ "north" : "example_room1", "east" : "room4" ]) );
     set_objects( ([
-		   "/domains/std/table" : 1,
 		   "/domains/std/harry" : 1
 		   ]) );
 }

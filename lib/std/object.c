@@ -11,7 +11,14 @@
 
 #include <flags.h>
 
+#ifdef USE_SIZE
+inherit "/std/object/size";
+#else
+#ifdef USE_MASS
 inherit "/std/object/mass";
+#endif
+#endif  //USE_SIZE
+
 inherit "/std/object/properties";
 inherit "/std/object/description";
 inherit "/std/object/move";
@@ -23,9 +30,18 @@ inherit "/std/object/hooks";
 
 //:FUNCTION stat_me
 //write() some debugging info about the state of the object
-int stat_me() {
+int stat_me() 
+{
     write("Short: "+short()+"\n");
+#ifdef USE_SIZE
+    write("Size: "+get_size()+" Light: " + query_light() + "\n");
+#else
+# ifdef USE_MASS
     write("Weight: "+query_mass()+"  Light: " + query_light() + "\n");
+# else
+    write("Light: "+query_light() + "\n");
+# endif
+#endif
     write("IDs: "+implode((mixed)parse_command_id_list(),", ")+"\n");
     write("Plurals: "+implode((mixed)parse_command_plural_id_list(),", ")+"\n");
     write("Adjectives: "+implode((mixed)parse_command_adjectiv_id_list(),", ")+"\n");
@@ -36,10 +52,6 @@ int stat_me() {
 
 
 
-
-/* Nasty hack for 3.2 */
-string
-long() { return description::long(); }
 
 create(){
     parse_init();

@@ -42,7 +42,7 @@ private void main(string arg)
 	    name = "login";
 	else
 	    name = capitalize(userid);
-	if( bodies[i]->test_flag(F_INVIS) ) name = "("+name+")";
+	if( !(bodies[i]->is_visible()) ) name = "("+name+")";
 
 	if (arg != "-f")
 	{

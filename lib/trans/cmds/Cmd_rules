@@ -4,6 +4,7 @@ at		user str*
 banish -sn	[str] str*
 cat		file*
 cp -rf		file* fname|dir|file
+dataedit	file
 dbxtracer	obj str
 du		[dir]
 ed		[file|fname]

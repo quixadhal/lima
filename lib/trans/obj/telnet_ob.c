@@ -320,7 +320,7 @@ if (!arg) { write("Open <host>\n"); return; }
 
     case "help" :
     case "?" :
-      this_user()->more_file(TELNET_HELP_FILE);
+      more_file(TELNET_HELP_FILE);
       return;
 
     case "close" :

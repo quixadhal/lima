@@ -54,11 +54,5 @@ private void main(mixed *arg, mapping flags)
     outstr += "\nReal Objects:\n";
     objs = scan_object( arg[0], 0 );
     outstr += (objs != "")? objs : "    None";
-    if( itemstr = implode(environment( this_body())->fake_item_id_list(), ", "))
-    {
-        outstr += "\n\nFake Objects:\n    ";
-        outstr += (itemstr != "") ? itemstr : "None";
-        outstr += "\n\n";
-    }
     write( outstr );
 }

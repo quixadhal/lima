@@ -107,8 +107,16 @@ void create() {
     set_gender(m["gender"]);
     set_proper_name(m["proper_name"] || name);
     set_in_room_desc(m["in_room_desc"] || name);
-    set_id(m["ids"] || "pet");
-    set_adj(m["adjs"] || master->query_name() + "s");
+    if (!m["ids"]) m["ids"] = "pet";
+    if (stringp(m["ids"]))
+	add_id(m["ids"]);
+    else
+	add_id(m["ids"]...);
+    if (!m["adjs"]) m["adjs"] = master->query_name() + "s";
+    if (stringp(m["adjs"]))
+	add_id(m["adjs"]);
+    else
+	add_id(m["adjs"]...);
     set_long(m["long"] || "It doesn't have a description, unfortunately.");
 
     add_pattern("%s says: " + name + ", %s", (: do_command :));

@@ -15,8 +15,6 @@ mixed can_drop_obj(object ob)
     return 1;
 }
 
-
-
 private nomask void drop_one(object ob)
 {
     mixed tmp = ob->drop();

@@ -31,5 +31,5 @@ main(mixed argv, mapping flags)
     }
   if(!strlen(output))
     output = "No matches found.\n";
-  this_user()->more(output);
+  more(output);
 }

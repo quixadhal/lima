@@ -49,10 +49,19 @@ int query_capacity()
   return capacity;
 }
 
+#ifdef USE_MASS
 int query_mass()
 {
   return capacity + ::query_mass();
 }
+#endif
+
+#ifdef USE_SIZE
+int query_aggregate_size()
+{
+  return capacity + :: get_size();
+}
+#endif
 
 //:FUNCTION set_capacity
 //Sets the amount of mass inside a container; this function should probably
@@ -86,12 +95,18 @@ mixed receive_object( object target, string relation )
     {
         /* allow a matching relation or newly cloned objects */
         if ( relation && relation != main_prep && relation != "#CLONE#" )
-            return "You can't put things " + relation + " that.\ny";
+            return "You can't put things " + relation + " that.\n";
     }
+#ifdef USE_SIZE
+    x = target->get_size();
+#else
     x=target->query_mass();
+#endif
 //    printf("cap=%O  max=%O  x=%O\n",query_capacity(),max_capacity,x);
-    if ((m=(query_capacity())+x)>max_capacity)
-    { return MOVE_NO_ROOM; }
+    if ( (m=(query_capacity())+x) > max_capacity )
+    {
+	return MOVE_NO_ROOM;
+    }
 
     set_capacity( m );
 
@@ -103,7 +118,13 @@ mixed receive_object( object target, string relation )
 //to leave if we return zero or a string (error message)
 varargs mixed release_object( object target, int force )
 {
+#ifdef USE_SIZE
+    set_capacity( query_capacity() - (target->get_size()) );
+#else
+#ifdef USE_MASS
     set_capacity( query_capacity() - (target->query_mass()) );
+#endif
+#endif //USE_SIZE
     return 1;
 }
 
@@ -160,9 +181,13 @@ void create() {
 //:FUNCTION set_objects
 //Provide a list of objects to be loaded now and at every reset.  The key
 //should be the filename of the object, and the value should be the number
-//of objects to clone.  Note:  the number already present is determined
-//by counting the number of objects with the same first id, and objects
-//are only cloned to bring the count up to that number
+//of objects to clone.  The value can also be an array, in which case the
+//first element is the number of objects to clone, and the remaining elements
+//are arguments that should be passed to create() when the objects are cloned.
+//
+//Note:  the number already present is determined by counting the number of
+//objects with the same first id, and objects are only cloned to bring the
+//count up to that number.
 void set_objects(mapping m) {
     objects = m;
     reset();
@@ -229,7 +254,8 @@ void reset(){
 	tally = sizeof(filter_array(inv, (: $1->id($(name)) :) ));
 	num -= tally;
 	for (int j = 0; j < num; j++) {
-	    if (new(file, rest...)->move(this_object(), "#CLONE#") != MOVE_OK)
+	    ret = new(file, rest...)->move(this_object(), "#CLONE#");
+	    if ( ret != MOVE_OK )
 		error("Initial clone failed for '" + file +"': " + ret + "\n");
 	}
     }
@@ -238,7 +264,7 @@ void reset(){
 //:FUNCTION inventory_visible
 //Return 1 if the contents of this object can be seen, zero otherwise
 int inventory_visible() {
-  if (test_flag(INVIS)) return 0;
+  if (!is_visible()) return 0;
   if (!short()) return 0;
   if (test_flag(TRANSPARENT)) return 1;
   return !this_object()->query_closed();
@@ -247,7 +273,7 @@ int inventory_visible() {
 //:FUNCTION inventory_accessible
 //Return 1 if the contents of this object can be touched, manipulated, etc
 int inventory_accessible() {
-  if (test_flag(INVIS)) return 0;
+  if (!is_visible()) return 0;
   if (!short()) return 0;
   return !this_object()->query_closed();
 }
@@ -292,7 +318,7 @@ string inventory_recurse(int depth) {
     str = "";
     obs = all_inventory(this_object());
     for (i=0; i<sizeof(obs); i++) {
-        if (obs[i]->test_flag(INVIS)) continue;
+        if (!(obs[i]->is_visible())) continue;
         if (!obs[i]->test_flag(TOUCHED) && obs[i]->untouched_long()) {
 	    str += obs[i]->untouched_long()+"\n";
              if (obs[i]->inventory_visible())
@@ -328,7 +354,11 @@ void update_capacity()
   mixed	masses;
   int m,i;
 
+#ifdef USE_SIZE
+  masses = all_inventory()->get_size();
+#else
   masses = all_inventory()->query_mass();
+#endif
   i = sizeof( masses );
 
   while( i-- )
@@ -356,7 +386,7 @@ mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
 	case "in":
 	case "under":
 	case "behind":
-	    return "You can't put anything " + prep + " that.";
+	    return "You can't put anything " + prep + " that.\n";
 	default:
 	    return 0;
     }
@@ -365,5 +395,5 @@ mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
 mixed direct_look_str_obj(string prep, object ob) {
     if (prep == main_prep)
 	return 1;
-    return "There is nothing " + prep + " the backpack.\n";
+    return "There is nothing " + prep + " " + the_short() + ".\n";
 }
