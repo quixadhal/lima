@@ -4,7 +4,7 @@
 inherit ROOM;
 
 create() {
-    room::create();
+    ::create();
 
     set_brief("Attic");
     set_long("This is the attic of the wizard hall.  Not much here yet :-)");

@@ -8,7 +8,7 @@
 #ifndef __SECURITY_H__
 #define __SECURITY_H__
 
-#define SECURE_D	"/secure/daemons/secure_d"
+#define SECURE_D        "/secure/daemons/secure"
 #define M_ACCESS	"/secure/modules/access"
 
 #define ACCESS_SAVE	"/data/secure/access"

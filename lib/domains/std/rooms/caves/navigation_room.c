@@ -10,7 +10,8 @@ void close_passage();
 
 void create() 
 { 
-  room::create(); 
+  ::create(); 
+  set_area ("pirate");
   set_brief("Navigation room");
 
   set_long("Maps of the seven seas, marked up with what is probably "

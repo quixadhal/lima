@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit ROOM;
+inherit OUTDOOR_ROOM;
 
 void obj_arrived(object ob) {
     if (ob->get_size() >= VERY_LARGE) 
@@ -19,8 +19,9 @@ create()
     string m = "#The mountains are too steep to climb.\n";
     string o = "#You would drown!\n";
 
-  room::create();
+  ::create();
   set_brief("Outside cave");
+  set_area ("pirate");
   set_long("You are wading knee-deep in the surf.  Except for what seems to be a tiny cave, the surf yields to the rather steep mountains fairly violently, and you have trouble keeping your balance.  The mountains retreat a bit, leaving some sand to walk on to the east and west.");
   set_exits( ([
 	       "in" : "../caves/grotto.c",

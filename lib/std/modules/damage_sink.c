@@ -1,5 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <combat.h>
+
+//### um ....
+inherit CLASS_COMBAT_RESULT;
+
 private string resist_type;
 private int resist;
 
@@ -24,13 +29,18 @@ int query_armor_class() {
 }
 #endif
 
-mixed adjust_result(mixed result, string type) {
-    if (intp(result) && resist_type == type) {
-	result -= random(resist + armor_class);
-    } else
-	result -= random(armor_class);
-    if (result <= 0) return "none";
-    return result;
+class combat_result array
+adjust_result(class combat_result array res) {
+    foreach (class combat_result result in res) {
+	int ac = (result->special & RES_NONPHYSICAL) ? 0 : armor_class;
+	if (resist_type == result->kind)
+	    result->damage -= random(resist + ac);
+	else
+	    result->damage -= random(ac);
+	if (result->damage < 0)
+	    result->damage = 0;
+    }
+    return res;
 }
 
 //:FUNCTION set_resist

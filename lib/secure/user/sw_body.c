@@ -9,6 +9,7 @@ string query_userid();
 
 void save_me();
 void remove();
+void force_me (string);
 
 void report_login_failures();
 
@@ -99,6 +100,18 @@ private nomask void incarnate(int is_new, string bfn)
     save_me();
     
     body->enter_game(is_new);
+    if (wizardp (this_object ()))
+	{
+	  string login_file;
+
+	  // do .login stuff
+	  login_file = wiz_dir (this_object ()) + "/.login";
+	  if (file_size (login_file) > 0)
+	    {
+	      map_array (explode (read_file (login_file), "\n"),
+		(: force_me :));
+	    }
+	}
 }
 
 static nomask void existing_user_enter_game()

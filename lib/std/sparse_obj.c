@@ -2,34 +2,17 @@
 
 // Rust.  This one is for simple items there mainly for ornamentation.
 
-#include <move.h>
-
-inherit "/std/object/description";
-inherit "/std/object/flags";
-inherit "/std/object/non_object";
+inherit BASE_OBJ;
 inherit "/std/object/vsupport";
 
-//:FUNCTION stat_me
-//write() some debugging info about the state of the object
-int stat_me() 
-{
-    write("Sparse OBJ.\n");
-    write("IDs: "+implode((mixed)parse_command_id_list(),", ")+"\n");
-    write("Plurals: "+implode((mixed)parse_command_plural_id_list(),", ")+"\n");
-    write("Adjectives: "+implode((mixed)parse_command_adjectiv_id_list(),", ")+"\n");
-    write("Long: \n"+long());
-    return 1;
-}
-
-
-
 private static mapping descs = ([]);
+private static string my_name;
+
 
 varargs void create(string long, string array ids, object dest)
 {
-    parse_init();
-    description::create();
-    flags::create();
+    ::create();
+
     set_attached(1);
     if(strlen(long))
       set_long(long);
@@ -60,18 +43,6 @@ void add_simple_fake_item(string long, string array ids)
 	descs[id] = long;
 }
 
-int is_visible()
-{
-  return 1;
-}
-
-// Here on purpose.
-varargs mixed call_hooks(mixed s ...)
-{
-}
-
-string my_name;
-
 int direct_verb_rule(string verb, string rule, mixed args)
 {
   for(int i = 0; i < sizeof(args)/2; i++)
@@ -87,9 +58,4 @@ int direct_verb_rule(string verb, string rule, mixed args)
 string the_short()
 {
   return "the " + my_name;
-}
-
-/* need a set_light() for remove() */
-void set_light(int x)
-{
 }

@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit ROOM;
+inherit OUTDOOR_ROOM;
 
 
 void
@@ -8,8 +8,9 @@ create()
 {
     string m = "#The mountains are too steep to climb.\n";
     string o = "#You would drown!\n";
-  room::create();
+  ::create();
   set_brief("Rocky beach");
+  set_area ("pirate");
   set_long("There isn't much beach here to speak of; instead, there is a lot of rubble and debris.  The mountains and ocean surround you, although you can squeak back out through the surf.");
   set_exits( ([
 	       "west" : m,

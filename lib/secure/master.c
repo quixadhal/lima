@@ -130,7 +130,9 @@ varargs string standard_trace(mapping mp, int flag) {
     mapping *trace;
     int i,n;
 
-    ret = mp["error"] + "Object: " + trace_line(mp["object"], mp["program"],
+    ret = ctime( time());
+    ret += "\n";
+    ret += mp["error"] + "Object: " + trace_line(mp["object"], mp["program"],
 					       mp["file"], mp["line"]);
     ret += "\n";
     trace = mp["trace"];

@@ -10,7 +10,11 @@ nomask private void main(string str) {
         write("emoteapropos string\n");
         return;
     }
-    write("Souls that contain: " + str + "\n");
-    write(implode(SOUL_D->emote_apropos(str), "\n")+"\n");
-    return;
+
+    more(({ "Souls that contain: " + str }) + SOUL_D->emote_apropos(str));
+}
+
+void player_menu_entry(string str)
+{
+    main(str);
 }

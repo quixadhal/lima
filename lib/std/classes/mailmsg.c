@@ -13,6 +13,7 @@ class mail_msg
     string	sender;		/* who sent the msg */
     int		date;		/* when msg was sent */
     string	subject;	/* subject of msg */
+    int		thread_id;	/* first msg's id (date) */
     string *	body;		/* body of msg */
     string *	dels_pending;	/* these users must delete msg */
 }

@@ -12,6 +12,7 @@ goto		obj|user
 locate		str
 lightme		num
 move		obj obj
+objcount	[num]
 review -cd	[user]
 scan -d		[obj|user]
 showtree	[str] cfile

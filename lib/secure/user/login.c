@@ -373,7 +373,7 @@ private nomask void logon()
  * extensively modified/rewritten more than half of the base mudlib first
  * (intend to modify ... doesn't cut it)
  */
-    printf("%s is running Lima 0.9r9 (pre-alpha) on %s\n\n",
+    printf("%s is running Lima 0.9r10 (pre-alpha) on %s\n\n",
 	   mud_name(), driver_version());
 
 #ifdef ZORKMUD

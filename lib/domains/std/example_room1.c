@@ -11,7 +11,7 @@ inherit ROOM;
 
 create(){
  
-    room::create();
+    ::create();
  
     set_brief("Example Room");
  

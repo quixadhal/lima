@@ -1,0 +1,2 @@
+#daemons/nchannel.c
+permanent_channels (["adm_admin":2,"wiz_errors":1,"wiz_announce":1,"wiz_wiz":1,"plyr_news":0,"plyr_newbie":0,"plyr_gossip":0,])

@@ -11,7 +11,7 @@ mapping homes = ([]);
 
 object find_home(string name) {
     if (homes[name]) return homes[name];
-    
+
     homes[name] = clone_object(TEMP_WORKROOM);
     homes[name]->set_owner(name);
     return homes[name];
@@ -25,15 +25,20 @@ private void main(string arg)
 
     if (!arg)
     {
-        msgs = this_body()->get_player_message("home");
-        if (environment(this_body()))
-            tell_room(environment(this_body()), msgs[1], 0, ({ this_body() }));
+        if(file_name(environment(this_body())) == this_body()->query_home())
+	{
+            this_body()->simple_action( "$N $vtwitch briefly.\n");
+	    return;
+	}
+	msgs = this_body()->get_player_message("home");
+	if (environment(this_body()))
+	    tell_room(environment(this_body()), msgs[1], 0, ({ this_body() }));
 
-        home = this_body()->query_home();
-        if (home == "CLONE") {
-            ob = find_home(this_body()->query_name());
-            this_body()->move(ob);
-        }
+	home = this_body()->query_home();
+	if (home == "CLONE") {
+	    ob = find_home(this_body()->query_name());
+	    this_body()->move(ob);
+	}
 	else
 	    this_body()->move(home);
 
@@ -54,14 +59,19 @@ private void main(string arg)
 	return;
     }
 
+    if( file_name( environment( this_body())) == home )
+    {
+        this_body()->simple_action( "$N $vtwitch briefly.\n" );
+        return;
+    }
     this_body()->simple_action("$N $vleave to visit " + capitalize(arg) +
-			       "'s home.\n");
+      "'s home.\n");
 
     this_body()->move(home);
 
     tell_room(environment(this_body()), this_body()->query_name() +
-	      " dropped by to check on " + capitalize(arg) + ".\n",
-	      0, ({ this_body() }));
+      " dropped by to check on " + capitalize(arg) + ".\n",
+      0, ({ this_body() }));
 
     if(!(this_body()->test_flag(F_BRIEF)))
 	this_body()->do_game_command("look");

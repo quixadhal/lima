@@ -21,9 +21,14 @@ private void create() {
     // It's too easy for the coder to forget to call modules::create(),
     // so we spare him the burden by doing our initialization in a
     // lazy fashion.
-    if (file_name(this_object()) != "/std/modules/ansi")
+    if ( file_name(this_object()) != M_ANSI )
 	return;
-    if (clonep()) destruct(this_object());
+    if (clonep())
+    {
+	destruct(this_object());
+	return;
+    }
+
     translations = ([
     "RESET" : "\e[0m",
     "BOLD" : "\e[1m",

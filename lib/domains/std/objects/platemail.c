@@ -1,12 +1,17 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <combat.h>
+
 inherit ARMOR;
 
-mixed adjust_result(mixed result, string type, object attacker) {
-    if (result == "miss" || result == "miss" || result == -1) return result;
-    if (random(5)) {
-	attacker->targetted_action("$P blows glance off $p1 $o, leaving $t completely unharmed!\n", environment(), this_object());
-	return -1;
+class combat_result array 
+adjust_result(mixed result) {
+    foreach (class combat_result res in result) {
+	if (!(res->special & RES_NONPHYSICAL) && random(5)) {
+	    res->special = 0;
+	    res->damage = 0;
+	    res->message = "$P blows glance off $p1 admantine platemail, leaving $t completely unharmed!\n";
+	}
     }
     return result;
 }

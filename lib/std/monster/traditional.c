@@ -1,10 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <combat.h>
+
 // the traditional combat module; used when COMBAT_STYLE is COMBAT_TRADITIONAL
 // in /include/config_combat.h
 
 inherit __DIR__ "base";
-inherit __DIR__ "base/hit_points";
 
 #define PERCENT_PER_PENALTY		10
 
@@ -13,8 +14,25 @@ void refresh_stats() {
     // monsters can also use it to adjust things once per round
 }
 
+string default_message(int dam, int them) {
+    switch (fuzzy_divide(dam * 100, them)) {
+    case 0: return "!none";
+    case 1: return "!dam1";
+    case 2..3: return "!dam2";
+    case 4..5: return "!dam3";
+    case 6..9: return "!dam4";
+    case 10..14: return "!dam5";
+    case 15..24: return "!dam6";
+    case 25..49: return "!dam7";
+    case 50..79: return "!dam8";
+    case 80..100: return "!dam9";
+    default: return "!dam10";
+    }
+}
+
 void create() {
     ::create();
+
     set_combat_messages("combat-unarmed");
     set_wield_bonus(-25); // -25% to hit bare hand.
     set_weapon_class(3);  // and low WC
@@ -35,38 +53,11 @@ int damage_bonus() {
     return 0;
 }
 
-void do_damage(mixed res, string kind) {
-    if (stringp(res)) {
-	switch (res) {
-	case "disarm":
-	    unwield();
-	    query_weapon()->move(environment());
-	    break;
-	case "fatal":
-	case "dispatch":
-	case "suicide":
-	    die();
-	    break;
-	}
-    } else
-	reduce_hp(res);
-}
-
-void take_a_swing() {
+class combat_result array
+take_a_swing(object target) {
     int them, us, chance, roll;
-    object target;
-    mixed result, dam;
+    class combat_result res;
     object weapon;
-
-    if (query_ghost()) {
-	attacking = 0;
-	return;
-    }
-
-    if (!(target = get_target())) {
-	attacking = 0;
-	return;
-    }
 
     refresh_stats();
 
@@ -99,47 +90,31 @@ void take_a_swing() {
 	    stop_fight();
 	    /* falls through */
 	case 1:
-	    return;
+	    return 0;
 	}
     }
 
+    res = new(class combat_result);
+
     roll = random(100);
     if (roll > chance)
-	dam = "miss";
+	res->message = "!miss";
     else if (roll == chance)
-	dam = "disarm";
+	res->special |= RES_DISARM;
     else {
-	dam = random(weapon->query_weapon_class() + damage_bonus()) + 1;
+	res->damage = random(weapon->query_weapon_class() + damage_bonus()) + 1;
+	// Not foolproof; but one can show there isn't a foolproof solution.
+        // The target gets the last say on results, and could theoretically
+        // choose to die from anything, even a miss.
+        if (res->damage >= query_target()->query_hp())
+            res->special |= RES_MIGHT_BE_FATAL;
+	res->kind = weapon_type;
     }
-
-    result = dam = negotiate_result(dam, weapon_type);
-
-    if (intp(dam)) {
-	if (dam == -1) return;
-
-	them = target->query_hp();
-	if (dam >= them) result = "fatal";
-	else
-	    switch (fuzzy_divide(result * 100, them)) {
-	    case 0: result = "none"; break;
-	    case 1: result = "dam1"; break;
-	    case 2..3: result = "dam2"; break;
-	    case 4..5: result = "dam3"; break;
-	    case 6..9: result = "dam4"; break;
-	    case 10..14: result = "dam5"; break;
-	    case 15..24: result = "dam6"; break;
-	    case 25..49: result = "dam7"; break;
-	    case 50..79: result = "dam8"; break;
-	    case 80..100: result = "dam9"; break;
-	    default: result = "dam10";
-	    }
-    }
-
-    print_result(result);
-    target->hit_living(dam, weapon_type);
+    
+    return ({ res });
 }
 
 void attack() {
-    receive("Hp: " + query_hp() + "\n");
-    take_a_swing();
+    tell_object(this_object(), "Hp: " + query_hp() + "\n");
+    ::attack();
 }

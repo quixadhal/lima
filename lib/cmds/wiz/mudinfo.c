@@ -18,17 +18,13 @@ private void main(string arg)
 
     if(!arg || arg == "")
     {
-	printf("Usage: mudinfo <mudname>\n");
-	return;
+	arg = mud_name();
     }
-    else
+    matches = insensitive_regexp(muds, "^"+translate(arg));
+    if(!sizeof(matches))
     {
-	matches = insensitive_regexp(muds, "^"+translate(arg));
-	if(!sizeof(matches))
-	{
-	    printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
-	    return;
-	}
+	printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
+	return;
     }
     output = "";
     matches = sort_array(matches,1);
@@ -54,7 +50,7 @@ private void main(string arg)
 	else
 	{
 	    output += sprintf("Down (Expected up in %d minutes)\n",
-			      (mudinfo[0]+60)/60);
+	      (mudinfo[0]+60)/60);
 	}
 	output += sprintf("Open Status: %s\n", mudinfo[9]);
 	output += sprintf("Admin email: %s\n", mudinfo[10]);
@@ -69,7 +65,7 @@ private void main(string arg)
 	    output += "Other data: " + implode(keys(mudinfo[12]), ", ") + "\n";
 	output += "\n";
     }
-  
+
     more(output);
 }
 

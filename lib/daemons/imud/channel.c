@@ -196,7 +196,7 @@ static nomask void init_channels()
 }
 static nomask void free_channels()
 {
-    NCHANNEL_D->unregister_all();
+    NCHANNEL_D->unregister_channels();
 }
 
 nomask mapping query_chanlist()

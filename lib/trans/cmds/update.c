@@ -97,7 +97,7 @@ int do_update(string file, int deep)
 	if (info[1] > newest_inh) newest_inh = info[1];
 
 	// return if object isn't out of date.
-	if (info[2] > newest_inh)
+	if (info[2] >= newest_inh)
 	    return info[2];
 
 	destruct(ob, 1);      // pass 1: we're coming back soon

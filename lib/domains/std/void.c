@@ -5,7 +5,7 @@
 inherit ROOM;
 
 void create(){
-    room::create();
+    ::create();
 
     /* ensure this place is lit, regardless of DEFAULT_LIGHT_LEVEL */
     set_light(1);

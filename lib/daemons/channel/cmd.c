@@ -7,12 +7,18 @@
 */
 
 #include <classes.h>
+#include <channel.h>
 
 inherit CLASS_CHANNEL_INFO;
 
+void create_channel(string channel_name);
 class channel_info query_channel_info(string channel_name);
 string user_channel_name(string channel_name);
-void deliver_notice(string channel_name, string message);
+void test_for_purge(string channel_name);
+
+void set_permanent(string channel_name, int is_perm);
+void set_flags(string channel_name, int flags);
+
 void deliver_emote(string channel_name,
 		   string sender_name,
 		   string message);
@@ -21,57 +27,12 @@ void deliver_tell(string channel_name,
 		  string message);
 void deliver_soul(string channel_name, mixed * soul);
 
+string make_name_list(mixed * list);
 
-/*
-** make_name_list()
-**
-** Make a list of names given an array of players.
-*/
-private nomask string make_name_list(mixed * list)
-{
-    /*
-    ** Remove null objects, objects with no links (to interactive users),
-    ** and link obs that are no longer interactive.
-    */
-    list = filter_array(list, (: $1 && $1->query_link() &&
-			       interactive($1->query_link()) :));
-    return implode(list->query_name(), ", ");
-}
+int cmd_moderation(string channel_name, string arg);
+void moderation_signoff(string channel_name);
+void print_mod_info(string channel_name);
 
-    
-/*
-** print_mod_info()
-**
-** Print moderator/speak infor for a moderated channel.
-*/
-private nomask void print_mod_info(string channel_name)
-{
-    class channel_info ci = query_channel_info(channel_name);
-
-    if ( !ci->moderator )
-	return;
-
-    printf("It is being moderated by %s.\n", ci->moderator->query_name());
-
-    if ( ci->speaker )
-	printf("The current speaker is %s.\n", ci->speaker->query_name());
-    else
-	printf("There is no current speaker.\n");
-
-    if ( ci->moderator == this_body() )
-    {
-	if ( !ci->requestors ||
-	    !sizeof(ci->requestors) )
-	    printf("There are no requestors.\n");
-	else
-	    write(iwrap(sprintf("Requestors are: %s.\n",
-				make_name_list(ci->requestors))));
-    }
-    else if ( member_array(this_body(), ci->requestors) != -1 )
-    {
-	printf("Your hand is raised to speak.\n");
-    }
-}
 
 /*
 ** cmd_channel()
@@ -88,14 +49,12 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 {
     class channel_info ci = query_channel_info(channel_name);
     object tb;
-    string * channel_list;
     int listening;
     string user_channel_name;
     string sender_name;
 
     tb = this_body();
-    channel_list = tb->query_channel_list();
-    listening = member_array(channel_name, channel_list) != -1;
+    listening = member_array(channel_name, tb->query_channel_list()) != -1;
     user_channel_name = user_channel_name(channel_name);
 
     if ( !arg || arg == "" )
@@ -113,12 +72,115 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	return;
     }
 
+    if ( arg[0..3] == "/new" )
+    {
+	string * options = explode(arg[4..], " ");
+
+	if ( ci )
+	{
+	    if ( sizeof(options) )
+		printf("'%s' already exists; modifying options...\n",
+		       user_channel_name);
+	    else
+		printf("'%s' already exists.\n", user_channel_name);
+	}
+	else
+	{
+	    create_channel(channel_name);
+	    printf("'%s' has been created.\n", user_channel_name);
+	}
+
+	ci = query_channel_info(channel_name);
+
+	foreach ( string option in options )
+	{
+	    switch ( option )
+	    {
+	    case "admin":
+		if ( !adminp(this_user()) )
+		{
+		    printf("Only admins can create admin channels.\n");
+		    return;
+		}
+		set_flags(channel_name, CHANNEL_ADMIN_ONLY);
+		printf("  --> only admins may tune in\n");
+		break;
+
+	    case "wiz":
+	    case "wizard":
+		/* ### need better security? */
+		if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) )
+		{
+		    printf("Only admins can turn off admin-only.\n");
+		    return;
+		}
+		else if ( !wizardp(this_user()) )
+		{
+		    printf("Only wizards can create wizard channels.\n");
+		    return;
+		}
+		set_flags(channel_name, CHANNEL_WIZ_ONLY);
+		printf("  --> only wizards may tune in\n");
+		break;
+
+	    case "permanent":
+		/* ### need better security? */
+		if ( !adminp(this_user()) )
+		{
+		    printf("Only admins can tweak permanent channels.\n");
+		    return;
+		}
+		set_permanent(channel_name, 1);
+		printf("  --> the channel is permanent\n");
+		break;
+
+	    case "nopermanent":
+	    case "goaway":
+		/* ### need better security? */
+		if ( !adminp(this_user()) )
+		{
+		    printf("Only admins can tweak permanent channels.\n");
+		    return;
+		}
+		set_permanent(channel_name, 0);
+		printf("  --> the channel may now go away\n");
+		test_for_purge(channel_name);
+		break;
+	    }
+	}
+
+	/* tune the channel in now */
+	arg = "/on";
+    }
     if ( arg == "/on" )
     {
 	if ( listening )
+	{
 	    printf("You are already listening to '%s'.\n", user_channel_name);
+	}
+	else if ( !ci )
+	{
+	    printf("'%s' does not exist. Use /new to create it.\n",
+		   user_channel_name);
+	    return;
+	}
 	else
 	{
+	    /* enforce the channel restrictions now */
+	    /* ### not super secure, but screw it :-) */
+	    if ( (ci->flags & CHANNEL_WIZ_ONLY) && !wizardp(this_user()) )
+	    {
+		printf("Sorry, but '%s' is for wizards only.\n",
+		       user_channel_name);
+		return;
+	    }
+	    if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) )
+	    {
+		printf("Sorry, but '%s' is for admins only.\n",
+		       user_channel_name);
+		return;
+	    }
+
 	    tb->channel_add(channel_name);
 	    printf("You are now listening to '%s'.\n", user_channel_name);
 	}
@@ -144,135 +206,28 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     {
 	tb->channel_remove(channel_name);
 	printf("You are no longer listening to '%s'.\n", user_channel_name);
-	if ( tb == ci->moderator )
-	{
-	    ci->moderator =
-		ci->speaker =
-		ci->requestors = 0;
 
-	    deliver_notice(channel_name, "This channel is now unmoderated");
-	}
-	else if ( tb == ci->speaker )
-	{
-	    ci->speaker = 0;
-	    deliver_notice(channel_name,
-			   sprintf("%s is no longer speaking", sender_name));
-	}
+	moderation_signoff(channel_name);
     }
-    else if ( arg == "/list" )
+    else if ( arg == "/list" || arg == "/who" )
     {
 	write(iwrap(sprintf("Users listening to '%s': %s.\n",
 			    user_channel_name,
 			    make_name_list(ci->listeners))));
     }
-    else if ( arg == "/raise" )
+    else if ( arg == "/last" )
     {
-	if ( !ci->moderator )
-	{
-	    printf("'%s' is not moderated.\n", user_channel_name);
-	}
-	else if ( tb == ci->speaker )
-	{
-	    printf("You are already speaking on '%s'.\n", user_channel_name);
-	}
-	else if ( member_array(tb, ci->requestors) == -1 )
-	{
-	    printf("Your raise your hand to speak on '%s'.\n",
-		   user_channel_name);
-	    ci->requestors += ({ tb });
-	    ci->moderator->channel_rcv_string(channel_name,
-					  sprintf("[%s] (%s raises a hand to speak)\n",
-						  user_channel_name,
-						  sender_name));
-	}
-	else
-	{
-	    printf("You already have your hand raised to speak on '%s'.\n",
-		   user_channel_name);
-	}
-    }
-    else if ( arg == "/lower" )
-    {
-	if ( !ci->moderator )
-	{
-	    printf("'%s' is not moderated.\n", user_channel_name);
-	}
-	else if ( member_array(tb, ci->requestors) != -1 )
-	{
-	    printf("Your lower your hand to avoid speaking on '%s'.\n",
-		   user_channel_name);
-	    ci->requestors -= ({ tb });
-	    ci->moderator->channel_rcv_string(channel_name,
-					  sprintf("[%s] (%s lowers a hand)\n",
-						  user_channel_name,
-						  sender_name));
-	}
-	else
-	{
-	    printf("Your hand is not raised to speak on '%s'.\n",
-		   user_channel_name);
-	}
-    }
-    else if ( arg[0..3] == "/call" )
-    {
-	arg = lower_case(trim_spaces(arg[4..]));
-	if ( !ci->moderator )
-	{
-	    printf("'%s' is not moderated.\n", user_channel_name);
-	}
-	else if ( ci->moderator != tb )
-	{
-	    printf("You are not the moderator of '%s'.\n", user_channel_name);
-	}
-	else if ( arg == "" )
-	{
-	    if ( sizeof(ci->requestors) == 0 )
-		printf("Nobody has their hand raised.\n");
-	    else
-	    {
-		ci->speaker = ci->requestors[0];
-		ci->requestors = ci->requestors[1..];
-		deliver_notice(channel_name,
-			       sprintf("%s will now speak",
-				       ci->speaker->query_name()));
-	    }
-	}
-	else
-	{
-	    object * spkr;
+	string history = implode(ci->history, "");
 
-	    spkr = filter_array(ci->requestors,
-				(: $(arg) == lower_case($1->query_name()) :));
-	    if ( sizeof(spkr) == 0 )
-	    {
-		printf("'%s' was not found (or did not have their hand raised.\n",
-		       capitalize(arg));
-	    }
-	    else
-	    {
-		ci->speaker = spkr[0];
-		ci->requestors -= ({ spkr[0] });
-		deliver_notice(channel_name,
-			       sprintf("%s will now speak",
-				       ci->speaker->query_name()));
-	    }
-	}
+	if ( history == "" )
+	    history = "<none>\n";
+
+	more(sprintf("History of channel '%s':\n%s\n",
+		     user_channel_name, history));
     }
-    else if ( arg == "/moderate" )
+    else if ( cmd_moderation(channel_name, arg) )
     {
-	if ( adminp(this_user()) ||
-	    GROUP_D->member_group(this_user()->query_userid(), "moderators") )
-	{
-	    ci->moderator = tb;
-	    if ( !ci->requestors )
-		ci->requestors = ({ });
-	    deliver_notice(channel_name,
-			   sprintf("%s is now moderating", sender_name));
-	}
-	else
-	{
-	    printf("You are not allowed to moderate this channel.\n");
-	}
+	/* it was handled */
     }
     else if ( arg[0] == ':' )
     {

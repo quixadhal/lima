@@ -3,13 +3,16 @@
 #comments must have the # in the very first column.
 #
 /secure/user
-/std/shell
-/std/player/cmd
-/std/player/bodyshell
-/std/player
-/daemons/help_d
-/daemons/nchannel_d
-/daemons/verb_d
-/daemons/soul_d
-/daemons/imud_d
-/daemons/doc_d
+/secure/obj/shell
+/std/body/cmd
+/std/body/bodyshell
+/std/body
+/daemons/help
+/daemons/nchannel
+/daemons/verb
+/daemons/soul
+/daemons/imud
+/daemons/doc
+# comment this out and rm or move the file if you don't want an internal web
+# server.
+#/daemons/http

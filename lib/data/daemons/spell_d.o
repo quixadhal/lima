@@ -1,0 +1,2 @@
+#daemons/spell.c
+spell_dirs ({"/domains/std/spells/","/domains/std/spells/stock-mage/",})

@@ -11,6 +11,11 @@ inherit CMD;
 
 private nomask void set_plan(string * plan)
 {
+    if( !sizeof( plan ))
+    {
+        write( "Your plan's unchanged, man.\n");
+        return;
+    }
     write("Your plan is set, man.\n");
     this_body()->set_plan(implode(plan,"\n"));
 }

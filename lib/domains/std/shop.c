@@ -6,7 +6,7 @@ inherit ROOM;
 
 void create()
 {
-   room::create();
+   ::create();
      set_brief("General Store");
 set_long(
 "This is the general store.  Players come here to sell items collected\n"

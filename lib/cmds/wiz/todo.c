@@ -6,8 +6,6 @@
 
 inherit CMD;
 
-#define TYPE "Todo"
-
 private void main(string str)
 {
     if ( !is_directory(wiz_dir(this_body())) )
@@ -16,15 +14,10 @@ private void main(string str)
         return;
     }
 
-#ifdef LOG_DONT_POST
-  if(!str || str == "")
-    REPORTER->begin_report(TYPE);
-  else
-    REPORTER->short_report(TYPE, str);
-#else
-  if (!str || str == "")
-    REPORTER->begin_report(TYPE, TYPE+" report");
-  else
-    REPORTER->short_report(TYPE, TYPE+" report", str);
-#endif
+    REPORTER_D->report_something("Todo", str);
+}
+
+void player_menu_entry()
+{
+    main("");
 }

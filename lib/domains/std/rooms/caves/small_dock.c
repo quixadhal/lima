@@ -11,8 +11,12 @@ void open_passage();
 
 void create() 
 { 
-  function river = (: write("You would drown in the river.\n") :);
-  room::create(); 
+  string river = "#You would drown in the river.";
+
+  ::create(); 
+
+
+  set_area ("pirate");
   set_brief("Small dock");
 
   set_long("The river cuts through the north wall of this cave, and wanders "

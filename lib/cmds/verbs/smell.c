@@ -5,8 +5,6 @@
 **
 */
 
-#include <mudlib.h>
-
 inherit VERB_OB;
 
 mixed can_smell_obj(object ob)
@@ -22,7 +20,7 @@ void do_smell_obj(object ob)
 {
     if ( !ob->smell() )
     {
-	printf("It smells pretty much like %s.  What did you expect?\n", ob->a_short());
+	printf("It smells pretty much like %s.\n", ob->a_short());
     }
 }
 

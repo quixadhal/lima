@@ -20,7 +20,7 @@ int query_weather()
     return weather;
 }
 
-string weather()
+string get_weather()
 {
     if ( weather )
 	return WEATHER_D->query_current_weather();

@@ -4,6 +4,10 @@
 
 inherit VERB_OB;
 
+mixed can_wish_for_str() {
+    return 1;
+}
+
 void do_wish_for_str(string str) {
     write("That would be nice, wouldn't it?\n");
 }

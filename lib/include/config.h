@@ -8,8 +8,8 @@
 // -----------------------------------------------------------
 
 /* changes these as you please */
-#define lib_status()		"mudlib development"
-#define __HOST__		"lima.imaginary.com"
+#define lib_status()		"game development"
+#define __HOST__		"host.name"
 #define ADMIN_EMAIL		"user@host.name"
 
 #define START			"/domains/std/rooms/beach/sandy_beach"
@@ -63,10 +63,10 @@
 // of posting news
 #undef LOG_DONT_POST
 
-#define BUG_NEWSGROUP "lima.bugs"
+#define BUG_NEWSGROUP "reporter.bugs"
 #define TYPO_NEWSGROUP "reporter.typos"
-#define IDEA_NEWSGROUP "lima.ideas"
-#define TODO_NEWSGROUP "lima.todo"
+#define IDEA_NEWSGROUP "reporter.ideas"
+#define TODO_NEWSGROUP "reporter.todo"
 
 
 #define BUG_MSG \
@@ -75,8 +75,8 @@
 // Define this next one to limit how many aliases a person can have.
 #undef MAX_NUMBER_OF_ALIASES	30
 
-#define USE_HIDE
-
+// max number of entries in the channel history (the /last command)
+#define CHANNEL_HISTORY_SIZE	20
 
 // I'd recommend not changing anything below this point.
 #define LINK_PATH(x)		sprintf("/data/links/%c/%s",x[0],x)

@@ -8,6 +8,7 @@ void create()
 {
    ::create();
 
+    set_area ("pirate");
     set_brief("North Tunnel");
     set_long("This is a tunnel leding north fro the inside of the cave. more to follow. ");
 

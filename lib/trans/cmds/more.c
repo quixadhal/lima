@@ -9,12 +9,20 @@ inherit CMD;
 
 
 
-// specification is : more file*
+// specification is : more obj|file*
 // we will recieve  : ({ array of files })
 
 private void main(mixed *arg)
 {
-    more_file(filter(arg[0], (:is_file:)));
+    foreach (mixed file in arg[0]) {
+	if (objectp(file)) file = base_name(file) + ".c";
+	if (!stringp(file)) continue;
+	if (is_directory(file)) {
+	    write(file + ": Is a directory.\n");
+	    continue;
+	}
+	more_file(file);
+    }
 }
 
 int help()

@@ -5,19 +5,17 @@
 #include <setbit.h>
 
 mixed call_hooks(string, int);
-void set_flag(string);
+void assign_flag(string, int);
 int test_flag(string);
-void clear_flag(string);
 void set_light(int);
 
-int
-remove()
+int remove()
 {
     if (environment())
         environment()->release_object(this_object(), 1);
 
     // Abstract class fix
-    if (file_name() != "/std/object/non_object")
+    if ( file_name() != __DIR__ "non_object" )
     {
 //:HOOK remove
 //Called when an object is removed.  The return value is ignored
@@ -32,21 +30,20 @@ remove()
 
 mixed receive_object( object target, string relation )
 {
-  return MOVE_NOT_ALLOWED;
+    return MOVE_NOT_ALLOWED;
 }
 
 varargs mixed release_object( object target, int force )
 {
-  return 1;
+    return 1;
 }
 
 void set_attached(int a)
 {
-  a ? set_flag(ATTACHED) : clear_flag(ATTACHED);
+    assign_flag(ATTACHED, a);
 }
 
 int is_attached()
 {
-  return test_flag(ATTACHED);
+    return test_flag(ATTACHED);
 }
-

@@ -11,29 +11,29 @@
 
 #include <flags.h>
 
+inherit BASE_OBJ;
+
 #ifdef USE_SIZE
-inherit "/std/object/size";
+inherit __DIR__ "object/size";
 #else
 #ifdef USE_MASS
-inherit "/std/object/mass";
+inherit __DIR__ "object/mass";
 #endif
 #endif  //USE_SIZE
 
-inherit "/std/object/light";		/* before non_object */
-inherit "/std/object/properties";
-inherit "/std/object/description";
-inherit "/std/object/move";
-inherit "/std/object/non_object";
-inherit "/std/object/visible";
-inherit "/std/object/flags";
-inherit "/std/object/vsupport";
-inherit "/std/object/hooks";
-inherit "/std/object/msg_recipient";
+inherit __DIR__ "object/light";		/* before non_object */
+inherit __DIR__ "object/properties";
+inherit __DIR__ "object/move";
+inherit __DIR__ "object/visible";
+inherit __DIR__ "object/vsupport";
+inherit __DIR__ "object/hooks";
+inherit __DIR__ "object/msg_recipient";
 
 //:FUNCTION stat_me
 //write() some debugging info about the state of the object
 int stat_me() 
 {
+    ::stat_me();
     write("Short: "+short()+"\n");
 #ifdef USE_SIZE
     write("Size: "+get_size()+" Light: " + query_light() + "\n");
@@ -44,17 +44,27 @@ int stat_me()
     write("Light: "+query_light() + "\n");
 # endif
 #endif
-    write("IDs: "+implode((mixed)parse_command_id_list(),", ")+"\n");
-    write("Plurals: "+implode((mixed)parse_command_plural_id_list(),", ")+"\n");
-    write("Adjectives: "+implode((mixed)parse_command_adjectiv_id_list(),", ")+"\n");
-    write("Long: \n"+long());
     return 1;
 }
 
 create(){
+    ::create();
     properties::create();
-    description::create();
-    flags::create();
     configure_set(STD_FLAGS, 0, 0, (: resync_visibility :), 0, 0);
 //    restore_object("/data/"+base_name(this_object()));
+}
+
+
+/* arbitrate some stuff that was stubbed in BASE_OBJ */
+varargs mixed call_hooks(array args...)
+{
+    return hooks::call_hooks(args...);
+}
+int is_visible()
+{
+    return visible::is_visible();
+}
+void set_light(int x)
+{
+    light::set_light(x);
 }

@@ -10,7 +10,10 @@ inherit M_INPUT;
 private nomask void done()
 {
     modal_pop();
+    destruct();
+    return;
     /* no need to destruct... we didn't clone */
+    /* We do now! -=Zakk */
 }
 
 private nomask void confirm_new_password(string s1, string s2)
@@ -60,9 +63,26 @@ private nomask void confirm_current_password(string s)
     }
 }
 
-
-private void main()
+void start_cmd()
 {
+    if(!clonep() || (base_name(previous_object()) != base_name()))  {
+        write("Illegal attempt to spoof command\n"); 
+        destruct();
+        return;
+    }
+
     modal_push((: confirm_current_password :),
 	       "Enter your current password: ", 1);
 }
+
+
+private void main()
+{
+    if(!clonep())  {
+        new(base_name())->start_cmd();
+        return;
+    }
+    destruct();
+    return;
+}
+

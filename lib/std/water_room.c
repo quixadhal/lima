@@ -5,5 +5,5 @@
 inherit ROOM;
 
 create() {
-  room::create();
+  base_room::create();
 }

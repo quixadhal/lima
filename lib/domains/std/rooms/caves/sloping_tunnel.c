@@ -7,7 +7,10 @@ inherit ROOM;
 
 void create() 
 { 
-  room::create(); 
+  
+  ::create(); 
+
+  set_area ("pirate");
   set_brief("Sloping tunnel");
 
   set_long("Nothing yet.\n");

@@ -12,15 +12,17 @@
 
 inherit CMD;
 
-mapping counts;
-
-private void main(string arg)
+private void main(mixed args)
 {
-    counts = ([ ]);
+    mapping counts = ([ ]);
 
-    map_array(objects( (: clonep :) ), (: counts[base_name($1)]++ :) );
+    objects((: $(counts)[base_name($1)]++ :));
+
+    /* filter out those without the requested minimum number of instances.
+       defaults to 2 or more (meaning cloned obs) */
+    if ( !args[0] )
+	args[0] = 2;
+    counts = filter(counts, (: $2 >= $(args[0]) :));
 
     more(sprintf("%O\n", counts));
-
-    counts = 0;
 }

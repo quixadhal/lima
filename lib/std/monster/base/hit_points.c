@@ -32,9 +32,9 @@ void set_hp(int x) {
 
 //:FUNCTION reduce_hp
 //DO NOT under pain of banishment, use this to do damage to monsters/players
-void reduce_hp(int x) {
+static void reduce_hp(int x) {
    hp -= x;
-   if (hp < 0) {
+   if (hp <= 0) {
        hp = 0;
        die();
    }

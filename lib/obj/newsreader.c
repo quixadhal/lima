@@ -16,6 +16,7 @@
 
 inherit M_INPUT;
 inherit M_COMPLETE;
+inherit M_GRAMMAR;
 
 inherit CLASS_NEWSMSG;
 
@@ -58,8 +59,8 @@ private nomask string format_group_line(string group)
     int last_id;
 
     last_id = NEWS_D->get_group_last_id(group);
-    return sprintf("  %-40s (%d msgs, %d unread)",
-		   group, last_id, last_id - get_current_id(group));
+    return sprintf("  %-40s (%s, %d unread)",
+      group, number_of(last_id, "msg"), last_id - get_current_id( group ));
 }
 
 private nomask void add_new_groups()
@@ -82,16 +83,17 @@ private nomask void add_new_groups()
 //### and help
     */
     write("Auto-subscribing to:\n" +
-	  implode(map_array(groups, (: format_group_line :)), "\n") + "\n");
+      implode(map_array(groups, (: format_group_line :)), "\n") + "\n");
 }
 
 private nomask string grp_cmd_prompt()
 {
-    return sprintf("(%s) %d msgs unread of %d  [q?lLmgprnc] > ",
-		   current_group,
-		   NEWS_D->get_group_last_id(current_group) - get_current_id(),
-		   NEWS_D->get_group_last_id(current_group)
-		   );
+    return sprintf( "(%s) %d %s unread of %d [q?lLmgprnc] > ",
+      current_group,
+      NEWS_D->get_group_last_id(current_group) - get_current_id(),
+      NEWS_D->get_group_last_id(current_group)-get_current_id()>1?"msgs":"msg",
+      NEWS_D->get_group_last_id(current_group)
+    );
 }
 
 private nomask string msg_cmd_prompt()
@@ -100,10 +102,10 @@ private nomask string msg_cmd_prompt()
     ** Use player's next-to-read -1 to indicate the current msg
     */
     return sprintf("(%s) %d of %d  [q?lLmgprfFncR] > ",
-		   current_group,
-		   get_current_id(),
-		   NEWS_D->get_group_last_id(current_group)
-		   );
+      current_group,
+      get_current_id(),
+      NEWS_D->get_group_last_id(current_group)
+    );
 }
 
 private nomask void switch_to_top()
@@ -134,7 +136,7 @@ private nomask void menu_select_newsgroup(string num)
     }
 
     if ( !sscanf(num,"%d",index) || index < 1 || index > 
-	 sizeof(group_selection_menu_items) )
+      sizeof(group_selection_menu_items) )
     {
 	write("Invalid selection.\n");
 	return;
@@ -150,13 +152,13 @@ private nomask void read_group(string group)
     string* matches;
     int i;
 
-/*
-  if ( group == "" )
-  {
-  switch_to_top();
-  return;
-  }
-  */
+    /*
+      if ( group == "" )
+      {
+      switch_to_top();
+      return;
+      }
+      */
 
     matches = complete(group, NEWS_D->get_groups());
 
@@ -172,13 +174,13 @@ private nomask void read_group(string group)
 
     default:
 	write("\nSelect group by number:\n"
-	      "----------------------------\n");
+	  "----------------------------\n");
 	for(i=1; i<=sizeof(matches);i++)
 	    printf("%-4d%s\n",i,matches[i-1]);
 
 	group_selection_menu_items = matches;
 	modal_func((: menu_select_newsgroup:), "[#q] ");
-	  
+
 	return;
     }
 
@@ -198,7 +200,7 @@ private nomask int test_for_new(string group)
     return get_current_id(group) < NEWS_D->get_group_last_id(group);
 }
 
-private nomask void display_groups_with_new()
+private nomask void display_groups_with_new( string arg )
 {
     string * groups;
 
@@ -208,6 +210,10 @@ private nomask void display_groups_with_new()
     {
 	write("No new news.\n");
 
+	if(arg=="c"||arg=="-c"||arg=="C"||arg=="-C")
+	{
+	    destruct( this_object());
+	}
 	modal_push((: receive_top_cmd :), TOP_PROMPT);
     }
     else
@@ -219,9 +225,13 @@ private nomask void display_groups_with_new()
 	current_group = groups[0];
 
 	list = ({"Groups with new messages:", ""}) +
-	    map_array(groups, (: format_group_line :));
+	map_array(groups, (: format_group_line :));
 
 	more(list);
+	if( arg == "C" || arg == "-C")
+	{
+	    quit_news();
+	}
     }
 }
 
@@ -261,13 +271,13 @@ string format_message_line(int short_fmt, int id, int noremoved)
 	else
 	    subject = subject[0..24] + " (removed)";
     }
-	
+
     return sprintf(short_fmt ? "%d. %s  [%s on %s]" :
-			   "%4d. %-35s [%-10s on %s]",
-		   id,
-		   subject[0..34],
-		   msg->poster,
-		   intp(msg->time) ? ctime(msg->time)[4..9] : msg->time);
+      "%4d. %-35s [%-10s on %s]",
+      id,
+      subject[0..34],
+      msg->poster,
+      intp(msg->time) ? ctime(msg->time)[4..9] : msg->time);
 }
 
 private nomask void display_messages(int display_all)
@@ -333,7 +343,7 @@ private nomask void receive_post_subject(mixed subject)
 	write("Post aborted.\n");
 	return;
     }
-    
+
     new(EDIT_OB, EDIT_TEXT, 0, (: receive_post_text, subject :));
 }
 
@@ -364,7 +374,7 @@ nomask void receive_followup_text(string * text)
 	write("Post aborted.\n");
 	return;
     }
-    
+
     wrap_post(text);
 
     /*
@@ -372,8 +382,8 @@ nomask void receive_followup_text(string * text)
     ** message to read.
     */
     id = NEWS_D->followup(current_group,
-			  get_current_id(),
-			  implode(text, "\n") + "\n");
+      get_current_id(),
+      implode(text, "\n") + "\n");
     write("Posted:  " + format_message_line(1, id) + "\n");
 }
 
@@ -402,8 +412,8 @@ private nomask void followup_with_message()
     }
 
     lines = ({ sprintf("On %s %s wrote post #%d:",
-		       intp(msg->time) ? ctime(msg->time) : msg->time,
-		       msg->poster, get_current_id()) });
+      intp(msg->time) ? ctime(msg->time) : msg->time,
+      msg->poster, get_current_id()) });
 
     lines += map_array(explode(msg->body, "\n"), (: "> " + $1 :) );
 
@@ -430,7 +440,7 @@ private nomask int read_next_message(int skip_allowed)
 	    if ( skipped )
 	    {
 		printf("Skipped %d removed messages.\n",
-		       msg_id - (get_current_id() + 1));
+		  msg_id - (get_current_id() + 1));
 
 		/*
 		** Update the body's current message number (to mark all
@@ -463,7 +473,7 @@ private nomask int read_next_message(int skip_allowed)
     if ( skipped )
     {
 	printf("Skipped %d removed messages.\n",
-	       msg_id - (get_current_id() + 1));
+	  msg_id - (get_current_id() + 1));
     }
 
     /*
@@ -473,15 +483,15 @@ private nomask int read_next_message(int skip_allowed)
     switch_to_message();
 
     post = sprintf("Time:    %-40sPost-id: %d\n"
-		   "Poster:  %s\n"
-		   "Subject: %s\n"
-		   "\n"
-		   "%s",
-		   intp(msg->time) ? ctime(msg->time) : msg->time,
-		   msg_id,
-		   msg->poster,
-		   msg->subject,
-		   msg->body ? msg->body : "*** REMOVED ***");
+      "Poster:  %s\n"
+      "Subject: %s\n"
+      "\n"
+      "%s",
+      intp(msg->time) ? ctime(msg->time) : msg->time,
+      msg_id,
+      msg->poster,
+      msg->subject,
+      msg->body ? msg->body : "*** REMOVED ***");
 
     more(post);
 
@@ -503,7 +513,7 @@ private nomask void global_commands(string cmd)
 	else
 	{
 	    modal_func((: receive_group :),
-		       "Which group (Or enter for a menu)? ");
+	      "Which group (Or enter for a menu)? ");
 	}
     }
     else
@@ -596,14 +606,14 @@ private nomask void remove_message()
 	return;
     }
     if ( !adminp(this_user()) &&
-	 msg->userid != this_user()->query_userid() )
+      msg->userid != this_user()->query_userid() )
     {
 	write("You are not allowed to remove that post.\n");
 	return;
     }
 
     printf("Removing: %s\nAre you sure? [yn] > ",
-	   format_message_line(1, get_current_id()));
+      format_message_line(1, get_current_id()));
     modal_simple((: receive_remove_verify :));
 }
 
@@ -616,17 +626,17 @@ private nomask void receive_top_cmd(mixed cmd)
     if ( cmd == "?" )
     {
 	write("\n" +
-	      wrap("This is the prompt for commands that apply before "
-		   "you have picked a newsgroup.  The commands that "
-		   "apply are:") +
-	      "\n"
-	      "  q   quit reading news\n"
-	      "  ?   this help\n"
-	      "  l   list newsgroups\n"
-	      "  g   go to a newsgroup\n"
-	      "\n"
-	      "Just type a command at the prompt and hit return.\n"
-	      );
+	  wrap("This is the prompt for commands that apply before "
+	    "you have picked a newsgroup.  The commands that "
+	    "apply are:") +
+	  "\n"
+	  "  q   quit reading news\n"
+	  "  ?   this help\n"
+	  "  l   list newsgroups\n"
+	  "  g   go to a newsgroup\n"
+	  "\n"
+	  "Just type a command at the prompt and hit return.\n"
+	);
     }
     else if ( cmd == "l" )
     {
@@ -651,27 +661,27 @@ private nomask void receive_grp_cmd(mixed cmd)
     if ( cmd == "?" )
     {
 	write("\n" +
-	      wrap("This is the prompt for commands that apply to the "
-		   "current newsgroup you are reading (" + current_group +
-		   ").  The commands that apply are:") +
-	      "\n"
-	      "  q   quit reading news\n"
-	      "  ?   this help\n"
-	      "  l   list new messages\n"
-	      "  L   list all messages\n"
-	      "  m   main news menu\n"
-	      "  g   go to a newsgroup\n"
-	      "  p   post message\n"
-	      "  r   read messages\n"
-	      "  n   next newsgroup with new news\n"
-	      "  c   mark all messages as read (catch up)\n"
-	      "\n"
-	      "  g group   goes to newsgroup \"group\"\n"
-	      "  r number  reads messages starting at \"number\"\n"
-	      "  <return>  read messages or go to next newsgroup with new news\n"
-	      "\n"
-	      "Just type a command at the prompt and hit return.\n"
-	      );
+	  wrap("This is the prompt for commands that apply to the "
+	    "current newsgroup you are reading (" + current_group +
+	    ").  The commands that apply are:") +
+	  "\n"
+	  "  q   quit reading news\n"
+	  "  ?   this help\n"
+	  "  l   list new messages\n"
+	  "  L   list all messages\n"
+	  "  m   main news menu\n"
+	  "  g   go to a newsgroup\n"
+	  "  p   post message\n"
+	  "  r   read messages\n"
+	  "  n   next newsgroup with new news\n"
+	  "  c   mark all messages as read (catch up)\n"
+	  "\n"
+	  "  g group   goes to newsgroup \"group\"\n"
+	  "  r number  reads messages starting at \"number\"\n"
+	  "  <return>  read messages or go to next newsgroup with new news\n"
+	  "\n"
+	  "Just type a command at the prompt and hit return.\n"
+	);
     }
     else
     {
@@ -682,36 +692,36 @@ private nomask void receive_grp_cmd(mixed cmd)
 private nomask void receive_msg_cmd(mixed cmd)
 {
     if ( cmd == -1 )
-      destruct(this_object());
+	destruct(this_object());
 
     cmd = trim_spaces(cmd);
     if ( cmd == "?" )
     {
 	write("\n" +
-	      wrap("This is the prompt for commands that apply to the "
-		   "current newsgroup you are reading (" + current_group +
-		   ").  The commands that apply are:") +
-	      "\n"
-	      "  q   quit reading news\n"
-	      "  ?   this help\n"
-	      "  l   list new messages\n"
-	      "  L   list all messages\n"
-	      "  m   main news menu\n"
-	      "  g   go to a newsgroup\n"
-	      "  p   post message\n"
-	      "  r   read next message\n"
-	      "  f   post a followup to this message\n"
-	      "  F   post a followup to this message, quoting it\n"
-	      "  n   next newsgroup with new news\n"
-	      "  c   mark all messages as read (catch up)\n"
-	      "  R   remove this message\n"
-	      "\n"
-	      "  g group   goes to newsgroup \"group\"\n"
-	      "  r number  reads messages starting at \"number\"\n"
-	      "  <return>  read messages or go to next newsgroup with new news\n"
-	      "\n"
-	      "Just type a command at the prompt and hit return.\n"
-	      );
+	  wrap("This is the prompt for commands that apply to the "
+	    "current newsgroup you are reading (" + current_group +
+	    ").  The commands that apply are:") +
+	  "\n"
+	  "  q   quit reading news\n"
+	  "  ?   this help\n"
+	  "  l   list new messages\n"
+	  "  L   list all messages\n"
+	  "  m   main news menu\n"
+	  "  g   go to a newsgroup\n"
+	  "  p   post message\n"
+	  "  r   read next message\n"
+	  "  f   post a followup to this message\n"
+	  "  F   post a followup to this message, quoting it\n"
+	  "  n   next newsgroup with new news\n"
+	  "  c   mark all messages as read (catch up)\n"
+	  "  R   remove this message\n"
+	  "\n"
+	  "  g group   goes to newsgroup \"group\"\n"
+	  "  r number  reads messages starting at \"number\"\n"
+	  "  <return>  read messages or go to next newsgroup with new news\n"
+	  "\n"
+	  "Just type a command at the prompt and hit return.\n"
+	);
     }
     else if ( cmd == "R" )
     {
@@ -734,14 +744,14 @@ private nomask void receive_msg_cmd(mixed cmd)
 nomask void begin_reading(string arg)
 {
     if(!sizeof(NEWS_D->get_groups()))
-      {
-	printf("%s has no newsgroups right now.\n");
+    {
+	printf( "%s has no newsgroups right now.\n", mud_name());
 	destruct();
 	return;
-      }
+    }
     this_body()->validate_groups();
-    
+
     add_new_groups();
 
-    display_groups_with_new();
+    display_groups_with_new( arg );
 }

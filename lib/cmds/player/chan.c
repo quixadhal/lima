@@ -16,6 +16,7 @@ inherit CMD;
 private void main(string arg)
 {
     string channel_name;
+    int chan_type;
 
     if ( !arg || arg == "" || (wizardp(this_user()) && arg == "-d") )
     {
@@ -42,17 +43,12 @@ private void main(string arg)
 	channel_name = arg;
 	arg = "";
     }
-	    
-    /* all channels thru this ob are plyr_XXX */
-    channel_name = "plyr_" + channel_name;
-	    
-    NCHANNEL_D->cmd_channel(channel_name, arg);
-	    
-    return;
-}
 
-nomask int
-valid_resend(string ob) {
-    return 
-	ob == "/cmds/wiz/ichan" || ob == "/cmds/wiz/wchan";
+    /* COMPATIBILITY: if there is no '_' in the name, prepend plyr_ */
+    if ( member_array('_', channel_name) == -1 )
+	channel_name = "plyr_" + channel_name;
+
+    chan_type = channel_name[0..4] == "imud_";
+
+    NCHANNEL_D->cmd_channel(channel_name, arg, chan_type);
 }

@@ -377,7 +377,10 @@ private void input_from_main_menu(string arg)
     int cmd;
 
     if(arg == "")
-	return;
+{
+  quit_alias_editor();
+  return;
+}
     if(strlen(arg) == 1)
     {
 	cmd = arg[0];

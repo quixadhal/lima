@@ -22,7 +22,7 @@ private void end_describe()
 	write("Description finished.\n");
     }
 
-    destruct(this_object());
+    destruct();
 }
 
 
@@ -38,7 +38,7 @@ private void receive_line(string input)
     {
 	write("Aborted.\n");
 	modal_pop();
-	destruct(this_object());
+	destruct();
 	return;
     }
     descrip += ({input});

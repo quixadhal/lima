@@ -2,7 +2,7 @@
 
 inherit CMD;
 
-private void
-main(mixed *arg) {
-    new("/obj/dataedit")->start_menu(arg[0]);
+private void main(mixed *arg)
+{
+    new(DATAEDIT)->start_menu(arg[0]);
 }

@@ -6,5 +6,9 @@ inherit CMD;
 private void main(string arg)
 {
     clone_object(HELPSYS)->begin_help(arg);
-    return;
+}
+
+void player_menu_entry()
+{
+    main("");
 }

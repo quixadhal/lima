@@ -90,10 +90,12 @@ static nomask void restore_me(string some_userid, int preserve_vars)
     unguarded(1, (: restore_object, LINK_PATH(some_userid), preserve_vars :));
 
 //### upgrade old files
+    if(query_body_fname() == "/std/player")
+        set_body_fname(BODY);
     if ( data_version == 0 )
     {
 	if ( !query_body_fname() )
-	    set_body_fname(PLAYER);
+	    set_body_fname(BODY);
 	data_version = 1;
     }
     if ( data_version == 1 )

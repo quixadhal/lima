@@ -10,6 +10,7 @@ void create()
 
     ::create();
 
+   add_area ("pirate");
    set_brief( "North Cave" );
 
    set_long ("This is north side of the cavern.  To the south you see a small east/west running river.  To the west and the east the rock walls of the cavern press in ominously.");

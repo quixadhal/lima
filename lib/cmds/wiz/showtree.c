@@ -7,10 +7,16 @@
 inherit CMD;
 
 varargs string print_tree(string file, string func, int indent) {
-    object ob = find_object(file);
+    object ob;
     string result;
     int found;
     
+    if( !file )
+    {
+        return "You need to specify an object.\n";
+    }
+    
+    ob = find_object( file );
     if (file[0] != '/')
 	file = "/" + file;
     

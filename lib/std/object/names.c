@@ -296,16 +296,3 @@ nomask string array parse_command_adjectiv_id_list() {
     if (test_flag(INVIS)) return ({ });
     return adjs;
 }
-
-
-
-
-
-
-//### should be removed
-static
-string shitty_hack_to_get_object_short()
-{
-    return evaluate(internal_short);
-}
-

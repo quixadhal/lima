@@ -8,9 +8,10 @@
 #define CLASS_STATMODS		"/std/classes/statmods"
 #define CLASS_CHANNEL_INFO	"/std/classes/channel_info"
 #define CLASS_ANNOTATION	"/std/classes/annotation"
+#define CLASS_COMBAT_RESULT	"/std/classes/combat_result"
 
-#define CLASS_ALIAS		"/std/shell/classes/alias"
-#define CLASS_SKILL		"/std/player/classes/skill"
+#define CLASS_SKILL		"/std/body/classes/skill"
 
+#define CLASS_ALIAS		"/secure/obj/shell/classes/alias"
 
-#endif
+#endif /* __CLASSES_H__ */

@@ -41,3 +41,8 @@ private void main(string arg)
     str += sprintf(TRAILER, sizeof(list), count, sizeof(list) * 100 / count);
     more(str);
 }
+
+void player_menu_entry(string str)
+{
+    main(str);
+}

@@ -6,10 +6,12 @@ inherit ROOM;
 
 void create() 
 { 
-  function river = (: write("You would drown in the river.\n") :);
-  room::create(); 
-  set_brief("Large cavern");
+    string river = "#You would drown in the river.\n";
+  ::create(); 
 
+  set_area ("pirate");
+
+  set_brief("Large cavern");
   set_long("This is a large cavern on the inside of the mountain, "
 	   "large enough to hold a small city.  There is a lazy river running "
 	   "right through the center of the cavern, flowing west to east.  "

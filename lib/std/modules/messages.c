@@ -246,6 +246,7 @@ varargs void simple_action(mixed msg, array obs...) {
     string others;
     object *who;
 
+    if( !sizeof( msg )) return;
     /* faster to only make who once */
     who = ({ this_object() });
     if (pointerp(msg))
@@ -264,6 +265,7 @@ varargs void my_action(mixed msg, array obs...) {
     string us;
     object *who;
 
+    if (!sizeof( msg )) return;
     who = ({ this_object() });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
@@ -277,6 +279,7 @@ varargs void other_action(mixed msg, array obs...) {
     string others;
     object *who;
 
+    if( !sizeof(msg)) return;
     who = ({ this_object() });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
@@ -291,6 +294,7 @@ varargs void targetted_action(mixed msg, object target, array obs...) {
     string us, them, others;
     object *who;
 
+    if( !sizeof(msg)) return;
     who = ({ this_object(), target });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];

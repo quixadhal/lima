@@ -1,9 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 
 inherit LIVING;
-inherit "/std/modules/actions";
+inherit M_ACTIONS;
 
 string *strings = ({
     "The wrath of the almighty Barney!",
@@ -20,7 +19,7 @@ string find_target() {
 
 void do_my_thing() {
     string which = emotes[random(sizeof(emotes))];
-    string *rules = keys("/daemons/soul_d"->query_emote(which));
+    string *rules = keys(SOUL_D->query_emote(which));
     string rule = rules[random(sizeof(rules))];
     object *who = users();
     string comm, token;
@@ -59,8 +58,8 @@ create() {
     set_proper_name("Barney the Dinosaur");
     set_in_room_desc("Barney the dinosaur");
     set_long("It's everyone's favorite purple dinosaur!");
-    emotes = "/daemons/soul_d"->list_emotes();
-    adverbs = "/daemons/soul_d"->get_adverbs();
+    emotes = SOUL_D->list_emotes();
+    adverbs = SOUL_D->get_adverbs();
     call_out( (: do_my_thing :), 5);
 }
      

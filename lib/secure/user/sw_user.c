@@ -76,7 +76,11 @@ private nomask void confirm_valid_su(string old_userid,
 				     string new_body,
 				     string arg)
 {
-    string pwd = USERLIST_D->query_password(new_userid);
+    string pwd;
+
+    /* new_userid should exist and therefore the return value should be ok */
+    pwd = unguarded(1, (: call_other, USER_D, "query_variable",
+			new_userid, ({ "password" }) :))[0];
 
     if ( crypt(arg, arg) != pwd )
     {

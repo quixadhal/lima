@@ -23,6 +23,8 @@
 
 // this is where the server will look for all gateways, regardless of where
 // thier URL claims they are located.
+// this needs to stay the way it is if you want to use the scripts that
+// come w/ lima as-is.
 #define SECURE_CGI_DIR 	HTTP_ROOT + "/cgi"
 
 #endif

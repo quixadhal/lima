@@ -1,0 +1,196 @@
+<DL>
+<DT><em>Mon Jan  8 18:42:15 1996</em>: <strong>Rust</strong>
+<DD> changed r8 -> r9 in /secure/user/login.c (someone missed it)<p>
+<DT><em>Tue Jan  9 00:52:33 1996</em>: <strong>Deathblade</strong>
+<DD> updated the I3 daemon's version, too (I should automate this... :-)<p>
+<DT><em>Tue Jan  9 16:28:44 1996</em>: <strong>Cowl</strong>
+<DD> wrote a quickie cgi that will find, and display in an unordered list, all wizards with web dirs, clickable to get to thier home pages (/WWW/cgi/homepages.c)<p>
+<DT><em>Wed Jan 10 05:24:22 1996</em>: <strong>Ohara</strong>
+<DD> fixed that persistant finger bug.<p>
+<DT><em>Wed Jan 10 07:13:31 1996</em>: <strong>Ohara</strong>
+<DD> removed a lot more bugs from the bug spool. Could someone with more clues than me please go through it and clean it up sometime :)<p>
+<DT><em>Wed Jan 10 14:51:54 1996</em>: <strong>Rust</strong>
+<DD> added: http://lima.imaginary.com:7958/cgi/changes.c<p>
+<DT><em>Wed Jan 10 15:18:11 1996</em>: <strong>Cowl</strong>
+<DD> changed the seperator between filename and arguments in a URL from '?' to the standard '?=' in the http daemon<p>
+<DT><em>Wed Jan 10 15:41:27 1996</em>: <strong>Rust</strong>
+<DD> added http://lima.imaginary.com:7958/fingeruser.html which allows you to finger a user. If a user didn't supply a homepage for their finger info, and they've got a mud homepage, a link to that is given by the finger_d as their homepage.<p>
+<DT><em>Wed Jan 10 20:20:46 1996</em>: <strong>Rust</strong>
+<DD> added a bunch of mudlist/info web stuff for people whoose browsers support tables. http://lima.imaginary.com:7958/mudlist.html<p>
+<DT><em>Thu Jan 11 05:09:30 1996</em>: <strong>Ohara</strong>
+<DD> fixed the reporter bug/typo/idea/todos to save 2 lines per post. PS: There's a hell of a lot of redundancy in the four functions. This should probably be fixed.<p>
+<DT><em>Thu Jan 11 07:11:35 1996</em>: <strong>Beek</strong>
+<DD> made a clog entry just so I would show up on Rust's CGI. Sorry guys :-)<p>
+<DT><em>Fri Jan 12 04:05:22 1996</em>: <strong>Deathblade</strong>
+<DD> fixed NEWS_D to save itself after posts are removed.<p>
+<DT><em>Fri Jan 12 04:48:07 1996</em>: <strong>Ohara</strong>
+<DD> changed channels so that /who and /list are equivalent.<p>
+<DT><em>Fri Jan 12 04:58:16 1996</em>: <strong>Zifnab</strong>
+<DD> fixed it so that return at the main menu of the alias menu quits the menu<p>
+<DT><em>Fri Jan 12 05:06:50 1996</em>: <strong>Ohara</strong>
+<DD> and Dana and Perk decided to kick Zifnab off and rename Lima Bean to Ozmud.<p>
+<DT><em>Sat Jan 13 01:25:08 1996</em>: <strong>Rust</strong>
+<DD> removed the _d from the file names of all the daemons.<p>
+<DT><em>Sat Jan 13 01:58:58 1996</em>: <strong>Rust</strong>
+<DD> added an assert.h assert(x) works if DEBUG is on, and ASSERT(x) always works. They can not be embedded in an expression intentionally (they must be used as standalone statements).<p>
+<DT><em>Sat Jan 13 07:14:58 1996</em>: <strong>Rust</strong>
+<DD> added a spell system, and 2 tiny examples in /domains/std/spells (You have to be a wizard to use one, and you have to be in the stock mage guild and level 1 in the guild to use the other). Next time I'm here, I'll do some more examples.<p>
+<DT><em>Sat Jan 13 08:07:48 1996</em>: <strong>Rust</strong>
+<DD> added smell and listen support. You can define a smell () or a sound () function in an object, which should handle what happens when someone smells or listens to the object.<p>
+<DT><em>Sat Jan 13 08:21:28 1996</em>: <strong>Rust</strong>
+<DD> updated /USAGE a bit. We've mentioned in a few places that you're not to change the mudlib name w/o permission, and now it is formalized there. Also, we now require that you display the mudlib name on the title screen unless you have permission.<p>
+<DT><em>Sat Jan 13 19:26:51 1996</em>: <strong>Ohara</strong>
+<DD> fixed mail so that a return will take you to the next message, or quit if you have no more mail.<p>
+<DT><em>Sat Jan 13 19:58:03 1996</em>: <strong>Ohara</strong>
+<DD> fixed that bug in more where a n on the last one would overrun.<p>
+<DT><em>Sat Jan 13 20:32:03 1996</em>: <strong>Ohara</strong>
+<DD> fixed the plan bug where ~q-ing would error.<p>
+<DT><em>Sun Jan 14 00:34:39 1996</em>: <strong>Ohara</strong>
+<DD> fixed the bug in the banish menu of the admtool.<p>
+<DT><em>Sun Jan 14 01:59:57 1996</em>: <strong>Ohara</strong>
+<DD> changed more so that news/mail using it wouldn't bug. hitting 'n' now terminates the current post.. It would be nice to have it go straight to the next post. FFF.<p>
+<DT><em>Sun Jan 14 02:55:47 1996</em>: <strong>Ohara</strong>
+<DD> fixed didlog with a little help from my friends ....<p>
+<DT><em>Sun Jan 14 03:40:09 1996</em>: <strong>Deathblade</strong>
+<DD> moved shell variables to just the wizard shell. More changes coming...<p>
+<DT><em>Sun Jan 14 04:25:29 1996</em>: <strong>Deathblade</strong>
+<DD> moved the (arbitrary) prompt functionality from the generic shell to the wizard shell.<p>
+<DT><em>Sun Jan 14 04:48:54 1996</em>: <strong>Ohara</strong>
+<DD> fixed the M_MESSAGE to not bug out when passed a null string.<p>
+<DT><em>Sun Jan 14 05:36:36 1996</em>: <strong>Deathblade</strong>
+<DD> moved default aliases to ALIAS_D (/daemons/alias). moved the save file from /data/std/alias.o to /data/daemons/alias.o. move the M_ACCESS from M_ALIAS to WISH<p>
+<DT><em>Sun Jan 14 05:48:35 1996</em>: <strong>Zakk</strong>
+<DD> fixed all the commands that used M_INPUT to allow more than one person to use them.<p>
+<DT><em>Sun Jan 14 11:42:15 1996</em>: <strong>Rust</strong>
+<DD> moved .login handling from the body to the user, since it didn't work when it was in the body. your .login won't handle aliases, I think<p>
+<DT><em>Mon Jan 15 03:49:19 1996</em>: <strong>Ohara</strong>
+<DD> fixed mudlist -s to be case insensitive.<p>
+<DT><em>Mon Jan 15 04:54:54 1996</em>: <strong>Deathblade</strong>
+<DD> added channel restrictions to the daemon; added /new; torched achan, ichan, wchan; see "help channels"<p>
+<DT><em>Mon Jan 15 05:19:13 1996</em>: <strong>Deathblade</strong>
+<DD> wanted to note the changes in data files lately that are COMPAT BUSTERS: /data/std/alias.o moved to /data/daemons/alias.o. Some of those aliases changed to no longer use wchan and ichan. Many channels need to have their options updated to be permanent (wiz) channels. A channel_d.o will be shipped with the lib that has the right flags.<p>
+<DT><em>Mon Jan 15 23:52:19 1996</em>: <strong>Deathblade</strong>
+<DD> added channel history. Use /last on your favorite channel :-). Limit of 20 lines (configurable in config.h).<p>
+<DT><em>Tue Jan 16 01:39:30 1996</em>: <strong>Ohara</strong>
+<DD> fixed news to print "msg" instead of "msgs" when there is <2 posts left.<p>
+<DT><em>Tue Jan 16 01:44:38 1996</em>: <strong>Deathblade</strong>
+<DD> moved GROUP_D to /daemons and added management via admtool.<p>
+<DT><em>Tue Jan 16 03:52:53 1996</em>: <strong>Ohara</strong>
+<DD> cleaned up lima.ideas .. as with lima.bugs, more work is needed to cut stuff that's now redundant :)<p>
+<DT><em>Tue Jan 16 05:06:15 1996</em>: <strong>Zifnab</strong>
+<DD> added basic support for dropping and getting coins. rules are drop_wrd_str and get_wrd_string, object is /std/coins (probably needs to move)<p>
+<DT><em>Tue Jan 16 08:19:05 1996</em>: <strong>Beek</strong>
+<DD> changed Ohara's news fix to do it the right way: number_of(last_id, "msg" )<p>
+<DT><em>Tue Jan 16 23:30:06 1996</em>: <strong>Ohara</strong>
+<DD> complains bitterly about undocumented features, and there use in one line fixes which would be easier to do than fill the bug spool with ;)<p>
+<DT><em>Wed Jan 17 07:47:33 1996</em>: <strong>Beek</strong>
+<DD> changed update -z to consider files loaded at the same time to _not_ be out of date with respect to each other<p>
+<DT><em>Thu Jan 18 03:07:17 1996</em>: <strong>Deathblade</strong>
+<DD> changed hit_points::reduce_hp() to die when hp <= 0, not just < 0. Monsters that hit 0 wouldn't die and couldn't be attacked to finish them off.<p>
+<DT><em>Thu Jan 18 04:09:55 1996</em>: <strong>Deathblade</strong>
+<DD> moved REPORTER to REPORTER_D since it was never cloned or subclassed. moved replicated functionality in from bug/typo/idea/todo.<p>
+<DT><em>Thu Jan 18 05:02:07 1996</em>: <strong>Deathblade</strong>
+<DD> updated the player menu to not require a force. Many player commands now have a new func: player_menu_entry() which typically calls main(). It could apply extra security or limitations if needed (as main() is normally very secure)<p>
+<DT><em>Thu Jan 18 05:05:12 1996</em>: <strong>Deathblade</strong>
+<DD> changed /obj to have Mudlib:objects on it<p>
+<DT><em>Thu Jan 18 08:25:05 1996</em>: <strong>Beek</strong>
+<DD> made reduce_hp() static, to prevent abuse<p>
+<DT><em>Thu Jan 18 11:07:29 1996</em>: <strong>Beek</strong>
+<DD> made massive modifications to how combat results are handled; it is now abstracted and uniform across combat systems. Note: it hasn't been tested yet, so it's probably broken. I'll get back to it.<p>
+<DT><em>Thu Jan 18 18:22:59 1996</em>: <strong>Ohara</strong>
+<DD> is fairly sure he fixed the newsreader bug .. when it had no newsgroups it was trying to use a %s without passing an arg (in this case mud_name())<p>
+<DT><em>Fri Jan 19 01:38:38 1996</em>: <strong>Deathblade</strong>
+<DD> converted sw_user.c to use USER_D rather than the old whacko USERLIST_D to fetch the password. It does an unguarded() appropriately, so it can now actually _get_ the password when you su (it used to bug on this cuz it didn't have privs).<p>
+<DT><em>Fri Jan 19 01:39:26 1996</em>: <strong>Deathblade</strong>
+<DD> nuked the old USERLIST_D. It is so old and ugly that it would be harder to update than to write from scratch. Its concept might even be bogus given the existence of new mechanisms.<p>
+<DT><em>Fri Jan 19 01:52:56 1996</em>: <strong>Deathblade</strong>
+<DD> added a thread_id to class mail_msg for possible mail message threading in the future.<p>
+<DT><em>Fri Jan 19 02:49:08 1996</em>: <strong>Deathblade</strong>
+<DD> updated the mail message storage to use class mail_msg rather than the old many-variable approach.<p>
+<DT><em>Fri Jan 19 03:08:05 1996</em>: <strong>Deathblade</strong>
+<DD> separated mail processing from mailbox handling. The former is the good old MAIL_D. The latter is now MAILBOX_D (/daemons/mailbox.c). MAIL_D is still secure.<p>
+<DT><em>Fri Jan 19 03:40:10 1996</em>: <strong>Deathblade</strong>
+<DD> fixed up simple.c so that it at least loads. No guarantees on functionaly, as Beek said, but at least the mud will come up :-)<p>
+<DT><em>Fri Jan 19 04:11:52 1996</em>: <strong>Ohara</strong>
+<DD> announces that lima.bugs is down to >100< posts. Ohara also notes that this is pre-post-alpha bug fixing. If DB can redefine language, so can he.<p>
+<DT><em>Fri Jan 19 07:46:14 1996</em>: <strong>Beek</strong>
+<DD> discovered that combat, suprisingly, works.<p>
+<DT><em>Fri Jan 19 08:21:47 1996</em>: <strong>Beek</strong>
+<DD> moved stunned/knockout handling to /std/living/state_of_mind, and also moved duplicated code in simple and tradition combat up to the combat base.<p>
+<DT><em>Fri Jan 19 08:26:23 1996</em>: <strong>Beek</strong>
+<DD> added check_condition() to verb_ob, which checks whether a player is stunned/asleep<p>
+<DT><em>Fri Jan 19 08:36:14 1996</em>: <strong>Beek</strong>
+<DD> changed the default can_* function to check light and condition. Verbs which define can_* functions (but not direct_*, etc) should check the result of the default_checks() routine<p>
+<DT><em>Fri Jan 19 08:38:47 1996</em>: <strong>Beek</strong>
+<DD> added a query_ghost() check as well<p>
+<DT><em>Fri Jan 19 09:00:40 1996</em>: <strong>Beek</strong>
+<DD> fixed diagnose to actually say something useful<p>
+<DT><em>Sat Jan 20 01:09:56 1996</em>: <strong>Ohara</strong>
+<DD> fixed mudinfo to show info on the current mud when no arg given<p>
+<DT><em>Sat Jan 20 03:00:06 1996</em>: <strong>Ohara</strong>
+<DD> moved uptime to time, cutting out some redundancy.<p>
+<DT><em>Sat Jan 20 03:22:59 1996</em>: <strong>Deathblade</strong>
+<DD> got VERB_OB to load after some recent edits (nudge nudge). There is still a problem in the default_checks() function where it needs a value and I have no idea where to get it from.<p>
+<DT><em>Sat Jan 20 03:29:23 1996</em>: <strong>Ohara</strong>
+<DD> added leave and disembark as synonyms for exit .. He also restored the "" rule.<p>
+<DT><em>Sat Jan 20 04:06:36 1996</em>: <strong>Ohara</strong>
+<DD> ripped /include/obbits.h<p>
+<DT><em>Sat Jan 20 04:16:44 1996</em>: <strong>Ohara</strong>
+<DD> ripped /std/object/bits.c . .. blame DB if anything explodes :)<p>
+<DT><em>Sat Jan 20 05:10:27 1996</em>: <strong>Ohara</strong>
+<DD> added c/-c and C/-C options to news .. the first will only put you in news if there are unread groups, and the second just shows unread groups without entering news<p>
+<DT><em>Sat Jan 20 06:52:15 1996</em>: <strong>Ohara</strong>
+<DD> changed errors to date and timestamp.<p>
+<DT><em>Sat Jan 20 07:49:21 1996</em>: <strong>Ohara</strong>
+<DD> wrote moreob .. allows you to more an object by using an id.<p>
+<DT><em>Sat Jan 20 08:10:03 1996</em>: <strong>Beek</strong>
+<DD> fixed /std/verb_ob to not need an action; small tweaks to /std/living/state_of_mind as well<p>
+<DT><em>Sat Jan 20 08:13:14 1996</em>: <strong>Beek</strong>
+<DD> fixed basename() to distinguish between basename(0) and basename()<p>
+<DT><em>Sat Jan 20 08:31:51 1996</em>: <strong>Ohara</strong>
+<DD> fixed home to just twitch when in your home ..<p>
+<DT><em>Sat Jan 20 08:42:14 1996</em>: <strong>Ohara</strong>
+<DD> fixed wizz to twitch when in wizroom ..<p>
+<DT><em>Sat Jan 20 08:43:41 1996</em>: <strong>Beek</strong>
+<DD> made more accept objects<p>
+<DT><em>Sun Jan 21 02:06:17 1996</em>: <strong>Deathblade</strong>
+<DD> updated objcount to have an optional numeric arg to specify the cutoff level for display of obs.<p>
+<DT><em>Sun Jan 21 03:08:10 1996</em>: <strong>Deathblade</strong>
+<DD> changed the command rule for "more" back to just "file*" until CMD_D is fixed. It doesn't like "obj|file*" and that broke "more" completely.<p>
+<DT><em>Sun Jan 21 03:19:25 1996</em>: <strong>Deathblade</strong>
+<DD> moved CMD_D to /secure/daemons<p>
+<DT><em>Sun Jan 21 04:32:00 1996</em>: <strong>Rust</strong>
+<DD> changed the map-type stuff to area. Now room has: set_area () and get_area (). set_area takes an arbitrary string, which is the name of your area. It'll eventually be used to keep wandering monsters in one place, and could be used for weather, etc....<p>
+<DT><em>Sun Jan 21 04:47:10 1996</em>: <strong>Rust</strong>
+<DD> updated the pirate area to use set_area ( "pirate" )<p>
+<DT><em>Sun Jan 21 05:05:21 1996</em>: <strong>Rust</strong>
+<DD> moved /std/room.c to /std/base_room.c and made simple indoor_room and outdoor_room subclasses. indoor_room is now ROOM when you do: inherit ROOM;<p>
+<DT><em>Sun Jan 21 05:05:57 1996</em>: <strong>Rust</strong>
+<DD> noted: the difference between indoor and outdoor rooms is only weather, right now (plus is_indoors(), is_outdoors())<p>
+<DT><em>Sun Jan 21 05:07:36 1996</em>: <strong>Rust</strong>
+<DD> noted that outdoor rooms can be gotten by inheriting OUTDOOR_ROOM<p>
+<DT><em>Sun Jan 21 05:09:52 1996</em>: <strong>Rust</strong>
+<DD> updated the outdoor rooms in the domains/std stuff to inherit OUTDOOR_ROOM<p>
+<DT><em>Sun Jan 21 05:09:58 1996</em>: <strong>Deathblade</strong>
+<DD> implemented BASE_OBJ as a common base class or *SPARSE_OBJ and OBJ. Simplified the sparse obs<p>
+<DT><em>Sun Jan 21 05:23:27 1996</em>: <strong>Rust</strong>
+<DD> fixed weather so that it works again<p>
+<DT><em>Sun Jan 21 05:23:53 1996</em>: <strong>Deathblade</strong>
+<DD> moved CMD, DAEMON, MAILER, SHELL, and SOCKET to a new directory: /secure/obj<p>
+<DT><em>Sun Jan 21 05:31:54 1996</em>: <strong>Rust</strong>
+<DD> changed room::create () to ::create() in example rooms =(<p>
+<DT><em>Sun Jan 21 05:36:57 1996</em>: <strong>Rust</strong>
+<DD> added a compatibility module: room::create() will be valid in r10, but in the release after that, it'll cease to work.<p>
+<DT><em>Sun Jan 21 06:41:07 1996</em>: <strong>Deathblade</strong>
+<DD> renamed player.c to body.c (and its subdir and stuff)<p>
+<DT><em>Sun Jan 21 06:41:37 1996</em>: <strong>Deathblade</strong>
+<DD> tweaked CMD to tell it that it is no in /secure/obj/cmd.c<p>
+<DT><em>Sun Jan 21 06:43:07 1996</em>: <strong>Deathblade</strong>
+<DD> updated a number of files to remove /std dependencies. I updated /data/config/preload. etc. New locations of files seem okay now.<p>
+<DT><em>Sun Jan 21 12:05:34 1996</em>: <strong>Beek</strong>
+<DD> fixed the http daemon not to throw an error whenever someone connects (/std/socket passes zero to the read callback)<p>
+<DT><em>Sun Jan 21 13:21:09 1996</em>: <strong>Beek</strong>
+<DD> added an autodoc CGI; check out http://lima.imaginary.com:7958/cgi/autodoc.c; the most impressive one is http://lima.imaginary.com:7958/cgi/autodoc.c?=tree-body ;-)<p>
+<DT><em>Sun Jan 21 22:23:56 1996</em>: <strong>Deathblade</strong>
+<DD> fixed up the ROOM compatibility module. Recall: change all room::create() uses to just ::create(). Optionally, change inherit ROOM; to inherit INSIDE_ROOM; or inherit OUTSIDE_ROOM;. This compat feature will disappear in a future release.<p>
+</DL>

@@ -1,11 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 inherit ROOM;
 
 create()
 {
-  room::create();
+  ::create();
+  set_area ("pirate");
   set_brief("Painted grotto");
   set_long("Tumbling waves from the ocean creep into the entrance of this "
            "ornately painted cave.  Though some of the paintings have been "

@@ -1,14 +1,14 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-inherit ROOM;
+inherit OUTDOOR_ROOM;
 
 create()
 {
     string m = "#The mountains are too steep to climb.  You'd have to go around them...\n";
     string o = "#You would drown!\n";
-  room::create();
+  ::create();
   set_brief("Sandy beach");
+  set_area ("pirate");
   set_long("The waves lap happily onto this sandy beach, which ends here -- the mountains barely meet the water, leaving not even a grain of sand on which to walk."); 
   set_exits( ([
 	       "northeast" :  m,

@@ -53,6 +53,9 @@ add_info_to_output_2(string obj, mapping m, string func)
 private void
 main(string s)
 {
+    write( "Apropos is Bugged. Bug Someone to fix it.\n")
+;
+    return;
     output = "";
     if(!s)
     {

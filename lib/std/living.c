@@ -5,6 +5,7 @@
 inherit CONTAINER;
 inherit "/std/living/grammar";
 inherit "/std/living/messages";
+inherit "/std/living/state_of_mind";
 
 /* This is a pure 'living' object, not what is traditionally meant
  * by a living object on LPmuds.  Note that find_living() won't
@@ -47,7 +48,12 @@ int is_living() {
   return 1;
 }
 
+// This returns an action, so that spells can modify the perspective. i.e:
+// You sense: Beek is dead.  Other than that, things are going well for him.
 
+string diagnose() {
+    return "$N $vare in perfect health.\n";
+}
 
 /* verb interaction */
 mixed direct_cross_obj(object ob) {

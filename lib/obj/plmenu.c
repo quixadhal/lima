@@ -45,21 +45,14 @@ MENU_ITEM main_seperator;
 //private MENU helpmenu;
 
 
-  private mapping dispatch = ([ "n" : "news", "w" : "who", 
+private mapping dispatch = ([ "n" : "news", "w" : "who", 
 			      "b" : "bug", "t" : "typo", "i" : "idea",
 			      "?" : "help", "l" : "mudlist" ]);
 
 
-private nomask void do_cmd(string cmd)
+private nomask void simple_cmd(string cmd)
 {
-    unguarded(1, (: call_other, this_user(), "force_me", cmd :));
-}
-
-private nomask void 
-simple_cmd(string cmd)
-{
-    do_cmd(dispatch[cmd]);
-//  call_other(CMD_DIR_PLAYER "/" + dispatch[cmd],"main");
+    call_other(CMD_DIR_PLAYER "/" + dispatch[cmd], "player_menu_entry");
 }
 
 
@@ -69,49 +62,41 @@ start_mail()
     this_body()->query_mailer()->begin_mail();
 }
 
-void 
-handle_finger(string person)
+void handle_finger(string person)
 {
-    do_cmd("finger " + person);
-//  CMD_OB_FINGER->main(person);
+    CMD_OB_FINGER->player_menu_entry(person);
     prompt_then_return();
 }
 
-void
-find_soul(string s)
+void find_soul(string s)
 {
-  if(!s) {
-    write("Invalid.\n");	
-    return;
-  }
+    if(!s) {
+	write("Invalid.\n");	
+	return;
+    }
 
-  do_cmd("emoteapropos " + s);
-//  CMD_OB_EMOTEAPROPOS->main(s);
+    CMD_OB_EMOTEAPROPOS->player_menu_entry(s);
 }
 
-void
-show_souls(string s)
+void show_souls(string s)
 {
-   do_cmd("feelings " + s);
-//    CMD_OB_FEELINGS->main("^"+s);
+    CMD_OB_FEELINGS->player_menu_entry("^" + s);
 }
 
  
-void
-show_adverbs(string s)
+void show_adverbs(string s)
 {
   write(
 "Remember: You can get any of these adverbs by typing part of the adverb \n"
 "then *, if the part you type is unique.  Eg, kick rust ene* would give you:\n"
 "kick rust energetically, but kick rust en* won't because it also\n"
 "matches endearingly and enthusiastically.\n");
-  do_cmd("adverbs " + s);
-//  CMD_OB_ADVERBS->main("^"+s);
+
+  CMD_OB_ADVERBS->player_menu_entry("^" + s);
 }
 
 
-void
-change_email(string s)
+void change_email(string s)
 {
   this_user()->set_email(s);
   write("Email info changed.\n");
@@ -204,13 +189,11 @@ set_snoopable(string s)
   goto_previous_menu();
 }
 
-void
-finish_who(string mudname)
+void finish_who(string mudname)
 {
-    do_cmd("finger @" + mudname);
-//  CMD_OB_FINGER->main("@"+mudname);
-  printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
-  prompt_then_return();
+    CMD_OB_FINGER->player_menu_entry("@" + mudname);
+    printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
+    prompt_then_return();
 }
 
 void
@@ -220,20 +203,20 @@ remote_who()
   complete_choice(0, IMUD_D->query_mudnames(), (: finish_who :));
 }
 
-void
-finish_mudinfo(string mudname)
+#if 0 /* mudinfo is a wiz command */
+void finish_mudinfo(string mudname)
 {
-do_cmd( "mudinfo " + mudname );
+    do_cmd( "mudinfo " + mudname );
 
-printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
+    printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
 }
  
-void
-remote_mudinfo()
+void remote_mudinfo()
 {
    write("Which mud do you want to query?\n");
-complete_choice(0, IMUD_D->query_mudnames(), (: finish_mudinfo :));
+   complete_choice(0, IMUD_D->query_mudnames(), (: finish_mudinfo :));
 }
+#endif /* 0 */
 
 void
 create()
@@ -371,8 +354,8 @@ add_menu_item(personalmenu, new_menu_item("Set ANSI on/off", (: get_input_then_c
   add_menu_item (remotemenu, quit_item);
   add_menu_item (remotemenu, goto_main_menu_item);
   add_menu_item (wizmenu, main_seperator);
-add_menu_item (wizmenu, new_menu_item("Info on another mud",
-                                    (: remote_mudinfo :), "i"));
+//  add_menu_item (wizmenu, new_menu_item("Info on another mud",
+//					(: remote_mudinfo :), "i"));
   add_menu_item (wizmenu, quit_item);
   add_menu_item (wizmenu, goto_main_menu_item);
 

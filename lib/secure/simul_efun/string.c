@@ -17,6 +17,7 @@ static void create()
   for(i=0; i < 256; i++){
 // Fix for backspace, This really shouldn't have
 // been necessary!
+//### It isn't.  Why is this here?
      if(i==8)ascii+=" ";
 	ascii += chr(i);
   }

@@ -32,3 +32,8 @@ private void main(string arg)
 		 implode(sort_array(list, 1), "\n"),
 		 sizeof(list), count, sizeof(list) * 100 / count));
 }
+
+void player_menu_entry(string str)
+{
+    main(str);
+}

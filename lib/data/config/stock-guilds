@@ -7,23 +7,23 @@
 
 name = stock-fighter
 title = Fighters' Guild
-attributes = stock-guild
+attributes = stock-guild, fighter
 banned = all
 
 
 name = stock-mage
 title = Mage Tower
-attributes = stock-guild
+attributes = stock-guild, mage
 banned = all
 
 
 name = stock-thief
 title = Guild of Thieves
-attributes = stock-guild
+attributes = stock_guild, thief
 banned = all
 
 
 name = stock-cleric
 title = Temple
-attributes = stock-guild
+attributes = stock-guild, cleric
 banned = all

@@ -253,7 +253,9 @@ void reset(){
 	for (int j = 0; j < num; j++) {
 	    ret = new(file, rest...)->move(this_object(), "#CLONE#");
 	    if ( ret != MOVE_OK )
+	    {
 		error("Initial clone failed for '" + file +"': " + ret + "\n");
+	    }
 	}
     }
 }

@@ -5,28 +5,22 @@ private static object my_sparse_obj;
 
 void add_item(mixed array stuff ...)
 {
+    if(mapp(stuff[<1]))
+    {
+	new(LESS_SPARSE_OBJ, stuff[<1], stuff[0..<2]);
+	return;
+    }
+    if(stuff[<1][<1] != '\n')
+    {
+	stuff[<1] += "\n";
+    }
 
-  if(mapp(stuff[<1]))
+    if(my_sparse_obj)
     {
-      new("/std/less_sparse_obj", stuff[<1], stuff[0..<2]);
-      return;
+	my_sparse_obj->add_simple_fake_item(stuff[<1], stuff[0..<2]);
     }
-  if(stuff[<1][<1] != '\n')
+    else
     {
-      stuff[<1] += "\n";
-    }
-
-  if(my_sparse_obj)
-    {
-      my_sparse_obj->add_simple_fake_item(stuff[<1], stuff[0..<2]);
-    }
-  else
-    {
-      my_sparse_obj = new(SPARSE_OBJ, stuff[<1], stuff[0..<2]);
+	my_sparse_obj = new(SPARSE_OBJ, stuff[<1], stuff[0..<2]);
     }
 }
-
-
-
-
-

@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit PLAYER;
+inherit BODY;
 
 #ifdef USE_STATS
 /*

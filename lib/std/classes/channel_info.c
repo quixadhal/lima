@@ -18,7 +18,7 @@ class channel_info
     object *	listeners;	/* who is listening */
     object *	hooked;		/* objects hooked into this channel */
 
-    function	allowed;	/* is the user/ob allowed to listen? */
+    int		flags;		/* the channel's flags */
 
     object	moderator;	/* moderator for this channel */
     object	speaker;	/* the current speaker */

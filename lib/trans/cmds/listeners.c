@@ -9,6 +9,7 @@
 */
 
 #include <mudlib.h>
+#include <channel.h>
 
 inherit CMD;
 
@@ -32,7 +33,8 @@ private nomask string fmt_listener(object listener)
 
 private void main()
 {
-    string * channels = NCHANNEL_D->query_channels();
+    string * channels = CHANNEL_D->query_channels();
+    mapping permanent = CHANNEL_D->query_permanent();
     string channel_name;
     object * listeners;
     string output = "";
@@ -46,10 +48,22 @@ private void main()
     foreach ( channel_name in channels )
     {
 	string one_channel = "";
+	int flags = permanent[channel_name];
+	string flagstr = ":\n";
 
 	listeners = NCHANNEL_D->query_listeners(channel_name) - ({ 0 });
 
-	output += channel_name + ":\n" +
+	if ( !undefinedp(flags) )
+	{
+	    if ( flags & CHANNEL_WIZ_ONLY )
+		flagstr = ": wiz permanent\n";
+	    else if ( flags & CHANNEL_ADMIN_ONLY )
+		flagstr = ": wiz permanent\n";
+	    else
+		flagstr = ": permanent\n";
+	}
+	    
+	output += channel_name + flagstr +
 	    iwrap("    " +
 		  implode(map_array(listeners, (: fmt_listener :)), ", ")) +
 	    "\n\n";

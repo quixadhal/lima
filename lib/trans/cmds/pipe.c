@@ -12,14 +12,27 @@ private nomask void handle_piping(string verb, string arg)
     {
 	write("Done.\n");
         modal_pop();
+        destruct();
 	return;
     }
 
     this_user()->force_me(verb + " " + arg);
 }
 
+
+nomask void start_cmd(mixed * arg)
+{
+    if(!clonep() || (base_name(previous_object()) != base_name()))  {
+        write("Illegal attempt to spoof command.\n");
+        destruct();
+        return;
+    }
+    write("Entering pipe mode. Type '**' to quit.\n");
+    modal_push((: handle_piping, arg[0] :), "*\b"); 
+}
+
 private nomask void main(mixed * arg)
 {
-    write("Entering pipe mode. Type '**' to quit.\n");
-    modal_push((: handle_piping, arg[0] :), "*\b");
+    new(file_name())->start_cmd(arg);
+    return;
 }

@@ -1,0 +1,78 @@
+wish
+awake/wake
+startle/surprise
+free/unattach/unfasten/unhook/untie
+lock
+unlock
+flip/set/shut/turn
+attach/fasten/secure/tie
+ask,verbal stuff.  Very not easy.
+swing/thrust
+hit/strike
+bathe/swim/wade
+stand (up OBJ, up)
+sit( or sit up OBJ etc.)
+squeeze/squeeze on
+spray
+spin
+slide
+pump
+lift/raise
+repent
+peal
+ring
+feel/pat/pet/rub/touch
+search (for OBJ in OBJ, for OBJ, in OBJ, under OBJ, OBJ, etc..)
+send for OBJ
+shake OBJ
+pray
+pour/spill
+puncture
+fix/glue/patch/plug/repair
+break
+play OBJ
+pick up / pick OBJ with OBJ / pick OBJ
+open complete?
+move / move OBJ with OBJ / move OBJ in OBJ
+can be a put synonym?
+liquify/melt
+make
+grease/lubricate/oil
+lower
+listen
+light
+lean on
+launch
+knock/rap
+taunt
+dive/jump/leap
+inflate
+chant/incant
+hello/hi
+hatch
+hand/give (hand OBJ OBJ) completed by zifnab 3/95 (made hand a synonym)
+donate offer
+chase/follow/pursue
+find/see/seek/where
+fill
+douse/extinguish
+banish/begone/cast/drive/excorcise
+enchant
+echo
+drink/imbibe/swallow
+enchant
+disenchant
+block/break/damage/destroy/smash
+deflate
+cut/pierce/slice
+command/order
+burn/ignite/incine
+brush/clean
+blow
+blast
+back
+apply
+answer/reply
+activate
+
+pass everything of the form do blah with bloop to boop->use()

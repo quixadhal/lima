@@ -55,7 +55,7 @@ private void main(mixed *arg, mapping flags)
 
     if ( !arg || stringp(arg) )
     {
-	arg = ({ 0 });
+        arg = ({ 0 });
 	flags = ([ ]);
     }
 
@@ -75,8 +75,8 @@ private void main(mixed *arg, mapping flags)
 	info = INFO_MUDTYPE;
     else
 	info = INFO_DEFAULT;
-
     search_str = flags["s"];
+
 
 	
 
@@ -113,7 +113,7 @@ private void main(mixed *arg, mapping flags)
 					)...);
 	if (search_str)
 	  {
-	    if(regexp(line,search_str))
+        if( regexp( lower_case( line ), lower_case( search_str )))
 	      {
 		output += line;
 	      }
@@ -132,4 +132,9 @@ private void main(mixed *arg, mapping flags)
 		     matched, sizeof(mudlist), upcount) + output;
 
     more(output);
+}
+
+void player_menu_entry()
+{
+    main(0, 0);
 }

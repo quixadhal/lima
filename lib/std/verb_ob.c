@@ -49,11 +49,6 @@ void create()
 */
 }
 
-/* we defined the rule, so assume by default we allow it */
-mixed can_verb_rule(string verb, string rule) {
-    return 1;
-}
-
 string refer_to_object(object ob) {
     // In the future, this should be smarter.  Ideally it would generate
     // something unique like 'my first sword' or 'the third sword on the table'
@@ -75,8 +70,39 @@ mixed try_to_acquire(object ob) {
     return environment(ob) == this_body();
 }     
 
+mixed check_ghost() {
+    if (this_body()->query_ghost())
+	return "But you're a ghost!\n";
+    return 1;
+}
+
 mixed check_vision() {
     if (environment(this_body())->query_light())
         return 1;
     return "You can't see a thing!\n";
+}
+
+mixed check_condition() {
+    mixed tmp;
+    
+    if (tmp = this_body()->check_condition(0))
+	return tmp;
+    return 1;
+}
+
+/* All (most) can_* functions should call this */
+mixed default_checks() {
+    mixed tmp;
+
+    if ((tmp = check_vision()) != 1)
+	return tmp;
+    if ((tmp = check_ghost()) != 1)
+	return tmp;
+
+    return check_condition();
+}
+
+/* we defined the rule, so assume by default we allow it */
+mixed can_verb_rule(string verb, string rule) {
+    return default_checks();
 }

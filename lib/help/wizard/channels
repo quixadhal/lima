@@ -1,0 +1,25 @@
+For wizards, there are a few extra capabilities in the channel system.
+These focus around creating the channels.  After the /new you may place
+options for that channel:
+
+chan name /new [admin | wiz | wizard | permanent | nopermanent | goaway ]*
+
+The options are:
+
+   admin	- Make the channel an admin channel.  This is only usuable
+		  by an admin.
+   wiz
+   wizard	- Make the channel only usable by wizards.  Only wizards
+		  may use this option.
+
+   permanent	- Make the channel permanent.  This channel will remain,
+		  even when the last listener goes away.  Mainly, this
+		  means that nobody will ever have to do a /new again.
+		  This is only usable by an admin.
+
+   nopermanent
+   goaway	- The channel can go away when there are no more listeners.
+		  This is only usable by an admin.
+
+Even after a channel has been created, you may use /new again to change
+the options on the channel.

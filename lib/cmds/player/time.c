@@ -1,24 +1,68 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-// _date.c
-// written by ???
-// Megaboz@ZorkMUD added help and header 5-5-94
+/********************************************************
+ *                                                      *
+ *   uptime  -  reports how long the mud has been up.   *
 
+ ** *  copied from ideaexchange where it was originally*
+ *  created by beek@nightmare                     *
+
+ *   copied by zifnab@zorkmud                           *
+ *
+ *********************************************************/
 #include <mudlib.h>
+#include <daemons.h>
+
 inherit CMD;
 
-private void main(){
-//add TZONE conversions
-write (ctime(time())+"\n");
-return;
-}
+#define MIN 60
+#define HOUR (60 * MIN)
+#define DAY (24 * HOUR)
+#define WEEK (7 * DAY)
 
-int help()
+
+private void main(string notused)
 {
-    printf("Usage:  date\nArguments:  none\n\n"+
-	   "Displays the current date and time.\n"+
-	   "To display the date with your current time,\n"+
-	   "use the 'timezone' command.\n");
-    printf("The timezone command is not currently available.\n");
-    return 1;
+    int tm = uptime();
+    string tm2 = ctime(time());
+    int tm3 = time() - uptime();
+    string tm4 = ctime(tm3);
+    string str;
+ 
+    int x;
+   write("Local MUD time       "+ tm2 +". \n");
+   write(mud_name()+" restarted on " + tm4 +". \n \n");
+    str = mud_name()+ " has been up for ";
+    if (x = (tm / WEEK))
+    {
+	str += x + "w ";
+	tm -= x * WEEK;
+    }
+
+    if (x = (tm / DAY))
+    {
+	str += x + "d ";
+	tm -= x*DAY;
+    }
+
+    if (x = (tm / HOUR))
+    {
+	str += x + "h ";
+	tm -= x * HOUR;
+    }
+
+    if (x = (tm / MIN))
+    {
+	str += x + "m ";
+	tm -= x* MIN;
+    }
+
+    if (tm)
+
+    {
+	str += tm + "s ";
+    }
+
+    str = str[0..<2] + ".\n";
+    write(str);
 }

@@ -95,10 +95,9 @@ void create(string userid) {
 #endif
 }
 
-mixed adjust_result(mixed res, string type) {
-     if (intp(res)) {
-	 if (type == "fire") return res * 2;
-	 return res - 1;
-     }
-     return res;
+void intrinsic_resistance(class combat_result result) {
+     if (result->kind == "fire" && result->damage)
+         result->damage *= 2;
+     else
+         result->damage--;
 }

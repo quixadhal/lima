@@ -16,5 +16,4 @@ inherit CMD;
 nomask private void main(string arg)
 {
     this_body()->query_mailer()->begin_mail(arg);
-    return;
 }

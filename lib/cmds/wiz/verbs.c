@@ -21,7 +21,7 @@ private void main(string str) {
 	    }
 	    ignore = 0;
 	    first = 1;
-	    emote = "/daemons/soul_d"->query_emote(verb);
+	    emote = SOUL_D->query_emote(verb);
 	} else {
 	    if (ignore)
 		continue;

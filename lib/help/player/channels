@@ -8,7 +8,8 @@ The gossip channel is for any sort of discussion the listeners may
 wish.  The newbie channel is for newbie players to ask questions and
 get help when they first start playing.
 
-Players may create and listen to additional channels as they please.
+Players may create and listen to additional channels as they please
+by using the /new flag to the chan command (see below).
 [ note: we may restrict this in the future ]
 
 All interaction with the channels is performed with the "chan" command.
@@ -25,6 +26,7 @@ chan gossip ;<feeling>	- perform <feeling> over the channel
 			  (e.g. chan gossip ;grin)
 chan gossip :<emote>	- send <emote> to all listeners
 			  (e.g. chan gossip :wants a big sword!)
+chan mine /new		- create the "mine" channel
 
 Of course, the 'gossip' may be replaced with any channel name you
 might want to use.

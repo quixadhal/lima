@@ -1,0 +1,5 @@
+#daemons/alias.c
+defaults (["newbie":(/"chan newbie $*",({"",}),0,0,/),"l":(/"look $*",({"",}),0,0,/),"ne":(/"go northeast $*",({"",}),0,0,/),"x":(/"examine $*",({"",}),0,0,/),"w":(/"go west $*",({"",}),0,0,/),"nw":(/"go northwest $*",({"",}),0,0,/),"'":(/"say $*",({"",}),0,0,/),"e":(/"go east $*",({"",}),0,0,/),"s":(/"go south $*",({"",}),0,0,/),"sw":(/"go southwest $*",({"",}),0,0,/),"d":(/"go down $*",({"",}),0,1,/),"gossip":(/"chan gossip $*",({"",}),0,0,/),"n":(/"go north $*",({"",}),0,0,/),":":(/"emote $*",({"",}),0,0,/),"se":(/"go southeast $*",({"",}),0,0,/),"u":(/"go up $*",({"",}),0,1,/),])
+xdefaults ({"'",":",})
+wizdefaults (["announce":(/"chan wiz_announce $*",({"",}),0,2,/),"wiz":(/"chan wiz_wiz $*",({"",}),0,2,/),"eval":(/"print `$*`",({"",}),0,2,/),"z":(/"update $*",({"",}),0,2,/),"@":(/"print `$*`",({"",}),0,2,/),"igossip":(/"chan imud_imud_gossip $*",({"",}),0,2,/),"icode":(/"chan imud_imud_code $*",({"",}),0,2,/),"p":(/"people $*",({"",}),0,2,/),])
+wizxdefaults ({"@",})

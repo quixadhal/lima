@@ -4,12 +4,12 @@
 *** Example weather room  by Yaynu @ Lima Bean 160895
 */
  
-#include <mudlib.h>
-inherit ROOM;
+inherit OUTDOOR_ROOM;
  
-create(){
+create()
+{
                
-    room::create();
+    ::create();
     set_brief("Environmental room");
     set_long("The weather seems to change here a lot. Harry hates this \
 place.");
@@ -19,3 +19,5 @@ place.");
     "west": "room2",
     ]) );
 }   
+
+

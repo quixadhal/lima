@@ -119,7 +119,7 @@ private nomask void do_more(mixed arg) {
 		direction = -1;
 		line_index += chunk_size * direction;
 		if (line_index < 0 || line_index >= sizeof(lines)) {
-		    if ( next_file() ) {
+                 if ( next_file()) {
 			finish();
 			return;
 		    }
@@ -169,9 +169,14 @@ private nomask void do_more(mixed arg) {
 	case 'n':                           // Next file if any
 	    if (sizeof(file_list) > 1)
 		file_index += direction;
+             if (!sizeof(file_list))
+            {
+                finish();
+                return;
+            }
 	    if (file_index < 0 || file_index >= sizeof(file_list)) {
 		write("more: no more files " + (direction == 1 ? "after" : "preceding") +
-		      " \"" + file_list[file_index] + "\"\n");
+                          "\"" + file_list[file_index - 1] + "\"\n");
 		file_index -= direction;
 		return;
 	    }

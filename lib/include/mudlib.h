@@ -8,16 +8,19 @@
 #include <size.h>
 #include <setbit.h>
 #include <msgtypes.h>
+#include <classes.h>
 
 /*
-** PLAYER	main player object (body)
+** BODY		main player object (body)
 ** GHOST	ghost object (body)
 ** USER_OB	user's connection object
 ** USER_OB_BAK	user's connection object (backup version)
 **
 ** SIMUL_OB	the simul efun object
 **
-** ROOM		standard room
+** BASE_ROOM	the room rooms are built from...
+** INDOOR_ROOM	standard room (indoors)
+** OUTDOOR_ROOM	an outdoor room/environment
 ** NON_ROOM	base class for things like furniture
 ** WATER_ROOM	rooms full of water (e.g. a lake)
 ** GRID_SERVER	virtual server inheritable for grid-type rooms
@@ -25,9 +28,12 @@
 ** VOID_ROOM	where to put broken stuff
 ** WIZ_ROOM	a room for wizards
 **
+** BASE_OBJ	base class for objects
 ** OBJ		generic objects
 ** SPARSE_OBJ	simple do-nothing objects.
-** FURNITURE	
+** LESS_SPARSE_OBJ
+** FURNITURE
+** MOUNT	
 ** WEAPON	weapons
 ** ARMOR	armor
 ** MONSTER	monsters -- living objects that fight
@@ -36,6 +42,8 @@
 ** LIVING	can hold things and perform actions (no fighting)
 ** STOCK_MASTER  stock guildmaster for stock muds :)
 ** RACE		a race-modified body
+** COINS	a bunch of coins
+** SPELL	base class for spells
 **
 ** M_GLOB	glob style regexp functions
 ** M_GRAMMAR	grammatical manipulation functions
@@ -49,6 +57,7 @@
 ** M_SAVE	functions to abstract saveing and restoring objects
 **
 ** M_BODY_STATS	statistics (characteristics) for a body (player/NPC)
+** M_SMARTMOVE	living's movement with directions and enter/exit msgs
 **
 ** M_WEARABLE	things that can be worn
 ** M_SWITCHABLE
@@ -69,69 +78,82 @@
 ** M_VENDOR
 ** M_DIGGER	items that can dig.
 ** M_DIGGABLE   items that you can dig in.
+** M_BLOCKEXITS
+** M_BLOCKABLE
+** M_KNOCKABLE
 ** M_VALUABLE	items that are valuable (have value)
+** M_MOUNTABLE
+** M_ENTERABLE
 ** M_GUILD_MASTER	act as a "guild master"
-**
-** M_GETOPT	functions for command processing
-** M_HISTORY 	module for handling command history
-** M_ALIAS 	module for storing and expanding aliases
-** M_SCROLLBACK
-** M_PROMPT
-** M_SHELLVARS	??
-** M_ENVVARS	??
-** M_CHAR_BINDINGS	??
-** M_SHELLFUNCS	??
 **
 ** M_LIB_LOCKABLE	arbitrates "locked" state of multiple instances
 ** M_LIB_OPENABLE	arbitrates "opened" state of multiple instances
 **
-** EDIT_OB	provides text-entry functionality
 ** ED_SESSION	provides an 'ed' session for the user
 ** ADDTO_OB	object to add ines to a file
 ** WIZ_SHELL	a wizard's shell object
 ** TELNET_OB	a telnet tool
+** ADMTOOL	administration tool's input menu object
+** DATAEDIT	save file data editor
 **
 ** HELPSYS	help system
 ** NEWSREADER	a basic newsreader
-** FAKE_OB
 ** TEMP_WORKROOM
 ** ALIASMENU
-**
-** REPORTER	for reporting (logging) bugs/ideas/typos
-** VERB_OB	basic functionality for parser-based verbs
-** DAEMON	for daemons
-** SOCKET	object to manage a socket
-** MAILER	generic "mailer" functionality
-** SHELL
-** MENUS   	generic menuing facility
-** CMD          base inheritable for commands
-**
-** MAILBOX	mailbox to hold message references
-**
 ** PLAYER_MENU
 ** PLYR_SHELL
 **
+** VERB_OB	basic functionality for parser-based verbs
+** MENUS   	generic menuing facility
+**
+** CMD          base inheritable for commands
+** DAEMON	for daemons
+** MAILBOX	mailbox to hold message references
+** MAILER	generic "mailer" functionality
+** SOCKET	object to manage a socket
+**
+** SHELL
+** M_ALIAS 	module for storing and expanding aliases
+** M_CHAR_BINDINGS	??
+** M_GETOPT	functions for command processing
+** M_HISTORY 	module for handling command history
+** M_PROMPT
+** M_SCROLLBACK
+** M_SHELLFUNCS	??
+** M_SHELLVARS	??
+**
 ** SWORD
 ** BOOK
+** LADDER
+** STAIRS
+** TORCH
+** VEHICLE
 */
 
-#define PLAYER			"/std/player"
-#define GHOST			"/std/ghost"
+#define BODY			"/std/body"
+#define GHOST			"/std/ghost"	// ### bogus
 #define USER_OB			"/secure/user"
 #define USER_OB_BAK		"/secure/user_bak"
 
 #define SIMUL_OB		"/secure/simul_efun"
 
-#define ROOM			"/std/room"
+#define BASE_ROOM		"/std/base_room"
+#define INDOOR_ROOM		"/std/indoor_room"
+#define OUTDOOR_ROOM		"/std/outdoor_room"
 #define NON_ROOM		"/std/non-room"
 #define WATER_ROOM		"/std/water_room"
 #define GRID_SERVER		"/std/grid_server"
 
+//### temporary
+#define ROOM			"/std/room/room"
+
 #define VOID_ROOM		"/domains/std/void"
 #define WIZ_ROOM		"/domains/std/wizroom"
 
+#define BASE_OBJ		"/std/base_obj"
 #define OBJ 			"/std/object"
 #define SPARSE_OBJ		"/std/sparse_obj"
+#define LESS_SPARSE_OBJ		"/std/less_sparse_obj"
 #define FURNITURE		"/std/furniture"
 #define MOUNT			"/std/mount"
 #define WEAPON			"/std/weapon"
@@ -142,6 +164,8 @@
 #define LIVING			"/std/living"
 #define STOCK_MASTER            "/std/stock_master"
 #define RACE			"/std/race"
+#define COINS			"/std/coins"
+#define SPELL			"/std/spell"
 
 #define M_GLOB		        "/std/modules/glob"
 #define M_GRAMMAR		"/std/modules/grammar"
@@ -184,16 +208,6 @@
 #define M_ENTERABLE		"/std/modules/enterable"
 #define M_GUILD_MASTER          "/std/modules/guild_master"
 
-#define M_GETOPT		"/std/shell/getopt"
-#define M_HISTORY	   	"/std/shell/history"
-#define M_ALIAS			"/std/shell/alias"
-#define M_SCROLLBACK		"/std/shell/scrollback"
-#define M_PROMPT		"/std/shell/prompt"
-#define M_SHELLVARS 		"/std/shell/shellvars"
-#define M_ENVVARS		"/std/shell/envvars"
-#define M_CHAR_BINDINGS 	"/std/shell/bindings"
-#define M_SHELLFUNCS		"/std/shell/shellfuncs"
-
 #define M_LIB_LOCKABLE		"/domains/std/lockable"
 #define M_LIB_OPENABLE		"/domains/std/openable"
 
@@ -201,26 +215,34 @@
 #define ADDTO_OB		"/trans/obj/addto_ob"
 #define WIZ_SHELL		"/trans/obj/wish"
 #define TELNET_OB		"/trans/obj/telnet_ob"
+#define ADMTOOL			"/trans/obj/admtool"
+#define DATAEDIT		"/trans/obj/dataedit"
 
 #define HELPSYS			"/obj/helpsys"
 #define NEWSREADER		"/obj/newsreader"
-#define FAKE_OB			"/obj/fake"
 #define TEMP_WORKROOM		"/obj/tworkroom"
 #define ALIASMENU		"/obj/aliasmenu"
-
-#define REPORTER		"/std/reporter"
-#define VERB_OB			"/std/verb_ob"
-#define DAEMON			"/std/daemon"
-#define SOCKET			"/std/socket"
-#define MAILER			"/std/mailers/mailer"
-#define SHELL		 	"/std/shell"
-#define	MENUS			"/std/menu"
-#define CMD			"/std/cmd"
-
-#define MAILBOX			"/secure/mailbox"
-
 #define PLAYER_MENU		"/obj/plmenu"
 #define PLYR_SHELL		"/obj/pshell"
+
+#define VERB_OB			"/std/verb_ob"
+#define	MENUS			"/std/menu"
+
+#define CMD			"/secure/obj/cmd"
+#define DAEMON			"/secure/obj/daemon"
+#define MAILBOX			"/secure/obj/mailbox"
+#define MAILER			"/secure/obj/mailers/mailer"
+#define SOCKET			"/secure/obj/socket"
+
+#define SHELL		 	"/secure/obj/shell"
+#define M_ALIAS			"/secure/obj/shell/alias"
+#define M_CHAR_BINDINGS 	"/secure/obj/shell/bindings"
+#define M_GETOPT		"/secure/obj/shell/getopt"
+#define M_HISTORY	   	"/secure/obj/shell/history"
+#define M_PROMPT		"/secure/obj/shell/prompt"
+#define M_SCROLLBACK		"/secure/obj/shell/scrollback"
+#define M_SHELLFUNCS		"/secure/obj/shell/shellfuncs"
+#define M_SHELLVARS 		"/secure/obj/shell/shellvars"
 
 // These next few are 'high level' inheritables and probably should have
 // their own dir.

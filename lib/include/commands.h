@@ -50,5 +50,6 @@
 #define VERB_OB_GET		CMD_DIR_VERBS "/get"
 #define VERB_OB_GO		CMD_DIR_VERBS "/go"
 #define VERB_OB_LOOK		CMD_DIR_VERBS "/look"
+#define VERB_OB_CAST            CMD_DIR_VERBS "/cast"
 
 #endif /* __COMMANDS_H__ */

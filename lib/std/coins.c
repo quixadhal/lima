@@ -25,23 +25,23 @@ string long_descr()
     if (i == 1)
     {
 
+add_id(long_type);
 	descr = "A pile of ";
 
 	descr += coins[long_type];
 	descr += " ";
 	descr += types[0];
   descr += " coins.\n";
-	descr += ".\n";
     }
     else
     {
-   descr = "A pile of ";
+descr = "A pile of various types of coins including: \n ";
    while (i--)
    {
+descr += "          ";
      descr += types[i];
-     descr += ", and ";
+descr += "\n";
    }
-     descr += " coins.\n";
     }
     return descr;
 }
@@ -146,6 +146,7 @@ void split_coins(string type, int amount)
 
 void merge_coins(int amount, string type)
 {
+this_object()->add_id(type);
     if (!coins[type])
     {
 	coins[type] = amount;
@@ -164,6 +165,7 @@ void create(int amount, string type)
     coins[type] = to_int(amount);
 
     set_id("coins");
+   add_id( type );
     add_adj(type);
     set_in_room_desc("A pile of coins");
     add_id(   "coin", "pile", "pile of coins" );

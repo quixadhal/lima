@@ -13,10 +13,12 @@ private nomask void unlock(string fname)
 
 nomask private void main(string* argv)
 {
-    string fname;
+    mixed fname;
 
     if ( sizeof(argv) )
 	fname = argv[0];
+    if (objectp(fname))
+	fname = base_name(fname);
 
     if ( !fname )
     {

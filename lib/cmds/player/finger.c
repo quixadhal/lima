@@ -11,3 +11,8 @@ private void main( string who )
 {
     resend(CMD_OB_FINGER_REAL, who);
 }
+
+void player_menu_entry(string who)
+{
+    main(who);
+}

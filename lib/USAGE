@@ -1,8 +1,16 @@
 Permission to use or modify the files provided with this software
-distribution is granted for any non-commercial uses, so long as
-nothing is removed from the headers of the files.  Commercial use of
-any part of this lib is prohibited, without prior consent from the
-authors of this software:
+distribution is granted for any non-commercial uses, so long as 
+the following conditions are met:
+
+1) nothing is removed from the headers of the files.  
+
+2) Commercial use of any part of this lib is prohibited, without prior
+consent from the authors of this software.
+
+3) The name of the mudlib is displayed on your title screen and in any
+intermud communications, unless you have permission from the authors.
+
+The authors of this software are:
 
 John Viega (rust@virginia.edu)
 Greg Stein (gstein@svpal.org)

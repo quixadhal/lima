@@ -8,23 +8,15 @@
 // Rust made them post news
 
 #include <mudlib.h>
-inherit CMD;
 
-#define TYPE "Bug"
+inherit CMD;
 
 private void main(string str)
 {
-#ifdef LOG_DONT_POST
-  if(!str || str == "")
-    REPORTER->begin_report(TYPE);
-  else
-    REPORTER->short_report(TYPE, str);
-#else
-  if (!str || str == "")
-    REPORTER->begin_report(TYPE, TYPE+" report");
-  else
-    REPORTER->short_report(TYPE, TYPE+" report", str);
-#endif
+    REPORTER_D->report_something("Bug", str);
+}
 
-  return;
+void player_menu_entry()
+{
+    main("");
 }

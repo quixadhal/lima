@@ -3,9 +3,6 @@
 #include <mudlib.h>
 #include <setbit.h>
 
-inherit M_GRAMMAR;
-inherit __DIR__ "names";
-
 /* Our descriptions:
  * long:   should be a complete sentence or a closure.
  * in_room_desc: A longer string for rooms.  Titles for players.
@@ -23,6 +20,13 @@ private string untouched_long;
 int test_flag(int);
 int is_visible();
 int is_attached();
+string the_short();
+string short();
+string plural_short();
+string a_short();
+varargs mixed call_hooks();
+
+
 /* this one is here, but this is a forward declaration. */
 string query_in_room_desc();
 
@@ -151,21 +155,6 @@ string query_posessive(){  return "its"; }
 //is described originally, but not after is has been taken or moved.
 void set_untouched_desc(string arg){
     if(stringp(arg)) untouched_long = arg;
-}
-
-/* todo: this won't work with extra_long, long closures, etc */
-//### should be removed
-static
-string shitty_hack_to_get_object_long()
-{
-    if (!long) return "You see nothing special about " + the_short() + "\n";   
-    return long;                                                               
-}
-
-void
-create()
-{
-     names::create();
 }
 
 string query_in_room_desc()

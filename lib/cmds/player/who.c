@@ -10,6 +10,14 @@ inherit CMD;
 #define DIVIDER \
 "-------------------------------------------------------------------------\n"
 
+#ifdef ZORKMUD
+# define USER_DESC	"(ZORKERS ONLY)"
+# define WHO_FORMAT	"%s:  (GUE Time is: %s) %28s\n%s"
+#else
+# define USER_DESC	"(PLAYERS ONLY)";
+# define WHO_FORMAT	"%s:  (Local Time is: %s) %28s\n%s"
+#endif
+
 
 string get_who_string(string arg)
 {
@@ -26,11 +34,7 @@ string get_who_string(string arg)
             case "-p":
             case "-z":
                 u = filter_array(users(), (: !wizardp($1) :));
-#ifdef ZORKMUD
-                extra = "(ZORKERS ONLY)";
-#else
-                extra = "(PLAYERS ONLY)";
-#endif
+		extra = USER_DESC;
                 break;
             case "-w":
             case "-i":
@@ -63,12 +67,7 @@ string get_who_string(string arg)
     else
 	  u = filter_array(users(), (: $1->query_body()->is_visible() :));
 
-#ifdef ZORKMUD
-    retval += sprintf("%s:  (GUE Time is: %s) %28s\n%s",
-#else
-    retval += sprintf("%s:  (Local Time is: %s) %28s\n%s",
-#endif
-		      mud_name(), ctime(time()), extra, DIVIDER);
+    retval += sprintf(WHO_FORMAT, mud_name(), ctime(time()), extra, DIVIDER);
     i = sizeof(u);
     if(!i)
         retval += sprintf("%|70s\n","Sorry, no one fits that bill.");
@@ -97,8 +96,13 @@ string get_who_string(string arg)
 
 private void main(string arg)
 {
-  if( arg == "" )
-    arg = 0;
-        write(get_who_string(arg));
-    return;
+    if( arg == "" )
+	arg = 0;
+
+    write(get_who_string(arg));
+}
+
+void player_menu_entry()
+{
+    main(0);
 }

@@ -2,34 +2,14 @@
 
 // Rust.  This one is for simple items there mainly for ornamentation.
 
-#include <move.h>
-
-inherit "/std/object/description";
-inherit "/std/object/flags";
-inherit "/std/object/non_object";
-//inherit "/std/object/vsupport";
-
-//:FUNCTION stat_me
-//write() some debugging info about the state of the object
-int stat_me() 
-{
-    write("Sparse OBJ.\n");
-    write("IDs: "+implode((mixed)parse_command_id_list(),", ")+"\n");
-    write("Plurals: "+implode((mixed)parse_command_plural_id_list(),", ")+"\n");
-    write("Adjectives: "+implode((mixed)parse_command_adjectiv_id_list(),", ")+"\n");
-    write("Long: \n"+long());
-    return 1;
-}
-
-
+inherit BASE_OBJ;
 
 private static mapping msgs = ([]);
 
 varargs void create(mapping long, string array ids, object dest)
 {
-    parse_init();
-    description::create();
-    flags::create();
+    ::create();
+
     set_attached(1);
     msgs = long;
     if(mapp(msgs))
@@ -60,18 +40,6 @@ varargs void create(mapping long, string array ids, object dest)
 }
 
 
-
-int is_visible()
-{
-  return 1;
-}
-
-// Here on purpose.
-varargs mixed call_hooks(mixed s ...)
-{
-}
-
-
 mixed direct_verb_rule(string verb, string rule, mixed args)
 {
   string s = msgs[verb];
@@ -94,8 +62,3 @@ int direct_get_obj()
   return 1;
 }
 */
-
-/* need a set_light() for remove() */
-void set_light(int x)
-{
-}

@@ -16,21 +16,39 @@ private nomask void handle_piping(string arg)
     {
 	write("Done.\n");
         modal_pop();
+        destruct();
 	return;
     }
 
     resend("/cmds/player/say", arg);
 }
 
-nomask private void main()
+nomask void start_cmd()
 {
+    if(!clonep() || (base_name(previous_object()) != base_name()))  {
+        write("Illegal attempt to spoof command\n");
+        destruct();
+        return;
+    }
+
     write("Entering converse mode. Type '**' or '.' to quit.\n");
     write("-------------------------------------------------\n");
     modal_push((: handle_piping :),
 #if 0 // Clients can't handle \r without \n well - Beek
-	       "\r" BLANKLINE "\r" PROMPT "\r"
+               "\r" BLANKLINE "\r" PROMPT "\r"
 #else
-	       PROMPT "\b"
+               PROMPT "\b"
 #endif
-	       );
+               );
 }
+
+
+nomask private void main()
+{
+    if(!clonep())  {
+        new(base_name())->start_cmd();
+        return;
+    }
+    destruct();
+}
+
