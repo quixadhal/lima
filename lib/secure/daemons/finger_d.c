@@ -6,8 +6,7 @@
 #include <security.h>
 #include <mudlib.h>
 
-inherit M_ACCESS;
-
+inherit DAEMON;
 
 /* pass a USER_OB or a userid */
 private nomask string get_level(mixed m)
@@ -80,22 +79,34 @@ string get_finger(string who)
     string mailstring;
     string retval;
     mixed last;
+    string first_line;
     string email;
     string real_name;
+    string nickname;
+    string position;
+    string url;
+    string idle;
     object mbox;
     int mcount;
     int ucount;
+    string connect_from;
 
     who = lower_case(trim_spaces(who));
 
     if ( who == "" )
 	return show_big_finger();
 
-    user = find_user(who);
+    user = find_user(who, 1);	/* find even linkdead users */
 
-//### also fetch title
     info = unguarded(1, (: call_other, USER_D, "query_variable",
-			 who, ({ "real_name", "email",
+			 who, ({ "real_name",
+				     "email",
+				     "nickname",
+				     "wiz_position",
+				     "url",
+#ifdef USE_TITLES
+				     "title",
+#endif
 #ifdef EVERYONE_HAS_A_PLAN
 				     "plan",
 #endif
@@ -108,10 +119,19 @@ string get_finger(string who)
 
     real_name = info[0];
     email = info[1];
+    nickname = info[2];
+    position = info[3];
+    url = info[4];
     if ( !real_name || real_name == "" )
 	real_name = "(none given)";
     if ( !email || email == "" )
 	email = "(none given)";
+    if( !nickname || nickname == "" )
+	nickname = "(none)";
+    if ( !position || position == "" )
+	position = "(none)";
+    if( !url )
+	url = "";
 
     if ( who != this_user()->query_userid() && !check_privilege(1) )
     {
@@ -119,7 +139,19 @@ string get_finger(string who)
 	    email = "(private)";
 	if ( real_name[0] == '#' )
 	    real_name = "(private)";
+	if ( url[0] == '#' )
+	    url = "(private)";
     }
+
+    if ( url != "" )
+	url = "Homepage: " + url + "\n";
+
+#ifdef USE_TITLES
+    first_line = info[5];
+    if ( !first_line )
+	/* use the following line... */
+#endif
+    first_line = capitalize(who);
 
     mbox = MAIL_D->get_mailbox(who);
     mcount = mbox->query_message_count();
@@ -130,33 +162,50 @@ string get_finger(string who)
     {
 	mailstring = sprintf("%s has %d messages.", capitalize(who), mcount);
 	if ( ucount )
-//	    mailstring[<1..] = sprintf(", %d of which %s unread.",
-//				       ucount, ucount > 1 ? "are" : "is");
-	    mailstring = (mailstring[0..<2] +
-			  sprintf(", %d of which %s unread.",
-				  ucount, ucount > 1 ? "are" : "is"));
+	    mailstring[<1..] = sprintf(", %d of which %s unread.",
+				       ucount, ucount > 1 ? "are" : "is");
     }
 
     last = LAST_LOGIN_D->query_last(who);
 
-//### add in title, linkdeath indication, and idle time
+    if ( !user )
+	idle = "";
+    else if ( !interactive(user) )
+	idle = " (linkdead)";
+    else
+    {
+	idle = get_idle(user);
+	if ( idle != "" )
+	    idle = " (idle " + idle + ")";
+    }
 
-    retval = sprintf("%s\nIn real life: %-36sLevel: %s\n"
-		     "%s %s from %s\n%s\nEmail Address: %s\n",
-		     capitalize(who),
-		     real_name,
+    if ( wizardp(this_user()) )
+	connect_from = " from " + (last ? last[1] : "<unknown>");
+    else
+	connect_from = "";
+
+    retval = sprintf("%s\n"
+		     "Nickname: %-29s Level: %s\n"
+		     "In real life: %-25s Position: %s\n"
+		     "%s %s%s%s\n%s\nEmail Address: %s\n%s",
+		     first_line,
+		     nickname,
 		     get_level(who),
-		     user ? "On since" : "Last on",
+		     real_name,
+		     position,
+		     user ? "On since" : "Left at",
 		     last ? ctime(last[0]) : "<unknown>",
-		     last ? last[1] : "<unknown>",
+		     idle,
+		     connect_from,
 		     mailstring,
-		     email);
+		     email,
+		     url);
 
     if ( is_file(WIZ_DIR + "/" + who + "/.plan") )
 	retval += "Plan:\n" + read_file(WIZ_DIR + "/" + who + "/.plan");
 #ifdef EVERYONE_HAS_A_PLAN
-    else if ( info[2] )
-	retval += "Plan:\n" + info[2] + "\n";
+    else if ( info[<1] )
+	retval += "Plan:\n" + info[<1] + "\n";
     else
 	retval += "No plan.\n";
 #endif

@@ -8,14 +8,45 @@
 #include <daemons.h>
 #include <mudlib.h>
 #include <security.h>
+#include <log.h>
 
 
 private mapping errors = ([]);
 
 object compile_object(string path)
 {
-//### virtual object stuff here
-    return 0;
+    int idx;
+    string fname;
+    object ob;
+
+    path = "/" + path;
+    idx = 0;
+    while ( 1 )
+    {
+	int size;
+
+	/* if we hit the end w/o finding the virtual server, then punt */
+	idx = member_array('/', path, idx + 1);
+	if ( idx == -1 )
+	    return 0;
+
+	/* punt if we found a real file.  need dirs or non-exist. */
+	fname = path[0..idx-1];
+	size = file_size(fname);
+	if ( size >= 0 )
+	    return 0;
+	if ( size == -1 )
+	    break;
+    }
+
+    /* we found a non-existent path. there should be a .c file here */
+    if ( file_size(fname + ".c") <= 0 )
+	return 0;
+
+    if ( catch(ob = load_object(fname)) )
+	return 0;
+
+    return ob->virtual_create(path[idx+1..]);
 }
 
 private void crash()
@@ -119,7 +150,7 @@ varargs string standard_trace(mapping mp, int flag) {
 string error_handler(mapping mp, int caught)
 {
     string ret;
-    string logfile = (caught ? "/log/catch" : "/log/runtime");
+    string logfile = (caught ? LOG_FILE_CATCH : LOG_FILE_RUNTIME);
     string what = mp["error"];
     
     ret = "---\n" + standard_trace(mp);
@@ -300,7 +331,7 @@ void log_error(string file, string message)
     }
 
     if ( intp(name) )
-	write_file(LOG_DIR"/log",message);
+	write_file(LOG_FILE_ERROR, message);
     else
 	write_file(WIZ_DIR "/" + name + "/log", message);
 }
@@ -482,8 +513,6 @@ mixed valid_write(mixed path, object caller, string call_fun)
 mixed valid_read(string path, object caller, string call_fun)
 {
     mixed foo;
-
-//write_file("/log/tmplog",sprintf("%O: %s for %s\n",caller,path,call_fun));
 
     if (caller == this_object())
         return 1;

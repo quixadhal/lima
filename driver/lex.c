@@ -1117,6 +1117,7 @@ int yylex()
 	case '\t':
 	case '\f':
 	case '\v':
+	case '\r':
 	    break;
 	case '+':
 	{
@@ -2034,7 +2035,8 @@ void init_num_args()
     add_instr_name("&=", "f_and_eq();\n", F_AND_EQ, T_NUMBER);
     add_instr_name("index", "c_index();\n", F_INDEX, T_ANY);
     add_instr_name("member", "c_member(%i);\n", F_MEMBER, T_ANY);
-    add_instr_name("new_class", "c_new_class(%i);\n", F_NEW_CLASS, T_ANY);
+    add_instr_name("new_empty_class", "c_new_class(%i, 0);\n", F_NEW_EMPTY_CLASS, T_ANY);
+    add_instr_name("new_class", "c_new_class(%i, 1);\n", F_NEW_CLASS, T_ANY);
     add_instr_name("rindex", "c_rindex();\n", F_RINDEX, T_ANY);
     add_instr_name("loop_cond_local", "C_LOOP_COND_LV(%i, %i); if (lpc_int)\n", F_LOOP_COND_LOCAL, -1);
     add_instr_name("loop_cond_number", "C_LOOP_COND_NUM(%i, %i); if (lpc_int)\n", F_LOOP_COND_NUMBER, -1);

@@ -445,6 +445,13 @@ c_generate_node P1(parse_node_t *, expr) {
 	    ins_vstring("c_end_catch(&econ%02i);\n}\n}\n", catch_number++);
 	    break;
 	}
+    case NODE_TIME_EXPRESSION:
+	{
+	    ins_string("{ int start_sec,start_usec,end_sec,end_usec;\nget_usec_clock(&start_sec,&start_usec);\n");
+	    c_generate_node(expr->r.expr);
+	    ins_string("get_usec_clock(&end_sec,&end_usec);\nend_usec=(end_sec - start_sec) * 1000000 + end_usec - start_usec;\npush_number(end_usec);\n}\n");
+	    break;
+	}
     case NODE_LVALUE_EFUN:
 	c_generate_node(expr->l.expr);
 	generate_lvalue_list(expr->r.expr);

@@ -8,7 +8,6 @@
 #include "socket_ctrl.h"
 #include "file_incl.h"
 #include "debug.h"
-#include "file_incl.h"
 
 #ifdef DEBUG_MACRO
 int debug_level = 512;
@@ -53,9 +52,9 @@ void terminate PROT((int));
 
 void debug_perror P2(char *, what, char *, file) {
     if (file)
-	fprintf(stderr, "System Error: %s:%s:%s\n", what, file, strerror(errno));
+	fprintf(stderr, "System Error: %s:%s:%s\n", what, file, port_strerror(errno));
     else
-	fprintf(stderr, "System Error: %s:%s\n", what, strerror(errno));
+	fprintf(stderr, "System Error: %s:%s\n", what, port_strerror(errno));
 }
 
 void init_conns()
@@ -322,7 +321,10 @@ void new_conn_handler()
 	    all_conns[conn_index].fd = new_fd;
 	    all_conns[conn_index].state = CONN_OPEN;
 	    all_conns[conn_index].addr = client;
-	    strcpy(all_conns[conn_index].sname, c_hostent->h_name);
+	    if (c_hostent)
+		strcpy(all_conns[conn_index].sname, c_hostent->h_name);
+	    else
+		strcpy(all_conns[conn_index].sname, "<unknown>");
 	    total_conns++;
 	    return;
 	}

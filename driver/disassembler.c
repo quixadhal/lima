@@ -330,11 +330,12 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    }		
 	    break;
 
+	case F_NEW_EMPTY_CLASS:
 	case F_NEW_CLASS:
 	    {
 		int which = EXTRACT_UCHAR(pc++);
 		
-		sprintf(buff, "class %s", STRS[CLSS[which].name]);
+		strcpy(buff, STRS[CLSS[which].name]);
 		break;
 	    }
 
@@ -452,6 +453,7 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 		pc += 3;
 		break;
 	    case FP_ANONYMOUS:
+	    case FP_ANONYMOUS | FP_NOT_BINDABLE:
 		COPY_SHORT(&sarg, &pc[2]);
 		sprintf(buff, "<anonymous function, %d args, %d locals, ends at %04x>\nCode:",
 			(int)pc[0], (int)pc[1], (int) (pc + 3 + sarg - code));

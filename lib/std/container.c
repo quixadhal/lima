@@ -2,7 +2,6 @@
 // container.c
 // possibly the grossest piece of code in the mudlib.
 
-#include <mudlib.h>
 #include <move.h>
 #include <setbit.h>
 #include <driver/origin.h>
@@ -171,11 +170,18 @@ void create() {
 
 //:FUNCTION inventory_visible
 //Return 1 if the contents of this object can be seen, zero otherwise
-int inventory_visible() {
-  if (!is_visible()) return 0;
-  if (!short()) return 0;
-  if (test_flag(TRANSPARENT)) return 1;
-  return !this_object()->query_closed();
+int inventory_visible()
+{
+    if ( !is_visible() )
+	return 0;
+
+//### this should go!! short() should never return 0
+    if (!short()) return 0;
+
+    if ( test_flag(TRANSPARENT) )
+	return 1;
+
+    return !this_object()->query_closed();
 }
 
 //:FUNCTION inventory_accessible
@@ -297,7 +303,7 @@ introduce_contents() {
     }
 }
 
-varargs string inventory_recurse(int depth, object avoid) {
+varargs string inventory_recurse(int depth, mixed avoid) {
     string res;
     object *obs;
     int i;
@@ -305,7 +311,10 @@ varargs string inventory_recurse(int depth, object avoid) {
     string tmp;
 
     str = "";
-    obs = all_inventory(this_object()) - ({avoid});
+    if(!arrayp(avoid))
+      avoid = ({ avoid });
+    obs = all_inventory(this_object()) - avoid;
+
     for (i=0; i<sizeof(obs); i++) {
         if (!(obs[i]->is_visible())) continue;
         if (!obs[i]->test_flag(TOUCHED) && obs[i]->untouched_long()) {
@@ -320,6 +329,11 @@ varargs string inventory_recurse(int depth, object avoid) {
       str += res + tmp;
     }
     return str;
+}
+
+string show_contents()
+{
+  return inventory_recurse();
 }
 
 //:FUNCTION set_preposition
@@ -367,8 +381,14 @@ mixed direct_get_obj(object ob, string name) {
 }
 
 mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
-    if (prep == main_prep)
-	return 1;
+    if (prep == main_prep)  {
+        if(prep == "in")  {
+            if (this_object()->query_closed()) {
+                return capitalize(the_short())+" is closed.\n";
+            } 
+        }
+    return 1;
+    }                                                   
 
     switch (prep) {
 	case "on":
@@ -470,9 +490,13 @@ void containee_light_changed(int adjustment)
 	adjust_light(adjustment);
 }
 
-void inventory_visibility_change()
+void resync_visibility()
 {
-    int new_state = inventory_visible();
+    int new_state;
+    
+    ::resync_visibility();
+
+    new_state = inventory_visible();
 
     /* if it didn't change, jump ship */
     if ( new_state == contained_light_added )

@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 #include <playerflags.h>
 #include <commands.h>
 

@@ -1,5 +1,3 @@
-/* worry about allocated tables */
-
 /*
  * sprintf.c v1.05 for LPMud 3.0.52
  *
@@ -176,7 +174,7 @@ static svalue_t clean = { T_NUMBER };
 static void numadd PROT((outbuffer_t *, int num));
 static void add_space PROT((outbuffer_t *, int indent));
 static void add_justified PROT((char *str, int slen, pad_info_t *pad, int fs, format_info finfo, short int trailing));
-static int add_column PROT((cst ** column));
+static int add_column PROT((cst ** column, int trailing));
 static int add_table PROT((cst ** table));
 
 #define ERROR(x) sprintf_error(x, 0)
@@ -532,7 +530,7 @@ static void add_justified P6(char *, str, int, slen, pad_info_t *, pad,
  * Returns 1 if column completed.
  * Returns 2 if column completed has a \n at the end.
  */
-static int add_column P1(cst **, column)
+static int add_column P2(cst **, column, int, trailing)
 {
     register unsigned int done;
     char c;
@@ -553,7 +551,7 @@ static int add_column P1(cst **, column)
 	}
     }
     add_justified(col_d, done, col->pad, 
-		  col->size, col->info, 1);
+		  col->size, col->info, trailing || col->next);
     col_d += done;
     ret = 1;
     if (*col_d == '\n') {
@@ -585,7 +583,7 @@ static int add_column P1(cst **, column)
  */
 static int add_table P1(cst **, table)
 {
-    register unsigned int done, i;
+    int done, i;
     cst *tab = *table;			/* always (*table) */
     tab_data_t *tab_d = tab->d.tab;	/* always tab->d.tab */
     char *tab_di;			/* always tab->d.tab[i].cur */
@@ -597,7 +595,8 @@ static int add_table P1(cst **, table)
 	for (done = 0; done != end && tab_di[done] != '\n'; done++)
 	    ;
 	add_justified(tab_di, (done > tab->size ? tab->size : done),
-		      tab->pad, tab->size, tab->info, 1);
+		      tab->pad, tab->size, tab->info, 
+		      tab->pad || (i < tab->nocols - 1) || tab->next);
 	if (done >= end - 1) {
 	    tab_di = 0;
 	} else {
@@ -605,10 +604,12 @@ static int add_table P1(cst **, table)
 	}
 	tab_d[i].cur = tab_di;
     }
-    while (i++ < tab->nocols) {
-	add_pad(tab->pad, tab->size);
+    if (tab->pad) {
+	while (i++ < tab->nocols) {
+	    add_pad(tab->pad, tab->size);
+	}
+	add_pad(tab->pad, tab->remainder);
     }
-    add_pad(tab->pad, tab->remainder);
     if (!tab_d[0].cur) {
 	cst *temp;
 
@@ -632,7 +633,7 @@ static int get_curpos() {
     p2 = p1;
     while (p2 > obuff.buffer && *p2 != '\n')
 	p2--;
-    if (p2 == obuff.buffer)
+    if (*p2 != '\n')
 	return p1 - p2 + 1;
     else
 	return p1 - p2;
@@ -726,7 +727,7 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 			    while (*((*temp)->d.col) == ' ')
 				(*temp)->d.col++;
 			add_pad(0, (*temp)->start - get_curpos());
-			column_stat = add_column(temp);
+			column_stat = add_column(temp, 0);
 			if (!column_stat)
 			    temp = &((*temp)->next);
 		    } else {
@@ -959,6 +960,7 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 			while (*temp)
 			    temp = &((*temp)->next);
 			if (finfo & INFO_COLS) {
+			    int tmp;
 			    if (pres > fs) pres = fs;
 			    *temp = ALLOCATE(cst, TAG_TEMPORARY, "string_print: 3");
 			    (*temp)->next = 0;
@@ -968,8 +970,12 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 			    (*temp)->pres = (pres) ? pres : fs;
 			    (*temp)->info = finfo;
 			    (*temp)->start = get_curpos();
-			    if ((add_column(temp) == 2)
-				&& !format_str[fpos]) {
+			    tmp = ((format_str[fpos] != '\n') 
+				   && (format_str[fpos] != '\0'))
+				|| ((finfo & INFO_ARRAY)
+				    && (nelemno < (argv + cur_arg)->u.arr->size));
+			    tmp = add_column(temp, tmp);
+			    if (tmp == 2 && !format_str[fpos]) {
 				ADD_CHAR('\n');
 			    }
 			} else {/* (finfo & INFO_TABLE) */
@@ -1124,8 +1130,7 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 
 			add_justified(temp, tmpl, &pad, fs, finfo,
 				      (((format_str[fpos] != '\n') && (format_str[fpos] != '\0'))
-				       || ((finfo & INFO_ARRAY) && (nelemno < (argv + cur_arg)->u.arr->size)))
-				      || temp[tmpl - 1] != '\n');
+				       || ((finfo & INFO_ARRAY) && (nelemno < (argv + cur_arg)->u.arr->size))));
 		    }
 		} else		/* type not found */
 		    ERROR(ERR_UNDEFINED_TYPE);

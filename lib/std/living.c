@@ -39,6 +39,10 @@ string inventory_header() {
     return capitalize(query_subjective()) + " is carrying:";
 }
 
+string invis_name() {
+    return "someone";
+}
+
 int is_living() {
   return 1;
 }

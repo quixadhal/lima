@@ -1,4 +1,4 @@
-#define CONFIGURE_VERSION	3
+#define CONFIGURE_VERSION	4
 
 #define EDIT_SOURCE
 #define NO_MALLOC
@@ -1299,7 +1299,7 @@ static void handle_configure() {
 
     /* sys/dir.h is BSD, dirent is sys V.  Try to do it the BSD way first. */
     /* If that fails, fall back to sys V */
-    if (check_prog("BSD_READDIR", "#include \"configure.h\"\n#include \"std_incl.h\"\n#include <sys/dir.h>", "struct direct *d; d->d_namlen;", 0)) {
+    if (check_prog("BSD_READDIR", "include <sys/dir.h>", "struct direct *d; d->d_namlen;", 0)) {
 	check_include("INCL_SYS_DIR_H", "sys/dir.h");
     } else {
 	/* could be either of these */
@@ -1313,6 +1313,7 @@ static void handle_configure() {
     check_include("INCL_SYS_MKDEV_H", "sys/mkdev.h");
     check_include("INCL_SYS_RESOURCE_H", "sys/resource.h");
     check_include("INCL_SYS_RUSAGE_H", "sys/rusage.h");
+    check_include("INCL_SYS_WAIT_H", "sys/wait.h");
     check_include("INCL_SYS_CRYPT_H", "sys/crypt.h");
     check_include("INCL_CRYPT_H", "crypt.h");
 
@@ -1335,21 +1336,27 @@ static void handle_configure() {
 	fprintf(yyout, "#define RTLD_LAZY     1\n");
 
     printf("Checking for random number generator ...");
-    if (check_prog("DRAND48", "#include <math.h>", "srand48(0);", 0)) {
+    if (check_prog("DRAND48", 0, "srand48(0);", 0)) {
 	printf(" using drand48()\n");
     } else
-    if (check_prog("RAND", "#include <math.h>", "srand(0);", 0)) {
+    if (check_prog("RAND", 0, "srand(0);", 0)) {
 	printf(" using rand()\n");
     } else
-    if (check_prog("RANDOM", "#include <math.h>", "srandom(0);", 0)) {
+    if (check_prog("RANDOM", 0, "srandom(0);", 0)) {
 	printf("using random()\n");
     } else {
 	printf("WARNING: did not find a random number generator\n");
 	exit(-1);
     }
 
+    if (check_prog("USE_BSD_SIGNALS", 0, "SIGCHLD; wait3(0, 0, 0);", 0)) {
+	printf("Using BSD signals.\n");
+    } else {
+	printf("Using System V signals.\n");
+    }
+    
     printf("Checking if signal() returns SIG_ERR on error ...");
-    if (check_prog("SIGNAL_ERROR SIG_ERR", "#include \"configure.h\"\n#include \"std_incl.h\"\n", "if (signal(0, 0) == SIG_ERR) ;", 0)) {
+    if (check_prog("SIGNAL_ERROR SIG_ERR", 0, "if (signal(0, 0) == SIG_ERR) ;", 0)) {
 	printf(" yes\n");
     } else {
 	fprintf(yyout, "#define SIGNAL_ERROR BADSIG");

@@ -20,7 +20,6 @@
 
 // Files we need to inherit --
 inherit MONSTER;
-//inherit M_GRAMMAR;
 inherit M_ACCESS;
 inherit M_SMARTMOVE;
 
@@ -33,6 +32,7 @@ inherit __DIR__ "player/help";
 inherit __DIR__ "player/bodyshell";
 inherit __DIR__ "player/wizfuncs";
 inherit __DIR__ "player/money";
+inherit __DIR__ "player/start";
 
 #ifdef USE_SKILLS
 inherit __DIR__  "player/skills";
@@ -46,13 +46,15 @@ inherit __DIR__ "player/simple_level";
 #ifdef USE_WIZ_POSITION
 inherit __DIR__ "player/wiz_position";
 #endif
+#ifdef USE_GUILDS
+inherit __DIR__ "player/guilds";
+#endif
 
 // Global variables --
 private string name = "guest";
 private string describe;
 private string invis_name;
 private string nickname;
-private string start_location;
 private string reply;
 private string array channel_list = ({ });
 private string plan;
@@ -91,36 +93,19 @@ string query_name()
     return cap_name;
 }
 
+string query_long_name()
+{
+#ifdef USE_TITLES
+    return query_title();
+#else
+    return cap_name;
+#endif
+}
+
 nomask string query_userid()
 {
     return name;
 }
-
-int set_start_location(string str)
-{
-    if ( !stringp(str) )
-	return 0;
-
-    if ( load_object(str) )
-    {
-	start_location = str;
-        return 1;
-    }
-
-    return 0;
-}
-
-string query_start_location()
-{
-    if ( start_location )
-	return start_location;
-    if(wizardp(this_user()))
-       {
-	 return WIZARD_START;
-       }
-    return START;
-}
-
 
 #ifdef EVERYONE_HAS_A_PLAN
 
@@ -146,31 +131,27 @@ void
 load_autoload() 
 {
     object ob;
-    int l;
+    
+    if (!arrayp(auto_load)) return;
 
-    if(!auto_load || (arrayp(auto_load)&&!sizeof(auto_load)))return;
-
-    if (l = sizeof(auto_load)) {
-	while (l--) {
-	    if (!stringp(auto_load[l]))  {
-		write("[bad filename]  ");
-		continue;
-	    }
-	    if (!stringp(read_file(auto_load[l]+".c",1,5))) {
-
-		write(" [cannot find an item] ");
-		printf("%s\n",auto_load[l]);
-		continue;
-	    }
-	    ob = clone_object(auto_load[l]);
-	    ob->init_arg();  // Rust.  This should pass an arg?
-	    write("....");
-	    if (ob->move(this_object()) != MOVE_OK)
-		if (ob->move(start_location) != MOVE_OK)
-		    if (ob->move(wizardp(this_user()) ? WIZARD_START : START) 
-			!= MOVE_OK)
-			ob->remove();
+    foreach (string fn in auto_load) {
+	if (!stringp(fn))  {
+	    write("[bad filename]\n");
+	    if (wizardp(this_user()))
+		printf("%s\n",fn);
+	    continue;
 	}
+	if (!load_object(fn)) {
+	    write(" [cannot find an item]\n");
+	    if (wizardp(this_user()))
+		printf("%s\n",fn);
+	    continue;
+	}
+	ob = clone_object(fn);
+	ob->init_arg();  // Rust.  This should pass an arg?
+	if (ob->move(this_object()) != MOVE_OK)
+	    if (!move_to_start(ob))
+		ob->remove();
     }
     auto_load = ({ });
 }
@@ -178,19 +159,10 @@ load_autoload()
 
 void save_autoload() 
 {
-    object *inv;
-    string *str;
-    int    l;
-
-
-    auto_load = ({ });
-    inv = all_inventory(this_object());
-    l = sizeof(inv);
-    while (l--) {
-	if (inv[l]->query_autoload()) {
-	    auto_load += ({ base_name( inv[l] ) });
-	}
-    }
+    object array obs;
+    
+    obs = filter(all_inventory(this_object()), (: $1->query_auto_load() :));
+    auto_load = map(obs, (: base_name :));
 }
 
 /* initialize various internal things */
@@ -232,13 +204,11 @@ private nomask void init_cmd_hook()
 
 private nomask void finish_enter_game()
 {
-    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
 			      sprintf("enters %s.", mud_name()));
 
     /* move the body.  make sure this comes before the simple_action */
-    if ( move(start_location) != MOVE_OK &&
-	 move(wizardp(this_user()) ? WIZARD_START : START) != MOVE_OK &&
-	 move(VOID_ROOM) != MOVE_OK )
+    if ( !move_to_start() )
     {
 	write("Uh-oh, you have no environment.\n");
 	return;
@@ -247,7 +217,7 @@ private nomask void finish_enter_game()
     /* we don't want other people to get the extra newlines */
     write("\n");
     if(is_visible())
-      simple_action("$N $venter "+mud_name()+".\n");
+	simple_action("$N $venter "+mud_name()+".\n");
     write("\n");
 
     NCHANNEL_D->register_channels(channel_list);
@@ -255,18 +225,20 @@ private nomask void finish_enter_game()
     do_game_command("look");
 }
 
-nomask void su_enter_game()
+nomask void su_enter_game(object where)
 {
     init_cmd_hook();
 
 //### this should go away once we torch the corresponding leave msg for 'su'
-    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
 			      sprintf("enters %s.", mud_name()));
 
-    if(is_visible())
-      simple_action("$N $venter "+mud_name()+".\n");
+    if ( is_visible() )
+	simple_action("$N $venter "+mud_name()+".\n");
 
     NCHANNEL_D->register_channels(channel_list);
+
+    move(where);
 }
 
 void enter_game(int is_new)
@@ -340,7 +312,7 @@ void save_me()
     unguarded( 1, (: save_object , USER_PATH(name) :) );
 }
 
-void remove(int leave_link)
+void remove()
 {
     object ob;
 
@@ -357,14 +329,11 @@ void remove(int leave_link)
     MAIL_D->unload_mailbox(query_userid());
     unload_mailer();
     LAST_LOGIN_D->register_last(query_userid());
-    if ( link && !leave_link)
-    {
-	link->remove();
-    }
+
     ::remove();
 }
 
-varargs void quit(int leave_link)
+void quit()
 {
     if ( !clonep() )
     {
@@ -377,14 +346,16 @@ varargs void quit(int leave_link)
 
     save_autoload();
 
-    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
 			      sprintf("has left %s.", mud_name()));
     NCHANNEL_D->unregister_all();
 
+#ifdef PLAYERS_START_WHERE_THEY_QUIT
     if (environment() && !wizardp(link))
-	start_location = file_name(environment());
+	set_start_location(file_name(environment()));
+#endif
 
-    remove(leave_link);
+    remove();
 }
 
 
@@ -416,26 +387,32 @@ string base_in_room_desc()
 {
     string result;
 
-    /* no description if invisible */
-
-    /* ensure the player has a title. set it if none (yet) */
-#ifdef USE_TITLES
-    if ( !title )
-	title = sprintf("%s the title-less",cap_name);
-    result = title;
-#else
-    result = cap_name;
-#endif
+    result = query_long_name();
 
     /* if they are link-dead, then prepend something... */
     if ( !link || !interactive(link) )
 	result = "The lifeless body of " + result;
+
     return result;
 }
 
 string in_room_desc()
 {
   return base_in_room_desc() + query_idle_string();
+}
+
+string query_formatted_desc(int num_chars)
+{
+    string idle_string;
+    int i;
+  
+    idle_string = query_idle_string();
+    if ( i = strlen(idle_string) )
+    {
+	num_chars -= (i + 1);
+	idle_string = " " + idle_string;
+    }
+    return truncate(base_in_room_desc(), num_chars) +  idle_string;
 }
 
 void set_reply(string o){
@@ -446,29 +423,32 @@ string query_reply(){ return reply; }
 
 void net_dead()
 {
+//### add security here?
+
     if(is_visible())
-      simple_action("$N $vhave gone link-dead.\n");
-    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+	simple_action("$N $vhave gone link-dead.\n");
+
+    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
 			      sprintf("has gone link-dead.", mud_name()));
-    call_out("remove",300);
+
     if(query_shell_ob()->get_variable("save_scrollback"))
-      catching_scrollback = 1;
-    
+	catching_scrollback = 1;
 }
 
-void reconnect()
+void reconnect(object new_link)
 {
-    link = previous_object();
-    remove_call_out("remove");
-    if(is_visible())
-      simple_action("$N $vhave reconnected.\n");
+//### add security here?
 
-    NCHANNEL_D->deliver_emote("wiz_announce", 0,
+    link = new_link;
+    if(is_visible())
+	simple_action("$N $vhave reconnected.\n");
+
+    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
 			      sprintf("has reconnected.", mud_name()));
 
     catching_scrollback = 0;
     if ( query_shell_ob() )
-      query_shell_ob()->end_scrollback();
+	query_shell_ob()->end_scrollback();
 
     start_shell();
 }
@@ -485,18 +465,18 @@ void die()
 {
     if ( wizardp(link) )
     {
-      if(is_visible())
-	simple_action("If $n $vwere mortal, $n would now no longer be mortal.\n");
+	if(is_visible())
+	    simple_action("If $n $vwere mortal, $n would now no longer be mortal.\n");
 	heal_us(10000);
 	stop_fight();
 	return;
     }
 
     if(is_visible())
-    simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.\n");
-    tell_object(this_object(), "\n\n   ****  You have died  ****\n\n"
-      "A pity, really.  Way too many people dying these days for me to just patch\n"
-      "everyone up.  Oh well, you'll live.\n");
+	simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.\n");
+    receive_private_msg("\n\n   ****  You have died  ****\n\n"
+			"A pity, really.  Way too many people dying these days for me to just patch\n"
+			"everyone up.  Oh well, you'll live.\n",0,0);
     rack_up_a_death();
     link->switch_body(GHOST, 1);
 
@@ -509,7 +489,7 @@ void die()
 	//     (MESSAGES_D->get_messages("player_death"))[query_level()/5])[1];
 	string msg = action(({this_object()}), 
 			    MESSAGES_D->get_messages("player-death"))[1];
-	(users() - ({ query_link() }))->receive_message(msg);
+			    shout(msg);
     }
 #endif
 }
@@ -517,7 +497,10 @@ void die()
 
 void clean_up()
 {
-    quit();
+    if ( link )
+	link->quit();
+    else
+	quit();
 }
 
 
@@ -556,7 +539,9 @@ void set_nickname(string arg) {
     if (file_name(previous_object()) != CMD_OB_NICKNAME)
 	error("Illegal call to set_nickname\n");
 
-    remove_id( nickname );
+    if ( nickname )
+	remove_id(nickname);
+
     nickname = arg;
     add_id_no_plural(nickname);
 }
@@ -600,6 +585,10 @@ private void create(string userid)
     cap_name = capitalize(userid);
     name = userid;
     unguarded(1, (: restore_object, USER_PATH(userid), 1 :));
+
+#ifdef USE_GUILDS
+    fix_guild_data();
+#endif
 
     // up to the player
     set_attack_speed(0);
@@ -666,7 +655,7 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
 private nomask void forward_to_user(string msg)
 {
     if ( link )
-	link->receive_message(msg);
+	link->receive_message(0, msg);
 }
 
 // Inside messages propogate upward and downward...
@@ -698,4 +687,23 @@ void receive_remote_msg(string msg, object array exclude, int message_type,
 void receive_private_msg(string msg, int message_type, mixed other)
 {
     forward_to_user(msg);
+}
+
+int go_somewhere(string arg)
+{
+  object env;
+  int    ret;
+
+  if(!(ret=::go_somewhere(arg)) && (env = environment(this_object())))
+    return env->go_somewhere(arg);
+
+  return ret;
+}
+
+
+
+
+string inventory_header()
+{
+  return query_name() + " is carrying: ";
 }

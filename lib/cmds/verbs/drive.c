@@ -13,20 +13,16 @@ inherit VERB_OB;
 //###should be shared somehow with go.c
 string *normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
 
-mixed can_drive_str(string str)
+
+private mixed can_go_that_way(object ob, string str)
 {
-    object ob = environment(this_body())->get_outside();
     mixed value;
     int is_normal;
 
-    /*
-    ** if there is no outside object (or the env isn't an inside), then
-    ** driving is illegal :-)  Also, rule out non-vehicles.
-    */
-    if ( !ob || !ob->is_vehicle() )
-	return 0;
-
     is_normal = (member_array(str, normal_dirs) != -1);
+    if(!environment(ob))
+      return "You need to be behind the wheel of something in order "
+	"to drive.\n";
     value = environment(ob)->query_exit_value(str, is_normal);
     if (stringp(value) && value[0] == '#')
 	return value[1..];
@@ -41,12 +37,36 @@ mixed can_drive_str(string str)
     return 0;
 }
 
+
+mixed can_drive_str(string str)
+{
+  return can_go_that_way(environment(this_body()), str);
+}
+
 void do_drive_str(string str)
 {
-    environment(this_body())->get_outside()->go_somewhere(str);
+    environment(this_body())->go_somewhere(str);
 }
+
+mixed can_drive_obj()
+{
+  return "You need to specify a direction.\n";
+}
+ 
+int can_drive_obj_str(object ob, string str)
+{
+  if(!ob)
+    return 0;
+  return can_go_that_way(ob, str);
+}
+
+void do_drive_obj_str(object o, string str)
+{
+  o->go_somewhere(str);
+}
+
 
 mixed *query_verb_info()
 {
-    return ({ ({ "STR" }) });
+    return ({ ({ "STR", "OBJ", "OBJ STR" }) });
 }

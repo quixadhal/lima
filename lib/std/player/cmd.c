@@ -31,6 +31,7 @@ string nonsense()
 varargs nomask int do_game_command(string str, int debug)
 {
     mixed result;
+    mixed go_result;
     string tmp;
 
     /*
@@ -44,34 +45,56 @@ varargs nomask int do_game_command(string str, int debug)
 	force_look();
     }
 
-    /*
-    ** Tmp hack, load the verb if not already loaded.
-    */
+//###Tmp hack, load the verb if not already loaded.
+#if 0
     if(sscanf(str,"%s %s", result, tmp) > 0)
 	load_object(CMD_DIR_VERBS+"/"+result);
     else
 	load_object(CMD_DIR_VERBS+"/"+str);
+#endif
 
     /*
     ** Parse the player's input
     */
     result = parse_sentence(str, debug);
 
-    /*
-    ** If a 1 was returned, then nothing more needs to be done.
-    */
-    if ( result == 1 )
-	return 1;
-
+    
     /*
     ** If a string was returned, then the parser figured something out.
     ** Write it out and we're done.
     */
+
     if ( stringp(result) )
     {
 	write(result);
 	return 1;
     }
+
+    /*
+    ** If the result is 0, the parser didn't know the verb so we keep looking.
+    *  If a 1 was returned, then nothing more needs to be done.
+    ** If the result is -1 or -2, the parser figured something was wrong.
+    **
+    */
+
+    switch(result)
+      {
+      case 0:
+	break;
+      case 1:
+	return 1;
+      case -1:
+	write(nonsense());
+	return 1;
+      case -2:
+	write("You aren't able to do that.\n");
+	return 1;
+      default:
+	write("This parser code should never be reached. If it is, let "
+	      "someone know how you got here.\n");
+	return 1;
+      }
+
 
     // If in debug mode, we're done
     if (debug) return 1;
@@ -79,7 +102,7 @@ varargs nomask int do_game_command(string str, int debug)
     /*
     ** Check if they typed an exit
     */
-    result = parse_sentence("go " + str);
+    go_result = parse_sentence("go " + str);
     if (result == 1)
         return 1;
 

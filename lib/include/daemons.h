@@ -21,6 +21,8 @@
 #define MESSAGES_D	"/daemons/messages"
 #define ANNOTATION_D    "/daemons/annotation"
 #define MONEY_D		"/daemons/money_d"
+#define GUILD_D		"/daemons/guild_d"
+#define CHANLOG_D	"/daemons/chanlog_d"
 
 #define MAIL_D		"/secure/daemons/mail_d"
 #define GROUP_D		"/secure/daemons/group_d"
@@ -28,6 +30,7 @@
 #define USERLIST_D	"/secure/daemons/userlist_d"
 #define USER_D		"/secure/daemons/user_d"
 #define NEW_USER_D	"/secure/daemons/new_user_d"
+#define LOG_D		"/secure/daemons/log_d"
 
 // Define these only if you want intermud services.
 #define REMOTE_D        "/secure/daemons/remote_d"

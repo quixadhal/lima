@@ -1,0 +1,21 @@
+<title>Configuring your Lima web server</title>
+
+<h3>All the configuration is in the file /include/net/http_d.h.
+below, are all the options explained.
+<ul>
+<li>HTTP_PORT<p>The port that people will have to connect to, when
+they want to connect to your web server. </li>
+<li>HTTP_ROOT<p>This is the directory that your web server will use
+as it's root.  All html files will be found here, except for wizard's personal
+home pages, and associated documents.</li>
+<li>HTTP_USER_HOME<p>This is the directory within each wizard's home 
+directory, that thier home pages and associated documents should go.</li>
+<li>DEFAULT_PAGE<p>When someone specifies a directory, instead of a
+specific file, the server will attempt display a file of this name, in the
+requested directory.</li>
+<li>SECURE_CGI_DIR<p>This is the directory that all cgi scripts will
+be found.  No matter where a cgi script is requested from, the server will
+always look in this directory.</li>
+</ul>
+<p><p>
+<a href = />Back to the main page</a>

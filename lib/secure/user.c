@@ -17,7 +17,7 @@ inherit M_ACCESS;
 inherit __DIR__ "user/login";
 inherit __DIR__ "user/sw_body";
 inherit __DIR__ "user/sw_user";
-inherit __DIR__ "user/loginfail";
+inherit __DIR__ "user/failures";
 inherit __DIR__ "user/inputsys";
 inherit __DIR__ "user/userinfo";
 inherit __DIR__ "user/messages";
@@ -42,11 +42,6 @@ private int		data_version = 2;
 //### old variable
 private string		name;
 
-//### should remove
-nomask string query_name()
-{
-    return userid;
-}
 
 nomask string query_userid()
 {
@@ -65,10 +60,21 @@ void remove()
 {
     object body = query_body();
 
-    if ( !body || previous_object() == body )
-    {
-	destruct();
-    }
+    if ( body )
+	destruct(body);
+
+    remove_call_out();
+    destruct();
+}
+
+void quit()
+{
+    object body = query_body();
+
+    if ( body )
+	body->quit();
+
+    remove();
 }
 
 static nomask void save_me()
@@ -111,7 +117,10 @@ private nomask void net_dead()
     ** If there is no body yet, then just torch self.
     */
     if ( body )
+    {
 	body->net_dead();
+	call_out((: remove :), 300);
+    }
     else
-	destruct(this_object());
+	destruct();
 }

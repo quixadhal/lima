@@ -13,63 +13,84 @@
 //
 
 #include <mudlib.h>
-#include <money.h>
 
 
-private  mapping money;
+private   mapping money;
 
-private *query_currencies;
-mixed subtract_money(string, int);
 
 //  This is the functin to call to query the amount of a certain type
 //  of currency you have.
 //
-
 int query_amt_money(string type)
 {
-    if(!money) return;
-    if(!money[type]) return;
-    else
-	return money[type];
+    if(!money)
+	return 0;
+
+    if(!money[type])
+	return 0;
+
+    return money[type];
 }
 
 //
 //  This is the function to call to add money to a person 
 //   
-
-
-mixed add_money(string type, int amount)
+void add_money(string type, int amount)
 {
-    if(!money) money = ([]);
-    if(!type || !amount) return 0;
+    if(!money)
+	money = ([]);
 
-    if(!money[type]) money[type] = amount;
-    else money[type] += amount;
+    if(!type || !amount)
+	return;
+
+    if(!money[type])
+	money[type] = amount;
+    else
+	money[type] += amount;
 
     if(money[type] < 1)
 	map_delete(money, type);
 }
 
-mixed subtract_money(string type, int amount)
+void subtract_money(string type, int amount)
 {
-money[type] -= amount;
-
-    if(!money[type] || money[type] < amount) return 0;
-    else money[type] -= amount;
-
-if(money[type] < 1)
-   map_delete(money,type);
-
-       map_delete( money, type);
+    add_money(type, -amount);
 }
 
 
 //   This function will return the current "types" of money you have
 //
-
-
 int *query_currencies()
 {
-   if(!money) return ({});
+    if(!money)
+	return ({});
+
     return keys(money);
+}
+
+int drop_coins(int amount, string type)
+{
+    object ob;
+
+
+
+    if(query_amt_money(type) < amount)
+    {
+	write("You don't have "+ amount +" "+ type +" coins.\n");
+	return 0;
+    }
+    else
+    {
+	subtract_money(type,amount);
+	this_body()->simple_action("$N $vdrop "+ amount +" "+ type +" coins.\n");
+	if(ob = present("coins"))
+	{
+	    ob->merge_coins(amount,type);
+	}
+	else
+	{
+	    new("/std/coins", amount,type)->move(environment(this_body())); 
+	    return 1;
+	}
+    }
 }

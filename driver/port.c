@@ -231,10 +231,12 @@ char *
 
 #ifndef HAS_STRERROR
 /* for those systems without strerror() but with sys_errlist, sys_nerr */
+/* Warning: Sun has a prototype for strerror, but no definition for it,
+   so we can't use that name */
 extern char *sys_errlist[];
 extern int sys_nerr;
 
-char *strerror P1(int, which)
+char *port_strerror P1(int, which)
 {
     if ((which < 0) || (which >= sys_nerr)) {
 	return "unknown error";

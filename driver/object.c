@@ -1585,7 +1585,7 @@ object_t *get_empty_object P1(int, num_var)
 }
 
 #ifndef NO_ADD_ACTION
-static object_t *hashed_living[LIVING_HASH_SIZE];
+object_t *hashed_living[LIVING_HASH_SIZE];
 
 static int num_living_names, num_searches = 1, search_length = 1;
 

@@ -9,6 +9,12 @@ int test_flag(mixed);
 void set_flag(mixed);
 void clear_flag(mixed);
 void set_id(string);
+void remove_id(string);
+
+void resync_visibility() {
+    // The parser needs to know whether our contents can be seen
+    parse_refresh();
+}
 
 int
 is_visible()
@@ -28,14 +34,18 @@ is_visible()
     return 1;
 }
 
+string invis_name() {
+    return "something";
+}
+
 void set_visibility(int x)
 {
-  x ? clear_flag(INVIS) : set_flag(INVIS);
-  set_id("something");
-  if(this_object()->is_living())
-    {
-      set_id("someone");
+    if (x) {
+	clear_flag(INVIS);
+    } else {
+	set_flag(INVIS);
     }
+    resync_visibility();
 }
 
 int get_visibility()

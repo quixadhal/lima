@@ -19,6 +19,15 @@ static nomask int query_mudlist_id()
     return mudlist_id;
 }
 
+/* this is called at restore/disconnect time to mark muds as Down */
+static nomask void mudlist_reset_entries()
+{
+    foreach ( string mudname, mixed data in mud_info )
+    {
+	data[0] = 0;
+    }
+}
+
 nomask string canon_mudname(string mudname)
 {
     return mud_names[evaluate(remap_name, mudname)];
@@ -57,7 +66,7 @@ nomask string * query_mudnames()
 
 nomask string * query_up_muds()
 {
-  return filter(keys(mud_info), (: mud_info[$1][0] == -1 :));
+    return filter(keys(mud_info), (: mud_info[$1][0] == -1 :));
 }
 
 nomask int mud_exists(string mudname)

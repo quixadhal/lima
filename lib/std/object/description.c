@@ -23,6 +23,8 @@ private string untouched_long;
 int test_flag(int);
 int is_visible();
 int is_attached();
+/* this one is here, but this is a forward declaration. */
+string query_in_room_desc();
 
 //:FUNCTION set_long
 //Set the long description of an object
@@ -92,7 +94,7 @@ string show_in_room()
 	if (plural_in_room_desc)
 	    return sprintf( plural_in_room_desc, "many");
 
-	str = this_object()->short();
+	str = short();
 	if (!str) return 0;
 
 	return "There are many "+plural_short()+" here.\n";
@@ -102,7 +104,7 @@ string show_in_room()
 	if( plural_in_room_desc ) 
 	    return sprintf( plural_in_room_desc, our_count+"");
 
-	str = this_object()->short();
+	str = short();
 	if( !str ) 
 	    return 0;
 
@@ -117,10 +119,10 @@ string show_in_room()
     if (!test_flag(TOUCHED) && (str = untouched_long()))
 	return str;
 
-    if( in_room_desc )
-	return evaluate(in_room_desc);
+    if( str = query_in_room_desc() )
+	return str;
 
-    str = this_object()->a_short();
+    str = a_short();
 
     if( !str )
 	return 0;

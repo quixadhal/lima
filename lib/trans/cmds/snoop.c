@@ -4,6 +4,7 @@
 // we will recieve: ({ user, ({ words }) })
 
 #include <mudlib.h>
+#include <log.h>
 
 inherit CMD;
 
@@ -24,7 +25,7 @@ private void main(mixed *arg)
 		      this_user()->query_userid(),
 		      arg[0]->query_link()->query_userid(),
 		      msg);
-	unguarded(1, (: write_file, SNOOP_LOG, msg :));
+	LOG_D->log(LOG_SNOOP, msg);
 
 	snoop(arg[0]->query_link());
     }

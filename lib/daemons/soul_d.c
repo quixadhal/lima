@@ -33,7 +33,7 @@ create() {
 	}
 	
 	foreach (rule, ignore in value) {
-	    catch(parse_add_rule(verb, rule, this_object()));
+	    catch(parse_add_rule(verb, rule));
 	}
     }
 
@@ -45,7 +45,7 @@ int
 add_emote(string verb, mixed rule, string array parts)
 {
     // try this first b/c it will error if rule is illegal
-    parse_add_rule(verb, rule, this_object());
+    parse_add_rule(verb, rule);
 
     if (!emotes[verb])
 	emotes[verb] = ([]);

@@ -7,6 +7,7 @@
 ** socket facilities.
 **
 ** 09-Feb-95. Deathblade. Created.
+** 05-Jan-96. Cowl. Added STREAM BINARY connect and listen styles
 */
 
 #include <mudlib.h>
@@ -111,6 +112,36 @@ SKTLOG("create: SKT_STYLE_LISTEN",fdOwned);
 SKTLOG("create: SKT_STYLE_CONNECT",fdOwned);
 SKTLOG("create: close_func",close_func);
 	break;
+
+    case SKT_STYLE_LISTEN_B:
+        read_func = p2;
+        close_func = p3;
+        fdOwned = socket_create(3 /* STREAM BINARY */,
+                                "read_callback",
+                                "close_callback");
+        if ( fdOwned < 0 )
+            error("could not create socket: " + socket_error(fdOwned) + "\n");
+        if ( (err = socket_bind(fdOwned, p1)) < 0 )
+            error("could not bind socket: " + socket_error(err) + "\n");
+        if ( (err = socket_listen(fdOwned, "listen_callback")) < 0 )
+            error("could not listen to socket: " + socket_error(err) + "\n");
+SKTLOG("create: SKT_STYLE_LISTEN_B",fdOwned);
+        break;
+
+    case SKT_STYLE_CONNECT_B:
+        read_func = p2;
+        close_func = p3;
+        fdOwned = socket_create(3 /* STREAM BINARY */,
+                                "read_callback",
+                                "close_callback");
+        if ( fdOwned < 0 )
+            error("could not create socket: " + socket_error(fdOwned) + "\n");
+        err = socket_connect(fdOwned, p1, "read_callback", "write_callback");
+        if ( err < 0 )
+            error("could not listen to socket: " + socket_error(err) + "\n");
+SKTLOG("create: SKT_STYLE_CONNECT_B",fdOwned);
+SKTLOG("create: close_func",close_func);
+        break;
 
     case SKT_STYLE_UDP:
 	read_func = p2;

@@ -8,10 +8,10 @@
 */
 
 #include <mudlib.h>
+#include <log.h>
 
 inherit CMD;
 
-#define FORCE_LOG "/log/forces"
 #define SYNTAX "Usage:  force <living> <command>\n"
 
 
@@ -27,7 +27,7 @@ private void main(mixed * arg)
     s = sprintf("%s forces %s to (%s) [%s]\n",
 		this_user()->query_userid(), targ_user->query_userid(),
 		what, ctime(time()));
-    unguarded(1, (: write_file, FORCE_LOG, s :));
+    LOG_D->log(LOG_FORCE, s);
 
     targ_user->force_me(what);
 }

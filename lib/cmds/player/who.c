@@ -76,7 +76,10 @@ string get_who_string(string arg)
     {
 	if (!u[i]->query_body())
 	    continue;
-        name = u[i]->query_body()->query_truncated_title(78);
+        name = u[i]->query_body()->query_formatted_desc(78);
+	/* ### temp until all people 'su' */
+	if ( !name )
+	    name = u[i]->query_body()->query_truncated_title(78);
         bits = u[i]->query_body()->get_flags(PLAYER_FLAGS);
         if(!name)
             name = capitalize(u[i]->query_userid());

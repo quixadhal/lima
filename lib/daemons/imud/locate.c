@@ -25,8 +25,13 @@ static nomask void rcv_locate_req(string orig_mud, string orig_user,
     p = find_body(message[0]);
     if ( p )
     {
+	int idle = 0;
+
+	if ( p->query_link() )
+	    idle = query_idle(p->query_link());
+
 	send_to_user("locate-reply", orig_mud, orig_user,
-		     ({ mud_name(), p->query_name() }));
+		     ({ mud_name(), p->query_name(), idle, 0 }));
     }
 }
 
@@ -44,7 +49,16 @@ static nomask void rcv_locate_reply(string orig_mud, string orig_user,
     }
     else
     {
-	tell_object(p, sprintf("[locate] %s has been found on %s.\n",
-			       message[1], message[0]));
+	string msg;
+
+	msg = sprintf("[locate] %s has been found on %s",
+		      message[1], message[0]);
+	if ( message[3] )
+	    msg += sprintf(" (idle for %d seconds, status is: %s)",
+			   message[2], message[3]);
+	else
+	    msg += sprintf(" (idle for %d seconds)", message[2]);
+    
+	tell_object(p, iwrap(msg + ".\n", 9));
     }
 }

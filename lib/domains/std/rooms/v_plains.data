@@ -1,0 +1,60 @@
+#
+# v_plains.data -- data file for v_plains.c virtual object server
+#
+# 960101, Deathblade: created
+#
+
+#
+# first, the description id information
+#
+desc:01103210
+desc:12013102
+desc:22133211
+desc:12030012
+desc:21131001
+desc:11332120
+desc:20300112
+desc:11312001
+
+#
+# next, the edge rooms.  we need 8 for the north edge, 8 for the east edge,
+# 8 for the south edge, then 8 for the west edge.
+#
+# for now, all exits will go back to the example_room1.
+#
+# 8 north exits
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+# 8 east exits
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+# 8 south exits
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+# 8 west exits
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1
+/domains/std/example_room1

@@ -30,6 +30,7 @@ private string closed_desc;
 
 void hook_state(string, string, int);
 void add_hook(string, function);
+void resync_visibility();
 
 int openable() { return 1; }
 
@@ -47,9 +48,8 @@ void set_closed(int x) {
   else
       add_adj("open");
 
-  /* our inventory visibility probably just changed. if we're a container,
-     then we need to adjust our light */
-  this_object()->inventory_visibility_change();
+  /* our inventory visibility probably just changed. */
+  resync_visibility();
 }
 
 

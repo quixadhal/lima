@@ -12,6 +12,7 @@
 #include <config.h>
 #include <mudlib.h>
 #include <edit.h>
+#include <log.h>
 
 inherit DAEMON;
 
@@ -28,10 +29,10 @@ inherit DAEMON;
 ** to restricted directories.
 */
 private static mapping log_files = ([
-				     "Bug" : "/log/BUGS",
-				     "Typo" : "/log/TYPOS",
-				     "Idea" : "/log/IDEAS",
-				     "Todo" : "/log/TODOS",
+				     "Bug" : LOG_BUG,
+				     "Typo" : LOG_TYPO,
+				     "Idea" : LOG_IDEA,
+				     "Todo" : LOG_TODO,
 				     ]);
 private static mapping news_groups = ([
 				       "Bug" : BUG_NEWSGROUP,
@@ -42,36 +43,40 @@ private static mapping news_groups = ([
 
 private nomask void issue_report(string type, string subject, string text)
 {
-  string where_am_i;
-  object env;
+    string where_am_i;
+    object env;
 
-  env = environment(this_body());
-  where_am_i = (env ? file_name(env) : "<nowhere>");
+    env = environment(this_body());
+    where_am_i = (env ? file_name(env) : "<nowhere>");
 
-  if ( subject )
+    if ( subject )
     {
-      text = sprintf("%s reported from %s--\n\n%s\n",
-		     type,
-		     where_am_i,
-		     text);
+	text = sprintf("%s reported from %s--\n\n%s\n",
+		       type,
+		       where_am_i,
+		       text);
 
-      unguarded(1, (: NEWS_D->system_post($(news_groups[type]),
-					  $(subject),
-					  $(text)) :));
+//### this should probably be located somewhere "handy"; possibly in
+//### NEWS_D itself
+	NEWSREADER->wrap_post(text);
+
+	unguarded(1, (: NEWS_D->system_post($(news_groups[type]),
+					    $(subject),
+					    $(text)) :));
     }
-  else
+    else
     {
-      text = sprintf("%s: %s reports from %s on %s--\n\n%s" DIVIDER,
-		     type,
-		     this_body()->query_name(),
-		     where_am_i,
-		     ctime(time()),
-		     text);
+	text = sprintf("%s: %s reports from %s on %s--\n\n%s" DIVIDER,
+		       type,
+		       this_body()->query_name(),
+		       where_am_i,
+		       ctime(time()),
+		       text);
 
-      unguarded(1, (: write_file, log_files[type], text :) );
+	LOG_D->log(log_files[type], text);
     }
 
-  write("Thanks for the report!\n");
+    write("Thanks for the report!\n");
 }
 
 /* handle the completion of the report */

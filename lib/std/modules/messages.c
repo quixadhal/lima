@@ -108,7 +108,13 @@ varargs string compose_message(object forwhom, string msg, object *who,
 		} else if (res[<4..<1] == "the ") {
 		    res = res[0..<5];
 		    bit = THE_SHORT(ob);
-		} else bit = SHORT(ob);
+		} else if (res[<2..<1] == "A ") {
+		    res = res[0..<3];
+		    bit = capitalize(A_SHORT(ob));
+		} else if (res[<4..<1] == "The ") {
+		    res = res[0..<5];
+		    bit = capitalize(THE_SHORT(ob));
+		  } else bit = SHORT(ob);
 		has[ob]++;
 	    }
 	    break;
@@ -161,7 +167,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	    break;
 	case 'v':
 	case 'V':
-	    if (who[num]!=forwhom) bit = M_GRAMMAR->pluralize(str);
+	    if (num >= sizeof(who) || who[num]!=forwhom) bit = M_GRAMMAR->pluralize(str);
 	    else bit = str;
 	    break;
 	case 'p':

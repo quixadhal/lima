@@ -11,6 +11,7 @@
 #include <mudlib.h>
 #include <socket.h>
 #include <security.h>
+#include <log.h>
 
 inherit M_ACCESS;
 inherit M_RECONNECT;
@@ -25,7 +26,6 @@ inherit "/daemons/imud/mudlist";
 
 #define OOB_PORT	(__PORT__ + 1)
 #define SAVE_FILE	"/data/daemons/imud_d"
-#define LOG_FILE	"/log/i3_errors"
 
 static private object	router_socket;
 static private object	oob_socket;
@@ -122,8 +122,6 @@ if (message[0]!= "mudlist")
 
     if ( !dispatch[message[0]] )
     {
-//### need logging facilities
-
 	/* return an error packet */
 	send_message("error", message[2], message[3],
 		     ({ "unk-type",
@@ -142,6 +140,14 @@ private nomask void handle_router_close(object socket)
     DBBUG("router closed");
     router_socket = 0;
 
+    /* mark all the muds as down. when we reconnect we'll get new data */
+    mudlist_reset_entries();
+
+//### for now, we need to set the password to 0. the router doesn't send
+//### "up" status changes when we reconnect (general problem with the
+//### the router -- I'm surprised nobody else has mentioned it)
+    password = 0;
+       
     trigger_reconnect("router");
 }
 
@@ -166,7 +172,7 @@ private nomask void reconnect()
     }
     else
     {
-	send_to_router("startup-req-2",
+	send_to_router("startup-req-3",
 		       ({ password,
 			      query_mudlist_id(),
 			      query_chanlist_id(),
@@ -174,7 +180,7 @@ private nomask void reconnect()
 			      OOB_PORT,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 0.9r8 (pre-alpha)",
+			      "Lima 0.9r9 (pre-alpha)",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -182,7 +188,7 @@ private nomask void reconnect()
 			      ADMIN_EMAIL,
 			      ([
 				  "tell" : 1,
-				   "emoteto" : 1,
+				  "emoteto" : 1,
 				  "who" : 1,
 				  "finger" : 1,
 				  "locate" : 1,
@@ -222,6 +228,9 @@ void create()
     }
 
     set_privilege(1);
+
+    restore_object(SAVE_FILE);
+    mudlist_reset_entries();
 
     reconn_func = (: reconnect :);
 
@@ -290,9 +299,9 @@ private nomask void rcv_error(string orig_mud, string orig_user,
     }
     else
     {
-	unguarded(1, (: write_file, LOG_FILE,
-		      sprintf("%s: %s\n%O\n", message[0], message[1],
-			      message[2]) :));
+	LOG_D->log(LOG_I3_ERROR,
+		   sprintf("%s: %s\n%O\n", message[0], message[1],
+			   message[2]));
 
 	NCHANNEL_D->deliver_channel("wiz_errors",
 				    sprintf("I3 (%s): %s\n",

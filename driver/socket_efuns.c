@@ -87,13 +87,14 @@ void init_sockets()
 /*
  * Set the callbacks for a socket
  */
-static void
+void
 set_read_callback P2(int, which, svalue_t *, cb) {
     char *s;
 
-    if (lpc_socks[which].flags & S_READ_FP)
+    if (lpc_socks[which].flags & S_READ_FP) {
 	free_funp(lpc_socks[which].read_callback.f);
-    else if ((s = lpc_socks[which].read_callback.s))
+	lpc_socks[which].flags &= ~S_READ_FP;
+    } else if ((s = lpc_socks[which].read_callback.s))
 	free_string(s);
 
     if (cb) {
@@ -108,13 +109,14 @@ set_read_callback P2(int, which, svalue_t *, cb) {
 	lpc_socks[which].read_callback.s = 0;
 }
 
-static void
+void
 set_write_callback P2(int, which, svalue_t *, cb) {
     char *s;
 
-    if (lpc_socks[which].flags & S_WRITE_FP)
+    if (lpc_socks[which].flags & S_WRITE_FP) {
 	free_funp(lpc_socks[which].write_callback.f);
-    else if ((s = lpc_socks[which].write_callback.s))
+	lpc_socks[which].flags &= ~S_WRITE_FP;
+    } else if ((s = lpc_socks[which].write_callback.s))
 	free_string(s);
 
     if (cb) {
@@ -129,13 +131,14 @@ set_write_callback P2(int, which, svalue_t *, cb) {
 	lpc_socks[which].write_callback.s = 0;
 }
 
-static void
+void
 set_close_callback P2(int, which, svalue_t *, cb) {
     char *s;
 
-    if (lpc_socks[which].flags & S_CLOSE_FP)
+    if (lpc_socks[which].flags & S_CLOSE_FP) {
 	free_funp(lpc_socks[which].close_callback.f);
-    else if ((s = lpc_socks[which].close_callback.s))
+	lpc_socks[which].flags &= ~S_CLOSE_FP;
+    } else if ((s = lpc_socks[which].close_callback.s))
 	free_string(s);
 
     if (cb) {
@@ -154,9 +157,9 @@ static void
 copy_close_callback P2(int, to, int, from) {
     char *s;
 
-    if (lpc_socks[to].flags & S_CLOSE_FP)
+    if (lpc_socks[to].flags & S_CLOSE_FP) {
 	free_funp(lpc_socks[to].close_callback.f);
-    else if ((s = lpc_socks[to].close_callback.s))
+    } else if ((s = lpc_socks[to].close_callback.s))
 	free_string(s);
 
     if (lpc_socks[from].flags & S_CLOSE_FP) {
@@ -171,7 +174,7 @@ copy_close_callback P2(int, to, int, from) {
     }
 }
 
-static int 
+int 
 find_new_socket PROT((void)) {
     int i;
     
@@ -586,7 +589,7 @@ socket_write P3(int, fd, svalue_t *, message, char *, name)
 	    memcpy(buf, message->u.buf->item, len);
 	    break;
 	case T_STRING:
-	    len = strlen(message->u.string);
+	    len = SVALUE_STRLEN(message);
 	    buf = (char *) DMALLOC(len + 1, TAG_TEMPORARY, "socket_write: T_STRING");
 	    if (buf == NULL)
 		fatal("Out of memory");

@@ -11,6 +11,7 @@
 */
 
 #include <mudlib.h>
+#include <log.h>
 
 #define DEFAULT_HISTORY_BUFFER_SIZE	20
 
@@ -267,7 +268,7 @@ query_history()
 				 this_user()->query_userid(),
 				 ob->query_userid());
 
-	    unguarded(1, (: write_file, SNOOP_LOG, msg :));
+	    LOG_D->log(LOG_SNOOP, msg);
 
 	    if ( adminp(ob) )
 		tell_object(ob, sprintf("%s has just read your history!\n",

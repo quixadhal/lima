@@ -50,6 +50,7 @@ static int best_error_match;
 static int best_num_errors;
 static parse_result_t *best_result = 0;
 static match_t matches[10];
+static int found_level = 0;
 static char *current_error = 0;
 #ifdef DEBUG
 static int debug_parse_depth = 0;
@@ -71,9 +72,11 @@ static void parse_rule PROT((parse_state_t *));
 #define isignore(x) (!isascii(x) || !isprint(x) || x == '\'')
 #define iskeep(x) (isalnum(x) || x == '*')
 
+#define SHARED_STRING(x) ((x)->subtype == STRING_SHARED ? (x)->u.string : findstring((x)->u.string))
+
 /* parse_init() - setup the object
  * parse_refresh() - refresh an object's parse data
- * parse_add_rule(verb, rule, handler) - add a rule for a verb
+ * parse_add_rule(verb, rule) - add a rule for a verb
  * parse_sentence(sent) - do the parsing :)
  */
 
@@ -85,7 +88,8 @@ void parser_mark_verbs() {
 	verb_t *verb_entry = verbs[i];
 	
 	while (verb_entry) {
-	    EXTRA_REF(BLOCK(verb_entry->name))++;
+	    EXTRA_REF(BLOCK(verb_entry->real_name))++;
+	    EXTRA_REF(BLOCK(verb_entry->match_name))++;
 	    verb_entry = verb_entry->next;
 	}
     }
@@ -1196,24 +1200,6 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
 }
 
 /* misnomer; this func is not recursive */
-static verb_t *parse_verb P1(char *, str) {
-    char *vb = findstring(str);
-    verb_t *ret;
-
-    if (!vb) return 0;
-
-    ret = verbs[DO_HASH(vb, VERB_HASH_SIZE)];
-    while (ret) {
-	if (ret->name == vb) {
-	    words[0].string = vb;
-	    words[0].type = 0;
-	    return ret;
-	}
-	ret = ret->next;
-    }
-    return 0;
-}
-
 static char *make_error_message P1(int, which) {
     char buf[1024];
     char *p;
@@ -1377,10 +1363,10 @@ static int make_function P4(char *, buf, char *, pre,
 
     buf = strput(buf, pre);
     if (try < 2) {
-	buf = strput(buf, words[0].string);
+	buf = strput(buf, parse_verb_entry->match_name);
     } else {
 	buf = strput(buf, "verb");
-	push_string(words[0].string, STRING_SHARED);
+	push_string(parse_verb_entry->match_name, STRING_SHARED);
 	on_stack++;
     }
 
@@ -1471,6 +1457,8 @@ static void we_are_finished P1(parse_state_t *, state) {
     DEBUG_INC;
     DEBUG_P(("we_are_finished"));
     
+    if (found_level < 2) found_level = 2;
+
     /* ignore it if we already have somethign better */
     if (best_match >= parse_vn->weight) {
 	DEBUG_P(("Have a better match; aborting ..."));
@@ -1907,13 +1895,32 @@ static void parse_sentence P1(char *, input) {
     reset_error();
     /* find an interpretation, first word must be shared (verb) */
     for (i = 1; i <= n; i++) {
-	if ((parse_verb_entry = parse_verb(buf))) {
-	    if (!objects_loaded && (parse_verb_entry->flags & VB_HAS_OBJ)) 
-		load_objects();
-	    num_words = 1;
-	    words[0].start = orig_starts[0];
-	    words[0].end = orig_ends[i-1];
-	    parse_recurse(&starts[i], &orig_starts[i], &orig_ends[i]);
+	char *vb = findstring(buf);
+	verb_t *ve;
+	
+	if (vb) {
+	    ve = verbs[DO_HASH(vb, VERB_HASH_SIZE)];
+	    while (ve) {
+		if (ve->real_name == vb) {
+		    if (ve->flags & VB_IS_SYN)
+			parse_verb_entry = ((verb_syn_t *)ve)->real;
+		    else
+			parse_verb_entry = ve;
+
+		    words[0].string = vb;
+		    words[0].type = 0;
+		    
+		    if (found_level < 1) found_level = 1;
+		    if (!objects_loaded && 
+			(parse_verb_entry->flags & VB_HAS_OBJ)) 
+			load_objects();
+		    num_words = 1;
+		    words[0].start = orig_starts[0];
+		    words[0].end = orig_ends[i-1];
+		    parse_recurse(&starts[i], &orig_starts[i], &orig_ends[i]);
+		}
+		ve = ve->next;
+	    }
 	}
 	starts[i][-1] = ' ';
     }
@@ -1953,6 +1960,7 @@ void f_parse_sentence PROT((void)) {
     parse_user = current_object;
     pi = current_object->pinfo;
     parse_restricted = 0;
+    found_level = 0;
     parse_sentence((sp-1)->u.string);
 
     free_parse_globals();
@@ -1969,7 +1977,7 @@ void f_parse_sentence PROT((void)) {
 	    sp->subtype = STRING_MALLOC;
 	    sp->u.string = current_error;
 	    current_error = 0;
-	} else put_number(0);
+	} else put_number(-found_level);
     }
 
     if (best_result) {
@@ -2053,11 +2061,10 @@ void f_parse_add_rule() {
     int h;
     int weight;
     
-    rule = (sp-1)->u.string;
+    rule = sp->u.string;
+    verb = SHARED_STRING(sp-1);
     verb_entry = 0;
-    verb = findstring((sp-2)->u.string);
-    CHECK_TYPES(sp, T_OBJECT, 3, F_PARSE_ADD_RULE);
-    handler = sp->u.ob;
+    handler = current_object;
     if (!(handler->pinfo))
 	error("%s is not known by the parser.  Call parse_init() first.\n",
 	      handler->name);
@@ -2069,7 +2076,9 @@ void f_parse_add_rule() {
     if (verb) {
 	verb_entry = verbs[DO_HASH(verb, VERB_HASH_SIZE)];
 	while (verb_entry) {
-	    if (verb_entry->name == verb)
+	    if (verb_entry->match_name == verb &&
+		verb_entry->real_name == verb &&
+		!(verb_entry->flags & VB_IS_SYN))
 		break;
 	    verb_entry = verb_entry->next;
 	}
@@ -2077,13 +2086,15 @@ void f_parse_add_rule() {
     
     if (!verb_entry) {
 	if (!verb)
-	    verb = make_shared_string((sp-2)->u.string);
+	    verb = make_shared_string((sp-1)->u.string);
 	else
 	    ref_string(verb);
 	
 	h = DO_HASH(verb, VERB_HASH_SIZE);
 	verb_entry = ALLOCATE(verb_t, TAG_PARSER, "parse_add_rule");
-	verb_entry->name = verb;
+	verb_entry->real_name = verb;
+	ref_string(verb);
+	verb_entry->match_name = verb;
 	verb_entry->node = 0;
 	verb_entry->flags = 0;
 	verb_entry->next = verbs[h];
@@ -2120,7 +2131,113 @@ void f_parse_add_rule() {
         handler->pinfo->flags |=PI_REMOTE_LIVINGS;
 
     /* return */
-    pop_stack();
+    free_string_svalue(sp--);
+    free_string_svalue(sp--);
+}
+
+void f_parse_add_synonym() {
+    char *new_verb, *old_verb, *rule, *orig_new_verb;
+    verb_t *vb;
+    verb_node_t *vn, *verb_node;
+    verb_t *verb_entry;
+    int tokens[10];
+    int weight;
+    int h;
+    
+    if (st_num_arg == 3) {
+	orig_new_verb = (sp-2)->u.string;
+	new_verb = SHARED_STRING(sp-2);
+	old_verb = SHARED_STRING(sp-1);
+	rule = sp->u.string;
+    } else {
+	orig_new_verb = (sp-1)->u.string;
+	new_verb = SHARED_STRING(sp-1);
+	old_verb = SHARED_STRING(sp);
+	rule = 0;
+    }
+
+    if (old_verb == new_verb)
+	error("Verb cannot be a synonym for itself.\n");
+    
+    verb_entry = 0;
+
+    if (!old_verb)
+	error("%s is not a verb!\n", old_verb);
+
+    vb = verbs[DO_HASH(old_verb, VERB_HASH_SIZE)];
+    while (vb) {
+	if (vb->real_name == old_verb && vb->match_name == old_verb)
+	    break;
+	vb = vb->next;
+    }
+    
+    if (!vb)
+	error("%s is not a verb!\n", old_verb);
+
+    verb_entry = 0;
+
+    /* Now find a verb entry to put it in */
+    if (new_verb) {
+	verb_entry = verbs[DO_HASH(new_verb, VERB_HASH_SIZE)];
+	while (verb_entry) {
+	    if (verb_entry->real_name == new_verb
+		&& verb_entry->match_name == old_verb) {
+		if (rule) {
+		    if ((verb_entry->flags & VB_IS_SYN) == 0) break;
+		} else {
+		    if ((verb_entry->flags & VB_IS_SYN))
+			break;
+		}
+	    }
+	    verb_entry = verb_entry->next;
+	}
+    }
+
+    if (!verb_entry) {
+	if (!new_verb)
+	    new_verb = make_shared_string(orig_new_verb);
+	else
+	    ref_string(new_verb);
+	ref_string(old_verb);
+	
+	h = DO_HASH(new_verb, VERB_HASH_SIZE);
+	verb_entry = ALLOCATE(verb_t, TAG_PARSER, "parse_add_rule");
+	verb_entry->real_name = new_verb;
+	verb_entry->match_name = old_verb;
+	verb_entry->node = 0;
+	verb_entry->flags = 0;
+	verb_entry->next = verbs[h];
+	verbs[h] = verb_entry;
+    }
+
+    if (rule) {
+	int i;
+	
+	/* Create the rule */
+	make_rule(rule, tokens, &weight);
+
+	/*check that the rule we are shadowing exists, and check it's handler*/
+	for (vn = vb->node; vn; vn = vn->next) {
+	    for (i = 0; tokens[i]; i++) {
+		if (vn->token[i] != tokens[i]) break;
+	    }
+	    if (!tokens[i] && !vn->token[i]) break; /* match */
+	}
+	if (!vn) error("No such rule defined.\n");
+	if (vn->handler != current_object) error("Rule owned by different object.\n");
+	
+	verb_node = (verb_node_t *)DXALLOC(sizeof(verb_node_t) + sizeof(int)*i,
+					   TAG_PARSER, "parse_add_rule");
+	*verb_node = *vn;
+	verb_node->next = verb_entry->node;
+	verb_entry->node = verb_node;
+    } else {
+	verb_syn_t *syn = (verb_syn_t*)verb_entry;
+	syn->flags = VB_IS_SYN | (vb->flags & VB_HAS_OBJ);
+	syn->real = vb;
+    }
+
+    if (st_num_arg == 3) free_string_svalue(sp--);
     free_string_svalue(sp--);
     free_string_svalue(sp--);
 }
@@ -2132,15 +2249,22 @@ void f_parse_dump PROT((void))
 
     outbuf_zero(&ob);
     for (i = 0; i < VERB_HASH_SIZE; i++) {
-	verb_t *v = verbs[i];
-	while (v) {
+	verb_t *v;
+	
+	for (v = verbs[i]; v; v = v->next) {
 	    verb_node_t *vn = v->node;
-	    outbuf_addv(&ob, "Verb %s:\n", v->name);
+	    if (v->real_name == v->match_name)
+		outbuf_addv(&ob, "Verb %s:\n", v->real_name);
+	    else
+		outbuf_addv(&ob, "Verb %s (%s):\n", v->real_name, v->match_name);
+	    if (v->flags & VB_IS_SYN) {
+		outbuf_addv(&ob, "  Synonym for: %s\n", ((verb_syn_t *)v)->real->real_name);
+		continue;
+	    }
 	    while (vn) {
 		outbuf_addv(&ob, "  (%s) %s\n", vn->handler->name, rule_string(vn));
 		vn = vn->next;
 	    }
-	    v = v->next;
 	}
     }
     outbuf_push(&ob);

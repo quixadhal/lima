@@ -1,0 +1,4 @@
+TYPETEST
+
+void foo(x) {
+}

@@ -94,3 +94,8 @@ int direct_get_obj()
   return 1;
 }
 */
+
+/* need a set_light() for remove() */
+void set_light(int x)
+{
+}

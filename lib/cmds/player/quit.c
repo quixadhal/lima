@@ -9,6 +9,5 @@ inherit CMD;
 
 private void main()
 {
-    this_body()->quit();
-    return;
+    this_user()->quit();
 }

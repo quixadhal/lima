@@ -7,13 +7,14 @@ inherit VERB_OB;
 
 /* open <something destroyable> with <weapon> */
 mixed direct_open_obj_with_obj(object ob1, object ob2) {
-    if (!ob1 || !ob2) return 0;
-    return (ob1->test_flag(DESTROYABLE) && ob2->is_weapon());
+    if (!ob1) return 1;
+    return ob1->test_flag(DESTROYABLE);
 }
 
 mixed indirect_open_obj_with_obj(object ob1, object ob2) {
-    if (!ob1 || !ob2) return 0;
-    return (ob1->test_flag(DESTROYABLE) && ob2->is_weapon());
+    if (!ob2) return 1;
+    if (ob2 == this_body()) return "What an odd way to use yourself.\n";
+    return ob2->is_weapon();
 }
 
 int open(object ob, object with)

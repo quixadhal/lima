@@ -265,6 +265,8 @@ static void look_for_objects_to_swap()
 
 	/*
 	 * Check reference time before reset() is called.
+	 *
+	 * FIXME: clean_up has the same problem. -Beek
 	 */
 	if (current_time < ob->time_of_ref + time_to_swap)
 	    ready_for_swap = 0;
@@ -505,10 +507,10 @@ int set_heart_beat P2(object_t *, ob, int, to)
 	if (index < 0) return 0;
 
 	if (num_hb_to_do) {
-	    if (index < num_hb_to_do) {
+	    if (index <= heart_beat_index)
 		heart_beat_index--;
+	    if (index < num_hb_to_do)
 		num_hb_to_do--;
-	    }
 	}
 	
 	if ((num = (num_hb_objs - (index + 1))))

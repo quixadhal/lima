@@ -24,6 +24,9 @@ private static string	current_group;
 
 #define TOP_PROMPT	("(...) " + mud_name() + " News [q?lg] > ")
 
+#define STANDARD_WRAP_WIDTH	68
+#define FOLLOWUP_WRAP_WIDTH	76
+
 nomask void receive_top_cmd(string cmd);
 nomask void receive_grp_cmd(string cmd);
 nomask void receive_msg_cmd(string cmd);
@@ -31,6 +34,9 @@ nomask void receive_msg_cmd(string cmd);
 
 private nomask void quit_news()
 {
+    /* save the player's news reading state */
+    this_body()->save_me();
+
     modal_pop();
     destruct(this_object());
 }
@@ -284,6 +290,23 @@ private nomask void display_messages(int display_all)
     more(lines);
 }
 
+nomask void wrap_post(string * text)
+{
+    int i = sizeof(text);
+
+    while ( i-- )
+    {
+	/* only wrap really long lines */
+	if ( sizeof(text[i]) > 78 )
+	{
+	    /* wrap to different widths, based on the text */
+	    int width = text[i][0]=='>' ? FOLLOWUP_WRAP_WIDTH : STANDARD_WRAP_WIDTH;
+	    if ( sizeof(text[i]) > width )
+		text[i] = wrap(text[i], width);
+	}
+    }
+}
+
 private nomask void receive_post_text(string subject, string * text)
 {
     int id;
@@ -293,7 +316,9 @@ private nomask void receive_post_text(string subject, string * text)
 	write("Post aborted.\n");
 	return;
     }
-    
+
+    wrap_post(text);
+
     id = NEWS_D->post(current_group, subject, implode(text, "\n") + "\n");
     write("Posted:  " + format_message_line(1, id) + "\n");
 }
@@ -340,6 +365,8 @@ nomask void receive_followup_text(string * text)
 	return;
     }
     
+    wrap_post(text);
+
     /*
     ** -1 to get the "current" message.  The player records the _next_
     ** message to read.

@@ -58,6 +58,7 @@ void init_addr_server();
 #endif
 
 static void sig_fpe SIGPROT;
+static void sig_cld SIGPROT;
 
 #ifdef TRAP_CRASHES
 static void sig_usr1 SIGPROT;
@@ -441,6 +442,11 @@ int main P2(int, argc, char **, argv)
 #endif
 #endif				/* DEBUG */
 #endif
+#ifdef USE_BSD_SIGNALS
+    signal(SIGCHLD, sig_cld);
+#else
+    signal(SIGCLD, sig_cld);
+#endif
     backend();
     return 0;
 }
@@ -587,6 +593,19 @@ char *xalloc P1(int, size)
     }
     return p;
 }
+
+static void PSIG(sig_cld) 
+{
+    int status;
+#ifdef USE_BSD_SIGNALS
+    while (wait3(&status, WNOHANG, NULL))
+	;
+#else
+    wait(&status);
+    signal(SIGCLD, sig_cld);
+#endif
+}
+
 
 static void PSIG(sig_fpe)
 {

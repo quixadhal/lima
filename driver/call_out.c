@@ -136,6 +136,7 @@ void new_call_out P5(object_t *, ob, svalue_t *, fun, int, delay, int, num_args,
  */
 void call_out()
 {
+    int extra;
     pending_call_t *cop;
     static int last_time;
     object_t *save_command_giver = command_giver;
@@ -208,15 +209,17 @@ void call_out()
 			}
 		    }
 		    /* cop->vs is ref one */
-		    transfer_push_some_svalues(cop->vs->item, cop->vs->size);
-		    free_array(cop->vs);
-		}
+		    extra = cop->vs->size;
+		    transfer_push_some_svalues(cop->vs->item, extra);
+		    free_empty_array(cop->vs);
+		} else
+		    extra = 0;
+		
 		if (cop->ob) {
-		    (void) apply(cop->function.s, cop->ob, 
-				 1 + (cop->vs ? cop->vs->size : 0),
+		    (void) apply(cop->function.s, cop->ob, 1 + extra,
 				 ORIGIN_CALL_OUT);
 		} else {
-		    (void) call_function_pointer(cop->function.f, 1 + (cop->vs ? cop->vs->size : 0));
+		    (void) call_function_pointer(cop->function.f, 1 + extra);
 		}
 	    }
 	    free_called_call(cop);

@@ -1,3 +1,8 @@
+Various efuns which call valid_hide() don't realize it can error, causing
+them to leak if master::valid_hide() throws an error.
+
+-----
+
 heart_beat() is not shadowable
 
 -----
@@ -28,14 +33,6 @@ so all the efuns that read from a file will screw up if you try
 to use a dir as the file.  ack
 
 ucs_brf@pip.shsu.edu
-
------
-
-    sprintf.c should probably be rewritten as it has a nasty habit of
-    munging the stack and writing to places without checking the destination
-    type if it's ok; probably should also remove need for setjmp/longjmp;
-    also: err = setjmp(...) is non strict ANSI portable according to SAS
-    tech support for their C compiler (SAS/C)
 
 -----
 
@@ -113,7 +110,7 @@ One can call private functions in inherited objects via call_out.
 
 ---
 
-livings() and heart_beats() don't obey set_hide()
+heart_beats() doesn't obey set_hide()
 
 ---
 
@@ -152,6 +149,6 @@ There must be a better fix :)
 
 ---
 
-({ x, y, z })[i] // constants
+({ i++, j })[1];
 
-should use throw_away_call()
+still wrong ?

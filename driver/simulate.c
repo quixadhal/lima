@@ -339,7 +339,11 @@ int strip_name P3(char *, src, char *, dest, int, size) {
  * it.
  *
  */
-object_t *load_object P2(char *, lname, lpc_object_t *, lpc_obj)
+#ifdef LPC_TO_C
+object_t *int_load_object P2(char *, lname, lpc_object_t *, lpc_obj)
+#else
+object_t *int_load_object P1(char *, lname)
+#endif
 {
     int f;
 
@@ -821,7 +825,9 @@ static object_t *object_present2 P2(char *, str, object_t *, ob)
 
 void init_master P1(char *, file) {
     char buf[512];
+#ifdef LPC_TO_C
     lpc_object_t *compiled_version;
+#endif
     object_t *new_ob;
     
     if (!file || !file[0]) {
@@ -830,9 +836,11 @@ void init_master P1(char *, file) {
     }
 	
     if (!strip_name(file, buf, sizeof buf))
-	error("Illegal simul_efun file name '%s'\n", file);
+	error("Illegal master file name '%s'\n", file);
     
+#ifdef LPC_TO_C
     compiled_version = (lpc_object_t *)lookup_object_hash(buf);
+#endif
 
     if (file[strlen(file) - 2] != '.')
 	strcat(buf, ".c");
@@ -1000,14 +1008,18 @@ static void destruct_object_two P1(object_t *, ob)
      */
     if (ob == master_ob || ob == simul_efun_ob) {
 	object_t *new_ob;
+	char *tmp;
+
+#ifdef LPC_TO_C
 	/* hack to make sure we don't find the precompiled tag 
 	   and not ourself */
 	lpc_object_t *compiled_version;
-	char *tmp = ob->name;
-	
+
+	tmp = ob->name;
 	ob->name = "";
 	compiled_version = (lpc_object_t *)lookup_object_hash(tmp);
 	ob->name = tmp;
+#endif
 
 	/* handle these two carefully, since they are rather vital */
 	new_ob = load_object(tmp, compiled_version);
@@ -1342,7 +1354,7 @@ int input_to P4(svalue_t *, fun, int, flag, int, num_arg, svalue_t *, args)
 	if (num_arg) {
 	    i = num_arg * sizeof(svalue_t);
 	    if ((x = (svalue_t *)
-		 DMALLOC(i, TAG_TEMPORARY, "input_to: 1")) == NULL)
+		 DMALLOC(i, TAG_INPUT_TO, "input_to: 1")) == NULL)
 		fatal("Out of memory!\n");
 	    memcpy(x, args, i);
 	} else
@@ -1954,15 +1966,18 @@ void add_action P3(svalue_t *, str, char *, cmd, int, flag)
 	)
 	return;			/* No need for an error, they know what they
 				 * did wrong. */
-#ifdef DEBUG
-    if (d_flag > 1)
-	debug_message("--Add action %s\n", str);
-#endif
     p = alloc_sentence();
     if (str->type == T_STRING) {
+#ifdef DEBUG
+	if (d_flag > 1)
+	    debug_message("--Add action %s\n", str->u.string);
+#endif
       p->function.s = make_shared_string(str->u.string);
       p->flags = flag;
     } else {
+#ifdef DEBUG
+	debug_message("--Add action <function>\n");
+#endif
       p->function.f = str->u.fp;
       str->u.fp->hdr.ref++;
       p->flags = flag | V_FUNCTION;

@@ -1,0 +1,29 @@
+# Stock guilds for muds that want a quick and nasty fix :)
+# Designed to be used with the inherits in /modules/guilds.
+# See /domains/std/monsters/stock-thief-guildmaster for a simple example.
+#
+# 951231       --OH.
+#
+
+name = stock-fighter
+title = Fighters' Guild
+attributes = stock-guild
+banned = all
+
+
+name = stock-mage
+title = Mage Tower
+attributes = stock-guild
+banned = all
+
+
+name = stock-thief
+title = Guild of Thieves
+attributes = stock-guild
+banned = all
+
+
+name = stock-cleric
+title = Temple
+attributes = stock-guild
+banned = all

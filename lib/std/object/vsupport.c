@@ -115,4 +115,3 @@ mixed direct_throw_obj_at_obj(object ob1, object ob2)
    return 1;
  }
 
-

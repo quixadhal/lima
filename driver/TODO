@@ -1,1 +1,101 @@
-svalue_to_string in interpret.c
+As far as pushing out an a15 before Beek comes back I'm not in
+a hurry as I've got two other crashers that are much more
+frequent. I mailed both to Beek but he didn't have time
+to do them before he went on hols. Should have
+posted them as I didn't keep the traces :-)
+
+Anyway, this is one bit of code that crash my a13
+when called with an object a couple of times. Might
+have to call it 4-5 times sometimes.
+
+mixed populate(object ob) {
+  string enter;
+  switch (random(2)) {
+  case 0:
+    enter="A dark elf enters";
+    break;
+  case 1:
+    enter="aaA dark elf enters";
+    break;
+  }
+  call_out("enter_thingy",0,ob,enter);
+}
+
+void enter_thingy(object ob, string enter) {
+ printf("GOT %O:%O\n",ob,enter);
+}
+
+-----
+
+Trying rule: at OBJ
+  parse_rule
+  Matched literal: at
+    parse_obj:
+    Found noun: peasant
+    Which peasant do you mean?
+
+      parse_rule
+        we_are_finished
+        Trying can_look_at_obj ...
+        Trying can_look_word_obj ...
+        Trying can_verb_word_obj ...
+        Trying can_verb_rule ...
+        Trying can_look_at_obj ...
+        Return value was: 0
+        current error set to Which peasant do you mean?
+
+      exiting parse_rule ...
+    parse_rule
+      we_are_finished
+      Trying can_look_at_obj ...
+      Trying can_look_word_obj ...
+      Trying can_verb_word_obj ...
+      Trying can_verb_rule ...
+      Trying can_look_at_obj ...
+      Return value was: 0
+      Have better match; aborting ...
+    exiting parse_rule ...
+  Done trying to match OBJ
+Trying rule: STR
+  parse_rule
+  Taking rest of sentence as STR
+    parse_rule
+      we_are_finished
+      Trying can_look_str ...
+      Trying can_look_str ...
+      Trying can_verb_str ...
+      Trying can_verb_rule ...
+      Trying can_look_str ...
+      Return value was: 0
+      You can't look at peasant.
+
+      current error set to You can't look at peasant.
+
+    exiting parse_rule ...
+  Done trying to match STR
+Trying rule: 
+  parse_rule
+  exiting parse_rule ...
+Trying interpretation: look:at peasant:
+Trying rule: STR
+  parse_rule
+  Taking rest of sentence as STR
+    parse_rule
+      we_are_finished
+      Trying can_look_str ...
+      Trying can_look_str ...
+      Trying can_verb_str ...
+      Trying can_verb_rule ...
+      Trying can_look_str ...
+      Return value was: 0
+      You can't look at peasant.
+
+      Have better match; aborting ...
+    exiting parse_rule ...
+  Done trying to match STR
+Trying rule: 
+  parse_rule
+  exiting parse_rule ...
+
+---------------
+

@@ -23,6 +23,8 @@ private static mixed proper_name;
 */
 string array fake_item_id_list();
 int is_visible();
+string invis_name();
+int test_flag(mixed);
 
 varargs mixed call_hooks(string, mixed, mixed);
 private void resync();
@@ -93,14 +95,13 @@ private void resync() {
 //it should be refered to
 string short()
 {
-  if(!is_visible())
-    {
-      return "something";
-    }
+    if(!is_visible())
+	return invis_name();
     return evaluate(internal_short);
 }
 
 //### obsolete?
+//### I really don't think so.  Isn't it used by multiple copies of the same object ?
 string plural_short() {
     return pluralize(short());
 }
@@ -121,21 +122,19 @@ string add_article(string str) {
 //:FUNCTION the_short
 //return the short descriptions, with the word 'the' in front if appropriate
 string the_short() {
-  if(!is_visible())
-    {
-      return "something";
-    }
-  if (!proper_name) return "the "+short();
-  return evaluate(proper_name);
+    if(!is_visible())
+	return invis_name();
+
+    if (!proper_name) return "the "+short();
+    return evaluate(proper_name);
 }
 
 //:FUNCTION a_short
 //return the short descriptions, with the word 'a' in front if appropriate
 string a_short() {
   if(!is_visible())
-    {
-      return "something";
-    }
+      return invis_name();
+
   if (unique) return the_short();
   if (!proper_name) return add_article(short());
   return evaluate(proper_name);
@@ -164,9 +163,9 @@ void
 add_adj(string array adj... )
 {
     if(!arrayp(adjs))
-      adjs = (string *)adj;
+      adjs = adj;
     else
-      adjs += (string *)adj;
+      adjs += adj;
     resync();
 }
 
@@ -175,9 +174,9 @@ add_adj(string array adj... )
 void add_plural( string array plural... )
 {
     if(!arrayp(plurals))
-      plurals = (string *)plural;
+      plurals = plural;
     else 
-      plurals += (string *)plural;
+      plurals += plural;
     resync();
 }
 
@@ -186,9 +185,9 @@ void add_plural( string array plural... )
 void add_id_no_plural( string array id... ) {
     // set new primary
     if(!arrayp(ids))
-      ids = (string *)id;
+      ids = id;
     else
-      ids += (string *)id;
+      ids += id;
     resync();
 }
 
@@ -197,9 +196,9 @@ void add_id_no_plural( string array id... ) {
 void add_id( string array id... )
 {
     if(!arrayp(ids))
-      ids = (string *)id;
+      ids = id;
     else
-      ids += (string *)id;
+      ids += id;
     plurals += map(id, (: pluralize :));
     resync();
 }
@@ -282,17 +281,19 @@ string array query_adj()
 
 string array parse_command_id_list()
 {
-    string array tmp = query_id();
+    if (test_flag(INVIS)) return ({ });
 //### should strip non-alphanumerics here; might need an efun to do it
 //### efficiently
-    return tmp;
+    return query_id();
 }
 
 nomask string array parse_command_plural_id_list() {
+    if (test_flag(INVIS)) return ({ });
     return plurals;
 }
 
 nomask string array parse_command_adjectiv_id_list() {
+    if (test_flag(INVIS)) return ({ });
     return adjs;
 }
 

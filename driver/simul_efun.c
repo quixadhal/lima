@@ -49,7 +49,9 @@ void mark_simuls() {
 void init_simul_efun P1(char *, file)
 {
     char buf[512];
+#ifdef LPC_TO_C
     lpc_object_t *compiled_version;
+#endif
     object_t *new_ob;
     
     if (!file || !file[0]) {
@@ -59,7 +61,9 @@ void init_simul_efun P1(char *, file)
     if (!strip_name(file, buf, sizeof buf))
 	error("Ilegal simul_efun file name '%s'\n", file);
     
+#ifdef LPC_TO_C
     compiled_version = (lpc_object_t *)lookup_object_hash(buf);
+#endif
 
     if (file[strlen(file) - 2] != '.')
 	strcat(buf, ".c");

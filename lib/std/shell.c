@@ -169,7 +169,7 @@ static void prepare_shell()
     shell_bind_if_undefined("unalias",	(: cmd_remove_alias($1,1) :));
     shell_bind_if_undefined("history",	(: history_command :));
     shell_bind_if_undefined("scrollback", (: cmd_scrollback :));
-    shell_bind_if_undefined("exit",	(: cmd_exit :));
+//    shell_bind_if_undefined("exit",	(: cmd_exit :));
 }
 
 void start_shell()

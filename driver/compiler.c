@@ -281,6 +281,64 @@ static function_t *copy_function P2(function_t *, new, int, add) {
     return ret;
 }
 
+int lookup_class_member P3(int, which, char *, name, char *, type) {
+    int i;
+    class_def_t *cd;
+    class_member_entry_t *cme;
+
+    cd = ((class_def_t *)mem_block[A_CLASS_DEF].block) + which;
+    cme = ((class_member_entry_t *)mem_block[A_CLASS_MEMBER].block) + cd->index;
+    for (i = 0; i < cd->size; i++) {
+	if (strcmp(PROG_STRING(cme[i].name), name) == 0)
+	    break;
+    }
+    if (i == cd->size) {
+	char buf[256];
+
+	sprintf(buf, "Class '%s' has no member '%s'",
+		PROG_STRING(cd->name), name);
+	yyerror(buf);
+	if (type) *type = TYPE_ANY;
+	return -1;
+    } else {
+	if (type) *type = cme[i].type;
+	return i;
+    }
+}	
+
+parse_node_t *reorder_class_values P2(int, which, parse_node_t *, node) {
+    class_def_t *cd;
+    parse_node_t **tmp;
+    int i;
+    
+    cd = ((class_def_t *)mem_block[A_CLASS_DEF].block) + which;
+    tmp = CALLOCATE(cd->size, parse_node_t *, TAG_COMPILER,
+		    "reorder_class_values");
+
+    for (i = 0; i < cd->size; i++) 
+	tmp[i] = 0;
+
+    while (node) {
+	i = lookup_class_member(which, (char *)node->l.expr, 0);
+	if (i != -1)
+	    tmp[i] = node->v.expr;
+	node = node->r.expr;
+    }
+    i = cd->size;
+    node = 0;
+    while (i--) {
+	parse_node_t *newnode;
+	if (tmp[i]) {
+	    CREATE_STATEMENTS(newnode, tmp[i], node);
+	} else {
+	    CREATE_STATEMENTS(newnode, 0, node);
+	    CREATE_NUMBER(newnode->l.expr, 0);
+	}
+	node = newnode;
+    }
+    return node;
+}
+
 void copy_structures P1(program_t *, prog) {
     class_def_t *sd;
     class_member_entry_t *sme;
@@ -382,7 +440,9 @@ static function_t *overload_function P3(int, index, program_t *, prog, int, newi
      * twice.  Something should be done about that.
      */
     if ((pragmas & PRAGMA_WARNINGS) 
-	&& REAL_FUNCTION(funp) && !(new->flags & NAME_NO_CODE)) {
+	&& REAL_FUNCTION(funp) && !(new->flags & NAME_NO_CODE)
+	&& (funp->flags & NAME_UNDEFINED) /* not defined at top level yet */
+	) {
 	/* don't scream if one is private.  Why not?  Because I said so.
 	 * private is pretty screwed up anyway.  In the future there
 	 * won't be such a clash b/c private won't come up the tree.
@@ -1074,10 +1134,14 @@ int validate_function_call P3(function_t *, funp, int, f, parse_node_t *, args)
 	int i, first, tmp;
 	unsigned short *arg_types;
 	parse_node_t *enode = args;
+	int fnarg = funp->num_arg;
+
+	if (funp->flags & NAME_TRUE_VARARGS) 
+	    fnarg--;
 
 	arg_types = (unsigned short *) mem_block[A_ARGUMENT_TYPES].block;
 	first = *(unsigned short *) &mem_block[A_ARGUMENT_INDEX].block[f * sizeof(unsigned short)];
-	for (i = 0; (unsigned) i < funp->num_arg && i < num_arg; i++) {
+	for (i = 0; (unsigned) i < fnarg && i < num_arg; i++) {
 	    if (enode->type & 1) break;
 	    tmp = enode->v.expr->type;
 
@@ -1407,9 +1471,6 @@ static void epilog() {
     function_t *funp;
     ident_hash_elem_t *ihe;
 
-    /* don't need the parse trees any more */
-    release_tree();
-    
     if (num_parse_error > 0 || inherit_file) {
 	/* don't print these; they can be wrong, since we didn't parse the
 	   entire file */
@@ -1590,6 +1651,7 @@ static void epilog() {
     for (i = 0; (unsigned)i < prog->num_inherited; i++) {
 	reference_prog (prog->inherit[i].prog, "inheritance");
     }
+    release_tree();
     scratch_destroy();
     clean_up_locals();
     free_unused_identifiers();
@@ -1635,6 +1697,9 @@ static void clean_parser() {
     variable_t dummy;
     char *s;
 
+    /* don't need the parse trees any more */
+    release_tree();
+    
     /*
      * Free function stuff.
      */

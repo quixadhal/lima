@@ -29,7 +29,14 @@ void do_stand()
     }
   else
     {
-      write("You are already standing.\n");
+      if(environment(environment(this_body())))
+	{
+	  write("You can't stand up.\n");
+	}
+      else
+	{
+	  write("You are already standing.\n");
+	}
     }
 } 
 

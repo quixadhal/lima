@@ -608,6 +608,14 @@ i_generate_node P1(parse_node_t *, expr) {
 	    upd_short(addr, CURRENT_PROGRAM_SIZE - addr);
 	    break;
 	}
+    case NODE_TIME_EXPRESSION:
+	{
+	    end_pushes();
+	    ins_byte(F_TIME_EXPRESSION);
+	    i_generate_node(expr->r.expr);
+	    ins_byte(F_END_TIME_EXPRESSION);
+	    break;
+	}
     case NODE_LVALUE_EFUN:
 	i_generate_node(expr->l.expr);
 	generate_lvalue_list(expr->r.expr);
@@ -659,8 +667,11 @@ i_generate_node P1(parse_node_t *, expr) {
 	    foreach_depth = 0;
 	    end_pushes();
 	    ins_byte(F_FUNCTION_CONSTRUCTOR);
-	    ins_byte(FP_ANONYMOUS);
-	    ins_byte(expr->v.number);
+	    if (expr->v.number & 0x10000)
+		ins_byte(FP_ANONYMOUS | FP_NOT_BINDABLE);
+	    else
+		ins_byte(FP_ANONYMOUS);
+	    ins_byte(expr->v.number & 0xff);
 	    ins_byte(expr->l.number);
 	    addr = CURRENT_PROGRAM_SIZE;
 	    ins_short(0);
@@ -1049,6 +1060,7 @@ optimize_icode P3(char *, start, char *, pc, char *, end) {
 		pc += 3;
 		break;
 	    case FP_ANONYMOUS:
+	    case FP_ANONYMOUS | FP_NOT_BINDABLE:
 		pc += 4;
 		break;
 	    case FP_EFUN:

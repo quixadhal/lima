@@ -187,7 +187,6 @@ void message(mixed, string, string | string * | object | object *,
     object *objects(void | string | function, void | object);
     string process_string(string);
     mixed process_value(string);
-    string break_string(int | string, int, void | int | string);
     string query_host_name();
     int query_idle(object);
     string query_ip_name(void | object);

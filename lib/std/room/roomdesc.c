@@ -39,14 +39,14 @@ int query_state(string state) {
 
 void set_room_state(string state)
 {
+  room_state -= ({state+"_off",state+"_on"});
   room_state += ({state+"_on"});
-  room_state -= ({state+"_off"});
 }
 
 void clear_room_state(string state)
 {
+  room_state -= ({state+"_on",state+"_off"});
   room_state += ({state+"_off"});
-  room_state -= ({state+"_on"});
 }
 
 void set_state_description(string state, mixed desc)
@@ -119,7 +119,7 @@ varargs string show_objects(object except)
 		    obj_show += str + "\n";
 		}
 		if (obs[n]->inventory_visible())
-		    obj_show += obs[n]->inventory_recurse();
+		    obj_show += obs[n]->show_contents();
 	    }
 	}
     }

@@ -1,2 +1,2 @@
-SRC=uids.c matrix.c 
-OBJ=uids.o matrix.o 
+SRC=contrib.c sockets.c develop.c parser.c 
+OBJ=contrib.o sockets.o develop.o parser.o 

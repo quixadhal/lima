@@ -1,16 +1,1 @@
-single/tests/operators/range.c line 11: Warning: A negative constant as the second element of arr[x..y] no longer means indexing from the end.  Use arr[x..<y]
-single/tests/operators/range.c line 12: Warning: A negative constant as the second element of arr[x..y] no longer means indexing from the end.  Use arr[x..<y]
-command/tests.c line 6: parse error
-command/tests.c line 14: Warning: Extra ';'. Ignored.
-command/tests.c line 15: parse error
-tmp_eval_file.c line 1: Warning: Unknown \x char.
-tmp_eval_file.c line 1: Warning: Unknown \x char.
-single/tests/operators/range.c line 11: Warning: A negative constant as the second element of arr[x..y] no longer means indexing from the end.  Use arr[x..<y]
-single/tests/operators/range.c line 12: Warning: A negative constant as the second element of arr[x..y] no longer means indexing from the end.  Use arr[x..<y]
-command/tests.c line 6: parse error
-command/tests.c line 14: Warning: Extra ';'. Ignored.
-command/tests.c line 15: parse error
-tmp_eval_file.c line 1: Warning: Unknown \x char.
-tmp_eval_file.c line 1: Warning: Unknown \x char.
-single/efuns/query_ip_name.c line 3: Undefined variable 'this_player'
-single/efuns/query_ip_number.c line 3: Undefined variable 'this_player'
+tmp_eval_file.c line 1: break statement outside loop

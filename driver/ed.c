@@ -497,7 +497,6 @@ static void free_ed_buffer P1(object_t *, who)
 	return;
     }
 #endif
-    ED_OUTPUT(ED_DEST, "Exit from ed.\n");
 
     if (P_OLDPAT)
 	FREE((char *) P_OLDPAT);
@@ -2276,6 +2275,7 @@ static void report_status P1(int, status) {
     switch (status) {
     case EOF:
 	free_ed_buffer(current_editor);
+	ED_OUTPUT(ED_DEST, "Exit from ed.\n");
 	return;
 #if 0
     case FATAL:
@@ -2725,6 +2725,10 @@ void object_save_ed_buffer P1(object_t *, ob)
 	}
     }
     free_ed_buffer(current_editor);
+    outbuf_fix(&current_ed_results);
+    if (current_ed_results.buffer)
+	FREE_MSTR(current_ed_results.buffer);
+    outbuf_zero(&current_ed_results);
 }
 
 int object_ed_mode P1(object_t *, ob) {

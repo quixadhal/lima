@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+#include <log.h>
 
 inherit CMD;
 inherit M_GRAMMAR;
@@ -24,6 +25,8 @@ private void main( string arg )
 			this_body()->query_name(), ctime(time()),
 			iwrap(punctuate(arg)) );
 
-    write_file("/log/walls", broadcast );
+    LOG_D->log(LOG_WALL, broadcast);
+
     shout( broadcast );
+    write(broadcast);
 }

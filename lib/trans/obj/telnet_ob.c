@@ -324,6 +324,11 @@ if (!arg) { write("Open <host>\n"); return; }
       return;
 
     case "close" :
+   if(!active_session_name)
+      {
+	write("Nothing to close.\n");
+	return;
+      }
       close_session(active_session_name, sessions[active_session]->socket);
       return;
 

@@ -474,6 +474,11 @@
  */
 #undef PACKAGE_PARSER
 
+/* PACKAGE_EXTERNAL: Allows the driver to exec() commands specified in the
+ * config file.
+ */
+#undef PACKAGE_EXTERNAL
+
 /****************************************************************************
  *                            UID PACKAGE                                   *
  *                            -----------                                   *
@@ -516,7 +521,7 @@
  *   the frequency with which the heart_beat method will be called in
  *   those LPC objects which have called set_heart_beat(1).
  *
- * [NOTE: if SYSV is defined, alarm() is used instead of ualarm().  Since
+ * [NOTE: if ualarm() isn't available, alarm() is used instead.  Since
  *  alarm() requires its argument in units of a second, we map 1 - 1,000,000 us
  *  to an actual interval of one (1) second and 1,000,001 - 2,000,000 maps to
  *  an actual interval of two (2) seconds, etc.]
@@ -601,7 +606,7 @@
 
 #define EVALUATOR_STACK_SIZE 1000	/* get_config_int(4)  */
 #define COMPILER_STACK_SIZE 200	/* get_config_int(5)  */
-#define MAX_TRACE 30		/* get_config_int(6)  */
+#define MAX_TRACE 50		/* get_config_int(6)  */
 #define LIVING_HASH_SIZE 256	/* get_config_int(20) */
 
 /* NEXT_MALLOC_DEBUG: define this if using a NeXT and you want to enable

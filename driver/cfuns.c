@@ -19,10 +19,10 @@ mapping_t *lpc_map;
 
 static svalue_t *lval;
 
-void c_new_class P1(int, which) {
+void c_new_class P2(int, which, int, has_values) {
     array_t *cl;
     
-    cl = allocate_class(&current_prog->classes[which]);
+    cl = allocate_class(&current_prog->classes[which], has_values);
     push_refed_class(cl);
 }
 
@@ -584,13 +584,16 @@ c_anonymous P3(int, num_arg, int, num_local, POINTER_INT, func) {
 			     TAG_FUNP, "c_functional");
     fp->hdr.owner = current_object;
     add_ref( current_object, "c_functional" );
-    fp->hdr.type = FP_FUNCTIONAL | FP_NOT_BINDABLE;
+    if (num_arg & 0x10000)
+	fp->hdr.type = FP_FUNCTIONAL | FP_NOT_BINDABLE;
+    else
+	fp->hdr.type = FP_FUNCTIONAL;
     
     current_prog->func_ref++;
     
     fp->f.functional.prog = current_prog;
     fp->f.functional.offset = func;
-    fp->f.functional.num_arg = num_arg;
+    fp->f.functional.num_arg = num_arg & 0xff;
     fp->f.functional.num_local = num_local;
     fp->f.functional.fio = function_index_offset;
     fp->f.functional.vio = variable_index_offset;
@@ -624,6 +627,7 @@ c_function_constructor P2(int, kind, int, arg)
     case FP_FUNCTIONAL:
     case FP_FUNCTIONAL | FP_NOT_BINDABLE:
     case FP_ANONYMOUS:
+    case FP_ANONYMOUS | FP_NOT_BINDABLE:
 	fatal("Wrong constructor called for LPC->C functional.\n");
     default:
 	fatal("Tried to make unknown type of function pointer.\n");

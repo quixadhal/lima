@@ -57,6 +57,7 @@ int outbuf_extend PROT((outbuffer_t *, int));
 #ifdef PACKAGE_PARSER
 #define TAG_PARSER          (TAG_PERMANENT + 37)
 #endif
+#define TAG_INPUT_TO	    (TAG_PERMANENT + 38)
 
 #define TAG_STRING          (TAG_DATA + 40)
 #define TAG_MALLOC_STRING   (TAG_DATA + 41)

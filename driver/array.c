@@ -2015,6 +2015,7 @@ array_t *reg_assoc P4(char *, str, array_t *, pat, array_t *, tok, svalue_t *, d
 		 while (i--)
 		     FREE((char *)rgpp[i]);
 		 FREE((char *) rgpp);
+		 free_empty_array(ret);
 		 error(regexp_error);
 	     }
  	}

@@ -9,14 +9,20 @@ void dealloc_class P1(array_t *, p) {
     FREE((char *) p);
 }
 
-array_t *allocate_class P1(class_def_t *, cld) {
+array_t *allocate_class P2(class_def_t *, cld, int, has_values) {
     array_t *p;
     int n = cld->size;
 
     p = (array_t *)DXALLOC(sizeof(array_t) + sizeof(svalue_t) * (n - 1), TAG_CLASS, "allocate_class");
     p->ref = 1;
     p->size = n;
-    while (n--)
-	p->item[n] = const0;
+    if (has_values) {
+	while (n--)
+	    p->item[n] = *sp--;
+    } else {
+	while (n--)
+	    p->item[n] = const0;
+    }
     return p;
 }
+

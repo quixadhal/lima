@@ -9,7 +9,7 @@ $(OBJDIR)/%.o: %.c
 
 all: $(OBJ)
 	ar rcu mudlib.a $(OBJ)
-	-ranlib mudlib.a
+	$(RANLIB) mudlib.a
 
 clean:
 	-rm -f *.o

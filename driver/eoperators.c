@@ -1306,13 +1306,14 @@ f_function_constructor()
 	    break;
 	}
     case FP_ANONYMOUS:
+    case FP_ANONYMOUS | FP_NOT_BINDABLE:
 	{
 	    int num_arg, locals;
 	    
 	    num_arg = EXTRACT_UCHAR(pc++);
 	    locals = EXTRACT_UCHAR(pc++);
 	    LOAD_SHORT(index, pc); /* length */
-	    fp = make_functional_funp(num_arg, locals, index, 0, FP_NOT_BINDABLE);
+	    fp = make_functional_funp(num_arg, locals, index, 0, kind & FP_NOT_BINDABLE);
 	    break;
 	}
     default:

@@ -34,7 +34,7 @@ mapping messages =
     "light" :
     ({ "$N $vhit $t in the midsection with $p $o.\n" }),
     "serious" :
-    ({ "$N $vconnect with quick blows from $p $o!  $N1 $v1are hurt badly.\n" });
+    ({ "$N $vconnect with quick blows from $p $o!  $N1 $v1are hurt badly.\n" }),
      "fatal" : "$N $vdrive $t back with a series punches of kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
     "disarm" : "$N $vgrab $p1 arm, and $vslam it down on $p knee, causing $n1 to drop $p1 $o1.\n",
     "knockdown" : "$N $vstep behind $t, and trips $t, sending $t flying.\n",

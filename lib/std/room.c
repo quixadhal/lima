@@ -27,14 +27,12 @@ inherit __DIR__ "room/weather";
 inherit __DIR__ "room/exits";
 inherit __DIR__ "room/roomdesc";
 
-// global vars
+/* testing... */
+inherit __DIR__ "room/setitems";
 
-private static int total_light;
+/* this is used for a indicating a particular type of room (on a map of
+   many standard rooms */
 private static string map_type;
-
-//:FUNCTION query_lit
-//Return the amount of light visible in this room
-int query_lit() { return total_light + query_light(); }
 
 int stat_me() {
     printf("Room: %s [ %s ]\n\n",
@@ -94,4 +92,9 @@ string query_name()
 string long()
 {
   return roomdesc::long();
+}
+
+string get_brief()
+{
+  return short();
 }

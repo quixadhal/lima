@@ -41,55 +41,89 @@ void do_drop_obj(object ob)
 
 
 
-mixed * query_verb_info()
+mixed do_drop_wrd_str(string amount, string str)
 {
-    return ({ ({ "OBJ", "OBS" }) });
-    
-    /*
-    ** torch OBJ when OBS matches 1 ob
-    **
-    ** "put down OBS" -> "drop OBS"
-    */
+
+    object ob;
+    string *sentence = explode(str," ");
+    int number;
+
+    if( sscanf(amount, "%d", number) == 1)
+    {
+	if(this_body()->query_amt_money(sentence[0]) < number)
+	{
+	    write("you dont have "+ amount +" "+ sentence[0] +" coins.\n");
+	    return 0;
+	}
+	else
+	{
+	    this_body()->subtract_money(sentence[0],number);
+	    if(ob = present("coins",environment(this_body())))
+	    {
+		ob->merge_coins(number,sentence[0]);
+	    }
+	    else
+	    {
+		new("/std/coins",number,sentence[0])->move(environment(this_body()));
+this_body()->simple_action("$N $vdrop "+ number +" "+ sentence[0] +" coins.\n");
+		return 1;
+	    }
+	    this_body()->drop_coins(number,sentence[0]);
+	}
 }
+	else
+	    write("You can't drop that.\n");
+    }
+
+    mixed * query_verb_info()
+    {
+	return ({ ({ "OBJ", "OBS", "WRD STR" }) });
+
+	/*
+	** torch OBJ when OBS matches 1 ob
+	**
+	** "put down OBS" -> "drop OBS"
+	*/
+    }
 
 
 #ifdef OLD_CODE
 
 #include <move.h>
 
-int drop(int rule, mixed stack, mixed input)
-{
-    mixed list;
-    int i;
-    int multiple;
-    
-    if( !pointerp( stack[<1] ) )
+    int drop(int rule, mixed stack, mixed input)
     {
-	stack[<1] = ({ stack[<1] });
-    }
-    
-    list = stack[<1];
-    
-    
-    
-    i = sizeof( list );
-    
-    multiple = (i > 1);
-    
-    if( !i )
-	return write( "You have nothing to drop.\n" ), 1 ;
-    
-    while( i-- )
-    {
-	if (multiple)
-	    write( list[i] -> short() + ": " );
-	switch( list[i]->drop() )
+	mixed list;
+	int i;
+	int multiple;
+
+	if( !pointerp( stack[<1] ) )
 	{
-	case 0:
-	    write("You aren't able to drop it.\n");
-	    continue;
-	case -1:
-	    continue; // drop handled it's own message
+	    stack[<1] = ({ stack[<1] });
+	}
+
+	list = stack[<1];
+
+
+
+	i = sizeof( list );
+
+	multiple = (i > 1);
+
+	if( !i )
+	    return write( "You have nothing to drop.\n" ), 1 ;
+
+	while( i-- )
+	{
+	    if (multiple)
+		write( list[i] -> short() + ": " );
+	    switch( list[i]->drop() )
+	    {
+	    case 0:
+		write("You aren't able to drop it.\n");
+		continue;
+	    case -1:
+		continue; // drop handled it's own message
 	    case 1:
 		switch( list[i]->move( environment( this_body() ) ) )
 		{
@@ -104,11 +138,11 @@ int drop(int rule, mixed stack, mixed input)
 		    write("Failed.\n");
 		    break;
 		}
+	    }
+
 	}
-	
+	return 1;
+
     }
-    return 1;
-    
-}
 
 #endif /* OLD_CODE */

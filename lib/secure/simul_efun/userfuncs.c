@@ -14,11 +14,15 @@ nomask object this_body()
 }
 
 
-nomask object find_user(string str)
+varargs nomask object find_user(string str, int even_linkdead)
 {
     object *choices;
-    
-    choices = filter_array(users(), (: $1->query_userid() == $(str) :));
+
+    if ( even_linkdead )
+	choices = children(USER_OB);
+    else
+	choices = users();
+    choices = filter(choices, (: $1->query_userid() == $(str) :));
 
     if ( sizeof(choices) )
 	return choices[0];
@@ -27,9 +31,9 @@ nomask object find_user(string str)
 }
 
 
-nomask object find_body(string str)
+varargs nomask object find_body(string str, int even_linkdead)
 {
-    object u = find_user(str);
+    object u = find_user(str, even_linkdead);
 
     return u ? u->query_body() : 0;
 }

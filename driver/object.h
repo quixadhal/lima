@@ -64,6 +64,7 @@ typedef struct sentence_s {
     int flags;
 } sentence_t;
 
+#ifdef LPC_TO_C
 typedef struct { /* has to be the same as object_t below */
     unsigned short ref;
     unsigned short flags;
@@ -75,6 +76,7 @@ typedef struct { /* has to be the same as object_t below */
     void (**jump_table)();
     struct string_switch_entry_s **string_switch_tables;
 } lpc_object_t;
+#endif
 
 typedef struct object_s {
     unsigned short ref;		/* Reference count. */
@@ -147,6 +149,7 @@ typedef struct object_s {
 #define ROB_CLASS_ERROR 32
 #define ROB_ERROR 63
 
+extern object_t *hashed_living[LIVING_HASH_SIZE];
 extern object_t *previous_ob;
 extern int tot_alloc_object;
 extern int tot_alloc_object_size;

@@ -37,6 +37,7 @@ check_svalue P1(svalue_t *, v)
 	gc_mapping(v->u.map);
 	break;
     case T_ARRAY:
+    case T_CLASS:
 	for (idx = 0; idx < v->u.arr->size; idx++)
 	    check_svalue(&v->u.arr->item[idx]);
 	break;

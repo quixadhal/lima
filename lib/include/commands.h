@@ -40,9 +40,9 @@
 
 #define CMD_OB_SNOOP		CMD_DIR_RESTRICT "/snoop"
 
-#define CMD_OB_EVAL		CMD_DIR_NO_RESTRICT "/eval"
 #define CMD_OB_LS		CMD_DIR_NO_RESTRICT "/ls"
 #define CMD_OB_ADMTOOL		CMD_DIR_NO_RESTRICT "/admtool"
+#define CMD_OB_FINGER_REAL	CMD_DIR_NO_RESTRICT "/finger"
 
 /*
 ** Verb objects

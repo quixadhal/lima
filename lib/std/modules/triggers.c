@@ -57,7 +57,7 @@ mixed try_to_match(string str, string rule) {
     return str;
 }
 
-void catch_tell(string str) {
+void receive_outside_msg(string str) {
     class pattern pat;
     mixed left, right;
     mixed ret;

@@ -35,6 +35,9 @@
 #  include <usclkc.h>
 #endif
 
+#ifdef INCL_SYS_WAIT_H
+#  include <sys/wait.h>
+#endif
 #ifdef INCL_SYS_CRYPT_H
 #  include <sys/crypt.h>
 #endif

@@ -16,12 +16,19 @@ string format;
 void got_entry(function, string);
 
 // when_done is a function that we pass a body file name to.
-void create_user(function when_done) {
+void create_user(function when_done)
+{
+#ifndef USE_RACES
+
+    evaluate(when_done, DIR_RACES "/human");
+
+#else
+
     string file;
     int width = 0;
 
-    foreach (file in get_dir(DIR_RACES + "*.c")) {
-	string tmp = DIR_RACES + file;
+    foreach (file in get_dir(DIR_RACES + "/*.c")) {
+	string tmp = DIR_RACES + "/" + file;
 	string name;
 	
         if ( !load_object(tmp) )
@@ -39,7 +46,11 @@ void create_user(function when_done) {
 
     printf("Type 'help race' for a brief description.  Type 'list' to show the choices again.\n");
     this_user()->modal_push( (: got_entry, when_done :), "Race? ");
+
+#endif /* USE_RACES */
 }
+
+#ifdef USE_RACES
 
 void got_entry(function when_done, string line) {
 
@@ -59,3 +70,5 @@ void got_entry(function when_done, string line) {
     }
     write("No such race.\n");
 }
+
+#endif /* USE_RACES */

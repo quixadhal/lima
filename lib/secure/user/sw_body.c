@@ -8,6 +8,7 @@
 string query_userid();
 
 void save_me();
+void remove();
 
 void report_login_failures();
 
@@ -71,7 +72,7 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
     old_body->move(VOID_ROOM);
 //### This dests this_object(), which causes a number of the latter calls
 //### to fail.
-    old_body->quit(1);
+    old_body->quit();
     if(old_body)
 	catch(old_body->remove());
 
@@ -86,7 +87,8 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
 ** Functions to get the body set up and the user into the game.
 */
 
-private void incarnate(int is_new, string bfn) {
+private nomask void incarnate(int is_new, string bfn)
+{
     if (bfn) body_fname = bfn;
     
     body = new(body_fname, query_userid());
@@ -99,40 +101,32 @@ private void incarnate(int is_new, string bfn) {
     body->enter_game(is_new);
 }
 
-static nomask void setup(int is_new)
+static nomask void existing_user_enter_game()
 {
     remove_call_out();	/* all call outs */
 
-    if ( !is_new )
-	write("\n"+read_file(MOTD_FILE));
+    write("\n"+read_file(MOTD_FILE));
 
     report_login_failures();
 
-    // pass a lfun pointer so that we don't have to worry about validating
-    // the call.
-    if (body_fname)
-	incarnate(is_new, 0);
-    else
-	NEW_USER_D->create_user( (: incarnate, is_new :) );
+    incarnate(0, 0);
 }
 
 private nomask void rcv_try_to_boot(object who, string answer)
 {
     if ( answer == "y" )
     {
-	tell_object(who, "You are taken over by yourself, or something.\n");
+	who->receive_private_msg("You are taken over by yourself, or something.\n");
+	who->quit();
 
-//### may not have a body in some cases
-	who->query_body()->quit();
-
-	setup(0);
+	existing_user_enter_game();
 	return;
     }
     if (answer == "n" )
     {
 	if ( wizardp(query_userid()) )
 	{
-	    setup(0);
+	    existing_user_enter_game();
 	    return;
 	}
 
@@ -144,7 +138,12 @@ private nomask void rcv_try_to_boot(object who, string answer)
     modal_simple((: rcv_try_to_boot, who :));
 }
 
-static nomask void test_interactives(int is_new)
+/*
+** Okay... an existing user is ready for their body.  Look for other
+** users currently connected with this userid.  Those other users may
+** be interactive or link-dead.  Do the right thing...
+*/
+static nomask void existing_user_ready()
 {
     object * users;
     string * ids;
@@ -152,12 +151,64 @@ static nomask void test_interactives(int is_new)
     object the_user;
 
     remove_call_out();	/* all call outs */
+
+    /* adjust the privilege of the user ob */
+    if ( adminp(query_userid()) )
+	set_privilege(1);
+    else
+	set_privilege(query_userid());
+
+    /* check for link-deadedness */
+    users = children(USER_OB) - ({ this_object() });
+    ids = users->query_userid();
+    if ( (idx = member_array(query_userid(), ids)) == -1 )
+    {
+	existing_user_enter_game();
+	return;
+    }
+    if ( !interactive(the_user = users[idx]) )
+    {
+	if ( body = the_user->query_body() )
+	{
+	    the_user->steal_body();
+	    body->reconnect(this_object());
+	}
+	else
+	{
+	    existing_user_enter_game();
+	}
+	return;
+    }
+
+    write("\nYou are already logged in!\nThrow yourself off?  ");
+    modal_simple((: rcv_try_to_boot, the_user :));
+}
+
+/* when a user reconnects, this is used to steal the body back */
+nomask void steal_body()
+{
+    /* only USER_OB can steal the body, and we should be non-interactive */
+    if ( base_name(previous_object()) != USER_OB || interactive() )
+	error("illegal attempt to steal a body\n");
+
+    body = 0;
+    remove();
+}
+
+/*
+** A new character has been created and all inputs have been entered.
+** Do a bit of additional work and go for a body.
+*/
+static nomask void new_user_ready()
+{
+    remove_call_out();	/* all call outs */
     
-//### temp hack for now... make sure people are auto-wizzed
 #ifdef AUTO_WIZ
+    /* auto-wiz everybody as they are created */
+    write(">>>>> You've been granted automatic guest wizard status. <<<<<\n");
     unguarded(1, (: SECURE_D->create_wizard($(query_userid())) :));
     
-//### auto-admin the first wizard if there are no admins
+    /* auto-admin the first wizard if there are no admins */
     {
 	string * members = SECURE_D->query_domain_members("admin");
 	
@@ -176,23 +227,7 @@ static nomask void test_interactives(int is_new)
     else
 	set_privilege(query_userid());
 
-    /* check for link-deadedness */
-    users = children(USER_OB) - ({ this_object() });
-    ids = users->query_userid();
-    if ( (idx = member_array(query_userid(), ids)) == -1 )
-    {
-	setup(is_new);
-	return;
-    }
-    if ( !interactive(the_user = users[idx]) )
-    {
-//### the_user might not have a body yet
-	body = the_user->query_body();
-	destruct(the_user);
-	body->reconnect();
-	return;
-    }
-
-    write("\nYou are already logged in!\nThrow yourself off?  ");
-    modal_simple((: rcv_try_to_boot, the_user :));
+    // pass a lfun pointer so that we don't have to worry about validating
+    // the call.
+    NEW_USER_D->create_user( (: incarnate, 1 :) );
 }

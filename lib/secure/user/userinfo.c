@@ -10,10 +10,9 @@
 #include <mudlib.h>
 #include <security.h>
 
-void test_interactives(int is_new);
+void new_user_ready();
 
 object query_body();
-string query_userid();
 
 void save_me();
 
@@ -28,8 +27,6 @@ varargs void modal_func(function input_func,
     );
 void modal_pop();
 
-mixed unguarded(mixed priv, function fp);
-
 
 private string 	email;
 private string 	real_name;
@@ -37,12 +34,21 @@ private int 	ed_setup;
 private string  url;
 
 
-void set_ed_setup(int code) {
+//temporary new user vars
+static private int n_gen = -1;
+
+//### wah! get rid of this. need by sw_body.c; should move to NEW_USER_D
+static nomask int query_n_gen() { return n_gen; }
+
+
+nomask void set_ed_setup(int code)
+{
     ed_setup = code;
     save_me();
 }
 
-int query_ed_setup() {
+nomask int query_ed_setup()
+{
     return ed_setup;
 }
 
@@ -58,6 +64,7 @@ nomask void set_email(string new_email)
 	error("illegal attempt to set email address\n");
 
     email = new_email;
+    save_me();
 }
 
 nomask void set_url(string new_url)
@@ -66,11 +73,12 @@ nomask void set_url(string new_url)
 	error("illegal attempt to set URL\n");
 
     url = new_url;
+    save_me();
 }
 
 nomask string query_url()
 {
-  return url;
+    return url;
 }
 
 
@@ -79,18 +87,9 @@ nomask string query_url()
 **
 ** Initiate with a call to begin_info_collection()
 */
-private nomask void done_with_more()
-{
-    /*
-    ** Okay.  This input sequence and 'more' is done.  Setup the body
-    ** and go.
-    */
-    test_interactives(1);
-}
 
 private nomask void done_with_inputs()
 {
-
     /*
     ** Done with this series of inputs
     */
@@ -99,19 +98,13 @@ private nomask void done_with_inputs()
     /*
     ** Let's move on to introducing the character to the mud.
     */
-#ifdef AUTO_WIZ
-    write(">>>>>You've been granted automatic guest wizard status.<<<<<\n");
-
-    unguarded(1, (: SECURE_D->create_wizard($(query_userid())) :));
-#endif
-
     if ( file_size(NEW_PLAYER) <= 0 )
     {
-	done_with_more();
+	new_user_ready();
 	return;
     }
 
-    more_file(NEW_PLAYER, 0, (: done_with_more :));
+    more_file(NEW_PLAYER, 0, (: new_user_ready :));
 }
 
 private nomask void rcv_url(string s)
@@ -134,8 +127,30 @@ private nomask void rcv_email_address(string str)
     modal_func((: rcv_real_name :), "Your real name: ");
 }
 
-static nomask void begin_info_collection()
+private nomask void rcv_gender(string arg)
 {
+    arg = lower_case(arg);
+    if (arg == "y" || arg == "yes")
+    {
+	write("Ha, ha, ha. Which one are you?\n");
+	return;
+    }
+    if (arg == "n" || arg == "no")
+    {
+	write("Well, which one would you have liked to be, then?\n");
+	return;
+    }
+    if ( arg == "f" || arg == "female")
+	n_gen = 2;
+    else if (arg != "m" && arg != "male")
+    {
+	write("I've never heard of that gender.  Please try again.\n");
+	return;
+    }
+    else
+	n_gen = 1;
+
+
     write("\n"
 	  "The following info is only seen by you and administrators\n"
 	  "  if you prepend a # to your response.\n"
@@ -143,5 +158,10 @@ static nomask void begin_info_collection()
 	  "You cannot gain wizard status without valid responses to these questions:\n"
 	);
 
-    modal_push((: rcv_email_address :), "Your email address: ");
+    modal_func((: rcv_email_address :), "Your email address: ");
+}
+
+static nomask void begin_info_collection()
+{
+    modal_push((: rcv_gender :), "Are you male or female? ");
 }

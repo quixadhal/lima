@@ -127,6 +127,13 @@ f_bind PROT((void))
     funptr_t *new_fp;
     svalue_t *res;
 
+    if (ob == old_fp->hdr.owner) {
+	/* no change */
+	free_object(ob, "bind nop");
+	sp--;
+	return;
+    }
+    
     if (old_fp->hdr.type == (FP_LOCAL | FP_NOT_BINDABLE))
 	error("Illegal to rebind a pointer to a local function.\n");
     if (old_fp->hdr.type & FP_NOT_BINDABLE)
@@ -169,27 +176,6 @@ f_bind PROT((void))
     free_funp(old_fp);
     sp--;
     sp->u.fp = new_fp;
-}
-#endif
-
-#ifdef F_BREAK_STRING
-void
-f_break_string PROT((void))
-{
-    char *str;
-    svalue_t *arg = sp - st_num_arg + 1;
-
-    if (arg->type == T_STRING) {
-	str = break_string(arg[0].u.string, arg[1].u.number,
-			   (st_num_arg > 2 ? &arg[2] : (svalue_t *) 0));
-	if (st_num_arg > 2) free_svalue(sp--, "f_break_string");
-	free_string_svalue(--sp);
-	sp->subtype = STRING_MALLOC;
-	sp->u.string = str;
-    } else {
-	pop_n_elems(st_num_arg);
-	*++sp = const0;
-    }
 }
 #endif
 
@@ -1310,6 +1296,8 @@ void f_lpc_info PROT((void))
 	if (ob) {
 	    if (ob->flags & O_COMPILED_PROGRAM) {
 		outbuf_add(&out, " No\n");
+	    } else if (ob->flags & O_SWAPPED) {
+		outbuf_add(&out, " Yes      Swapped\n");
 	    } else if (ob->prog->program_size == 0) {
 		outbuf_add(&out, " Yes      Yes\n");
 	    } else {
@@ -1689,8 +1677,7 @@ void f_mud_status PROT((void))
 	    outbuf_add(&ob, "Open-file-test succeeded.\n");
 	    unlink(".mudos_test_file");
 	} else {
-	    /* if strerror() is missing, edit the #ifdef for it in port.c */
-	    outbuf_addv(&ob, "Open file test failed: %s\n", strerror(errno));
+	    outbuf_addv(&ob, "Open file test failed: %s\n", port_strerror(errno));
 	}
 
 	outbuf_addv(&ob, "current working directory: %s\n\n",

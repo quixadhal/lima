@@ -5,6 +5,7 @@ int remove_shadow(object);
 #endif
 #ifndef NO_ADD_ACTION
 mixed query_notify_fail();
+object *named_livings();
 #endif
 #if 0
 void set_prompt(string, void|object);

@@ -50,6 +50,7 @@ extern lpc_socket_t lpc_socks[MAX_EFUN_SOCKS];
 #define S_READ_FP       0x20
 #define S_WRITE_FP      0x40
 #define S_CLOSE_FP      0x80
+#define S_EXTERNAL	0x100
 
 void init_sockets PROT((void));
 int check_valid_socket PROT((char *, int, object_t *, char *, int));

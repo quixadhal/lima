@@ -65,6 +65,6 @@ operator simul_efun;
 operator sscanf;
 operator parse_command;
 
-operator new_class;
+operator new_class, new_empty_class;
 operator expand_varargs;
 

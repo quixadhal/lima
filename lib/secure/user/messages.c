@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-void receive_message(string msg)
+void receive_message(string msgclass, string msg)
 {
     receive(msg);
 }

@@ -50,7 +50,10 @@ varargs void dump_did_info(int time, string * header, string pattern,
     index = sizeof(did) - 1;
     while (index > 0 && time < did[index][0])
 	index--;
-    index++;
+
+    /* we went too far back in time. move up one entry. */
+    if ( index )
+	index++;
 
     if ( index >= sizeof(did) )
     {

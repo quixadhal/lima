@@ -42,6 +42,7 @@ Data is updated nightly and dumped to the /help/autodoc directory
 
 #include <mudlib.h>
 #include <security.h>
+#include <log.h>
 
 inherit M_REGEX;
 inherit M_ACCESS;
@@ -133,7 +134,7 @@ void process_file(string fname) {
                 write_file(outfile, "Found in: " + fname + "\n\n");
 	    } else {
 		outfile = 0;
-		write_file("/log/AUTODOC", "Bad header tag: " + line + "\n");
+		LOG_D->log(LOG_AUTODOC, "Bad header tag: " + line + "\n");
 	    }
             printf("Writing to: %O\n", outfile);
 	} else {

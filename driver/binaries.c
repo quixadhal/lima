@@ -236,9 +236,17 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
     if ((size) > buf_size) { FREE(buf); buf = DXALLOC(buf_size = size, TAG_TEMPORARY, "ALLOC_BUF"); }
 
 /* crude hack to check both .B and .b */
+#ifdef LPC_TO_C
 #define OUT_OF_DATE (lpc_obj ? load_binary(name, 0) : 0)
+#else
+#define OUT_OF_DATE 0
+#endif
 
-int load_binary P2(char *, name, lpc_object_t *, lpc_obj)
+#ifdef LPC_TO_C
+int int_load_binary P2(char *, name, lpc_object_t *, lpc_obj)
+#else
+int int_load_binary P1(char *, name)
+#endif
 {
     char file_name_buf[400];
     char *buf, *iname, *file_name = file_name_buf, *file_name_two = &file_name_buf[200];
@@ -258,7 +266,11 @@ int load_binary P2(char *, name, lpc_object_t *, lpc_obj)
     if (file_name[0] == '/')
 	file_name++;
     len = strlen(file_name);
+#ifdef LPC_TO_C
     file_name[len - 1] = (lpc_obj ? 'B' : 'b');	/* change .c ending to .b */
+#else
+    file_name[len - 1] = 'b';
+#endif
 
     if (stat(file_name, &st) != -1)
 	mtime = st.st_mtime;
@@ -296,7 +308,10 @@ int load_binary P2(char *, name, lpc_object_t *, lpc_obj)
 	return OUT_OF_DATE;
     }
     if ((fread((char *) &i, sizeof i, 1, f) != 1 || driver_id != i)
-	&& (!lpc_obj)) {
+#ifdef LPC_TO_C
+	&& !lpc_obj
+#endif
+	    ) {
 	if (comp_flag)
 	    debug_message("out of date. (driver changed)\n");
 	fclose(f);

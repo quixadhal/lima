@@ -1,8 +1,8 @@
 #secure/daemons/secure_d.c
-privileges (["Admin":([":news":({}),":":({}),"":({}),":intermud":({}),]),"Approval":(["":({}),":":({}),]),"Mail":(["":({}),":":({}),]),"@secure":(["":({}),":":({}),]),"Mudlib":(["":({}),":daemons":({}),":config":({}),":verbs":({}),":help":({}),":":({}),":wizcmds":({}),":plyrcmds":({}),":std":({}),":objects":({}),]),])
+privileges (["Approval":(["":({}),":":({}),]),"Admin":([":intermud":({}),"":({}),":news":({}),":":({}),]),"Mail":(["":({}),":":({}),]),"@secure":(["":({}),":":({}),]),"Mudlib":(["":({}),":daemons":({}),":config":({}),":verbs":({}),":help":({}),":":({}),":wizcmds":({}),":plyrcmds":({}),":WWW":({}),":std":({}),":objects":({}),]),])
 quota ([])
-read_access (["data":({-1,(["links":({"@secure",0,}),"players":({"@secure",0,}),"mail":({"@secure",0,}),"M":({"@secure",0,}),]),}),])
-write_access (["tmp":({0,0,}),"ftp":({0,0,}),"wiz":({-1,0,}),"data":({-1,(["links":({"@secure",0,}),"M":({"@secure",0,}),"mail":({"@secure",0,}),"config":({"Mudlib:config",0,}),"news":({"Mudlib:daemons",0,}),"players":({"@secure",0,}),"daemons":({"Mudlib:daemons",0,}),"secure":({"@secure",0,}),]),}),"log":({-1,0,}),"help":({"Mudlib:help",0,}),"domains":({-1,0,}),"obj":({-1,0,}),"open":({0,0,}),"cmds":({-1,(["wiz":({"Mudlib:wizcmds",0,}),"player":({"Mudlib:plyrcmds",0,}),"verbs":({"Mudlib:verbs",0,}),]),}),])
-domains (["mail":([]),"admin":([]),"approval":([]),"mudlib":([]),])
+read_access (["data":({-1,(["links":({"@secure",0,}),"players":({"@secure",0,}),"M":({"@secure",0,}),"mail":({"@secure",0,}),]),}),])
+write_access (["WWW":({"Mudlib:WWW",0,}),"tmp":({0,0,}),"ftp":({0,0,}),"daemons":({"Mudlib:daemons",0,}),"data":({-1,(["links":({"@secure",0,}),"M":({"@secure",0,}),"mail":({"@secure",0,}),"config":({"Mudlib:config",0,}),"news":({"Mudlib:daemons",0,}),"players":({"@secure",0,}),"daemons":({"Mudlib:daemons",0,}),"secure":({"@secure",0,}),]),}),"log":({-1,0,}),"wiz":({-1,0,}),"help":({"Mudlib:help",0,}),"include":({-1,(["net":({"Mudlib:",0,}),]),}),"domains":({-1,0,}),"obj":({-1,0,}),"open":({0,0,}),"cmds":({-1,(["wiz":({"Mudlib:wizcmds",0,}),"player":({"Mudlib:plyrcmds",0,}),"verbs":({"Mudlib:verbs",0,}),]),}),])
+domains (["admin":([]),"mudlib":([]),"approval":([]),"mail":([]),])
 domainlists ([])
 wizards ([])

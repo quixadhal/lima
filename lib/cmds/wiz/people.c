@@ -47,7 +47,7 @@ private void main(string arg)
 	if (arg != "-f")
 	{
 	    if (environment(bodies[i]))
-		where = environment(bodies[i])->short();
+		where = environment(bodies[i])->get_brief();
 	    else
 		where = "(nowhere)";
 	}

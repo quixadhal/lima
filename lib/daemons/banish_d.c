@@ -4,6 +4,8 @@
 //  Try Jan 31, 1993.
 
 
+#include <log.h>
+
 inherit DAEMON;
 inherit M_GLOB;
 
@@ -17,13 +19,13 @@ void banish_name(string name, string reason)
   if ( !check_previous_privilege(1) )
     return;
 
-  if(!stringp(name)) return;
+  if ( !stringp(name) )
+      error("bad name for banishing\n");
 
-#ifdef BANISH_LOG
-	unguarded(1, (:write_file, BANISH_LOG, 
-		      sprintf("%s banished the name %s (%s) because: %s\n",
-	  this_user()->query_userid(), name, ctime(time()), reason) :));
-#endif
+  LOG_D->log(LOG_BANISH,
+	     sprintf("%s banished the name %s (%s) because: %s\n",
+		     this_user()->query_userid(), name,
+		     ctime(time()), reason));
 
   bad_names += ({name});
   unguarded(1, (: save_object,SAVE_PATH :));
@@ -42,12 +44,14 @@ void banish_site(string site, string reason)
 {
   if ( !check_previous_privilege(1) )
     return;
-#ifdef BANISH_LOG
-	unguarded(1, (:write_file, BANISH_LOG, 
-		      sprintf("%s banished the site %s (%s) because: %s\n",
-			      this_user()->query_userid(), site, 
-			      ctime(time()), reason) :));
-#endif
+
+  if ( !stringp(site) )
+      error("bad site for banishing\n");
+
+  LOG_D->log(LOG_BANISH,
+	     sprintf("%s banished the site %s (%s) because: %s\n",
+		     this_user()->query_userid(), site, 
+		     ctime(time()), reason));
 
   bad_sites += ({ site });
   unguarded(1, (: save_object ,SAVE_PATH :));
@@ -89,5 +93,5 @@ create()
 
 mixed *show_banishes()
 {
-  return ({ bad_names, bad_sites });
+  return copy(({ bad_names, bad_sites }));
 }

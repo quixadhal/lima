@@ -69,7 +69,7 @@ private void main(mixed *arg, mapping flags) {
     }
     if (file[<2..<1] != ".c") file += ".c";
     if (do_update(file,deep_up) < time())
-        write("No update necessary.\n");
+        write(file + ": No update necessary.\n");
 
     for (n=0; n<sizeof(obs); n++) {
 	if (obs[n]) obs[n]->move(file);
@@ -78,34 +78,37 @@ private void main(mixed *arg, mapping flags) {
 
 int do_update(string file, int deep)
 {
-    object ob2;
-    string *obs;
+    object ob;
     int master_flag;
     int i,n;
     string res;
     int tmp;
     int newest_inh = 0;
     
-    ob2 = find_object(file);
-    if(ob2) {
-	if (deep) {
-	    obs = inherit_list(ob2);
-	    n = sizeof(obs);
-	    for (i=0; i<n; i++) {
-		tmp = do_update(obs[i], (deep>1?deep:0));
-		if (tmp > newest_inh) newest_inh = tmp;
-	    }
-	}
-	if (deep == 3) {
-	    mixed *info = stat(file);
-	    // the file itself.
-	    if (info[1] > newest_inh) newest_inh = info[1];
+    if (deep == 3) {
+	mixed *info = stat(file);
+	ob = load_object(file);
 
-	    // return if object isn't out of date.
-	    if (info[2] > newest_inh)
-		return info[2];
+	foreach (string fn in inherit_list(ob)) {
+	    tmp = do_update(fn, (deep>1?deep:0));
+	    if (tmp > newest_inh) newest_inh = tmp;
 	}
-	destruct(ob2, 1);      // pass 1: we're coming back soon
+	// the file itself.
+	if (info[1] > newest_inh) newest_inh = info[1];
+
+	// return if object isn't out of date.
+	if (info[2] > newest_inh)
+	    return info[2];
+
+	destruct(ob, 1);      // pass 1: we're coming back soon
+    } else {
+	ob = find_object(file);
+        if (ob) {
+	    if (deep)
+		foreach (string fn in inherit_list(ob))
+		    do_update(fn, (deep > 1 ? deep : 0));
+	    destruct(ob, 1);      // pass 1: we're coming back soon
+	}
     }
     load_object(file);
     if (file[0] != '/') file = "/" + file; // bug in inherit_list()

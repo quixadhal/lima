@@ -88,3 +88,8 @@ string the_short()
 {
   return "the " + my_name;
 }
+
+/* need a set_light() for remove() */
+void set_light(int x)
+{
+}

@@ -8,41 +8,26 @@
 ** 95-May-01. Deathblade. Created.
 */
 
-string title;
-private string invis_title;
+private string title;
 
-string in_room_desc();		/* in /std/player */
-object query_link();		/* in /std/player */
 string query_userid();		/* in /std/player */
-string query_idle_string();     /* in /std/player */
-string base_in_room_desc();     /* in /std/player */
 
 string query_title()
 {
-    return in_room_desc();
-}
+    /* ensure the player has a title. set it if none (yet) */
+    if ( !title )
+	title = sprintf("%s the title-less", capitalize(query_userid()));
 
-string query_truncated_title(int num_chars)
-{
-  string idle_string;
-  int i;
-  
-  idle_string = query_idle_string();
-  if(i=strlen(idle_string))
-    {
-      num_chars -= (i+1);
-      idle_string = " " + idle_string;
-    }
-  return truncate(base_in_room_desc(), num_chars) +  idle_string;
+    return title;
 }
 
 int set_title(string str)
 {
-    if(this_body() != this_object())
-      return;
+    if ( this_body() != this_object() )
+	error("invalid attempt to set a title\n");
 
     if ( str && strsrch(str, "$N") == -1 )
-	return -1;
+	error("bad title -- needs to contain $N\n");
 
     if ( !str )
 	title = sprintf("%s the title-less.", capitalize(query_userid()));

@@ -1,0 +1,81 @@
+VIRTUAL OBJECTS IN LIMA
+
+[ Note: there is a "Quick Start" section below if you're in a hurry ]
+
+Background
+----------
+Virtual objects are simply objects masquerading under another name.
+This is accomplished in MudOS by using the master apply
+"compile_object".  It is called whenever the driver cannot find a
+source file when an object is asked to be loaded.  If the function
+returns an object, then the driver applies the request name to it
+(rather than wherever it was loaded from).  This can be very useful
+when creating a large number of objects that are similar; rather than
+writing a new file for each object, a common object can be created,
+fine-tuned, and returned as if it was an original object.  Typically,
+these have been used for things like "grid rooms" where many of the
+rooms are similar, but vary in minor ways like their descriptions.
+Virtual objects have also been used to represent players -- the object
+name as the players name right in it.
+
+
+Quick Start
+-----------
+Your virtual server can be anything that responds to virtual_create().
+Place this server wherever you like.  Objects are "loaded" from it
+using object pathnames of "/your/server/path/args".  The master object
+walks the path down the directory tree until it can't go any further
+and looks for your server there.  The string after the server's path
+are arguments and are passed to virtual_create().
+
+
+Details
+-------
+In the Lima Mudlib, virtual objects are built by a "virtual server."
+This server is called by the master object when it receives
+compile_object().  The server takes the arguments for the object,
+instantiates it, configures it, and returns it.
+
+Of particular importance is how the virtual server is found and how
+arguments are passed to it.  A simple example is provided with the
+Lima Mudlib that we'll use here.  The virtual server is located at:
+
+     /domains/std/rooms/v_plains.c
+
+To ask it to create objects for you, you can simply do something like:
+
+     ob = load_object("/domains/std/rooms/v_plains/1/1");
+
+The master object will use the initial part of the path to locate the
+server: it walks down the directories, finding /domains/, then
+/domains/std/, then /domains/std/rooms/.  It stops when it can't find
+the /domains/std/rooms/v_plains/ directory and then looks for a .c
+file with that name.  The path after the following "/" are taken to be
+arguments for the creation of the virtual object (in this example, the
+object's arguments are "1/1").
+
+When the master object has found the virtual server and has extracted
+the arguments (there must always be a / following the server's name;
+no arguments sort of defeats the reason for virtual objects), it then
+calls the virtual_create() function in the server, passing the
+arguments as a string.  The prototype is:
+
+     object virtual_create(string args);
+
+This function should return 0 (meaning no object which causes the
+driver to raise an error about not being able to load the requested
+object), or it should return a new object.  This new object then gets
+the original name and is then used.
+
+Typically, your virtual servers will inherit from DAEMON so that they
+can clean up when they aren't being used.
+
+In our example, v_plains inherits from GRID_SERVER (which inherits
+from DAEMON).  The GRID_SERVER supplies the virtual_create() function,
+taking the grid's (x,y) pair as arguments.  The format of the x,y pair
+is shown in the example above.
+
+NOTE: because the mechanism walks down directories until it can't go
+any further, this implies that your virtual server cannot have the
+same name as a directory.  e.g. you can't have both /foo/server.c and
+/foo/server/.

@@ -176,15 +176,17 @@ usable( object o, int flag )
 /* if (flag) then don't print untouched obs */
 /* depth is for internal use only */
 /* So is avoid... */
-varargs string inv_list(object o, int flag, int depth, object avoid) {
+varargs string inv_list(object o, int flag, int depth, mixed avoid) {
     object *obs;
     string res;
     string ex;
     int i,j;
     int n;
 
+    if(!arrayp(avoid))
+      avoid = ({ avoid });
     if (!o) o = this_object();
-    obs = all_inventory(o) - ({avoid});
+    obs = all_inventory(o) - avoid;
     if (!(n=sizeof(obs))) {
 	return 0;
     }
@@ -195,7 +197,7 @@ varargs string inv_list(object o, int flag, int depth, object avoid) {
 	if (flag && !obs[i]->test_flag(TOUCHED) && obs[i]->untouched_long()) continue;
         if (obs[i]->is_attached()) {
             if (obs[i]->inventory_visible())
-                res += (string)obs[i]->inventory_recurse(depth+1);
+                res += (string)obs[i]->inventory_recurse(depth+1, avoid);
             continue;
         }
 	if (!duplicatep(obs[i]))
@@ -211,7 +213,7 @@ varargs string inv_list(object o, int flag, int depth, object avoid) {
 	    }
 	    res += "\n";
 	    if (obs[i]->inventory_visible())
-		res += (string)obs[i]->inventory_recurse(depth+1);
+		res += (string)obs[i]->inventory_recurse(depth+1, avoid);
 	}
     }
     if (res == "") return 0;

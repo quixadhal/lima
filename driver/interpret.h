@@ -36,11 +36,7 @@
 #  define TRACEHB (current_heart_beat == 0 || (command_giver->interactive->trace_level & TRACE_HEART_BEAT))
 #endif
 
-#ifdef HAS_UNSIGNED_CHAR
 #define EXTRACT_UCHAR(p) (*(unsigned char *)(p))
-#else
-#define EXTRACT_UCHAR(p) (*p < 0 ? *p + 0x100 : *p)
-#endif				/* HAS_UNSIGNED_CHAR */
 
 /*
  * Control stack element.

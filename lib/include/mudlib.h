@@ -19,8 +19,8 @@
 **
 ** ROOM		standard room
 ** NON_ROOM	base class for things like furniture
-** ENTERABLE	enterable objects that behave like a room (e.g. a boat)
 ** WATER_ROOM	rooms full of water (e.g. a lake)
+** GRID_SERVER	virtual server inheritable for grid-type rooms
 **
 ** VOID_ROOM	where to put broken stuff
 ** WIZ_ROOM	a room for wizards
@@ -34,6 +34,7 @@
 ** CONTAINER	obs that can hold things in/on/under/behind/etc.
 ** DOOR		doors to places
 ** LIVING	can hold things and perform actions (no fighting)
+** STOCK_MASTER  stock guildmaster for stock muds :)
 ** RACE		a race-modified body
 **
 ** M_GLOB	glob style regexp functions
@@ -69,6 +70,7 @@
 ** M_DIGGER	items that can dig.
 ** M_DIGGABLE   items that you can dig in.
 ** M_VALUABLE	items that are valuable (have value)
+** M_GUILD_MASTER	act as a "guild master"
 **
 ** M_GETOPT	functions for command processing
 ** M_HISTORY 	module for handling command history
@@ -123,6 +125,7 @@
 #define ROOM			"/std/room"
 #define NON_ROOM		"/std/non-room"
 #define WATER_ROOM		"/std/water_room"
+#define GRID_SERVER		"/std/grid_server"
 
 #define VOID_ROOM		"/domains/std/void"
 #define WIZ_ROOM		"/domains/std/wizroom"
@@ -130,12 +133,14 @@
 #define OBJ 			"/std/object"
 #define SPARSE_OBJ		"/std/sparse_obj"
 #define FURNITURE		"/std/furniture"
+#define MOUNT			"/std/mount"
 #define WEAPON			"/std/weapon"
 #define ARMOR			"/std/armor"
 #define MONSTER			"/std/monster"
 #define CONTAINER		"/std/container"
 #define DOOR			"/std/door"
 #define LIVING			"/std/living"
+#define STOCK_MASTER            "/std/stock_master"
 #define RACE			"/std/race"
 
 #define M_GLOB		        "/std/modules/glob"
@@ -175,6 +180,9 @@
 #define M_BLOCKEXITS		"/std/modules/blockexits"
 #define M_KNOCKABLE		"/std/modules/knockable"
 #define M_VALUABLE		"/std/modules/valuable"
+#define M_MOUNTABLE		"/std/modules/mountable"
+#define M_ENTERABLE		"/std/modules/enterable"
+#define M_GUILD_MASTER          "/std/modules/guild_master"
 
 #define M_GETOPT		"/std/shell/getopt"
 #define M_HISTORY	   	"/std/shell/history"

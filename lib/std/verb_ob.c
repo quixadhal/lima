@@ -39,14 +39,14 @@ void create()
     if ( !info || !pointerp(info) || !pointerp(info[0]) )
 	throw("bad verb info");
 
-    map_array(info[0],
-	      (: parse_add_rule($(verb), $1, this_object()) :));
+    map_array(info[0], (: parse_add_rule($(verb), $1) :));
 
-    // quick synonym hack; these shouldn't be simple word equivs
     if (sizeof(info) == 2)
-        foreach (verb in info[1])
-            map_array(info[0],
-                  (: parse_add_rule($(verb), $1, this_object()) :));
+      map_array(info[1], (:parse_add_synonym($1, $(verb)):));
+
+/* Old stuff         foreach (verb in info[1])
+            map_array(info[0], (: parse_add_rule($(verb), $1) :));
+*/
 }
 
 /* we defined the rule, so assume by default we allow it */

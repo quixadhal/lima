@@ -1,10 +1,12 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <log.h>
+
 inherit CMD;
+
 
 private nomask void do_shutdown()
 {
-    bodies()->save_me();
     unguarded(1, (: shutdown :));
 }
 
@@ -32,11 +34,11 @@ private void main(string s)
 	    write("Ask nicely.\n");
 	    return;
 	}
-	write_file("/log/SHUTDOWN",
+	LOG_D->log(LOG_SHUTDOWN,
 		   sprintf("SHUTDOWN (%s) by %s [%s]\n",
 			   ctime(time()), this_body()->query_name(), s));
 	shout("LPmud shut down by "+this_body()->query_name()+".\n");
-	bodies()->quit();
+	users()->quit();
 	call_out((: do_shutdown :), 0);
     }
 }

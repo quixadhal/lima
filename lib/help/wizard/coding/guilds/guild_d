@@ -1,0 +1,118 @@
+guild help version 1.0
+
+
+void set_guild_title( string name, string title );
+
+The title of the guild, for example "Guild of Thieves".  If you are using the STOCK_GUILDMASTER base class, don't prepend the word "the".
+
+
+void set_guild_banned( string name, string array banned );
+
+If a player belongs to one of the guilds on the banned list, then stop them from becoming a member of this guild. if "all" is listed, then the guild is the only one the can belong to besides those that are listed as prerequisites or allies.
+
+
+void set_guild_prereq( string name, string array prereq );
+
+Player must belong to guilds on the prereq list before joining this guild. If guild_need_all is set, then all guilds on the prereq list must be belonged to prior to joining; otherwise any one will do.
+
+
+void set_guild_allies( string name, string array allies );
+
+Guilds that are able to enter the guild, use trainers, etc.
+
+
+void set_guild_exclusive( string name, string array exclusive );
+
+A player's guilds may not have attributes listed if they are allowed to join. The exceptions are guilds which are on the prereq and ally lists.
+
+
+void set_guild_attributes( string name, string array attributes );
+
+A guilds attributes should describe what makes it that guild.
+No attributes are specified: these are up to your mud.
+(there may be a fun implimented in GUILD_D so that you can specify allowable attributes sometime )
+
+
+void set_guild_begone( string name, int begone );
+
+What happens when a player leaves the guild from npcs that belong to the guild.
+ The range is 0-3. 0 means that all record of a player having been recorded is removed, 1 means that ex-membership is noted, but reentry is allowed. 2 means that reentry isn't allowed, and 3 means that npcs are hostile to the player.
+
+
+void set_guild_suspend_level( string name, int suspend_level );
+
+1 may use training but not advance guild levels, 2 may not use any facilities.
+
+
+void set_guild_prospectus( string name, string prospectus );
+
+Text to sell the guild to the player.
+
+
+void set_guild_sees_secret( string name, int sees_secret );
+
+If sees_secret is not set, then guilds with is_secret set will not be checked for their attributes against the secret list. They will still, however, be checked against the banned list. However if sees_secret is not set, or if they are not explicitly listed, then a banned "all" will not catch a guild.
+
+
+void set_guild_is_secret( string name, int is_secret );
+
+Guilds with this set won't have their attributes checked against a guild's exclusive list, nor will they be caught by a banned "all" unless seces_secret is set.
+
+
+void set_guild_need_all( string name, int need_all );
+
+A guild with this set must havew all prerequisites filled to be joined.
+
+
+
+
+string query_guild_title( string name );
+string array query_guild_banned( string name );
+string array query_guild_prereq( string name );
+string array query_guild_allies( string name );
+string array query_guild_exclusive( string name );
+string array query_guild_attributes( string name );
+int query_guild_begone( string name );
+int query_guild_suspend_level( string name );
+string query_guild_prospectus( string name );
+int query_guild_sees_secret(string name);
+int query_guild_is_secret(string name);
+int query_guild_need_all(string name);
+
+All of the above retrieve the relevant data based on the guild's name.
+
+
+void guild_add( string name )
+
+This function must be called to create a guild. the set and query functions will bug out unless this is done first.
+
+
+void guild_remove( string name )
+
+call this to remove a guild (surprise! :)
+
+
+mixed guild_is_ok( string name, string array player_guilds )
+
+call to process player's guilds versus guildmaster's guilds
+Probably shouldn't ever be needed to overloaded.
+
+
+void define_from_file(string fname)
+
+The file should contain filled guild templates.
+These consist of:
+* Lines beginning with # are comments.
+* White space.
+* <keyword> = <value>
+
+The first keyword for each guild must always be "name"
+The other keywords are: "prospectus", "begone", "suspend_level", "attributes", "attributes", "exclusive", "allies", "prereq", "banned", "title", "sees_secret", "is_secret", and "need_all"
+
+these all function as the appropriate set function. set functions which would takew an array (for example "attributes") should have their values separated with commas.
+
+An admtool interface will be added shortly.
+example files are in /data/config/ - guild-spec and stock-guilds.
+
+comments suggestions etc to --OH or DB.
+

@@ -71,34 +71,33 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     if ( !arg )
 	arg = "somewhere";
 
-//###this came from room.c, but there was no way to set it... what is it?
-//###seems like custom exit messages... needed?  if so, query room for it
+    env = environment();
+
     txt = last_loc->query_exit_msg(arg);
 
     // This should be done better when smartmove gets cleaned up.  Right now
     // Furniture uses it, and anything else inheriting NON_ROOM probably does.
     if(!txt)
-      txt = environment(this_body())->handle_exit_msgs(last_loc);
+      txt = environment()->handle_exit_msgs(last_loc);
     if ( !txt )
     {
 	msgs = get_player_message("leave", arg);
-	tell_room(last_loc, msgs[1], 0, ({ this_object() }));
+	tell_room(last_loc, msgs[1], 0, ({ env }));
     }
     else
     {
       msgs = action(({this_object()}), txt);
-      tell_object(this_object(),msgs[0]);
-      tell_room(last_loc, msgs[1], 0, ({this_object()}));
+      tell_object(this_object(),msgs[0], OUTSIDE_MSG);
+      tell_room(last_loc, msgs[1], 0, ({ env }));
     }
 
-    env = environment();
 
 //###there is a note in room.c about this being bogus
     txt = env->query_enter_msg(arg);
     if ( !txt )
     {
 	msgs = get_player_message("enter", arg);
-	tell_room(env, msgs[1], 0, ({ this_object() }));
+	tell_room(env, msgs[1], OUTSIDE_MSG, ({ this_object() }));
     }
     else
     {
@@ -124,16 +123,16 @@ int move_to(string dest, mixed dir)
 
     dest = evaluate(dest);
     if (move_me_there(dest, dir, where)) {
-//### correct to call only if the current body? maybe also call for non-bodies
-        if ( this_object() == this_body() ) {
-	    where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
-	}
+      where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
+
     }
 
     if ( where != environment() )
+      {
 	force_look();
-
-    return ret;
+	return 1;
+      }
+    return 0;
 }
 
 varargs mixed call_hooks();
@@ -146,8 +145,7 @@ int go_somewhere(string arg)
 
     // allowed by the room itself; some sort of 'special' exit
     if (!value) {
-	call_other(env, "do_go_" + value);
-	return 1;
+	return call_other(env, "do_go_" + value);
     }
     // This should have been trapped already, but just in case:
     if (value[0] == '#') {

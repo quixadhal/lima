@@ -16,6 +16,9 @@ typedef struct {
 } port_def_t;
 
 extern port_def_t external_port[5];
+#ifdef PACKAGE_EXTERNAL
+extern char *external_cmd[5];
+#endif
 
 #ifdef DEBUG
 extern int d_flag;

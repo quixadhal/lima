@@ -1,41 +1,26 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 inherit NON_ROOM;
-
-string handle_exit_msgs(object last_loc)
-{
-  return "$N $vget on "+the_short() + ".\n";
-}
+inherit M_MOUNTABLE;  // Okay, you don't mount furniture, but we make it
+                      // So you can't mount it.  But we use all the near-
+                      // synonyms found in M_MOUNTABLE
 
 int can_hold_water()
 {
   return 0;
 }
 
-int direct_sit_on_obj()
+int direct_mount_obj()
 {
-  return 1;
+  return 0;
 }
 
-int direct_sit_in_obj()
+int direct_dismount_obj()
 {
-  return 1;
+  return 0;
 }
 
-void sit()
+mixed dismount()
 {
-  do_enter();
-}
-
-int stand()
-{
-  if(environment(this_body()) != this_object())
-    return 0;
-  
-  return 1;
-}
-
-string inventory_header()
-{
-  return "On " + the_short() + "is:";
+  return 0;
 }

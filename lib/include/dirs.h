@@ -3,6 +3,8 @@
 #ifndef DIRS_H
 #define DIRS_H
 
-#define DIR_RACES		"/std/race/"
+#define DIR_LOG		"/log"
+#define DIR_SECURE_LOG	"/data/secure"
+#define DIR_RACES	"/std/race"
 
-#endif
+#endif /* DIRS_H */

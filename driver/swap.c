@@ -105,7 +105,7 @@ swap_seek P2(long, offset, int, flag) {
     } while (ret == -1 && errno == EINTR);
     if (ret == -1)
 	fatal("Couldn't seek the swap file, error %s, offset %d.\n",
-	      strerror(errno), offset);
+	      port_strerror(errno), offset);
 }
 
 /*

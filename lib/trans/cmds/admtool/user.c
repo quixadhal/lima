@@ -10,27 +10,37 @@
 #include <security.h>
 
 void std_handler(string str);
+void do_one_arg(string arg_prompt, function fp, string arg);
+void do_two_args(string arg1_prompt, string arg2_prompt,
+		 function fp, string arg);
 varargs void modal_simple(function input_func, int secure);
 varargs void modal_func(function input_func, mixed prompt_func, int secure);
 
+#ifdef USE_WIZ_POSITION
+#define PROMPT_USER	"(AdmTool:user) [nwdpmq?] > "
+#else
 #define PROMPT_USER	"(AdmTool:user) [nwdmq?] > "
+#endif
 
 private nomask void write_user_menu()
 {
     write("Administration Tool: user administration\n"
 	  "\n"
-	  "    n <name> - nuke a user\n"
-	  "    w <name> - wiz a user\n"
-	  "    d <name> - dewiz a user\n"
+	  "    n [name]            - nuke a user\n"
+	  "    w [name]            - wiz a user\n"
+	  "    d [name]            - dewiz a user\n"
+#ifdef USE_WIZ_POSITION
+	  "    p [name] [position] - give a wizard a position\n"
+#endif
 	  "\n"
-	  "    m        - main menu\n"
-	  "    q        - quit\n"
-	  "    ?        - help\n"
+	  "    m                   - main menu\n"
+	  "    q                   - quit\n"
+	  "    ?                   - help\n"
 	  "\n"
 	  );
 }
 
-private nomask void confirm_nuking(string who, string str)
+private nomask void confirm_nuking(string name, string str)
 {
     object o;
     string err;
@@ -42,117 +52,151 @@ private nomask void confirm_nuking(string who, string str)
 	return;
     }
 
-    if ( o = find_body(who) )
+    if ( o = find_user(name) )
 	o->quit();
 
 //### handle mail
 
-    rm(sprintf("/data/links/%c/%s.o", who[0], who));
-    rm(sprintf("/data/players/%c/%s.o", who[0], who));
+    rm(sprintf("/data/links/%c/%s.o", name[0], name));
+    rm(sprintf("/data/players/%c/%s.o", name[0], name));
+
+    err = SECURE_D->delete_wizard(name);
 
 //### deal with clearing privs and stuff
 //### this should be enough, but may need more thought (this was a quicky)
-    err = SECURE_D->delete_wizard(who);
-    SECURE_D->set_protection("/wiz/" + who, 1, -1);
+//### need to set it to something like @disabled so that unguarded() code
+//### in the wiz dir doesn't have priv 1 now.
+    SECURE_D->set_protection("/wiz/" + name, 1, -1);
     
-    printf("'%s' has been nuked.\n", capitalize(who));
+    printf("'%s' has been nuked.\n", capitalize(name));
 }
 
-private nomask void wiz_user(string who)
+private nomask void receive_name_for_nuking(string name)
+{
+    name = lower_case(name);
+    printf("Are you sure you want to nuke '%s' ? ", capitalize(name));
+    modal_simple((: confirm_nuking, name :));
+}
+
+private nomask void receive_name_for_wiz(string name)
 {
     object ob;
     string err;
 
-    if ( !(ob = find_user(who)) )
+    name = lower_case(name);
+    if ( SECURE_D->query_is_wizard(name) )
     {
-	printf("** '%s' must be logged on.\n", capitalize(who));
+	printf("** '%s' is already a wizard.\n", capitalize(name));
+	if (!is_directory ("/wiz/"+name))
+	  {
+	    printf ("However, /wiz/%s doesn't exist.  Creating...\n", name);
+	    mkdir ("/wiz/" + name);
+	    SECURE_D->set_protection ("/wiz/" + name, 1, name + ":");
+	  }
 	return;
     }
-    if ( SECURE_D->query_is_wizard(who) )
-    {
-	printf("** '%s' is already a wizard.\n", capitalize(who));
-	return;
-    }
-    err = SECURE_D->create_wizard(who);
+    err = SECURE_D->create_wizard(name);
     if ( err )
     {
 	printf("** Error: %s\n", err);
 	return;
     }
-    mkdir("/wiz/" + who);
-    SECURE_D->set_protection("/wiz/" + who, 1, who + ":");
+    mkdir("/wiz/" + name);
+    SECURE_D->set_protection("/wiz/" + name, 1, name + ":");
+
+    printf("'%s' is now a wizard.\n", capitalize(name));
 
 //### switch to an action?
-    tell_object(ob, "You are now a wizard.  Changing bodies...\n");
-    printf("'%s' is now a wizard.\n", capitalize(who));
+    ob = find_user(name);
+    if ( ob )
+    {
+	tell_object(ob, "You are now a wizard.  Changing bodies...\n");
 
-    ob->force_me("su");
+	ob->force_me("su");
+    }
 }
 
-private nomask void dewiz_user(string who)
+private nomask void receive_name_for_dewiz(string name)
 {
     object ob;
     string err;
 
-    if ( !(ob = find_user(who)) )
-    {
-	printf("** '%s' must be logged on.\n", capitalize(who));
-	return;
-    }
-    if ( adminp(ob) )
+    name = lower_case(name);
+    if ( adminp(name) )
     {
 	printf("** '%s' is an admin and cannot be dewizzed.\n",
-	       capitalize(who));
+	       capitalize(name));
 	return;
     }
-    if ( !SECURE_D->query_is_wizard(who) )
+    if ( !SECURE_D->query_is_wizard(name) )
     {
-	printf("** '%s' is not a wizard.\n", capitalize(who));
+	printf("** '%s' is not a wizard.\n", capitalize(name));
 	return;
     }
-    err = SECURE_D->delete_wizard(who);
+    err = SECURE_D->delete_wizard(name);
     if ( err )
     {
 	printf("** Error: %s\n", err);
 	return;
     }
-    SECURE_D->set_protection("/wiz/" + who, 1, -1);
+    SECURE_D->set_protection("/wiz/" + name, 1, -1);
+
+    printf("'%s' is no longer a wizard.\n", capitalize(name));
 
 //### switch to an action?
-    tell_object(ob, "You have lost your wizard status.\n");
-    printf("'%s' is no longer a wizard.\n", capitalize(who));
+    ob = find_user(name);
+    if ( ob )
+    {
+	tell_object(ob, "You have lost your wizard status.\n");
 
-    ob->force_me("su");
+	ob->force_me("su");
+    }
 }
+
+#ifdef USE_WIZ_POSITION
+private nomask void receive_position_for_wiz(string name, string position)
+{
+    USER_D->set_variable(lower_case(name), "wiz_position", position);
+
+    printf("%s's position has been set to: %s\n",
+	   capitalize(lower_case(name)), position);
+}
+#endif
 
 private nomask void receive_user_input(string str)
 {
-    string name;
+    string arg;
 
-    sscanf(str, "%s %s", str, name);
-
-    if ( !name && member_array(str, ({ "n", "w", "d" })) != -1 )
-    {
-	write("** A name must be provided.\n");
-	return;
-    }
-    else if ( name )
-	name = lower_case(name);
+    sscanf(str, "%s %s", str, arg);
 
     switch ( str )
     {
     case "n":
-	printf("Are you sure you want to nuke '%s' ? ", capitalize(name));
-	modal_simple((: confirm_nuking, name :));
+	do_one_arg("Who should be nuked? ",
+		   (: receive_name_for_nuking :),
+		   arg);
 	break;
 
     case "w":
-	wiz_user(name);
+	do_one_arg("Who should be wizzed? ",
+		   (: receive_name_for_wiz :),
+		   arg);
 	break;
 
     case "d":
-	dewiz_user(name);
+	do_one_arg("Who should be de-wizzed? ",
+		   (: receive_name_for_dewiz :),
+		   arg);
 	break;
+
+#ifdef USE_WIZ_POSITION
+    case "p":
+	do_two_args("Set position for who? ",
+		    "Set %s's to what? ",
+		    (: receive_position_for_wiz :),
+		    arg);
+	break;
+#endif
 
     case "?":
 	write_user_menu();

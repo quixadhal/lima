@@ -1,0 +1,84 @@
+#
+# guild.spec -- guild specification file (for bulk definition)
+#
+# Submit it using GUILD_D->define_from_file("/data/config/guild.spec")
+#
+# Comment lines must have # as the first character.  All other lines are
+# attribute/value pairs.  Spaces are trimmed from the attribute and from
+# the value (but interior spaces are left alone).  Arrays are specified
+# with comma-separated values; each value is space-trimmed also.
+#
+# 951230, Deathblade: created
+#
+#
+
+name = farmers
+prospectus = Farmer's collective members worship Guruna goddess of the harvest, Horeth god of the elements, or Kuva the sun god. No members of evil aligned guilds may join, but it is possible that members of Knives of Keresh have infiltrated, due to their secret status. A long standing rift between this guild and the Winemakers means that members of one may not join the other. They are on good terms with the millers, and have irregular gatherings.
+title = Farmer's collective
+attributes = good, craft, nature
+prereq = guruna, horeth, kuva
+allies = millers
+exclusive = evil
+banned = winemakers
+
+
+name = kuva
+prospectus = Kuva, god of the sun demands that his worshippers only worship him. He has no other prerequisites save that the use of magic be avoided.
+title = Temple of Kuva
+attributes = lawful, priest
+exclusive = priest, mage
+begone = 1
+sees_secret = 1
+
+
+name = keresh
+prospectus = The Knives of Keresh is a secret but secular order of assassins. They see the better known Hashishim as a group of bunglers who couldn't be trusted to kill a small dog with a big sword, much less a big dog with a small rope.
+title = Knives of Keresh
+attributes = evil, mercenary, rogue
+banned = hashishim
+begone = 3
+is_secret = 1
+
+
+name = thaumaturgy
+prospectus = The Magi of the Tower of Thaumaturgy are dedicated to their art.
+title = Tower of Thaumaturgy
+attributes = mage, class
+banned = all
+begone = 1
+
+
+name = sorcery
+prospectus = The Magi of the Tower of Sorcery must be dedicated to their art, however a number of cabals exist within the Tower.
+title = Tower of Sorcery
+attributes = mage, class
+allies = white star, golden tines, chalk circle
+banned = all
+begone = 2
+
+
+name = chalk circle
+prospectus = Members of the Order of the Chalk Circle must belong to the Tower of Sorcery.
+title = Order of the Chalk Circle
+attributes = mage
+prereq = sorcery
+banned = all
+begone = 3
+is_secret = 1
+
+
+name = rangers
+prospectus = The rangers allow druids use of their facilities.
+title = Nottingham Forest Rangers
+allies = druid
+attributes = nature, fighter, good, class
+exclusive = evil, chaotic
+
+
+name = knights
+prospectus = The knights' members are drawn from the king's guard and the sworders, though general members of neither may use the advanced training facilities provided. Knights are known to belong to several other guilds including the Falconers and the Musicians of the Crown.
+title = Knights of the Realm
+prereq = guard, sworders
+attributes = fighter, lawful, good
+exclusive = evil, chaotic
+begone = 2

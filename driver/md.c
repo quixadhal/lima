@@ -52,7 +52,7 @@ static char *sources[] = {
     "object table", "config table", "simul_efuns", "sentences", "string table",
     "free swap blocks", "uids", "object names", "predefines", "line numbers",
     "compiler local blocks", "compiled program", "users", "debugmalloc overhead",
-    "heart_beat list", "parser", "<#38>", "<#39>", 
+    "heart_beat list", "parser", "input_to", "<#39>", 
     "strings", "malloc strings", "shared strings", "function pointers", "arrays",
     "mappings", "mapping nodes", "mapping tables", "buffers", "classes"
 };
@@ -353,7 +353,7 @@ static void mark_funp P1(funptr_t*, fp) {
 static void mark_sentence P1(sentence_t *, sent) {
     if (sent->flags & V_FUNCTION) {
       if (sent->function.f)
-          mark_funp(sent->function.f);
+          sent->function.f->hdr.extra_ref++;
     } else {
       if (sent->function.s)
           EXTRA_REF(BLOCK(sent->function.s))++;
@@ -429,19 +429,19 @@ void mark_sockets PROT((void)) {
 
     for (i = 0; i < MAX_EFUN_SOCKS; i++) {
 	if (lpc_socks[i].flags & S_READ_FP) {
-	    mark_funp(lpc_socks[i].read_callback.f);
+	    lpc_socks[i].read_callback.f->hdr.extra_ref++;
 	} else 
 	if ((s = lpc_socks[i].read_callback.s)) {
 	    EXTRA_REF(BLOCK(s))++;
 	}
 	if (lpc_socks[i].flags & S_WRITE_FP) {
-	    mark_funp(lpc_socks[i].write_callback.f);
+	    lpc_socks[i].write_callback.f->hdr.extra_ref++;
 	} else 
 	if ((s = lpc_socks[i].write_callback.s)) {
 	    EXTRA_REF(BLOCK(s))++;
 	}
 	if (lpc_socks[i].flags & S_CLOSE_FP) {
-	    mark_funp(lpc_socks[i].close_callback.f);
+	    lpc_socks[i].close_callback.f->hdr.extra_ref++;
 	} else 
 	if ((s = lpc_socks[i].close_callback.s)) {
 	    EXTRA_REF(BLOCK(s))++;
@@ -679,6 +679,7 @@ void check_all_blocks P1(int, flag) {
 		all_users[i]->ob->extra_ref++;
 		if (all_users[i]->input_to) {
 		    all_users[i]->input_to->ob->extra_ref++;
+		    DO_MARK(all_users[i]->input_to, TAG_SENTENCE);
 		    mark_sentence(all_users[i]->input_to);
 		    if (all_users[i]->num_carry) {
 			for (j = 0; j < all_users[i]->num_carry; j++)

@@ -24,7 +24,7 @@ void create()
 	       "east"  : river,
 	       "west"  : river,
 	       "southeast" : "small_dock", 
-                "north" : "wreckage",
+                "north" : "north_cave",
 	       ]) );
   set_hidden_exits("east","west");
   set_default_exit ("You can't find an exit in that direction.\n");

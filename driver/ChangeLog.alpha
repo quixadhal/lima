@@ -1,3 +1,123 @@
+Wed Jan  3 14:29:43 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a18
+	* fixed some serious flaws in class member lookup introduced in a17
+
+Tue Jan  2 17:59:42 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a17
+	* updated with respect to v21.7b14
+	* fixed a crasher in the call_out leak fix from v22a1
+	* turned off PACKAGE_EXTERNAL by default
+	* fixed a bug that caused the messages from saving the ed buffer
+	  of an object which was dested while in ed to be appended to the
+	  start of the next message sent to an object using ed.
+	* check for wait3() as well before using BSD signals
+	* removed wait() from lint.h since we include <sys/wait.h> now
+	* fixed a couple bugs in the handling of functions in the memory
+	  leak tracking code
+	* fixed a crasher in add_action(function) when the driver is
+	  run with the -d flag
+	* fixed the addr_server not to crash if gethostbyname() fails for
+	  some reason
+	* function(...) { ... } is now rebindable if it does not reference
+	  local functions or global variables
+	* switch (...) { case 0: function() { break; }; },
+	  while (...) { function() { continue; }; },
+	  and similar pathological code is no longer allowed.
+	* bind(f, ob) now always succeeds if f is already bound to ob
+	* added back the fast version of livings() from v22a14 as a contrib
+	  efun named_livings(); also fixed it to not return objects which
+	  are no longer living()
+	* added class support in reclaim_objects()
+	* trailing justification is no longer added to the last line of
+	  tables if no pad string was specified
+	* The following is now legal:
+	  class foo { int x; string y; }
+	  class foo f1 = new(class foo, x : 5);
+	  class foo f2 = new(class foo, y : "foo", x : 1);
+
+Sat Dec 30 20:55:41 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a16
+	* updated with respect to v21.7b13
+	* changed the name of strerror to port_strerror to avoid prototypes
+	  on SunOS, which prototypes the function but never defines it
+	* Removed a number of prototypes in lint.h for functions which are
+	  also prototyped in SunOS headers now
+	* Fixed a bug that would prevent two way communication with external
+	  commands
+	* Small optimization to the string case of socket_write
+	* Tracked down the real problem which caused sprintf() to crash
+	  on empty tables; also fixed a crasher empty lines in column mode
+	* reversed the livings() patch, since not all living objects are
+	  in the hash table
+	* #ifdef'd out some unnecessary code for when LPC_TO_C is off
+	* Remember to wait on our children, so we don't create zombies;
+	  configure checks to figure out whether to do it the BSD or
+	  Sys V way
+	* Removed some archaic defines from portability.h
+	* Changed the parse_sentence return codes again:
+	  1 - success
+	  0 - no such verb
+	 -1 - verb exists, but no rule matched
+	 -2 - a rule made sense, but can_ or direct_ failed
+	* Fixed a typo in the 'Illegal master object file name' error message
+
+Fri Dec  8 20:53:11 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a15
+	* updated with respect to v21.7b12
+	* changed livings() to walk the living hash table instead of the
+	  full object list; idea from Jihad
+	* '\r' is now treated as whitespace by the compiler
+	* The success return code of parse_sentence is now 3, not 1.
+	* changed the return type of parse_sentence from 'int' to 'mixed'
+	* Fixed a crasher in using a function pointer as a read callback
+	* If PACKAGE_EXTERNAL is defined, then lines of the form:
+
+	  external_cmd_1: /usr/local/bin/gzip
+
+	  in the config file allow the mud to run the command using the
+	  following efun:
+	  
+	  int external_start(int which, string args,
+	                     mixed read_cb, mixed write_cb, mixed close_cb)
+
+	  which is the command number (e.g. 1 from the example above)
+	  args is the argument passed to the command.  A socket is returned,
+	  which can be used to communicate with stdin/stdout of the command.
+
+	  valid_socket() is passed "external" as the operation.
+	  Up to 5 commands are allowed.
+
+Thu Dec 21 01:33:34 PST 1995 (gstein@svpal.org (Deathblade))
+	* raised patchlevel to v22a14
+	* fixed varargs by tweaking grammar.y.pre to not turn off the
+          TYPE_MOD_ARRAY flag for the varargs variable
+	* fixed sprintf() crasher when tables are used (Rust and Zakk)
+
+Thu Dec  7 12:30:20 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a13
+	* fixed crasher in disabling a heart_beat during a heart_beat
+	* fixed sprintf() to not add trailing padding onto wrapped strings
+	* removed the break_string() efun.  See compat/simuls/break_string.c
+	  for a replacement.
+	* fixed a few more misoptimizations of last variable references by
+	  the optimizer.
+	* added a warning for putting varargs args into a variable of
+	  non-array type, also fix a bug that would cause type errors
+	  if the prototype was in scope
+	* parse_sentence now returns:
+	    0 - no such verb
+	    1 - verb exists, but no rule matched
+	    2 - a rule made sense, but can_ or direct_ failed
+	  in the cases where it used to return zero.
+	* parse_add_rule no longer has a third arg; it is always this_object()
+	* New parse efun:
+	  parse_add_synonym(string new, string old):
+	    . interpret the verb 'new' as if it were the verb 'old', and
+	      parse using 'old's rules and routines
+	  parse_add_synonym(string new, string old, string rule):
+	    . 'new' acts like 'old' for only the rule 'rule', which must
+	      have been previously added.  Can be called multiple times.
+
 Wed Dec  6 18:00:15 EST 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v22a12
 	* fixed a crasher in passing a negative number as the field width

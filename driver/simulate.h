@@ -49,7 +49,13 @@ int get_char PROT((svalue_t *, int, int, svalue_t *));
 
 int strip_name PROT((char *, char *, int));
 char *check_name PROT((char *));
-object_t *load_object PROT((char *, lpc_object_t *));
+#ifdef LPC_TO_C
+#define load_object(x, y) int_load_object(x, y)
+object_t *int_load_object PROT((char *, lpc_object_t *));
+#else
+#define load_object(x, y) int_load_object(x)
+object_t *int_load_object PROT((char *));
+#endif
 object_t *clone_object PROT((char *, int));
 object_t *environment PROT((svalue_t *));
 object_t *first_inventory PROT((svalue_t *));

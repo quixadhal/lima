@@ -1,14 +1,14 @@
 MAKE=gmake
 SHELL=/bin/sh
 OBJDIR=obj
-DRIVER_BIN=driver.v22a13
+DRIVER_BIN=driver
 PROOF=
 STRFUNCS=
 INSTALL=install -c
-INSTALL_DIR=/usr/local/driver
+INSTALL_DIR=../bin
 OPTIMIZE=
 CPP=gcc -E
-CFLAGS= -g -DDEBUG -pipe
+CFLAGS= -g -DDEBUG
 CC=gcc
 YACC=bison -d -y
 RANLIB=ranlib

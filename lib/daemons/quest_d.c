@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+#include <log.h>
 
 inherit DAEMON;
 
@@ -36,11 +37,9 @@ add_quest( string quest, int value, string base, string major_milestone )
       write("D'oh, that quest already exists.\n");
       return 0;
     }
-  if(!
-  unguarded( 1, (: write_file, "/log/quests",
-		 sprintf("%-30s worth %d pts, added by %s.\n", base, value,
-			 this_body()->query_name()) :) )
- ) return 0;
+  LOG_D->log(LOG_QUEST,
+	     sprintf("%-30s worth %d pts, added by %s.\n", base, value,
+		     this_body()->query_name()));
 
   if(base[<2..] == ".c")
     {
@@ -95,7 +94,6 @@ string dump_final_goals()
 {
   string*	keys;
   int		i;
-  string	logfile;
   string	output;
   int		total1;
   int		total2;
@@ -123,18 +121,13 @@ string dump_final_goals()
   
 
 // Dumps all the quest items, and not just the final goals
-string
-quest_dump()
+string quest_dump(string fname)
 {
   string*	keys;
   int		i;
-  string	logfile;
   string	output;
   int		total;
   
-  logfile = "/log/QUESTS";
-  unguarded( 1, (: rm, logfile :) );
-
   keys = keys( quests );
   keys = sort_array( keys, -1);
  
@@ -149,7 +142,9 @@ quest_dump()
 
   output += sprintf("\nTotal points: %d\n",total);
 
-  unguarded(1, (: write_file, logfile, output :) );
+  if ( fname )
+      write_file(fname, output, 1);
+
   return output;
 }
 

@@ -19,7 +19,8 @@ set_long("This is an example room for the lima mudlib.  It is fairly non-desscri
  
     set_exits( ([
     "west" : "wizroom",
-    "south" : "room2"
+    "south" : "room2",
+    "north" : "/domains/std/rooms/v_plains/4/7",
     ]) );
  
     add_item( "suit" , "armor" , "suit of armor" , "The armor is very old and well worn.  While examining the armor you imagine you hear the sounds of combat coming from behind you.");

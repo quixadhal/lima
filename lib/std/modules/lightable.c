@@ -3,6 +3,7 @@
 #include <hooks.h>
 
 private mixed		source_filter;
+private int		light_level = 1;
 private int		is_lit;
 private int		fuel;
 private string		burned_out_msg = "The $o is burned out.\n";
@@ -11,14 +12,18 @@ private string		light_msg = "$N $vlight a $o.\n";
 private string		light_with_msg = "$N $vlight a $o with a $o1.\n";
 private string		extinguish_msg = "$N $vextinguish a $o.\n";
 
+void set_light(int);
 mixed call_hooks(string, int);
 void add_hook(string, mixed);
 void remove_hook(string, mixed);
-
 string the_short();
 
 int query_is_lit() {
     return is_lit;
+}
+
+void set_light_level(int x) {
+    light_level = x;
 }
 
 void set_burned_out_msg(string x) {
@@ -61,6 +66,7 @@ mixed extinguish() {
     if (!tmp || stringp(tmp)) return tmp;
     is_lit = 0;
     if (fuel != -1) fuel = remove_call_out("burn_out");
+    set_light(0);
 //:HOOK extinguish
 //called when an object is extinguished.  The return value is ignored
     call_hooks("extinguish", HOOK_IGNORE);
@@ -96,6 +102,9 @@ varargs mixed light(object with) {
     if (!tmp || stringp(tmp)) return tmp;
     is_lit = 1;
     if (fuel != -1) call_out("burn_out", fuel);
+
+    set_light(light_level);
+
 //:HOOK light
 //called when an object is lit.  The return value is ignored.
     call_hooks("light", HOOK_IGNORE);
@@ -117,6 +126,7 @@ void do_light(object with) {
 }
 
 void burn_out() {
+    set_light(0);
     fuel = 0;
     is_lit = 0;
     call_hooks("extinguish", HOOK_IGNORE);

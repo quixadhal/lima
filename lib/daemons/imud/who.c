@@ -24,9 +24,23 @@ static nomask void rcv_who_req(string orig_mud, string orig_user,
     mixed * who_data;
 
     who_data = map_array(users(),
-			 (: ({ $1->query_name(),
-				   query_idle($1),
-				   query_ip_name($1) }) :));
+			 function (object user)
+			 {
+			     object body = user->query_body();
+			     string visname = user->query_userid();
+
+			     if ( body )
+				 visname = body->query_name();
+			     else if ( !(visname = user->query_userid()) )
+				 return 0;
+			     else
+				 capitalize(visname);
+
+			     return ({ visname,
+					   query_idle(user),
+					   query_ip_name(user) });
+			 } ) - ({ 0 });
+
     send_to_user("who-reply", orig_mud, orig_user, ({ who_data }));
 }
 
@@ -35,7 +49,7 @@ static nomask void rcv_who_reply(string orig_mud, string orig_user,
 {
     object p;
 
-    p = find_body(targ_user);
+    p = find_user(targ_user);
     if ( !p )
     {
 	return_error(orig_mud, orig_user, "unk-user",
@@ -50,9 +64,8 @@ static nomask void rcv_who_reply(string orig_mud, string orig_user,
 		    sizeof(message[0]), "");
 	s += implode(map_array(message[0],
 			       (: sprintf("%-15s%-5d%s",
-					  capitalize($1[0]),
-					  $1[1], $1[2]) :)), "\n");
+					  $1[0], $1[1], $1[2]) :)), "\n");
 	s += sprintf("\n%'-'79s\n", "");
-	tell_object(p, s);
+	p->receive_private_msg(s);
     }
 }

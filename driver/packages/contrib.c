@@ -28,6 +28,55 @@
 #define strcasecmp(X, Y) stricmp(X, Y)
 #endif
 
+/*
+ * This differs from the livings() efun in that this efun only returns
+ * objects which have had set_living_name() called as well as 
+ * enable_commands().  The other major difference is that this is
+ * substantially faster.
+ */
+#ifdef F_NAMED_LIVINGS
+void f_named_livings() {
+    int i;
+    int nob, apply_valid_hide, hide_is_valid = 0;
+    object_t *ob, **obtab;
+    array_t *vec;
+
+    nob = 0;
+    apply_valid_hide = 1;
+
+    obtab = CALLOCATE(max_array_size, object_t *, TAG_TEMPORARY, "named_livings");
+
+    for (i = 0; i < LIVING_HASH_SIZE; i++) {
+	for (ob = hashed_living[i]; ob; ob = ob->next_hashed_living) {
+	    if (!(ob->flags & O_ENABLE_COMMANDS))
+		continue;
+	    if (ob->flags & O_HIDDEN) {
+		if (apply_valid_hide) {
+		    apply_valid_hide = 0;
+		    hide_is_valid = valid_hide(current_object);
+		}
+		if (hide_is_valid)
+		    continue;
+	    }
+	    if (nob == max_array_size)
+		break;
+	    obtab[nob++] = ob;
+	}
+    }
+
+    vec = allocate_empty_array(nob);
+    while (--nob >= 0) {
+	vec->item[nob].type = T_OBJECT;
+	vec->item[nob].u.ob = obtab[nob];
+	add_ref(obtab[nob], "livings");
+    }
+
+    FREE(obtab);
+
+    push_refed_array(vec);
+}    
+#endif
+
 /* I forgot who wrote this, please claim it :) */
 #ifdef F_REMOVE_SHADOW
 void
@@ -883,7 +932,7 @@ int file_length P1(char *, file)
       return -1;
   
   do {
-      num = fread(buf, 2048, 1, f);
+      num = fread(buf, 1, 2048, f);
       p = buf - 1;
       while ((p = memchr(p + 1, '\n', num)))
 	  ret++;

@@ -21,6 +21,14 @@ inherit CMD;
 
 private void main()
 {
-  write("Type /help or /? for help on telnet.\n");
-  new(TELNET_OB)->init_telnet();
+    if (!check_privilege(1))
+    {
+	printf("Only admins may use telnet!\n");
+	return;
+    }
+    else
+    {
+	write("Type /help or /? for help on telnet.\n");
+	new(TELNET_OB)->init_telnet();
+    }
 }

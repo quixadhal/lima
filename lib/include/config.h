@@ -21,24 +21,34 @@
 #define HISTORY_CHAR		'%'
 #define AUTOMATIC_REHASH
 
-#define OBVIOUS_EXITS
+#define OBVIOUS_EXITS		/* show obvious exits when looking (top) */
+#undef OBVIOUS_EXITS_BOTTOM	/* show obvious exits at bottom of long() */
+
 #define DEFAULT_LIGHT_LEVEL	1	/* a room's default light */
 
 #define EVERYONE_HAS_A_PLAN
 
+#define PLAYERS_START_WHERE_THEY_QUIT
+
 #define USE_WIZ_POSITION	/* use the "position" scheme for wizzes */
+#define USE_QUESTS		/* quests are not always related to gaming,
+				   so we have a separate config flag */
 #define USE_GAME_FEATURES	/* use a lot of features related to gaming */
 
 #ifdef USE_GAME_FEATURES	/* pull in a set for gaming features */
+# define USE_RACES
 # define USE_STATS
 # define USE_GUILDS
 # define USE_SKILLS
 # define USE_TITLES
-# define USE_SIZE
-# ifndef USE_SIZE  // Mass and Size do the same thing, so you can only use 1
-#  define USE_MASS
-# endif
 //# define USE_SIMPLE_LEVEL	// use the simple level number scheme for players
+#endif
+
+/* one or the other should be defined */
+#define USE_SIZE
+
+#ifndef USE_SIZE  // Mass and Size do the same thing, so you can only use 1
+# define USE_MASS
 #endif
 
 #undef NO_NEW_PLAYERS			/* disallow character creation */
@@ -74,12 +84,6 @@
 #define PRELOAD_FILE		"/data/config/preload"
 
 #define WIZ_DIR			"/wiz"
-#define LOG_DIR			"/log"
-#define SECURE_LOG_DIR		"/data/secure"
-
-
-#define BANISH_LOG		LOG_DIR "/banishes"
-#define SNOOP_LOG		SECURE_LOG_DIR "/snoops"
 
 #define WELCOME_FILE		"/data/config/WELCOME"
 #define NEW_PLAYER		"/data/config/NEW_PLAYER"

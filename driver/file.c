@@ -494,7 +494,7 @@ int write_file P3(char *, file, char *, str, int, flags)
 #endif
     if (f == 0) {
 	error("Wrong permissions for opening file /%s for %s.\n\"%s\"\n",
-	      file, (flags & 1) ? "overwrite" : "append", strerror(errno));
+	      file, (flags & 1) ? "overwrite" : "append", port_strerror(errno));
     }
     fwrite(str, strlen(str), 1, f);
     fclose(f);
@@ -961,7 +961,7 @@ static int do_move P3(char *, from, char *, to, int, flag)
 	error("/%s: unknown error\n", to);
 	return 1;
     }
-#if defined(SYSV) && !defined(_SEQUENT_)
+#ifdef SYSV
     if ((flag == F_RENAME) && isdir(from)) {
 	char cmd_buf[100];
 

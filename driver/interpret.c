@@ -2019,10 +2019,13 @@ eval_instruction P1(char *, p)
 		s = fp + EXTRACT_UCHAR(pc++);
 		DEBUG_CHECK((fp-s) >= csp->num_local_variables,
 			    "Tried to push non-existent local\n");
-		if ((s->type == T_OBJECT) && (s->u.ob->flags & O_DESTRUCTED))
+		if ((s->type == T_OBJECT) && (s->u.ob->flags & O_DESTRUCTED)) {
 		    *++sp = const0;
-		else
-		    *++sp = *s;
+		    free_object(s->u.ob, "Transfer dested object");
+		    *s = const0;
+		    break;
+		}
+		*++sp = *s;
 
 		/* The optimizer has asserted this won't be used again.  Make
 		 * it look like a number to avoid double frees. */
@@ -2426,7 +2429,15 @@ eval_instruction P1(char *, p)
 	    {
 		array_t *cl;
 
-		cl = allocate_class(&current_prog->classes[EXTRACT_UCHAR(pc++)]);
+		cl = allocate_class(&current_prog->classes[EXTRACT_UCHAR(pc++)], 1);
+		push_refed_class(cl);
+	    }
+	    break;
+	case F_NEW_EMPTY_CLASS:
+	    {
+		array_t *cl;
+
+ 		cl = allocate_class(&current_prog->classes[EXTRACT_UCHAR(pc++)], 0);
 		push_refed_class(cl);
 	    }
 	    break;

@@ -51,14 +51,10 @@ int stat_me()
     return 1;
 }
 
-
-
-
-
 create(){
     properties::create();
     description::create();
     flags::create();
-    configure_set(STD_FLAGS, 0, 0, (: parse_refresh() :), 0, 0);
+    configure_set(STD_FLAGS, 0, 0, (: resync_visibility :), 0, 0);
 //    restore_object("/data/"+base_name(this_object()));
 }

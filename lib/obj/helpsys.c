@@ -13,9 +13,9 @@
 
 #include <mudlib.h>
 #include <daemons.h>
+#include <log.h>
 
 inherit DAEMON;
-
 inherit M_INPUT;
 
 
@@ -148,9 +148,8 @@ private nomask void lookup_topic(string topic)
     if ( sizeof(files) == 0 )
     {
 	write("\nSorry, there is no help on that topic (try: topics)\n\n");
-	unguarded(1, (: write_file, "/log/HELP_MISS",
-		      sprintf("%s: %s\n", this_user()->query_userid(),
-			      topic) :) );
+	LOG_D->log(LOG_HELP_MISS,
+		   sprintf("%s: %s\n", this_user()->query_userid(), topic));
     }
     else if ( sizeof(files) == 1 )
     {

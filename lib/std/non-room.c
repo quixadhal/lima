@@ -40,8 +40,9 @@ void create()
     add_id_no_plural("here");
     set_preposition("on");
     set_default_exit((: "You're not going anywhere until you get out of the " 
-		      + short() :));
+		      + short() + ".\n" :));
 }
+
 
 
 
@@ -57,7 +58,7 @@ string get_location_description()
 
 string get_brief()
 {
-  return sprintf("%s, %s the %s\n", environment(this_object())->short(),
+  return sprintf("%s, %s the %s", environment(this_object())->short(),
 		 query_prep(), short());
 }
 
@@ -96,17 +97,4 @@ void do_looking(int forced_look)
 }
 
 
-int direct_enter_obj()
-{
-  return 1;
-}
 
-int do_enter()
-{
-  if(environment(this_body()) == this_object())
-    {
-      write("You are already there.\n");
-      return 1;
-    }
-  this_body()->move_to(file_name(this_object()), short());
-}

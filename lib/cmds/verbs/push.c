@@ -36,6 +36,6 @@ void do_push_obj_str(object ob, string str) {
 }
 
 mixed *query_verb_info() {
-    return ({ ({ "OBJ", "OBJ STR", "OBJ with OBJ" }), ({ "push" }) });
+    return ({ ({ "OBJ", "OBJ STR", "OBJ with OBJ" }) });
 }
 

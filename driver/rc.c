@@ -50,7 +50,7 @@ static void read_config_file P1(FILE *, file)
 	    break;
 	if (!str)
 	    break;
-	len = strlen(str);
+	len = strlen(str); /* ACK! */
 	if (len > MAX_LINE_LENGTH) {
 	    fprintf(stderr, "*Error in config file: line too long:\n%s...\n", str);
 	    exit(-1);
@@ -287,6 +287,7 @@ void set_defaults P1(char *, filename)
     scan_config_line("object table size : %d\n",
 		     &CONFIG_INT(__OBJECT_HASH_TABLE_SIZE__), 1);
 
+    /* check for ports */
     for (i = port_start; i < 5; i++) {
 	external_port[i].kind = 0;
 	external_port[i].fd = -1;
@@ -313,6 +314,16 @@ void set_defaults P1(char *, filename)
 	    }
 	}
     }		    
+#ifdef PACKAGE_EXTERNAL
+    /* check for commands */
+    for (i = 0; i < 5; i++) {
+	sprintf(kind, "external_cmd_%i : %%[^\n]", i + 1);
+	if (scan_config_line(kind, tmp, 0))
+	    external_cmd[i] = alloc_cstring(tmp, "external cmd");
+	else
+	    external_cmd[i] = 0;
+    }		    
+#endif
 
     FREE(buff);
     fclose(def);

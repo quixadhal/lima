@@ -35,8 +35,8 @@ void modal_recapture();
 
 void begin_info_collection();
 
-void setup(int is_new);
-void test_interactives(int is_new);
+void existing_user_enter_game();
+void existing_user_ready();
 
 mixed unguarded(mixed priv, function fp);
 
@@ -45,21 +45,15 @@ mixed unguarded(mixed priv, function fp);
 */
 private string password;
 
-//temporary new user vars
-static private int n_gen = -1;
-
 /* forward declarations */
 void rcv_userid(string arg);
 void rcv_new_password(string arg);
 
 
-//### wah! get rid of this. need by sw_body.c
-static nomask int query_n_gen() { return n_gen; }
-
 
 private nomask void get_lost_now()
 {
-    destruct(this_object());
+    destruct();
 }
 
 /*
@@ -174,40 +168,6 @@ private nomask int check_special_commands(string arg)
     }
 }  
 
-private nomask void rcv_gender(string arg)
-{
-    arg = lower_case(arg);
-    if (arg == "y" || arg == "yes")
-      {
-	write("Ha, ha, ha. Which one are you?\n");
-	return;
-      }
-    if (arg == "n" || arg == "no")
-      {
-	write("Well, which one would you have liked to be, then?\n");
-	return;
-      }
-    if ( arg == "f" || arg == "female")
-	n_gen = 2;
-    else if (arg != "m" && arg != "male")
-    {
-	write("I've never heard of that gender.  Please try again.\n");
-	return;
-    }
-    else
-	n_gen = 1;
-
-    /*
-    ** Done with the login sequence.  Pop our input handler now.
-    */
-    modal_pop();
-
-    /*
-    ** Time  go get some "user" information.
-    */
-    begin_info_collection();
-}
-
 private nomask void rcv_confirm_new_pass(string first_entry,
 					 string second_entry)
 {
@@ -227,7 +187,15 @@ private nomask void rcv_confirm_new_pass(string first_entry,
     CONF_D->add_visitor(name);
 #endif
 
-    modal_func((: rcv_gender :), "Are you male or female? ");
+    /*
+    ** Done with the login sequence.  Pop our input handler now.
+    */
+    modal_pop();
+
+    /*
+    ** Time  go get some "user" information.
+    */
+    begin_info_collection();
 }
 
 private nomask void rcv_new_password(string arg)
@@ -297,7 +265,7 @@ private nomask void rcv_password(int fails, string arg)
 	*/
 	modal_pop();
 
-	test_interactives(0);
+	existing_user_ready();
 	return;
     }
 
@@ -315,6 +283,19 @@ private nomask void rcv_password(int fails, string arg)
     modal_func((: rcv_password, fails + 1 :), "Password: ", 1);
 }
 
+private nomask void modify_guest_userid()
+{
+    string * userids = users()->query_userid();
+
+    for ( int i = 1; ; ++i )
+	if ( member_array("guest" + i, userids) == -1 )
+	{
+	    set_userid("guest" + i);
+	    save_me();
+	    return;
+	}
+}
+
 private nomask void rcv_userid(string arg)
 {
     if ( !arg || arg == "" )
@@ -324,10 +305,10 @@ private nomask void rcv_userid(string arg)
     }
 
     arg = lower_case(arg);
-    if(!check_special_commands(arg))
-      {
+    if ( !check_special_commands(arg) )
+    {
 	return;
-      }
+    }
 
     if ( unguarded(1, (: file_size,
 		       LINK_PATH(arg) + __SAVE_EXTENSION__ :)) <= 0 )
@@ -347,12 +328,16 @@ private nomask void rcv_userid(string arg)
     if ( arg == "guest" && !check_site() )
 	return;
 
-    /* restore the object, without worrying about preserving variables */
+    /*
+    ** Restore the object, without worrying about preserving variables.
+    ** Note that this sets the userid value.
+    */
     restore_me(arg, 0);
 
     if ( arg == "guest" )
     {
-	setup(0);
+	modify_guest_userid();
+	existing_user_enter_game();
 	return;
     }
 
@@ -388,7 +373,7 @@ private nomask void logon()
  * extensively modified/rewritten more than half of the base mudlib first
  * (intend to modify ... doesn't cut it)
  */
-    printf("%s is running Lima 0.9r8 (pre-alpha) on %s\n\n",
+    printf("%s is running Lima 0.9r9 (pre-alpha) on %s\n\n",
 	   mud_name(), driver_version());
 
 #ifdef ZORKMUD

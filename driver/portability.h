@@ -104,14 +104,6 @@
 #endif
 
 /*
- * Define SYSV if you are running System V with a lower release level than
- * System V Release 4.
- */
-#if (defined(_SEQUENT_))
-#  define SYSV
-#endif
-
-/*
  * Most implementation of System V Release 3 do not provide Berkeley signal
  * semantics by default.  Instead, POSIX signals are provided.  If your
  * implementation is System V Release 3 and you do not have Berkeley signals,
@@ -133,10 +125,6 @@
 #if (defined(_SEQUENT_))
 #  define HAS_SETDTABLESIZE
 #endif
-
-/* undefine this if your system doesn't have unsigned chars */
-/* NeXT, Sparc, HP, Sequent, and RS/6000 all have unsigned chars */
-#define HAS_UNSIGNED_CHAR
 
 #define SIGNAL_FUNC_TAKES_INT defined(_AIX) || defined(NeXT) \
     || defined(_SEQUENT_) || defined(SVR4) \
@@ -170,6 +158,8 @@ asking your system adminstrator.
 #  if defined(linux) || defined(_M_UNIX)
 /* This has FD_SETSIZE on some Linux's (Linuces?) */
 #    include <sys/time.h>
+/* This has SOMAXCONN on newer Linux */
+#    include <sys/socket.h>
 #    ifndef SOMAXCONN
 #      define SOMAXCONN 5
 #    endif
@@ -199,6 +189,10 @@ asking your system adminstrator.
 #ifdef USE_BCOPY
 /* sunos 4.x, msdos */
 #define memmove(a,b,c) bcopy(b,a,c)
+#endif
+
+#ifdef HAS_STRERROR
+#define port_strerror strerror
 #endif
 
 #endif				/* _PORT_H */

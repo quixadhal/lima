@@ -184,6 +184,7 @@ int yyparse PROT((void));
 %type <node> case_label statements switch_block
 %type <node> expr_list_node expr_or_block
 %type <node> single_new_local_def_with_init
+%type <node> class_init opt_class_init
 %ifdef DEBUG
 %type <node> tree
 %endif
@@ -351,6 +352,10 @@ def:
 		    $1 |= TYPE_MOD_VARARGS;
 		}
 		define_new_function($3, $6.num_arg, 0, $<number>$, $1 | $2);
+		/* This is safe since it is guaranteed to be in the
+		   function table, so it can't be dangling */
+		free_string($3); 
+		context = 0;
 	    }
 	block_or_semi
 	    {
@@ -376,7 +381,6 @@ def:
 		    FUNCTION(fun)->offset = generate_function(FUNCTION(fun), $9, max_num_locals);
 		}
 		free_all_local_names();
-		free_string($3);
 	    }
     |   type name_list ';'
 	    {
@@ -532,8 +536,13 @@ argument:
     |   argument_list
     |   argument_list L_DOT_DOT_DOT
             {
+		int x = type_of_locals_ptr[max_num_locals-1];
+		
 		$$ = $1;
 		$$.flags |= ARG_IS_VARARGS;
+
+		if (x != TYPE_ANY && !(x & TYPE_MOD_ARRAY))
+		    yywarn("Variable to hold remainder of arguments should be an array.");
 	    }
     ;
 
@@ -2132,7 +2141,7 @@ expr4:
 		      function_context.num_locals++;
               } else
 		  if ((i = $1->dn.global_num) != -1) {
-		      if (function_context.num_parameters >= 0)
+		      if (function_context.num_parameters != -1)
 			  function_context.bindable = FP_NOT_BINDABLE;
 		      CREATE_OPCODE_1($$, F_GLOBAL, 
 				      VARIABLE(i)->type & TYPE_MOD_MASK, i);
@@ -2209,33 +2218,14 @@ expr4:
 	    }
     |   expr4 L_ARROW identifier
             {
-		class_def_t *cd;
-		class_member_entry_t *cme;
-		int i;
-
 		if (!IS_CLASS($1->type)) {
 		    yyerror("Left argument of -> is not a class");
 		    CREATE_ERROR($$);
 		} else {
 		    CREATE_UNARY_OP_1($$, F_MEMBER, 0, $1, 0);
-		    cd = ((class_def_t *)mem_block[A_CLASS_DEF].block)
-			+ CLASS_IDX($1->type);
-		    cme = ((class_member_entry_t *)mem_block[A_CLASS_MEMBER].block) + cd->index;
-		    for (i=0; i < cd->size; i++) {
-			if (strcmp(PROG_STRING(cme[i].name), $3) == 0)
-			    break;
-		    }
-		    if (i == cd->size) {
-			char buf[256];
-
-			sprintf(buf, "Class '%s' has no member '%s'",
-				PROG_STRING(cd->name), $3);
-			yyerror(buf);
-			$$->type = TYPE_ANY;
-		    } else {
-			$$->l.number = i;
-			$$->type = cme[i].type;
-		    }
+		    $$->l.number = lookup_class_member(CLASS_IDX($1->type),
+						       $3,
+						       &($$->type));
 		}
 		scratch_free($3);
             }
@@ -2388,9 +2378,12 @@ expr4:
 		type_of_locals_ptr += max_num_locals;
 		runtime_locals_ptr += current_number_of_locals;
 		max_num_locals = current_number_of_locals = 0;
-		/* -2 should be a define here; identify as ANON_FUNC */
-		function_context.num_parameters = -2;
+		if (function_context.bindable)
+		    function_context.num_parameters = -2;
+		else
+		    function_context.num_parameters = -3;
 		exact_types = TYPE_ANY;
+		context = 0;
             }
         '(' argument ')' block
             {
@@ -2416,6 +2409,8 @@ expr4:
 		$$->l.number = (max_num_locals - $4.num_arg);
 		$$->r.expr = $6.node;
 		$$->v.number = $4.num_arg;
+		if (function_context.bindable)
+		    $$->v.number |= 0x10000;
 		free_all_local_names();
 		
 		current_number_of_locals = $<func_block>2.num_local;
@@ -2423,6 +2418,10 @@ expr4:
 		context = $<func_block>2.context;
 		current_type = $<func_block>2.save_current_type;
 		exact_types = $<func_block>2.save_exact_types;
+		if (function_context.num_parameters == -2)
+		    function_context.bindable = FP_NOT_BINDABLE;
+		else
+		    function_context.bindable = 0;
 		function_context.num_parameters = $<func_block>2.last_fc_num_params;
 		
 		locals_ptr -= current_number_of_locals;
@@ -2625,10 +2624,7 @@ parse_command:
 time_expression:
 	L_TIME_EXPRESSION expr_or_block
 	    {
-		CREATE_TWO_VALUES($$, TYPE_NUMBER, 0, 0);
-		CREATE_OPCODE($$->l.expr, F_TIME_EXPRESSION, 0);
-		CREATE_STATEMENTS($$->r.expr, $2, 0);
-		CREATE_OPCODE($$->r.expr->r.expr, F_END_TIME_EXPRESSION, 0);
+		CREATE_TIME_EXPRESSION($$, $2);
 	    }
     ;
 
@@ -2680,6 +2676,28 @@ string_con2:
 	    }
     ;
 
+class_init: identifier ':' expr0
+    {
+	$$ = new_node();
+	$$->l.expr = (parse_node_t *)$1;
+	$$->v.expr = $3;
+	$$->r.expr = 0;
+    }
+    ;
+
+opt_class_init:
+	/* empty */
+    {
+	$$ = 0;
+    }
+    |	opt_class_init ',' class_init
+    {
+	$$ = $3;
+	$$->r.expr = $1;
+    }
+    ;
+
+
 function_call:
 	efun_override '(' expr_list ')'
 	    {
@@ -2692,17 +2710,34 @@ function_call:
 		ihe = lookup_ident("clone_object");
 		$$ = validate_efun_call(ihe->dn.efun_num, $3);
             }
-        | L_NEW '(' L_CLASS L_DEFINED_NAME ')'
+        | L_NEW '(' L_CLASS L_DEFINED_NAME opt_class_init ')'
             {
+		parse_node_t *node;
+		
 		if ($4->dn.class_num == -1) {
 		    char buf[MAXLINE + 30];
 		    sprintf(buf, "Undefined class '%s'", $4->name);
 		    yyerror(buf);
 		    CREATE_ERROR($$);
+		    node = $5;
+		    while (node) {
+			scratch_free((char *)node->l.expr);
+			node = node->r.expr;
+		    }
 		} else {
-		    CREATE_OPCODE_1($$, F_NEW_CLASS, 
-				    $4->dn.class_num | TYPE_MOD_CLASS,
-				    $4->dn.class_num);
+		    int type = $4->dn.class_num | TYPE_MOD_CLASS;
+		    
+		    if ((node = $5)) {
+			CREATE_TWO_VALUES($$, type, 0, 0);
+			$$->l.expr = reorder_class_values($4->dn.class_num,
+							node);
+			CREATE_OPCODE_1($$->r.expr, F_NEW_CLASS,
+					type, $4->dn.class_num);
+			
+		    } else {
+			CREATE_OPCODE_1($$, F_NEW_EMPTY_CLASS,
+					type, $4->dn.class_num);
+		    }
 		}
             }
 	| L_DEFINED_NAME '(' expr_list ')'
@@ -2720,7 +2755,7 @@ function_call:
 		      strcat(buf, "'");
 		      yyerror(buf);
 		  }
-		  if (function_context.num_parameters >= 0)
+		  if (function_context.num_parameters != -1)
 		      function_context.bindable = FP_NOT_BINDABLE;
 
 		  $$->kind = NODE_CALL_1;
@@ -2749,7 +2784,7 @@ function_call:
 		int f;
 		function_t *funp;
 
-		if (function_context.num_parameters >= 0)
+		if (function_context.num_parameters != -1)
 		    function_context.bindable = FP_NOT_BINDABLE;
 		
 		f = define_new_function($1->name, 0, 0, NAME_UNDEFINED, 0);
@@ -2787,7 +2822,7 @@ function_call:
 		  function_t *funp;
 		  ident_hash_elem_t *ihe;
 		  
-		  if (function_context.num_parameters >= 0)
+		  if (function_context.num_parameters != -1)
 		      function_context.bindable = FP_NOT_BINDABLE;
 
 		  f = (ihe = lookup_ident(name)) ? ihe->dn.function_num : -1;

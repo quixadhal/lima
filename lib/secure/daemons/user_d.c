@@ -48,19 +48,20 @@ static private string *	legal_user_query =
 static private string *	legal_user_set =
 ({
     "failures",
-    "email",
     "password",
-    "url",
 });
 
 static private string *	legal_body_query =
 ({
     "nickname",
     "plan",		/* only when EVERYONE_HAS_A_PLAN */
+    "wiz_position",
+    "title",		/* only when USE_TITLES */
 });
 static private string *	legal_body_set =
 ({
     "plan",		/* only when EVERYONE_HAS_A_PLAN */
+    "wiz_position",
 });
 
 class var_info
@@ -176,7 +177,7 @@ nomask void set_variable(string userid, string varname, mixed value)
 	error("illegal variable assignment\n");
 
     if ( ob )
-	return query_online_object(ob, varname);
+	return set_online_object(ob, varname, value);
 
     fname += __SAVE_EXTENSION__;
     if ( !is_file(fname) )

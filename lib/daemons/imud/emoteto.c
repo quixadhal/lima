@@ -16,6 +16,9 @@ nomask void do_emoteto(string mudname, string username, string message)
 {
     if(strsrch(message, "$N") == -1)
 	message = "$N " + message;
+    
+    if(message[<1] == '\n')
+        message = message[0..<2];
 
     send_to_user("emoteto", canon_mudname(mudname), lower_case(username),
 		 ({ this_body()->query_name(), message }));
@@ -34,8 +37,8 @@ static nomask void rcv_emoteto(string orig_mud, string orig_user,
     }
     else
     {
-	tell_object(p, sprintf("*%s\n", replace_string(message[1], "$N",
-				sprintf("%s@%s", message[0], orig_mud))));
+	tell_object(p, sprintf("*%s", replace_string(message[1], "$N",
+				sprintf("%s@%s\n", message[0], orig_mud))));
 	p->set_reply(message[0]+"@" + orig_mud);
     }
 }

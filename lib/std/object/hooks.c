@@ -10,7 +10,7 @@
 //of allowing keeping track of and calling hooks, along with a method if
 //specifying how multiple hooks should be resolved.
 
-private mapping hooks = ([]);
+private static mapping hooks = ([]);
 
 //:FUNCTION add_hook
 //add_hook(string tag, function hook) sets up the function 'hook' to be

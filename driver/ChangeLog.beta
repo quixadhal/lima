@@ -1,3 +1,18 @@
+Sat Dec 30 20:50:17 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b13
+	* Fixes from ngreen@plains.nodak.edu:
+	  . crasher in lpc_info() when one of the objects was swapped
+	  . implemented time_expression() from compiled code
+	* Fixed crasher in defining a function, then inheriting a copy
+	  of it (as opposed to inheriting first) with #pragma warnings on
+	  [reported by Lima Bean, Vonotar, Aragorn, Jihad, ...]
+	* Linux compilation fix: check for SOMAXCONN in <sys/socket.h>
+
+Tue Dec  5 19:24:06 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b12
+	* really corrected the order of arguments to fread() in file_length()
+	* fixed a crasher in the removal of heartbeats from objects.
+
 Mon Dec  4 15:52:24 EST 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.7b11
 	* fixed a misplaced parenthesis in the file_length() contrib efun

@@ -14,12 +14,11 @@
 */
 
 #include <security.h>
+#include <log.h>
 
 inherit M_ACCESS;
 
 #define SAVE_FILE		"/data/daemons/last_login_d"
-#define LOGIN_LOG               "/log/logins"
-#define QUIT_LOG                "/log/quits"
 
 private mapping lastdata = ([ ]);
 
@@ -36,14 +35,14 @@ varargs nomask void register_last(string userid, string addr)
     if ( !addr && lastdata[userid] )
     {
         s = sprintf("%s leaves the game [%s]\n", userid, ctime(time()));
-	unguarded(1, (: write_file, QUIT_LOG, s :));
+	LOG_D->log(LOG_QUIT, s);
 	lastdata[userid][0] = time();
     }
     else
     {
         s = sprintf("%s enters the mud from %s [%s]\n", 
 		    userid, addr, ctime(time()));
-	unguarded(1, (: write_file, LOGIN_LOG, s :));
+	LOG_D->log(LOG_LOGIN, s);
 
 	lastdata[userid] = ({ time(), addr });
     }

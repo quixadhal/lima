@@ -138,14 +138,24 @@ typedef struct verb_node_s {
  * The entry for a verb.  Links for the verb hash table, and a linked
  * list of rules.
  */
-#define VB_HAS_OBJ   1
+#define VB_HAS_OBJ	1
+#define VB_IS_SYN	2
 
 typedef struct verb_s {
     struct verb_s *next;
-    char *name;
     int flags;
+    char *match_name; 
+    char *real_name;
     verb_node_t *node;
 } verb_t;
+
+typedef struct verb_syn_s {
+    struct verb_s *next;
+    int flags;
+    char *match_name; 
+    char *real_name;
+    verb_t *real;
+} verb_syn_t;
 
 /* A token definition for the token lookup table */
 typedef struct {
