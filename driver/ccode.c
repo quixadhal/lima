@@ -75,7 +75,7 @@ static void upd_jump P2(int, addr, int, label) {
 }
 
 static int add_label PROT((void)) {
-    if (prog_code + 11 > prog_code_max) {
+    if (prog_code + 12 > prog_code_max) {
         mem_block_t *mbp = &mem_block[current_block];
 
         UPDATE_PROGRAM_SIZE;
@@ -88,7 +88,7 @@ static int add_label PROT((void)) {
     notreached = 0;
 
     sprintf(prog_code, "label%03i:;\n", label);
-    prog_code += 10;
+    prog_code += 11;
     return label++;
 }
 
@@ -239,8 +239,10 @@ c_generate_node P1(parse_node_t *, expr) {
 	    int n = foreach_depth;
 	    while (n--)
 		ins_string("c_exit_foreach();\n");
-	    c_generate_node(expr->r.expr);
-	    ins_string(instrs[expr->v.number].routine);
+	    if (expr->r.expr) {
+		c_generate_node(expr->r.expr);
+		ins_string(instrs[F_RETURN].routine);
+	    } else ins_string(instrs[F_RETURN_ZERO].routine);
 	    notreached = 1;
 	    break;
 	}
@@ -291,14 +293,18 @@ c_generate_node P1(parse_node_t *, expr) {
 	c_generate_node(expr->r.expr);
 	break;
     case NODE_CONTROL_JUMP:
-	if (expr->v.number == CJ_BREAK_SWITCH) {
-	    ins_string("break;\n");
+	{
+	    int kind = expr->v.number;
+	    
+	    if (kind == CJ_BREAK_SWITCH) {
+		ins_string("break;\n");
+		break;
+	    }
+	    expr->v.expr = branch_list[kind];
+	    expr->l.number = ins_jump();
+	    branch_list[kind] = expr;
 	    break;
 	}
-	expr->v.expr = branch_list[expr->v.number];
-	expr->line = ins_jump();
-	branch_list[expr->v.number] = expr;
-	break;
     case NODE_PARAMETER:
 	ins_vstring("C_LOCAL(%i);\n", expr->v.number + current_num_values);
 	break;
@@ -491,6 +497,7 @@ c_generate_node P1(parse_node_t *, expr) {
 	    switch_to_block(A_FUNCTIONALS);
 	    ins_vstring("void LPCFUNCTIONAL_%03i PROT((void)) {\n", num_functionals++);
 	    c_generate_node(expr->r.expr);
+	    notreached = 0;
 	    ins_string("\n}\n\n");
 	    switch_to_block(save_current_block);
 	    foreach_depth = save_fd;
@@ -502,16 +509,22 @@ c_generate_node P1(parse_node_t *, expr) {
 	    parse_node_t *node = expr->r.expr;
 	    int num_arg = expr->l.number;
 	    int f = expr->v.number;
-	    int idx = 0;
+	    int idx = 1;
 
 	    generate_expr_list(node);
 	    while (node) {
-		ins_vstring("CHECK_TYPES(sp - %i, %i, 1, %i);\n",
-			    num_arg - idx + 1, instrs[f].type[idx], f);
+		if (idx == 5) break;
+		ins_vstring("CHECK_TYPES(sp - %i, %i, %i, %i);\n",
+			    num_arg - idx, instrs[f].type[idx - 1], 
+			    idx, f);
 		idx++;
 		node = node->r.expr;
 	    }
-	    ins_vstring("st_num_arg = %i;\n", num_arg);
+	    if (instrs[f].max_arg == -1) {
+		ins_vstring("st_num_arg = %i + num_varargs;\nnum_varargs = 0;\n", num_arg);
+	    } else {
+		ins_vstring("st_num_arg = %i;\n", num_arg);
+	    }
 	    ins_vstring("f_%s();\n", instrs[f].name);
 	    if (expr->type == TYPE_NOVALUE) {
 		/* the value of a void efun was used.  Put in a zero. */
@@ -545,8 +558,12 @@ static void c_generate_loop P4(int, test_first, parse_node_t *, block,
 	c_generate_node(test);
 	ins_vstring("goto label%03i;\n", pos);
 	notreached = 1;
-    } else
-	c_branch_backwards(generate_conditional_branch(test), pos);
+    } else {
+	if (test_first == 2)
+	    ins_vstring("if (c_next_foreach())\ngoto label%03i;\n", pos);
+	else
+	    c_branch_backwards(generate_conditional_branch(test), pos);
+    }
     c_update_branch_list(branch_list[CJ_BREAK]);
     branch_list[CJ_BREAK] = save_breaks;
     branch_list[CJ_CONTINUE] = save_continues;
@@ -569,10 +586,6 @@ void c_end_function() {
 }
 
 void c_generate___INIT() {
-    fprintf(f_out, "static void LPCINIT_%s() {\n", compilation_ident);
-    fwrite(mem_block[A_INITIALIZER].block, 
-	   mem_block[A_INITIALIZER].current_size, 1, f_out);
-    fprintf(f_out, "}\n");
 }
 
 static void c_generate_forward_branch P1(char, b) {
@@ -655,7 +668,7 @@ static void
 c_update_branch_list P1(parse_node_t *, bl) {
     if (bl) {
 	do {
-	    upd_jump(bl->line, label);
+	    upd_jump(bl->l.number, label);
 	} while ((bl = bl->v.expr));
 	add_label();
     }
@@ -734,7 +747,6 @@ c_generate_final_program P1(int, x) {
     int index = 0;
 
     if (!x) {
-	fprintf(f_out, "#include \"lpc_to_c.h\"\n\n");
 	if (string_switches) {
 	    st = switch_tables;
 	    while (st) {
@@ -786,6 +798,13 @@ c_generate_final_program P1(int, x) {
 	fwrite(mem_block[A_FUNCTIONALS].block,
 	       mem_block[A_FUNCTIONALS].current_size, 1, f_out);
 
+	if (mem_block[A_INITIALIZER].current_size) {
+	    fprintf(f_out, "static void LPCINIT_%s() {\n", compilation_ident);
+	    fwrite(mem_block[A_INITIALIZER].block, 
+		   mem_block[A_INITIALIZER].current_size, 1, f_out);
+	    fprintf(f_out, "}\n");
+	}
+	
 	fwrite(mem_block[A_PROGRAM].block,
 	       mem_block[A_PROGRAM].current_size, 1, f_out);
 

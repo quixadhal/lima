@@ -3,11 +3,11 @@
 // Rust/Belboz
 
 #include <mudlib.h>
+inherit CMD;
 
 
 
-
-int main()
+private void main()
 {
   string cwf,pwd;
 
@@ -17,7 +17,6 @@ int main()
   if(!pwd) pwd = "NONE";
 
    printf("Dir:  %s\nFile: %s\n",pwd,cwf);
-   return 1;
 }
 
               

@@ -4,11 +4,11 @@
 // And converted again by Rust
 #include <mudlib.h>
 
-
+inherit CMD;
 inherit M_MESSAGES;
 
 
-int main(mixed *arg, mapping flags)
+private void main(mixed *arg, mapping flags)
 {
     int i,j;
     object ob;
@@ -60,7 +60,6 @@ msgs = action( ({ ob, this_object() }), ob_msgs[j], "something", "something");
 	}
     }
     if (!flag) write("No messages.\n");
-    return 1;
 }
 
 // so we can use this object as a generic object

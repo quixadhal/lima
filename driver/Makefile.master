@@ -213,7 +213,7 @@ neat:
 	-rm -f efun_defs.c option_defs.c
 	-rm -f opcodes.h efunctions.h opc.h efun_protos.h
 	-rm -f malloc.c mallocwrapper.c
-	-rm -f func_spec.cpp
+	-rm -f func_spec.cpp files
 	-rm -f grammar.y comptest* a.out
 	-rm -f packages/Makefile packages/GNUmakefile
 

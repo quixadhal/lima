@@ -10,8 +10,11 @@
 ** 05-Nov-94. Created. Deathblade.
 */
 
-nomask int main(string arg)
+#include <mudlib.h>
+inherit CMD;
+
+nomask private void main(string arg)
 {
     this_body()->query_mailer()->begin_mail(arg);
-    return 1;
+    return;
 }

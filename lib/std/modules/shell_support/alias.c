@@ -2,24 +2,26 @@
 
 /*
 ** Alias module by John Viega (rust@virginia.edu) Jul 2, 1995
+** 
+** NOTE:
+** This had to be munged rather badly to get an alias w/ $1 in it to work 
+** at all.  (I realized after the fact I wanted it to work, since you can
+** set an alias to code, and some code uses $1, eg: (: $1 :) )
+** use a \\\$1....  It's ugly, nod, but I don't have time at the moment to 
+** make it nicer. =/
 */
 
 DOC_MODULE("Implements generic alias handling code.")
 #include <mudlib.h>
 #include <commands.h>
 #include <security.h>
+#include <classes.h>
 
 inherit M_ACCESS;
+inherit CLASS_ALIAS;
 
 #define ALIAS_SAVE_FILE "/data/std/alias"
 
-
-class alias{
-  string template;
-  string* defaults;
-  int num_args;
-  int global_alias_status;
-}
 
 /*
 ** Xverb aliases are for aliases where you can omit the space between the verb 
@@ -117,8 +119,9 @@ remove_alias(string name)
   xaliases -= ({name});
 }
 
+
 DOC(expand_alias, "Expand an argv with any aliases if applicable.")
-string* expand_alias(string* argv)
+mixed expand_alias(string* argv)
 {
   class alias this_alias;
   string* xverb_matches;
@@ -127,8 +130,7 @@ string* expand_alias(string* argv)
   int i, j;
   string tmp;
   mixed tmp2;
-// The next line should be removed before the release.
-  xaliases = clean_array(xaliases);
+
   xverb_matches = filter_array(xaliases, (: strsrch($2, $1) == 0 :), argv[0]);
   switch(sizeof(xverb_matches))
     {
@@ -151,8 +153,10 @@ string* expand_alias(string* argv)
     }
   if(!this_alias = aliases[argv[0]])
     return argv;
-  expanded_input = this_alias->template;
+  expanded_input = replace_string(this_alias->template,"\\\\$",sprintf("%c",255));
   j = numargs;
+
+
   for(i=1;i<=this_alias->num_args;i++, j--)
     {
       if(j<1)
@@ -169,8 +173,7 @@ string* expand_alias(string* argv)
     expanded_input = replace_string(expanded_input, "$*", 
 				    this_alias->defaults[0]);
 
-  return map(reg_assoc(expanded_input, ({"[^ ]* *"}), ({0}))[0] - ({""}),
-	     (: $1[<1] == ' ' ? $1[0..<2] : $1 :));
+  return replace_string(expanded_input,sprintf("%c",255), "$");
 	  
 }
 
@@ -351,7 +354,7 @@ display_alias_menu()
     }
   write("\n");
   this_user()->modal_func((:process_display_alias_menu_choice:),
-			    (:"[#q] ":));
+			    "[#q] ");
 }
 
 private 
@@ -383,7 +386,7 @@ display_alias(string s)
 	  printf("  %-4d%s\n",i,matches[i]);
       display_menu_options = matches;	  
       this_user()->modal_func((:process_display_alias_menu_choice:),
-				(:"Select one by number, or q to quit: ":));
+				"Select one by number, or q to quit: ");
       return;
     }
 }
@@ -435,7 +438,7 @@ private void
 ask_for_xverb_status()
 {
   this_user()->modal_func((: get_xverb_status :), 
-			    (: "Allow space ommision? [yn?] " :));
+			    "Allow space ommision? [yn?] ");
 }
 private void
 set_arg_default(string s)
@@ -518,7 +521,7 @@ new_template(string s)
 					    
 
   this_user()->modal_func((: set_star_default :), 
-			  (: "What's the default for $* (enter for none)? " :));
+			  "What's the default for $* (enter for none)? " );
 
 }
 
@@ -538,7 +541,7 @@ new_alias_name(string s)
   New_alias_name = s;
   write("Type in the expansion for this alias.\n");
   this_user()->modal_func((: new_template :), 
-			  (: "Expansion (? for help): " :));
+			  "Expansion (? for help): ");
 }
   
   
@@ -550,13 +553,13 @@ cmd_adjust_alias(string s)
     {
       write("Aliases may not have spaces.  Try again.\n");
       this_user()->modal_func((: new_alias_name :),
-				(: "Name of alias: " :));
+				"Name of alias: " );
       return;
     }
   if(s=="")
     {
       this_user()->modal_func((: new_alias_name :), 
-				(: "Name of alias: " :));
+				"Name of alias: " );
       return;
     }
   new_alias_name(s);
@@ -645,7 +648,7 @@ input_from_main_menu(string arg)
     case 'a':
       if(!arg)
 	  this_user()->modal_func((: cmd_adjust_alias :), 
-				    (:"Alias name? ":));
+				    "Alias name? ");
       else
 	cmd_adjust_alias(arg);
       return;
@@ -658,7 +661,7 @@ input_from_main_menu(string arg)
 	}
       if(!arg)
 	  this_user()->modal_func((: cmd_remove_alias :), 
-				    (:"Alias name? ":));
+				    "Alias name? ");
       else
 	cmd_remove_alias(arg);
       return;
@@ -712,28 +715,15 @@ void create()
 	return;
       }
     restore_object(ALIAS_SAVE_FILE);
-    if(!wizdefaults) wizdefaults = ([]);
-    if(!wizxdefaults) wizxdefaults = ({});
-    if(!defaults){   //Default default aliases P-)
+    if(!wizdefaults){
+      wizdefaults = ([]);
+      wizxdefaults = ({});
+    }
+
+    if(!defaults){  
 
       defaults = ([]);
       xdefaults = ({});
-      add_alias_to_mapping(defaults, "'", "say $*");
-      add_alias_to_mapping(defaults, "gossip", "chan gossip $*");
-      add_alias_to_mapping(defaults, "l", "look $*");
-      add_alias_to_mapping(defaults, "x", "examine $*");
-      add_alias_to_mapping(defaults, ":", "emote $*");
-      add_alias_to_mapping(defaults, "newbie", "chan newbie $*");
-      add_alias_to_mapping(defaults, "n", "go north $*");
-      add_alias_to_mapping(defaults, "ne", "go northeast $*");
-      add_alias_to_mapping(defaults, "nw", "go northwest $*");
-      add_alias_to_mapping(defaults, "s", "go south $*");
-      add_alias_to_mapping(defaults, "se", "go southeast $*");
-      add_alias_to_mapping(defaults, "sw", "go southwest $*");
-      add_alias_to_mapping(defaults, "w", "go west $*");
-      add_alias_to_mapping(defaults, "e", "go east $*");
-
-      xdefaults = ({"'",":",});
     }
 }
 

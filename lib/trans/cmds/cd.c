@@ -1,10 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+inherit CMD;
 
-inherit DAEMON;
-
-int main(mixed *arg)
+private void main(mixed *arg)
 {
     if ( !arg[0] )
       {
@@ -17,7 +16,7 @@ int main(mixed *arg)
     this_body()->set_pwd(arg[0]);
     printf("new cwd: %s\n", arg[0]);
 
-    return 1;
+    return;
 }
 
 int help()
@@ -29,5 +28,4 @@ write(wrap(
 "current directory.  If no argument is given,  your home directory will "
 "become your current working dir.  See also, ls, pwd, ed.\n"
 ));
-return 1;
 }

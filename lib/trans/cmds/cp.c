@@ -2,9 +2,9 @@
 
 // Simple cp, no -r yet.
 #include <mudlib.h>
-inherit DAEMON;
+inherit CMD;
 
-int
+private void
 main(mixed argv, mapping flags)
 {
   string str, fname, file;
@@ -12,7 +12,7 @@ main(mixed argv, mapping flags)
   if(sizeof(argv[0]) > 1 && !is_directory(argv[1]))
     {
       printf("cp: files dir not files file\n");
-      return 1;
+      return;
     }
   if(sizeof(argv[0]) > 1)
     {
@@ -27,20 +27,23 @@ main(mixed argv, mapping flags)
 	    }
 	  else
 	    {
-	      if(!str = read_file(file) || !rm(fname))
+	      if(!(str = read_file(file)) || (is_file(fname) && !rm(fname)))
 		{
-		  printf("%s could not be read.  Copy failed.\n", file);
+		  printf("Permissions problem.  Copy failed.\n");
 		}
 	      else
-		if(!write_file(fname, str))
-		  {
-		    printf("%s could not be written to.  Copy failed.\n",
+		{
+		  if(!write_file(fname, str))
+		    {
+		      printf("%s could not be written to.  Copy failed.\n",
 			   fname);
-		  }
-		else
-		  {
-		    printf("%s copied to %s.\n", file, fname);
-		  }
+		    }
+
+		  else
+		    {
+		      printf("%s copied to %s.\n", file, fname);
+		    }
+		}
 	    }
 	}
     }
@@ -64,9 +67,9 @@ main(mixed argv, mapping flags)
 	    }
 	  else
 	    {
-	      if(!str = read_file(file))
+	      if(!(str = read_file(file)) || (is_file(fname) && !rm(fname)))
 		{
-		  printf("%s could not be read.  Copy failed.\n", file);
+		  printf("Permissions problem.  Copy failed.\n");
 		}
 	      else
 		if(!write_file(fname, str))

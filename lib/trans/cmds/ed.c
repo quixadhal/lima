@@ -2,9 +2,9 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
-nomask int main(string* argv)
+nomask private void main(string* argv)
 {
   string fname;
   if(sizeof(argv))
@@ -15,7 +15,7 @@ nomask int main(string* argv)
         if ( !fname )
         {
             write("You have no cwf. Please specify a file.\n");
-            return 1;
+            return;
         }
     }
   else fname = evaluate_path(fname);
@@ -23,6 +23,4 @@ nomask int main(string* argv)
     this_body()->set_cwf(fname);
 
     clone_object(ED_SESSION)->begin_editing(fname);
-
-    return 1;
 }

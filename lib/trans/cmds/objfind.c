@@ -10,11 +10,11 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 mapping envs;
 
-int main(string arg)
+private void main(string arg)
 {
     object * obs;
 
@@ -24,6 +24,4 @@ int main(string arg)
     map_array(obs, (: envs[$1] = environment($1) :));
 
     clone_object(MORE_OB)->more_string(sprintf("%O\n", envs));
-
-    return 1;
 }

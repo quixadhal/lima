@@ -6,7 +6,7 @@
 
 object query_link();
 
-int level;
+private int level;
 
 nomask void set_level(int i)
 {

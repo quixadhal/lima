@@ -66,7 +66,7 @@ remove_hook()
 
 string extra_short()
 {
-    return is_on ? " (being worn)" : "";
+    return is_on ? "being worn" : 0;
 }
 
 nomask

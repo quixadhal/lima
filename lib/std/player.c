@@ -25,7 +25,6 @@ inherit M_GRAMMAR;
 //inherit M_INPUT;
 
 inherit "/std/player/quests";
-//inherit "/std/player/alias";
 inherit "/std/player/mailbase";
 inherit "/std/player/newsdata";
 inherit "/std/player/path";
@@ -33,24 +32,29 @@ inherit "/std/player/wizlevel";
 inherit "/std/player/cmd";
 inherit "/std/player/help";
 inherit "/std/player/bodyshell";
+#ifdef USE_GAME_FEATURES
+inherit "/std/player/skills";
+#endif
 
 #ifdef USE_TITLES
 inherit "/std/player/title";
 #endif
+
 
 // Global variables --
 
 string name = "guest";
 string describe;
 string invis_name;
+string nickname;
 static object link;
 static string cap_name;
 string start_location;
 string reply;
-mapping nickname_list;
 int more_chunk;
 
 private string * channel_list;
+private static int catching_scrollback;
 
 // part of patch for handling auto loading  -- Pere@ZorkMUD
 string* auto_load;
@@ -60,7 +64,7 @@ string* auto_load;
 int init_user(string str){
     cap_name = capitalize(str);
     name = str;
-    restore_object(USER_PATH(str), 1);
+    unguarded(1, (: restore_object, USER_PATH(str), 1 :));
     if (!describe)
     {
 	describe = ( capitalize(name) +
@@ -183,15 +187,20 @@ void init_cmd_hook()
 
     add_id( name );
 
-    TIMEOUT_D->create();
-    ANNOUNCE_D->announce_me(1);
     NCHANNEL_D->register_channels(channel_list);
+    NCHANNEL_D->deliver_string("wiz_announce", 
+			    sprintf("[announce] %s enters %s.\n",
+				    capitalize(name), mud_name()));
 
     set_mass(100);
     set_max_capacity(100);
 
     bodyshell::start_shell();
-    load_autoload();            
+    load_autoload();
+#undef WORLD_IS_FLAT            
+#ifdef WORLD_IS_FLAT
+    call_out((: parse_sentence(name) :), 0);
+#endif
 }
 
 
@@ -205,9 +214,9 @@ void enter_game(int is_new)
     if(is_new)
       {
 	write("Tuning in the newbie channel for you.  (newbie /on)\n");
-	do_game_command("chan newbie /on");
+	link->force_me("chan newbie /on");
 	write("Tuning in the gossip channel for you.  (gossip /on)\n");
-	do_game_command("chan gossip /on");
+	link->force_me("chan gossip /on");
       }
     simple_action("$N $venter the game.\n");
     do_game_command("look");
@@ -243,7 +252,9 @@ void quit()
     if (!test_flag(INVIS))
 	simple_action("$N $vhave left the game.\n");
     save_autoload();
-    ANNOUNCE_D->announce_me(2);
+    NCHANNEL_D->deliver_string("wiz_announce", 
+			    sprintf("[announce] %s has left %s.\n",
+				    capitalize(name), mud_name()));
     NCHANNEL_D->unregister_all();
     if (environment() && !wizardp(link))
 	start_location = file_name(environment());
@@ -327,8 +338,13 @@ string *get_player_message(string message, mixed arg) {
 void net_dead()
 {
     simple_action("$N has gone link-dead.\n");
-    ANNOUNCE_D->announce_me(4);
+    NCHANNEL_D->deliver_string("wiz_announce", 
+			    sprintf("[announce] %s has gone link-dead.\n",
+				    capitalize(name)));
     call_out("remove",300);
+    if(query_shell_ob()->get_variable("save_scrollback"))
+      catching_scrollback = 1;
+    
 }
 
 void reconnect()
@@ -338,7 +354,12 @@ void reconnect()
     simple_action("$N $vhave reconnected.\n");
     bodyshell::restart_shell();
 //    modal_push((: parse_line :), (: "> " :));
-    ANNOUNCE_D->announce_me(3);
+    NCHANNEL_D->deliver_string("wiz_announce",
+			    sprintf("[announce] %s has reconnected.\n",
+				    capitalize(name)));
+    catching_scrollback = 0;
+    if(query_shell_ob())
+      query_shell_ob()->reconnect();
 }
 
 
@@ -389,33 +410,7 @@ int stat_me()
     return 1;
 }
 
-void add_to_nickname_list( string who, string nick )
-{
-    if( nickname_list[who] )
-    {
-	nickname_list[who] = ({ nick });
-	return;
-    }
-
-    nickname_list[who] += ({nick});
-}
-
-void del_from_nickname_list( string who, string which )
-{
-    if( which && sizeof( nickname_list[who] ) > 1 )
-    {
-	nickname_list[who] -= ({ which });
-	return;
-    }
-    map_delete( nickname_list, who );
-}
-
-mapping query_nickname_list()
-{
-    return copy( nickname_list );
-}
-
-void set_description(string str){
+void set_description(string str) {
   if(base_name(previous_object()) == CMD_OB_DESCRIBE)
     describe = str;
   save_me();
@@ -425,10 +420,18 @@ string our_description() {
     return in_room_desc() + "\n" + describe +"\n";
 }
 
+void set_nickname(string arg) {
+    if (file_name(previous_object()) != CMD_OB_NICKNAME)
+	error("Illegal call to set_nickname\n");
+
+    remove_id( nickname );
+    nickname = arg;
+    add_id_no_plural(nickname);
+}
+
 void create()
 {
     auto_load = ({});
-    nickname_list = ([]);
     messages = ([]);
     channel_list = ({ });
 
@@ -496,6 +499,8 @@ private nomask void catch_tell(string message)
 {
     if ( link )
         tell_object(link, message);
+    if ( catching_scrollback && query_shell_ob())
+      query_shell_ob()->add_scrollback(message);
 }
 
 /* ### temp hack. be both user and body */

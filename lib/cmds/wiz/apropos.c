@@ -10,6 +10,7 @@
 #include <daemons.h>
 #include <mudlib.h>
 
+inherit CMD;
 
   /* for iwrap() */
 inherit M_GLOB;
@@ -48,20 +49,19 @@ add_info_to_output_2(string obj, mapping m, string func)
 }
 
 	      
-int
+private void
 main(string s)
 {
     output = "";
     if(!s)
     {
       write("Usage: apropos <pattern>");
-      return 1;
+      return;
     }
 
     apropos_info = DOC_D->apropos_function(translate(s,1));
     map_array(sort_array(keys(apropos_info),1), (: add_info_to_output :));
     clone_object(MORE_OB)->more_string(output);
-    return 1;
 }
 
 

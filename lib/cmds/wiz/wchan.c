@@ -13,15 +13,17 @@
 #include <daemons.h>
 #include <commands.h>
 
-inherit DAEMON;
+inherit CMD;
 
-int main(string arg)
+private void main(string arg)
 {
     string channel_name;
 
-    if ( !arg || arg == "" )
-	return CMD_OB_CHAN->main(arg);
-
+    if ( !arg || arg == "" ) {
+	resend(CMD_OB_CHAN, arg);
+	return;
+    }
+    
     if ( sscanf(arg, "%s %s", channel_name, arg) != 2 )
     {
 	channel_name = arg;
@@ -32,6 +34,4 @@ int main(string arg)
     channel_name = "wiz_" + channel_name;
 
     NCHANNEL_D->cmd_channel(channel_name, arg);
-
-    return 1;
 }

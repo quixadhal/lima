@@ -49,5 +49,5 @@ void do_wave_obj_at_obj(object ob1, object ob2) {
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBJ", "OBJ at OBJ" }) });
+    return ({ ({ "OBJ", "OBJ at OBJ:v" }) });
 }

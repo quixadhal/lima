@@ -2,7 +2,7 @@
 
 #include <mudlib.h>
 
-
+inherit CMD;
 inherit M_INPUT;
 
 
@@ -19,10 +19,10 @@ private nomask void handle_piping(string arg)
 	return;
     }
 
-    this_user()->force_me(sprintf("say %s",arg));
+    resend("/cmds/player/say", "say " + arg);
 }
 
-nomask int main()
+nomask private void main()
 {
     write("Entering converse mode. Type '**' or '.' to quit.\n");
     write("-------------------------------------------------\n");

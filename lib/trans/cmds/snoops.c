@@ -3,10 +3,9 @@
 // This command works only for admins.  -- Rust
 
 #include <mudlib.h>
+inherit CMD;
 
-inherit DAEMON;
-
-int main()
+private void main()
 {
     object ob;
     int flag;
@@ -24,5 +23,4 @@ int main()
 	}
       }
     if(flag == 0) write("Nobody is being snooped.\n");
-    return 1;
 }

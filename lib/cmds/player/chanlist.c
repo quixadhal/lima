@@ -12,6 +12,7 @@
 */
 
 #include <mudlib.h>
+inherit CMD;
 
 private nomask string fmt_imud_channel(string channel_name,
 				       mixed * channel_data)
@@ -28,7 +29,7 @@ private nomask string fmt_imud_channel(string channel_name,
 		   channel_name, owner, type);
 }
 
-int main(string arg)
+private void main(string arg)
 {
     string s;
     mapping chanlist = IMUD_D->query_chanlist();
@@ -40,27 +41,21 @@ int main(string arg)
 	;
 
     if ( wizardp(this_user()) )
-	s += "wiz                 Wizard\n"
-	     ;
+	s +=
+	    "wiz                 Wizard\n"
+	    "announce            Wizard\n"
+	    "errors              Wizard\n"
+	    ;
 
     if ( GROUP_D->adminp(this_user()) )
-	s += "admin               Admin\n"
-	     ;
+	s +=
+	    "admin               Admin\n"
+	    ;
 
     s += implode(({ "" }) + keys(chanlist),
 		 (: $1 + fmt_imud_channel($2, $(chanlist)[$2]) :));
 
-/*
-    s += implode(keys(chanlist),
-		 (: $1 + sprintf("%-29s Intermud (owned by %s, %s)\n",
-				 $2, $(chanlist)[$2][0],
-				 $(({ "selectively banned",
-					  "selective admission",
-					  "filtered" }))[$(chanlist)[$2][1]]
-		     ) :));
-		     */
-
     new(MORE_OB)->more_string(s);
     
-    return 1;
+    return;
 }

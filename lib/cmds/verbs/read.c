@@ -33,7 +33,7 @@ mixed can_read_prep_str_prep_obj(string p1, string str, string p2, object ob) {
 static void read_it(object ob, string str) {
     string text;
 
-    if (!try_to_acquire(ob))
+    if(ob->gettable() && !try_to_acquire(ob))
 	return;
 
     if (str)
@@ -46,10 +46,6 @@ static void read_it(object ob, string str) {
     } else {
 	write(text);
     }
-    if (str)
-	this_body()->other_action("$N $vread about $o0 from a $o1.\n", ob, str);
-    else
-        this_body()->other_action("$N $vread a $o.\n", ob);
 }
 
 void do_read_obj(object ob) {
@@ -70,8 +66,8 @@ void do_read_prep_str_prep_obj(string p1, string str, string p2, object ob) {
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBJ", "from OBJ", "in OBJ",
-		     "about STR in OBJ", "about STR from OBJ",
-		     "STR in OBJ", "STR from OBJ"
+    return ({ ({ "OBJ:v", "from OBJ:v", "in OBJ:v",
+		     "about STR in OBJ:v", "about STR from OBJ:v",
+		     "STR in OBJ:v", "STR from OBJ:v"
 	     }) });
 }

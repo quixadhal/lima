@@ -1,5 +1,5 @@
 /* This is to make emacs edit this in C mode: -*-C-*- */
-%define ARRAY_RESERVED_WORD
+
 %{
 #include "std.h"
 #include "compiler.h"
@@ -352,7 +352,6 @@ def:
 		/* Either a prototype or a block */
 		if ($9) {
 		    int fun;
-		    int flags;
 
 		    $<number>8 &= ~(NAME_UNDEFINED | NAME_PROTOTYPE);
 		    if ($9->kind != NODE_RETURN &&
@@ -2251,7 +2250,7 @@ expr4:
                         yyerror("Illegal index to array constant.");
                     else {
                         parse_node_t *node = $1->r.expr;
-                        i = $1->v.number - i;
+                        i = $1->l.number - i;
                         while (i--)
                             node = node->r.expr;
                         $$ = node->v.expr;
@@ -2517,6 +2516,8 @@ expr4:
 		 $$->kind = NODE_FUNCTION_CONSTRUCTOR;
 		 $$->type = TYPE_FUNCTION;
 		 $$->l.expr = $2;
+		 if ($2->kind == NODE_STRING)
+		     yywarn("Function pointer returning string constant is NOT a function call");
 		 $$->r.expr = function_context.values_list->r.expr;
 		 $$->v.number = FP_FUNCTIONAL + function_context.bindable
 		     + (function_context.num_parameters << 8);
@@ -2820,6 +2821,7 @@ function_call:
 		$$->type = TYPE_ANY;
 #endif
 		expr = new_node_no_line();
+		expr->type = 0;
 		expr->v.expr = $3;
 		expr->r.expr = $$->r.expr;
 		$$->r.expr = expr;

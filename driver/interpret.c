@@ -70,7 +70,7 @@ static svalue_t *find_value PROT((int));
 #ifdef TRACE
 static void do_trace_call PROT((function_t *));
 #endif
-static void break_point PROT((void));
+void break_point PROT((void));
 static INLINE void do_loop_cond_number PROT((void));
 static INLINE void do_loop_cond_local PROT((void));
 static void do_catch PROT((char *, unsigned short));
@@ -86,13 +86,14 @@ static char *get_arg PROT((int, int));
 #endif
 
 #ifdef DEBUG
-static int foreach_in_progress = 0;
+int foreach_in_progress = 0;
 #endif
 
 int inter_sscanf PROT((svalue_t *, svalue_t *, svalue_t *, int));
 program_t *current_prog;
 short int caller_type;
 static int tracedepth;
+int num_varargs;
 
 /*
  * Inheritance:
@@ -435,8 +436,10 @@ INLINE void int_free_svalue P1(svalue_t *, v)
 	    case T_OBJECT:
 		dealloc_object(v->u.ob, "free_svalue");
 		break;
-	    case T_ARRAY:
 	    case T_CLASS:
+		dealloc_class(v->u.arr);
+		break;
+	    case T_ARRAY:
 		dealloc_array(v->u.arr);
 		break;
 	    case T_BUFFER:
@@ -680,7 +683,7 @@ static struct lvalue_range {
 
 static svalue_t global_lvalue_range_sv = { T_LVALUE_RANGE };
 
-static INLINE void push_lvalue_range P1(int, code)
+INLINE void push_lvalue_range P1(int, code)
 {
     int ind1, ind2, size;
     svalue_t *lv;
@@ -1295,7 +1298,7 @@ INLINE function_t *setup_inherited_frame P1(function_t *, funp)
 }
 
 #ifdef DEBUG
-static void break_point()
+void break_point()
 {
     /* The current implementation of foreach leaves some stuff lying on the
        stack */
@@ -1312,8 +1315,6 @@ void setup_fake_frame P1(funptr_t *, fun) {
 	too_deep_error = 1;
 	error("Too deep recursion.\n");
     }
-    if (fun->hdr.owner->flags & O_DESTRUCTED)
-	error("Owner of function pointer has been destructed.\n");
     csp++;
     csp->caller_type = caller_type;
     csp->framekind = FRAME_FAKE | FRAME_OB_CHANGE;
@@ -1386,6 +1387,9 @@ call_function_pointer P2(funptr_t *, funp, int, num_arg)
 {
     static func_t *oefun_table = efun_table - BASE;
     function_t *func;
+
+    if (funp->hdr.owner->flags & O_DESTRUCTED)
+	error("Owner of function pointer is destructed.\n");
 
     setup_fake_frame(funp);
     if (current_object->flags & O_SWAPPED)
@@ -1679,7 +1683,7 @@ eval_instruction P1(char *, p)
     int i, n;
     float real;
     svalue_t *lval;
-    int instruction, num_varargs = 0;
+    int instruction;
 #if defined(TRACE_CODE) || defined(TRACE) || defined(OPCPROF) || defined(OPCPROF_2D)
     int real_instruction;
 #endif

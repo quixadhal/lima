@@ -71,6 +71,7 @@
 ** SHELL
 ** MENUS   	generic menuing facility
 ** MAILBOX	mailbox to hold message references
+** CMD          base inheritable for commands
 **
 ** CMDPATH_CACHE
 **
@@ -118,10 +119,14 @@
 #define M_READABLE		"/std/modules/readable"
 #define M_WIELDABLE		"/std/modules/wieldable"
 #define M_MESSAGES		"/std/modules/messages"
+#define M_ACTIONS               "/std/modules/actions"
+#define M_TRIGGERS		"/std/modules/triggers"
 
 #define M_GETOPT		"/std/modules/shell_support/getopt"
 #define M_HISTORY	   	"/std/modules/shell_support/history"
 #define M_ALIAS			"/std/modules/shell_support/alias"
+#define M_SCROLLBACK		"/std/modules/shell_support/scrollback"
+#define M_PROMPT		"/std/modules/shell_support/prompt"
 #define M_SHELLVARS 		"/std/modules/shell_support/shellvars"
 #define M_ENVVARS		"/std/modules/shell_support/envvars"
 #define M_CHAR_BINDINGS 	"/std/modules/shell_support/bindings"
@@ -150,9 +155,12 @@
 #define MAILER			"/std/mailers/mailer"
 #define SHELL		 	"/std/shell"
 #define	MENUS			"/std/menu"
+#define CMD			"/std/cmd"
 
 #define MAILBOX			"/secure/mailbox"
 
 #define PLAYER_MENU		"/obj/shells/plmenu"
+
+#define TELNET_OB			"/trans/obj/telnet_ob"
 
 #endif /* __MUDLIB_H__ */

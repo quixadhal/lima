@@ -4,23 +4,13 @@
 #include "mudlib.h"
 
 inherit LIVING;
-inherit M_MESSAGES;
+
 /* believe it or not, a monster is a weapon.  Unarmed monsters
  * wield themselves.
  * This makes handling of hit functions, etc for monsters
  * MUCH easier.
  */
 inherit M_WIELDABLE;
-
-/* Temp hack ... monsters need names */
-string name;
-
-string query_name() {return name; }
-
-void set_name(string n) {
-  name = n;
-  set_id( ({ n, lower_case(n) }) );
-}
 
 string extra_short() {
     /* living has extra_short() too.  Make sure the right one is used */

@@ -16,8 +16,10 @@
 #include <mudlib.h>
 #include <playerflags.h>
 #include <commands.h>
+#include <security.h>	/* ### for now */
 
 inherit MENUS;
+inherit M_ACCESS;	/* ### for now */
 
 MENU toplevel;
 // submenus of the toplevel (main) menu
@@ -46,24 +48,31 @@ MENU_ITEM main_seperator;
 			      "?" : "help", "l" : "mudlist" ]);
 
 
-void 
+private nomask void do_cmd(string cmd)
+{
+    unguarded(1, (: call_other, this_user(), "force_me", cmd :));
+}
+
+private nomask void 
 simple_cmd(string cmd)
 {
-  call_other(CMD_DIR_PLAYER "/" + dispatch[cmd],"main");
+    do_cmd(cmd);
+//  call_other(CMD_DIR_PLAYER "/" + dispatch[cmd],"main");
 }
 
 
 void
 start_mail()
 {
-	this_body()->query_mailer()->begin_mail();
+    this_body()->query_mailer()->begin_mail();
 }
 
 void 
 handle_finger(string person)
 {
-  CMD_OB_FINGER->main(person);
-  prompt_then_return();
+    do_cmd("finger " + person);
+//  CMD_OB_FINGER->main(person);
+    prompt_then_return();
 }
 
 void
@@ -73,14 +82,16 @@ find_soul(string s)
     write("Invalid.\n");	
     return;
   }
-  
-  CMD_OB_EMOTEAPROPOS->main(s);
+
+  do_cmd("emoteapropos " + s);
+//  CMD_OB_EMOTEAPROPOS->main(s);
 }
 
 void
 show_souls(string s)
 {
-  CMD_OB_FEELINGS->main("^"+s);
+    do_cmd("feelings ^" + s);
+//    CMD_OB_FEELINGS->main("^"+s);
 }
 
 void
@@ -91,7 +102,8 @@ show_adverbs(string s)
 "then *, if the part you type is unique.  Eg, kick rust ene* would give you:\n"
 "kick rust energetically, but kick rust en* won't because it also\n"
 "matches endearingly and enthusiastically.\n");
-  CMD_OB_ADVERBS->main("^"+s);
+    do_cmd("adverbs ^" + s);
+//  CMD_OB_ADVERBS->main("^"+s);
 }
 
 
@@ -177,7 +189,8 @@ set_snoopable(string s)
 void
 finish_who(string mudname)
 {
-  CMD_OB_FINGER->main("@"+mudname);
+    do_cmd("finger @" + mudname);
+//  CMD_OB_FINGER->main("@"+mudname);
   printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
   prompt_then_return();
 }
@@ -192,6 +205,8 @@ remote_who()
 void
 create()
 {
+    set_privilege(1);
+
   toplevel 	= new_menu(mud_name()+" Game Menu");
   soulmenu 	= new_menu("Soul Menu");
   reportmenu 	= new_menu("Reporter Menu");

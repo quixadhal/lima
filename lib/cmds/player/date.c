@@ -4,10 +4,13 @@
 // written by ???
 // Megaboz@ZorkMUD added help and header 5-5-94
 
-int main(){
+#include <mudlib.h>
+inherit CMD;
+
+private void main(){
 //add TZONE conversions
 write (ctime(time())+"\n");
-return 1;
+return;
 }
 
 int help()

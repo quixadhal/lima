@@ -2,7 +2,7 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 #ifdef __PROFILE_FUNCTIONS__
 void profile_all(function compare) {
@@ -32,7 +32,7 @@ l");
 }
 #endif
 
-int main(string str) {
+private void main(string str) {
     mapping *prof;
     mapping item;
     string obname;
@@ -41,11 +41,11 @@ int main(string str) {
 
 #ifndef __PROFILE_FUNCTIONS__
     write("Function profiling not enabled.\n");
-    return 1;
+    return;
 #else
     if (!str) {
         write("profile [-total] <ob>\n");
-        return 1;
+        return;
     }
 
     if (sscanf(str, "-total %s", str)) {
@@ -57,14 +57,14 @@ int main(string str) {
 
     if (str == "all") {
         profile_all(compare);
-        return 1;
+        return;
     }
 
     obname = evaluate_path(str);
 
     if (!(ob = find_object(obname))) {
         write("Can't find object " + obname + "\n");
-        return 1;
+        return;
     }
 
     prof = function_profile(ob);
@@ -79,6 +79,6 @@ l");
                item["self"] + item["children"]);
     }
 #endif
-    return 1;
+    return;
 }
     

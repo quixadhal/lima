@@ -5,26 +5,12 @@ inherit ROOM;
 
 create(){
     room::create();
-    set_short("Bored Room");
+    set_brief("Bored Room");
+    set_long("This is the wizard lounge in the great world of lima.  You see many confused wizards mulling around.  To the east is an arched doorway though which is an example room and a few example objects from the lima mudlib.");
     set_light(1);
     exits = ([
+ "east" : "/domains/std/example_room1.c"
     ]);
 }
 
-string long(){
-    string output;
-    output = 
-    "This is the spot on the Etherial plane of Atrii that Implementors most\n"
-    "prefer to frequent when they're bored silly.";
-    if(present("board",this_object())) 
-	output += "  The fact that there\n"
-	"is a board here is coincidental.  Honest.\n";
-    else
-	output += "  And with the absence\n"
-
-	"of the board that is supposed to be here, this room seems about as\n"
-	"drab as we make them.\n";
-    output += show_objects();
-    return output;
-}
 

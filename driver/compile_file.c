@@ -176,7 +176,7 @@ int generate_source P2(svalue_t *, arg1, char *, out_fname)
 	    debug_perror("generate_source: fopen", out_fname);
 	    error("Could not open output file '/%s'.\n", out_fname);
 	}
-	fprintf(compilation_output_file, "#include \"std.h\"\n#include \"interface.h\"\n");
+	fprintf(compilation_output_file, "#include \"std.h\"\n#include \"interface.h\"\n#include \"lpc_to_c.h\"\n\n");
 	
 	done = 0;
 	while (!done) {

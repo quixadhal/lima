@@ -5,6 +5,8 @@
 #include <mudlib.h>
 #include <playerflags.h>
 
+inherit CMD;
+
 mapping homes = ([]);
 
 object find_home(string name) {
@@ -15,7 +17,7 @@ object find_home(string name) {
     return homes[name];
 }
 
-int main(string arg)
+private void main(string arg)
 {
     object ob;
     string *msgs;
@@ -40,16 +42,16 @@ int main(string arg)
 	    tell_room(environment(this_body()), msgs[1], ({ this_body() }));
 
 	if ( !(this_body()->test_flag(F_BRIEF)) )
-	    this_user()->force_me("look");
+	    this_body()->do_game_command("look");
 
-	return 1;
+	return;
     }
 
     home = "/" + WIZ_DIR + "/" + arg + "/workroom";
     if ( file_size(home + ".c") <= 0 )
     {
 	write(capitalize(arg) + " does not have a home.\n");
-	return 1;
+	return;
     }
     
     write("You give " + capitalize(arg) + " a visit.\n");
@@ -64,9 +66,9 @@ int main(string arg)
 	      ({ this_body() }));
 
     if(!(this_body()->test_flag(F_BRIEF)))
-	this_user()->force_me("look");
+	this_body()->do_game_command("look");
 
-    return 1;
+    return;
 }
 
 int help(){

@@ -1233,7 +1233,9 @@ static void handle_configure() {
     check_include("INCL_SYS_TIME_H", "sys/time.h");
     check_include("INCL_DOS_H", "dos.h");
     check_include("INCL_USCLKC_H", "usclkc.h");
-    check_include("INCL_VALUES_H", "values.h");
+    check_include("INCL_LIMITS_H", "limits.h");
+    if (!check_prog(0, 0, "int x = MAXSHORT;", 0))
+	check_include("INCL_VALUES_H", "values.h");
     
     check_include("INCL_NETINET_IN_H", "netinet/in.h");
     check_include("INCL_ARPA_INET_H", "arpa/inet.h");

@@ -96,14 +96,14 @@
  * bytes per malloc down to 8.  This macro has no effect if DEBUGMALLOC isn't
  * defined.
  */
-#define DEBUGMALLOC_EXTENSIONS
+#undef DEBUGMALLOC_EXTENSIONS
 
 /* CHECK_MEMORY: defining this (in addition to DEBUGMALLOC) causes the driver
  * to check for memory corruption due to writing before the start or end
  * of a block.  This also adds the check_memory() efun.  Takes a considerable
  * ammount more memory.  Mainly for debugging.
  */
-#define CHECK_MEMORY
+#undef CHECK_MEMORY
 
 /****************************************************************************
  *                          COMPATIBILITY                                   *
@@ -157,11 +157,11 @@
 
 /* NO_ADD_ACTION: define this to remove add_action, commands, livings, etc.
    process_input() then becomes the only way to deal with player input. */
-#define NO_ADD_ACTION
+#undef NO_ADD_ACTION
 
 /* NO_WIZARDS: for historical reasons, MudOS used to keep track of who
    is and isn't a wizard.  Defining this removes that completely. */
-#undef NO_WIZARDS
+#define NO_WIZARDS
 
 /* OLD_TYPE_BEHAVIOR: reintroduces a bug in type-checking that effectively
  * renders compile time type checking useless.  For backwards compatibility.
@@ -178,7 +178,7 @@
 /* OLD_ED: ed() efun backwards compatible with the old version.  The new
  * version requires/allows a mudlib front end.
  */
-#undef OLD_ED
+#define OLD_ED
 
 /****************************************************************************
  *                           MISCELLANEOUS                                  *
@@ -195,7 +195,7 @@
  * the mud_status() efun.  If this is off, mud_status() and memory_info()
  * ignore allocated strings, but string operations run faster.
  */
-#undef STRING_STATS
+#define STRING_STATS
 
 /* LOG_CATCHES: define this to cause errors that are catch()'d to be
  *   sent to the debug log anyway.
@@ -287,7 +287,7 @@
  * PRAGMA_ERROR_CONTEXT:include some text telling where on the line a
  *                      compilation error occured.
  */
-#define DEFAULT_PRAGMAS 0
+#define DEFAULT_PRAGMAS PRAGMA_WARNINGS + PRAGMA_STRICT_TYPES
 
 /* LAZY_RESETS: if this is defined, an object will only have reset()
  *   called in it when it is touched via call_other() or move_object()
@@ -388,7 +388,7 @@
  *   sent directly via add_message()).  This is useful if you want to
  *   build a smart client that does something different with snoop messages.
  */
-#undef RECEIVE_SNOOP
+#define RECEIVE_SNOOP
 
 /* PROFILE_FUNCTIONS: define this to be able to measure the CPU time used by
  *   all of the user-defined functions in each LPC object.  Note: defining
@@ -434,7 +434,7 @@
  *
  * A side effect is that array cannot be a variable or function name.
  */
-#define ARRAY_RESERVED_WORD
+#undef ARRAY_RESERVED_WORD
 
 /****************************************************************************
  *                              PACKAGES                                    *
@@ -456,7 +456,7 @@
 /* PACKAGE_MATH: determines whether or not the math efuns (for floats) are
    included.
  */
-#undef PACKAGE_MATH
+#define PACKAGE_MATH
 
 /* PACKAGE_MATRIX: determines whether or not the 3d graphics efuns (for floats)
  *   are included - see packages/matrix.spec for a list.
@@ -477,7 +477,7 @@
 /* PACKAGE_PARSER: Natural language parsing efuns for interactive fiction
  *   type applications
  */
-#define PACKAGE_PARSER
+#undef PACKAGE_PARSER
 
 /****************************************************************************
  *                            UID PACKAGE                                   *
@@ -629,4 +629,3 @@
 #define NEXT_MALLOC_DEBUG
 
 #endif
-

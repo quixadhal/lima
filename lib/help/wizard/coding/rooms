@@ -14,7 +14,7 @@ Coding rooms:
 		room::create();
       the double colon means call the function create() in another
       file, the one you inherited, /std/room.c
-   b) set_short("Round Room");
+   b) set_brief("Round Room");
       or, whatever you want the short description of the 
       room to be.
    c) call set_long("This is a boring room."); or whatever
@@ -26,7 +26,7 @@ inherit ROOM;
 
 create(){
   room::create();
-  set_short("Round Room");
+  set_brief("Round Room");
   set_long("This is a round room.");
 }
 

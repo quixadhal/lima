@@ -4,9 +4,10 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 inherit M_COMPLETE;
 
-int main( string who )
+private void main( string who )
 {
     string mud, name;
     string* matches;
@@ -15,7 +16,7 @@ int main( string who )
     if ( sscanf(who, "%s@%s", name, mud) == 2 || sscanf(who, "@%s", mud) )
     {
 
-      matches = case_insensitive_complete(mud,IMUD_D->query_mudnames());
+      matches = case_insensitive_complete(M_GLOB->translate(mud),IMUD_D->query_mudnames());
       switch(sizeof(matches))
 	{
 	case 0:
@@ -32,9 +33,8 @@ int main( string who )
 	  printf("Ambigous.  The following muds might apply: %s\n", implode(matches,", "));
 	  break;
 	}
-      return 1;
+      return;
     }
 
     write(FINGER_D->get_finger(who));
-    return 1;
 }

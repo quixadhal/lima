@@ -27,7 +27,7 @@ private string closed_desc;
 
 int openable() { return 1; }
 int query_closed() { return closed; }
-void set_closed(int x) { closed = x; }
+void set_closed(int x) { closed = x; parse_refresh(); }
 void extra_open() { }
 void extra_close() { }
 int prevent_open() { return 0; }

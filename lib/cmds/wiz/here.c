@@ -7,13 +7,12 @@
 // and short of a room.
 
 #include <mudlib.h>
+inherit CMD;
 
 
 
-
-int main() {
+private void main() {
    object env;
    env = environment(this_body());
    printf("%s: [%s]\n",env->short(),file_name(env));
-   return 1;
 }

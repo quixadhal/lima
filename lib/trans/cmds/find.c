@@ -4,11 +4,11 @@
 //  Created by Rust, Jul 10, 1995
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 inherit M_REGEX;
 inherit M_GLOB;
 
-int
+private void
 main(mixed argv, mapping flags)
 {
   string file;

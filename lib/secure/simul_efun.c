@@ -4,6 +4,9 @@
 #undef nomask
 #endif
 
+// private so they don't become simuls
+private inherit "/secure/check_config";
+
 inherit "/secure/simul_efun/security";
 inherit "/secure/simul_efun/objcalls";
 inherit "/secure/simul_efun/userfuncs";

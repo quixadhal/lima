@@ -431,8 +431,8 @@ void add_vmessage P2V(object_t *, who, char *, format)
     V_DCL(object_t *who);
 
     V_START(args, format);
-    V_VAR(char *, format, args);
     V_VAR(object_t *, who, args);
+    V_VAR(char *, format, args);
     /*
      * if who->interactive is not valid, write message on stderr.
      * (maybe)

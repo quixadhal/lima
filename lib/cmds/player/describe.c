@@ -1,11 +1,14 @@
 #define MAX_DESCRIP_SIZE 6
 #include <commands.h>
+#include <mudlib.h>
+
+inherit CMD;
 
 private string* descrip = ({});
 
 void end_describe();
 
-void main(string s)
+private void main(string s)
 {
   if(stringp(s) && strlen(s))
     {

@@ -13,13 +13,15 @@
 #include <mudlib.h>
 #include <daemons.h>
 
+inherit CMD;
+
 #define MIN 60
 #define HOUR (60 * MIN)
 #define DAY (24 * HOUR)
 #define WEEK (7 * DAY)
 
 
-int main(string notused)
+private void main(string notused)
 {
     int tm = uptime();
     string tm2 = ctime(time());
@@ -63,5 +65,4 @@ int main(string notused)
 
     str = str[0..<2] + ".\n";
     write(str);
-    return 1;
 }

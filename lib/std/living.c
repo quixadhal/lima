@@ -4,6 +4,7 @@
 
 inherit CONTAINER;
 inherit "/std/living/grammar";
+inherit M_MESSAGES;
 
 /* This is a pure 'living' object, not what is traditionally meant
  * by a living object on LPmuds.  Note that find_living() won't
@@ -16,6 +17,15 @@ inherit "/std/living/grammar";
 create() {
   container::create();
   set_max_capacity(100);
+}
+
+string name;
+
+string query_name() {return name; }
+
+void set_name(string n) {
+  name = n;
+  set_id( ({ n, lower_case(n) }) );
 }
 
 string in_room_desc() {

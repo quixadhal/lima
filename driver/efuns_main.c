@@ -753,7 +753,19 @@ f_enable_wizard PROT((void))
 void
 f_error PROT((void))
 {
-    error(sp->u.string);
+    int l = SVALUE_STRLEN(sp);
+    char err_buf[2048];
+
+    if (sp->u.string[l - 1] == '\n')
+	l--;
+    if (l > 2045) l = 2045;
+    
+    err_buf[0] = '*';
+    strncpy(err_buf + 1, sp->u.string, l);
+    err_buf[l + 1] = '\n';
+    err_buf[l + 2] = 0;
+    
+    error_handler(sp->u.string);
 }
 #endif
 
@@ -2255,17 +2267,25 @@ f_regexp PROT((void))
 {
     array_t *v;
     int flag;
-    
-    if (st_num_arg > 2){
+
+    if (st_num_arg > 2) {
         if (!(sp->type == T_NUMBER)) error("Bad argument 3 to regexp()\n");
+	if (sp[-2].type == T_STRING) error("3rd argument illegal for regexp(string, string)\n"); 
 	flag = (sp--)->u.number;
     } else flag = 0;
-    v = match_regexp((sp - 1)->u.arr, sp->u.string, flag);
+    if (sp[-1].type == T_STRING) {
+	flag = match_single_regexp((sp - 1)->u.string, sp->u.string);
+	free_string_svalue(sp--);
+	free_string_svalue(sp);
+	put_number(flag);
+    } else {
+	v = match_regexp((sp - 1)->u.arr, sp->u.string, flag);
 
-    free_string_svalue(sp--);
-    free_array(sp->u.arr);
-    if (!v) *sp = const0;
-    else sp->u.arr = v;
+	free_string_svalue(sp--);
+	free_array(sp->u.arr);
+	if (!v) *sp = const0;
+	else sp->u.arr = v;
+    }
 }
 #endif
 
@@ -2288,8 +2308,14 @@ f_remove_call_out PROT((void))
 {
     int i;
 
-    i = remove_call_out(current_object, sp->u.string);
-    free_string_svalue(sp);
+    if (st_num_arg) {
+	i = remove_call_out(current_object, sp->u.string);
+	free_string_svalue(sp);
+    } else {
+	remove_all_call_out(current_object);
+	i = -1;
+	sp++;
+    }
     put_number(i);
 }
 #endif
@@ -3262,6 +3288,68 @@ f_test_bit PROT((void))
         free_string_svalue(sp);
         *sp = const0;
     }
+}
+#endif
+
+#ifdef F_NEXT_BIT
+void
+f_next_bit PROT((void))
+{
+    int start = (sp--)->u.number;
+    int len = SVALUE_STRLEN(sp);
+    int which, bit, value;
+    
+    if (!len || start / 6 >= len) {
+        free_string_svalue(sp);
+	put_number(-1);
+        return;
+    }
+    /* Find the next bit AFTER start */
+    if (start > 0) {
+	if (start % 6 == 5) {
+	    which = (start / 6) + 1;
+	    value = sp->u.string[which] - ' ';
+	} else {
+	    /* we have a partial byte to check */
+	    which = start / 6;
+	    bit = 0x3f - ((1 << ((start % 6) + 1)) - 1);
+	    value = (sp->u.string[which] - ' ') & bit;
+	}
+    } else {
+	which = 0;
+	value = *sp->u.string - ' ';
+    }
+
+    while (1) {
+	if (value)  {
+	    if (value & 0x07) {
+		if (value & 0x01)
+		    bit = which * 6;
+		else if (value & 0x02)
+		    bit = which * 6 + 1;
+		else if (value & 0x04)
+		    bit = which * 6 + 2;
+		break;
+	    } else if (value & 0x38) {
+		if (value & 0x08)
+		    bit = which * 6 + 3;
+		else if (value & 0x10)
+		    bit = which * 6 + 4;
+		else if (value & 0x20)
+		    bit = which * 6 + 5;
+		break;
+	    }
+	}
+	which++;
+	if (which == len) {
+	    bit = -1;
+	    break;
+	}
+	value = sp->u.string[which] - ' ';
+    }
+
+    free_string_svalue(sp);
+    put_number(bit);
 }
 #endif
 

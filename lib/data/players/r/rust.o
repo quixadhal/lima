@@ -6,29 +6,29 @@ persist_flags ([5:1,2:16,])
 max_capacity 100
 objects ([])
 main_prep "in"
-messages (["menter":"$N $vappear in a puff of smoke.","mleave":"$N $vdisappear in a puff of smoke.","destruct":"$N $vdest the $o.","enter":"$N $venter.","leave":"$N $vleave $o",])
+messages (["menter":"$N $vappear in a puff of smoke.","enter":"$N $venter.","destruct":"$N $vdest the $o.","mleave":"$N $vdisappear in a puff of smoke.","clone":"$N $vclone the $o.","leave":"$N $vleave $o",])
 wield_type "blow"
-wielded_by 
 hp 1
 max_hp 1
 heal_rate 10
 weapon_type "blow"
-news_data (["lima.ideas":16,"player.chat":1,"lima.help":1,"player.news":1,"lima.discussion":3,"reporter.typos":2,"driver.bugs":3,"lima.bugs":68,])
+news_data (["lima.ideas":83,"driver.discussion":5,"test.group":1,"wiz.test":1,"lima.discussion":31,"driver.bugs":3,"lima.todo":2,"..announcements..":7,"wiz.chat":2,"lima.bugs":173,"wiz.news":1,"player.chat":1,"player.news":1,"lima.help":16,"admin.chat":2,"reporter.typos":4,])
 level 5
 topic_to_time ([])
 wizdefaults ([])
 wizxdefaults ({})
 saved ({})
-shell_saved_data "({\"/obj/shells/wish\",({([\"gossip\":(/\"chan gossip $*\",({\"\",}),0,0,/),\"newbie\":(/\"chan newbie $*\",({\"\",}),0,0,/),\":\":(/\"emote $*\",({\"\",}),0,0,/),\"x\":(/\"examine $*\",({\"\",}),0,0,/),\"'\":(/\"say $*\",({\"\",}),0,0,/),\"e\":(/\"go east $*\",({\"\",}),0,0,/),\"se\":(/\"go southeast $*\",({\"\",}),0,0,/),\"sw\":(/\"go southwest $*\",({\"\",}),0,0,/),\"n\":(/\"go north $*\",({\"\",}),0,0,/),\"l\":(/\"look $*\",({\"\",}),0,0,/),\"ne\":(/\"go northeast $*\",({\"\",}),0,0,/),\"w\":(/\"go west $*\",({\"\",}),0,0,/),\"nw\":(/\"go northwest $*\",({\"\",}),0,0,/),\"s\":(/\"go south $*\",({\"\",}),0,0,/),\"ls\":(/\"ls -asF $*\",({\"\",}),0,0,/),]),({\":\",\"'\",}),([\"PROMPT\":\"%p>\",\"path\":({\"/trans/cmds/\",\"/cmds/wiz/\",\"/cmds/player/\",}),]),([]),({}),}),})"
+shell_saved_data "([\"#base_name#\":\"/obj/shells/wish\",\"modules\":({}),\"variables\":([\"env\":\"`environment(this_body())`\",\"funny\":\"`.me:shell->query_history()[<1]`\",\"what\":\"`map(users(), (: sprintf( \\\"%s : %s\\\" , $1->query_userid(), $1->query_body()->query_shell_ob()->query_history()[<1] ) :))`\",\"PROMPT\":\"%p> \",\"path\":({\"/trans/cmds/\",\"/cmds/wiz/\",\"/cmds/player/\",}),]),\"alias_save\":([\"gossip\":(/\"chan gossip $*\",({\"\",}),0,0,/),\"newbie\":(/\"chan newbie $*\",({\"\",}),0,0,/),\":\":(/\"emote $*\",({\"\",}),0,0,/),\"x\":(/\"examine $*\",({\"\",}),0,0,/),\"'\":(/\"say $*\",({\"\",}),0,0,/),\"e\":(/\"go east $*\",({\"\",}),0,0,/),\"se\":(/\"go southeast $*\",({\"\",}),0,0,/),\"A\":(/\"print `NCHANNEL_D->deliver_string( \\\"wiz_announce\\\" , \\\"[announce] $*\\\\n\\\" )`\",({\"\",}),0,0,/),\"sw\":(/\"go southwest $*\",({\"\",}),0,0,/),\"?\":(/\"eh $*\",({\"\",}),0,0,/),\"wave\":(/\"fwaveleg $*\",({\"\",}),0,0,/),\"n\":(/\"go north $*\",({\"\",}),0,0,/),\"l\":(/\"look $*\",({\"\",}),0,0,/),\"what\":(/\"print `map(users(), (: sprintf( \\\"%s : %s\\\" , \\\\\\\\$1->query_userid(), \\\\\\\\$1->query_body()->query_shell_ob()->query_history()[<1] ) :))` $*\",({\"\",\"\",}),1,0,/),\"say@\":(/\"say when I do: $* I get: `$*`\",({\"\",}),0,0,/),\"admin\":(/\"achan admin $*\",({\"\",}),0,0,/),\"ne\":(/\"go northeast $*\",({\"\",}),0,0,/),\"H\":(/\"print `.$*:shell->query_history()`\",({\"\",}),0,0,/),\"w\":(/\"go west $*\",({\"\",}),0,0,/),\"nw\":(/\"go northwest $*\",({\"\",}),0,0,/),\"agree\":(/\"agree $1 $*\",({\"whol*\",\"\",}),1,0,/),\"s\":(/\"go south $*\",({\"\",}),0,0,/),\"ls\":(/\"ls -asF $*\",({\"\",}),0,0,/),]),\"personal_bindings\":([]),\"xalias_save\":({\":\",\"'\",}),])"
+skills ([])
 title "Rust has to hide his love away!"
 name "rust"
 describe "You can see what Rust looks like at: http://www.cs.virginia.edu/~jtv2j/"
 invis_name "Someone"
+nickname "god"
 start_location "/domains/std/wizroom"
-reply "rust"
-nickname_list ([])
-channel_list ({"wiz_wiz","wiz_errors","wiz_news","plyr_news",})
+reply "satan"
+channel_list ({"wiz_wiz","wiz_errors","wiz_news","plyr_news","wiz_wiz_announce","plyr_wiz_announce","wiz_announce","adm_admin","imud_imud_gossip","imud_imud_code","plyr_gossip",})
 auto_load ({})
-pwd "/"
-cwf "/secure/daemons/group_d.c"
-ilog_time 806406105
+pwd "/domains/std"
+cwf "/domains/std/camera.c"
+ilog_time 807603696

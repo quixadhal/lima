@@ -28,6 +28,8 @@
  *
  * GUElib conversion by Deathblade on 24-Dec-94.
  * Rust added system_post on July 7, 1995
+ * Rust added the restrict_group() interface on July 24, 1995.
+ * Beek modified the system to be automatic based on group prefixes.
  * 
  */
 
@@ -45,14 +47,22 @@ inherit M_ACCESS;
 void archive_posts();
 
 private mapping data = ([]);
+private static mapping restrictions = 
+([
+	"wiz" : 	(: wizardp(this_user()) :),
+	"admin" : 	(: GROUP_D->adminp(this_user()) :)
+]);
 
 nomask void create()
 {
-    set_privilege(1);
-    if (clonep(this_object())) destruct(this_object());
+  string group;
+  int rest;
+  set_privilege(1);
+  if (clonep(this_object())) destruct(this_object());
 
-    restore_object(SAVE_FILE, 1);
-    archive_posts();
+  restore_object(SAVE_FILE, 1);
+  
+  archive_posts();
 }
 
 nomask void save_me()
@@ -114,7 +124,7 @@ varargs nomask int system_post(string group, string subject, string message, str
   return post_id;
 }
 
-nomask void add_group(string group)
+varargs nomask void add_group(string group)
 {
     string fn;
 
@@ -189,7 +199,18 @@ nomask int * get_thread(string group, int thread)
 
 nomask string * get_groups()
 {
-    return sort_array(keys(data), 1);
+    string array ret;
+    // filter before sorting; the func is typically pretty cheap, and
+    // and calling them all is O(n).  Sorting the list first is more
+    // expensive
+    ret = filter(keys(data), function(string group) {
+	// this will be "" if there is no '.'
+	string prefix = group[0..member_array('.', group) - 1];
+	function f = restrictions[prefix];
+	if (!f) return 1;
+	return evaluate(f);
+    });
+    return sort_array(ret, 1);
 }
 
 nomask int get_group_last_id(string group)
@@ -209,7 +230,6 @@ private nomask void archive_post(string group, int id)
 		  :) );
     map_delete(data[group], id);
 }
-
 
 nomask void archive_posts()
 {

@@ -3,18 +3,20 @@
 #include <mudlib.h>
 #include <daemons.h>
 
-int main(string str) {
+inherit CMD;
+
+private void main(string str) {
     if(!is_directory(wiz_dir(this_body())))
       {
 	write("Sorry, only full wizards may use the I command.\n");
-	return 1;
+	return;
       }
     if (!str || str == "") {
          write("I <whatever you did>\n");
-         return 0;
+         return;
     }
     DID_D->someone_did(str);
     write("Reported.  (Thank you!)\n");
-    return 1;
+    return;
 }
 

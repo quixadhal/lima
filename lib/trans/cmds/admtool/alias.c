@@ -1,10 +1,13 @@
 #include <mudlib.h>
-inherit M_ALIAS;  // For alias class structure.  Really don't want to inherit all the vars, but...
+#include <classes.h>
+
+inherit CLASS_ALIAS;
 
 void std_handler(string);
 void receive_alias_input(string);
+varargs void modal_func(function input_func, mixed prompt_func, int secure);
 
-#define PROMPT_ALIAS    "(AdmTool:alias) [lLaArRmq?] >"
+#define PROMPT_ALIAS    "(AdmTool:alias) [lLaArRmq?] > "
 
 
 
@@ -22,7 +25,7 @@ private nomask void add_alias(string name, string expansion, int dev, string xin
   default:
     write("**Invalid selection.\n");
   }
-  this_body()->modal_func((:receive_alias_input:), (: PROMPT_ALIAS:));
+  modal_func((:receive_alias_input:), PROMPT_ALIAS);
   M_ALIAS->add_default_alias(name, expansion, xverb, dev);
   write("Done.\n");
 }
@@ -30,23 +33,23 @@ private nomask void add_alias(string name, string expansion, int dev, string xin
 varargs
 private nomask void get_expansion(string name, int dev, string expansion)
 {
-  this_body()->modal_func((: add_alias , name, expansion, dev :), (: "Xalias?  [yn (default n)] ":));
+  modal_func((: add_alias , name, expansion, dev :), "Xalias?  [yn (default n)] ");
 }
 
 static nomask void write_alias_menu()
 {
     write("Alias Menu\n"
 	  "\n"
-	  " l -  	list global player aliases\n"
-	  " L -	list global wizard aliases\n"
-	  " a [alias]  - add a global player alias\n"
-	  " A [alias]  - add a global wizard alias\n"
-	  " r [alias]  -  remove a player alias\n"
-	  " R [alias]  - remove a wizard alias\n"
+	  "    l         - list global player aliases\n"
+	  "    L         - list global wizard aliases\n"
+	  "    a [alias] - add a global player alias\n"
+	  "    A [alias] - add a global wizard alias\n"
+	  "    r [alias] - remove a player alias\n"
+	  "    R [alias] - remove a wizard alias\n"
 	  "\n"
-	  "    m - main menu\n"
-	  "    q - quit\n"
-	  "    ? - help\n"
+	  "    m         - main menu\n"
+	  "    q         - quit\n"
+	  "    ?         - help\n"
 	  "\n"
 	  );
 }
@@ -106,9 +109,9 @@ static nomask void receive_alias_input(string cmd)
 	  break;
 	}
       if(cmd == "a")
-	this_body()->modal_func((:get_expansion, input,0:), (: "Expansion: " :));
+	modal_func((:get_expansion, input,0:), "Expansion: ");
       else
-	this_body()->modal_func((:get_expansion, input,1:), (: "Expansion: ":));
+	modal_func((:get_expansion, input,1:), "Expansion: ");
       break;
 
     case "r":	

@@ -60,7 +60,7 @@ static void finish_completion(int);
 MENU 	current_menu, previous_menu;
 int 	need_refreshing;
 
-static remove()
+static void remove()
 {
   destruct(this_object());
 }
@@ -564,7 +564,7 @@ complete_choice(string input, string* choices, function f)
       for(i=1; i<= sizeof(matches); i++)
 	  output += sprintf("%=3d)  %s\n", i, matches[i-1]);
       this_user()->modal_func((: finish_completion :),
-			      (: "[Enter number or r to return to menu] " :));
+			      "[Enter number or r to return to menu] ");
       // Don't do this before the modal_func I'll bet...
       new(MORE_OB)->more_string(output);
       completion_callback = f;
@@ -607,20 +607,18 @@ receive_string(function thencall, string input)
   // from your callback if the evaluate() goes first.
   this_user()->modal_func ((: parse_menu_input :), (: get_current_prompt :));
   evaluate(thencall, input);
-
 }
 
 static void
 get_input_then_call(function thencall, string prompt)
 {
-  this_user()->modal_func((: receive_string, thencall :), (: $(prompt) :));
+    this_user()->modal_func((: receive_string, thencall :), prompt);
 }
   
 static void 
 prompt_then_return()
 {
-
     this_user()->modal_func((: return_to_current_menu :),
-  			  (:"[Hit enter to return to menu] ":));
+			    "[Hit enter to return to menu] ");
 }
 

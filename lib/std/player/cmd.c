@@ -43,7 +43,7 @@ string nonsense()
 
 
 
-nomask void do_game_command(string str)
+varargs nomask void do_game_command(string str, int debug)
 {
     mixed result;
     string tmp;
@@ -70,7 +70,7 @@ nomask void do_game_command(string str)
     /*
     ** Parse the player's input
     */
-    result = parse_sentence(str);
+    result = parse_sentence(str, debug);
 
     /*
     ** If a 1 was returned, then nothing more needs to be done.
@@ -87,6 +87,9 @@ nomask void do_game_command(string str)
 	write(result);
 	return;
     }
+
+  // If in debug mode, we're done
+  if (debug) return;
 
     /*
     ** Check if they typed an exit

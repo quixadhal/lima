@@ -8,6 +8,10 @@ inherit M_ALIAS;
 inherit M_SHELLVARS;
 inherit M_SHELLFUNCS;
 inherit M_SAVE;
+inherit M_SCROLLBACK;
+inherit M_PROMPT;
+
+private static object owner;
 
 void execute_command(string * argv, string original_input);
 string query_shellname();
@@ -68,7 +72,8 @@ shell_input(mixed input)
     }
   else
     {
-      argv = expand_alias(argv);
+      tmp = expand_alias(argv);
+      argv = stringp(tmp) ? evaluate(arg_to_words_func, tmp) : tmp;
     }
 // We want to do this here so that alias expansion catches for souls.
   original_input = implode(argv," ");
@@ -86,9 +91,9 @@ if(sizeof(argv) == 1 && argv[0][0] == '$' && strlen(argv[0]) > 1)
 // In some shells, this is the hook for doing username completion, globbing, flag pre-parsing,
 // etc...  In others, it's used to execute code encased in ` `'s.
 
-
-  argv = expand_arguments(argv) - ({""});
+  argv = expand_arguments(argv);
   if(!argv) return;
+  argv -= ({ "" });
   if(wizardp(this_user()))
     argv = map(argv, 
 	     (: (stringp($1)) ? replace_string($1,"\\`","`") :  $1 :));
@@ -108,7 +113,10 @@ if(sizeof(argv) == 1 && argv[0][0] == '$' && strlen(argv[0]) > 1)
 
 // Expand variables
   argv = map(argv, (: expand_if_variable :));
-  
+
+// Hmm, I might undo this one...  the only reason this is here is to 
+// allow \\$ to work right.  \$ can work right in other ways....
+  argv = map(argv, (: stringp($1) ? replace_string($1, "\\$","$") : $1 :));
 
 // If there is a local shell command that matches our input, try to execute it.
   evaluate(tmp=dispatch[argv[0]], argv);
@@ -119,47 +127,53 @@ if(sizeof(argv) == 1 && argv[0][0] == '$' && strlen(argv[0]) > 1)
       // expected.  People might want their aliases and history cmds to
       // work, even though the command wasn't executed in the shell...
 }
-    
-
-string shell_prompt()
-{
-  string s = get_variable("PROMPT");
-  if(!s){
-    s = ">";
-    set_variable("PROMPT", s);
-  }
-  
-  if(s[0] == '"' && s[<1] == '"')
-    s = s[1..<2];
-  if(wizardp(this_user()))
-  {
-    s = replace_string(s,"%p", this_body()->query_pwd());
-    s = replace_string(s,"%d", ctime(time())[4..9]);
-    s = replace_string(s,"%D", ctime(time())[0..2]);
-    s = replace_string(s,"%n", capitalize(this_player()->query_name()));
-    s = replace_string(s,"%N", capitalize(this_player()->query_real_name()));
-    s = replace_string(s,"%_", "\n");
-    s = replace_string(s,"%t", ctime(time())[11..15]);
-  }
-  return s+ " ";
-}
 
 void start_shell()
 {
-  modal_push((: shell_input :), (: shell_prompt :));
+  if(owner)
+    return;
+  owner = this_body();
+  modal_push((: shell_input :), (: wizardp($(this_user())) ? get_prompt() : "> " :));
   history::create();
 }
 
-void create()
+private void cmd_exit(){
+  if(sizeof(this_user()->modal_stack_size()) == 1)
+    {
+      this_user()->force_me("quit");
+      return;
+    }
+  printf("Exiting %s\n", query_shellname());
+  this_user()->modal_pop();
+  remove();
+}
+
+void create(string shell_saved_data)
 {
+  if(owner)
+    return;
   alias::create();
   history::create();
+  prompt::create();
   shell_bind("set",    (: cmd_set :));
   shell_bind("unset",  (: cmd_unset :));
   shell_bind("alias",  (: cmd_alias :));
   shell_bind("unalias", (: cmd_remove_alias($1,1) :));
   shell_bind("history", (: history_command :));
-  shell_bind("exit",   (: printf("Exiting %s.\n", query_shellname()),
-			this_user()->modal_pop(),
-			remove() :));
+  shell_bind("scrollback", (: cmd_scrollback :));
+  shell_bind("exit", (: cmd_exit :));
+}
+
+
+void reconnect()
+{
+  if(this_body() != owner)
+    return;
+  scrollback::reconnect();
+}
+
+
+nomask object get_owner()
+{
+  return owner;
 }

@@ -14,18 +14,16 @@
 // }
 
 #include <mudlib.h>
+inherit CMD;
 
-inherit DAEMON;
-
-int main(mixed *arg) {
+private void main(mixed *arg) {
     if (!arg[0]->stat_me()) {
 	printf("No information available for %O.\n", arg[0]);
-	return 1;
+	return;
     }
-    return 1;
+    return;
 }
 
 int help() {
     write("Syntax: stat <object>\n\nGives you vital information about ANY object.\n");
-    return 1;
 }

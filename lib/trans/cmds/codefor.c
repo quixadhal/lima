@@ -4,15 +4,14 @@
 //By Beek - derived from eval
 
 #include <mudlib.h>
-
-inherit DAEMON;
+inherit CMD;
 
 #define SYNTAX "USAGE:  codefor <lpc expression>\n"
 
 //prototype
 string doith(string arg);
 
-int main(string str)
+private void main(string str)
 {
     string tmp_file;
     string error;
@@ -45,5 +44,5 @@ int main(string str)
     write(ret[1]);
 
     destruct(find_object(tmp_file));
-    return 1;
+    return;
 }

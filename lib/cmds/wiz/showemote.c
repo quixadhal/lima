@@ -3,19 +3,21 @@
 #include <mudlib.h>
 #include <daemons.h>
 
-int main(string str) {
+inherit CMD;
+
+private void main(string str) {
     mixed data;
     mixed *m;
     int i;
 
     if (!str) {
 	write("showemote verb\n");
-	return 0;
+	return;
     }
     data = SOUL_D->query_emote(str);
     if (!data) {
         write("No such emote.\n");
-        return 1;
+        return;
     }
     m = keys(data);
     for (i=0; i<sizeof(m); i++) {
@@ -25,6 +27,5 @@ int main(string str) {
             printf("%O -> %s\n      -> %s\n", m[i], data[m[i]][0], data[m[i]][1]);
         }
     }
-    return 1;
 }
 

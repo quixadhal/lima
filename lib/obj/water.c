@@ -8,7 +8,7 @@ inherit M_GETTABLE;
 
 create() {
   ::create();
-  set_short("some water");
+  set_proper_name("some water");
   set_in_room_desc("There is a puddle of water here.");
   set_flag(NO_AUTO_TAKE);
   set_flag(DRINKABLE);

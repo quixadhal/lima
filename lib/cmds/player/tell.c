@@ -5,11 +5,11 @@
 #include <mudlib.h>
 #include <commands.h>
 
+inherit CMD;
 inherit M_GRAMMAR;
-
 inherit M_COMPLETE;
 
-int main(string arg)
+private void main(string arg)
 {
   string user;
   string host;
@@ -71,9 +71,15 @@ int main(string arg)
       }
 
   if (who->query_invis() && (int) who->query_level() > (int) this_body()->
-      query_level()) return printf("No such player.\n"),1;
-    if (!who->query_link() || !interactive(who->query_link()))
-        return printf("%s is linkdead.\n", who->query_name()),1;
+      query_level()) {
+    printf("No such player.\n");
+    return;
+  }
+  if (!who->query_link() || !interactive(who->query_link()))
+    {
+      printf("%s is linkdead.\n", who->query_name());
+      return;
+    }
     if(who != this_body())
       {
 	write(iwrap(sprintf("You tell %s: %s\n", who->query_name(), arg)));
@@ -84,4 +90,8 @@ int main(string arg)
     who->set_reply(this_user()->query_userid());
 }
      
+nomask int
+valid_resend(string ob) {
+    return ob == "/cmds/player/reply";
+}
  

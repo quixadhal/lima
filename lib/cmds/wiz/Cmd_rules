@@ -1,22 +1,18 @@
 asnoop 		user str*
-at		user str*
 clean		[obj]
 clone		cfile
 dest		obj|user
 echoto		user str*
 findfunc	str obj|user
 flist -i	obj|user
-force		user str*
 goto		obj|user
-in		obj str*
 locate		str
 light		num
 move		obj obj
 review -cd	[user]
 scan -d		[obj|user]
 start		[obj]
-times		num str*
+timer -r        num [str] [num]
 trans		obj|user
 where		[user*]
 which		str
-timer -r        num [str] [num]

@@ -1,8 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 /* To help with conversion testing */
+#include <mudlib.h>
+inherit CMD;
 
-int main(mixed * args)
+private void main(mixed * args)
 {
     string * files;
     object * obs;
@@ -30,7 +32,6 @@ int main(mixed * args)
     map_array(files, (: load_object($1) :));
 
     write("Succeeded.\n");
-    return 1;
 }
 
 

@@ -2,9 +2,9 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 
-int main( mixed arg ) {
+private void main( mixed arg ) {
     printf("You echo to %s: %s\n", arg[0]->query_name(), arg[1]);
     tell_object(arg[0], arg[1] + "\n");
-    return 1;
 }

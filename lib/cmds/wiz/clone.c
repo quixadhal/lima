@@ -2,18 +2,17 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 
-
-int main( mixed *arg ) {
+private void main( mixed *arg ) {
     object o;
 
     o = clone_object(arg[0]);
     if( !o )
     {
 	write("Failed to load file.\n");
-	return 1;
+	return;
     }
     this_body()->do_player_message("clone", o);
     if (o->get() <= 0 || o->move(this_body())) {
@@ -23,7 +22,7 @@ int main( mixed *arg ) {
 	    printf("Ok. (It is on the ground.)\n");
     } else
 	printf("Ok. (It is in your inventory.)\n");
-    return 1;
+    return;
 }
 
 int help()

@@ -15,8 +15,7 @@
 
 #include <mudlib.h>
 #include <daemons.h>
-
-inherit DAEMON;
+inherit CMD;
 
 
 // Keep track of what we've done this round.  For technical reasons
@@ -28,12 +27,22 @@ mapping done;
 
 int do_update(string file, int deep);
 
-int main(mixed *arg, mapping flags) {
+private void main(mixed *arg, mapping flags) {
     object *obs;
     object ob;
     string temp;
     int n,deep_up;
     string file;
+
+// This is a quick hack to make update accept cfile*
+    if(arg[0] && !stringp(arg[0]))
+    {
+      foreach(file in arg[0])
+	{
+	  catch(main(({file}), flags));
+	}
+      return;
+    }
 
     done = ([]);
 
@@ -68,17 +77,15 @@ int main(mixed *arg, mapping flags) {
 	    }
 	}
     }
-    if (do_update(file,deep_up)) {
-	for (n=0; n<sizeof(obs); n++) {
-	    if (obs[n]) obs[n]->move(file);
-	}
-	return 1;
+    do_update(file,deep_up);
+
+    for (n=0; n<sizeof(obs); n++) {
+	if (obs[n]) obs[n]->move(file);
     }
-    write("Error loading object.\n");
-    return 0;
 }
 
-int do_update(string file, int deep) {
+int do_update(string file, int deep)
+{
     object ob2;
     string *obs;
     int master_flag;
@@ -93,20 +100,20 @@ int do_update(string file, int deep) {
 	    for (i=0; i<n; i++) {
 		if (done[obs[i]]) continue;
 		done[obs[i]] = 1;
-	    if (!do_update(obs[i], (deep==2?2:0))) return 0;
+		do_update(obs[i], (deep==2?2:0));
+	    }
+	}
+	ob2->remove(1);		// pass 1: we're coming back soon
+	if(ob2) {
+	    destruct(ob2);
 	}
     }
-    ob2->remove();
-    if(ob2) {
-	destruct(ob2);
+    res = catch(call_other(file,"???"));
+    if (res)
+	printf(file+": "+res);
+    else{
+	printf(file+": Updated and loaded.\n");
     }
-}
-res = catch(call_other(file,"???"));
-if (res) printf(file+": "+res);
-else{
-    printf(file+": Updated and loaded.\n");
-}
-return 1;
 }
 
 int help()

@@ -12,16 +12,16 @@ private static string * adj;
 /* unique objects are refered to as 'the' instead of 'a' */
 private static int unique;
 /* Our descriptions:
- * short: Short should only be set for objects who should not
+ * proper_name: Propper_name should only be set for objects who should not
  *     be refered to as "a xxx" or "the xxx"
  * long:   should be a complete sentence or a closure.
  * in_room_desc: A longer string for rooms.  Titles for players.
  * plural_in_room_desc: Message for more than 1.
  */
 /* if these are zero, sane defaults are used based on grammar above. */
-private static string short;
-private static string long;
-private static string in_room_desc;
+private static string proper_name;
+private static mixed long;
+private static mixed in_room_desc;
 private static string plural_in_room_desc;
 /* This is sorta redundant.  If you don't set it, ids[0] is used. */
 private string primary_id;
@@ -41,9 +41,9 @@ string extra_short() { return 0; }
 string extra_long() { return ""; }
 
 
-nomask void set_short(string str)
+nomask void set_proper_name(string str)
 {
-    short = str;
+    proper_name = str;
 }
 
 void set_unique(int x)
@@ -66,7 +66,7 @@ string short()
     else
         extra = "";
 
-    if (!short)
+    if (!proper_name)
     {
 	if (!sizeof(ids))
 	    return "nondescript thing";
@@ -77,7 +77,7 @@ string short()
 	return adj[0] + " " + ids[0] + extra;
     }
     
-    return short + extra;
+    return proper_name + extra;
 }
 
 string plural_short() {
@@ -97,14 +97,14 @@ string add_article(string str) {
 }
 
 string the_short() {
-    if (!short) return "the "+short();
-    return short;
+    if (!proper_name) return "the "+short();
+    return proper_name;
 }
 
 string a_short() {
     if (unique) return the_short();
-    if (!short) return add_article(short());
-    return short;
+    if (!proper_name) return add_article(short());
+    return proper_name;
 }
 
 nomask void set_long(mixed str)
@@ -207,6 +207,13 @@ void add_id( string id )
     add_plural( pluralize( id ) );
 }
 
+static
+void remove_id( string id )
+{
+    ids -= ({ id });
+    parse_refresh();
+}
+
 void set_adj( mixed new_adjs ) 
 {
     if( stringp( new_adjs ) )
@@ -269,7 +276,6 @@ string show_in_room()
      *         passages out of the room.
      */
     if (test_flag(ATTACHED)) return 0;
-
     our_count = count();
     if (our_count > 4) {
 	if (plural_in_room_desc)
@@ -297,8 +303,9 @@ string show_in_room()
 
     if (!test_flag(TOUCHED) && (str = untouched_long()))
 	return str;
+
     if( in_room_desc )
-	return in_room_desc;
+	return evaluate(in_room_desc);
 
     str = this_object()->a_short();
 
@@ -313,8 +320,7 @@ string show_in_room()
 
 static void set_in_room_desc( string arg )
 {
-    if( stringp( arg ) )
-	in_room_desc = arg;
+  in_room_desc = arg;
 }
 
 
@@ -345,12 +351,12 @@ string shitty_hack_to_get_object_long()
 static
 string shitty_hack_to_get_object_short()
 {
-    if (!short) {                                     
+    if (!proper_name) {                                     
         if (!sizeof(ids)) return "nondescript thing"; 
         if (!sizeof(adj)) return ids[0];              
         return adj[0] + " " + ids[0];                 
     }                                                 
-    return short;                                     
+    return proper_name;                                     
 }
 
 void
@@ -363,5 +369,5 @@ create()
 
 string query_in_room_desc()
 {
-  return in_room_desc;
+  return (string)evaluate(in_room_desc);
 }

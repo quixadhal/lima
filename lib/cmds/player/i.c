@@ -6,10 +6,10 @@
 // inventory commands.  *boggle*
 
 #include <mudlib.h>
+inherit CMD;
 
 
-
-int main()
+private void main()
 {
     string ex;
 
@@ -18,5 +18,5 @@ int main()
     } else {
 	write("You are empty handed.\n");
     }
-    return 1;
+    return;
 }

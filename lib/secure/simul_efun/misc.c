@@ -3,49 +3,65 @@
 #include <driver/type.h>
 
 int is_directory(string);
+string evaluate_path(string);
+object find_body(string);
+
+DOC(call_trace, "returns the stack of objects and functions")
+
+string
+call_trace() {
+    string res;
+    int i, n;
+    object array objects;
+    string array programs;
+    string array functions;
+    
+    res = "";
+    programs = call_stack(0);
+    objects = call_stack(1);
+    functions = call_stack(2);
+
+    n = sizeof(programs);
+    for (i = 0; i < n; i++) {
+	res += sprintf("%25-O %25-s %25-s\n", objects[i], programs[i], 
+		       functions[i]);
+    }
+    return res;
+}
 
 // There should be an | operator for this.
 DOC(clean_array, "returns a version of the passed array with duplicate "
     "entries removed.  Eg, clean_array(({1,2,2}))  => ({1,2})")
 
 mixed*
-clean_array(mixed* r){
-    int i;
-    i = sizeof(r);
-    while(i--)
-	if(member_array(r[i], r) != i) r[i] = sprintf("%c",255);
-    return r-({sprintf("%c",255)});
-}
+clean_array(mixed* r) {
+    int i, n;
 
+    r = r & r; // sort.  sort_array() can't hack it.  And no, &= doesn't work.
 
-DOC(exclude_array, "returns a copy of arr with the range "
-    "of elements sliced out.  Ie, the size of the array shrinks.  Eg: "
-    "exclude_array( ({0,1,2,3}),1,2 )  => ({0,3})")
+    n = sizeof(r) - 1;
+    while (i < n) {
+	if (r[i] == r[i+1]) {
+	    r[i..i] = ({});
+	    n--;
+	} else
+	    i++;
+    }
 
-mixed* exclude_array( mixed* r, int x, int y )
-{
-  mixed n;
-
-  if(x) n = r[0..x-1];
-  else n = ({});
-
-  if(y+1 != sizeof(r))
-    n += r[y+1..];
-
-  return n;
+    return r;
 }
 
 DOC(cmp, "returns whether its two arguments are equivolent.  This is about"
 "the same as using the equivolence operator (==), but will return true"
-"in cases where == does not, such as when comparing 2 empty arrays. "
-"Logically 2 empty arrays should be equivolent, but aren't with ==. "
+"in cases where == does not, such as when comparing 2 arrays. "
+"Logically 2 arrays should be equivolent, but aren't with ==. "
 "cmp knows they are.  This is mainly useful when you want to compare "
 "mappings and arrays.")
 
 int cmp( mixed a, mixed b )
 {
   int		i;
-  mixed		x;
+  mixed		x, y, z;
 
   if( arrayp( a ) && arrayp( b ) )
   {
@@ -54,7 +70,7 @@ int cmp( mixed a, mixed b )
       return 0;
 
     while( i-- )
-      if( a[i] != b[i] )
+      if( !cmp(a[i], b[i]) )
         return 0;
     return 1;
   }
@@ -65,10 +81,12 @@ int cmp( mixed a, mixed b )
     if( sizeof(a) != (i = sizeof(b)) )
       return 0;
 
-    x = keys( a );
-    while( i-- )
-      if( undefinedp(b[x[i]]) || !cmp(a[x[i]],b[x[i]]) )
-	return 0;
+    foreach (x,y in a) {
+	z = b[x];
+	if (undefinedp(z)) return 0;
+	if (!cmp(y, z))
+	    return 0;
+    }
     return 1;
   }
 
@@ -95,41 +113,96 @@ mixed insert( mixed 	to_insert,
   if( !intp( where ) )
     return (void)error("Bad type arg 3 to simul efun insert()");
 
-  where--;
-  if(where == -1) return to_insert+into_array;
-  if( where < 0 || where >= sizeof( into_array ) )
-	return (void)error("Insertion index out of bounds.");
-
-  if( (where+1) == sizeof( into_array ) )
-    return into_array + to_insert;
-
-  return into_array[0..where] + to_insert + into_array[where+1..];
+  return into_array[0..where-1] + to_insert + into_array[where..];
 }
 
-/* eval lets you evaluate a string as an expression.
-   exec allows you to evaluate a string as LPC code. */
-varargs mixed exec(string arg, string includefile)
+
+string parse_ref(string s)
 {
-  string	file = "/tmp/exec.c";
+  string result;
+  string noun;
+  string* pieces = explode(s,":");
+
+  noun = pieces[0];
+  pieces = pieces[1..];
+  switch(noun)
+    {
+    case "me":
+      result = "this_body()";
+      break;
+    case "here":
+      result = "environment(this_body())";
+      break;
+    default:
+      if(find_body(noun))
+	result = "find_body(\""+noun+"\")";
+      else if(load_object(evaluate_path(noun)))
+	result = "find_object(evaluate_path(\""+noun+"\"))";
+      else return s;
+    }
+  foreach(noun in pieces)
+    {
+      switch(noun) {
+      case "shell":
+	result = sprintf("(%s->query_shell_ob() || %s)", result, result);
+	break;
+      case "link":
+	result = sprintf("(%s->query_link())",result);
+	break;
+      default:
+	result = sprintf("present(\"%s\",%s)", noun, result);
+	break;
+      }
+      
+    }
+    return result;
+}
+
+
+/* eval lets you evaluate a string as an expression.
+   exec_code allows you to evaluate a string as LPC code. */
+varargs mixed exec_code(string arg, string dir, string includefile)
+{
+    // DO NOT USE UNGUARDED IN HERE
+    // If perms are bad, we want to fail.  Use unguarded(1, (: exec_code :))
+    // if really necessary -Beek
+  string	file = dir + "/exec.c";
   object	tmp;
+  mixed		retval;
+  mixed		info;
+  int		i;
+  string	contents;
   
-    if(is_directory(wiz_dir(this_user())))
-      file = wiz_dir(this_user())+"/exec.c";
-  if(tmp = find_object(file))
-    destruct(tmp);
+    if(tmp = find_object(file))
+	destruct(tmp);
 
-  rm(file);
+    rm(file);
 
-  if(!stringp(arg))
-      error("Bad type argument 1 to exec");
+    if(!stringp(arg))
+	error("Bad type argument 1 to exec_code");
 
-  if (strsrch(arg,";")==-1) arg = "return "+arg;
+    info = reg_assoc(arg, ({"\\.[a-z:/]+"}),({0}))[0];
+    for(i=0; i < sizeof(info);i++)
+	{
+	    if(info[i][0] == '.' && strlen(info[i]) > 1 )
+		{
+		    info[i] = parse_ref(info[i][1..]);
+		}
+	}
+    arg = implode(info,"");
 
-  if(includefile)
-    write_file(file, sprintf("\n#include \"%s\"\n", includefile));
-  write_file( file, sprintf( "mixed exec_foo(){ %s", arg ) );
-  write_file( file, ";}\n");
-  return file->exec_foo();
+    if (strsrch(arg,";")==-1) arg = "return "+arg;
+
+    contents = "";
+    if(includefile)
+	contents += sprintf("\n#include \"%s\"\n", includefile);
+    contents += sprintf( "mixed exec_foo(){ %s", arg );
+    contents += ";}\n";
+    write_file(file, contents);
+    retval = file->exec_foo();
+    rm(file);
+    return retval;
+
 }
     
 // eval by Rust, so that you can
@@ -194,21 +267,19 @@ DOC(decompose, "Takes any arrays that are elements in arr and merges "
 
 mixed* decompose( mixed* org )
 {
-  int		i,j;
-  mixed		targ;
+    int i = 0, j;
 
-  targ = ({});
+    if( !arrayp( org ) ) error("Bad type arg to decompose");
+    org = copy(org);
 
-  if( !arrayp( org ) ) error("Bad type arg to decompose");
-
-  j = sizeof( org );
-  for( ; i < j ; i++ )
-    if( arrayp( org[i] ) )
-       targ += org[i];
-    else
-       targ += ({ org[i] });
-
-return targ;
+    while (i < sizeof(org)) {
+	if (arrayp(org[i])) {
+	    j = sizeof(org[i]);
+	    org[i..i] = org[i];
+	    i += j; // skip the elements inserted
+	} else i++;
+    }
+    return org;
 }
 
 
@@ -266,41 +337,143 @@ else
 DOC(flatten_array, "Takes a array that may contain arrays, and reduces all "
     "arrays so that the result is a one dimensional array")
 
-// I stole this implementation straight out of some lisp I wrote, therefore
-// the recursive implementation.  --John
+
 mixed
 flatten_array(mixed arr)
 {
+    int i = 0;
+    
     if (!arrayp(arr)) error("Bad argument 1 to flatten_array");
-    if (!sizeof(arr))
-	return arr;
-    if (arrayp(arr[0]))
-	return sizeof(arr) > 1 ? flatten_array(arr[0]) +
-	    	flatten_array(arr[1..<1]) : flatten_array(arr[0]);
-    return  sizeof(arr) > 1 ? ({arr[0]}) + flatten_array(arr[1..<1])
-                            : arr;
+    arr = copy(arr);
+    
+    while (i < sizeof(arr)) {
+	if (arrayp(arr[i])) {
+	    arr[i..i] = arr[i];
+	} else i++;
+    }
+    return arr;
 }
-
-
-
-
-
-
-
 
 DOC(call_out_chain, "Does a call_out to a list of functions, one following "
     "another, with each returning the delay till the next one is called.")
 
-void handle_chain(object ob, array funcs, array args) {
+static void handle_chain(object ob, array funcs, array args) {
     int delay;
+    if(!sizeof(funcs))
+      return;
     if (stringp(funcs[0])) {
         delay = call_other(ob, funcs[0], args...);
     } else {
         delay = evaluate(funcs[0], args...);
     }
-    call_out( (: handle_chain :), delay, ob, funcs[1..]);
+    call_out( (: handle_chain :), delay, ob, funcs[1..], args);
 }
 
 void call_out_chain(array funcs, int delay, array args...) {
     call_out( (: handle_chain :), delay, previous_object(), funcs, args);
+}
+
+mixed *my_call_outs()
+{
+  object p = previous_object();
+  return filter_array(call_out_info(), (: $1[0] == $(p):));
+}
+
+// Beek fixed not to loop forever if exp < 0, etc
+// also optimized extensively
+int
+pow(int num, int exp)
+{
+    int res;
+    
+    switch (exp) {
+    case 0:
+	if (!num) error("pow(0, 0) is undefined.\n");
+	return 1;
+    case 1:
+	return num;
+    case 2:
+	return num * num;
+    case 3:
+	return num * num * num;
+
+    case 4: 				// 2 multiplications, not 3
+	num *= num;			// 1, 2, 4
+	return num * num;
+
+    case 5: 				// 3 multiplications, not 4
+	exp = num * num; 		// 1, 2, 4, 5
+	exp *= exp;
+	return exp * num;
+
+    case 6:				// 3 multiplications, not 5
+	num *= num;			// 1, 2, 4, 6
+	return num * num * num;
+
+    case 7:				// 4 multiplications, not 6
+	exp = num * num;		// 1, 2, 4, 6, 7
+	exp *= exp * exp;
+	return exp * num;
+	
+    case 8:				// 3 multiplications, not 7
+	num *= num;			// 1, 2, 4, 8
+	num *= num;
+	return num * num;
+	
+    case 9:				// 4, not 8
+	exp = num * num;
+	exp *= exp;
+	exp *= exp;
+	return num * exp;
+
+    case 10:				// 4, not 9
+	num *= num;
+	exp = num * num;
+	exp *= exp;
+	return exp * num;
+	
+    case 11:				// 5, not 10
+	exp = num * num;
+	res = exp * exp;
+	res *= res;
+	return res * num * exp;
+	
+    case 12:				// 4, not 11 ...
+	num *= num;
+	num *= num;
+	exp = num * num;
+	return exp * num;
+	
+    default:
+	if (exp < 0)
+	    return 0;
+	// exp > 12 here ...
+	switch (num) {
+	case 0:
+	    return 0;
+	case 1:
+	    return 1;
+	case 2:
+	    return 1 << exp;
+	default:
+	    // sub optimal, but pretty good
+	    // O(log n) multiplications, not O(n)
+	    res = 1;
+
+	    while (exp) {
+		if (exp & 1)
+		    res *= num;
+		num *= num;
+		exp >>= 1;
+	    }
+	    return res;
+	}
+    }
+}
+
+int fuzzy_divide(int top, int bottom) {
+    if (random(bottom) < (top % bottom))
+	return top / bottom + 1;
+    else
+	return top / bottom;
 }

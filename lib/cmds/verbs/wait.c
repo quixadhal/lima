@@ -16,5 +16,5 @@ void do_wait()
 
 mixed * query_verb_info()
 {
-  return ( { ( { 0 } ) } );
+  return ({ ({ 0 }) });
 }

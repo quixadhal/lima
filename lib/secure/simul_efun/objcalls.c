@@ -98,6 +98,7 @@ object get_object(string arg)
     if ( !arg ) return 0;
     if ( arg == "me" ) return this_body();
     if ( arg == "here" ) return environment(this_body());
+    if ( arg == "shell" ) return this_body()->query_shell_ob();
     if ( !(ob = present( arg, this_body())) )
 	if ( environment(this_body()) &&
 	     !(ob = present(arg, environment(this_body()))) )

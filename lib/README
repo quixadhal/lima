@@ -1,10 +1,10 @@
-Welcome to Lima release 0.9 pre-alpha!
+Welcome to Lima release 0.9r2 pre-alpha!
 
 To compensate for our lack of documentation, please come to our lib
-support mud, Lima Bean, and ask questions.  (Or type news and post
-them). 
+support mud, Lima Bean, and ask questions (or type news and post
+them there).
 
-It's located at:
+Lima Bean is located at:
 lima.imaginary.com 7878
 (198.92.143.9	7878)
 
@@ -51,23 +51,10 @@ Credits:
 	  limits on Zorkmud, and for many of the player verbs.  
 	o Marc Blank and David Lebling for Zork.
 	o Mark St. Louis (leblany@bosoleil.ci.umoncton.ca) for
-		contributing almosr all of the adverbs in our soul.
+		contributing almost all of the adverbs in our soul.
 	o Everyone who's put a helping hand into Zorkmud and Lima in 
 	the past 18 months, especially:
 		Dave Tyler (Nevyn@ZorkMud)
 		Devon Tuck (Cleave@ZorkMud)
 		Scott Dawson (Peregrin@ZorkMud)
 		Fred Tarabay (Megaboz@ZorkMud)
-	
-Note:
-
-We are aware of the fact that error messages in the parser aren't
-fully implemented in MudOS yet, so don't report things like
-getting ERROR_PROCESS_ANSWER back from the parser or 'There is
-no X here.'.
-
-Also, a number of the verbs aren't fully implemented or converted
-yet; if you fix some of them we'd appreciate getting the fixed
-files.
-
-

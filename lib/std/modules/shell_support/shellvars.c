@@ -1,13 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-**
-**  This needs a hook for evaluating the string as code.
-**
-*/
 #include <mudlib.h>
 
 private static mapping variables = ([]);
+private static mapping set_var_hooks = ([]);
 
 
 DOC(setup_for_save,"Sets up M_SAVE to save some variables")
@@ -31,12 +27,14 @@ set_variable(string var, string value)
 {
   variables[var] = value;
   this_object()->save();
+  if(set_var_hooks[var])
+    evaluate(set_var_hooks[var], value);
 }
 
 mixed 
 get_variable(string var)
 {
-  return variables[var];
+    return variables[var];
 }
 
 static
@@ -55,8 +53,13 @@ varargs static mixed expand_if_variable(string arg, int only_expand_if_string)
 
   if(!stringp(arg))
     return arg;
-  if(!(strlen(arg) > 1 && arg[0] == '$' ))
-    return arg;
+  if(!(strlen(arg) > 1 && arg[0] == '$'))
+    {
+// Strip off the \ before the $ if someone does \$var.
+//      if(!only_expand_if_string && (strlen(arg) > 1) && arg[0] == '\\' && arg[1] == '$')
+//	return arg[1..];
+      return arg;
+    }
 
   a = M_REGEX->regexplode(arg[1..],"[a-zA-Z0-9]+");
   if(sizeof(a) < 2 || a[0] != "" || undefinedp(variables[a[1]]))
@@ -130,4 +133,9 @@ int cmd_set(string* argv)
 	     argv[1], get_variable(argv[1]));
       return 1;
     }
+}
+
+void add_variable_hook(string variable, function f)
+{
+  set_var_hooks[variable] = f;
 }

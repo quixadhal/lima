@@ -5,6 +5,8 @@
 #include <mudlib.h>
 #include <playerflags.h>
 
+inherit CMD;
+
 #define DIVIDER \
 "-------------------------------------------------------------------------\n"
 
@@ -102,10 +104,10 @@ string get_who_string(string arg)
     return retval + DIVIDER;
 }
 
-int main(string arg)
+private void main(string arg)
 {
   if( arg == "" )
     arg = 0;
         write(get_who_string(arg));
-    return 1;
+    return;
 }

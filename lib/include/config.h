@@ -6,7 +6,8 @@
 #define mud_name()		MUD_NAME
 /* You don't have permission to change the next 2 lines w/o our consent.*/
 #define lib_name()		"Lima"
-#define lib_version()		"0.9r1 pre-alpha"
+#define lib_version()		"0.9r2 (pre-alpha)"
+#define lib_status()		"Open for the public"
 #define driver_version()	__VERSION__
 #define __HOST__		"lima.imaginary.com"
 
@@ -18,14 +19,25 @@
 #define ADMIN_EMAIL	"rust@virginia.edu or gstein@svpal.org"
 
 #undef NO_NEW_PLAYERS
+#define OBVIOUS_EXITS   
+
+#define USE_GAME_FEATURES
+#ifdef USE_GAME_FEATURES
+#define USE_STATS
+#ifdef USE_STATS
+#define USE_COMBAT
+#endif
+#define USE_GUILDS
+#endif
+
 
 // Auto wiz means guest wizard only.  You still have to use the admtool
 // command to make the person a full wizard w/ a directory.
 #define AUTO_WIZ
 
-#define BUG_NEWSGROUP "reporter.bugs"
+#define BUG_NEWSGROUP "lima.bugs"
 #define TYPO_NEWSGROUP "reporter.typos"
-#define IDEA_NEWSGROUP "reporter.ideas"
+#define IDEA_NEWSGROUP "lima.ideas"
 
 // Define this if you want bug, typo and idea commands to log to /log instead
 // of posting news
@@ -49,8 +61,3 @@
 #define MOTD_FILE	"/data/config/MOTD"
 
 #endif /* __CONFIG_H__ */
-
-
-
-
-

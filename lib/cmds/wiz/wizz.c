@@ -3,6 +3,7 @@
 // product du Belboz/Rust
 
 #include <mudlib.h>
+inherit CMD;
 
 string* MSGS;
 
@@ -25,7 +26,7 @@ create()
 
 
 
-int main( string arg )
+private void main( string arg )
 {
   object	start_room;
   string	name;
@@ -39,17 +40,17 @@ int main( string arg )
   if( this_body()->move( WIZ_ROOM ) )
   {
     write( "You remain where you are.\n" );
-    return 1;
+    return;
   }
   force_look();
   printf("You are carried to the wizard lounge on %s!\n", arg );
   if( name == "Someone" )
-    return 1;
+    return;
 
   tell_room( start_room, sprintf( "%s is whisked away on %s!\n",
 	name, arg ) );
   say( sprintf( "%s arrives on %s!\n", name, arg ) );
-  return 1;
+  return;
 }
 
 int help()

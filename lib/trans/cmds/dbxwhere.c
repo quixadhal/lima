@@ -5,25 +5,21 @@
 #include <mudlib.h>
 #include <security.h>
 
-inherit M_ACCESS;
+inherit CMD;
 
-create() {
-    set_privilege(1);
-}
-
-int
+private void
 main(string str) {
     mapping error;
     object ob;
     int i;
 
-    if (str == "") {
+    if (!str || str == "") {
 	error = master()->query_error(this_user()->query_real_name());
     } else {
 	error = master()->query_error(str);
-	if (!error && !find_body(str)) {
-            write("No such player.");
-            return 1;
+	if (!error && !find_body(str) && str != "last") {
+            write("No such player.\n");
+            return;
         }
     }
     if (!error) {
@@ -31,5 +27,5 @@ main(string str) {
     } else {
         printf("%s\n", master()->standard_trace(error, 1));
     }
-    return 1;
+    return;
 }

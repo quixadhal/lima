@@ -1,5 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <mudlib.h>
+inherit CMD;
+
 void clean_object(object ob) {
   int i;
   object *obs;
@@ -14,9 +17,9 @@ void clean_object(object ob) {
   }
 }
 
-int main(mixed *arg) {
+private void main(mixed *arg) {
     if (!arg[0]) arg[0] = environment(this_body());
     clean_object(arg[0]);
     this_body()->do_player_message("clean");
-    return 1;
+    return;
 }

@@ -7,9 +7,11 @@
 */
 
 #include <mudlib.h>
+#define PROMPT_NEWS     "(AdmTool:news)   [larmq?] > "
 
 void std_handler(string str);
 varargs void modal_simple(function input_func, int secure);
+void receive_news_input(string);
 
 static nomask void write_news_menu()
 {
@@ -40,7 +42,6 @@ private nomask void list_groups()
 
 }
 
-
 private nomask void rcv_group_name(string str)
 {
     str = lower_case(trim_spaces(str));
@@ -53,9 +54,9 @@ private nomask void rcv_group_name(string str)
 	write("** That group already exists.\n");
 	return;
     }
-
     NEWS_D->add_group(str);
     write("** group added.\n");
+    this_user()->modal_func((:receive_news_input:), PROMPT_NEWS);
 }
 
 private nomask void add_group()

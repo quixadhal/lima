@@ -3,8 +3,9 @@
 #include <mudlib.h>
 #include <daemons.h>
 
+inherit CMD;
 
-int main(){
+private void main(){
 
     mapping exits;
     string* files;
@@ -18,7 +19,7 @@ int main(){
     base = environment(this_body())->query_base();
     if(!exits){
 	write("There are no exits to this room.\n");
-	return 0;
+	return;
     }
 
     files = values( exits );
@@ -26,7 +27,7 @@ int main(){
 
     if( !sizeof( files ) ){
 	write("There are no exits in this room.\n");
-	return 0;
+	return;
     }
 
     write("Current exits:\n");
@@ -44,7 +45,7 @@ int main(){
 	}
 	else printf("%s:  Unknown\n",directions[i]);
     }
-    return 1;
+    return;
 }
 
 int help(){

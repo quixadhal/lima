@@ -12,12 +12,38 @@ Using your shell.
 
 	notice that the space before and after the '=' are required!
 
+More about your prompt:
+	You can use the following variables in your prompt:
+	
+	%p -- your current working directory.
+	%m -- the name of the mud you're on.
+	%n -- the name of your character. (should be someone when you're invis)
+	%N -- your character's "real name".
+	%_ -- a newline.
+	%h -- the number of commands you've executed since you logged
+		on to the mud.
+	%r -- the room you're in (file name)
+	%d -- the current date
+	%D -- the day of the week
+	%t -- the current time
+
+
 	Wizards also have a 'path' variable, which defines the directories in
 	which the command finder will search for commands.  By default,
 	your path is /trans/cmds, /cmds/wiz, and /cmds/player.
 	You can look at the value of this variable by typing:
 
 	$path
+
+	You may also recover what your body sees while you're linkdead
+	when you reconnect if you previously set the variable
+	save_scrollback.
+	
+	To recover your scrollback when you reconnect, type: scrollback
+
+	Other variables:
+	show_loc -- shows the file name of the room you're in in the room's
+	description.
 
 
 2)  Evaluating code
@@ -38,16 +64,24 @@ Using your shell.
 	The print command is a shell builtin, which is mainly 
 	used to print the results of code evaluation.
 
+	There is a global wizard alias:
+	     @    (expands to)   print `$*`
+
+	eg:
+	     @ this_user()->query_userid()
+
+        I get:
+	     "rust"
 
 	You may uses variables inside your code as real variables.
 	For example:
-		print `"my prompt is: " + $PROMPT`
+		@"my prompt is: " + $PROMPT
 
 	Will give you:	
 	"my prompt is: >"   (or whatever your PROMPT is).
 
 	And yes, you may also set variables to the result of code:
-	$path = `$path + ({"/wiz/rust/cmds/"})
+	$path = `$path + ({"/wiz/rust/cmds/"})`
 
 	(then do:
 	$path
@@ -57,6 +91,25 @@ Using your shell.
 *** If you ever mess up your path, type:	
 	resetpath
 
+
+Code abbreviations:
+
+    When you're evaluating code in the shell, you may use the
+following abbreviations:
+
+ 	.me   -> this_body()
+	.rust -> find_body("rust")
+	.here -> environment(this_body())
+	.xxx:shell -> xxx->query_shell_ob()
+	.xxx:link ->  xxx->query_link()
+	.xxx:foo -> present("xxx", foo)
+	./wiz/rust/blah -> load_object("/wiz/rust/blah")
+
+	Examples (Try them yourself):
+	   @ .me:shell->query_shellname()
+           @ .here:rust               (or use your name instead of mine 
+					if I'm not around)
+	   @ ./domains/std/butthead->long()
 
 Note, there are many other features to the shell.  See also:
 	help history, help alias

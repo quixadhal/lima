@@ -10,14 +10,14 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 private object * get_obs(string arg)
 {
     return filter_array(objects(), (: base_name($1) == $(arg) :) );
 }
 
-int main(string arg)
+private void main(string arg)
 {
     object * obs;
 
@@ -31,6 +31,4 @@ int main(string arg)
     obs = filter_array(obs, (: $1 :));  /* remove zeros */
     printf("Destructing %d objects of class %s\n", sizeof(obs), arg);
     map_array(obs, (: destruct :));
-
-    return 1;
 }

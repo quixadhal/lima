@@ -999,13 +999,19 @@ int validate_function_call P3(function_t *, funp, int, f, parse_node_t *, args)
     /*
      * Check number of arguments.
      */
-    if ((num_var || funp->num_arg != num_arg)
-	&& !(funp->type & TYPE_MOD_VARARGS) &&
-	(funp->flags & NAME_STRICT_TYPES) && exact_types) {
+    if (!(funp->type & TYPE_MOD_VARARGS) &&
+	(funp->flags & NAME_STRICT_TYPES) &&
+	exact_types) {
 	char buff[100];
 
-	sprintf(buff, "Wrong number of arguments to %.60s\n    Expected: %d  Got: %d", funp->name, funp->num_arg, num_arg);
-	yyerror(buff);
+	if (num_var) {
+	    sprintf(buff, "Illegal to pass a variable number of arguments to non-varargs function %.60s\n", funp->name);
+	    yyerror(buff);
+	} else
+	if (funp->num_arg != num_arg) {
+	    sprintf(buff, "Wrong number of arguments to %.60s\n    Expected: %d  Got: %d", funp->name, funp->num_arg, num_arg);
+	    yyerror(buff);
+	}
     }
     /*
      * Check the argument types.
@@ -1049,6 +1055,10 @@ promote_to_float P1(parse_node_t *, node) {
     expr->v.number = F_TO_FLOAT;
     expr->type = TYPE_REAL;
     expr->l.number = 1;
+    expr->r.expr = new_node_no_line();
+    expr->r.expr->kind = 1;
+    expr->r.expr->l.expr = expr->r.expr;
+    expr->r.expr->type = 0;
     expr->r.expr->v.expr = node;
     expr->r.expr->r.expr = 0;
     return expr;
@@ -1067,6 +1077,10 @@ promote_to_int P1(parse_node_t *, node) {
     expr->v.number = F_TO_INT;
     expr->type = TYPE_NUMBER;
     expr->l.number = 1;
+    expr->r.expr = new_node_no_line();
+    expr->r.expr->kind = 1;
+    expr->r.expr->l.expr = expr->r.expr;
+    expr->r.expr->type = 0;
     expr->r.expr->v.expr = node;
     expr->r.expr->r.expr = 0;
     return expr;

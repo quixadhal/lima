@@ -35,8 +35,9 @@
 */
 
 #include <mudlib.h>
+#include <security.h>
 
-
+inherit M_ACCESS;
 inherit M_GRAMMAR;
 
 
@@ -59,10 +60,22 @@ private static mapping requestors;
 */
 private static function cl_user_chan_name;
 
+/*
+** Store some permanent listeners here
+*/
+#define SAVE_FILE	"/data/daemons/channel_d"
+
+class listener_pair { string channel_name, filename; }
+private class listener_pair *	saved_listeners;
+
+
 private void register_one(string channel_name, object listener)
 {
     if ( registered[channel_name] )
-	registered[channel_name] += ({ listener });
+    {
+	if ( member_array(listener, registered[channel_name]) == -1 )
+	    registered[channel_name] += ({ listener });
+    }
     else
 	registered[channel_name] = ({ listener });
 }
@@ -281,6 +294,8 @@ nomask void deliver_notice(string channel_name,
 */
 void create()
 {
+    set_privilege(1);
+
     registered = ([ ]);
     moderators = ([ ]);
     speakers   = ([ ]);
@@ -289,6 +304,57 @@ void create()
     cl_user_chan_name = (: explode($1, "_")[<1] :);
 
     map_array(all_users()->query_body(), (: register_body :));
+
+    restore_object(SAVE_FILE, 1);
+    if ( saved_listeners )
+    {
+	class listener_pair pair;
+
+	foreach ( pair in saved_listeners )
+	{
+	    object ob = find_object(pair->filename);
+
+	    if ( ob )
+		register_one(pair->channel_name, ob);
+	}
+
+	saved_listeners = 0;
+    }
+}
+
+/*
+** remove()
+**
+** Write out all listeners that are blueprints.  We'll reset them at
+** creation time.
+*/
+void remove()
+{
+    string channel_name;
+    object * listeners;
+
+    saved_listeners = ({ });
+
+    foreach ( channel_name, listeners in registered )
+    {
+	object listener;
+
+	foreach ( listener in listeners - ({ 0 }) )
+	{
+	    string fname = file_name(listener);
+
+	    if ( member_array('#', fname) == -1 )
+	    {
+		class listener_pair pair = new(class listener_pair);
+
+		pair->channel_name = channel_name;
+		pair->filename = fname;
+		saved_listeners += ({ pair });
+	    }
+	}
+    }
+
+    unguarded(1, (: save_object, SAVE_FILE :));
 }
 
 /*
@@ -298,7 +364,8 @@ void create()
 */
 nomask mapping query_registered()
 {
-    return registered;
+    if ( check_privilege(1))
+	return registered;
 }
 
 /*
@@ -308,7 +375,13 @@ nomask mapping query_registered()
 */
 private nomask string make_name_list(mixed * list)
 {
-    return implode(filter_array(list, (: interactive($1->query_link()) :))->query_name() - ({ 0 }), ", ");
+    /*
+    ** Remove null objects, objects with no links (to interactive users),
+    ** and link obs that are no longer interactive.
+    */
+    list = filter_array(list, (: $1 && $1->query_link() &&
+			       interactive($1->query_link()) :));
+    return implode(list->query_name(), ", ");
 }
 
     
@@ -353,8 +426,13 @@ private nomask void print_mod_info(string channel_name)
 **
 ** Standard channel processing command for player input.  Most channel-
 ** oriented systems will use this to get standardized channel manipulation.
+**
+** channel_type is:
+**	0 normal
+**	1 intermud
 */
-nomask void cmd_channel(string channel_name, string arg)
+varargs nomask void cmd_channel(string channel_name, string arg,
+				int channel_type)
 {
     object tb;
     string * channel_list;
@@ -565,6 +643,16 @@ nomask void cmd_channel(string channel_name, string arg)
 	    tb != speakers[channel_name] )
 	{
 	    printf("You are not the speaker on '%s'.\n", user_channel_name);
+	}
+	else if ( channel_type == 1 )
+	{
+	    mixed * soul;
+
+	    soul = SOUL_D->parse_imud_soul(arg[1..]);
+	    if ( soul )
+		deliver_soul(channel_name, soul);
+	    else
+		deliver_emote(channel_name, sender_name, arg[1..]);
 	}
 	else
 	{

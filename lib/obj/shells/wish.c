@@ -7,30 +7,40 @@
 inherit SHELL;
 inherit M_COMPLETE;
 //inherit M_ACCESS;
-inherit M_SAVE;
 inherit M_GETOPT;
 inherit M_REGEX;
 
 int is_variable(string name);
 
-mixed evaluate_code(mixed code)
+private mixed evaluate_code(mixed code)
 {
+  string dir;
+    
   code = reg_assoc(code,({"\\$[a-zA-Z0-9]+"}),({0}))[0];
   code = 
   map(code, (: (strlen($1) > 1 && $1[0] == '$' && is_variable($1[1..]))  ?
 	     "(this_body()->query_shell_ob()->get_variable(\""+$1[1..]+"\"))" :
 	     $1 :));
   code = implode(code, "");
+
+  // don't chop access
+  if (check_privilege(1))
+    dir = "/trans/tmp";
+  else if (file_size(dir = wiz_dir(this_user())) != -2)
+    dir = "/tmp";
+
   if(is_file(wiz_dir(this_user())+"/eval.h"))
-    return exec(code, wiz_dir(this_user())+"/eval.h");
+      return exec_code(code, dir, wiz_dir(this_user())+"/eval.h");
   else
-    return exec(code);
+      return exec_code(code, dir);
 }
 
 mixed* expand_arguments(string* argv)
 {
   int i;
 
+  if(this_body() != get_owner())
+    error("get your own shell, asswipe!\n");
   for(i=0;i<sizeof(argv);i++)
     {
 
@@ -43,7 +53,7 @@ mixed* expand_arguments(string* argv)
   return argv;
 }
 
-void
+private void
 print_argument(mixed argv)
 {
   mixed item;
@@ -59,7 +69,7 @@ print_argument(mixed argv)
 }  
 
 
-void
+private void
 fix_path()
 {
   set_variable("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
@@ -68,19 +78,19 @@ fix_path()
 }
 
 
-void
+private void
 show_shell_help()
 {
   new(MORE_OB)->more_file("/help/wizard/shell");
 }
 
-void
-create()
+private void
+create(string save_str)
 {
   if ( !clonep() )
     return;
 
-  shell::create();
+  shell::create(save_str);
 
   set_privilege(1);
 
@@ -89,8 +99,6 @@ create()
 
   set_variable("path", ({CMD_DIR_NO_RESTRICT "/", CMD_DIR_RESTRICT "/", 
 			   CMD_DIR_PLAYER "/"}));
-  set_variable("PROMPT", "? for shell help>");
-
   arg_to_words_func = (: argument_explode :);
   shell_bind("resetpath", (: fix_path :));
   shell_bind("print", (: print_argument :));
@@ -104,7 +112,7 @@ query_shellname()
   return "wish (Lima wizard shell) v. 0.9";
 }
 
-int
+static int
 execute_command(string * argv, string original_input)
 {
   mixed 	cmd_info;
@@ -121,6 +129,6 @@ execute_command(string * argv, string original_input)
 	printf("Found command is uncallable.\n");
       return -1;
     }
-  cmd_info[0]->main(cmd_info[2], cmd_info[1]);
+  cmd_info[0]->call_main(cmd_info[2], cmd_info[1]);
   return 1;
 }

@@ -2,11 +2,11 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 // Rust
 
-int main(mixed *arg) {
+private void main(mixed *arg) {
   string file;
   int i;
   string chunk;
@@ -21,7 +21,7 @@ int main(mixed *arg) {
 //	while(chunk = read_file(file,i,i+=100))  crashes the driver on large files
 	  write(chunk);
     }
-    return 1;
+    return;
 }
 
 
@@ -31,5 +31,4 @@ int help()
 	"Usage:  cat <filename>\n"
 	"Displays the entire contents of the specified file to your screen "
 	"all at once.  See also more.\n" ));
-    return 1;
 }

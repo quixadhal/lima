@@ -6,10 +6,13 @@
 ** 950711, Deathblade: Created.
 */
 
-int main(string arg)
+#include <mudlib.h>
+inherit CMD;
+
+private void main(string arg)
 {
     this_body()->save_me();
     write("Saved.\n");
 
-    return 1;
+    return;
 }

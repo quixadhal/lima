@@ -5,9 +5,9 @@
 // Megaboz@ZorkMUD edited help and attached header 5-5-94
 
 #include <mudlib.h>
+inherit CMD;
 
-
-int main()
+private void main()
 {
     mapping exits;
     string* files;
@@ -19,7 +19,7 @@ int main()
     exits = environment(this_body())->get_exits();
     if(!exits){
 	write("There are no exits to this room.\n");
-	return 0;
+	return;
     }
 
     files = values( exits );
@@ -27,7 +27,7 @@ int main()
 
     if( !sizeof( files ) ){
 	write("There are no exits in this room.\n");
-	return 0;
+	return;
     }
 
     write("Current exits:\n");
@@ -41,5 +41,5 @@ int main()
 	printf("%s:  %s \n",
 	       directions[i], Short);
     }
-    return 1;
+    return;
 }

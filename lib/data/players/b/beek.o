@@ -13,23 +13,25 @@ hp 2
 max_hp 10
 heal_rate 10
 weapon_type "blow"
-news_data (["lima.ideas":14,"player.chat":1,"lima.help":1,"player.news":1,"lima.discussion":7,"reporter.typos":2,"driver.bugs":3,"lima.bugs":47,])
+default_mailer "/std/mailers/standard"
+news_data (["lima.ideas":83,"driver.discussion":5,"test.group":1,"wiz.test":1,"lima.discussion":31,"lima.todo":2,"driver.bugs":3,"..announcements..":7,"lima.bugs":173,"wiz.chat":2,"wiz.news":1,"player.chat":1,"lima.help":15,"player.news":1,"admin.chat":2,"reporter.typos":4,])
 paths ({"/wiz/beek/bin/","/commands/norestrict/","/commands/restrict/","/commands/player/",})
 level 5
 topic_to_time ([])
 wizdefaults ([])
 wizxdefaults ({})
 saved ({})
-shell_saved_data "({\"/obj/shells/wish\",({([\"gossip\":(/\"chan gossip $*\",({\"\",}),0,0,/),\"newbie\":(/\"chan newbie $*\",({\"\",}),0,0,/),\":\":(/\"emote $*\",({\"\",}),0,0,/),\"x\":(/\"examine $*\",({\"\",}),0,0,/),\"'\":(/\"say $*\",({\"\",}),0,0,/),\"e\":(/\"go east $*\",({\"\",}),0,0,/),\"wiz\":(/\"wchan wiz $*\",({\"\",}),0,0,/),\"se\":(/\"go southeast $*\",({\"\",}),0,0,/),\"sw\":(/\"go southwest $*\",({\"\",}),0,0,/),\"p\":(/\"people $*\",({\"\",}),0,0,/),\"n\":(/\"go north $*\",({\"\",}),0,0,/),\"l\":(/\"look $*\",({\"\",}),0,0,/),\"ne\":(/\"go northeast $*\",({\"\",}),0,0,/),\"w\":(/\"go west $*\",({\"\",}),0,0,/),\"nw\":(/\"go northwest $*\",({\"\",}),0,0,/),\"s\":(/\"go south $*\",({\"\",}),0,0,/),]),({\":\",\"'\",}),([\"PROMPT\":\">\",\"path\":({\"/trans/cmds/\",\"/cmds/wiz/\",\"/cmds/player/\",}),]),([]),({}),}),})"
+shell_saved_data "([\"#base_name#\":\"/obj/shells/wish\",\"modules\":({}),\"variables\":([\"PROMPT\":\"\\\"> \\\"\",\"path\":({\"/trans/cmds/\",\"/cmds/wiz/\",\"/cmds/player/\",}),]),\"alias_save\":([\"gossip\":(/\"chan gossip $*\",({\"\",}),0,0,/),\"newbie\":(/\"chan newbie $*\",({\"\",}),0,0,/),\"n\":(/\"go north $*\",({\"\",}),0,0,/),\"l\":(/\"look $*\",({\"\",}),0,0,/),\":\":(/\"emote $*\",({\"\",}),0,0,/),\"ne\":(/\"go northeast $*\",({\"\",}),0,0,/),\"x\":(/\"examine $*\",({\"\",}),0,0,/),\"w\":(/\"go west $*\",({\"\",}),0,0,/),\"nw\":(/\"go northwest $*\",({\"\",}),0,0,/),\"'\":(/\"say $*\",({\"\",}),0,0,/),\"e\":(/\"go east $*\",({\"\",}),0,0,/),\"s\":(/\"go south $*\",({\"\",}),0,0,/),\"se\":(/\"go southeast $*\",({\"\",}),0,0,/),\"sw\":(/\"go southwest $*\",({\"\",}),0,0,/),]),\"personal_bindings\":([]),\"xalias_save\":({\":\",\"'\",}),])"
+skills ([])
 title "Beek the title-less"
 name "beek"
 describe "Beek is a boring zorker and hasn't described itself."
 invis_name "Someone"
+nickname "god"
 start_location "/domains/std/wizroom"
-reply "demmius"
-nickname_list ([])
-channel_list ({"plyr_gossip","adm_admin","plyr_news","plyr_conf","global_0","global_foo","global","wiz_s.wiz","wiz_wiz","wiz_errors",})
+reply "aragorn"
+channel_list ({"plyr_gossip","adm_admin","plyr_news","plyr_conf","global_0","global_foo","global","wiz_s.wiz","wiz_wiz","wiz_errors","wiz_announce",})
 auto_load ({})
-pwd "/cmds/player"
-cwf "/cmds/player/passwd.c"
-ilog_time 806313702
+pwd "/wiz/beek"
+cwf "/std/player/mailbase.c"
+ilog_time 807543910

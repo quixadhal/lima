@@ -41,7 +41,7 @@ void do_go_str(string str) {
 
 mixed * query_verb_info()
 {
-    return ({ ({ 1, "down OBJ", "up OBJ", "around OBJ", "to OBJ",
+    return ({ ({ 1, "down OBJ", "up OBJ", "around OBJ:v", "to OBJ:v",
 		     "over OBJ", "on OBJ", "into OBJ", "in OBJ" }) });
 
     /*

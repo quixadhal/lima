@@ -4,19 +4,19 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 
 
-
-int main( string str) {
+private void main( string str) {
 
   if ( !str )
   {
     write("Echo what?\n");
-    return 1;
+    return;
   }
 
     tell_room(environment(this_body()), str + "\n", ({ this_body() }));
     write("You echo: "+str+"\n");
 
-    return 1;
+    return;
 }

@@ -185,11 +185,9 @@ find_cmd_in_path(string cmd, string* path, int just_give_me_the_dir){
          is_file(dir+cmd+".c") &&
 	 o = load_object(dir+cmd))
 	{ 
-	  if(!function_exists("main",o))
-	    {
+	  if(function_exists("call_main",o) != CMD)
 	      return -1;
-	    }
-	  return just_give_me_the_dir ? dir : o;
+	  return just_give_me_the_dir ?(mixed)dir :(mixed) o;
 	}
     }
 #ifdef AUTOMATIC_REHASH
@@ -203,10 +201,8 @@ find_cmd_in_path(string cmd, string* path, int just_give_me_the_dir){
 	if(member_array(cmd, cmd_info[dir]) != -1 && 
 	   o = load_object(dir+cmd))
 	  { 
-	    if(!function_exists("main",o))
-	      {
+	    if(function_exists("call_main",o) != CMD)
 		return -1;
-	      }
 	    return o;
 	  }
       }
@@ -226,7 +222,7 @@ find_cmd(string cmd, string* path, int flag) {
   if(strsrch(cmd,"/") != -1 && o = load_object(s))
     {
       dir = base_path(s);
-      if(function_exists("main",o))
+      if(function_exists("call_main",o) != CMD)
 	{
 	  if(!cmd_info[dir])
 	    cache_dir(dir);
@@ -248,10 +244,8 @@ find_cmd(string cmd, string* path, int flag) {
       if(member_array(cmd, cmd_info[dir]) != -1 && 
 	 o = load_object(dir+cmd))
 	{ 
-	  if(!function_exists("main",o))
-	    {
+	  if(function_exists("call_main",o) != CMD)
 	      return -1;
-	    }
 	  return flag ? (mixed)({o, dir}) : (mixed)o;
 	}
     }
@@ -266,10 +260,8 @@ find_cmd(string cmd, string* path, int flag) {
 	if(member_array(cmd, cmd_info[dir]) != -1 && 
 	   o = load_object(dir+cmd))
 	  { 
-	    if(!function_exists("main",o))
-	      {
+	    if(function_exists("call_main",o) != CMD)
 		return -1;
-	      }
 	    return flag ? (mixed)({o, dir}) : (mixed)o;
 	  }
       }
@@ -301,7 +293,7 @@ smart_arg_parsing(mixed argv, string* path){
 			    (: $1[0..<3] :)))))
     {
     case 0:
-      cmd_name = argv[0];
+      cmd_name = trim_spaces(argv[0]);
       break;
     case 1:
       cmd_name = split_path(info[0])[1];
@@ -433,6 +425,10 @@ private mixed parse_arg(int this_arg, mixed argv) {
     {
       cfile_result = (strlen(argv) > 2 && argv[<2..] == ".c") ?
 	glob(evaluate_path(argv)) : glob(evaluate_path(argv)+".c");
+      if(!sizeof(cfile_result) && argv == "here")
+	{
+	  cfile_result = ({ base_name(environment(this_body())) + ".c" });
+	}
       cfile_result = filter_array(cfile_result, 
 				  (: is_file :));
       if(!sizeof(cfile_result))
@@ -443,6 +439,10 @@ private mixed parse_arg(int this_arg, mixed argv) {
   if((this_arg & (FILE|DIR|FNAME)) && stringp(argv))
     {
       glob_result = glob(evaluate_path(argv));
+      if(!sizeof(glob_result) && argv == "here")
+	{
+	  glob_result = ({base_name(environment(this_body())) + ".c"});
+	}
       if(!sizeof(glob_result) && (this_arg&FNAME))
 	{
 	  if(is_directory(base_path(evaluate_path(argv))))

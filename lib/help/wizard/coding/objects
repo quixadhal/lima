@@ -22,13 +22,13 @@ discarded."  First of all, notice that the game refers to an
 object using the first adjective and the first noun.  This is
 the default behavior.  It's also pretty smart about using
 articles (a, the) but sometimes you want more power.  If you
-call set_short(), that will be used for the name of the object
+call set_proper_name(), that will be used for the name of the object
 instead.  For example, if you wanted to put the sword Excalibur
 in the game, and you wanted the game to refer to it as
 'Excalibur', 'You take a Excalibur' would be a bad thing.  so
 you would do:
 
-set_short("Excalibur");
+set_proper_name("Excalibur");
 
 in create().  Note that you still have to call set_id and
 set_adjectives so the game knows what the player can refer to

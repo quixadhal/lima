@@ -414,7 +414,7 @@ i_generate_node P1(parse_node_t *, expr) {
 	i_generate_node(expr->l.expr);
 	end_pushes();
 	ins_byte(0);
-	expr->line = CURRENT_PROGRAM_SIZE;
+	expr->v.number = CURRENT_PROGRAM_SIZE;
 	ins_short(0);
 	i_generate_node(expr->r.expr);
         break;
@@ -449,7 +449,7 @@ i_generate_node P1(parse_node_t *, expr) {
 	    end_pushes();
 	    ins_byte(F_BRANCH);
 	    expr->v.expr = branch_list[kind];
-	    expr->line = CURRENT_PROGRAM_SIZE;
+	    expr->l.number = CURRENT_PROGRAM_SIZE;
 	    ins_short(0);
 	    branch_list[kind] = expr;
 	    break;
@@ -816,7 +816,7 @@ void i_update_forward_branch_links P2(char, kind, parse_node_t *, link_start){
     upd_short(current_forward_branch, CURRENT_PROGRAM_SIZE - current_forward_branch);
     current_forward_branch = i;
     do {
-	i = link_start->line;
+	i = link_start->v.number;
 	upd_byte(i-1, kind);
 	upd_short(i, CURRENT_PROGRAM_SIZE - i);
 	link_start = link_start->l.expr;
@@ -841,7 +841,7 @@ i_update_branch_list P1(parse_node_t *, bl) {
     current_size = CURRENT_PROGRAM_SIZE;
 
     while (bl) {
-	upd_short(bl->line, current_size - bl->line);
+	upd_short(bl->l.number, current_size - bl->l.number);
 	bl = bl->v.expr;
     }
 }

@@ -1,7 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 /*
-** admtool.c -- administration tool
 **
 ** Provides various adminstration facilities for admins, domain lords, and
 ** wizards.
@@ -13,7 +12,7 @@
 //#include <security.h>
 #include <commands.h>
 
-//inherit M_ACCESS;      Don't need this, we get it from inheriting alias.c
+inherit CMD;
 inherit M_INPUT;
 inherit CMD_DIR_NO_RESTRICT "/admtool/user";
 inherit CMD_DIR_NO_RESTRICT "/admtool/i3chan";
@@ -29,7 +28,7 @@ inherit CMD_DIR_NO_RESTRICT "/admtool/alias";
 #define PROMPT_BANISH	"(AdmTool:banish) [mq?] > "
 #define PROMPT_I3CHAN	"(AdmTool:i3chan) [larmq?] > "
 #define PROMPT_NEWS     "(AdmTool:news)   [larmq?] > "
-#define PROMPT_ALIAS    "(AdmTool:alias) [lLaArRmq?] >"
+#define PROMPT_ALIAS    "(AdmTool:alias) [lLaArRmq?] > "
 
 private nomask void receive_main_input(string str);
 
@@ -83,7 +82,7 @@ static nomask void std_handler(string str)
     switch ( str )
     {
     case "m":
-	modal_func((: receive_main_input :), (: PROMPT_MAIN :));
+	modal_func((: receive_main_input :), PROMPT_MAIN);
 	write_main_menu();
 	break;
 
@@ -137,7 +136,7 @@ private nomask void receive_main_input(string str)
 	    write("Sorry... admin only.\n");
 	    return;
 	}
-	modal_func((: receive_user_input :), (: PROMPT_USER :));
+	modal_func((: receive_user_input :), PROMPT_USER);
 	write_user_menu();
 	break;
 	
@@ -147,12 +146,12 @@ private nomask void receive_main_input(string str)
 	    write("Sorry... admin only.\n");
 	    return;
 	}
-	modal_func((: receive_security_input :), (: PROMPT_SECURITY :));
+	modal_func((: receive_security_input :), PROMPT_SECURITY);
 	write_security_menu();
 	break;
 	
     case "d":
-	modal_func((: receive_domain_input :), (: PROMPT_DOMAIN :));
+	modal_func((: receive_domain_input :), PROMPT_DOMAIN);
 	write_domain_menu();
 	break;
 	
@@ -162,7 +161,7 @@ private nomask void receive_main_input(string str)
 	    write("Sorry... admin only.\n");
 	    return;
 	}
-	modal_func((: receive_banish_input :), (: PROMPT_BANISH :));
+	modal_func((: receive_banish_input :), PROMPT_BANISH);
 	write_banish_menu();
 	break;
 
@@ -172,7 +171,7 @@ private nomask void receive_main_input(string str)
 	    write("Sorry... admin only.\n");
 	    return;
 	  }
-	modal_func((: receive_news_input :), (: PROMPT_NEWS :));
+	modal_func((: receive_news_input :), PROMPT_NEWS);
 	write_news_menu();
 	break;
 
@@ -182,7 +181,7 @@ private nomask void receive_main_input(string str)
 	  write("Sorry... admin only.\n");
 	  return;
 	}
-      modal_func((: receive_alias_input :), (: PROMPT_ALIAS :));
+      modal_func((: receive_alias_input :), PROMPT_ALIAS);
       write_alias_menu();
       break;
 
@@ -192,7 +191,7 @@ private nomask void receive_main_input(string str)
 	    write("Sorry... admin only.\n");
 	    return;
 	}
-	modal_func((: receive_i3chan_input :), (: PROMPT_I3CHAN :));
+	modal_func((: receive_i3chan_input :), PROMPT_I3CHAN);
 	write_i3chan_menu();
 	break;
 	
@@ -206,12 +205,10 @@ private nomask void receive_main_input(string str)
     }
 }
 
-int main(string arg)
+private void main(string arg)
 {
     write_main_menu();
-    modal_push((: receive_main_input :), (: PROMPT_MAIN :));
-
-    return 1;
+    modal_push((: receive_main_input :), PROMPT_MAIN);
 }
 
 void create()

@@ -2,9 +2,9 @@
 
 // Rust
 #include <mudlib.h>
-inherit DAEMON;
+inherit CMD;
 
-int
+private void
 main(mixed argv, mapping flags)
 {
   string str, fname, file;
@@ -12,7 +12,7 @@ main(mixed argv, mapping flags)
   if(arrayp(argv[0]) && sizeof(argv[0]) > 1 && !is_directory(argv[1]))
     {
       printf("mv: files dir, not mv files file\n");
-      return 1;
+      return;
     }
   if(sizeof(argv[0]) > 1)
     {
@@ -21,16 +21,15 @@ main(mixed argv, mapping flags)
       foreach(file in argv[0])
 	{
 	  fname = argv[1] + split_path(file)[1];
-	  BBUG(fname);
 	  if(is_file(fname) && !flags["f"])
 	    {
 	      printf("%s already exists.  Move failed.\n", fname);
 	    }
 	  else
 	    {
-	      if(!str = read_file(file))
+	      if(!str = read_file(file) || (is_file(fname) && !rm(fname)))
 		{
-		  printf("%s could not be read.  Move failed.\n", file);
+		  printf("Permissions problem.  Move failed.\n");
 		}
 	      else
 		if(!write_file(fname, str))
@@ -67,9 +66,9 @@ main(mixed argv, mapping flags)
 	    }
 	  else
 	    {
-	      if(!str = read_file(file))
+	      if(!str = read_file(file) || (is_file(fname) && !rm(fname)))
 		{
-		  printf("%s could not be read.  Move failed.\n", file);
+		  printf("Permissions problem. Move failed.\n");
 		}
 	      else
 		if(!write_file(fname, str))

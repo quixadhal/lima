@@ -27,8 +27,15 @@ static nomask void rcv_finger_req(string orig_mud, string orig_user,
     string * info;
 
     info = FINGER_D->get_raw_data(message[0]);
-
-    send_to_user("finger-reply", orig_mud, orig_user, info);
+    if ( !info )
+    {
+	return_error(orig_mud, orig_user, "unk-user",
+		     sprintf("'%s' is unknown", message[0]));
+    }
+    else
+    {
+	send_to_user("finger-reply", orig_mud, orig_user, info);
+    }
 }
 
 static nomask void rcv_finger_reply(string orig_mud, string orig_user,

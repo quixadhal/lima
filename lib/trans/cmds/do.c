@@ -5,7 +5,7 @@
 #include <mudlib.h>
 #include <commands.h>
 
-inherit DAEMON;
+inherit CMD;
 
 int loopvars;
 
@@ -35,7 +35,7 @@ string parse_ref(string ref) {
     return "."+ref;
 }
 
-int main(string str) {
+private void main(string str) {
     string *args;
     int i,n;
     string tmp;
@@ -62,5 +62,5 @@ int main(string str) {
 	str = "int "+tmp+"; "+str;
     }
     write("Doing: "+str+"\n");
-    return CMD_OB_EVAL->main(str);
+    resend(CMD_OB_EVAL, str);
 }

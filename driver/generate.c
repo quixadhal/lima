@@ -143,6 +143,7 @@ optimize P1(parse_node_t *, expr) {
     case NODE_FOREACH:
 	OPT(expr->l.expr);
 	OPT(expr->r.expr);
+	OPT(expr->v.expr);
 	break;
     case NODE_CASE_NUMBER:
     case NODE_CASE_STRING:
@@ -263,7 +264,9 @@ static void lpc_tree_list P2(parse_node_t *, dest, parse_node_t *, expr) {
 void 
 lpc_tree_form P2(parse_node_t *, expr, parse_node_t *, dest) {
     if (!expr) {
-	CREATE_NUMBER(dest, 0);
+	dest->kind = NODE_NUMBER;
+	dest->type = TYPE_ANY;
+	dest->v.number = 0;
 	return;
     }
 
@@ -357,9 +360,9 @@ lpc_tree_form P2(parse_node_t *, expr, parse_node_t *, dest) {
     case NODE_IF:
     case NODE_FOREACH:
 	lpc_tree(dest, 4);
-	lpc_tree_expr(ARG_2, expr->v.expr);
-	lpc_tree_expr(ARG_3, expr->l.expr);
-	lpc_tree_expr(ARG_4, expr->r.expr);
+	lpc_tree_expr(ARG_2, expr->l.expr);
+	lpc_tree_expr(ARG_3, expr->r.expr);
+	lpc_tree_expr(ARG_4, expr->v.expr);
 	break;
     case NODE_LOOP:
 	lpc_tree(dest, 5);
@@ -688,6 +691,8 @@ dump_tree P1(parse_node_t *, expr) {
 	printf("(foreach ");
 	dump_tree(expr->l.expr);
 	dump_tree(expr->r.expr);
+	dump_tree(expr->v.expr);
+	printf(")\n");
 	break;
     case NODE_CASE_NUMBER:
     case NODE_CASE_STRING:

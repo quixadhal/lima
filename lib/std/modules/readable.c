@@ -32,22 +32,13 @@ read_entry( string entry )
 
     entry = entries[entry];
 
-    switch( typeof( entry ) )
-	{
-	case FUNCTION:
-	    return evaluate( entry );
-	case STRING:
-	    if( file_size( entry ) > 0 )
-		entry = read_file( entry );
+    if (functionp(entry))
+	return evaluate(entry);
 
-	    clone_object( MORE_OB )->more_string( entry );
-	    this_body()->simple_action("$N $vread the $o.\n", this_object());
+    if (stringp(entry) && file_size(entry) > 0)
+	return read_file(entry);
 
-	return 1;
-    default:
-	return 0;
-  }
-
+    return 0;
 }
 
 int

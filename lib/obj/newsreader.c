@@ -89,7 +89,7 @@ private nomask string msg_cmd_prompt()
 
 private nomask void switch_to_top()
 {
-    modal_func((: receive_top_cmd :), (: $(TOP_PROMPT) :));
+    modal_func((: receive_top_cmd :), TOP_PROMPT);
 }
 
 private nomask void switch_to_group()
@@ -151,8 +151,7 @@ private nomask void read_group(string group)
 	  printf("%-4d%s\n",i,matches[i-1]);
 
       group_selection_menu_items = matches;
-      modal_func((: menu_select_newsgroup:), 
-		 (: "[#q] " :));
+      modal_func((: menu_select_newsgroup:), "[#q] ");
 	  
 /*      write("multiple completions.  Need a little menu here, but that's "
 	    "not done yet.\n");
@@ -186,7 +185,7 @@ private nomask void display_groups_with_new()
     {
 	write("No new news.\n");
 
-	modal_push((: receive_top_cmd :), (: $(TOP_PROMPT) :));
+	modal_push((: receive_top_cmd :), TOP_PROMPT);
     }
     else
     {
@@ -364,8 +363,8 @@ private nomask void global_commands(string cmd)
 	}
 	else
 	{
-	    modal_func((: receive_group :), 
-		       (: "Which group (Or enter for a menu)? " :));
+	    modal_func((: receive_group :),
+		       "Which group (Or enter for a menu)? ");
 	}
     }
     else

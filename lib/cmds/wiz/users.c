@@ -7,10 +7,10 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 
 
-
-int main()
+private void main()
 {
     object* ulist;
     string ustring;
@@ -18,13 +18,11 @@ int main()
     ulist = users();
     if (sizeof(ulist) <= 0) {
 	write(sprintf("NO ONE LOGGED IN!!!   (not even you!)\n"));
-	return 1;
+	return;
     }
     if ((sizeof(ulist)==1) && (ulist[0]==this_user())) {
 	write(sprintf("You are the only person logged in!\n"));
-	return 1;
+	return;
     }
     write(wrap(implode(ulist->query_userid(), " ") + "\n"));
-
-    return 1;
 }

@@ -651,7 +651,10 @@ char *pluralize P1(char *, str) {
 	if (!strcasecmp(rel + 1, "phinx")) {
 	    found = PLURAL_CHOP + 1;
 	    suffix = "ges";
+	    break;
 	}
+	if (!strcasecmp(rel + 1, "afe")) 
+	    found = PLURAL_SUFFIX;
 	break;
     case 'T':
     case 't':

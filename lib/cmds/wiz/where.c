@@ -1,11 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+inherit CMD;
 
 
 
-
-int main( mixed * arg )
+private void main( mixed * arg )
 {
     object*	targets;
 
@@ -22,5 +22,5 @@ int main( mixed * arg )
 				  file_name(environment($1)),
 				  environment($1)->short()) :) );
 
-    return 1;
+    return;
 }

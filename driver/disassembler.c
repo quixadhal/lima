@@ -416,7 +416,7 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 	    break;
 	case F_SHORT_STRING:
 	    if (EXTRACT_UCHAR(pc) < NUM_STRS)
-	        sprintf(buff, "\"%s\"", disassem_string(STRS[EXTRACT_UCHAR(*pc)]));
+	        sprintf(buff, "\"%s\"", disassem_string(STRS[EXTRACT_UCHAR(pc)]));
 	    else 
 	        sprintf(buff, "<out of range %d>", EXTRACT_UCHAR(pc));
 	    pc++;

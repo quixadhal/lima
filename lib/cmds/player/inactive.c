@@ -7,6 +7,7 @@
 #include <playerflags.h>
 
 
+inherit CMD;
 inherit M_INPUT;
 
 
@@ -31,13 +32,13 @@ private nomask void become_active(int start_time, string str)
 }
 
 
-nomask int main(string arg)
+nomask private void main(string arg)
 {
     write("You place yourself in INACTIVE mode.  Press <ENTER> to return.\n");
     say(this_body()->query_name()+" goes into INACTIVE mode.\n");
     this_body()->set_flag(F_INACTIVE);
     modal_simple((: become_active, time() :));
-    return 1;
+    return;
 }
 
 

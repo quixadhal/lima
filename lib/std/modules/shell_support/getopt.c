@@ -1,5 +1,4 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
-
 //  Command line processing
 
 #include <mudlib.h>
@@ -21,7 +20,7 @@ DOC(getopt, "Takes an array and parses flags from it. Returns an array, the firs
 "element being a mapping of flag : value, the second element being an array of "
 "the remaining args, all flag information removed.  The second argument should "
 "be a string of single character flags that the command accepts, followed by a "
-"colon (:) if the flag can take an argument.");
+"colon (:) if the flag can take an argument.")
 mixed
 getopt( mixed args, string options )
 {
@@ -73,32 +72,67 @@ getopt( mixed args, string options )
 //  
 DOC(argument_explode, "assumes the arg passed is the argument to some unix-like "
 "command where ares are space seperated unless enclosed in non-escaped quotes. "
-"Returns an array of the arguments.");
+"Returns an array of the arguments.")
 
-private mixed get_words(string s)
+string* argument_explode(string s)
 {
-  string t;
-  t = trim_spaces(s);
-  return ((t[0] == '`' && t[<1] == '`') || 
-	  (t[0] == '"' && t[<1] == '"')) ? t : 
-	    map(reg_assoc(s, ({"[^ ]*[ ]*"}), ({0}))[0] - ({""}), 
-		(: $1[<1] == ' ' ? $1[0..<2] : $1 :));
-}
+  string* result = ({});
+  int i, l;
+  int waiting_for;
+  int beginning_of_word = 0;
 
-mixed
-argument_explode( mixed input ){
-  mixed res;
-  res = reg_assoc( " "+input+" ", ({"(`([^\\\\`](\\\\`)?(`[^ ])?)+` )|(\"([^\\\\\"](\\\\\")?(\"[^ ])?)+\" )"}), ({ 0 }))[0] - ({""," "});
-//  res = reg_assoc( input+" ", ({"(`([^`](`[^ ])?)+` )|(\"([^\"](\"[^ ])?)+\" )"}), ({0}))[0] - ({""," "});
-//  res = map(res, (: trim_spaces :));
-//  res = decompose(map(res,(: (($1[0] == '`' && $1[<1] == '`')  || ($1[0] == '"' && $1[<1] == '"') ) ? $1 : explode($1," ") :))) - ({"", " "});
-  res = decompose(map(res, (: get_words :))) - ({""});
+  l = strlen(s);
+  for(i=0; i < l; i++)
+    {
+      switch(s[i])
+	{
+	case '\\':
+// This is because all \\'s aren't converted to \ here.
+	  if(i+1 != l && s[i+1] == '\\')
+	    break;
+	  i++;
+	  break;
+	case '`':
+	case '"':
+	  if(!waiting_for)
+	    {
+	      waiting_for = s[i];
+	      if(beginning_of_word != i)
+		{
+		  result += ({s[beginning_of_word..i-1]});
+		}
+	      beginning_of_word = i;
+	      break;
+	    }
+	  if(waiting_for != s[i])
+	    continue;
+	  result += ({s[beginning_of_word..i]});
+	  beginning_of_word = i+1;
+	  waiting_for = 0; 
+	  break;
+	case ' ':
+	  if(waiting_for)
+	    break;
+	  if(beginning_of_word == i)
+	    {
+	      beginning_of_word = i+1;
+	      break;
+	    }
+	  result += ({s[beginning_of_word..i-1]});
+	  beginning_of_word = i+1;
+	  break;
+	default:
+	  break;
+	}
+    }
+  if(beginning_of_word < l)
+    result += ({ s[beginning_of_word..] });
 
-  return res;
+  return result;
 }
 
 DOC(parse_argument, "calls argument_explode() and then getopt(), returning the "
-"value of the getopt() call.");
+"value of the getopt() call.")
 mixed parse_argument( string input, string options ){
   return getopt( argument_explode(input), options );
 }

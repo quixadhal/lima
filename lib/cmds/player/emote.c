@@ -2,11 +2,12 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 inherit M_GRAMMAR;
 
 
 
-int main( string message )
+private void main( string message )
 {
     string name;
     name = this_body()->query_name();
@@ -19,6 +20,4 @@ int main( string message )
     tell_room(environment(this_body()),
 	      iwrap(message),
 	      ({ this_body() }) );
-
-    return 1;
 }

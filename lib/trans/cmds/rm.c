@@ -4,9 +4,9 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
-int main(mixed argv)
+private void main(mixed argv)
 {
   map(argv[0], (: rm($1) ? printf("%s: removed.\n", $1) : 
 		printf("failed to remove: %s\n", $1) :));

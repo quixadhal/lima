@@ -2,14 +2,13 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 
-int main(mixed * arg)
+private void main(mixed * arg)
 {
-  if(!GROUP_D->adminp(previous_object(1))) return 0;
+    if(!GROUP_D->adminp(previous_object(1))) return 0;
 
-  arg[0]->set_level(arg[1]);
-  arg[0]->save_me();
-  return 1;
+    arg[0]->set_level(arg[1]);
+    arg[0]->save_me();
 }

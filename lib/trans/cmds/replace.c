@@ -3,9 +3,9 @@
 #include <mudlib.h>
 
 inherit M_GLOB;
-inherit DAEMON;
+inherit CMD;
 
-int main(mixed* argv, mapping flags)
+private void main(mixed* argv, mapping flags)
 {
   string file;
   string output = "";
@@ -17,7 +17,7 @@ int main(mixed* argv, mapping flags)
       ed_start(file);
       if(flags["n"])
 	ed_cmd("set number");
-      output = ed_cmd("1,$g/"+argv[0]+");
+      output = ed_cmd("1,$g/"+argv[0]+"/p");
       if(output && strlen(output))
 	{
 	  output += sprintf("[Changing in %s]:\n%s\n\n", file, output);

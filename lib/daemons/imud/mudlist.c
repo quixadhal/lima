@@ -14,6 +14,11 @@ static private mapping	mud_names = ([ ]);
 static private function	remap_name =
 	(: lower_case(replace_string($1, " ", ".")) :);
 
+static nomask int query_mudlist_id()
+{
+    return mudlist_id;
+}
+
 nomask string canon_mudname(string mudname)
 {
     return mud_names[evaluate(remap_name, mudname)];
@@ -22,8 +27,19 @@ nomask string canon_mudname(string mudname)
 static nomask void rcv_mudlist(string orig_mud, string orig_user,
 			       string targ_user, mixed * message)
 {
+    string mudname;
+    mixed * info;
+
     mudlist_id = message[0];
-    mud_info = message[1];	/* ### need to merge sometime */
+
+    foreach ( mudname, info in message[1] )
+    {
+	if ( !info )
+	    map_delete(mud_info, mudname);
+	else
+	    mud_info[mudname] = info;
+    }
+
     mud_names = ([ ]);
     map_array(keys(mud_info),
 	      (: $(mud_names)[evaluate(remap_name, $1)] = $1 :));
@@ -34,9 +50,9 @@ nomask mapping query_mudlist()
     return copy(mud_info);
 }
 
-nomask string* query_mudnames()
+nomask string * query_mudnames()
 {
-  return keys(mud_info);
+    return keys(mud_info);
 }
 
 nomask int mud_exists(string mudname)

@@ -11,8 +11,10 @@
 			implode(explode(x," ")-({"a","an","the"})," ") : x)
 #define force_look()		(environment(this_body())->do_looking())
 
-#define DOC(f,s)	string __DOC_##f () { return s ; }
-#define DOC_MODULE(s)	string __DOCM () { return s ; }
+//#define DOC(f,s)	string __DOC_##f () { return s ; }
+#define DOC(f,s)
+//#define DOC_MODULE(s)	string __DOCM () { return s ; }
+#define DOC_MODULE(s)
 #define DOC_COMMAND(s)	string __DOCC () { return s ; }
 
 #define TELL_BUG(p,x) (find_user(p)?tell_object(find_user(p),sprintf("%s: %O\n",__FILE__,(x))):0)

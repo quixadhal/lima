@@ -11,9 +11,9 @@
 #include <mudlib.h>
 #include <daemons.h>
 
-inherit DAEMON;
+inherit CMD;
 
-int main(string arg)
+private void main(string arg)
 {
     string channel_name;
 
@@ -33,7 +33,7 @@ int main(string arg)
 		  implode(channel_list, ", ") + ".\n");
 	}
 				     
-	return 1;
+	return;
     }
 
     if ( sscanf(arg, "%s %s", channel_name, arg) != 2 )
@@ -47,5 +47,11 @@ int main(string arg)
 	    
     NCHANNEL_D->cmd_channel(channel_name, arg);
 	    
-    return 1;
+    return;
+}
+
+nomask int
+valid_resend(string ob) {
+    return 
+	ob == "/cmds/wiz/ichan" || ob == "/cmds/wiz/wchan";
 }

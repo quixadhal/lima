@@ -13,7 +13,7 @@ nomask varargs void ed(string file, mixed func)
     error("ed() not available");
 }
 
-int exec(object target, object src)
+nomask int exec(object target, object src)
 {
     error("exec() not available");
 }
@@ -139,3 +139,25 @@ nomask object* users()
     });
 }
 
+
+nomask object * all_users()
+{
+    string * valid;
+    string prev_file;
+
+    valid = ({
+	PLAYER,
+	ANNOUNCE_D,
+	FINGER_D,
+	NCHANNEL_D,
+    });
+    prev_file = file_name(previous_object());
+    if ( !prev_file )
+	return 0;
+
+    sscanf(prev_file, "%s#%*s", prev_file);
+    if ( member_array(prev_file, valid) == -1 )
+	return 0;
+
+    return efun::users();
+}

@@ -11,7 +11,7 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 inherit M_REMOTE;
 inherit M_INPUT;
 
@@ -22,10 +22,10 @@ static private string * states = ({ "Not connected",
 static private string * logged_in = ({ "", "Logged in" });
 
 
-int main(string arg)
+private void main(string arg)
 {
   printf("This is a feature which doesn't work in the release right now.\n");
-  return 1;
+  return;
 
     if ( !arg || arg == "" )
     {
@@ -38,17 +38,16 @@ int main(string arg)
 					   ) :) ), "\n") +
 	      "\n");
 
-	return 1;
+	return;
     }
 
     if ( is_logged_in(this_user(), arg) )
     {
 	printf("You are already logged into %s.\n", arg);
-	return 1;
+	return;
     }
 
     clone_object(file_name(this_object()))->get_password(arg);
-    return 1;
 }
 
 nomask void rcv_password(string password)

@@ -2,9 +2,9 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
-int main(string str) {
+private void main(string str) {
     string *lines = explode(dump_socket_status(), "\n");
     string line;
     
@@ -12,5 +12,4 @@ int main(string str) {
         if (line[0..1] != "-1")
             write(line + "\n");
     }
-    return 1;
 }

@@ -132,7 +132,7 @@ private nomask void init_data()
 		 ]);
 
     funcs = ([
-	     "short" : "set_short"; T_STRING,
+	     "proper_name" : "set_proper_name"; T_STRING,
 	     "long" : "set_long"; T_STRING,
 	     "adj" : "set_adjectives"; T_POINTER,
 	     "weight" : "set_weight"; T_NUMBER,

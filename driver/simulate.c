@@ -57,7 +57,7 @@ static sentence_t *alloc_sentence PROT((void));
 #ifndef NO_ADD_ACTION
 static void remove_sent PROT((object_t *, object_t *));
 #endif
-static void error_handler PROT((char *));
+void error_handler PROT((char *));
 
 INLINE void check_legal_string P1(char *, s)
 {
@@ -2124,7 +2124,7 @@ static void mudlib_error_handler P2(char *, err, int, catch) {
 }
 #endif
 
-static void error_handler P1(char *, err)
+void error_handler P1(char *, err)
 {
 #ifndef MUDLIB_ERROR_HANDLER
     char *object_name;
@@ -2243,7 +2243,7 @@ void error_needs_free P1(char *, s)
     char err_buf[2048];
     strncpy(err_buf + 1, s, 2047);
     err_buf[0] = '*';		/* all system errors get a * at the start */
-    err_buf[1999] = '\0';
+    err_buf[2047] = '\0';
     FREE_MSTR(s);
 
     error_handler(err_buf);

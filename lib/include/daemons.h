@@ -19,7 +19,6 @@
 #define NCHANNEL_D	"/daemons/nchannel_d"
 #define ANNOUNCE_D	"/daemons/announce_d"
 #define ALIAS_D		"/daemons/alias_d"
-#define TIMEOUT_D	"/daemons/timeout_d"
 #define TIMER_D		"/daemons/timer_d"
 
 #define CMDPATH_CACHE	"/daemons/cmdpath_cache_d"

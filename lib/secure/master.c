@@ -112,7 +112,7 @@ string error_handler(mapping mp, int caught)
 
     /* If an object didn't load, they get compile errors.  Don't spam
        or confuse them */
-    if (what[0..23] != "*Error in loading object")
+    if (what[0..23] == "*Error in loading object")
 	return;
     
     if ( this_user() )
@@ -120,6 +120,8 @@ string error_handler(mapping mp, int caught)
 	printf("%sTrace written to %s\n", what, logfile);
 	errors[this_user()->query_userid()] = mp;
     }
+    errors["last"] = mp;
+    
     // Strip trailing \n, and indent nicely
     what = replace_string(what[0..<2], "\n", "\n         *");
     NCHANNEL_D->deliver_string("wiz_errors",

@@ -51,7 +51,6 @@ void create()
 {
     ::create();
 
-    set_short("transfer tool");
     set_in_room_desc("There is a transfer tool here.");
     set_weight(4);
     set_id( ({ "xfertool", "tool", "transfer" }) );

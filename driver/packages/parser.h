@@ -5,11 +5,16 @@
  * <0 is a token (OBJ, etc).
  * >=0 is a literal.
  */
-#define OBJ_TOKEN            -1
-#define LIV_TOKEN            -2
+#define ERROR_TOKEN          -1
+#define STR_TOKEN	     -2
 
-#define ERROR_TOKEN          -4
-#define STR_TOKEN	     -5
+#define LIV_MODIFIER         8
+#define VIS_ONLY_MODIFIER    16
+
+#define OBJ_A_TOKEN          -4
+#define LIV_A_TOKEN          -((-OBJ_A_TOKEN) | LIV_MODIFIER)
+#define OBJ_TOKEN	     -((-OBJ_A_TOKEN) | VIS_ONLY_MODIFIER)
+#define LIV_TOKEN	     -((-LIV_A_TOKEN) | VIS_ONLY_MODIFIER)
 
 #define MAX_NUM_OBJECTS      256
 /* must be powers of 2 */
@@ -55,6 +60,8 @@ typedef struct {
 typedef struct {
     int type;
     char *string;
+    char *end_prev;
+    char *start_next;
 } word_t;
 
 /* Flags for parse_info structures.  parse_info information is cached inside
@@ -66,10 +73,12 @@ typedef struct {
  * The actual info will be filled in when needed, and PI_SETUP will then
  * be set to 1.  parse_refresh() actually just zeros PI_SETUP.
  */
-#define PI_SETUP  1
-#define PI_LIVING 2
-#define PI_VERB_HANDLER 4
-#define PI_REMOTE_LIVINGS 8
+#define PI_SETUP		1
+#define PI_LIVING		2
+#define PI_VERB_HANDLER		4
+#define PI_REMOTE_LIVINGS	8
+#define PI_INV_ACCESSIBLE	16
+#define PI_INV_VISIBLE		32
 
 typedef struct parse_info_s {
     int flags;
@@ -121,6 +130,7 @@ typedef struct verb_s {
 typedef struct {
     char *name;
     int token;
+    int mod_legal;
 } token_def_t;
 
 union mu {

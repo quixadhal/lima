@@ -1,4 +1,9 @@
-private nomask
+// Rust wrote this and was a bad boy and didn't attach a header - Beek
+
+#include <mudlib.h>
+inherit CMD;
+
+private nomask void
 confirm_new_password(string s1, string s2)
 {
   write("\n");
@@ -12,7 +17,7 @@ confirm_new_password(string s1, string s2)
   write("Password changed.\n");
 }
 
-private nomask
+private nomask void
 get_new_password(string s)
 {
   write("\n");
@@ -27,7 +32,7 @@ get_new_password(string s)
 }
 
 
-private nomask
+private nomask void
 confirm_current_password(string s)
 {
   write("\n");
@@ -38,7 +43,7 @@ confirm_current_password(string s)
       return;
     }
   this_body()->modal_push( (: get_new_password :),
-			  (: "New password: " :), 1);
+			  "New password: ", 1);
 }
 
 
@@ -46,5 +51,5 @@ void
 main()
 {
   this_body()->modal_push( (: confirm_current_password :), 
-			  (: "Enter your current password: ":), 1);
+			  "Enter your current password: ", 1);
 }

@@ -5,14 +5,14 @@
 
 #include <mudlib.h>
 
-//
+inherit CMD;
 inherit M_GRAMMAR;
 
 
-int main(string s) {
+private void main(string s) {
     if (!s | s == "") {
 	write("Say what?\n");
-	return 0;
+	return;
     }
 
 #ifdef ZORKMUD
@@ -20,5 +20,8 @@ int main(string s) {
 #else
     this_body()->simple_action("$N $vsay: $o\n", punctuate(s));
 #endif
-    return 1;
+}
+
+nomask int valid_resend(string ob) {
+    return ob == "/cmds/player/converse";
 }

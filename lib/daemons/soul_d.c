@@ -81,14 +81,18 @@ query_emote(string em) {
 
 private string get_completion(string);
 
-varargs mixed *
-get_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3) {
+mixed * internal_get_soul(string verb, string rule,
+			  mixed ob1, mixed ob2, mixed ob3,
+			  int add_imud_msg)
+{
     mapping rules;
     mixed soul;
+    string soul_alt;
     int i;
     object target;
     object *who;
     string token;
+    mixed * result;
 
     rules = emotes[verb];
     if (!rules) return 0;
@@ -104,19 +108,21 @@ get_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3) {
 	ob2 = get_completion(ob2[0..<2]);
 	if (!ob2) return 0;
     } else if (stringp(ob3) && ob3[<1] == '*') {
-	ob3 = get_completion(ob3[0..<3]);
+	ob3 = get_completion(ob3[0..<2]);
 	if (!ob3) return 0;
     }
     if (soul[0] == '=') soul = rules[soul[1..]];
     if (stringp(soul)) {
 	if (soul[<1] != '\n') soul += "\n";
+	soul_alt = soul;
     } else {
 	if (soul[0][<1] != '\n') soul[0] += "\n";
 	if (soul[1][<1] != '\n') soul[1] += "\n";
+	soul_alt = soul[0];
     }
     if (strsrch(rule, "LIV") == -1) {
 	who = ({ this_body() });
-	return ({ who, ({
+	result = ({ who, ({
 	    compose_message(this_body(), stringp(soul) ? soul : soul[0], who,
 			    ob1, ob2),
 	    compose_message(0, stringp(soul) ? soul : soul[1], who, ob1, ob2)
@@ -134,7 +140,7 @@ get_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3) {
 	case 3: target = ob3; break;
 	}
 	who = ({ this_body(), target });
-	return ({ who, ({
+	result = ({ who, ({
 	    compose_message(this_body(), stringp(soul) ? soul : soul[0], who,
 			    ob1, ob2),
 	    compose_message(target, stringp(soul) ? soul : soul[1], who,
@@ -143,6 +149,31 @@ get_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3) {
 			    ob1, ob2)
 	}) });
     }
+
+    if ( add_imud_msg )
+    {
+	string msg;
+
+	soul_alt = replace_string(soul_alt, "$N", chr(255));
+	soul_alt = replace_string(soul_alt, "$n", chr(255));
+	msg = compose_message(0, soul_alt, who, ob1, ob2);
+	msg = replace_string(msg, chr(255), "$N");
+	result[1] += ({ msg });
+    }
+
+    return result;
+}
+
+varargs mixed *
+get_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3)
+{
+    return internal_get_soul(verb, rule, ob1, ob2, ob3, 0);
+}
+
+varargs mixed *
+get_imud_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3)
+{
+    return internal_get_soul(verb, rule, ob1, ob2, ob3, 1);
 }
 
 		    
@@ -250,6 +281,17 @@ mixed *parse_soul(string str) {
     result = parse_my_rules(this_body(), str, 0);
     if (!result) return 0;
     soul = get_soul(result...);
+    if (!soul) return 0;
+    return soul;
+}
+
+mixed *parse_imud_soul(string str) {
+    mixed result;
+    mixed soul;
+
+    result = parse_my_rules(this_body(), str, 0);
+    if (!result) return 0;
+    soul = get_imud_soul(result...);
     if (!soul) return 0;
     return soul;
 }

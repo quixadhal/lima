@@ -2,7 +2,7 @@
 #	Bash script to keep the mud up forever
 #	Rust July 7, 1994
 
-$LIMADIR=/home/rust/lima0.9-alpha
+LIMADIR=/home/rust/lima0.9-alpha
 
 logdir=$LIMADIR/lib/log
 logfile=$logdir/driver.log
@@ -10,7 +10,7 @@ lastlog=$logdir/driver.log.old
 
 bindir=$LIMADIR/etc
 driver=./driver
-config=./config.quendor
+config=./config.lima
 
 while true; do
 

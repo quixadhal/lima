@@ -5,13 +5,13 @@
 #include <levels.h>
 #include <mudlib.h>
 
-
+inherit CMD;
 
 
 #define DIVIDER \
 "-------------------------------------------------------------------------\n"
 
-int main()
+private void main()
 {
     object* user_obs;
     object* bodies;
@@ -31,7 +31,7 @@ int main()
 		       $1->query_level() > $2->query_level() :) );
     write(DIVIDER);
     printf("%|70s\n", implode(explode(mud_name(),"")," "));
-    printf("%|70s\n", "(EST is: "+ctime(time())+")");
+    printf("%|70s\n", "(PST is: "+ctime(time())+")");
     if ( extra )
 	printf("%|70s\n",extra);
     write(DIVIDER);
@@ -62,7 +62,7 @@ int main()
 	       where);
     }
     write(DIVIDER);
-    return 1;
+    return;
 }
 
 

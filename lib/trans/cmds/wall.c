@@ -2,22 +2,23 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
-
+inherit CMD;
 inherit M_GRAMMAR;
 
 
 #define SYNTAX	"Usage: wall <message>\n"
 
-int main( string arg )
+private void main( string arg )
 {
     string		broadcast;
 
     if ( !check_privilege(1) )
 	error("Must be an admin to use wall.\n");
 
-    if(!arg)
-	return write( SYNTAX ), 1;
+    if(!arg) {
+	write( SYNTAX );
+	return;
+    }
 
     broadcast = sprintf("System message from %s at %s:\n    %s\n",
 			this_body()->query_name(), ctime(time()),
@@ -25,5 +26,4 @@ int main( string arg )
 
     write_file("/log/walls", broadcast );
     shout( broadcast );
-    return 1;
 }

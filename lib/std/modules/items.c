@@ -134,6 +134,8 @@ int parse_item_desc( string arg )
 
     return 1;
 }
+
+// ### This is deprecated, and possibly unused
 // get_fakeobj() called by the parser.
 object
 get_fakeobj( string id )

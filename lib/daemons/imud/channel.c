@@ -22,6 +22,12 @@ void return_error(string mudname, string username,
 		  string errcode, string errmsg);
 string wrap(string str);
 
+
+static nomask int query_chanlist_id()
+{
+    return chanlist_id;
+}
+
 nomask void channel_rcv_data(string channel_name,
 			     string sender_name,
 			     string type,
@@ -42,48 +48,17 @@ nomask void channel_rcv_data(string channel_name,
 	break;
 
     case "emote":
-	break;
-	data = sprintf("%s@%s %s", sender_name, mud_name(), data);
-	send_to_all("channel-e", ({ channel_name, 0, 0, data, data,
-					this_body()->query_name() }));
+	data = sprintf("$N %s", data);
+	send_to_all("channel-e", ({ channel_name, sender_name, data }));
 	break;
 
     case "soul":
-	break;
-	if ( sizeof(data[0]) == 2 )
-	{
-	    string message_others;
-	    string message_target;
-
-	    message_others = data[1][1];
-	    message_target = data[1][2];
-	    if ( message_others[<1] == '\n' )
-		message_others = message_others[0..<2];
-	    if ( message_target[<1] == '\n' )
-		message_target = message_target[0..<2];
-	    send_to_all("channel-e",
-			({ channel_name,
-			       0,	/* ### targetted_mudname */
-			       0,	/* ### targetted_username */
-			       message_others,
-			       message_target,
-			       this_body()->query_name()
-			       }));
-	}
-	else
-	{
-	    data = data[1][1];
-	    if ( data[<1] == '\n' )
-		data = data[0..<2];
-	    send_to_all("channel-e",
-			({ channel_name,
-			       0,	/* no target */
-			       0,	/* no target */
-			       data,	/* message_others */
-			       data,	/* message_target */
-			       this_body()->query_name()
-			       }));
-	}
+	/* ### need to work on using channel-t appropriately */
+	data = data[1][<1];
+	if ( data[<1] == '\n' )
+	    data = data[0..<2];
+	send_to_all("channel-e",
+		    ({ channel_name, sender_name, data }));
 	break;
     }
 }
@@ -97,20 +72,20 @@ static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
     chanlist_id = message[0];
 
     foreach ( channel_name, channel_data in message[1] )
-	{
-	    string int_name = "imud_" + channel_name;
+    {
+	string int_name = "imud_" + channel_name;
 	    
-	    if ( !channel_data )
-	    {
-		map_delete(chanlist, channel_name);
-		NCHANNEL_D->unregister_channels(({ int_name }));
-	    }
-	    else
-	    {
-		chanlist[channel_name] = channel_data;
-		NCHANNEL_D->register_channels(({ int_name }));
-	    }
+	if ( !channel_data )
+	{
+	    map_delete(chanlist, channel_name);
+	    NCHANNEL_D->unregister_channels(({ int_name }));
 	}
+	else
+	{
+	    chanlist[channel_name] = channel_data;
+	    NCHANNEL_D->register_channels(({ int_name }));
+	}
+    }
 }
 
 static nomask void rcv_chan_who_req(string orig_mud, string orig_user,
@@ -170,6 +145,27 @@ static nomask void rcv_channel_e(string orig_mud, string orig_user,
     if ( orig_mud == mud_name() )
 	return;
 
+    if ( sizeof(message) != 3 )
+    {
+	return_error(orig_mud, orig_user, "bad-pkt",
+		     "Bad channel-e format. Report to your admin.");
+	return;
+    }
+
+    filter_msg = 1;
+    NCHANNEL_D->deliver_channel("imud_" + message[0],
+				replace_string(message[2], "$N", message[1]));
+}
+
+static nomask void rcv_channel_t(string orig_mud, string orig_user,
+				 string targ_user, mixed * message)
+{
+#ifdef OLD_BOGUS_CODE
+    object p;
+
+    if ( orig_mud == mud_name() )
+	return;
+
     filter_msg = 1;
     if ( message[1] == mud_name() &&
 	p = find_body(message[2]) )
@@ -183,6 +179,7 @@ static nomask void rcv_channel_e(string orig_mud, string orig_user,
     {
 	NCHANNEL_D->deliver_channel("imud_" + message[0], message[3]);
     }
+#endif
 }
 
 static nomask void init_channels()

@@ -4,10 +4,10 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 
 
-
-int main( mixed *arg) {
+private void main( mixed *arg) {
     object ob;
     mixed msg_ob;
 
@@ -16,5 +16,6 @@ int main( mixed *arg) {
     this_body()->do_player_message("destruct", msg_ob);
     ob->remove();
     if(ob)destruct(ob);
-    return 1;
+    return;
 }
+

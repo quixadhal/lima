@@ -6,7 +6,7 @@
 
 #include <mudlib.h>
 
-
+inherit CMD;
 
 
 #define PAD "    "
@@ -40,7 +40,7 @@ scan_object(object ob, int depth) {
 }
 
 // the actual scan command.
-int main(mixed *arg, mapping flags)
+private void main(mixed *arg, mapping flags)
 {
     string outstr;
 
@@ -50,5 +50,4 @@ int main(mixed *arg, mapping flags)
     outstr = "Scanning: "+file_name(arg[0])+"\n"
 	+scan_object(arg[0],0) + "Done.\n";
     write(outstr);
-    return 1;
 }

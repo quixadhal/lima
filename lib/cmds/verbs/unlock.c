@@ -3,6 +3,7 @@
 #include <mudlib.h>
 
 inherit VERB_OB;
+inherit M_PARSING;
 
 mixed can_unlock_obj(object ob)
 {
@@ -15,13 +16,15 @@ mixed can_unlock_obj_with_obj(object ob)
 }
 
 
-mixed do_unlock_obj_with_obj(object ob1, object ob2) {
-   return 1;
+void do_unlock_obj_with_obj(object ob1, object ob2) {
+if (!ob1->unlock_with(ob2))
+   write(useless ("YOu can't unlock that"));
 } 
 
 mixed do_unlock_obj(object ob)
 {
-   return 0;
+if(!ob->unlock(ob))
+   write (useless ("You can't unlock "+ ob->the_short() ) );
 }
 mixed *query_verb_info()
 {

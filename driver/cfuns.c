@@ -9,6 +9,8 @@
 #include "parse.h"
 #include "qsort.h"
 
+IF_DEBUG(extern int foreach_in_progress);
+
 /* temporaries for LPC->C code */
 int lpc_int;
 svalue_t *lpc_svp;
@@ -67,6 +69,8 @@ void c_return_zero() {
 }
 
 void c_foreach P3(int, flags, int, idx1, int, idx2) {
+    IF_DEBUG(foreach_in_progress++);
+    
     if (flags & 4) {
 	CHECK_TYPES(sp, T_MAPPING, 2, F_FOREACH);
 	
@@ -95,7 +99,50 @@ void c_foreach P3(int, flags, int, idx1, int, idx2) {
 	sp->u.lvalue = fp + idx2;
 }
 
+void c_expand_varargs P1(int, where) {
+    svalue_t *s, *t;
+    array_t *arr;
+    int n;
+    
+    s = sp - where;
+    
+    if (s->type != T_ARRAY)
+	error("Item being expanded with ... is not an array\n");
+		
+    arr = s->u.arr;
+    n = arr->size;
+    num_varargs += n - 1;
+    if (!n) {
+	t = s;
+	while (t < sp) {
+	    *t = *(t + 1);
+	    t++;
+	}
+	sp--;
+    } else if (n == 1) {
+	assign_svalue_no_free(s, &arr->item[0]);
+    } else {
+	t = sp;
+	sp += n - 1;
+	while (t > s) {
+	    *(t + n - 1) = *t;
+	    t--;
+	}
+	t = s + n - 1;
+	if (arr->ref == 1) {
+	    memcpy(s, arr->item, n * sizeof(svalue_t));
+	    free_empty_array(arr);
+	    return;
+	} else {
+	    while (n--)
+		assign_svalue_no_free(t--, &arr->item[n]);
+	}
+    }
+    free_array(arr);
+}
+
 void c_exit_foreach PROT((void)) {
+    IF_DEBUG(foreach_in_progress--);
     if ((sp-1)->type == T_LVALUE) {
 	/* mapping */
 	sp -= 3;
@@ -142,8 +189,9 @@ void c_call_inherited P3(int, inh, int, func, int, num_arg) {
     caller_type = ORIGIN_LOCAL;
     current_prog = temp_prog;
 		
-    csp->num_local_variables = num_arg;
-		
+    csp->num_local_variables = num_arg + num_varargs;
+    num_varargs = 0;
+    		
     function_index_offset += ip->function_index_offset;
     variable_index_offset += ip->variable_index_offset;
     
@@ -180,7 +228,8 @@ void c_call P2(int, func, int, num_arg) {
      * If it is an inherited function, search for the real
      * definition.
      */
-    csp->num_local_variables = num_arg;
+    csp->num_local_variables = num_arg + num_varargs;
+    num_varargs = 0;
     function_index_offset = variable_index_offset = 0;
     funp = setup_new_frame(funp);
     csp->pc = pc;	/* The corrected return address */

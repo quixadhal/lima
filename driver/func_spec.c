@@ -131,7 +131,7 @@ void message(mixed, string, string | string * | object | object *,
 #ifndef DISALLOW_BUFFER_TYPE
     buffer allocate_buffer(int);
 #endif
-    string *regexp(string *, string, void | int);
+    mixed regexp(string | string *, string, void | int);
     mixed *reg_assoc(string, string *, mixed *, mixed | void);
     mixed *allocate(int);
 
@@ -175,6 +175,7 @@ void message(mixed, string, string | string * | object | object *,
     string clear_bit(string, int);
     int test_bit(string, int);
     string set_bit(string, int);
+    int next_bit(string, int);
 
     string crypt(string, string | int);	/* An int as second argument ? */
     string ctime(int);
@@ -192,7 +193,7 @@ void message(mixed, string, string | string * | object | object *,
     string query_ip_number(void | object);
     object query_snoop(object);
     object query_snooping(object);
-    int remove_call_out(string);
+    int remove_call_out(void | string);
     void set_heart_beat(int);
     int query_heart_beat(object default:F_THIS_OBJECT);
     void set_hide(int);

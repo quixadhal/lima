@@ -11,12 +11,12 @@
  */
 
 #include <mudlib.h>
-
+inherit CMD;
 
 #define MAX_RECURSE 10
 
 int disk_usage(string path, int level);
-int main(string path);
+private void main(string path);
 
 int disk_usage(string path, int level) {
  int i, total, num;
@@ -45,11 +45,11 @@ int disk_usage(string path, int level) {
  return total;
 }
 
-int main(mixed* arg)
+private void main(mixed* arg)
 {
 if (!arg[0]) arg[0] = (string)this_body()->query_pwd();
  disk_usage(arg[0],0);
- return 1;
+ return;
 }
 
 int help()
@@ -60,6 +60,6 @@ int help()
        " path. File sizes are added up, and a total 'K' amount for each\n" +
        " directory is displayed. If no path is supplied, the current\n" +
        " directory is used.\n\n");
- return 1;
+ return;
 }
 

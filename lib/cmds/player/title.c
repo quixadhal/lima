@@ -1,6 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-void main(string title)
+#include <mudlib.h>
+inherit CMD;
+
+private void main(string title)
 {
   if(!title)
     {

@@ -4,10 +4,10 @@
 // we will recieve: ({ string, ({ args }) })
 #pragma strict_types
 #include <mudlib.h>
+inherit CMD;
 
-inherit DAEMON;
 // Quick hack by Rust 12-12-93
-int main(mixed* arg) {
+private void main(mixed* arg) {
     string buf;
     string* lines;
     string name;
@@ -25,7 +25,7 @@ int main(mixed* arg) {
     if(!buf = (numlines ? read_file(file, startln, numlines) :
 	read_file(file, startln))){
 	write("Couldn't find your file.\n");
-	return 0;
+	return;
     }
     if(!pipe) pipe = "say";
     lines = explode(buf, "\n");
@@ -33,7 +33,7 @@ int main(mixed* arg) {
     for(loop = 0; loop<i; loop++){
 	this_user()->force_me(pipe+" "+lines[loop]);
     }
-    return 1;
+    return;
 }
 
 int help(){
@@ -44,6 +44,4 @@ int help(){
       "spew /cmds/xtra/_spew | wiz\n"
       "would send the contents of this file over the wiz line.\n"
       "\n");
-
-    return 1;
 }

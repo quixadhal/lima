@@ -1,3 +1,26 @@
+----------------------------------------------------------------------------
+(v21.6a11 promoted to v21.6b1)
+
+Tue Jul 18 02:23:22 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.6a11
+	* updated with respect to v21.5b10
+	* fix from Marius for a crasher in x[<y] when x and y are constant
+	* fixed a bug that would incorrectly generated varargs expansion
+	  code for (*f)()
+	* null terminate crypt() strings, in case crypt() is des_crypt() in
+	  disguise
+	* in get_single() in the parsing package, binary search the bitvectors
+	  instead of doing a linear search
+	* added int regexp(string, string)
+	* fixed a bug in code generation for return statements in LPC->C
+	  introduced during the compiler rewrite
+	* only include <values.h> if MAXSHORT isn't in <limits.h>
+	* fixed a crasher in filter()
+	* fixed 'safe' -> 'saves' in pluralize()
+	* fixed TRACE compilation with NO_WIZARDS
+	* fixed regexp() to not crash on eight-bit characters in the format
+	  on hosts where 'char' is signed
+
 Sat Jul 15 14:35:50 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.6a10
 	* updated with respect to v21.5b9
@@ -226,7 +249,7 @@ Tue May 16 07:07:17 1995 (tim@handel.princeton.edu (Beek))
 	* implemented ranges in switch statements for LPC->C
 	* fixed a crasher in parse_command()
 	* fixed catch() to work again from LPC->C code
-	* fixed a crasher in dumpalloobjects with respect to some function
+	* fixed a crasher in dumpallobjects with respect to some function
 	  pointers
 	* fixed a bug accidentally added last patchlevel which caused
 	  arrays and mappings to not restore when the 'noclear' flag was

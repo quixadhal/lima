@@ -7,7 +7,9 @@
 // Beek --- Added the OFFICIAL "what these vars should contain"
 // documentation
 // Sep 9 1994
-// Belboz moved everything into modules.
+// Rust moved everything into modules.
+
+#include <flags.h>
 
 inherit "/std/object/mass";
 inherit "/std/object/properties";
@@ -42,5 +44,6 @@ create(){
     properties::create();
     description::create();
     flags::create();
+    configure_set(STD_FLAGS, 0, 0, (: parse_refresh() :), 0, 0);
 //    restore_object("/data/"+base_name(this_object()));
 }

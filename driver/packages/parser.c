@@ -14,7 +14,6 @@
  * . questions.  'Take what?'
  * . oops
  * . the 'her' ambiguity
- * . me, myself
  * . foo, who is ...   foo, where is ...   foo, what is ...   foo, go south
  * . where is ... "where is sword" -> "In the bag on the table"
  */
@@ -23,12 +22,15 @@
 #include "lpc_incl.h"
 #include "parser.h"
 
+char *pluralize PROT((char *));
+
 static parse_info_t *pi = 0;
 static hash_entry_t *hash_table[HASH_SIZE];
 static verb_t *verbs[VERB_HASH_SIZE];
 static int objects_loaded = 0;
-static int num_objects, num_people;
+static int num_objects, num_people, me_object;
 static struct object_s *loaded_objects[MAX_NUM_OBJECTS];
+static int object_flags[MAX_NUM_OBJECTS];
 static int num_literals = -1;
 static char **literals;
 static word_t words[256];
@@ -38,13 +40,28 @@ static verb_t *parse_verb_entry;
 static object_t *parse_restricted;
 static object_t *parse_user;
 static unsigned int cur_livings[NUM_BITVEC_INTS];
+static unsigned int cur_accessible[NUM_BITVEC_INTS];
 static int best_match;
 static int best_error_match;
 static int best_num_errors;
 static parse_result_t *best_result = 0;
 static match_t matches[10];
 static char *current_error = 0;
-static char *the_word, *a_word;
+static char *the_word, *a_word, *me_word;
+#ifdef DEBUG
+static int debug_parse_depth = 0;
+static int debug_parse_verbose = 0;
+
+#define DEBUG_PP(x) if (debug_parse_depth && debug_parse_verbose) debug_parse x
+#define DEBUG_P(x) if (debug_parse_depth) debug_parse x
+#define DEBUG_INC  if (debug_parse_depth) debug_parse_depth++
+#define DEBUG_DEC  if (debug_parse_depth) debug_parse_depth--
+#else
+#define DEBUG_PP(x)
+#define DEBUG_P(x)
+#define DEBUG_INC
+#define DEBUG_DEC
+#endif
 
 static void parse_rule PROT((parse_state_t *));
 
@@ -56,6 +73,30 @@ static void parse_rule PROT((parse_state_t *));
  * parse_add_rule(verb, rule, handler) - add a rule for a verb
  * parse_sentence(sent) - do the parsing :)
  */
+
+#ifdef DEBUG
+/* Usage:  DEBUG_P(("foo: %s:%i", str, i)); */
+void debug_parse P1V(char *, fmt) {
+    va_list args;
+    char buf[2048];
+    char *p = buf;
+    int n = debug_parse_depth - 1;
+    V_DCL(char *fmt);
+    
+    while (n--) {
+	*p++ = ' ';
+	*p++ = ' ';
+    }
+    
+    V_START(args, fmt);
+    V_VAR(char *, fmt, args);
+    vsprintf(p, fmt, args);
+    va_end(args);
+
+    tell_object(command_giver, buf);
+    tell_object(command_giver, "\n");
+}
+#endif
 
 INLINE static void bitvec_copy P2(unsigned int *, b1, unsigned int *, b2) {
     int i;
@@ -94,27 +135,41 @@ void all_objects P2(unsigned int *, bv, int, remote_flag) {
 	bv[i] = 0;
 }
 
+/* Note:
+ * For efficiency reasons, there is very little memory allocation in the
+ * code.  We take advantage of the fact that the algorithm is recursive,
+ * and a parse_* routine doesn't return until that branch has been completely
+ * evaluated.  This allows us to safely keep pointers to temporary buffers
+ * on the stack.
+ *
+ * alloca() would be better for this, but MudOS doesn't currently use it.
+ */
+
 INLINE static match_t *add_match P4(parse_state_t *, state, int, token, 
 				    int, start, int, end) {
     match_t *ret;
 
+    DEBUG_PP(("Adding match: tok = %i start = %i end = %i", token, start, end));
     ret = &matches[state->num_matches++];
     ret->first = start;
     ret->last = end;
     ret->token = token;
     switch (token) {
-    case LIV_TOKEN:
-	state->match_level += 3;
-	break;
-    case OBJ_TOKEN:
+    default: /* Some kind of object; no literals here */
 	state->match_level += 2;
+	if ((-token) & LIV_MODIFIER)
+	    state->match_level++;
+	if (!((-token) & VIS_ONLY_MODIFIER))
+	    state->match_level++;
 	break;
     case STR_TOKEN:
 	state->match_level++;
 	break;
     case ERROR_TOKEN:
 	state->num_errors++;
-    }	
+	break;
+    }
+    DEBUG_PP(("State is: %x, match_level: %i num_errors: %i\n", state, state->match_level, state->num_errors));
     return ret;
 }
 
@@ -131,6 +186,7 @@ static void parse_copy_array P2(array_t *, arr, char ***, sarrp) {
 			       TAG_PARSER, "parse_copy_array");
     for (j = 0; j < arr->size; j++) {
 	if (arr->item[j].type == T_STRING) {
+	    DEBUG_PP(("Got: %s", "arr->item[j].u.string"));
 	    if (arr->item[j].subtype == STRING_SHARED) {
 		table[j] = ref_string(arr->item[j].u.string);
 	    } else {
@@ -144,7 +200,8 @@ static void parse_copy_array P2(array_t *, arr, char ***, sarrp) {
 
 static void interrogate_master PROT((void)) {
     svalue_t *ret;
-    
+
+    DEBUG_PP(("[master::parse_command_prepos_list]"));
     ret = apply_master_ob("parse_command_prepos_list", 0);
     if (ret && ret->type == T_ARRAY) {
 	num_literals = ret->u.arr->size;
@@ -152,6 +209,7 @@ static void interrogate_master PROT((void)) {
     }
     the_word = make_shared_string("the");
     a_word = make_shared_string("a");
+    me_word = make_shared_string("me");
 }
 
 void f_parse_init PROT((void)) {
@@ -173,7 +231,7 @@ void f_parse_init PROT((void)) {
 void f_parse_refresh PROT((void)) {
     if (!(current_object->pinfo))
 	error("Current object is not known by the parser.  Call parse_init() first.\n");
-    current_object->pinfo->flags &= ~PI_SETUP;
+    current_object->pinfo->flags = 0;
 }
 
 /* called from free_object() */
@@ -264,10 +322,6 @@ static void clear_result P1(parse_result_t *, pr) {
 static void free_parse_globals PROT((void)) {
     int i;
 
-    if (best_result) {
-	free_parse_result(best_result);
-	best_result = 0;
-    }
     pi = 0;
     hash_clean();
     if (objects_loaded) {
@@ -275,19 +329,19 @@ static void free_parse_globals PROT((void)) {
 	    free_object(loaded_objects[i], "free_parse_globals");
 	objects_loaded = 0;
     }
+#ifdef DEBUG
+    debug_parse_depth = 0;
+#endif
 }
 
-token_def_t tokens0[] = { {0, 0} };
-token_def_t tokens1[] = { {0, 0} };
-token_def_t tokens2[] = { {0, 0} };
-token_def_t tokens3[] = {
-    { "OBJ", OBJ_TOKEN },
-    { "STR", STR_TOKEN },
-    { "LIV", LIV_TOKEN },
+token_def_t tokens[] = {
+    { "OBJ", OBJ_A_TOKEN, 1 },
+    { "STR", STR_TOKEN, 0 },
+    { "LIV", LIV_A_TOKEN, 1 },
     { 0, 0 }
 };
 
-token_def_t *tokens[] = { tokens0, tokens1, tokens2, tokens3 };
+#define STR3CMP(x, y) (x[0] == y[0] && x[1] == y[1] && x[2] == y[2])
 
 static int tokenize P1(char **, rule) {
     char *start = *rule;
@@ -306,11 +360,32 @@ static int tokenize P1(char **, rule) {
     
     n = *rule - start;
 
-    if (n < 4) {
-	td = tokens[n];
+    if (n == 3 || (n > 4 && start[3] == ':')) {
+	td = tokens;
 	while (td->name) {
-	    if (strncmp(td->name, start, n) == 0)
-		return td->token;
+	    if (STR3CMP(td->name, start)) {
+		i = td->token;
+		if (n != 3) {
+		    if (!td->mod_legal)
+			error("Illegal to have modifiers to '%s'\n", td->name);
+		    /* modifiers */
+		    start += 4;
+		    n -= 4;
+		    while (n--) {
+			switch(*start++) {
+			case 'l':
+			    i = -((-i) | LIV_MODIFIER);
+			    break;
+			case 'v':
+			    i = -((-i) | VIS_ONLY_MODIFIER);
+			    break;
+			default:
+			    error("Unknown modifier '%c'\n", start[-1]);
+			}
+		    }
+		}
+		return i;
+	    }
 	    td++;
 	}
     }
@@ -359,6 +434,9 @@ static void free_words PROT((void)) {
 static void interrogate_object P1(object_t *, ob) {
     svalue_t *ret;
 
+    DEBUG_P(("Interogating %s.", ob->name));
+    
+    DEBUG_PP(("[parse_command_id_list]"));
     ret = apply("parse_command_id_list", ob, 0, ORIGIN_DRIVER);
     if (ret && ret->type == T_ARRAY) {
 	ob->pinfo->num_ids = ret->u.arr->size;
@@ -367,6 +445,7 @@ static void interrogate_object P1(object_t *, ob) {
     if (ob->flags & O_DESTRUCTED) return;
     ob->pinfo->flags |= PI_SETUP;
 
+    DEBUG_PP(("[parse_command_plural_id_list]"));
     ret = apply("parse_command_plural_id_list", ob, 0, ORIGIN_DRIVER);
     if (ret && ret->type == T_ARRAY) {
 	ob->pinfo->num_plurals = ret->u.arr->size;
@@ -374,6 +453,7 @@ static void interrogate_object P1(object_t *, ob) {
     } else ob->pinfo->num_plurals = 0;
     if (ob->flags & O_DESTRUCTED) return;
 
+    DEBUG_PP(("[parse_command_adjectiv_id_list]"));
     ret = apply("parse_command_adjectiv_id_list", ob, 0, ORIGIN_DRIVER);
     if (ret && ret->type == T_ARRAY) {
 	ob->pinfo->num_adjs = ret->u.arr->size;
@@ -381,31 +461,74 @@ static void interrogate_object P1(object_t *, ob) {
     } else ob->pinfo->num_adjs = 0;
     if (ob->flags & O_DESTRUCTED) return;
 
+    DEBUG_PP(("[is_living]"));
     ret = apply("is_living", ob, 0, ORIGIN_DRIVER);
-    if (!IS_ZERO(ret))
+    if (!IS_ZERO(ret)) {
 	ob->pinfo->flags |= PI_LIVING;
+	DEBUG_PP(("(yes)"));
+    }
+    if (ob->flags & O_DESTRUCTED) return;
+
+    DEBUG_PP(("[inventory_accessible]"));
+    ret = apply("inventory_accessible", ob, 0, ORIGIN_DRIVER);
+    if (!IS_ZERO(ret)) {
+	ob->pinfo->flags |= PI_INV_ACCESSIBLE;
+	DEBUG_PP(("(yes)"));
+    }
+    if (ob->flags & O_DESTRUCTED) return;
+
+    DEBUG_PP(("[inventory_visible]"));
+    ret = apply("inventory_visible", ob, 0, ORIGIN_DRIVER);
+    if (!IS_ZERO(ret)) {
+	ob->pinfo->flags |= PI_INV_VISIBLE;
+	DEBUG_PP(("(yes)"));
+    }
 }
 
-static void rec_add_object P1(object_t *, ob) {
+static void rec_add_object P2(object_t *, ob, int, inreach) {
     object_t *o;
 
     if (!ob) return;
     if (ob->flags & O_DESTRUCTED) return;
     if (ob->pinfo) {
+	if (ob == parse_user)
+	    me_object = num_objects;
+	object_flags[num_objects] = inreach;
 	loaded_objects[num_objects++] = ob;
 	add_ref(ob, "rec_add_object");
+	if (!(ob->pinfo->flags & PI_INV_VISIBLE))
+	    return;
+	if (!(ob->pinfo->flags & PI_INV_ACCESSIBLE))
+	    inreach = 0;
     }
     o = ob->contains;
     while (o) {
-	rec_add_object(o);
+	rec_add_object(o, inreach);
 	o = o->next_inv;
     }
 }
+
+static void find_uninited_objects P1(object_t *, ob) {
+    object_t *o;
+    
+    if (!ob) return;
+    if (ob->flags & O_DESTRUCTED) return;
+    if (ob->pinfo && !(ob->pinfo->flags & PI_SETUP)) {
+	loaded_objects[num_objects++] = ob;
+	add_ref(ob, "find_united_objects");
+    }
+    o = ob->contains;
+    while (o) {
+	find_uninited_objects(o);
+	o = o->next_inv;
+    }
+}    
 
 static hash_entry_t *add_hash_entry P1(char *, str) {
     int h = DO_HASH(str, HASH_SIZE);
     hash_entry_t *he;
 
+    DEBUG_PP(("add_hash_entry: %s", str));
     he = hash_table[h];
     while (he) {
 	if (he->name == str)
@@ -428,7 +551,8 @@ static void add_to_hash_table P2(object_t *, ob, int, index) {
     int i;
     parse_info_t *pi = ob->pinfo;
     hash_entry_t *he;
-    
+
+    DEBUG_PP(("add_to_hash_table: %s", ob->name));
     for (i = 0; i < pi->num_ids; i++) {
 	he = add_hash_entry(pi->ids[i]);
 	he->flags |= HV_NOUN;
@@ -447,19 +571,65 @@ static void add_to_hash_table P2(object_t *, ob, int, index) {
 
     if (pi->flags & PI_LIVING)
 	cur_livings[BV_WHICH(index)] |= BV_BIT(index);
+    
+    if (object_flags[index])
+	cur_accessible[BV_WHICH(index)] |= BV_BIT(index);
+}
+
+static void init_users() {
+    svalue_t *ret;
+    int i;
+    object_t *ob;
+    
+    /* this should be cached */
+    DEBUG_PP(("[master::parse_command_users]"));
+    ret = apply_master_ob("parse_command_users", 0);
+    if (!ret || ret->type != T_ARRAY) return;
+    
+    for (i = 0; i < ret->u.arr->size; i++) {
+	if (ret->u.arr->item[i].type == T_OBJECT
+	    && (ob = ret->u.arr->item[i].u.ob)->pinfo
+	    && !(ob->pinfo->flags & PI_SETUP)) {
+	    DEBUG_PP(("adding: %s", ob->name));
+	    loaded_objects[num_objects++] = ob;
+	    add_ref(ob, "init_users");
+	}
+    }
 }
 
 static void load_objects PROT((void)) {
     int i;
     svalue_t *ret;
     object_t *ob, *env;
-    
+
+    /* 1. Find things that need to be interrogated
+     * 2. interrogate them
+     * 3. build the object list
+     *
+     * If some of this looks suboptimal, consider:
+     * 1. LPC code can error, and we don't want to leak, so we must be
+     *    careful that all structures are consistent when we call LPC code
+     * 2. LPC code can move objects, so we don't want to call LPC code
+     *    while walking inventories.
+     */
     bitvec_zero(cur_livings);
+    bitvec_zero(cur_accessible);
     num_objects = 0;
     if (!parse_user || parse_user->flags & O_DESTRUCTED)
 	error("No this_player()!\n");
+
+    find_uninited_objects(parse_user->super);
+    init_users();
+    objects_loaded = 1;
+    for (i = 0; i < num_objects; i++)
+	interrogate_object(loaded_objects[i]);
+    for (i = 0; i < num_objects; i++)
+	free_object(loaded_objects[i], "free_parse_globals");
+    num_objects = 0;
     
-    rec_add_object(parse_user->super);
+    rec_add_object(parse_user->super, 1);
+    /* this should be cached */
+    DEBUG_PP(("[master::parse_command_users]"));
     ret = apply_master_ob("parse_command_users", 0);
     num_people = 0;
     if (ret->type == T_ARRAY) {
@@ -474,45 +644,73 @@ static void load_objects PROT((void)) {
 		env = env->super;
 	    }
 	    if (env) continue;
+	    object_flags[num_objects + num_people] = 1;
 	    loaded_objects[num_objects + num_people++] = ob;
 	    add_ref(ob, "load_objects");
 	}
     }
     num_objects += num_people;
 
-    /* we loop through twice so we don't have to worry about things moving
-       in the above call */
-    for (i = 0; i < num_objects; i++) {
-	if (loaded_objects[i]->flags & O_DESTRUCTED) continue;
-	if (!(loaded_objects[i]->pinfo->flags & PI_SETUP))
-	    interrogate_object(loaded_objects[i]);
-	/* self destructing objects suck */
-	if (loaded_objects[i]->flags & O_DESTRUCTED) continue;
+    for (i = 0; i < num_objects; i++)
 	add_to_hash_table(loaded_objects[i], i);
-    }
-	    
-    objects_loaded = 1;
 }
 
 static int get_single P1(unsigned int *, bv) {
-    int i, j = -1;
-    int res = -1;
+    int i, res = -1;
 
+    DEBUG_PP(("get_single: %x %x %x %x", bv[0], bv[1], bv[2], bv[3]));
     for (i = 0; i < NUM_BITVEC_INTS; i++) {
 	if (bv[i]) {
-	    if (j != -1) return -1;
-	    j = i;
-	}
-    }
-    if (j == -1) return -1;
-    /* sigh.  This could be done better */
-    for (i = 0; i < 32; i++) {
-	if ((1 << i) & bv[j]) {
 	    if (res != -1) return -1;
-	    res = j * 32 + i;
+	    res = i;
 	}
     }
-    return res;
+    if (res < 0) return -1;
+
+    i = bv[res];
+    res *= 32;
+    /* Binary search for the set bit, unrolled for speed. */
+    if (i & 0x0000ffff) {
+	if (i & 0xffff0000)
+	    return -1;
+    } else {
+	i >>= 16;
+	res += 16;
+    }
+
+    if (i & 0x00ff) {
+	if (i & 0xff00)
+	    return -1;
+    } else {
+	i >>= 8;
+	res += 8;
+    }
+    
+    if (i & 0x0f) {
+	if (i & 0xf0)
+	    return -1;
+    } else {
+	i >>= 4;
+	res += 4;
+    }
+    
+    if (i & 0x3) {
+	if (i & 0xc)
+	    return -1;
+    } else {
+	i >>= 2;
+	res += 2;
+    }
+    
+    if (i & 0x1) {
+	if (i & 0x2)
+	    return -1;
+	DEBUG_PP((" -> %i", res));
+	return res;
+    } else {
+	DEBUG_PP((" -> %i", res));
+	return res + 1;
+    }
 }
 
 /* equivalent to strcpy(x, y); return x + strlen(y), but faster */
@@ -584,6 +782,28 @@ static void error_is_not P4(char *, buf, hash_entry_t *, adj,
     }
 }
 
+static char *strput_words P3(char *, str, int, first, int, last) {
+    char *p = words[first].end_prev;
+    char *end = words[last].start_next;
+    
+    while (isspace(p[0]))
+	p++;
+    while (isspace(end[-1]))
+	end--;
+    while (p < end)
+	*str++ = *p++;
+    *str = 0;
+    return str;
+}
+
+static void error_there_is_no P3(char *, buf, int, start, int, end) {
+    char *p;
+    
+    p = strput(buf, "There is no ");
+    p = strput_words(p, start, end);
+    strput(p, " here.\n");
+}
+
 static void error_not_living P4(char *, buf, unsigned int *, objects,
 				hash_entry_t *, noun, hash_entry_t *, adj) {
     /* The X isn't alive. (if only 1 of noun)
@@ -605,6 +825,23 @@ static void error_not_living P4(char *, buf, unsigned int *, objects,
     }
 }
 
+static void error_not_accessible P4(char *, buf, unsigned int *, objects,
+				   hash_entry_t *, noun, hash_entry_t *, adj) {
+    if (get_single(objects) != -1) {
+	if (adj)
+	    sprintf(buf, "The %s you refered to isn't within reach.\n", noun->name);
+	else
+	    sprintf(buf, "The %s isn't within reach.\n", noun->name);
+    } else {
+	char *pl = pluralize(noun->name);
+	if (adj)
+	    sprintf(buf, "None of the %s you refered to are within reach.\n", pl);
+	else
+	    sprintf(buf, "None of the %s are within reach.\n", pl);
+	FREE_MSTR(pl);
+    }
+}
+
 static void error_ambig P3(char *, buf, hash_entry_t *, noun,
 			   unsigned int *, objects) {
     /* This should be more sophisticated */
@@ -615,6 +852,7 @@ static void parse_obj P2(int, tok, parse_state_t *, state) {
     parse_state_t local_state;
     unsigned int objects[NUM_BITVEC_INTS];
     unsigned int save_obs[NUM_BITVEC_INTS];
+    unsigned int err_obs[NUM_BITVEC_INTS];
     int start = state->word_index;
     char buf[1024];
     char *str;
@@ -622,7 +860,9 @@ static void parse_obj P2(int, tok, parse_state_t *, state) {
     int multiple_adj = 0;
     int tmp;
     match_t *mp;
-    int dont_bother;
+
+    DEBUG_INC;
+    DEBUG_P(("parse_obj:"));
     
     if (!objects_loaded)
 	load_objects();
@@ -631,61 +871,97 @@ static void parse_obj P2(int, tok, parse_state_t *, state) {
 
     while (1) {
 	str = words[state->word_index++].string;
+	DEBUG_PP(("Word is %s", str));
+	if (str == the_word || str == a_word)
+	    continue;
+	if (str == me_word) {
+	    local_state = *state;
+	    mp = add_match(&local_state, tok,
+			   start, state->word_index - 1);
+	    mp->val.number = me_object;
+	    parse_rule(&local_state);
+	}
 	hnode = hash_table[DO_HASH(str, HASH_SIZE)];
 	while (hnode) {
 	    if (hnode->name == str) {
 		if (hnode->flags & HV_NOUN) {
+		    int explore_errors = !best_match &&
+			state->num_errors < best_num_errors;
+		    DEBUG_P(("Found noun: %s", str));
 		    local_state = *state;
-		    dont_bother = 0;
 		    bitvec_copy(save_obs, objects);
+
+		    /* Sigh, I want to throw exceptions */
 		    if (!intersect(objects, hnode->pv.noun)) {
-			if (last_adj && !best_match && 
-			    state->num_errors < best_num_errors) {
-			    error_is_not(buf, last_adj, multiple_adj,
-					 hnode);
-			    mp = add_match(&local_state, ERROR_TOKEN,
-					   start, state->word_index - 1);
-			    mp->val.string = buf;
-			} else dont_bother = 1;
-		    } else
-		    if (tok == LIV_TOKEN && !intersect(objects, cur_livings)) {
-			if (!best_match && state->num_errors < best_num_errors) {
-			    error_not_living(buf, objects, hnode, last_adj);
-			    mp = add_match(&local_state, ERROR_TOKEN,
-					   start, state->word_index - 1);
-			    mp->val.string = buf;
-			} else dont_bother = 1;
-		    } else
-		    if ((tmp = get_single(objects)) != -1) {
-			mp = add_match(&local_state, tok,
-				       start, state->word_index - 1);
-			mp->val.number = tmp;
-		    } else {
-			if (!best_match && state->num_errors < best_num_errors) {
-			    error_ambig(buf, hnode, objects);
-			    mp = add_match(&local_state, ERROR_TOKEN,
-					   start, state->word_index - 1);
-			    mp->val.string = buf;
-			} else dont_bother = 1;
+			if (!explore_errors) goto skip_it;
+			
+			error_is_not(buf, last_adj, multiple_adj, hnode);
+			goto we_have_an_error;
 		    }
-		    if (!dont_bother)
-			parse_rule(&local_state);
+		    if ((-tok) & LIV_MODIFIER) {
+			if (explore_errors)
+			    bitvec_copy(err_obs, objects);
+			if (!intersect(objects, cur_livings)) {
+			    if (!explore_errors) goto skip_it;
+			
+			    error_not_living(buf, err_obs, hnode, last_adj);
+			    goto we_have_an_error;
+			}
+		    }
+		    if (!((-tok) & VIS_ONLY_MODIFIER)) {
+			if (explore_errors)
+			    bitvec_copy(err_obs, objects);
+			if (!intersect(objects, cur_accessible)) {
+			    if (!explore_errors) goto skip_it;
+			
+			    error_not_accessible(buf, err_obs, hnode, last_adj);
+			    goto we_have_an_error;
+			}
+		    }
+		    if ((tmp = get_single(objects)) == -1) {
+			if (!explore_errors) goto skip_it;
+			
+			error_ambig(buf, hnode, objects);
+			goto we_have_an_error;
+		    }
+		    DEBUG_P(("Found object: %s", loaded_objects[tmp]->name));
+		    mp = add_match(&local_state, tok,
+				   start, state->word_index - 1);
+		    mp->val.number = tmp;
+		    goto do_the_parse;
+
+		we_have_an_error:
+		    DEBUG_P((buf));
+		    mp = add_match(&local_state, ERROR_TOKEN,
+				   start, state->word_index - 1);
+		    mp->val.string = buf;
+
+		do_the_parse:
+		    parse_rule(&local_state);
+
+		skip_it:
 		    bitvec_copy(objects, save_obs);
 		}
 		if (hnode->flags & HV_ADJ) {
+		    DEBUG_P(("Found adj: %s", str));
 		    intersect(objects, hnode->pv.adj);
 		    if (last_adj) multiple_adj = 1;
 		    last_adj = hnode;
-		} else
+		} else {
+		    DEBUG_DEC;
 		    return;
+		}
 		break;
 	    }
 	    hnode = hnode->next;
 	}
-	if (!hnode) return;
+	if (!hnode) break;
     }
+    DEBUG_PP(("exiting ..."));
+    DEBUG_DEC;
 }
 
+/* misnomer; this func is not recursive */
 static verb_t *parse_verb PROT((void)) {
     verb_t *ret;
 
@@ -704,43 +980,39 @@ static char *make_error_message P1(int, which) {
     int cnt = 0;
     int tok;
     int index = 0;
-    int i;
     
     p = strput(buf, "You can't ");
     p = strput(p, words[0].string);
     *p++ = ' ';
     while ((tok = parse_vn->token[index++])) {
 	switch (tok) {
-	case OBJ_TOKEN:
-	case LIV_TOKEN:
-	    if (cnt == which - 1) {
-		p = strput(p, "that ");
-	    } else {
-		p = query_the_short(p, loaded_objects[matches[cnt].val.number]);
-		*p++ = ' ';
-	    }
-	    cnt++;
-	    break;
 	case STR_TOKEN:
 	    if (cnt == which - 1) {
 		p = strput(p, "that ");
 	    } else {
-		for (i = matches[cnt].first; i <= matches[cnt].last; i++) {
-		    p = strput(p, words[i].string);
-		    *p++ = ' ';
-		}
-		*p = 0;
+		p = strput_words(p, matches[cnt].first, matches[cnt].last);
 	    }
 	    cnt++;
 	    break;
 	default:
-	    p = strput(p, literals[tok - 1]);
-	    *p++ = ' ';
+	    if (tok >= 0) {
+		p = strput(p, literals[tok - 1]);
+		*p++ = ' ';
+	    } else {
+		if (cnt == which - 1) {
+		    p = strput(p, "that ");
+		} else {
+		    p = query_the_short(p, loaded_objects[matches[cnt].val.number]);
+		    *p++ = ' ';
+		}
+		cnt++;
+	    }
 	    break;
 	}
     }
     p--;
     strcpy(p, ".\n");
+    DEBUG_P((buf));
     return string_copy(buf, "make_error_message");
 }
 
@@ -750,18 +1022,28 @@ static int process_answer P3(parse_state_t *, state, svalue_t *, sv,
 			     int, which) {
     if (!sv) return 0;
     if (sv->type == T_NUMBER) {
+	DEBUG_P(("Return value was: %i", sv->u.number));
 	if (sv->u.number)
 	    return 1;
-	if (state->num_errors == best_num_errors) return -2;
+	if (state->num_errors == best_num_errors) {
+	    DEBUG_P(("Have a better match; aborting ..."));
+	    return -2;
+	}
 	if (state->num_errors++ == 0) {
 	    if (current_possible_error) FREE_MSTR(current_possible_error);
 	    current_possible_error = make_error_message(which);
 	}
 	return -1;
     }
-    if (sv->type != T_STRING)
+    if (sv->type != T_STRING) {
+	DEBUG_P(("Return value was not a string or number.", sv->u.number));
 	return 0;
-    if (state->num_errors == best_num_errors) return -2;
+    }
+    DEBUG_P(("Returned string was: %s", sv->u.string));
+    if (state->num_errors == best_num_errors) {
+	DEBUG_P(("Have a better match; aborting ..."));
+	return -2;
+    }
     if (state->num_errors++ == 0) {
 	if (current_possible_error) FREE_MSTR(current_possible_error);
 	current_possible_error = string_copy(sv->u.string, "process_answer");
@@ -774,25 +1056,12 @@ static int push_real_names PROT((void)) {
     int tok;
 
     while ((tok = parse_vn->token[index++])) {
-	switch (tok) {
-	case OBJ_TOKEN:
-	case LIV_TOKEN:
-	case STR_TOKEN:
-	    {
-		int i;
-		char *p, *q;
-		char tmp[1024];
-		q = tmp;
-		for (i = matches[match].first; i <= matches[match].last; i++) {
-		    p = words[i].string;
-		    while (*p) *q++ = *p++;
-		    if (i < matches[match].last) *q++ = ' ';
-		}
-		*q = 0;
-		push_malloced_string(string_copy(tmp, "push_real_names"));
-		match++;
-	    }
-	    break;
+	if (tok < 0) {
+	    char tmp[1024];
+
+	    strput_words(tmp, matches[match].first, matches[match].last);
+	    push_malloced_string(string_copy(tmp, "push_real_names"));
+	    match++;
 	}
     }
     return match;
@@ -808,9 +1077,11 @@ char *rule_string P1(verb_node_t *, vn) {
     
     while (1) {
 	switch (tok = vn->token[index++]) {
+	case OBJ_A_TOKEN:
 	case OBJ_TOKEN:
 	    p = strput(p, "OBJ ");
 	    break;
+	case LIV_A_TOKEN:
 	case LIV_TOKEN:
 	    p = strput(p, "LIV ");
 	    break;
@@ -825,8 +1096,10 @@ char *rule_string P1(verb_node_t *, vn) {
 	    }
             return buf;
 	default:
-	    p = strput(p, literals[tok - 1]);
-	    *p++ = ' ';
+	    if (p >= 0) {
+		p = strput(p, literals[tok - 1]);
+		*p++ = ' ';
+	    }
 	    break;
 	}
     }
@@ -847,8 +1120,10 @@ static int make_function P4(char *, buf, char *, pre,
     if (try < 2) {
 	buf = strput(buf, words[0].string);
     } else {
+	char tmpbuf[1024];
 	buf = strput(buf, "verb");
-	push_string(words[0].string, STRING_SHARED);
+	strput_words(tmpbuf, 0, 0);
+	push_string(tmpbuf, STRING_SHARED);
 	on_stack++;
     }
 
@@ -863,6 +1138,7 @@ static int make_function P4(char *, buf, char *, pre,
 	*buf++ = '_';
 	switch (tok) {
 	case OBJ_TOKEN:
+	case OBJ_A_TOKEN:
 	    buf = strput(buf, "obj");
 	    if (matches[match].token == ERROR_TOKEN || 
 		(loaded_objects[matches[match].val.number]->flags & O_DESTRUCTED)) {
@@ -874,6 +1150,7 @@ static int make_function P4(char *, buf, char *, pre,
 	    on_stack++;
 	    break;
 	case LIV_TOKEN:
+	case LIV_A_TOKEN:
 	    buf = strput(buf, "liv");
 	    if (matches[match].token == ERROR_TOKEN || 
 		(loaded_objects[matches[match].val.number]->flags & O_DESTRUCTED)) {
@@ -886,16 +1163,9 @@ static int make_function P4(char *, buf, char *, pre,
 	    break;
 	case STR_TOKEN:
 	    {
-		int i;
-		char *q;
 		char tmp[1024];
 		buf = strput(buf, "str");
-		q = tmp;
-		for (i = matches[match].first; i <= matches[match].last; i++) {
-		    q = strput(q, words[i].string);
-		    if (i < matches[match].last) *q++ = ' ';
-		}
-		*q = 0;
+		strput_words(tmp, matches[match].first, matches[match].last);
 		push_malloced_string(string_copy(tmp, "push_real_names"));
 		match++;
 		on_stack++;
@@ -925,9 +1195,16 @@ static void we_are_finished P1(parse_state_t *, state) {
     int which, try, args, mtch = 0;
     object_t *ob;
     int local_error;
+
+    DEBUG_INC;
+    DEBUG_P(("we_are_finished"));
     
     /* ignore it if we already have somethign better */
-    if (best_match >= state->match_level) return;
+    if (best_match >= state->match_level) {
+	DEBUG_P(("Have a better match; aborting ..."));
+	DEBUG_DEC;
+	return;
+    }
     if (state->num_errors) {
 	local_error = 0;
 	if (state->num_errors > best_num_errors) return;
@@ -943,33 +1220,51 @@ static void we_are_finished P1(parse_state_t *, state) {
 			    SET_OB(parse_vn->handler);
 		}
 		args = make_function(func, prefixes[which], state, try % 4);
+		DEBUG_P(("Trying %s ...", func));
 		ret = process_answer(state,
 				     apply(func, ob, args, ORIGIN_DRIVER),
 				     which);
-		if (ob->flags & O_DESTRUCTED) return;
-		if (ret == -2) return;
+		if (ob->flags & O_DESTRUCTED) {
+		    DEBUG_DEC;
+		    return;
+		}
+		if (ret == -2) {
+		    DEBUG_DEC;
+		    return;
+		}
 		if (ret) break;
 	    }
 	if (try == 8) {
-	    if (state->num_errors == best_num_errors) return;
+	    if (state->num_errors == best_num_errors) {
+		DEBUG_P(("Nothing matched and we have a better match"));
+		DEBUG_DEC;
+		return;
+	    }
 	    if (state->num_errors++ == 0) {
-		/* ### ERROR MESSAGE */
+		if (current_possible_error) FREE_MSTR(current_possible_error);
+		current_possible_error = make_error_message(which);
 	    }
 	}
-	while (mtch != state->num_matches && matches[mtch].token < ERROR_TOKEN) {
+	while (mtch != state->num_matches && !((-matches[mtch].token) & OBJ_A_TOKEN)) {
 	    mtch++;
 	    if (mtch == state->num_matches) break;
 	}
 	if (mtch == state->num_matches) break;
 	if (matches[mtch].token != ERROR_TOKEN) {
 	    SET_OB(loaded_objects[matches[mtch].val.number]);
-	} else 
+	} else {
+	    DEBUG_P(("Skipping next iteration; match is an error"));
 	    ob = 0;
+	}
 	mtch++;
     }
     if (state->num_errors) {
 	if (state->num_errors == best_num_errors &&
-	    state->match_level <= best_error_match) return;
+	    state->match_level <= best_error_match) {
+	    DEBUG_P(("Have better match; aborting ..."));
+	    DEBUG_DEC;
+	    return;
+	}
 	best_num_errors = state->num_errors;
 	best_error_match = state->match_level;
 	if (current_error) FREE_MSTR(current_error);
@@ -982,6 +1277,7 @@ static void we_are_finished P1(parse_state_t *, state) {
 	    current_error = string_copy(matches[mtch].val.string, 
 					"we_are_finished");		
 	}
+	DEBUG_P(("current error set to %s", current_error));
     } else {
 	best_match = state->match_level;
 	if (best_result) free_parse_result(best_result);
@@ -1002,7 +1298,9 @@ static void we_are_finished P1(parse_state_t *, state) {
 		sp -= args;
 	    }
 	}
+	DEBUG_P(("Saving successful match: %s", best_result->res[0].func));
     }
+    DEBUG_DEC;
 }
 
 static void do_the_call PROT((void)) {
@@ -1027,28 +1325,40 @@ static void do_the_call PROT((void)) {
 	    FREE(best_result->res[i].args);
 	}
 	best_result->res[i].args = 0;
+	DEBUG_P(("Calling %s ...", best_result->res[i].func));
 	if (apply(best_result->res[i].func, ob,
 		  best_result->res[i].num, ORIGIN_DRIVER)) return;
     }
+    error("Parse accepted, but no do_* function found!\n");
 }
 
 static void parse_rule P1(parse_state_t *, state) {
+    char buf[1024];
     int tok;
     parse_state_t local_state;
     match_t *mp;
     int start;
 
+    DEBUG_INC;
+    DEBUG_P(("parse_rule"));
     while (1) {
 	tok = parse_vn->token[state->tok_index++];
-	if (state->word_index == num_words && tok)
+	if (state->word_index == num_words && tok) {
+	    DEBUG_P(("Ran out of words to parse."));
+	    DEBUG_DEC;
 	    return;
+	}
 	switch (tok) {
 	case 0:
 	    if (state->word_index == num_words)
 		we_are_finished(state);
+	    DEBUG_P(("exiting parse_rule ..."));
+	    DEBUG_DEC;
 	    return;
 	case OBJ_TOKEN:
 	case LIV_TOKEN:
+	case OBJ_A_TOKEN:
+	case LIV_A_TOKEN:
 	    local_state = *state;
 	    parse_obj(tok, &local_state);
 	    if (!best_match && state->num_errors < best_num_errors) {
@@ -1057,43 +1367,74 @@ static void parse_rule P1(parse_state_t *, state) {
 		    local_state = *state;
 		    mp = add_match(&local_state, ERROR_TOKEN,
 				   start, state->word_index - 1);
-		    mp->val.string = "There is no ###X here.";
+		    error_there_is_no(buf, start, state->word_index - 1);
+		    mp->val.string = buf;
 		    parse_rule(&local_state);
 		    state->word_index++;
 		}
 	    }
+	    DEBUG_P(("Done trying to match OBJ"));
+	    DEBUG_DEC;
 	    return;
 	case STR_TOKEN:
-	    start = state->word_index++;
-	    while (state->word_index <= num_words) {
-		local_state = *state;
-		add_match(&local_state, STR_TOKEN,
-			  start, state->word_index - 1);
-		parse_rule(&local_state);
-		state->word_index++;
+	    if (!parse_vn->token[state->tok_index]) {
+		/* At end; match must be the whole thing */
+		start = state->word_index;
+		state->word_index = num_words;
+		add_match(state, STR_TOKEN, start, num_words - 1);
+		DEBUG_P(("Taking rest of sentence as STR"));
+		parse_rule(state);
+	    } else {
+		start = state->word_index++;
+		while (state->word_index <= num_words) {
+		    local_state = *state;
+		    add_match(&local_state, STR_TOKEN,
+			      start, state->word_index - 1);
+		    DEBUG_P(("Trying potential STR match"));
+		    parse_rule(&local_state);
+		    state->word_index++;
+		}
 	    }
+	    DEBUG_P(("Done trying to match STR"));
+	    DEBUG_DEC;
 	    return;
 	default:
 	    if (literals[tok - 1] == words[state->word_index++].string) {
-		state->match_level++;
+		DEBUG_P(("Matched literal: %s", literals[tok - 1]));
+		state->match_level += 2;
 	    } else {
-		if (state->tok_index == 1) return;
+		if (state->tok_index == 1) {
+		    DEBUG_DEC;
+		    return;
+		}
 
+		DEBUG_P(("last match to error ..."));
 		switch (parse_vn->token[state->tok_index - 2]) {
 		case STR_TOKEN:
+		    DEBUG_P(("Nope.  STR rule last."));
+		    DEBUG_DEC;
 		    return;
 		case OBJ_TOKEN:
 		case LIV_TOKEN:
+		case OBJ_A_TOKEN:
+		case LIV_A_TOKEN:
 		    {
 			match_t *last;
 			
 			while (literals[tok - 1] != words[state->word_index++].string) {
-			    if (state->word_index == num_words)
+			    if (state->word_index == num_words) {
+				DEBUG_P(("Literal not found in forward search"));
+				DEBUG_DEC;
 				return;
+			    }
 			}
 			last = &matches[state->num_matches];
 			switch (last->token) {
+			case LIV_A_TOKEN:
+			    state->match_level -= 4;
+			    break;
 			case LIV_TOKEN:
+			case OBJ_A_TOKEN:
 			    state->match_level -= 3;
 			    break;
 			case OBJ_TOKEN:
@@ -1102,25 +1443,37 @@ static void parse_rule P1(parse_state_t *, state) {
 			case STR_TOKEN:
 			    state->match_level--;
 			}
-			state->num_errors++;
+			DEBUG_P(("Changing last match."));
 			last->token = ERROR_TOKEN;
 			last->last = state->word_index-1;
-			last->val.string = "###RECOVER";
+			if (state->num_errors++ == 0) {
+			    error_there_is_no(buf, last->first, 
+					      state->word_index - 1);
+			    last->val.string = buf;
+			}
 		    }
 		    break;
 		default:
+		    DEBUG_P(("default case"));
+		    DEBUG_DEC;
 		    return;
 		}
 	    }
 	}
     }
+    DEBUG_DEC;
 }
 
 static int check_literal P2(int, lit, int, start) {
+    DEBUG_PP(("check_literal: %s", literals[lit - 1]));
+
     while (start < num_words) {
-	if (literals[lit - 1] == words[start++].string)
+	if (literals[lit - 1] == words[start++].string) {
+	    DEBUG_PP(("yes"));
 	    return start;
+	}
     }
+    DEBUG_PP(("no"));
     return 0;
 }
 
@@ -1130,12 +1483,15 @@ static void parse_rules PROT((void)) {
 
     parse_vn = parse_verb_entry->node;
     while (parse_vn) {
+	DEBUG_PP(("Rule: %s", rule_string(parse_vn)));
 	if (!parse_restricted || parse_vn->handler == parse_restricted) {
 	    pos = 0;
 	    if ((!parse_vn->lit[0] ||
 		 (pos = check_literal(parse_vn->lit[0], 1)))
 		&& (!parse_vn->lit[1] ||
 		    check_literal(parse_vn->lit[1], pos))) {
+		DEBUG_P(("Trying rule: %s", rule_string(parse_vn)));
+
 		local_state.tok_index = 0;
 		local_state.word_index = 1;
 		local_state.match_level = 1;
@@ -1157,13 +1513,13 @@ static void reset_error PROT((void)) {
     best_num_errors = 5732; /* Yes.  Exactly 5,732 errors.  Don't ask. */
 }
 
-static void parse_recurse P1(char **, iwords) {
+static void parse_recurse P3(char **, iwords, char **, ostart, char **, oend) {
     char buf[1024];
     char *p, *q;
     char **iwp = iwords;
     int first = 1;
-    int l;
-    
+    int l, idx;
+
     if (*iwords[0]) {
 	*buf = 0;
 	p = buf;
@@ -1172,59 +1528,91 @@ static void parse_recurse P1(char **, iwords) {
 	    strcpy(p, *iwp++);
 	    p += l;
 	    if ((q = findstring(buf))) {
-		if (q == a_word || q == the_word)
-		    parse_recurse(iwp);
-		else {
-		    words[num_words].type = 0;
-		    words[num_words++].string = q;
-		    parse_recurse(iwp);
-		    num_words--;
-		}
+		words[num_words].type = 0;
+		words[num_words].end_prev = oend[-1];
+		words[num_words].start_next = ostart[iwp - iwords];
+		words[num_words++].string = q;
+		idx = iwp - iwords;
+		parse_recurse(iwp, ostart + idx, oend + idx);
+		num_words--;
 	    } else if (first) {
-		first = 0;
+		l = p - buf;
 		words[num_words].type = WORD_ALLOCATED;
 		words[num_words].string = new_string(l, "parse_recurse");
+		words[num_words].end_prev = oend[-1];
+		words[num_words].start_next = ostart[1];
 		memcpy(words[num_words].string, buf, l);
 		words[num_words++].string[l] = 0;
-		parse_recurse(iwp);
+		idx = iwp - iwords;
+		parse_recurse(iwp, ostart + idx, oend + idx);
 		num_words--;
 		FREE_MSTR(words[num_words].string);
 	    }
+	    first = 0;
 	    *p++ = ' ';
 	} while (*iwp[0]);
     } else {
-	if ((parse_verb_entry = parse_verb()))
+	if ((parse_verb_entry = parse_verb())) {
+#ifdef DEBUG
+	    if (debug_parse_depth) {
+		char dbuf[1024];
+		int i;
+		char *p;
+		p = strput(dbuf, "Trying interpretation: ");
+		for (i = 0; i < num_words; i++) {
+		    p = strput(p, words[i].string);
+		    p = strput(p, ":");
+		}
+		DEBUG_P((dbuf));
+	    }
+#endif
 	    parse_rules();
+	}
     }
 }
 
 static void parse_sentence P1(char *, input) {
     char *starts[256];
-    char c, buf[1024], *p, *start;
+    char *orig_starts[256];
+    char *orig_ends_internal[257];
+    char **orig_ends = &orig_ends_internal[1];
+    char c, buf[1024], *p, *start, *inp;
     int n = 0;
     int i;
-
+    int flag;
+    
     free_words();
     p = start = buf;
-    while ((c = *input++)) {
+    flag = 0;
+    inp = input;
+    orig_ends[-1] = input;
+    while ((c = *inp++)) {
 	if (isignore(c)) continue;
 	if (isupper(c))
 	    c = tolower(c);
 	if (iskeep(c)) {
+	    if (!flag) {
+		orig_starts[n] = inp - 1;
+		flag = 1;
+	    }
 	    *p++ = c;
 	} else {
 	    /* whitespace, punctuation, or end of string */
-	    if (p - start) {
+	    if (flag) {
+		flag = 0;
 		*p++ = 0;
+		orig_ends[n] = inp - 1; /* points to where c was */
 		starts[n++] = start;
 		start = p;
 	    }
 	}
     }
-    if (p - start) {
+    if (flag) {
 	*p++ = 0;
+	orig_ends[n] = inp - 1;
 	starts[n++] = start;
     }
+    orig_starts[n] = inp - 1;
     starts[n] = p;
     *p = 0;
 
@@ -1234,7 +1622,9 @@ static void parse_sentence P1(char *, input) {
 	if ((words[0].string = findstring(buf))) {
 	    num_words = 1;
 	    words[0].type = 0;
-	    parse_recurse(&starts[i]);
+	    words[0].end_prev = input;
+	    words[0].start_next = orig_starts[i];
+	    parse_recurse(&starts[i], &orig_starts[i], &orig_ends[i]);
 	}
 	starts[i][-1] = ' ';
     }
@@ -1247,6 +1637,26 @@ void f_parse_sentence PROT((void)) {
     if (pi)
 	error("Illegal to call parse_sentence() recursively.\n");
     
+    /* may not be done in case of an error, or in case of tail recursion.
+       if we are called tail recursively, we don't need this any more.
+       */
+    if (best_result) {
+	free_parse_result(best_result);
+	best_result = 0;
+    }
+
+    if (st_num_arg == 2 && (sp--)->u.number) {
+#ifdef DEBUG
+	debug_parse_depth = 1;
+	if ((sp + 1)->u.number > 1)
+	    debug_parse_verbose = 1;
+	else
+	    debug_parse_verbose = 0;
+    } else {
+	debug_parse_depth = 0;
+#endif
+    }
+
     (++sp)->type = T_ERROR_HANDLER;
     sp->u.error_handler = free_parse_globals;
 
@@ -1254,6 +1664,8 @@ void f_parse_sentence PROT((void)) {
     pi = current_object->pinfo;
     parse_restricted = 0;
     parse_sentence((sp-1)->u.string);
+
+    free_parse_globals();
     
     if (best_match) {
 	do_the_call();
@@ -1269,7 +1681,11 @@ void f_parse_sentence PROT((void)) {
 	    current_error = 0;
 	} else put_number(0);
     }
-    free_parse_globals();
+
+    if (best_result) {
+	free_parse_result(best_result);
+	best_result = 0;
+    }
 }
 
 void f_parse_my_rules PROT((void)) {
@@ -1325,6 +1741,7 @@ void f_parse_my_rules PROT((void)) {
 	free_string_svalue(sp--);
 	free_svalue(sp, "parse_my_rules"); /* may have been destructed */
 	if (current_error) {
+	    sp->type = T_STRING;
 	    sp->subtype = STRING_MALLOC;
 	    sp->u.string = current_error;
 	    current_error = 0;

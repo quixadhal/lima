@@ -1,8 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <mudlib.h>
 #include <security.h>
 
-inherit M_ACCESS;
+inherit CMD;
 
 void create()
 {
@@ -17,7 +18,7 @@ void write_error(string error)
     write("Error: " + error +".\n");
 }
 
-int main(string arg)
+private void main(string arg)
 {
   string *args;
   mixed temp, temp2;
@@ -38,7 +39,7 @@ int main(string arg)
       if (err)
       {
 	write_error(err);
-	return 1;
+	return;
       }
       write("Domain created.\n");
       mkdir("/domains/"+args[0]);
@@ -49,9 +50,9 @@ int main(string arg)
       if (err)
       {
 	write_error(err);
-	return 1;
+	return;
       }
-      return 1;
+      return;
     case "delete":
       if (sizeof(args)!=1)
         return 0;
@@ -60,11 +61,11 @@ int main(string arg)
       if (err)
       {
 	write_error(err);
-	return 1;
+	return;
       }
       write("Domain deleted.\n");
       write("Please remove files and entry in /room/init_file manually.\n");
-      return 1;
+      return;
     case "add":
       if (sizeof(args)<3 || args[<2]!="to")
         return 0;
@@ -89,7 +90,7 @@ int main(string arg)
 	if (err)
 	  write_error(err);
       }
-      return 1;
+      return;
     case "remove":
       if (sizeof(args)<3 || args[<2]!="from")
         return 0;
@@ -103,7 +104,7 @@ int main(string arg)
 	else
 	  write("Removed "+args[i]+" from "+temp+".\n");
       }
-      return 1;
+      return;
     case "list":
       if (!sizeof(args))
       {
@@ -116,7 +117,7 @@ int main(string arg)
 	  write("The following domains exist:\n");
 	  printf("%-#78s\n",implode(temp,"\n")+"\n");
 	}
-	return 1;
+	return;
       }
       for (i=0; i<sizeof(args); i++)
       {
@@ -127,7 +128,7 @@ int main(string arg)
 	  write("Wizard "+args[i]+" belongs to "+
 	    implode(temp,", ")+".\n");
       }
-      return 1;
+      return;
     case "show":
       if (!sizeof(args))
 	return 0;
@@ -165,7 +166,7 @@ int main(string arg)
 	  }
 	}
       }
-      return 1;
+      return;
   }
 }
 

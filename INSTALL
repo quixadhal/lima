@@ -12,7 +12,7 @@ How to install Lima:
 	b) type: ./build.MudOS
 	c) Type either gmake or make, depending on what the last line	
 	   of buld.MudOS tells you.
-	d) type: mv driver ../etc/
+	d) type: mv driver.v21.6b3.lima ../etc/driver
 	
 
 2) You must edit the mudlib configuration file.
@@ -70,5 +70,5 @@ Log in to your mud.  When it asks you for your name, type:
    let us know how it went!
 
 10) If your machine has /bin/bash, you can modify LIMADIR in
-/etc/backup, /etc/startmud and /etc/keepup, and follow the usage
-instructions in those scripts, if you think you'll find them useful.
+    /etc/backup, /etc/startmud and /etc/keepup, and follow the usage
+    instructions in those scripts, if you think you'll find them useful.

@@ -14,10 +14,10 @@
 #include <mudlib.h>
 #include <daemons.h>
 
-inherit DAEMON;		/* for privs and cleanup */
+inherit CMD;		/* for privs and cleanup */
 inherit M_REMOTE;
 
-int main(mixed * arg)
+private void main(mixed * arg)
 {
     mixed * info;
     int i;
@@ -31,7 +31,7 @@ int main(mixed * arg)
     if ( sizeof(filter_array(info, (: $1[1] == 2 && !$1[2] :))) )
     {
 	write("You should be logged into all connected muds.\n");
-	return 1;
+	return;
     }
 
     write("Replicating to: " +
@@ -46,13 +46,11 @@ int main(mixed * arg)
 	if ( !contents )
 	{
 	    printf("Problems reading: %s\n", fname);
-	    return 1;
+	    return;
 	}
 
 	/* ### this will need to change to an authenticated version */
 	call_broadcast(FILE_D, "perform_write_file", ({ fname, contents, 1 }));
 	printf("  File '%s' sent.\n", fname);
     }
-
-    return 1;
 }

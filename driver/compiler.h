@@ -51,7 +51,7 @@ typedef struct {
 #define A_FUNCTIONALS           17
 #define NUMAREAS		18
 
-#define CURRENT_PROGRAM_SIZE prog_code - mem_block[current_block].block
+#define CURRENT_PROGRAM_SIZE (prog_code - mem_block[current_block].block)
 #define UPDATE_PROGRAM_SIZE mem_block[current_block].current_size = CURRENT_PROGRAM_SIZE
 
 /*

@@ -2,11 +2,12 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 inherit M_GLOB;
 inherit M_REGEX;
 
 
-int main(string arg)
+private void main(string arg)
 {
   mapping mudlist = IMUD_D->query_mudlist();
   string* muds = keys(mudlist);
@@ -22,7 +23,7 @@ int main(string arg)
       if(!sizeof(matches))
 	{
 	  printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
-	  return 1;
+	  return;
 	}
     }
   output = sprintf("%d matches out of %d muds.\n"
@@ -41,7 +42,7 @@ sizeof(matches), sizeof(mudlist));
     }
   
   clone_object(MORE_OB)->more_string(output);
-  return 1;
+  return;
 }
 			
 

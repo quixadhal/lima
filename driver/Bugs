@@ -93,9 +93,6 @@ swapping for much of the mud ...
 
 -----
 
-When nesting a anonymous function inside a functional, $x is allowed,
-despite the fact it leads to bad code.  For example, the following is
-a crasher:
+replace_string(implode(({"east", "west", "foo", "arg"}), ", "), ", ", " and ", 3, 4)
 
-evaluate( evaluate( (: function() { $1; } :) ) );
-
+=> eastwestfoo and arg

@@ -17,6 +17,6 @@ void do_kill_liv(object ob)
 
 mixed * query_verb_info()
 {
-   return ({ ({ "LIV" }) });
+   return ({ ({ "LIV", "LIV with OBJ" }) });
 }
 

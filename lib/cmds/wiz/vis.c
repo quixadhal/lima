@@ -5,10 +5,10 @@
 #include <setbit.h>
 #include <daemons.h>
 
+inherit CMD;
 
 
-
-int main() {
+private void main() {
     string msg;
     if (!this_body()->test_flag(INVIS))
 	printf("You are not invisible.\n");
@@ -19,5 +19,4 @@ int main() {
 	this_body()->do_player_message("vis");
 	write("You are now visible.\n");
     }
-    return 1;
 }

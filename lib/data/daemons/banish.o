@@ -1,3 +1,0 @@
-#daemons/banish_d.c
-bad_names ({"fuck","shit","cock","^zork","bitch","drakkdrakka","^a","^him","^her","^it","^the","^an","^root","^me","cerano","foo",})
-bad_sites ({({"199","199","120","161",}),})

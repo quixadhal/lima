@@ -2026,7 +2026,7 @@ void init_num_args()
     add_instr_name("foreach", 0, F_FOREACH, -1);
     add_instr_name("exit_foreach", "c_exit_foreach();\n", F_EXIT_FOREACH, -1);
     add_instr_name("expand_varargs", 0, F_EXPAND_VARARGS, -1);
-    add_instr_name("next_foreach", 0, F_NEXT_FOREACH, -1);
+    add_instr_name("next_foreach", "c_next_foreach();\n", F_NEXT_FOREACH, -1);
     add_instr_name("member_lvalue", "c_member_lvalue(%i);\n", F_MEMBER_LVALUE, T_LVALUE);
     add_instr_name("index_lvalue", "push_indexed_lvalue(0);\n", 
 		   F_INDEX_LVALUE, T_LVALUE|T_LVALUE_BYTE);
@@ -2053,7 +2053,7 @@ void init_num_args()
     add_instr_name("ne_range", "f_extract_range(0);\n",
 		   F_NE_RANGE, T_BUFFER|T_ARRAY|T_STRING);
     add_instr_name("global", "C_GLOBAL(%i);\n", F_GLOBAL, T_ANY);
-    add_instr_name("local", 0, F_LOCAL, T_ANY);
+    add_instr_name("local", "C_LOCAL(%i);\n", F_LOCAL, T_ANY);
     add_instr_name("transfer_local", "c_transfer_local(%i);\n", F_TRANSFER_LOCAL, T_ANY);
     add_instr_name("number", 0, F_NUMBER, T_NUMBER);
     add_instr_name("real", 0, F_REAL, T_REAL);
@@ -2091,21 +2091,24 @@ void init_num_args()
 #ifdef F_JUMP
     add_instr_name("jump", F_JUMP, -1);
 #endif
-    add_instr_name("return_zero", "c_return_zero(%i);\nreturn;\n", F_RETURN_ZERO, -1);
+    add_instr_name("return_zero", "c_return_zero();\nreturn;\n", F_RETURN_ZERO, -1);
     add_instr_name("return", "c_return();\nreturn;\n", F_RETURN, -1);
-    add_instr_name("sscanf", 0, F_SSCANF, T_NUMBER);
-    add_instr_name("parse_command", 0, F_PARSE_COMMAND, T_NUMBER);
+    add_instr_name("sscanf", "c_sscanf(%i);\n", F_SSCANF, T_NUMBER);
+    add_instr_name("parse_command", "c_parse_command(%i);\n", F_PARSE_COMMAND, T_NUMBER);
     add_instr_name("string", 0, F_STRING, T_STRING);
     add_instr_name("short_string", 0, F_SHORT_STRING, T_STRING);
     add_instr_name("call", "c_call(%i, %i);\n", F_CALL_FUNCTION_BY_ADDRESS, T_ANY);
     add_instr_name("call_inherited", "c_call_inherited(%i, %i, %i);\n", F_CALL_INHERITED, T_ANY);
     add_instr_name("aggregate_assoc", "C_AGGREGATE_ASSOC(%i);\n", F_AGGREGATE_ASSOC, T_MAPPING);
 #ifdef DEBUG
-    add_instr_name("break_point", "f_break_point();\n", F_BREAK_POINT, -1);
+    add_instr_name("break_point", "break_point();\n", F_BREAK_POINT, -1);
 #endif
     add_instr_name("aggregate", "C_AGGREGATE(%i);\n", F_AGGREGATE, T_ARRAY);
     add_instr_name("(::)", 0, F_FUNCTION_CONSTRUCTOR, T_FUNCTION);
-    add_instr_name("simul_efun", "call_simul_efun(%i, %i);\n", F_SIMUL_EFUN, T_ANY);
+    /* sorry about this one */
+    add_instr_name("simul_efun", 
+		   "call_simul_efun(%i, (lpc_int = %i + num_varargs, num_varargs = 0, lpc_int));\n", 
+		   F_SIMUL_EFUN, T_ANY);
     add_instr_name("global_lvalue", "C_LVALUE(&current_object->variables[variable_index_offset + %i]);\n", F_GLOBAL_LVALUE, T_LVALUE);
     add_instr_name("|", "f_or();\n", F_OR, T_NUMBER);
     add_instr_name("<<", "f_lsh();\n", F_LSH, T_NUMBER);

@@ -65,23 +65,3 @@ get_level( object ob )
 
   return (level<0 ? 0 : ( level > 5 ? 5 : level ));
 }
-
-
-object* all_users(){
-  string* valid;
-  int dummy;
-  string prev_file;
-
-  valid = ({
-      "/std/player",
-      ANNOUNCE_D,
-      TIMEOUT_D,
-      FINGER_D,
-      NCHANNEL_D,
-  });
-  prev_file = file_name(previous_object());
-  if(!prev_file) return 0;
-  sscanf(prev_file,"%s#%d",prev_file,dummy);
-  if (member_array(prev_file,valid) == -1) return 0;
-  return efun::users();
-}

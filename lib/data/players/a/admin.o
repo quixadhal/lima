@@ -14,7 +14,7 @@ max_hp 1
 heal_rate 10
 weapon_type "blow"
 news_data ([])
-level 1
+level 5
 topic_to_time ([])
 wizdefaults ([])
 wizxdefaults ({})

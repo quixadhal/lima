@@ -4,9 +4,9 @@
 // we will recieve: ({ user, ({ words }) })
 #include <mudlib.h>
 #define  ASNOOP_LOG  "/log/snoops"
+inherit CMD;
 
-inherit DAEMON;
-int main(mixed *arg) {
+private void main(mixed *arg) {
     if(!arg[0])
 	snoop();
     else {
@@ -20,5 +20,4 @@ int main(mixed *arg) {
 	  unguarded(1, (: snoop($(arg[0])->query_link()) :));
 	}
     }
-    return 1;
 }

@@ -4,11 +4,10 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 
 
-
-int main( string str ) {
+private void main( string str ) {
 write("You echoall: "+str+"\n");
 shout(str+"\n");
-return 1;
 }

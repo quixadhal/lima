@@ -8,9 +8,10 @@
 ** 04-Feb-95. Deathblade. Created.
 */
 
-#include <daemons.h>
+#include <mudlib.h>
+inherit CMD;
 
-int main(mixed * args, mapping flags)
+private void main(mixed * args, mapping flags)
 {
     string channel_name;
 
@@ -19,6 +20,4 @@ int main(mixed * args, mapping flags)
         channel_name = "plyr_" + channel_name;
 
     write(TIMER_D->add_timer(args[0],flags["r"],channel_name,args[2]));
-
-    return 1;
 }

@@ -44,7 +44,7 @@ None of the simul_efuns mentioned in comments here are simul_efuns.
 
 DOC(pluralize,"convert a noun to it's plural form.  Oddly enough, it's also quite"
     "good at converting verbs to their singular form, since going from plural to "
-    "singular often entails adding an 's'.  Eg, they run, he runs.");
+    "singular often entails adding an 's'.  Eg, they run, he runs.")
 
 string pluralize(string str)
 {
@@ -157,7 +157,7 @@ string pluralize(string str)
 /* end of pluralize() */
 
 // punctuate Written by Rust.
-DOC(punctate,"adds a period to a sentence if needed.");
+DOC(punctate,"adds a period to a sentence if needed.")
 string punctuate( string str )
 {
     int		last_char;

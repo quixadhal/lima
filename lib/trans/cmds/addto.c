@@ -1,10 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+inherit CMD;
 
 string *lines;
 
-int main(mixed * arg) {
+private void main(mixed * arg) {
     if ( is_file(arg[0]) )
     {
         lines = explode(read_file(arg[0]), "\n");
@@ -17,6 +18,5 @@ int main(mixed * arg) {
     }
 
     clone_object(ADDTO_OB)->addto(arg[0]);
-
-    return 1;
 }
+

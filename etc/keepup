@@ -12,11 +12,15 @@
 
 #Redistribute freely, as usual
 
+#
+# Modify these as necessary
+#
 LIMADIR="/home/rust/lima0.9-alpha"
+searchfor=config.lima
 
+#######
 pscmd="ps -x"
 startingcol=21
-searchfor=config.quendor
 startmud=$LIMADIR/etc/startmud
 cutfile=/tmp/keepup.$$
 

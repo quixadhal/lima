@@ -16,6 +16,10 @@
 
 #include <driver/function.h>
 
+string query_userid();
+mixed query_privilege();
+
+
 #define INPUT_NORMAL	0
 #define INPUT_AUTO_POP	1
 #define INPUT_CHAR_MODE	2
@@ -271,6 +275,13 @@ nomask void force_me(string str)
 {
     object save_this_user = this_user();
 
+    /*
+    ** If this user has a privilege, then allow forces only from self or
+    ** an admin.
+    */
+    if ( query_privilege() && !check_privilege(query_userid() + ":") )
+	error("Illegal force attempt.\n");
+
     set_this_player(this_object());
     process_input(str);
     set_this_player(save_this_user);
@@ -287,14 +298,19 @@ nomask void clear_input_stack()
 {
     class input_info top;
 
-    while (sizeof(modal_stack))	{
+    while (sizeof(modal_stack))
+    {
 	if (catch {
 	    top = get_top_handler();
 	    modal_pop();
-	    top->input_func(-1); // a bit of a kludge, but zero is used
+            evaluate(top->input_func, -1);
 	}) {
 	    write_file("/tmp/bad_handler",
 		       sprintf("Error in input_func(-1):\n\tinput_func: %O\n\tprompt: %O\n", top->input_func, top->prompt));
 	}
     }
+}
+nomask int modal_stack_size()
+{
+    return sizeof(modal_stack);
 }

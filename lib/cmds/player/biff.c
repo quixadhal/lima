@@ -7,6 +7,9 @@
 */
 
 #include <flags.h>
+#include <mudlib.h>
+
+inherit CMD;
 
 #define USAGE "Usage: biff [on | off]\n"
 
@@ -15,13 +18,13 @@ private string query_setting()
     return this_body()->test_flag(F_BIFF) ? "on" : "off";
 }
 
-nomask int main(string arg)
+nomask private void main(string arg)
 {
     if ( !arg || arg == "" )
     {
 	write("Your biff mail notification flag is " + query_setting() +
 	      ".\n" + USAGE);
-	return 1;
+	return;
     }
 
     switch ( arg )
@@ -36,9 +39,8 @@ nomask int main(string arg)
 
     default:
 	notify_fail(USAGE);
-	return 0;
+	return;
     }
 
     write("Your biff mail notification flag is now " + query_setting() + "\n");
-    return 1;
 }

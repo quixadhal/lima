@@ -3,12 +3,14 @@
 #include <mudlib.h>
 #include <daemons.h>
 
-nomask int main(string str) {
+inherit CMD;
+
+nomask private void main(string str) {
     if (!str) {
         write("emoteapropos string\n");
-        return 0;
+        return;
     }
     write("Souls that contain: " + str + "\n");
     write(implode(SOUL_D->emote_apropos(str), "\n")+"\n");
-    return 1;
+    return;
 }

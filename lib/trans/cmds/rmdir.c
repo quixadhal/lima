@@ -2,8 +2,9 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
-int main(mixed *arg) {
+inherit CMD;
+
+private void main(mixed *arg) {
   string dir;
   foreach(dir in arg[0])
     {

@@ -8,7 +8,7 @@
 
 inherit M_GLOB;
 inherit M_ANSI;
-inherit DAEMON;
+inherit CMD;
 
 mapping		info;
 mapping		is_dir;
@@ -55,7 +55,7 @@ map_ls_arrays(function f, mixed arr1, mixed arr2)
   return res;
 }
 
-int main(mixed argv, mapping flags)
+private void main(mixed argv, mapping flags)
 {
   string 	path;
   mixed 	files;
@@ -117,5 +117,9 @@ int main(mixed argv, mapping flags)
 
 
   new(MORE_OB)->more_string(output);
-  return 1;
+}
+
+nomask int
+valid_resend(string ob) {
+    return ob == "/trans/cmds/dir";
 }

@@ -1,8 +1,8 @@
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
-void main(string array argv)
+private void main(string array argv)
 {
   mixed result;
 

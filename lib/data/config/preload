@@ -8,7 +8,6 @@
 /std/player/bodyshell
 /std/player
 /daemons/help_d
-/daemons/timeout_d
 /daemons/nchannel_d
 /daemons/verb_d
 /daemons/soul_d

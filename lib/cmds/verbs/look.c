@@ -118,9 +118,9 @@ mixed do_look(mixed rule, mixed ob1, object ob2)
 
 mixed * query_verb_info()
 {
-    return ({ ({ 0, "OBJ", "at OBJ", "for LIV", "for OBJ", "in OBJ",
-	     "at OBS", "at OBS with OBJ", "at OBJ with OBJ",
-	     "STR", "OBJ with OBJ" }) });
+    return ({ ({ 0, "OBJ:v", "at OBJ:v", "for LIV:v", "for OBJ:v", "in OBJ:v",
+	     "at OBS:v", "at OBS:v with OBJ", "at OBJ:v with OBJ",
+	     "STR", "OBJ:v with OBJ" }) });
     
     /*
     ** "examine OBJ" -> "look OBJ"

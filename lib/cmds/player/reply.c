@@ -4,8 +4,11 @@
 // Megaboz@ZorkMUD attached header and help
 
 #include <commands.h>
+#include <mudlib.h>
 
-int main(string arg)
+inherit CMD;
+
+private void main(string arg)
 {
     string   target;
     string	tmp, tmp2;
@@ -13,16 +16,15 @@ int main(string arg)
     if(!arg || arg == "")
       {
 	write("Usage: reply <message>\n");
-	return 1;
+	return;
       }
     target = this_body()->query_reply();
 
     if( !find_user( target ) && !sscanf( target, "%s@%s", tmp, tmp2 ) )
     { 
 	write( "No target found for reply.\n" );
-	return 1;
+	return;
     }
 
-    CMD_OB_TELL->main(sprintf("%s %s", target, arg));
-    return 1;
+    resend(CMD_OB_TELL, sprintf("%s %s", target, arg));
 }

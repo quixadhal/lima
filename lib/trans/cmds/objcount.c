@@ -10,11 +10,11 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 mapping counts;
 
-int main(string arg)
+private void main(string arg)
 {
     counts = ([ ]);
 
@@ -23,5 +23,4 @@ int main(string arg)
     clone_object(MORE_OB)->more_string(sprintf("%O\n", counts));
 
     counts = 0;
-    return 1;
 }

@@ -7,6 +7,7 @@
 ** a file, and some security (when programatic security arrives)
 ** save() and restore() or save_to_file(), etc....
 **
+** Beek - static'ed a bunch of things which shouldn't be called externally
 */
 
 #include <mudlib.h>
@@ -16,33 +17,41 @@ private int save_recurse;
 private mixed *saved = ({});
 
 DOC(add_save, "mark a variable as one that gets saved.")
-void add_save(mixed *vars) { 
-  saved = clean_array(saved + vars);
+static void add_save(mixed *vars) { 
+    saved += vars;
+//  saved = clean_array(saved + vars);
 }
 
 DOC(get_saved, "returns the array of variables that get saved.")
+// Security problem here - Beek
 string *get_saved() { return saved; }
 
 DOC(set_save_recurse, "sets whether or not a save is recursive.")
-void set_save_recurse(int flag) {  save_recurse = flag; }
+static void set_save_recurse(int flag) {  save_recurse = flag; }
 
 DOC(save_to_string, "saves an object into a string representation.")
 string save_to_string() {
     string *tmpsaved;
     string *values;
     string ret;
+    string var;
+    mapping map = ([]);
+
     tmpsaved  = decompose(map(saved, (: functionp($1) ? evaluate($1, "saving") : $1 :)));
     tmpsaved -= ({0});
-    values = map(tmpsaved, (: fetch_variable :) );
-    if( !save_recurse ) 
-      return save_variable(({ base_name(this_object()), values }));
-    return save_variable(({ base_name(this_object()), values,
-				all_inventory()->save_to_string() - ({ 0 })
-				}));
+    foreach (var in tmpsaved)
+	map[var] = fetch_variable(var);
+
+    map["#base_name#"] = base_name(this_object());
+    if (save_recurse)
+	map["#inventory#"] = all_inventory()->save_to_string() - ({ 0 });
+
+    return save_variable(map);
 }
 
 DOC(load_from_string, "loads an object from a string representation.")
-void load_from_string(mixed value, int recurse) {
+// ### obsolete code
+void old_load_from_string(mixed value, int recurse) {
     string obj;
     object ob;
     int i;
@@ -69,3 +78,37 @@ void load_from_string(mixed value, int recurse) {
     }
     if (recurse) move_object(previous_object());
 }
+
+void load_from_string(mixed value, int recurse) {
+    mixed data;
+    mixed *tmpsaved;
+    string var;
+    mixed val;
+    string obj;
+    object ob;
+    
+    data = restore_variable(value);
+    if (arrayp(data)) {
+	old_load_from_string(value, recurse);
+	return;
+    }
+    
+    if (data["#base_name#"] != base_name(this_object()))
+	error("Invalid save string (ob)\n");
+    tmpsaved = decompose(map(saved, (: functionp($1) ? evaluate($1, "loading") : $1 :)));
+    tmpsaved -= ({0});
+
+    foreach (var, val in data) {
+	if (var[0] == '#') continue;
+	store_variable(var, val);
+    }
+    if (data["#inventory#"]) {
+	foreach(obj in data["#inventory#"]) {
+	    val = restore_variable(obj);
+	    ob = new(val["#base_name#"]);
+	    ob->load_from_string(val, 1);
+	}
+    }
+    if (recurse) move_object(previous_object());
+}
+

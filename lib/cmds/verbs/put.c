@@ -33,7 +33,7 @@ void do_put_obj_word_obj(object ob1, string p, object ob2) {
 
 mixed * query_verb_info()
 {
-    return ({ ({ 1, "OBS next to OBJ", "OBS beside OBJ", "OBS with OBJ",
+    return ({ ({ "OBS next to OBJ", "OBS beside OBJ", "OBS with OBJ",
 		     "OBS at OBJ", "OBJ in OBJ" }),
 		  ({ "insert", "place", "stuff" }) });
     

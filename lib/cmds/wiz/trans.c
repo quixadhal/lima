@@ -1,7 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <mudlib.h>
+
+inherit CMD;
+
 // Rust/Belboz
-int main( mixed *arg)
+private void main( mixed *arg)
 {
 
     object	start_place;
@@ -14,7 +18,7 @@ int main( mixed *arg)
     if( environment( target ) == start_place )
     {
 	write( "Trans:  move failed.\n" );
-	return 1;
+	return;
     }
     target_name = target->query_name();
     if( ! target_name )
@@ -34,7 +38,7 @@ int main( mixed *arg)
 	    target_name ), ({ target, this_body() }) );
     }
 
-    return 1;
+    return;
 }
 
 int help()

@@ -1,17 +1,13 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 // container.c
-// Any admin old or new who hasn't done considerable work on this
-// file is/was a non-coding admin.
-// Shoot on sight.
+// possibly the grossest piece of code in the mudlib.
 
 #include <mudlib.h>
 #include <move.h>
 #include <setbit.h>
 #include <driver/origin.h>
 
-/* Beek - Make this virtual so that things work nicer */
-/* ### [db]  12/19/94  punted the virtual */
 inherit OBJ;
 
 

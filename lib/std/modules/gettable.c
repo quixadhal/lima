@@ -95,3 +95,8 @@ mixed direct_drop_obj(object ob) {
       return dropmsg;
     return !non_dropable;
 }
+
+int is_gettable()
+{
+	return gettable;
+}

@@ -2,8 +2,13 @@
 
 // Taken off of psycho
 // Megaboz@ZorkMUD attached header
-int main()
+
+
+#include <mudlib.h>
+inherit CMD;
+
+private void main()
 {
     this_body()->quit();
-    return 1;
+    return;
 }

@@ -3,11 +3,7 @@
 #include <mudlib.h>
 #include <security.h>
 
-inherit M_ACCESS;
-
-create() {
-    set_privilege(1);
-}
+inherit CMD;
 
 string print_vars(mixed *vars) {
     string *result = allocate(sizeof(vars));
@@ -37,7 +33,8 @@ string print_vars(mixed *vars) {
     return implode(result, ", ");
 }
 
-int main(string str) {
+private void
+main(string str) {
     mapping frame;
     object ob;
     string who;
@@ -46,21 +43,21 @@ int main(string str) {
     int before;
     	
     if (!str || (sscanf(str, "%d", num)==0 && sscanf(str, "%s %d", who, num)==0)) {
-        write("dbxframe [<who>] <frame>");
-	return 1;
+        write("dbxframe [<who>] <frame>\n");
+	return;
     }
     if (!who) {
 	frame = master()->query_error(this_user()->query_real_name());
     } else {
 	frame = master()->query_error(who);
-	if (!frame && !find_body(who)) {
+	if (!frame && !find_body(who) && who != "last") {
 	    write("No such player.\n");
-	    return 1;
+	    return;
 	}
     }
     if (!frame) {
-	write("No error.");
-	return 1;
+	write("No error.\n");
+	return;
     }
     if (num<0 || num>=sizeof(frame["trace"]))
 	return write("No such frame.\n"), 0;
@@ -77,5 +74,5 @@ int main(string str) {
       read_file("/"+frame["program"], frame["line"], 1),
       read_file("/"+frame["program"], frame["line"]+1, 5));
 
-    return 1;
+    return;
 }

@@ -42,32 +42,38 @@ nomask void set_shell_fname(string fname)
 
 nomask object query_shell_ob()
 {
-    return shell_ob;
+    return shell_ob || this_object();
 }
 
-static void start_shell()
+void start_shell()
 {
+    if(previous_object() && previous_object() != query_link())
+	return;
     if ( wizardp(query_link()) )
     {
 	if ( !shell_fname )
-	    shell_ob = new(WIZ_SHELL);
+	    shell_ob = clone_object(WIZ_SHELL, shell_saved_data);
 	else
-	    shell_ob = new(shell_fname);
+	    shell_ob = clone_object(shell_fname, shell_saved_data);
 
 	shell_ob->start_shell();
     }
     else
     {
-	shell::create();
+	shell::create(shell_saved_data);
 	shell::start_shell();
     }
-    if(!shell_ob)
-      load_from_string(shell_saved_data,0);
-    else
-      catch(shell_ob->load_from_string(shell_saved_data, 0));
 
-
+    if ( shell_saved_data )
+    {
+	if(!shell_ob)
+	    load_from_string(shell_saved_data,0);
+	else
+	    catch(shell_ob->load_from_string(shell_saved_data, 0));
+    }
 }
+
+
 static void restart_shell()
 {
     if (wizardp(query_link()) && !shell_ob)
@@ -94,6 +100,7 @@ string query_shellname()
     return "[ Builtin Body Shell ]";
 }
 
+static
 int execute_command(string * argv, string original_input)
 {
   object winner;
@@ -110,7 +117,8 @@ int execute_command(string * argv, string original_input)
   if ( sizeof(argv) > 1 )
     argument = implode(argv[1..]," ");
 
-  return winner->main(argument);
+  winner->call_main(argument);
+  return 1;
 }
 
 private nomask string expand_one_argument(string arg)

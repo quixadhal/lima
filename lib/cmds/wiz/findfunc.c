@@ -2,7 +2,9 @@
 
 #include <mudlib.h>
 
-int main( mixed *arg )
+inherit CMD;
+
+private void main( mixed *arg )
 {
     object	target;
     string func;
@@ -16,5 +18,4 @@ int main( mixed *arg )
    } else {
       printf("Function not defined in that object.\n");
    }
-   return 1;
 }

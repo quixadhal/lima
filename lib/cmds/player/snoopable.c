@@ -3,13 +3,16 @@
 // Megaboz@ZorkMUD added header and help
 
 #include <playerflags.h>
+#include <mudlib.h>
 
-int main(string arg){
+inherit CMD;
+
+private void main(string arg){
   if(!arg || arg == ""){
     if(this_body()->test_flag(F_SNOOPABLE) )
 		write("Joe Wizard can snoop you.\n");
 	else write( "Joe wizard can't snoop you.\n");
-    return 1;
+    return;
   }
   switch(arg){
     case "on":  this_body()->set_flag(F_SNOOPABLE);
@@ -17,8 +20,8 @@ int main(string arg){
     case "off": this_body()->clear_flag(F_SNOOPABLE);
                 break;
     default:    notify_fail("Syntax: snoopable (on|off)\n");
-                return 0;
+                return;
   }
   write("Ok.\n");
-  return 1;
+  return;
 }

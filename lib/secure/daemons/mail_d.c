@@ -91,7 +91,7 @@ private nomask void process_message(string fname)
 
 nomask void rebuild_mailboxes()
 {
-    string * messages = get_dir("/data/M/*.o");
+    string * messages = unguarded(1, (: get_dir, "/data/M/*.o" :));
 
     map_array(messages, (: process_message :));
     voidout();
@@ -156,7 +156,7 @@ confirm( string who )
 
 private nomask int user_exists(string user)
 {
-    return file_size( USER_PATH( user )+".o" ) > -1;
+    return unguarded(1, (: file_size, USER_PATH(user)+".o" :)) > -1;
 }
 
 private nomask void deliver_mail(int timestamp, string who)

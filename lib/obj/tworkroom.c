@@ -16,7 +16,7 @@ inherit ROOM;
 
 void set_owner(string str)
 {
-    set_short(capitalize(str) + "'s Workroom");
+    set_brief(capitalize(str) + "'s Workroom");
     set_long("This place is rather boring.  It is, after all, just temporary :)\n");
     set_light(1);
 }

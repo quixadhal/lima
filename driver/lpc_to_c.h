@@ -15,14 +15,16 @@
 			 sp->u.string = ref_string(current_prog->strings[x]);\
 		     )
 #define C_AGGREGATE(x) SAFE(\
-			    lpc_arr = allocate_empty_array(x);\
-			    for (lpc_int=x; lpc_int--; )\
+			    lpc_arr = allocate_empty_array(x + num_varargs);\
+			    num_varargs = 0;\
+			    for (lpc_int=x + num_varargs; lpc_int--; )\
 			    lpc_arr->item[lpc_int] = *sp--;\
 			    (++sp)->type = T_ARRAY;\
 			    sp->u.arr = lpc_arr;\
 			    )
 #define C_AGGREGATE_ASSOC(x) SAFE(\
-				  lpc_map = load_mapping_from_aggregate(sp -= x, x);\
+				  lpc_map = load_mapping_from_aggregate(sp -= (x + num_varargs), (x+num_varargs));\
+				  num_varargs = 0;\
 				  (++sp)->type = T_MAPPING;\
 				  sp->u.map = lpc_map;\
 				  )

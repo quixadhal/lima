@@ -26,7 +26,7 @@ nomask void modal_pop()
 }
 
 varargs nomask void modal_func(function input_func,
-			       function prompt_func,
+			       mixed prompt_func,
 			       int secure
 			       )
 {

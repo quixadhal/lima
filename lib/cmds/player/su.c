@@ -7,17 +7,18 @@
 #include <daemons.h>
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
-int main(string arg)
+private void main(string arg)
 {
     if (!arg)
 	arg = this_user()->query_userid();
 
-    this_body()->save_me();  
-    this_body()->save_autoload();  
+    if ( this_body() )
+    {
+	this_body()->save_me();  
+	this_body()->save_autoload();  
+    }
 
     this_user()->switch_user(arg);
-
-    return 1;
 }

@@ -1670,6 +1670,18 @@ array_t *intersect_array P2(array_t *, a1, array_t *, a2) {
     return a3;
 }
 
+int match_single_regexp P2(char *, str, char *, pattern) {
+    struct regexp *reg;
+    int ret;
+    
+    regexp_user = EFUN_REGEXP;
+    reg = regcomp(pattern, 0);
+    if (!reg) error(regexp_error);
+    ret = regexec(reg, str);
+    FREE((char *)reg);
+    return ret;
+}
+
 array_t *match_regexp P3(array_t *, v, char *, pattern, int, flag) {
     struct regexp *reg;
     char *res;
@@ -1698,7 +1710,7 @@ array_t *match_regexp P3(array_t *, v, char *, pattern, int, flag) {
     sv2 = ret->item + (num_match << flag);
     size = v->size;
     while (size--){
-        if (res[size]){
+        if (res[size]) {
             if (flag) {
                 (--sv2)->type = T_NUMBER;
                 sv2->u.number = size + 1;

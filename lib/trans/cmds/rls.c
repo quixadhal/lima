@@ -10,7 +10,7 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 inherit M_REMOTE;
 
 private void print_it(mixed who, mixed result)
@@ -20,7 +20,7 @@ private void print_it(mixed who, mixed result)
 			implode(result, "\n")));
 }
 
-int main(string arg)
+private void main(string arg)
 {
     string mud;
     string dir;
@@ -28,11 +28,11 @@ int main(string arg)
     if ( sscanf(arg, "%s:%s", mud, dir) != 2 )
     {
 	write("Usage: rls mud:dir\n");
-	return 1;
+	return;
     }
 
     eval_remote(mud, FILE_D, "perform_get_dir", ({ dir, 0 }),
 		(: print_it, this_user() :));
 
-    return 1;
+    return;
 }

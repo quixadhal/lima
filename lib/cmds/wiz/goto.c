@@ -6,9 +6,9 @@
 #include <move.h>
 #include <security.h>
 
+inherit CMD;
 
-
-int main( mixed *arg)
+private void main( mixed *arg)
 {
     int rt;
     string *msgs;
@@ -24,7 +24,8 @@ int main( mixed *arg)
     { 
 	if (prev==env)
 	{ printf("You twitch briefly.\n");
-	    return 1; }
+	    return;
+	}
 	msgs = this_body()->get_player_message("mleave");
 	tell_room(prev, msgs[1]);
 	msgs = this_body()->get_player_message("menter");
@@ -40,7 +41,6 @@ int main( mixed *arg)
     case MOVE_NOT_ALLOWED: printf(
 	  "Goto: Your destination will not accept you.\n"); 
     }
-    return 1;
 }
 
 int help()

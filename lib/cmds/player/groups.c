@@ -4,7 +4,7 @@
 //
 
 #include <mudlib.h>
-
+inherit CMD;
 
 
 
@@ -16,7 +16,7 @@ private string banner =
 private nomask void print_groups(mapping groups);
 
 
-int main( string arg )
+private void main( string arg )
 {
     mapping	groups;
     string	this_group;
@@ -37,8 +37,10 @@ int main( string arg )
 	write( banner );
 
 
-	if( !mapp( groups ) || !sizeof( groups ) )
-	    return write( "You have no groups defined.\n" ), 1;
+	if( !mapp( groups ) || !sizeof( groups ) ) {
+	  write( "You have no groups defined.\n" );
+	  return;
+	}
 
 	printf( "%s, your personal groups are:\n\n", 
 	       this_body()->query_name() );
@@ -46,20 +48,23 @@ int main( string arg )
 	print_groups(groups);
 
 	write(banner);
-	return 1;
+	return;
     }
 
     arglist = explode( arg, " " );
 
-    if( sizeof(arglist) <2 || (arglist[0] != "-a" && arglist[0] != "-d") )
-	return write( SYNTAX ), 1;
+    if( sizeof(arglist) <2 || (arglist[0] != "-a" && arglist[0] != "-d") ) {
+      write( SYNTAX );
+      return;
+    }
 
     this_group = arglist[1];
 
     if( arglist[0] == "-a" )
     {
-	if( sizeof(arglist) <3 )
-	    return write(SYNTAX), 1;
+	if( sizeof(arglist) <3 ) {
+	  write(SYNTAX);
+	}
 
 	arglist = filter_array(arglist[2..],
 			   function(string x, string this_group, string *grp_members)
@@ -69,13 +74,13 @@ int main( string arg )
 			       {
 				   printf("%s is already in group %s.\n",
 					  x, this_group);
-				   return 0;
+				   return;
 			       }
 			       else
 			       {
 				   printf("%s added to group %s.\n",
 					  x, this_group);
-				   return 1;
+				   return;
 			       }
 			   },
 			   this_group);
@@ -84,7 +89,7 @@ int main( string arg )
 
 	this_body()->set_perm( "groups", groups +
 				([ this_group : arglist ? (mixed)arglist : (mixed)(([]) + groups[this_group]) ]) );
-	return 1;
+	return;
     }
 
     if( sizeof(arglist) == 2 )
@@ -93,10 +98,10 @@ int main( string arg )
 	{
 	    printf("Group %s nuked.\n", arglist[1]);
 	    this_body()->set_perm( "groups", map_delete( groups, arglist[1] ) );
-	    return 1;
+	    return;
 	}
 	printf("You have no defined group called '%s'!\n", arglist[1]);
-	return 1;
+	return;
     }
     arglist = arglist[2..];
     valid = filter_array(arglist,
@@ -116,7 +121,7 @@ int main( string arg )
 	    map_delete(groups, this_group);
 	this_body()->set_perm( "groups", groups );
     }
-    return 1;
+    return;
 }
 
 

@@ -2,18 +2,19 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit CMD;
 
 // Rust
-int main()
+private void main()
 {
   string	file;
 
   file = wiz_dir(this_user()) + "/log";
 
   if(file_size(file) <1)
-	return write("No log found.\n"), 1;
-
-  rm( file );
-  return write("Error log removed.\n"), 1;
+      write("No log found.\n");
+  else {
+      rm( file );
+      write("Error log removed.\n"), 1;
+  }
 }

@@ -234,6 +234,7 @@ extern int master_ob_is_loading;
 extern int simul_efun_is_loading;
 extern program_t fake_prog;
 extern svalue_t global_lvalue_byte;
+extern int num_varargs;
 
 /* with LPC_TO_C off, these are defines using eval_instruction */
 #ifdef LPC_TO_C
@@ -329,6 +330,8 @@ void save_context PROT((error_context_t *));
 void pop_control_stack PROT((void));
 INLINE function_t *setup_new_frame PROT((function_t *));
 INLINE void push_control_stack PROT((int, void *));
+
+void break_point PROT((void));
 
 #ifdef DEBUGMALLOC_EXTENSIONS
 void mark_svalue PROT((svalue_t *));

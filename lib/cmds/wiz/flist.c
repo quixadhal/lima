@@ -2,10 +2,10 @@
 
 #include <mudlib.h>
 
+inherit CMD;
 
 
-
-int main( mixed *arg, mapping f)
+private void main( mixed *arg, mapping f)
 {
     object	target;
     mixed	output;
@@ -24,6 +24,4 @@ int main( mixed *arg, mapping f)
 	  file_name(target), implode(functions(target),"\n"));
 
     clone_object(MORE_OB)->more_string(output);
-
-    return 1;
 }

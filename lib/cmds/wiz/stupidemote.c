@@ -3,13 +3,14 @@
 #include <mudlib.h>
 #include <daemons.h>
 
-nomask int main(string str) {
+inherit CMD;
+
+nomask private void main(string str) {
     if (!str) {
 	write("stupidemote verb\n");
-	return 0;
+	return;
     }
     SOUL_D->add_emote(str, "", "$N $v"+str+".", 0);
     SOUL_D->add_emote(str, "STR", "$N $v"+str+" $o.", 0);
     write("Added.\n");
-    return 1;
 }

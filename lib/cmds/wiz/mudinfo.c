@@ -1,11 +1,12 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+inherit CMD;
 inherit M_REGEX;
 inherit M_GLOB;
 
 
-int main(string arg)
+private void main(string arg)
 {
 
   mapping mudlist = IMUD_D->query_mudlist();
@@ -18,15 +19,15 @@ int main(string arg)
   if(!arg || arg == "")
     {
       printf("Usage: mudinfo <mudname>\n");
-      return 1;
+      return;
     }
   else
     {
-      matches = insensitive_regexp(muds, translate(arg));
+      matches = insensitive_regexp(muds, "^"+translate(arg));
       if(!sizeof(matches))
 	{
 	  printf("No muds out of %d match that pattern.\n", sizeof(mudlist));
-	  return 1;
+	  return;
 	}
     }
   output = "";
@@ -66,6 +67,5 @@ int main(string arg)
     }
   
   clone_object(MORE_OB)->more_string(output);
-  return 1;
 }
 

@@ -8,21 +8,23 @@
 // Rust made them post news
 
 #include <mudlib.h>
+inherit CMD;
 
 #define TYPE "Bug"
-#define LOGFILE "BUGS"
-int main(string str)
+
+private void main(string str)
 {
 #ifdef LOG_DONT_POST
   if(!str || str == "")
-    REPORTER->begin_report(LOGFILE, TYPE);
+    REPORTER->begin_report(TYPE);
   else
-    REPORTER->short_report(LOGFILE, TYPE, str);
+    REPORTER->short_report(TYPE, str);
 #else
-    if (!str || str == "")
-        REPORTER->begin_report(BUG_NEWSGROUP, TYPE, TYPE+" report");
-    else
-         REPORTER->short_report(BUG_NEWSGROUP, TYPE, str, TYPE+" report");
+  if (!str || str == "")
+    REPORTER->begin_report(TYPE, TYPE+" report");
+  else
+    REPORTER->short_report(TYPE, TYPE+" report", str);
 #endif
-    return 1;
+
+  return;
 }

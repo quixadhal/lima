@@ -13,9 +13,9 @@
 #include <daemons.h>
 #include <commands.h>
 
-inherit DAEMON;
+inherit CMD;
 
-int main(string arg)
+private void main(string arg)
 {
     string channel_name;
 
@@ -32,6 +32,4 @@ int main(string arg)
     channel_name = "adm_" + channel_name;
 
     NCHANNEL_D->cmd_channel(channel_name, arg);
-
-    return 1;
 }

@@ -30,9 +30,11 @@ void create()
     set_privilege(1);
 
     info = ([]);
-    tmp = filter_array( map_array( get_dir( "/data/links/*" ) - ({ ".",".." }),
-			    (: get_dir(sprintf("/data/links/%s/*", $1)) :) ),
-		       (: pointerp :));
+    tmp = unguarded(1,
+		    (: filter_array(map_array(get_dir( "/data/links/*" ) - ({ ".",".." }),
+					      (: get_dir(sprintf("/data/links/%s/*", $1)) :) ),
+				    (: pointerp :)) :));
+
     /* recurse two levels */
     map_array( tmp, (: map_array( $1, (: fill_info :)) :));
 }
@@ -44,7 +46,7 @@ nomask int fill_info( string x )
     if( strlen( x ) < 0 ) 
 	return 0;
     x = x[0..<3];
-    if( !restore_object( LINK_PATH( x ) ) )
+    if( !unguarded(1, (: restore_object, LINK_PATH(x) :)) )
 	return 0;
     last = LAST_LOGIN_D->query_last(x);
     info[x] = ({ last ? last[0] : 0, level, email });
@@ -162,15 +164,19 @@ nomask string get_display( string user )
 
 nomask int nuke_users( string user )
 {
-    if(!GROUP_D->adminp( this_user() )) return 0;
+    if ( !check_privilege(1) )
+	return 0;
+
     if( GROUP_D->member_group( user, "admin" ) )
     {
 	printf("Nuke:  Can't nuke admin: %s\n", user );
 	return 0;
     }
-    rm( LINK_PATH( user )+".o" );
-    rm( USER_PATH( user )+".o" );
-    rm( "/data/daemons/alias/"+user[0]+"/"+user );
-    rm( "/data/mail/"+user+".o" );
+
+    unguarded(1, (: rm, LINK_PATH(user)+".o" :));
+    unguarded(1, (: rm, USER_PATH(user)+".o" :));
+
+    // ### deal with mail somehow...
+//    rm( "/data/mail/"+user+".o" );
     printf("Nuking %s.\n",user);
 }

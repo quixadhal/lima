@@ -4,6 +4,7 @@
 #include <daemons.h>
 
 inherit M_INPUT;
+inherit CMD;
 
 private static string verb;
 private static mixed rule;
@@ -42,11 +43,11 @@ private nomask void got_rule(string str)
     modal_simple((: got_message :));
 }
 
-nomask int main(string str) {
+nomask private void main(string str) {
     rule = 0;
     if (!str) {
 	write("addemote verb\n");
-	return 0;
+	return;
     }
     verb = str;
     sscanf(verb, "%s %s", verb, rule);
@@ -58,5 +59,4 @@ nomask int main(string str) {
 	write("Message: ");
 	modal_simple((: got_message :));
     }
-    return 1;
 }

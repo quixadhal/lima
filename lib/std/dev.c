@@ -53,9 +53,8 @@ void enter_game(int is_new_wiz)
 	link->force_me("chan gossip /on");
 	write("Doing: newbie /on\n");
 	link->force_me("chan newbie /on");
-        write("Doing: announce on  (not a channel, it shows you when"
-	      " people log in or out.  Should be a channel tho P-)\n");
-        link->force_me("announce on");
+        write("Doing: announce /on\n");
+        link->force_me("wchan announce /on");
       }
     set_ilog_time(time());
 }

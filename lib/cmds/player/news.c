@@ -1,9 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+inherit CMD;
 
-int main(string arg)
+private void main(string arg)
 {
     clone_object(NEWSREADER)->begin_reading(arg);
-    return 1;
 }

@@ -36,6 +36,7 @@
 #define CMD_OB_ADVERBS		CMD_DIR_PLAYER "/adverbs"
 #define CMD_OB_PASSWD		CMD_DIR_PLAYER "/passwd"
 #define CMD_OB_DESCRIBE		CMD_DIR_PLAYER "/describe"
+#define CMD_OB_NICKNAME		CMD_DIR_PLAYER "/nickname"
 
 #define CMD_OB_SNOOP		CMD_DIR_RESTRICT "/snoop"
 

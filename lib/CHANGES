@@ -1,177 +1,340 @@
-Rust took quote stripping out of getopt. ` It needs to go in cmd_d 
+Rust fixed player prompts. 
 
-Rust fixed a bug that made "foo bar" not work right if the " was the first 
-    thing on the command line 
+Rust made it so spaces after a command and before the first argument are 
+    OK.  I wonder if that's the right descision or not.  Please give me 
+    feedback.... 
 
-Rust added a flag to shellvars::expand_variable() and a second (earlier) 
-    call to that function in /std/shell.c so that: = `this_user()` ` works 
-    as expected 
+Rust added Calin's code for showing obvious exits. 
 
-Rust meant code in escaped backticks.... it sets to code that gets executed 
-    when you use the variable, not a string as was previously the case 
+Rust changed 2 do_game_command's to link->force_me in /std/player.c cause 
+    they didn't work right as was on some muds (worked fine on others tho) 
 
-Rust added a title command 
+Rust started a telnet client that works from within the mud.  I was on 4 
+    lima muds at once through it. =) 
 
-Rust fixed cd w/ no arg if you don't have a dir 
+Rust made announce a channel & removed all old announce code.  Type: 
+    announce /on 
 
-Beek put go <verb> parsing back in, and fixed a couple verbs. 
+Rust added a lib_status() define to config.h which gives your status on I3 
+    mudinfo 
 
-Rust added a title command + help 
+Rust fixed the score bug, where it wouldn't work if your mud didn't use the 
+    quest system. 
 
-Rust fixed shout to not give 2 messages to the shouter 
+Rust added the ability to restrict newsgroups.  The interface to make an 
+    admin, wizard or player newsgroup should still be added to admtool. 
 
-Rust crushed the ` bug 
+Rust finished the telnet object (/trans/obj/telnet_ob) and added a telnet 
+    command. 
 
-Rust added an unalias command 
+Rust still need to add telnet negotiations... Some places might not work 
+    quite right 
 
-Rust made it so that did_d pages. 
+Rust still need to add telnet negotiations... Some places might not work 
+    quite right 
 
-Rust made it so more checks your MORE value, and gives you 20 if you don't 
-    have one 
+Rust added options to admtool to make a new newsgroup admin-only or 
+    wiz-only. 
 
-Rust made it so the changelog info mores in 3 entry chunks when you log in 
-    P-) 
+Beek fixed read_entry in readable to return a string 
 
-Rust made it so that bugs and typos post news instead of getting logged. 
+Beek changed the news daemon to do restrictions based on the hierarchical 
+    prefix of the group; currently 'wiz.*' and 'admin.*' have filters.  
+    add_restriction was scrapped, since the two functions it supported are 
+    included in the name.  To add more restrictions, add them to the 
+    mapping at the top of the news_d.c (can't have a nicer interface unless 
+    someone figures out a good way to save function pointers) 
 
-Rust added an option to config.h so you can switch it back to login if you 
-    desire 
+Deathblade changed exec() to exec_code() since the driver already defines 
+    exec() (even tho' we don't use it) 
 
-Rust added a 'which' command 
+Rust made it so you can change the control char for telnet if you set the 
+    telnet_char environment variable 
 
-Rust made it so ed says: [New file] when it's a new file 
+Rust made some enhancements to telnet_ob based on suggestions by Satan & 
+    Zifnab... 
 
-Rust added a passwd command + help for it. 
+Rust added the ability to recapture scrollback while you're linkdead.  set 
+    save_scrollback,  and just type scrollback  to see it when you 
+    reconnect. 
 
-Rust fixed cat so it only cats in 100 line chunks to get rid of the 8K max 
-    file size. Should probably impose an arbitrary max file size, tho. 
+Rust made update take [cfile*]  so you can do: update *.  However, I 
+    suggest not removing loadall because update * is far more noisy, and 
+    won't update every file in /trans/cmds ... it stops once it updates 
+    itself P-) (since it has to dest itself to do that) 
 
-Rust added an ansi environment var, and ansi support to ls. Type: set ansi 
-    if you want it. 
+Rust made a working fix to the shutdown command crasher.  The crasher still 
+    exists, but an extra test avoids it. (the crasher used to occur when a 
+    non-admin tried to shut down the game) 
 
-Rust realized that ansi in ls requires special formatting. He'll fix it 
-    soon =) 
+Rust fixed the bug w/ the first targeted emote not working.  We have no 
+    clue why our fix works, or why it was even broken in the first place, 
+    but... 
 
-Rust added a newsgroup administration menu to admtool 
+Beek talked to Deathblade, Ohara, and Rust.  They were horribly boring. 
 
-Rust fixed tons of the bugs you guys reported in the past 24. THX!! 
+Ohara ignored Beek .. he was awful AND boring. 
 
-Beek fixed snoop. 
+Beek apologized for that last entry. 
 
-Beek fixed did_d to call the notify function in the correct object 
+Rust added code so that wizards can get the path to where they are in the 
+    default room long() if they've got the show_loc env variable set 
 
-Rust added to /std/save.c now you can give a string being a variable name, 
-    or a function pointer that should return a variable name or 0. This was 
-    necessary so I could clear all global and wiz aliases out of your alias 
-    list before saving you 
+Zifnab was playing with the example room and the verbs and having some 
+    problems 
 
-Rust : that function pointer can actually return a string, 0, or an array 
-    of strings.... 
+Beek fixed a bug that caused _only_ *Error in loading object errors to be 
+    reported on the errors channel, instead of _everything but_ *Error in 
+    loading object errrors. 
 
-Rust added clear_input_stack to /secure/user/inputsys.c and added a call to 
-    it in do_su right before a new body is created. This fixed a bug where 
-    if you su'd, !cmd would give you "*Owner of function pointer has been 
-    destroyed". 
+Beek reminds Rust that type modifiers aren't types; there are a number of 
+    missing return types for functions in the shell stuff 
 
-Rust added default wizard and player alias support. You can add them via 
-    the admtool 
+Beek fixed a bunch of things in /domains/std/example_safe; I commented 
+    heavily what I did and left the old code for comparison, so it's 
+    probably worth reading. 
 
-Rust removed source control stuff from the distribution since it doesn't 
-    work. It's still on Quendor, though, which means it's still under 
-    development. 
+Deathblade fixed scrollback.c's type problems that beek referred to (but 
+    didn't fix :-) 
 
-Rust added a describe command 
+Deathblade fixed the mudlist handling to merge rather than replace. daemons 
+    now saves/restores info, and returns ids to router at connect time. 
 
-Rust fixed the snoops command and finished the snoop command 
+Deathblade fixed up the channel daemon to eliminate duplicate listeners 
+    (caused some problems with I3 sending multiple messages out). also 
+    saves/restores blueprint objects that are listening to channels so that 
+    it can be updated without fear. fixed Buddha's bug with passing 0 to 
+    interactive(). 
 
-Rust fixed reconnect. It used to leave you not-a-wizard because it dested 
-    your shell when you went net dead, and only cloned you a player shell. 
-    Now it doesn't dest your shell until remove() gets called. 
+Deathblade wrote a "listeners" command for admins to aid in debugging 
+    channel problems. shows all listeners of all channels. 
 
-Rust added an interface to did_d so we can dump a changelog to a file to 
-    include w/ releases. 
+Deathblade updated the chanlist command to show the announce and errors 
+    channels 
 
-Rust made it so that new wizards don't see the changelog if they're a new 
-    user. 
+Deathblade switched drivers to 6a10 (including the right patchlevel.h :-) 
 
-Rust removed a modal_pop from /std/shell.c. We're going to have to keep 
-    track of the shell owner, and only pop that player's stack. 
+Rust added support for update here, ed here, etc... even though it's easy 
+    as sin to add a $here... 
 
-Beek made some changes to /secure/modules/inputsys; see top of file for 
-    summary 
+Rust rewrote prompts, optimizing them a lot.  
 
-Beek fixed converse/pipe to not use \r; clients can't handle it 
+Rust made room.c's long() nomask, since set_long() allows you to pass a 
+    closure. 
 
-Beek fixed who to not error if someone is logging on 
+Rust fixed a bug in cp.c and mv.c 
 
-Beek fixed did_d to not error if someone is logging in. 
+Rust added an owner to shells. 
 
-Beek fixed valid_override() to only allow efun overrides in 
-    /secure/simul_efun/overrides.c 
+Deathblade fixed a bug in /std/shell where expand_arguments would return 0 
+    causing it to barf. 
 
-Beek fixed valid_override() to only allow efun overrides in 
-    /secure/simul_efun/overrides.c 
+Beek added 'dbxwhere last' and 'dbxframe last <num>'; useful for tracking 
+    errors you see on the errors channel 
 
-Beek fixed valid_override() to only allow efun overrides in 
-    /secure/simul_efun/overrides.c 
+Rust added Beek's ,macros to the shell.  do and eval are now obsolete.... 
 
-Beek rewrote the users() override; it implemented filter() in LPC *puke* 
+Beek changed commands rather heavily; the Right Way is now: inherit CMD; 
+    private void main(...).  If you don't inherit CMD it won't work.  
+    Changes propagated thrugh /cmds.  The upside is you can't fake a 
+    command via a call. 
 
-Beek added an errors channel. wchan errors /on 
+Beek : oh, if you _do_ need to call main() in another command, see resend() 
+    in CMD. 
 
-Beek installed Buddha's fix for passwords on FreeBSD; it's a LIMA lib bug 
-    of all things ... 
+Rust and Beek rewrote the whole mudlib in Perl. 
 
-Rust added come more stuff to cmd_d that probably no one but me will ever 
-    notice P-) 
+Beek added nicknames.  You can only give yourself nicknames.  (Note: DB 
+    better nick himself db real quick-like or he is going to have some 
+    broken bones) 
 
-Rust fixed mail messages with no body 
+Rust did some work on skills.  Started /std/player/skills and 
+    /daemons/skill_d 
 
-Rust fixed the little problem w/ help topics. The more_chunk code was taken 
-    out of player.c in favor of shell variables, but helpsys has it's own 
-    more code which didn't reflect that change. 
+Beek made execute_command() static 
 
-Rust fixed idea and typo to accept command line arguments, and made 
-    automatic posts use the current player's name if one exists unless 
-    something else is provided. 
+Beek changed clean_array() to be O(n log n) and not O(n^2) (with a higher 
+    constant to boot); downside is it no longer preserves order. 
 
-Zifnab created a very simple (stress the very) room and object 
+Beek removed exclude_array(); the 'symmetry' method is faster. 
 
-Zifnab had a hard time with the key and using that too ulnock, right now 
-    you can unlock by unlock safe, need help with tthat ppart 
+Beek fixed cmp( ({ ({ 1 }) }), ({ ({ 1 }) })) to return true; similar fix 
+    for mappings.  It is now bad to call cmp() on recursive structures :) 
 
-Zifnab added the room to the east of the bored room, will hopefully be back 
-    to work on it some more (network is going down in ten minutes ) 
+Deathblade tweaked the show_loc thing in /std/room to move it to 
+    do_looking() rather than long 
 
-Magician added a bunch of emotes :-) 
+Deathblade fixed a minor problem in su when you had no body yet wanted one 
 
-Ohara update here seems not to work anymore ... 
+Deathblade did more work on I3 
 
-Rust undid my silly little mistake for idea and typo. They now post to the 
-    proper newsgroups.... 
+Deathblade made update pass 1 to remove(). I3 uses this to know if it will 
+    be coming back shortly (to tell the router). 
 
-Rust fixed I so wizards w/o dirs can't use it 
+Beek rewrote flatten_array() to be iterative (and fairly efficient; 
+    arr[i..i] = arr[i] rox) 
 
-Rust returned cat to it's previous state till the driver crasher is fixed. 
-    Catting files over 8K won't work. 
+Beek made handle_chain (for call_out_chain) static 
 
-Rust wants to clear that up... it won't allow you to cat files over 8k, but 
-    it won't crash the driver either P-) 
+Beek just finished browsing /secure/simul_efun/misc :) 
 
-Rust made it so that new players auto-tune into newbie and gossip, and new 
-    wizards auto-tune to wiz, news, gossip, & newbie 
+Beek fixed decompose() to use the flatten_array() trick; thanks to Aragorn 
+    for suggesting it. 
 
-Rust made it so link-deads don't show up on channel listings 
+Beek changed M_SAVE to use mappings instead of arrays so it deals with 
+    added/deleted variables better.  old_load_from_string() can hang around 
+    for a while for compat; it's used if an array-based save file is 
+    detected. 
 
-Rust added another change to cmd_d.... if the cmd doesn't accept a template 
-    and is just looking to get a single string, then convert anything that 
-    came from the shell vars or evaluations into a string representation 
+Beek added /secure/check_config to make sure the driver compiles right 
 
-Rust fixed 2 small problems w/ tell. You only get one message when telling 
-    yourself, now 
+Beek : erm "... was compiled right." 
 
-Rust made it so that you don't have to type r 12 to read the 12th message 
-    in a newsgroup. You can now just type 12 
+Beek removed the 'put STR' rule since in prevented error messages and was 
+    unhandled 
 
-Rust made it so that spaces don't get snarfed if your command doesn't do 
-    smart parsing 
+Beek fixed 'grep' to escape /'s 
+
+Beek whapped DB on the nose with a newspaper for leaving the I3 daemon in 
+    an unloadable state. 
+
+Beek changed /std/object to call parse_refresh() when one of STD_FLAGS is 
+    changed (important later) 
+
+Beek fixed set_closed() to call parse_refresh(); important on later drivers 
+
+Rust commented out a config check that we weren't passing P-) 
+
+Rust added a quick integer-only pow() sefun 
+
+Beek fixed pow(x, -n) to not loop forever, then got carried away and added 
+    a high performance integer power simul :) 
+
+Beek : for those wondering, pow(x, y) can be done in O(log y) 
+    multiplications, not O(y) :) 
+
+Beek found his mudadmin pw, and hacked our driver to not crash on Rust's 
+    code. 
+
+Beek : arg, strike that, the new driver is in the src dir; I can't move it 
+    to /usr/local/bin and it's not important enough to change the start 
+    script 
+
+Beek added fuzzy_divide(x, y), which returns a number close to x/y, but 
+    with the property that the expected value of 1/3 + 1/3 + 1/3 = 1.  i.e. 
+    it rounds non-deterministically in a way proportional to the remainder, 
+    giving the illusion of floating point division. 
+
+Beek added a workaround in skill_d for the crasher. 
+
+Beek added a debug flag to do_game_command(), which turns on 
+    parse_sentence()'s debug mode 
+
+Beek linked the driver to v21.6b1 
+
+Beek moved us to b1 and made some small verb mods 
+
+Rust disabled the DOC macro 
+
+Rust fixed inputsys to start up your shell if you ever don't have one 
+
+Rust rm'd the stupid timeout_d 
+
+Rust removed lots of offending (offensive) code until both wish.c and dev.c 
+    finally loaded w/o warnings 
+
+Deathblade built and installed a 6b1 with all the right flags and stuff. 
+    Relinked bean's driver to the /usr/local/bin area. 
+
+Rust rewrote argument_explode in M_GETOPT. A regexp that worked completely 
+    right was more parens than the driver allows P-) 
+
+Rust finished skill_d. It probably needs to be balanced, and a few example 
+    skills would be nice, but what the hay! 
+
+Beek added a south exit of the example room for a new room. 
+
+Beek fixed Obvious Exits to come after objects in the room 
+
+Beek thought about it again, and moved obvious exits to the brief line. 
+
+Deathblade worked on I3 channels, fixed error reporting to a user, and put 
+    in an error response for bad fingers 
+
+Deathblade added read protection to /data/links, /data/players, /data/mail, 
+    and /data/M. fixed problems in player.c, mail_d.c, and user_d.c to deal 
+    with the read protection. 
+
+Beek moved set_name(), etc from MONSTER to LIVING 
+
+Beek add /std/modules/actions; it allows an object to use emotes and player 
+    verbs 
+
+Beek added Harry the affectionate 
+
+Rust added a recorder, and fixed the read verb 
+
+Beek added Barney 
+
+Beek added a parse_refresh() to remove_id() 
+
+Beek added lock_with() to M_LOCKABLE 
+
+Rust made it so that set_in_room_desc will take functions 
+
+Rust added my_call_outs() 
+
+Rust added monster scripting facilities to M_ACTIONS. An example monster 
+    will be online tonight... 
+
+Rust added Beavis and Butthead. clone butthead, and then laugh. That'll set 
+    off his script. 
+
+Deathblade made force_me() do some security checks. Had to move some 
+    commands to /trans/cmds. 
+
+Deathblade fixed some compile warnings related to prompts in the reader, 
+    menu, and alias menu 
+
+Deathblade fixed check_config's SANE_EXPLODE_STRING check: backwards logic. 
+
+Deathblade fixed bodyshell to not attempt to load from saved shell data 
+    when it is 0 (new characters) 
+
+Beek wonders why the hell 'say' moved to /trans/cmds 
+
+Beek moved 'say' back to /cmds/player 
+
+Beek finished writing M_TRIGGER; doc forthcoming 
+
+Beek turned AUTO_WIZ back on 
+
+Beek rewrote M_TRIGGERS to be more intuitive. 
+
+Beek wrote /domains/std/genius using M_TRIGGERS; it's smart enough to 
+    understand 'Beek says: my name starts with b and ends with k and is not 
+    spam.' 
+
+Beek added documentation for the M_TRIGGERS module 
+
+Deathblade upgraded us to v21.6b2. 
+
+Deathblade patched f_remove_call_out() and remove_all_call_out(). also 
+    patched free_parse_globals(). the mud now builds without DEBUG and 
+    remove_call_out() works right. 
+
+Deathblade added remove() to M_ACTIONS to remove all call outs. added 
+    remove() to M_ACTIONS users in /domains/std. 
+
+Deathblade fixed up the "calls" command to not barf if a call_out refers to 
+    a dested object. also cleaned it up a lot. 
+
+Beek fixed 'converse' to use resend() to do it's 'say's 
+
+Azy think its time. 
+
+Deathblade removed /trans/cmds/dir.c 
+
+Rust wants t know who broke the camera? 
+
+Rust fixed the camera 

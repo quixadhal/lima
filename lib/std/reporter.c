@@ -9,6 +9,7 @@
 ** Created: 4-Sep-94  Deathblade
 */
 
+#include <config.h>
 #include <mudlib.h>
 
 inherit DAEMON;
@@ -16,86 +17,97 @@ inherit DAEMON;
 #define DIVIDER "\
 \n***********************************************************************\n"
 
+/*
+** For security reasons (since we write these using unguarded()), the
+** file names should be "constants" rather than passed into us.  Same
+** thing goes for posting to newsgroups.
+**
+** This does imply that the Reporter is limited by virtue of need to
+** change this file, but that is a necessity if this will be writing
+** to restricted directories.
+*/
+private static mapping log_files = ([
+				     "Bug" : "/log/BUGS",
+				     "Typo" : "/log/TYPOS",
+				     "Idea" : "/log/IDEAS",
+				     ]);
+private static mapping news_groups = ([
+				       "Bug" : BUG_NEWSGROUP,
+				       "Typo" : TYPO_NEWSGROUP,
+				       "Idea" : IDEA_NEWSGROUP,
+				       ]);
 
-varargs 
-void begin_report(string log_or_newsgroup, string type, string title)
+private nomask void issue_report(string type, string subject, string text)
 {
-    printf("** %s report **\n", type);
-    clone_object(EDIT_OB)->edit_text(0, "done_ed", ({ log_or_newsgroup,
-							type, title }));
+  string where_am_i;
+  object env;
+
+  env = environment(this_body());
+  where_am_i = (env ? file_name(env) : "<nowhere>");
+
+  if ( subject )
+    {
+      text = sprintf("%s reported from %s--\n\n%s\n",
+		     type,
+		     where_am_i,
+		     text);
+
+      unguarded(1, (: NEWS_D->system_post($(news_groups[type]),
+					  $(subject),
+					  $(text)) :));
+    }
+  else
+    {
+      text = sprintf("%s: %s reports from %s on %s--\n\n%s" DIVIDER,
+		     type,
+		     this_body()->query_name(),
+		     where_am_i,
+		     ctime(time()),
+		     text);
+
+      unguarded(1, (: write_file, log_files[type], text :) );
+    }
+
+  write("Thanks for the report!\n");
 }
 
-varargs
-void short_report(string log_file, string type, string text, string subject) {
-    string where_am_i;
-    string wizname;
-    string xtra;
-    object env;
+/*
+** begin_report()
+**
+** Entry point for a full text-entry bug report.  When the user completes
+** their entry of the report, it will be handled appropriately.
+*/
+varargs void begin_report(string type, string subject)
+{
+  if ( !log_files[type] )
+    error("Illegal report type.\n");
 
-    env = environment(this_body());
-    where_am_i = (env ? file_name(env) : "<nowhere>");
-    text = sprintf("%s: %s reports from %s on %s--\n\n",
-		   type, this_body()->query_name(), where_am_i,
-		   ctime(time())) + text + (subject ? DIVIDER : "\n");
-
-#ifdef NOPE
-    if ( sscanf(where_am_i, WIZ_DIR"/%s/%s", wizname, xtra) == 2 )
-    {
-	object m;
-	m = clone_object(MAIL_OBJECT);
-	m->mailnote(wizname, this_body()->query_name(),0,
-	  type+" report",text);
-    }
-#endif
-    if(subject)
-      	unguarded(1, (:NEWS_D->system_post($(log_file),$(subject),$(text)):));
-    else
-      unguarded(1, (: write_file, "/log/"+log_file, text :) );
-
-    write("Thanks for the report!\n");
+  printf("** %s report **\n", type);
+  clone_object(EDIT_OB)->edit_text(0, "done_ed", ({ type, subject }));
 }
 
-void done_ed(mixed *ctx, string *text)
+/* handle the completion of the report */
+void done_ed(mixed *ctx, string *lines)
 {
-    string where_am_i;
-    string Write;
-    string wizname;
-    string xtra;
-    object env;
-
-    if ( !text )
+  if ( !lines )
     {
-	printf("%s entry aborted.\n", ctx[1]);
-	return;
+      printf("%s entry aborted.\n", ctx[1]);
+      return;
     }
 
-    Write = implode(text, "\n") + "\n";
-    env = environment(this_body());
-    where_am_i = (env ? file_name(env) : "<nowhere>");
-    where_am_i = file_name(environment(this_body()));
-    Write = sprintf("%s: %s reports from %s on %s--\n\n",
-		    ctx[1], this_body()->query_name(),
-		    where_am_i, ctime(time())) + Write + (ctx[2] ? DIVIDER
-							  : "\n");
+  issue_report(ctx[0], ctx[1], implode(lines, "\n") + "\n");
+}
 
-#ifdef NOPE
-    if ( sscanf(where_am_i, WIZ_DIR"/%s/%s", wizname, xtra) == 2 )
-    {
-	object m;
-	m = clone_object(MAIL_OBJECT);
-	m->mailnote(wizname, this_body()->query_name(),0,
-	  ctx[1]+" report",Write);
-    }
-#endif
+/*
+** short_report()
+**
+** The text has already been entered/derived/whatever.  This will just
+** go straight ahead and issue the appropriate report.
+*/
+varargs void short_report(string type, string subject, string text)
+{
+  if ( !log_files[type] )
+    error("Illegal report type.\n");
 
-    if(ctx[2])
-      {
-	unguarded(1, (:NEWS_D->system_post($(ctx[0]),$(ctx[2]),$(Write)):));
-      }
-    else
-      {
-	unguarded(1, (: write_file, "/log/"+ctx[0], Write :));
-      }
-
-    write("Thanks for the report!\n");
+  issue_report(type, subject, text);
 }

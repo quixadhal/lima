@@ -22,17 +22,15 @@ inherit "/daemons/imud/locate";
 inherit "/daemons/imud/channel";
 inherit "/daemons/imud/mudlist";
 
-/* ### hack during development */
-#ifdef ZORKMUD
-#define OOB_PORT	9002
-#else
-#define OOB_PORT	9010
-#endif
+#define OOB_PORT	(__PORT__ + 1)
+#define SAVE_FILE	"/data/daemons/imud_d"
+#define LOG_FILE	"/log/i3_errors"
 
 static private object	router_socket;
 static private object	oob_socket;
 
 private string *	router_list = ({ ({ "*gjs", "199.199.122.10 9000"}) });
+private int		password;
 
 void rcv_startup_reply(string orig_mud, string orig_user,
 		       string targ_user, mixed * message);
@@ -72,6 +70,9 @@ private nomask void send_message(string type, string target_mud,
 				 string target_user, mixed * message)
 {
     string orig_user;
+
+    if ( !router_socket )
+        return;
 
     if ( this_user() )
 	orig_user = this_user()->query_real_name();
@@ -161,24 +162,25 @@ private nomask void reconnect()
     else
     {
 	send_to_router("startup-req-1",
-		       ({
-			   0, 0, 0,
-			       __PORT__,
-			       OOB_PORT,
-			       0,
-			       lib_name() + " " + lib_version(),
-			       lib_name(),
-			       driver_version(),
-			       "LP",
-			       "Open for the public",
-			       ([
-				   "tell" : 1,
-				   "who" : 1,
-				   "finger" : 1,
-				   "locate" : 1,
-				   "channel" : 1,
-				   ]),
-			       }));
+		       ({ password,
+			      query_mudlist_id(),
+			      query_chanlist_id(),
+			      __PORT__,
+			      OOB_PORT,
+			      0,
+			      lib_name() + " " + lib_version(),
+			      lib_name(),
+			      driver_version(),
+			      "LP",
+			      lib_status(),
+			      ([
+				  "tell" : 1,
+				  "who" : 1,
+				  "finger" : 1,
+				  "locate" : 1,
+				  "channel" : 1,
+				  ]),
+			      }));
     }
 }
 
@@ -220,8 +222,16 @@ void create()
     init_channels();
 }
 
-void remove()
+void remove(int coming_back_soon)
 {
+    /*
+    ** coming_back_soon is 0 in most cases, 1 for an update.  This is just
+    ** the right value to tell the router when we might be back online.
+    */
+    send_to_router("shutdown", ({ coming_back_soon }));
+
+    unguarded(1, (: save_object, SAVE_FILE :));
+
     if ( oob_socket )
 	oob_socket->remove();
     if ( router_socket )
@@ -235,11 +245,36 @@ void remove()
 private nomask void rcv_startup_reply(string orig_mud, string orig_user,
 				      string targ_user, mixed * message)
 {
+    if ( message[0][0][0] != router_list[0][0] )
+    {
+	/* ### need to disconnect and reconnect to new router */
+    }
+
+    router_list = message[0];
+    password = message[1];
 }
 
 private nomask void rcv_error(string orig_mud, string orig_user,
 			      string targ_user, mixed * message)
 {
+    object ob;
+
+    if ( targ_user && (ob = find_user(targ_user)) )
+    {
+	tell_object(ob, sprintf("Intermud tells you: %s: %s\n",
+				message[0], message[1]));
+    }
+    else
+    {
+	unguarded(1, (: write_file, LOG_FILE,
+		      sprintf("%s: %s\n%O\n", message[0], message[1],
+			      message[2]) :));
+
+	NCHANNEL_D->deliver_string("wiz_errors",
+				   iwrap(sprintf("[errors] I3 (%s): %s\n",
+						 message[0],
+						 message[1])));
+    }
 }
 
 int stat_me()

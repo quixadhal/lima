@@ -1,11 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-//   A new _call.c, written 5/2/94   by Rust
+//   new _call.c, written 5/2/94   by Rust
 #include <mudlib.h>
-
-inherit DAEMON;
-
-
+inherit CMD;
 
 mixed prepare_parts(string arg)
 {
@@ -43,7 +40,7 @@ mixed prepare_parts(string arg)
 
 
 
-int main( string arg )
+private void main( string arg )
 {
     mixed               parts;
     mixed               ret;
@@ -67,7 +64,7 @@ int main( string arg )
     obs = filter(obs, (: objectp :));
     if (!sizeof(obs)) {
         write("call: no target(s) found.\n" );
-        return 1;
+        return;
     }
     parts = map_array( parts[2..], (: prepare_parts :) );
 
@@ -75,5 +72,5 @@ int main( string arg )
         ret = call_other(ob, fun, parts...);
         printf("%O->%s() = %O\n", ob, fun, ret);
     }
-    return 1;
+    return;
 }

@@ -3,12 +3,14 @@
 // The specification is: tail file *
 // We will recieve: ({ array of file names })
 
-int main( mixed *arg ) {
+#include <mudlib.h>
+inherit CMD;
+
+private void main( mixed *arg ) {
   int i;
   for (i=0; i<sizeof(arg[0]); i++) {
     tail(arg[0][i]);
   }
-  return 1;
 }
 
 int help() {
