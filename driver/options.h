@@ -128,17 +128,6 @@
  */
 #define SANE_EXPLODE_STRING
 
-/* EACH: define this if you want the each() operator for mappings.  Undefining
- *   EACH save about 12 bytes per allocated mapping but will make the each()
- *   efun unavailable.  Many people think each() is a bad efun to have but
- *   its here because people use it and would gripe if I took it away.  The
- *   alternative to each() is to use keys() and iterate over the returned
- *   array.
- *
- * Warning: This will probably be removed in the near future
- */
-#undef EACH
-
 /* CAST_CALL_OTHERS: define this if you want to require casting of call_other's;
  *   this was the default behavior of the driver prior to this addition.
  */
@@ -609,7 +598,6 @@
 #define COMPILER_STACK_SIZE 200	/* get_config_int(5)  */
 #define MAX_TRACE 30		/* get_config_int(6)  */
 #define LIVING_HASH_SIZE 256	/* get_config_int(20) */
-#define RUNTIME_SWITCH_STACK_SIZE 200
 
 /* NEXT_MALLOC_DEBUG: define this if using a NeXT and you want to enable
  *   the malloc_check() and/or malloc_debug() efuns.  Run the 'man malloc_debug'

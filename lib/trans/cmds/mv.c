@@ -4,88 +4,62 @@
 #include <mudlib.h>
 inherit CMD;
 
-private void
-main(mixed argv, mapping flags)
+private void move_one(string src, string dst, int force)
 {
-  string str, fname, file;
+    string contents;
+
+    if ( is_file(dst) && !force )
+    {
+	printf("%s already exists.  Move failed.\n", dst);
+    }
+    else if ( !(contents = read_file(src)) )
+    {
+	printf("Could not read %s.  Move failed.\n", src);
+    }
+    else if ( !write_file(dst, contents, 1) )
+    {
+	printf("%s could not be written to.  Move failed.\n", dst);
+    }
+    else if ( !rm(src) )
+    {
+	printf("%s couldn't be removed.\n", src);
+    }
+    else
+    {
+	printf("%s moved to %s.\n", src, dst);
+    }
+}
+
+private void main(mixed argv, mapping flags)
+{
+    string dst, src;
   
-  if(arrayp(argv[0]) && sizeof(argv[0]) > 1 && !is_directory(argv[1]))
+    if(arrayp(argv[0]) && sizeof(argv[0]) > 1 && !is_directory(argv[1]))
     {
-      printf("mv: files dir, not mv files file\n");
-      return;
+	printf("mv: files dir, not mv files file\n");
+	return;
     }
-  if(sizeof(argv[0]) > 1)
+    if(sizeof(argv[0]) > 1)
     {
-      if(argv[1][<1] != '/')
-	argv[1] += "/";
-      foreach(file in argv[0])
+	if(argv[1][<1] != '/')
+	    argv[1] += "/";
+
+	foreach ( src in argv[0] )
+	    {
+		dst = argv[1] + split_path(src)[1];
+		move_one(src, dst, flags["f"]);
+	    }
+    }
+    else 
+    {
+	dst = argv[1];
+	src = argv[0][0];
+	if(is_directory(dst))
 	{
-	  fname = argv[1] + split_path(file)[1];
-	  if(is_file(fname) && !flags["f"])
-	    {
-	      printf("%s already exists.  Move failed.\n", fname);
-	    }
-	  else
-	    {
-	      if(!str = read_file(file) || (is_file(fname) && !rm(fname)))
-		{
-		  printf("Permissions problem.  Move failed.\n");
-		}
-	      else
-		if(!write_file(fname, str))
-		  {
-		    printf("%s could not be written to.  Move failed.\n",
-			   fname);
-		  }
-		else
-		  if(!rm(file))
-		    {
-		      printf("%s couldn't be removed.\n", file);
-		    }
-		  else
-		    {
-		      printf("%s moved to %s.\n", file, fname);
-		    }
-	    }
+	    if(dst[<1] != '/')
+		dst += "/";
+	    dst += depath(src);
 	}
-    }
-  else 
-    {      
-
-	  fname = argv[1];
-	  file = argv[0][0];
-	  if(is_directory(fname))
-	    {
-	      if(fname[<1] != '/')
-		fname += "/";
-	      fname += depath(file);
-	    }
-	  if(is_file(fname) && !flags["f"])
-	    {
-	      printf("%s already exists.  Move failed.\n", fname);
-	    }
-	  else
-	    {
-	      if(!str = read_file(file) || (is_file(fname) && !rm(fname)))
-		{
-		  printf("Permissions problem. Move failed.\n");
-		}
-	      else
-		if(!write_file(fname, str))
-		  {
-		    printf("%s could not be written to.  Move failed.\n",
-			   fname);
-		  }
-		else
-		  if(!rm(file))
-		    {
-		      printf("%s couldn't be removed.\n", file);
-		    }
-		  else
-		    {
-		      printf("%s moved to %s.\n", file, fname);
-		    }
-	    }
-
+	move_one(src, dst, flags["f"]);
     }
 }

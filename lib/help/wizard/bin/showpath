@@ -1,0 +1,5 @@
+$$ see: addpath, rmpath
+Usage: showpath
+
+This command will show you your current list of exec paths.
+

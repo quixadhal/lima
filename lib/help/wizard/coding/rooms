@@ -1,95 +1,96 @@
-$$ see: exits
-FIRST:  WHAT YOU NEED:
-1) all rooms must have the lines:
-#include <mudlib.h>
+First a few notes about rooms in general 
+
+   1)  All rooms must have the following 2 lines before any
+       functions or variables are declared:
+  
+         include <mudlib.h>
+         inherit ROOM; 
+  
+   2)  All rooms must contain the function create().
+       Within the create is where you configure your room.
+       The following three items must be in your create function.
+
+       a) The very first line in the create() function must be
+   
+             ::create();
+
+          the double colon means call the create function in 
+          the file you inherited (ROOM = /std/room.c).  This allows 
+          your room to have default characteristics or you may
+          change these characteristics as you will see later.
+  
+       b) set_brief("Round Room");
+           
+          This is the short description of the room.
+
+       c) set_long("This is a boring room.");
+   
+          this is the long description of the room.  What you
+          see when you enter the room or look in the room.
+
+The following is an example of the barest of rooms:
+  
+include <mudlib.h>
 inherit ROOM;
-before any functions or variables are declared.
-Coding rooms:
 
-2) all rooms must contain the function create().
-   This function is used to configure the room.
-   The following things you _MUST_ do within the create() 
-   function:
-   a) the very first line in your create() function needs to be:
-		room::create();
-      the double colon means call the function create() in another
-      file, the one you inherited, /std/room.c
-   b) set_brief("Round Room");
-      or, whatever you want the short description of the 
-      room to be.
-   c) call set_long("This is a boring room."); or whatever
-
-an example of the barest of bare rooms:
-
-#include <mudlib.h>
-inherit ROOM;
-
-create(){
-  room::create();
-  set_brief("Round Room");
-  set_long("This is a round room.");
+create()
+{
+    room::create();
+    set_brief("ROund Room");
+    set_long("This is a boring room.");
 }
 
-WHAT ELSE YOU SHOULD HAVE
-This is simpler than the average room should be.  This example
-has no exits, and nothing to look at, nothing to get.
-You may, and are strongly encouraged to do the following
-within the function create():
 
-1) set_exits( (["north":"/wiz/rust/area/room1",
-	"south" : "/wiz/rust/area/room2",
-	"southeast" : "/wiz/rust/area/room3" ]) );
+Your room is pretty much boring and uselss as it stands now.
+This room has no exits, nothing to look at, nothing to get.
+You are strongly encouraged to do the following with create();
 
-Note that more sophisticated things than just destinations can
-be put in exits.  See "exits" for examples.
+set_exits( (["north":"/wiz/rust/area/room1",
+             "south" : "/wiz/rust/area/room2",
+             "southeast" : "/wiz/rust/area/room3" ]) );
 
-that format can be followed for as many or as few exits as you wish.
-The direction goes in quotes before the colon, the file to which the exit
-leaves goes in quotes after the colon.  
+    This will place the exits north, south and southeast into your
+    room with the destinations as room1, room2, room3 respectively.
 
-2) set_items(  ([ "table" : "It is a wooden table.\n",
-	"chair" : "It is a plastic chair.\n"
-			  "perhaps you can sit in it.\n",
-	"lamp" : "It's like any other lava lamp you've ever seen\n"]));
+    Please note that this is not the only thing that can be done 
+    with exits.  The LIMA mudlib has some very differant and 
+    sophisticated things that can be done with exits.
+    please see the help on "exits" for the detail and examples.
 
-This allows you to mimic the presence of items in your room.
-in your long somewhere, we assume you have done:
-output = output + "There is a table, chair and a lamp here.\n";
-or something simmilar.  What items = ([ ...... ]); does,
-is allow people to look at those items.
-One caveat on items:  In order to add multiple names for a single item
-you may use an array of strings as the item name.  Example:
+set_items( ([ "table" : "It is a wooden table.\n",
+              "chair" : "It is a plastic chair.\n"
+                        "perhaps you can sit on it.\n",
+      "lamp" : "It's like any other lava lanp you've ever seen.\n" ]) );
+     
+   This function allows you to mimic the presence of items in the room.
+   Especially useful for items that are scenery and nt really meant to
+   be interacted with directly.  In your set_long() you need to let the
+   player know this exist (i.e.  set_long(" .....  a table and chair..");
+   
+   If you wish to have multiple names for an object you may use an array
+   
+       set_items( ([ ({ "tree", "trees"}) : "The trees are strong.\n }) );
+  
+   This allows you to refer to trees or tree.
+  
+   Please note that you cannot interact with these items in any
+   way other that looking at them.
 
-  set_items( ([ ({ "tree", "trees" }) :
-		"The trees look strong and healty.\n"]) );
+set_objects( ([ "/wiz/rust/monters/grue" : 1,
+                "/wiz/rust/monters/URgrue" : 2 ]) );
 
-This would expand into two separate item descriptions within the
-room::create() function in /std/room.  So be sure to call ::create()
-at the start of your create() function or the mud will not recognize your
-items.
+   This function allows you to make a certain number of objects 
+   available in the room after each reset().
+   The above example will make sure that there are 1 grue and 2
+   ur-grues in the room after reset().
 
-The mud will view them as psudo-objects without any special verbs attached to
-them.
+set_light()
 
-3)  set_objects( ([ "/wiz/rust/monsters/grue" : 1,
-		"/wiz/rust/monsters/URgrue" : 2, ]) );
-
-This allows you to make sure that a certain number of an object
-are in your room every time the room resets, even if the room has
-been looted or killed.
-The above example will make sure my room has 1 grue and 2 ur-grues in
-my room at every reset()
+    This function allows you to have your room be light by default 
+    or dark.
 
 
-If you want the room to be light by default, instead of dark,
-inside of create() you need the line:
-set_light(1);
+PLEASE NOTE THAT THE LIMA MUDLIB MAKES NO USE OF ADD_ACTION().
+TO ADD ADDITIONAL FUNCTIONALITY TO YOUR ROOMS YOU WILL USE 
+VERBS PLEASE SEE THE APPROPRIATE HELP ON VERBS. 
 
-ADDING ADDITIONAL SPICE
-to add aditional spice, to give the players something to do, use 
-add_action(), like you can in other objects.  If you don't know how to code these,
-please refer to 'help actions' 
-(forthcoming.  For now, use 'help add_action', or ask someone)
-
-// Beek --- add_action doesn't work.  Things are done entirely
-differently now.  That should be documented soon as well.

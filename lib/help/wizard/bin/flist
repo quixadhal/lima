@@ -1,0 +1,7 @@
+
+USAGE: flist -i object, flist object
+
+   This command will show you a list of the functions in an object.
+The -i option  will show you the function and
+where it is found.
+

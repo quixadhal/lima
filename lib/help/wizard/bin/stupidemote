@@ -1,0 +1,16 @@
+
+
+
+UASGE:  stupidemote <soul>
+
+  This command will add an emote with default rules of
+"" and "STR".
+
+stupidemote cry
+
+If you then do a showemote cry
+
+    "" -> $N $vcry.
+    "STR" -> $N $vcry $o.
+
+SEE ALSO:  rmemote, addemote, showemote, targetemote

@@ -46,8 +46,3 @@ create() {
     add_pattern("%slaugh%s",(:run_script("example"):));
 }
 
-void remove()
-{
-    actions::remove();
-    living::remove();
-}

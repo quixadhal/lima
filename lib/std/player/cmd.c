@@ -33,7 +33,7 @@ private static string * nonsense_msgs = ({
 "What a concept!\n",
 "I think you've got better things to do.\n",
 "Get serious.\n",
-"Getting desparate?\n",
+"Getting desperate?\n",
 });
 
 string nonsense()

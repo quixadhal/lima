@@ -74,39 +74,45 @@ walk_dir( string path, function func, mixed arg )
  * Sep 4, 1993
  */
 
+private string array
+wiz_dir_parts = explode(WIZ_DIR, "/") - ({ "", "." });
+
 string evaluate_path(string path) {
-    string *tree, *new_tree;
+    string *tree;
+    int idx;
+
     if (!path || path[0] != '/') {
-	string *route;
-	route = explode(file_name(previous_object()), "/");
-	path = (this_body() ? this_body()->query_shell_ob()->get_variable("pwd") : "/" +
-	  (sizeof(route) > 2 ? implode(route[1.. sizeof(route)-2], "/") : ""))
-	+ "/" + path;
+	if (this_body())
+	    path = this_body()->query_shell_ob()->get_variable("pwd")
+		+ "/" + path;
+	else {
+	    string lname = file_name(previous_object());
+	    int tmp = strsrch(path, "/", -1);
+	    path = lname[0..tmp-1] + "/" + path;
+	}
     }
-    tree = explode(path, "/") - ({ "" });
-    new_tree = ({ });
-    while(sizeof(tree)) {
-	string temp;
-	temp = tree[0];
-	tree = (sizeof(tree) > 1 ? tree[1..] : ({ }));
-	if (temp[0] == '~') {
-	    if ( this_user() )
-		new_tree = explode(WIZ_DIR, "/") + ({ (strlen(temp) > 1 ?
-		  temp[1..] : this_user()->query_userid()) });
+    tree = explode(path, "/") - ({ "", "." });
+    while (idx < sizeof(tree)) {
+	string tmp = tree[idx];
+	if (tmp == "..") {
+	    if (idx) {
+		tree[idx-1..idx] = ({ });
+		idx--;
+	    } else
+		tree[idx..idx] = ({ });
 	    continue;
 	}
-	switch(temp) {
-	case "..":
-	    new_tree = (sizeof(new_tree) > 1 ?
-	      new_tree[0 .. sizeof(new_tree)-2] : ({ }));
-	    break;
-	case ".":
-	    break;
-	default:
-	    new_tree += ({ temp });
+	if (tmp[0] == '~' && this_user()) {
+	    if (sizeof(tmp) == 1)
+		tmp = this_user()->query_userid();
+	    else
+		tmp = tmp[1..];
+	    tree[0..idx] = wiz_dir_parts + ({ tmp });
+	    continue;
 	}
+	idx++;
     }
-    return "/" + implode(new_tree, "/");
+    return "/" + implode(tree, "/");
 }
 
 string

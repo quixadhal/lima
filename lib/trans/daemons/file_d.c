@@ -21,7 +21,8 @@
 
 inherit DAEMON;
 
-DOC_MODULE("Provides a call_other() interface to the filesystem efuns");
+//:MODULE
+//Provides a call_other() interface to the filesystem efuns
 
 /*
 ** File System Manipulation functions

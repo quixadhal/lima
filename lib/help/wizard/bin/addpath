@@ -1,0 +1,5 @@
+$$ see: showpath, rmpath
+Usage: addpath [directory]
+
+This command will add the directory you typed in to your current exec paths in which the command finder will search thru it.
+

@@ -50,6 +50,4 @@ int set_title(string str)
 	title = sprintf("%s the title-less.", capitalize(query_real_name()));
     else
 	title = replace_string(str,"$N", capitalize(query_real_name()));
-
-    query_link()->set_title(title);
 }

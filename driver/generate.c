@@ -47,9 +47,8 @@ optimize P1(parse_node_t *, expr) {
     switch (expr->kind) {
     case NODE_TERNARY_OP:
 	OPT(expr->l.expr);
-	expr = expr->r.expr;
-	OPT(expr->l.expr);
-	OPT(expr->r.expr);
+	OPT(expr->r.expr->l.expr);
+	OPT(expr->r.expr->r.expr);
 	break;
     case NODE_BINARY_OP:
 	OPT(expr->l.expr);
@@ -438,11 +437,11 @@ void optimizer_start_function P1(int, n) {
 
 void optimizer_end_function PROT((void)) {
     int i;
-    for (i = 0; i < optimizer_num_locals; i++) 
-	if (last_local_refs[i]) {
-	    last_local_refs[i]->v.number = F_TRANSFER_LOCAL;
-    }
     if (last_local_refs) {
+	for (i = 0; i < optimizer_num_locals; i++) 
+	    if (last_local_refs[i]) {
+		last_local_refs[i]->v.number = F_TRANSFER_LOCAL;
+	    }
 	FREE(last_local_refs);
 	last_local_refs = 0;
     }

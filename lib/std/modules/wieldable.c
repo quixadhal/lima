@@ -14,6 +14,11 @@ private int wield_bonus;
 private string wield_type = "blow";
 private object wielded_by;
 
+private string extra_short() {
+    if (wielded_by && wielded_by != this_object())
+	return "wielded";
+}
+
 int adjust_result(int result)
 {
     return result;
@@ -47,6 +52,7 @@ string query_wield_message()
 
 void mark_wielded_by(object which)
 {
+//    hook_state("extra_short", "wielded, which && which != this_object);
     wielded_by = which;
 }
 
@@ -58,10 +64,4 @@ object query_wielded_by()
 mixed ob_state()
 {
     return wielded_by;
-}
-
-string extra_short()
-{
-    if ( wielded_by && wielded_by != this_object() )
-	return "wielded";
 }

@@ -9,16 +9,14 @@ create()
 {
     object::create();
     set_id("key");
-    set_in_room_desc("A lsmall shiny safe key");
+    set_adjectives( ({ "small", "shiny" }) );
+    set_in_room_desc("A small shiny safe key");
 
     set_gettable(1);
-    set_long("This is a small shiny safe key used to open a safe");
+    set_long("This is a small shiny safe key used to open a safe.\n");
 }
 
-
-
-mixed key_type(object ob)
+mixed key_type()
 {
-  write(query_locked());
-  return "skeleton";
+    return "skeleton";
 }

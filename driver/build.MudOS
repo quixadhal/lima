@@ -9,7 +9,7 @@
 OBJDIR=obj
 
 # change this if you wish the driver binary to be named something else
-DRIVER_BIN=driver.v21.7a3
+DRIVER_BIN=driver.v21.7a10
 
 # uncomment PROOF if using CenterLine's TestCenter to debug the driver.
 #PROOF=proof
@@ -358,6 +358,10 @@ all:
 	@echo MudOS is currently configured to use 'Makefile'.  Edit 'build.MudOS'
 	@echo if this is not what you want.
 
+.DEFAULT:
+	@echo MudOS is currently configured to use 'Makefile'.  Edit 'build.MudOS'
+	@echo if this is not what you want.
+
 nothing:
 
 which_makefile:
@@ -366,6 +370,10 @@ END
 else
 cat >Makefile <<END
 all:
+	@echo MudOS is currently configured to use 'GNUmakefile'.  Edit 'build.MudOS'
+	@echo if this is not what you want.
+
+.DEFAULT:
 	@echo MudOS is currently configured to use 'GNUmakefile'.  Edit 'build.MudOS'
 	@echo if this is not what you want.
 

@@ -1,0 +1,14 @@
+
+USAGE:  du [ path ]
+
+   this command will show you the amount of disk space
+is being used.
+
+If no path is specified du starts from the current 
+directory and shows disk usage for that directory and 
+all others under it.
+
+du
+
+du /
+

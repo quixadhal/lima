@@ -1,0 +1,22 @@
+
+USAGE:  cp  source destination
+
+   This command will allow you to copy files from source to 
+destination.  The source file must exist, the destination may or 
+may not exist at the time of the copy.  If the destination does 
+not exist one will be created, if the destination does exist, at 
+the time of the copy it will be overwritten.
+
+If you do not supply a full path name cp will assume that the 
+files will be in your current directory.
+
+cp wizroom.c workroom.c
+
+I will now have a copy of wizroom.c named workroom.c in the 
+  current directory.
+
+cp /domains/std/wizroom.c /wiz/zifnab/workroom.c
+
+I now have a copy of wizroom.c in my home directory named workroom.c
+
+

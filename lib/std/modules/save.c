@@ -11,25 +11,32 @@
 */
 
 #include <mudlib.h>
-DOC_MODULE("implements persistance.")
+
+//:MODULE
+//This module implements persistence
 
 private int save_recurse;
 private mixed *saved = ({});
 
-DOC(add_save, "mark a variable as one that gets saved.")
+//:FUNCTION add_save
+//Mark a variable as one that gets saved.
 static void add_save(mixed *vars) { 
     saved += vars;
 //  saved = clean_array(saved + vars);
 }
 
-DOC(get_saved, "returns the array of variables that get saved.")
-// Security problem here - Beek
+//:FUNCTION get_saved
+//returns the array of variables that get saved.
+
+//###Security problem here - Beek
 string *get_saved() { return saved; }
 
-DOC(set_save_recurse, "sets whether or not a save is recursive.")
+//:FUNCTION set_save_recurse
+//sets whether or not a save is recursive.
 static void set_save_recurse(int flag) {  save_recurse = flag; }
 
-DOC(save_to_string, "saves an object into a string representation.")
+//:FUNCTION save_to_string
+//saves an object into a string representation.
 string save_to_string() {
     string *tmpsaved;
     string *values;
@@ -49,8 +56,10 @@ string save_to_string() {
     return save_variable(map);
 }
 
-DOC(load_from_string, "loads an object from a string representation.")
-// ### obsolete code
+//:FUNCTION load_from_string
+//loads an object from a string representation.
+
+//### obsolete code
 void old_load_from_string(mixed value, int recurse) {
     string obj;
     object ob;

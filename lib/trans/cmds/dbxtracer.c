@@ -16,7 +16,8 @@ main(mixed *arg) {
 
     write_file("/secure/shadows/dbxtracer_tmp", func);
     shadow = new("/secure/shadows/dbxtracer_shadow");
-    if (!(shadow->start_shadowing(ob)) {
+    if (!(shadow->start_shadowing(ob)))
+    {
 	write("Failed.\n");
 	destruct(shadow);
     }

@@ -23,4 +23,6 @@
 #define DBBUG(x) TELL_BUG("deathblade",(x))
 #define ZBUG(x) TELL_BUG("zifnab",(x))
 
+#include <mudlib.h>
+
 #endif // __GLOBAL_H__

@@ -4,6 +4,7 @@
 #include <setbit.h>
 
 inherit VERB_OB;
+inherit M_PARSING;
 
 mixed can_wave_obj(object ob)
 {
@@ -33,10 +34,8 @@ mixed do_wave_it(object ob, object with)
 	return;
     
     if (!ob->wave(with)) {
-	write(this_body()->useless("Waving "+ob->the_short()));
-	return 0;
+	write(useless("Waving "+ob->the_short()));
     }
-    return 1;
 }
 
 void do_wave_obj(object ob) {

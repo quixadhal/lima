@@ -8,7 +8,8 @@ $(OBJDIR)/%.o: %.c
 	$(CC) -I$(OBJDIR) -I.. $(CFLAGS) -o $@ -c $<
 
 all: $(OBJ)
-	ar rlcu mudlib.a $(OBJ)
+	ar rcu mudlib.a $(OBJ)
+	ranlib mudlib.a
 
 clean:
 	-rm -f *.o

@@ -47,7 +47,7 @@ private void main(string arg)
 	return;
     }
 
-    home = "/" + WIZ_DIR + "/" + arg + "/workroom";
+    home = WIZ_DIR + "/" + arg + "/workroom";
     if ( file_size(home + ".c") <= 0 )
     {
 	write(capitalize(arg) + " does not have a home.\n");

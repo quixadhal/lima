@@ -114,111 +114,107 @@ nomask void do_more(mixed arg) {
       destruct(this_object());
     if (arg)
 	switch(arg[0]) {
-    case '?':
-	if (sscanf(arg, "?%s", current_search)) {
+	case '?':
+	    current_search = arg[1..];
+	    
 	    if (current_search != "") {
 		direction = -1;
 		last_search = current_search;
 		break;
 	    }
-	}
-	if (last_search) {
-	    current_search = last_search;
-	    direction = -1;
-	    line_index += CHUNK * direction;
-	    if (line_index < 0 || line_index >= sizeof(lines)) {
-                if ( next_file() )
-                {
-                    finish();
-                    return;
-                }
+	    if (last_search) {
+		current_search = last_search;
+		direction = -1;
+		line_index += CHUNK * direction;
+		if (line_index < 0 || line_index >= sizeof(lines)) {
+		    if ( next_file() ) {
+			finish();
+			return;
+		    }
+		}
+		break;
 	    }
-	    break;
-	}
-	write("more: illegal syntax, type \"h\" for help.\n");
-	return;
-    case 'h':
-        print_help();
-	return;
-    case 's':                           // Set search string
-	if (arg != "s") {
-	    sscanf(arg, "s %s", current_search);
-	    write("more: search set to \"" + current_search + "\"\n");
-	}
-	else {
-	    current_search = 0;
-	    write("more: search off\n");
-	}
-	return;
-    case '/':
-	if (sscanf(arg, "/%s", current_search)) {
+	    write("more: illegal syntax, type \"h\" for help.\n");
+	    return;
+	case 'h':
+	    print_help();
+	    return;
+	case 's':                           // Set search string
+	    if (arg != "s") {
+		current_search = arg[1..];
+		write("more: search set to \"" + current_search + "\"\n");
+	    } else {
+		current_search = 0;
+		write("more: search off\n");
+	    }
+	    return;
+	case '/':
+	    current_search = arg[1..];
 	    if (current_search != "") {
 		direction = 1;
 		last_search = current_search;
 		break;
 	    }
-	}
-	if (last_search) {
-	    current_search = last_search;
-	    direction = 1;
+	    if (last_search) {
+		current_search = last_search;
+		direction = 1;
+		line_index += CHUNK * direction;
+		if (line_index < 0 || line_index >= sizeof(lines)) {
+		    if ( next_file() ) {
+			finish();
+			return;
+		    }
+		}
+		break;
+	    }
+	    write("more: illegal syntax, type \"h\" for help.\n");
+	    return;
+	case 'd':                           // Toggle Direction
+	    direction = -direction;
+	    write("more: now scanning " +
+		  (direction == 1 ? "forward" : "backward") + "\n");
+	    return;
+	case 'n':                           // Next file if any
+	    if (sizeof(file_list) > 1)
+		file_index += direction;
+	    if (file_index < 0 || file_index >= sizeof(file_list)) {
+		write("more: no more files " + (direction == 1 ? "after" : "preceding") +
+		      " \"" + file_list[file_index] + "\"\n");
+		file_index -= direction;
+		return;
+	    }
+	    else
+		lines = 0;
+	    break;
+	case 'q':
+	    finish();
+	    return;
+	case 'b':
+	    line_index = 0;
+	    break;
+	case 'e':
+	    line_index = (sizeof(lines) - CHUNK >= 0 ?
+			  sizeof(lines) - CHUNK : 0);
+	    break;
+	case 'a':
+	    break;
+	default:                            // Next chunk
+	    if (last_search)
+		current_search = 0;
 	    line_index += CHUNK * direction;
 	    if (line_index < 0 || line_index >= sizeof(lines)) {
-                if ( next_file() )
-                {
-                    finish();
-                    return;
-                }
+		if ( next_file() )
+		    {
+			finish();
+			return;
+		    }
 	    }
 	    break;
 	}
-	write("more: illegal syntax, type \"h\" for help.\n");
-	return;
-    case 'd':                           // Toggle Direction
-	direction = -direction;
-	write("more: now scanning " +
-	  (direction == 1 ? "forward" : "backward") + "\n");
-	return;
-    case 'n':                           // Next file if any
-	if (sizeof(file_list) > 1)
-	    file_index += direction;
-	if (file_index < 0 || file_index >= sizeof(file_list)) {
-	    write("more: no more files " + (direction == 1 ? "after" : "preceding") +
-	      " \"" + file_list[file_index] + "\"\n");
-	    file_index -= direction;
-	    return;
-	}
-	else
-	    lines = 0;
-	break;
-    case 'q':
-        finish();
-	return;
-    case 'b':
-	line_index = 0;
-	break;
-    case 'e':
-	line_index = (sizeof(lines) - CHUNK >= 0 ?
-	  sizeof(lines) - CHUNK : 0);
-	break;
-    case 'a':
-	break;
-    default:                            // Next chunk
-	if (last_search)
-	    current_search = 0;
-	line_index += CHUNK * direction;
-	if (line_index < 0 || line_index >= sizeof(lines)) {
-            if ( next_file() )
-            {
-                finish();
-                return;
-            }
-	}
-	break;
-    }
     while(1) {
 	if (!lines) {
             string contents;
-
+	    
 	    if (!file_list || !sizeof(file_list))
 		break;
 	    if(wizardp(this_user()))
@@ -248,7 +244,7 @@ nomask void do_more(mixed arg) {
 	if (current_search) {
 	    for(;line_index < sizeof(lines) && line_index >= 0;
 	      line_index += direction)
-		if (sscanf(lines[line_index], "%s" + current_search + "%s", tmp, tmp))
+		if (regexp(lines[line_index], current_search))
 		    break;
 	    if (line_index < 0 || line_index >= sizeof(lines)) {
 		write("more: \"" + current_search + "\" not found in \"" +

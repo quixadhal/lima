@@ -1,0 +1,13 @@
+
+USAGE:  light <number}
+
+    This command will allow any wizard to turn a dark room
+into a lit room.  You can also turn a lit room into a dark room by 
+giveing a negative number.
+
+light 500 will turn a room into a well lit room.
+
+light -500 will turn a room into a very dark room.
+
+
+

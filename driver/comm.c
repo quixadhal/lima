@@ -1,6 +1,7 @@
 /*
  *  comm.c -- communications functions and more.
  *            Dwayne Fontenot (Jacques@TMI)
+ *  Windows 95 support by George Reese (Descartes of Borg)
  */
 #include "std.h"
 #include "network_incl.h"
@@ -17,23 +18,6 @@
 #include "file.h"
 
 #define TELOPTS
-#ifdef OS2
-#include "os2\\telnet.h"
-
-#define INCL_DOSPROCESS
-#define INCL_DOSSEMAPHORE
-#define INCL_DOSNMPIPES
-#define INCL_DOSERRORS
-#include <os2.h>
-
-extern HEV mudos_event_sem;
-
-#define OPEN_MODE NP_ACCESS_DUPLEX
-#define PIPE_MODE NP_WAIT | NP_WMESG | NP_RMESG
-#define OUTBUF_SIZE 4096
-#define INBUF_SIZE 2048
-#define TIMEOUT 10000
-#endif
 
 int total_users = 0;
 
@@ -85,11 +69,7 @@ int max_users = 0;
 /*
  * private local variables.
  */
-#ifdef OS2
-static HPIPE new_user_handle = 0;
-#else
 static int addr_server_fd = -1;
-#endif
 
 static void
 receive_snoop P2(char *, buf, object_t *, snooper)
@@ -105,73 +85,25 @@ receive_snoop P2(char *, buf, object_t *, snooper)
 #endif
 }
 
-#ifdef OS2
-void listen_connection P1(HPIPE, handle)
-{
-    int i, br, state;
-    char buf[2];
-    AVAILDATA avail;
-
-    while (DosConnectNPipe(handle) == ERROR_PIPE_NOT_CONNECTED);
-    DosPostEventSem(mudos_event_sem);
-    new_user_handle = handle;
-}				/* listen_connection() */
-
-void spawn_new_listen_pipe()
-{
-    TID bing;
-    int rc;
-    HPIPE listen_pipe;
-
-    /* Hmm ... what should MAX_USERS be here? */
-    rc = DosCreateNPipe("\\PIPE\\MUD_DRIVER", &listen_pipe, OPEN_MODE,
-			PIPE_MODE | (MAX_USERS + 1), OUTBUF_SIZE, INBUF_SIZE,
-			TIMEOUT);
-    if (rc)
-	return;
-    DosCreateThread(&bing, listen_connection, listen_pipe, 0, 100);
-}				/* spawn_new_listen_pipe() */
-
-void check_for_data_thread()
-{
-    int i;
-
-    do {
-	for (i = 0; i < max_users; i++) {
-	    long state, br;
-	    AVAILDATA avail;
-	    char buf[3];
-
-	    if (!all_users[i] || (all_users[i]->iflags & (CLOSING | CMD_IN_BUF))
-		continue;
-	    if (DosPeekNPipe(all_users[i]->named_pipe, buf, 2, &br, &avail, &state)) {
-		continue;
-	    }
-	    if (avail.cbpipe) {
-		DosPostEventSem(mudos_event_sem);
-		break;
-	    }
-	}
-	DosSleep(1000);
-    } while (1);
-}				/* check_for_data_thread() */
-#endif
-
 /*
  * Initialize new user connection socket.
  */
 void init_user_conn()
 {
-#ifdef OS2
-    TID bing;
-
-    spawn_new_listen_pipe();
-    DosCreateThread(&bing, check_for_data_thread, NULL, 0, 100);
-#else
     struct sockaddr_in sin;
     int sin_len;
     int optval;
     int i;
+
+#ifdef WINSOCK
+    WSADATA WSAData;
+
+#define CLEANUP WSACleaup()
+    
+    WSAStartup(MAKEWORD(1, 1), &WDSData);
+#else
+#define CLEANUP
+#endif
 
     for (i=0; i < 5; i++) {
 	if (!external_port[i].port) continue;
@@ -189,6 +121,7 @@ void init_user_conn()
 	if (setsockopt(external_port[i].fd, SOL_SOCKET, SO_REUSEADDR,
 		       (char *) &optval, sizeof(optval)) == -1) {
 	    debug_perror("init_user_conn: setsockopt", 0);
+	    CLEANUP;
 	    exit(2);
 	}
 	/*
@@ -203,6 +136,7 @@ void init_user_conn()
 	if (bind(external_port[i].fd, (struct sockaddr *) & sin,
 		 sizeof(sin)) == -1) {
 	    debug_perror("init_user_conn: bind", 0);
+	    CLEANUP;
 	    exit(3);
 	}
 	/*
@@ -212,6 +146,7 @@ void init_user_conn()
 	if (getsockname(external_port[i].fd, (struct sockaddr *) & sin,
 			&sin_len) == -1) {
 	    debug_perror("init_user_conn: getsockname", 0);
+	    CLEANUP;
 	    exit(4);
 	}
 	/*
@@ -219,6 +154,7 @@ void init_user_conn()
 	 */
 	if (set_socket_nonblocking(external_port[i].fd, 1) == -1) {
 	    debug_perror("init_user_conn: set_socket_nonblocking 1", 0);
+	    CLEANUP;
 	    exit(8);
 	}
 	/*
@@ -226,18 +162,18 @@ void init_user_conn()
 	 */
 	if (listen(external_port[i].fd, SOMAXCONN) == -1) {
 	    debug_perror("init_user_conn: listen", 0);
+	    CLEANUP;
 	    exit(10);
 	}
     }
     /*
      * register signal handler for SIGPIPE.
      */
-#ifndef LATTICE
+#if !defined(LATTICE) && defined(SIGPIPE)
     if (signal(SIGPIPE, sigpipe_handler) == SIGNAL_ERROR) {
 	debug_perror("init_user_conn: signal SIGPIPE",0);
 	exit(5);
     }
-#endif
 #endif
 }
 
@@ -248,23 +184,18 @@ void ipc_remove()
 {
     int i;
 
-#ifdef OS2
-    DosDisConnectNPipe(new_user_handle);
-    DosClose(new_user_handle);
-#else
     for (i = 0; i < 5; i++) {
 	if (!external_port[i].port) continue;
-	if (close(external_port[i].fd) == -1) {
+	if (OS_socket_close(external_port[i].fd) == -1) {
 	    debug_perror("ipc_remove: close", 0);
 	}
     }
-#endif
+
     debug_message("closed external ports\n");
 }
 
 void init_addr_server P2(char *, hostname, int, addr_server_port)
 {
-#ifndef OS2
     struct sockaddr_in server;
     struct hostent *hp;
     int server_fd;
@@ -315,12 +246,16 @@ void init_addr_server P2(char *, hostname, int, addr_server_port)
      * connect socket to server address.
      */
     if (connect(server_fd, (struct sockaddr *) & server, sizeof(server)) == -1) {
+#ifdef WINSOCK
+	if (errno == WSAECONNREFUSED)
+#else
 	if (errno == ECONNREFUSED)
+#endif
 	    debug_message("Connection to address server (%s %d) refused.\n",
 			  hostname, addr_server_port);
 	else 
 	    debug_perror("init_addr_server: connect", 0);
-	close(server_fd);
+	OS_socket_close(server_fd);
 	return;
     }
     addr_server_fd = server_fd;
@@ -333,7 +268,6 @@ void init_addr_server P2(char *, hostname, int, addr_server_port)
 	debug_perror("init_addr_server: set_socket_nonblocking 1", 0);
 	return;
     }
-#endif
 }
 
 /*
@@ -546,22 +480,22 @@ static int flush_message P1(interactive_t *, ip)
 /* Need to use send to get out of band data
    num_bytes = write(ip->fd,ip->message_buf + ip->message_consumer,length);
  */
-#ifdef OS2
-	if (DosWrite(ip->named_pipe, ip->message_buf + ip->message_consumer, length,
-		     &num_bytes))
-	    num_bytes = -1;
-#else
 	num_bytes = send(ip->fd, ip->message_buf + ip->message_consumer,
 			 length, ip->out_of_band);
-#endif
 	if (num_bytes == -1) {
 #ifdef EWOULDBLOCK
 	    if (errno == EWOULDBLOCK) {
 		debug(512, ("flush_message: write: Operation would block\n"));
 		return 1;
 #else
+#  ifdef WINSOCK
+	    if (errno == WSAEWOULDBLOCK) {
+		debug(512, ("flush_message: write: Operation would block\n"));
+		return 1;
+#  else
 	    if (0) {
 		;
+#  endif
 #endif
 #ifdef linux
 	    } else if (errno == EINTR) {
@@ -800,9 +734,7 @@ static void sigpipe_handler()
 #endif
 {
     debug_message("SIGPIPE received.\n");
-#ifdef linux
     signal(SIGPIPE, sigpipe_handler);
-#endif
 }				/* sigpipe_handler() */
 
 /*
@@ -820,7 +752,6 @@ void sigalrm_handler()
 
 INLINE void make_selectmasks()
 {
-#ifndef OS2
     int i;
 
     /*
@@ -868,7 +799,6 @@ INLINE void make_selectmasks()
 	}
     }
 #endif
-#endif				/* OS2 */
 }				/* make_selectmasks() */
 
 /*
@@ -876,37 +806,6 @@ INLINE void make_selectmasks()
  */
 INLINE void process_io()
 {
-#ifdef OS2
-    int tmp;
-
-    if (new_user_handle) {
-	new_user_handler();
-	new_user_handle = 0;
-	spawn_new_listen_pipe();
-    }
-    for (i = 0; i < max_users; i++) {
-	long state, br;
-	AVAILDATA avail;
-	char buf[3];
-
-	if (!all_users[i] || (all_users[i] & (CLOSING | CMD_IN_BUF))
-	    continue;
-	if (all_users[i]->iflags & NET_DEAD) {
-	    remove_interactive(all_users[i]->ob);
-	    continue;
-	}
-	if (DosPeekNPipe(all_users[i]->named_pipe, buf, 2, &br, &avail, &state)) {
-	    remove_interactive(all_users[i]->ob);
-	    continue;
-	}
-	if (all_users[i]->message_length > 0 && !avail.cbmessage) {
-	    flush_message(all_users[i]);
-	}
-	if (avail.cbpipe) {
-	    get_user_data(all_users[i]);
-	}
-    }
-#else
     int i;
 
     debug(256, ("@"));
@@ -961,7 +860,6 @@ INLINE void process_io()
 	    hname_handler();
 	}
     }
-#endif
 }
 
 /*
@@ -973,28 +871,28 @@ INLINE void process_io()
 static void new_user_handler P1(int, which)
 {
     int new_socket_fd;
-#ifndef OS2
     struct sockaddr_in addr;
-#endif
     int length;
     int i;
     object_t *ob;
     svalue_t *ret;
 
-#ifndef OS2
     length = sizeof(addr);
     debug(512, ("new_user_handler: accept on fd %d\n", new_user_fd));
     new_socket_fd = accept(external_port[which].fd,
 			   (struct sockaddr *) & addr, (int *) &length);
     if (new_socket_fd < 0) {
+#ifdef WINSOCK
+	if (errno == WSAEWOULDBLOCK) {
+#else
 	if (errno == EWOULDBLOCK) {
+#endif
 	    debug(512, ("new_user_handler: accept: Operation would block\n"));
 	} else {
 	    debug_perror("new_user_handler: accept", 0);
 	}
 	return;
     }
-#endif
 #ifdef linux
     /*
      * according to Amylaar, 'accepted' sockets in Linux 0.99p6 don't
@@ -1058,21 +956,14 @@ static void new_user_handler P1(int, which)
     master_ob->interactive->state = TS_DATA;
     master_ob->interactive->out_of_band = 0;
     all_users[i] = master_ob->interactive;
-#ifdef OS2
-    all_users[i]->named_pipe = new_user_handle;
-    new_user_handle = 0;
-#else
     all_users[i]->fd = new_socket_fd;
 #ifdef F_QUERY_IP_PORT
     all_users[i]->local_port = external_port[which].port;
 #endif
-#endif
     set_prompt("> ");
     
-#ifndef OS2
     memcpy((char *) &all_users[i]->addr, (char *) &addr, length);
     debug(512, ("New connection from %s.\n", inet_ntoa(addr.sin_addr)));
-#endif
     num_user++;
     /*
      * The user object has one extra reference. It is asserted that the
@@ -1083,9 +974,7 @@ static void new_user_handler P1(int, which)
     ret = apply_master_ob(APPLY_CONNECT, 1);
     if (ret == 0 || ret == (svalue_t *)-1 || ret->type != T_OBJECT) {
 	remove_interactive(master_ob);
-#ifndef OS2
 	debug_message("Connection from %s aborted.\n", inet_ntoa(addr.sin_addr));
-#endif
 	return;
     }
     /*
@@ -1109,11 +998,9 @@ static void new_user_handler P1(int, which)
     free_object(master_ob, "reconnect");
     add_ref(ob, "new_user");
     command_giver = ob;
-#ifndef OS2
     if (addr_server_fd >= 0) {
 	query_addr_name(ob);
     }
-#endif
     
     if (external_port[which].kind == PORT_TELNET) {
 	/* Ask permission to ask them for their terminal type */
@@ -1260,7 +1147,6 @@ int process_user_command()
 
 static void hname_handler()
 {
-#ifndef OS2
     static char hname_buf[HNAME_BUF_SIZE];
     int num_bytes;
     int tmp;
@@ -1270,7 +1156,7 @@ static void hname_handler()
     if (addr_server_fd < 0) {
 	return;
     }
-    num_bytes = read(addr_server_fd, hname_buf, HNAME_BUF_SIZE);
+    num_bytes = OS_socket_read(addr_server_fd, hname_buf, HNAME_BUF_SIZE);
     switch (num_bytes) {
     case -1:
 	switch (errno) {
@@ -1280,12 +1166,18 @@ static void hname_handler()
 			addr_server_fd));
 	    break;
 #endif
+#ifdef WSAEWOULDBLOCK
+	case WSAEWOULDBLOCK:
+	    debug(512, ("hname_handler: read on fd %d: Operation would block.\n",
+			addr_server_fd));
+	    break;
+#endif
 	default:
 	    debug_message("hname_handler: read on fd %d\n", addr_server_fd);
 	    debug_perror("hname_handler: read", 0);
 	    tmp = addr_server_fd;
 	    addr_server_fd = -1;
-	    close(tmp);
+	    OS_socket_close(tmp);
 	    return;
 	}
 	break;
@@ -1293,7 +1185,7 @@ static void hname_handler()
 	debug_message("hname_handler: closing address server connection.\n");
 	tmp = addr_server_fd;
 	addr_server_fd = -1;
-	close(tmp);
+	OS_socket_close(tmp);
 	return;
     default:
 	hname_buf[num_bytes] = '\0';
@@ -1331,7 +1223,6 @@ static void hname_handler()
 	}
 	break;
     }
-#endif				/* OS2 */
 }				/* hname_handler() */
 
 /*
@@ -1378,11 +1269,7 @@ static void get_user_data P1(interactive_t *, ip)
      * read user data.
      */
     debug(512, ("get_user_data: read on fd %d\n", ip->fd));
-#ifdef OS2
-    DosRead(ip->named_pipe, buf, text_space, &num_bytes);
-#else
-    num_bytes = read(ip->fd, buf, text_space);
-#endif
+    num_bytes = OS_socket_read(ip->fd, buf, text_space);
 #ifdef DEBUG_COMM_FREEZE
     /* slow, but it's debugging code */
     for (i=0; i<1024; i++) {
@@ -1403,12 +1290,14 @@ static void get_user_data P1(interactive_t *, ip)
 			ip->fd));
 	} else
 #endif
-	{
-#ifdef OS2
-	    debug_message("get_user_data: read on fd %d\n", ip->named_pipe);
-#else
-	    debug_message("get_user_data: read on fd %d\n", ip->fd);
+#ifdef WSAEWOULDBLOCK
+	if (errno == WSAEWOULDBLOCK) {
+	    debug(512, ("get_user_data: read on fd %d: Operation would block.\n",
+			ip->fd));
+	} else
 #endif
+	{
+	    debug_message("get_user_data: read on fd %d\n", ip->fd);
 	    debug_perror("get_user_data: read", 0);
 	    remove_interactive(ip->ob);
 	    return;
@@ -1760,16 +1649,9 @@ void remove_interactive P1(object_t *, ob)
 	}
 #endif
 	debug(512, ("remove_interactive: closing fd %d\n", ob->interactive->fd));
-#ifdef OS2
-	DosDisConnectNPipe(ob->interactive->named_pipe);
-	if (DosClose(ob->interactive->named_pipe)) {
+	if (OS_socket_close(ob->interactive->fd) == -1) {
 	    debug_perror("remove_interactive: close", 0);
 	}
-#else
-	if (close(ob->interactive->fd) == -1) {
-	    debug_perror("remove_interactive: close", 0);
-	}
-#endif
 	if (ob->flags & O_HIDDEN)
 	    num_hidden--;
 	num_user--;
@@ -2040,7 +1922,6 @@ static void telnet_neg P2(char *, to, char *, from)
     }				/* while() */
 }				/* telnet_neg() */
 
-#ifndef OS2
 static void query_addr_name P1(object_t *, ob)
 {
     static char buf[100];
@@ -2059,7 +1940,7 @@ static void query_addr_name P1(object_t *, ob)
     memcpy(&buf[sizeof(int) + sizeof(int)], (char *) &msgtype, sizeof(msgtype));
     debug(512, ("query_addr_name: sent address server %s\n", dbuf));
 
-    if (write(addr_server_fd, buf, msglen + sizeof(int) + sizeof(int)) == -1) {
+    if (OS_socket_write(addr_server_fd, buf, msglen + sizeof(int) + sizeof(int)) == -1) {
 	switch (errno) {
 	case EBADF:
 	    debug_message("Address server has closed connection.\n");
@@ -2109,7 +1990,7 @@ int query_addr_number P2(char *, name, char *, call_back)
 
     debug(512, ("query_addr_number: sent address server %s\n", dbuf));
 
-    if (write(addr_server_fd, buf, msglen + sizeof(int) + sizeof(int)) == -1) {
+    if (OS_socket_write(addr_server_fd, buf, msglen + sizeof(int) + sizeof(int)) == -1) {
 	switch (errno) {
 	case EBADF:
 	    debug_message("Address server has closed connection.\n");
@@ -2277,27 +2158,6 @@ char *inet_ntoa P1(struct in_addr, ad)
 }
 #endif				/* INET_NTOA_OK */
 
-#else
-/* OS2 */
-char *query_ip_name P1(object_t *, ob)
-{
-    return "ip.name";
-}				/* query_ip_name() */
-
-char *query_ip_number P1(object_t *, ob)
-{
-    return "42.42.42.42";
-}				/* query_ip_number() */
-
-int query_addr_number P2(char *, name, char *, call_back)
-{
-    push_constant_string(name);
-    push_null();
-    apply(call_back, current_object, 2, ORIGIN_DRIVER);
-    return 0;
-}				/* query_addr_number() */
-#endif				/* OS2 */
-
 char *query_host_name()
 {
     static char name[40];
@@ -2463,7 +2323,6 @@ void outbuf_add P2(outbuffer_t *, outbuf, char *, str)
     
     if (!outbuf) return;
     l = strlen(str);
-    DEBUG_CHECK(l > USHRT_MAX, "Added string exceeds maximum buffer size\n");
     if (outbuf->buffer) {
 	limit = MSTR_SIZE(outbuf->buffer);
 	if (outbuf->real_size + l > limit) {
@@ -2490,6 +2349,39 @@ void outbuf_add P2(outbuffer_t *, outbuf, char *, str)
     }
     strcpy(outbuf->buffer + outbuf->real_size, str);
     outbuf->real_size += l;
+}
+
+void outbuf_addchar P2(outbuffer_t *, outbuf, char, c)
+{
+    int limit;
+    
+    if (!outbuf) return;
+
+    if (outbuf->buffer) {
+	limit = MSTR_SIZE(outbuf->buffer);
+	if (outbuf->real_size + 1 > limit) {
+	    if (outbuf->real_size == USHRT_MAX) return; /* TRUNCATED */
+
+	    /* assume it's going to grow some more */
+	    limit = (outbuf->real_size + 1) * 2;
+	    if (limit > USHRT_MAX) {
+		limit = outbuf->real_size + 1;
+		if (limit > USHRT_MAX) {
+		    outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
+		    *(outbuf->buffer + outbuf->real_size) = c;
+		    outbuf->buffer[USHRT_MAX] = 0;
+		    outbuf->real_size = USHRT_MAX;
+		    return;
+		}
+	    }
+	    outbuf->buffer = extend_string(outbuf->buffer, limit);
+	}
+    } else {
+	outbuf->buffer = new_string(80, "outbuf_add");
+	outbuf->real_size = 0;
+    }
+    *(outbuf->buffer + outbuf->real_size++) = c;
+    *(outbuf->buffer + outbuf->real_size) = 0;
 }
 
 void outbuf_addv P2V(outbuffer_t *, outbuf, char *, format)

@@ -294,7 +294,7 @@ regexp *regcomp P2(unsigned char *, exp,
 	FAIL("NULL argument");
 
     exp2 = (short *)
-	DXALLOC((strlen(exp) + 1) * (sizeof(short[8]) / sizeof(char[8])), 
+	DXALLOC((strlen((char *)exp) + 1) * (sizeof(short[8]) / sizeof(char[8])), 
 		TAG_TEMPORARY, "regcomp: 1");
     for (scan = exp, dest = exp2; (c = *scan++);) {
 	switch (c) {
@@ -378,7 +378,7 @@ regexp *regcomp P2(unsigned char *, exp,
     /* Second pass: emit code. */
     regparse = exp2;
     regnpar = 1;
-    regcode = r->program;
+    regcode = (char *)(r->program);
     regc((char) MAGIC);
     if (reg(0, &flags) == NULL) {
 	FREE(exp2);
@@ -391,8 +391,8 @@ regexp *regcomp P2(unsigned char *, exp,
     r->reganch = 0;
     r->regmust = NULL;
     r->regmlen = 0;
-    scan = r->program + 1;	/* First BRANCH. */
-    if (OP(regnext(scan)) == END) {	/* Only one top-level choice. */
+    scan = (unsigned char *)(r->program + 1);	/* First BRANCH. */
+    if (OP(regnext((char *)scan)) == END) {	/* Only one top-level choice. */
 	scan = OPERAND(scan);
 
 	/* Starting-point info. */
@@ -412,11 +412,14 @@ regexp *regcomp P2(unsigned char *, exp,
 	if (flags & SPSTART) {
 	    longest = NULL;
 	    len = 0;
-	    for (; scan != NULL; scan = regnext(scan))
-		if (OP(scan) == EXACTLY && strlen(OPERAND(scan)) >= len) {
-		    longest = OPERAND(scan);
-		    len = strlen(OPERAND(scan));
+	    for (; scan != NULL; scan = (unsigned char *)regnext((char *)scan)) {
+		char *tmp = (char *)OPERAND(scan);
+		int tlen;
+		if (OP(scan) == EXACTLY && (tlen = strlen(tmp)) >= len) {
+		    longest = tmp;
+		    len = tlen;
 		}
+	    }
 	    r->regmust = longest;
 	    r->regmlen = len;
 	}

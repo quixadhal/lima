@@ -8,11 +8,15 @@
 
 inherit CMD;
 
-private void main(string str) {
+private void main(string str)
+{
     int flag = 1;
-    if (str[0..2] == "-v ") {
+
+    if ( sizeof(str) > 3 && str[0..2] == "-v ")
+    {
         flag = 2;
         str = str[3..];
     }
+
     this_body()->do_game_command(str, flag);
 }

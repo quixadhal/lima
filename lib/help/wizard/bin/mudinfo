@@ -1,0 +1,25 @@
+
+USAGE:  mudinfo mudname
+
+   This command will give you specific information about a mud.
+
+mudinfo ideaexchange
+
+I d e a E x c h a n g e
+___________________________________
+Type: LPMud
+Address: 199.199.122.10 7890
+Current Mudlib: Foundation IIr1
+Base Mudlib: Foundation IIr1
+Status:  Up
+Open Status: open for public
+TCP Imud port: 7895
+UDP Imud port: 7898
+Services available: tell, who, rcp, http, locate, ftp, channel, finger
+ 
+Driver: MudOS v21.6a10
+
+
+This command can also be accessed through the menu.
+   type menu, then option * then i.
+

@@ -2,8 +2,8 @@
 
 private int our_light;
 
-/* this routine returns the room we are in, if we can be seen
-   from there */
+//:FUNCTION our_room
+//Return the room we are in, if we can be seen from there
 static object our_room() {
     object env;
     object tmp;
@@ -19,6 +19,8 @@ static object our_room() {
     }
 }
 
+//:FUNCTION set_light
+//Set the amount of light that this object gives off
 void set_light(int x) {
     object env;
     if (env = our_room()) {
@@ -27,5 +29,7 @@ void set_light(int x) {
     our_light = x;
 }
 
+//:FUNCTION query_light
+//Find out how much light the current object gives off
 int query_light() { return our_light; }
 

@@ -94,6 +94,7 @@ show_souls(string s)
 //    CMD_OB_FEELINGS->main("^"+s);
 }
 
+ 
 void
 show_adverbs(string s)
 {
@@ -170,6 +171,21 @@ set_biff(string s)
   goto_previous_menu();
 } 
 
+ 
+void
+set_ansi(string s)
+{
+  if(s && s=="on")
+  {
+  this_body()->query_shell_ob()->set_variable( "ansi" , 1);
+  write("Ansi is now on.\n");
+  } else {
+  this_body()->query_shell_ob()->unset_variable( "ansi");
+  write("Ansi is off.\n");
+}
+}
+      
+   
 void
 set_snoopable(string s)
 {
@@ -200,6 +216,20 @@ remote_who()
 {
   write("Which mud do you want to query?\n");
   complete_choice(0, IMUD_D->query_mudnames(), (: finish_who :));
+}
+
+void
+finish_mudinfo(string mudname)
+{
+do_cmd( "mudinfo " + mudname );
+printf("%s queried.  It's up to that mud to reply to you.\n", mudname);
+}
+ 
+void
+remote_mudinfo()
+{
+   write("Which mud do you want to query?\n");
+   complete_choice(0, IMUD_D->query_mudnames(), (: finish_mudinfo :));
 }
 
 void
@@ -310,6 +340,8 @@ create()
 					     "snooped", snoopablemenu, "s"));
   //  add_menu_item (personalmenu, new_menu_item("Change your supplied real name",
   //					     (: prompt_change_real_name :), "n"));
+add_menu_item(personalmenu, new_menu_item("Set ANSI on/off", (: get_input_then_call, (: set_ansi :), "Ansi 'on' or 'off' ? (default off): ":), "a"));
+ 
   add_menu_item (personalmenu, quit_item);
   add_menu_item (personalmenu, goto_main_menu_item);
 
@@ -336,6 +368,8 @@ create()
   add_menu_item (remotemenu, quit_item);
   add_menu_item (remotemenu, goto_main_menu_item);
   add_menu_item (wizmenu, main_seperator);
+add_menu_item (wizmenu, new_menu_item("Info on another mud",
+                                    (: remote_mudinfo :), "i"));
   add_menu_item (wizmenu, quit_item);
   add_menu_item (wizmenu, goto_main_menu_item);
 

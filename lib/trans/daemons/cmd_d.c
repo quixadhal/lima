@@ -366,6 +366,11 @@ smart_arg_parsing(mixed argv, string* path){
 	  printf("Vague argument: %O\nUsage: %s\n", argv[argcounter-1], USAGE);
 	  return 1;
 	}
+      if(expanded_arg == -3)
+	{
+	  printf("%s: No such file or directory.\n", argv[argcounter-1]);
+	  return 1;
+	}
       plural = pstuff->prototype[i] & PLURAL;
       this_arg = expanded_arg[0];
       resv[i] = expanded_arg[1];
@@ -501,7 +506,14 @@ private mixed parse_arg(int this_arg, mixed argv) {
       str_result = ({ untrimmed_argv });
       hits++;
     }
-  if(!hits) return -1;
+  if(!hits)
+    { 
+      if(this_arg & (CFILE|FILE|DIR))
+	{
+	  return -3;
+	}
+      return -1;
+    }
   if(hits > 1)
     {
       if(this_arg & STR) hits--;

@@ -5,6 +5,7 @@
 #include "backend.h"
 #include "qsort.h"
 #include "array.h"
+#include "md.h"
 
 /*
  * This file contains functions used to manipulate arrays.
@@ -1680,7 +1681,7 @@ int match_single_regexp P2(char *, str, char *, pattern) {
     int ret;
     
     regexp_user = EFUN_REGEXP;
-    reg = regcomp(pattern, 0);
+    reg = regcomp((unsigned char *)pattern, 0);
     if (!reg) error(regexp_error);
     ret = regexec(reg, str);
     FREE((char *)reg);
@@ -1696,7 +1697,7 @@ array_t *match_regexp P3(array_t *, v, char *, pattern, int, flag) {
 
     regexp_user = EFUN_REGEXP;
     if (!(size = v->size)) return null_array();
-    reg = regcomp(pattern, 0);
+    reg = regcomp((unsigned char *)pattern, 0);
     if (!reg) error(regexp_error);
     res = (char *)DMALLOC(size, TAG_TEMPORARY, "match_regexp: res");
     sv1 = v->item + size;
@@ -2018,7 +2019,7 @@ array_t *reg_assoc P4(char *, str, array_t *, pat, array_t *, tok, svalue_t *, d
  
 	rgpp = CALLOCATE(size, struct regexp *, TAG_TEMPORARY, "reg_assoc : rgpp");
 	for (i = 0; i < size; i++){
-             if (!(rgpp[i] = regcomp(pat->item[i].u.string, 0))){
+             if (!(rgpp[i] = regcomp((unsigned char *)pat->item[i].u.string, 0))){
 		 while (i--)
 		     FREE((char *)rgpp[i]);
 		 FREE((char *) rgpp);

@@ -16,219 +16,181 @@
 // On top of every command anywhere in the lib do:
 // DOC_COMMAND("this is the documentation for the foo command.");
 
+/* --------------------------------------------------------------
+
+Rewritten by Beek; the equivalent of the above is now:
+
+[Start the comment at the left margin; these are indented so this daemon
+ doesn't see these examples.]
+
+ //:MODULE
+ //This is the description of this module.
+ //$$ Note: helpsys style directives can be included
+ //see: another_module
+
+ //:FUNCTION funcname
+ //This is the doc for function funcname
+
+ //:COMMAND
+ //This is the doc for the command
+
+ //:HOOK
+ //This documents a hook called with call_hooks
+
+Data is updated nightly and dumped to the /help/autodoc directory
+*/
+
 #include <mudlib.h>
 #include <security.h>
-
-
-#define PATH_TO_DRIVER_DOCS "/help/wizard/MudOS/efuns"
 
 inherit M_REGEX;
 inherit M_ACCESS;
 
-DOC_MODULE("The doc daemon is the central repository for documentation strings.")
+#define SAVE_FILE     "/data/daemons/doc_d"
 
-mapping function_docs = ([]);
-mapping command_docs  = ([]);
-mapping module_docs   = ([]);
-mixed   function_list = ({});
+//:MODULE
+//The doc daemon handles finding source files which have been modified and
+//updating the appropriate documentation in /help/autodoc.
 
+// Public functions --------------------------------------------------------
 
-#define SAVE_FILE	"/data/daemons/doc_d"
+//:FUNCTION scan_mudlib
+//
+// Recursively searches the mudlib for files which have been changed
+// since the last time the docs were updated, and recreates the documentation
+// for those files.
 
-private void process_func(object ob, string file, string funcname)
-{
-    string 	this_doc_string;
-    string*	path_info;
+private void continue_scan();
+private static array files_to_do, dirs_to_do;
+private int last_time;
 
-    /*
-    ** Only process functions defined in the module itself (not inherited)
-    */
-    if ( function_exists(funcname, ob) != file )
-	return;
-
-    switch(funcname[0..5])
-    {
-    case "__DOC_":
-	this_doc_string = call_other(ob, funcname);
-	funcname = funcname[6..];
-	if(!function_docs[funcname])
-	{
-	    function_docs[funcname] = ([]);
-	}
-	function_docs[funcname][file] = this_doc_string;
-	break;
-
-    case "__DOCM":
-	this_doc_string = call_other(ob, "__DOCM");
-	path_info = split_path(file);
-	if(!module_docs[path_info[1]])
-	{
-	    module_docs[path_info[1]] = ([]);
-	}
-	module_docs[path_info[1]][path_info[0]] = this_doc_string;
-	break;
-
-    case "__DOCC":
-	this_doc_string = call_other(ob, "__DOCC");
-	path_info = split_path(file);
-	if(!command_docs[path_info[1]])
-	{
-	    command_docs[path_info[1]] = ([]);
-	}
-	command_docs[path_info[1]][path_info[0]] = this_doc_string;
-	break;
-    }
+void scan_mudlib() {
+    printf("Starting scan ...\n");
+    files_to_do = ({ });
+    dirs_to_do = ({ "/" });
+    continue_scan();
 }
 
+//:FUNCTION complete_rebuild
+//
+// Rebuild all the data, regardless of modification time
+void complete_rebuild() {
+    last_time = 0;
+    scan_mudlib();
+}
 
-DOC(update_docs_of, "updates the doc strings for a given object.")
+// Everything below here is
+private:
+// ---------------------------------------------------------------------
 
-void update_docs_of(object loaded_obj)
-{
-    string   	file;
-
-
-    /* the object may have disappeared between create() and now */
-    if ( !loaded_obj )
-        return;
-    if ( catch(file = file_name(loaded_obj)) )
-        return;
-  
-    map_array(regexp(functions(loaded_obj), "^__DOC."),
-	      (: process_func, loaded_obj, file :));
-
+void save_me() {
     unguarded(1, (: save_object, SAVE_FILE :));
 }
 
-
-void snarf_one_file(string name, string dir)
-{
-    string file, cmd;
-    string *lines;
-    int i;
-    if(sscanf(name,"%s.3",cmd) != 1)
-	return;
-    file = dir + "/" + name;
-    lines = explode(read_file(file),"\n");
-    for(i=0;i<sizeof(lines);i++)
-    {
-	if(search(lines[i],".SH NAME") > -1)
-	{
-	    string s = lines[++i];
-	    s = s[strsrch(s,"-")+1..<1];
-	    if(!function_docs[cmd])
-		function_docs[cmd] = (["efun" : s]);
-	    else
-		function_docs[cmd]["efun"] = s;
-	}
-    }
+string mod_name(string foo) {
+    sscanf(foo, "%s.c", foo);
+    return foo[strsrch(foo, "/", -1) + 1..];
 }
-	    
+
+void process_file(string fname) {
+    array lines = regexp(explode(read_file(fname), "\n"), "^//", 1);
+    string line;
+    string outfile = 0;
+    int last_line = -20;
+    int idx = 0;
+
+    rm("/help/autodoc/FIXME/" + mod_name(fname));
     
-void
-snarf_driver_docs(string dirname, string* files, mixed blah)
-{
-    if(pointerp(files))
-        map_array(files, (:snarf_one_file:), dirname);
+    while (idx < sizeof(lines)) {
+        if (lines[idx][2..4] == "###") {
+            write_file("/help/autodoc/FIXME/" + mod_name(fname), lines[idx][5..]);
+        }
+	if (last_line != lines[idx+1] - 1 && sizeof(lines[idx]) > 2 &&
+            lines[idx][2] == ':') {
+	    line = lines[idx][3..];
+	    if (line == "MODULE") {
+		outfile = "/help/autodoc/modules/" + mod_name(fname);
+                rm(outfile);
+	    } else
+	    if (line == "COMMAND") {
+		outfile = "/help/autodoc/command/" + mod_name(fname);
+                rm(outfile);
+	    } else
+            if (sscanf(line, "HOOK %s", line) == 1) {
+                outfile = "/help/autodoc/hook/" + line;
+                rm(outfile);
+                write_file(outfile, "Called by: " + fname + "\n\n");
+            } else
+	    if (sscanf(line, "FUNCTION %s", line) == 1) {
+                mkdir("/help/autodoc/functions/" + mod_name(fname));
+		outfile = "/help/autodoc/functions/" + mod_name(fname) + "/" + line;
+                rm(outfile);
+                write_file(outfile, "Found in: " + fname + "\n\n");
+	    } else {
+		outfile = 0;
+		write_file("/log/AUTODOC", "Bad header tag: " + line + "\n");
+	    }
+            printf("Writing to: %O\n", outfile);
+	} else {
+	    if (last_line == lines[idx+1] - 1) {
+		if (outfile) write_file(outfile, lines[idx][2..]);
+	    } else
+		outfile = 0;
+	}
+	last_line = lines[idx+1];
+	idx += 2;
+    }
+}
+
+void continue_scan() {
+    array files;
+    array item;
+
+  for (int i = 0; i < 10; i++) {
+    if (sizeof(dirs_to_do)) {
+        printf("Scanning %s ...\n", dirs_to_do[0]);
+        files = get_dir(dirs_to_do[0], -1);
+        foreach (item in files) {
+            if (item[1] == -2) {
+                dirs_to_do += ({ dirs_to_do[0] + item[0] + "/" });
+            } else
+	    if (item[2] > last_time && item[0][<2..<1] == ".c") {
+		files_to_do += ({ dirs_to_do[0] + item[0] });
+	    }
+	}
+	dirs_to_do[0..0] = ({ });
+    } else
+    if (sizeof(files_to_do)) {
+        printf("Updating docs for %s ...\n", files_to_do[0]);
+	process_file(files_to_do[0]);
+	files_to_do[0..0] = ({ });
+    } else {
+        printf("Done.\n");
+	last_time = time();
+	save_me();
+	return;
+    }
+  }	    
+  call_out( (: continue_scan :), 0);
 }
 
 void
-update_driver_doc_entries()
-{
-    walk_dir(PATH_TO_DRIVER_DOCS, (:snarf_driver_docs:), 0);
-    unguarded(1, (: save_object, SAVE_FILE :));
+do_sweep() {
+    scan_mudlib();
+    call_out( (: do_sweep :), 86400);
 }
-
 
 void
 create()
 {
-  if(clonep(this_object()))
+    if(clonep()) {
 	destruct(this_object());
-  set_privilege(1);
-  restore_object(SAVE_FILE);
-}
-
-
-
-DOC(get_module_doc, "returns the doc strings for all modules "
-		   "whoose name matches the passed argument.")
-
-mapping
-get_module_doc(string name)
-{
-    return copy(module_docs[name]);
-}
-
-
-DOC(get_command_doc, "returns the doc strings for all commands whose name "
-		    "matches the passed argument.")
-
-mapping 
-get_command_doc(string command)
-{
-    return copy(command_docs[command]);
-}
-
-
-DOC(get_function_doc, "returns the doc strings for all functions whose name "
-		    "matches the passed argument.")
-
-mapping
-get_function_doc(string func)
-{
-    return copy(function_docs[func]);
-}
-
-
-DOC(function_apropos, "returns a data structure with all functions that have "
-    "anything to do with the string you give it.")
-
-mapping
-function_apropos(string s)
-{
-    mixed funclist, objlist;
- 
-}
-
-
-// of data.
-private
-void
-get_apropos_for_func(string funcname, string pat, mapping retval)
-{
-    mapping l = function_docs[funcname];
-
-    if(sizeof(regexp(({funcname}),pat)))
-    {
-	retval[funcname] = l;
 	return;
-    }
-    
-    map_array(keys(l),
-		 function(string k, mapping m, string p, mapping r, string f)
-		 {
-		     if(sizeof(regexp(({m[k]}),p)))
-		     {
-			 if(!r[f])
-			     r[f] = ([ k : m[k] ]);
-			 else
-                             r[f][k] = m[k];
-		     }
-		 }, l, pat, retval, funcname);
+    }	    
+    set_privilege(1);
+    restore_object(SAVE_FILE);
+    if ( !last_time )
+	do_sweep();
+    else
+	call_out( (: do_sweep :), 86400);
 }
-
-
-mapping
-apropos_function(string pattern)
-{
-    mapping ret = ([]);
-    map_array(keys(function_docs), (: get_apropos_for_func :), pattern, ret);
-    return ret;
-}   
-		  
-		  
-
-    
-
-    

@@ -24,8 +24,8 @@ LIVING, WEAPON, ZORKER, DEV already.
 Four routines make up the simple version of the message interface:
 
 simple_action(message [, object [,object] ] )
-   for simple actions only involving the doer and optionally one
-   or two normal objects (or strings, see below)
+   for simple actions only involving the doer and optionally some
+   objects (or strings, see below)
 
 other_action(message, [, object [, object] ] )
    same as simple_action, but only sends messages to the room
@@ -35,7 +35,7 @@ my_action(message, ...)
 
 targetted_action(message, target [, object [, object] ] )
    for simple actions involving the doer, a target, and possibly
-   one or two objects
+   some objects or strings
 
 The appropriate routine should be called in the object that is
 actually _doing_ the action.
@@ -55,13 +55,29 @@ $N - A name.  Defaults to the name of the doer.
        if given a number, corresponds to that index into the who
        list (only usable with more complex messages, see below)
        starting with zero.  For example, $N3 is the name of the
-       4th person in the who list.
+       4th person in the who list.  The following flags can be added:
+	p - disable pronouns ('proper name')
+	s - subjective
+	o - objective
+       so $n1p is the proper name of the second person in the who list	
 
 $T - The name of the target.
        $T is actually the same as $N1o. i.e. the first person after
        the doer in the who list.
        Notice that it's objective by default; if you want to use
        the target as the subject, use $N1 or $Ts.
+       $T allows the same flags as $N; in fact it is identical to $N
+       except for that it uses objective by default, and defaults to
+       person #1, not #0.  Two args can also be given, in that case
+       the first is taken as the subject of the sentence (needed for
+       proper handling of reflexification when someone is both the doer
+       and the target in a complex sentence).  The subject defaults to
+       $n0, which is usually right.  Any example of a case when it isn't:
+     
+	$n1 $v1kick $t11 and not $n1 $v1kick $t.
+
+       The second gives "Beek kicks him" instead of "himself" when $n0 is
+       someone else.
 
 $V - A verb
        The message module must know what is a verb so it can conjugate
@@ -74,9 +90,9 @@ $V - A verb
        before the verb, indicating who is the subject (defaults to
        zero; the doer is the subject of the sentence).  This is
        usefull for more complex messages:
-           "$N $vpuke on $t.  $T $v1are covered with slime!"
-       A couple things to note: $T == $N1, so $V1 is the correct way
-       to make $T the subject of the sentence.  Also, "is" is given
+           "$N $vpuke on $t.  $N1 $v1are covered with slime!"
+       A couple things to note: $V1 is the correct way
+       to make $N1 the subject of the sentence.  Also, "is" is given
        in the 2nd person form ("are").  This means you have to
        switch your perspective when switching subjects. The first
        half of the sentence is written from the perspective of the
@@ -87,7 +103,7 @@ $P - a possessive
        either a named possessive ("Beek's") or a pronoun ("his")
        depending on the context.
 
-$R - Reflexive:  I.e. 'yourself', 'himself', 'itself'.  Take a numbe
+$R - Reflexive:  I.e. 'yourself', 'himself', 'itself'.  Take a number
        to indicate which person it refers to.
 
 $O - Takes an (optional) number to indicate which of the two optional

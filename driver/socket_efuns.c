@@ -226,12 +226,12 @@ socket_create P3(enum socket_mode, mode, svalue_t *, read_callback, svalue_t *, 
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval,
 		       sizeof(optval)) == -1) {
 	    debug_perror("socket_create: setsockopt", 0);
-	    close(fd);
+	    OS_socket_close(fd);
 	    return EESETSOCKOPT;
 	}
 	if (set_socket_nonblocking(fd, 1) == -1) {
 	    debug_perror("socket_create: set_socket_nonblocking", 0);
-	    close(fd);
+	    OS_socket_close(fd);
 	    return EENONBLOCK;
 	}
 	lpc_socks[i].fd = fd;
@@ -292,8 +292,13 @@ socket_bind P2(int, fd, int, port)
 
     if (bind(lpc_socks[fd].fd, (struct sockaddr *) & sin, sizeof(sin)) == -1) {
 	switch (errno) {
+#ifdef WINSOCK
+	case WSAEADDRINUSE:
+	    return EEADDRINUSE;
+#else
 	case EADDRINUSE:
 	    return EEADDRINUSE;
+#endif
 	default:
 	    debug_perror("socket_bind: bind", 0);
 	    return EEBIND;
@@ -441,7 +446,7 @@ socket_accept P3(int, fd, svalue_t *, read_callback, svalue_t *, write_callback)
 	debug(8192, ("socket_accept: accept on socket %d\n", fd));
 	debug(8192, ("socket_accept: new socket %d on fd %d\n", i, accept_fd));
     } else
-	close(accept_fd);
+	OS_socket_close(accept_fd);
 
     return i;
 }
@@ -484,6 +489,16 @@ socket_connect P4(int, fd, char *, name, svalue_t *, read_callback, svalue_t *, 
 	switch (errno) {
 	case EINTR:
 	    return EEINTR;
+#ifdef WINSOCK
+	case WSAEADDRINUSE:
+	    return EEADDRINUSE;
+	case WSAEALREADY:
+	    return EEALREADY;
+	case WSAECONNREFUSED:
+	    return EECONNREFUSED;
+	case WSAEINPROGRESS:
+	    break;
+#else
 	case EADDRINUSE:
 	    return EEADDRINUSE;
 	case EALREADY:
@@ -492,6 +507,7 @@ socket_connect P4(int, fd, char *, name, svalue_t *, read_callback, svalue_t *, 
 	    return EECONNREFUSED;
 	case EINPROGRESS:
 	    break;
+#endif
 	default:
 	    debug_perror("socket_connect: connect", 0);
 	    return EECONNECT;
@@ -638,13 +654,17 @@ socket_write P3(int, fd, svalue_t *, message, char *, name)
 	return EEMODENOTSUPP;
     }
 
-    off = write(lpc_socks[fd].fd, buf, len);
+    off = OS_socket_write(lpc_socks[fd].fd, buf, len);
     if (off == -1) {
 	FREE(buf);
 	switch (errno) {
-
+#ifdef WINSOCK
+	case WSAEWOULDBLOCK:
+	    return EEWOULDBLOCK;
+#else
 	case EWOULDBLOCK:
 	    return EEWOULDBLOCK;
+#endif
 
 	default:
 	    debug_perror("socket_write: send", 0);
@@ -802,7 +822,7 @@ socket_read_select_handler P1(int, fd)
 	    value = const0;
 	    push_number(fd);
 	    if (restore_svalue(lpc_socks[fd].r_buf, &value) == 0)
-		push_svalue(&value);
+		*(++sp) = value;
 	    else
 		push_null();
 	    FREE(lpc_socks[fd].r_buf);
@@ -816,7 +836,7 @@ socket_read_select_handler P1(int, fd)
 
 	case STREAM:
 	    debug(8192, ("read_socket_handler: DATA_XFER STREAM\n"));
-	    cc = read(lpc_socks[fd].fd, buf, sizeof(buf) - 1);
+	    cc = OS_socket_read(lpc_socks[fd].fd, buf, sizeof(buf) - 1);
 	    if (cc <= 0)
 		break;
 	    debug(8192, ("read_socket_handler: read %d bytes\n", cc));
@@ -850,7 +870,11 @@ socket_read_select_handler P1(int, fd)
     }
     if (cc == -1) {
 	switch (errno) {
+#ifdef WINSOCK
+	case WSAECONNREFUSED:
+#else
 	case ECONNREFUSED:
+#endif
 	    /* Evidentally, on Linux 1.2.1, ECONNREFUSED gets returned
 	     * if an ICMP_PORT_UNREACHED error happens internally.  Why
 	     * they use this error message, I have no idea, but this seems
@@ -861,7 +885,11 @@ socket_read_select_handler P1(int, fd)
 		return;
 	    break;
 	case EINTR:
+#ifdef WINSOCK
+	case WSAEWOULDBLOCK:
+#else
 	case EWOULDBLOCK:
+#endif
 	    return;
 	default:
 	    break;
@@ -885,8 +913,9 @@ socket_write_select_handler P1(int, fd)
 	return;
 
     if (lpc_socks[fd].w_buf != NULL) {
-	cc = write(lpc_socks[fd].fd, lpc_socks[fd].w_buf + lpc_socks[fd].w_off,
-		   lpc_socks[fd].w_len);
+	cc = OS_socket_write(lpc_socks[fd].fd, 
+			     lpc_socks[fd].w_buf + lpc_socks[fd].w_off,
+			     lpc_socks[fd].w_len);
 	if (cc == -1)
 	    return;
 	lpc_socks[fd].w_off += cc;
@@ -918,7 +947,7 @@ socket_close P2(int, fd, int, flags)
 	return EEBADF;
     if (!(flags & SC_FORCE) && lpc_socks[fd].owner_ob != current_object)
 	return EESECURITY;
-    while (close(lpc_socks[fd].fd) == -1 && errno == EINTR)
+    while (OS_socket_close(lpc_socks[fd].fd) == -1 && errno == EINTR)
 	;	/* empty while */
     lpc_socks[fd].state = CLOSED;
     if (lpc_socks[fd].r_buf != NULL)

@@ -18,13 +18,19 @@
 #  define NDBG(x)
 #endif
 
+#if defined(DEBUGMALLOC_EXTENSIONS) && defined(STRING_STATS)
+#define CHECK_STRING_STATS /* check_string_stats(0) */
+#else
+#define CHECK_STRING_STATS
+#endif
+
 #ifdef STRING_STATS
 #define ADD_NEW_STRING(len, overhead) num_distinct_strings++; bytes_distinct_strings += len + 1; overhead_bytes += overhead
 #define SUB_NEW_STRING(len, overhead) num_distinct_strings--; bytes_distinct_strings -= len + 1; overhead_bytes -= overhead
 
-#define ADD_STRING(len) allocd_strings++; allocd_bytes += len + 1
-#define ADD_STRING_SIZE(len) allocd_bytes += len
-#define SUB_STRING(len) allocd_strings--; allocd_bytes -= len + 1
+#define ADD_STRING(len) allocd_strings++; allocd_bytes += len + 1; CHECK_STRING_STATS
+#define ADD_STRING_SIZE(len) allocd_bytes += len; bytes_distinct_strings += len
+#define SUB_STRING(len) allocd_strings--; allocd_bytes -= len + 1; CHECK_STRING_STATS
 #else
 /* Blazing fast macros :) */
 #define ADD_NEW_STRING(x, y)

@@ -42,7 +42,7 @@ create() {
 }
 
 int
-add_emote(string verb, mixed rule, string mess, string mess2)
+add_emote(string verb, mixed rule, string array parts)
 {
     // try this first b/c it will error if rule is illegal
     parse_add_rule(verb, rule, this_object());
@@ -50,10 +50,10 @@ add_emote(string verb, mixed rule, string mess, string mess2)
     if (!emotes[verb])
 	emotes[verb] = ([]);
 
-    if (mess2)
-	emotes[verb][rule] = ({ mess, mess2 });
+    if (sizeof(parts) > 1)
+	emotes[verb][rule] = parts;
     else
-	emotes[verb][rule] = mess;
+	emotes[verb][rule] = parts[0];
 
     unguarded(1, (: save_object, SAVE_FILE :));
 
@@ -82,14 +82,14 @@ query_emote(string em) {
 private string get_completion(string);
 
 mixed * internal_get_soul(string verb, string rule,
-			  mixed ob1, mixed ob2, mixed ob3,
+			  mixed *args,
 			  int add_imud_msg)
 {
     mapping rules;
     mixed soul;
     string soul_alt;
-    int i;
-    object target;
+    int i, idx, num;
+    object *targets;
     object *who;
     string token;
     mixed * result;
@@ -99,55 +99,62 @@ mixed * internal_get_soul(string verb, string rule,
     soul = rules[rule];
     if (!soul) return 0;
 
-    // Only expand the first instance, otherwise we can get confused
-    // by the reference names
-    if (stringp(ob1) && ob1[<1] == '*') {
-	ob1 = get_completion(ob1[0..<2]);
-	if (!ob1) return 0;
-    } else if (stringp(ob2) && ob2[<1] == '*') {
-	ob2 = get_completion(ob2[0..<2]);
-	if (!ob2) return 0;
-    } else if (stringp(ob3) && ob3[<1] == '*') {
-	ob3 = get_completion(ob3[0..<2]);
-	if (!ob3) return 0;
+    // minus the verb's real name; we don't want to process the real names
+    // of any of the objects
+    num = (sizeof(args) - 1)/2;
+    
+    for (i = 0; i < num; i++) {
+	if (stringp(args[i]) && strlen(args[i]) && args[i][<1] == '*') {
+	    args[i] = get_completion(args[i][0..<2]);
+	    if (!args[i])
+		return 0;
+	    break;
+	}
     }
+
     if (soul[0] == '=') soul = rules[soul[1..]];
     if (stringp(soul)) {
 	if (soul[<1] != '\n') soul += "\n";
 	soul_alt = soul;
     } else {
-	if (soul[0][<1] != '\n') soul[0] += "\n";
-	if (soul[1][<1] != '\n') soul[1] += "\n";
+	soul = map_array(soul, (: $1[<1] == '\n' ? $1 : $1 + "\n" :));
 	soul_alt = soul[0];
     }
     if (strsrch(rule, "LIV") == -1) {
 	who = ({ this_body() });
 	result = ({ who, ({
 	    compose_message(this_body(), stringp(soul) ? soul : soul[0], who,
-			    ob1, ob2),
-	    compose_message(0, stringp(soul) ? soul : soul[1], who, ob1, ob2)
+			    args...),
+	    compose_message(0, stringp(soul) ? soul : soul[1], who, args...)
 	}) });
     } else {
 	i = 0;
+	targets = ({ });
 	foreach (token in explode(rule, " ")) {
+	    if (token == "LIV") {
+		targets += ({ args[i] });
+		args[i..i] = ({});
+	    } else
 	    if (token[0] >= 'A' && token[0] <= 'Z')
 		i++;
-	    if (token == "LIV") break;
 	}
-	switch (i) {
-	case 1: target = ob1; ob1 = ob2; ob2 = ob3; break;
-	case 2: target = ob2; ob2 = ob3; break;
-	case 3: target = ob3; break;
+
+	who = ({ this_body() }) + targets;
+	result = ({ who, allocate(sizeof(who) + 1) });
+	for (i = 0; i < sizeof(who); i++) {
+	    string tmp;
+	    if (stringp(soul))
+		tmp = soul;
+	    else {
+		if (i && i + 1 < sizeof(soul))
+		    tmp = soul[i + 1];
+		else
+		    tmp = soul[0];
+	    }
+	    result[1][i] = compose_message(who[i], tmp, who, args...);
 	}
-	who = ({ this_body(), target });
-	result = ({ who, ({
-	    compose_message(this_body(), stringp(soul) ? soul : soul[0], who,
-			    ob1, ob2),
-	    compose_message(target, stringp(soul) ? soul : soul[1], who,
-			    ob1, ob2),
-	    compose_message(0, stringp(soul) ? soul : soul[0], who,
-			    ob1, ob2)
-	}) });
+	result[1][<1] = compose_message(0, stringp(soul) ? soul : soul[1],
+					who, args...);
     }
 
     if ( add_imud_msg )
@@ -156,7 +163,7 @@ mixed * internal_get_soul(string verb, string rule,
 
 	soul_alt = replace_string(soul_alt, "$N", chr(255));
 	soul_alt = replace_string(soul_alt, "$n", chr(255));
-	msg = compose_message(0, soul_alt, who, ob1, ob2);
+	msg = compose_message(0, soul_alt, who, args...);
 	msg = replace_string(msg, chr(255), "$N");
 	result[1] += ({ msg });
     }
@@ -165,15 +172,15 @@ mixed * internal_get_soul(string verb, string rule,
 }
 
 varargs mixed *
-get_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3)
+get_soul(string verb, string rule, mixed *args)
 {
-    return internal_get_soul(verb, rule, ob1, ob2, ob3, 0);
+    return internal_get_soul(verb, rule, args, 0);
 }
 
 varargs mixed *
-get_imud_soul(string verb, string rule, mixed ob1, mixed ob2, mixed ob3)
+get_imud_soul(string verb, string rule, mixed args...)
 {
-    return internal_get_soul(verb, rule, ob1, ob2, ob3, 1);
+    return internal_get_soul(verb, rule, args, 1);
 }
 
 		    
@@ -239,6 +246,10 @@ private string get_completion(string s)
 ** so that we don't have to support a gazillion can/do type actions.
 */
 int livings_are_remote() { return 1; }
+
+mixed can_verb_wrd(string verb, string wrd) {
+    return member_array(wrd, adverbs) != -1 || member_array('*', wrd) != -1;
+}
     
 mixed can_verb_rule(string verb, string rule)
 {
@@ -253,11 +264,11 @@ mixed indirect_verb_rule(string verb, string rule) {
     return !undefinedp(emotes[verb][rule]);
 }
 
-void do_verb_rule(string verb, string rule, mixed arg1, mixed arg2, mixed arg3)
+void do_verb_rule(string verb, string rule, mixed args...)
 {
     mixed soul;
-
-    soul = get_soul(verb, rule, arg1, arg2, arg3);
+    
+    soul = get_soul(verb, rule, args);
     if (!soul) return;
     if ( sizeof(soul[0]) == 2 &&
 	environment(soul[0][1]) != environment(this_body()) )
@@ -280,7 +291,7 @@ mixed *parse_soul(string str) {
 
     result = parse_my_rules(this_body(), str, 0);
     if (!result) return 0;
-    soul = get_soul(result...);
+    soul = get_soul(result[0], result[1], result[2..]);
     if (!soul) return 0;
     return soul;
 }

@@ -53,7 +53,7 @@ mem_block_t mem_block[NUMAREAS];
 
 function_context_t function_context;
 
-int exact_types;
+int exact_types, global_modifiers;
 
 int current_type;
 
@@ -701,8 +701,15 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
 		yyerror("Called function not compiled with type testing.");
 	    else {
 		/* Now check that argument types wasn't changed. */
+		if ((type & TYPE_MOD_MASK) != (funp->type & TYPE_MOD_MASK)) {
+		    char buff[200];
+		    sprintf(buff, "Return type doesn't match prototype %s",
+			    get_two_types(type, funp->type));
+		    yywarn(buff);
+		}
+		
 		for (i = 0; i < num_arg; i++) {
-		    ;		/* FIXME? */
+		    /* FIXME: check arg types here */
 		}
 	    }
 	}
@@ -1100,6 +1107,67 @@ parse_node_t *do_promotions P2(parse_node_t *, node, int, type) {
     return node;
 }
 
+/* Take a NODE_CALL, and discard the call, preserving only the args with
+   side effects */
+parse_node_t *
+throw_away_call P1(parse_node_t *, pn) {
+    parse_node_t *enode;
+    parse_node_t *ret = 0;
+    parse_node_t *arg;
+    
+    enode = pn->r.expr;
+    while (enode) {
+	arg = insert_pop_value(enode->v.expr);
+	if (arg) {
+	    /* woops.  Don't lose the side effect. */
+	    if (ret) {
+		parse_node_t *tmp;
+		CREATE_STATEMENTS(tmp, ret, arg);
+		ret = tmp;
+	    } else {
+		ret = arg;
+	    }
+	}
+	enode = enode->r.expr;
+    }
+    return ret;
+}
+
+parse_node_t *
+throw_away_mapping P1(parse_node_t *, pn) {
+    parse_node_t *enode;
+    parse_node_t *ret = 0;
+    parse_node_t *arg;
+    
+    enode = pn->r.expr;
+    while (enode) {
+	arg = insert_pop_value(enode->v.expr->l.expr);
+	if (arg) {
+	    /* woops.  Don't lose the side effect. */
+	    if (ret) {
+		parse_node_t *tmp;
+		CREATE_STATEMENTS(tmp, ret, arg);
+		ret = tmp;
+	    } else {
+		ret = arg;
+	    }
+	}
+	arg = insert_pop_value(enode->v.expr->r.expr);
+	if (arg) {
+	    /* woops.  Don't lose the side effect. */
+	    if (ret) {
+		parse_node_t *tmp;
+		CREATE_STATEMENTS(tmp, ret, arg);
+		ret = tmp;
+	    } else {
+		ret = arg;
+	    }
+	}
+	enode = enode->r.expr;
+    }
+    return ret;
+}
+
 parse_node_t *
 validate_efun_call P2(int, f, parse_node_t *, args) {
     int num = args->v.number;
@@ -1116,11 +1184,18 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 	/* should this move out of here? */
 	switch (predefs[f].token) {
 	case F_SIZEOF:
+	    /* Obscene crap like: sizeof( ({ 1, i++, x + 1, foo() }) )
+	     *                    -> i++, foo(), 4
+	     */
 	    if (!pn && num == 1 && 
 		IS_NODE(args->r.expr->v.expr, NODE_CALL, F_AGGREGATE)) {
-		num = args->r.expr->v.expr->l.number;
-		CREATE_NUMBER(args, num);
-		return args;
+		parse_node_t *repl, *ret, *node;
+
+		CREATE_NUMBER(node, args->r.expr->v.expr->l.number);
+		ret = throw_away_call(args->r.expr->v.expr);
+		CREATE_TWO_VALUES(repl, TYPE_NUMBER, ret, node);
+		
+		return repl;
 	    }
 	}
 
@@ -1487,6 +1562,7 @@ static void prolog P2(int, f, char *, name) {
     function_context.num_parameters = -1;
     prog = 0;   /* 0 means fail to load. */
     num_parse_error = 0;
+    global_modifiers = 0;
 #ifdef OPTIMIZE_FUNCTION_TABLE_SEARCH
     a_functions_root = (unsigned short)0xffff;
 #endif
@@ -1571,12 +1647,20 @@ int case_compare P2(parse_node_t **, c1, parse_node_t **, c2) {
 }
 
 int string_case_compare P2(parse_node_t **, c1, parse_node_t **, c2) {
+    int i1, i2;
+    char *p1, *p2;
+    
     if ((*c1)->kind == NODE_DEFAULT)
 	return -1;
     if ((*c2)->kind == NODE_DEFAULT)
 	return 1;
 
-    return (PROG_STRING((*c1)->r.number) - PROG_STRING((*c2)->r.number));
+    i1 = (*c1)->r.number;
+    i2 = (*c2)->r.number;
+    p1 = (i1 ? PROG_STRING(i1) : 0);
+    p2 = (i2 ? PROG_STRING(i2) : 0);
+    
+    return (p1 - p2);
 }
 
 void prepare_cases P2(parse_node_t *, pn, int, start) {

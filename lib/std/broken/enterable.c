@@ -7,29 +7,34 @@ inherit ROOM;
 string internal_long, internal_short;
 
 
+void
 set_internal_long( string s )
 {
     internal_long = s;
 }
 
 public
+string
 query_internal_long()
 {
     return internal_long;
 }
 
+void
 set_internal_short( string s )
 {
     internal_short = s;
 }
 
 public
+string
 query_internal_short()
 {
     return internal_short;
 }
 
 public
+string
 short()
 {
     if( environment( this_body() ) == this_object() )
@@ -39,6 +44,7 @@ short()
 }
 
 public
+string
 long()
 {
     if( environment( this_body() ) == this_object() )

@@ -66,9 +66,3 @@ create() {
     } );
     add_sub_pattern("simple_pred", 0, 1);
 }
-
-void remove()
-{
-    actions::remove();
-    living::remove();
-}

@@ -18,7 +18,8 @@ private static mapping module_func_names = ([]);
 static void call_user_func(string, mixed);
 
 
-DOC(setup_for_save,"Sets up M_SAVE to save some variables")
+//:FUNCTION setup_for_save
+//Sets up M_SAVE to save some variables
 void setup_for_save()
 {
     /*

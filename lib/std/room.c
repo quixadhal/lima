@@ -15,6 +15,7 @@
 // Rust 4-20-94  Beek-ized items mapping.
 // Beek & Rust have both done a bit of work on this since....
 // August 24 - Beek added light
+// Sept. 5 - Yaynu added weather settings
 
 #include <mudlib.h>
 #include <playerflags.h>
@@ -41,6 +42,8 @@ mapping enter_msg = ([ ]);
 int total_light;
 string map_type;
 
+//:FUNCTION query_lit
+//Return the amount of light visible in this room
 int query_lit() { return total_light + query_light(); }
 
 /* Never, EVER, under pain of death, call this function.  For
@@ -57,10 +60,14 @@ int stat_me() {
     return 1;
 }
 
+//:FUNCTION set_brief
+//Set the name of the room seen at the top of the description and in brief mode
 void set_brief(string str) {
     set_proper_name(str);
 }
 
+//:FUNCTION can_hold_water
+//Return 1 if the object can hold water
 /* by default, rooms can hold water */
 int can_hold_water()
 {
@@ -80,19 +87,28 @@ void create(){
     add_id("room");
 }
 
+//:FUNCTION get_exits
+//Return the exits mapping
 mapping get_exits()
 {
     return exits;
 }
 
+//:FUNCTION set_default_exit
+//Set the default exit message (the message given when someone goes a direction
+//with no exit)
 void set_default_exit(mixed value) {
     def_exit = value;
 }
 
+//:FUNCTION is_default_exit
+//I forget how the hell this works
 int is_default_exit(string str, int flag) {
     return flag && def_exit;
 }
 
+//:FUNCTION get_exit
+//Get the destination of a specified exit
 string get_exit(string dir) {
     mixed tmp;
     int i;
@@ -106,6 +122,8 @@ string get_exit(string dir) {
     return 0;
 }
 
+//:FUNCTION show_exits
+//Return a string giving the names of exits for the obvious exits line
 string show_exits()
 {
     string exit_str;
@@ -115,6 +133,8 @@ string show_exits()
     return exit_str;
 }
 
+//:FUNCTION do_looking
+//print out the description of the current room
 void do_looking()
 {
     if ( wizardp(this_user()) &&
@@ -142,6 +162,8 @@ void do_looking()
     }
 }
 
+//:FUNCTION show_objects
+//Return a string describing the objects in the room
 string show_objects()
 {
     object *obs;
@@ -187,9 +209,12 @@ string print_map()
     return map_type;
 }
 
+//### either remove support for this or have a better interface than global
+//### vars
 string query_enter_msg(string arg){
     return enter_msg[arg]; 
 }
+
 nomask string long()
 {
     return sprintf("%s%s%s",
@@ -198,8 +223,7 @@ nomask string long()
 		   show_objects());
 }
 
-
-int move_player(string dest, string arg){
+int move_player(string dest, string arg) {
     object env;
     int r;
     string txt;
@@ -282,13 +306,7 @@ int go_somewhere(string arg) {
     return ret;
 }
 
-void remove()
-{
-    destruct(this_object());
-}
-
-
-void add_exits(mapping new_exits){
+void add_exits(mapping new_exits) {
     if (!mapp(new_exits)) return;
     exits += new_exits;
 }
@@ -298,14 +316,18 @@ void delete_exits(mapping old){
     exits -= old;
 }
 
+//:FUNCTION set_exits
+//Sets the exit mapping of a room.  The keys should be exit names, the values
+//should be either filenames or more complex structures described in the
+//exits doc
 void set_exits( mapping new_exits )
 {
     if(mapp(new_exits)) exits = new_exits;
 }
 
-
 string query_name(){ return "the ground"; }
 
+//### I think this should be torched :-)
 string
 remote_look( object o )
 {

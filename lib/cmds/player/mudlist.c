@@ -44,6 +44,12 @@ private void main(mixed *arg, mapping flags)
     mixed *	info;
     string	format;
 
+    if ( !arg || stringp(arg) )
+    {
+	arg = ({ 0 });
+	flags = ([ ]);
+    }
+
     if ( !arg[0] )
 	matches = muds;
     else

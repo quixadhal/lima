@@ -239,7 +239,7 @@ private nomask void next_group()
     }
 }
 
-private nomask string format_message_line(int id)
+private nomask string format_message_line(int short_fmt, int id)
 {
     class news_msg msg;
     string subject;
@@ -250,7 +250,8 @@ private nomask string format_message_line(int id)
     if ( !msg->body )
 	subject = subject[0..24] + " (removed)";
 
-    return sprintf("%4d. %-35s [%-10s on %s]",
+    return sprintf(short_fmt ? "%d. %s  [%s on %s]" :
+			   "%4d. %-35s [%-10s on %s]",
 		   id,
 		   subject[0..34],
 		   msg->poster,
@@ -272,7 +273,7 @@ private nomask void display_messages(int display_all)
 	ids = filter_array(ids, (: $1 > $(read_thru_id) :) );
     }
 
-    lines = map_array(sort_array(ids, 1), (: format_message_line :));
+    lines = map_array(sort_array(ids, 1), (: format_message_line, 0 :));
     lines = ({sprintf("Messages on %s are:", current_group)}) + lines + ({""});
     clone_object(MORE_OB)->more_string(lines);
 }
@@ -303,7 +304,7 @@ nomask void receive_post_text(mixed ctx, string * text)
     }
     
     id = NEWS_D->post(current_group, ctx, implode(text, "\n") + "\n");
-    write("Posted:  " + format_message_line(id) + "\n");
+    write("Posted:  " + format_message_line(1, id) + "\n");
 }
 
 private nomask void post_message()
@@ -544,7 +545,7 @@ nomask void receive_followup_text(mixed ctx, string * text)
     id = NEWS_D->followup(current_group,
 			  get_current_id(),
 			  implode(text, "\n") + "\n");
-    write("Posted:  " + format_message_line(id) + "\n");
+    write("Posted:  " + format_message_line(1, id) + "\n");
 }
 
 private nomask void receive_remove_verify(string str)
@@ -575,7 +576,7 @@ private nomask void remove_message()
     }
 
     printf("Removing: %s\nAre you sure? [yn] > ",
-	   format_message_line(get_current_id()));
+	   format_message_line(1, get_current_id()));
     modal_simple((: receive_remove_verify :));
 }
 

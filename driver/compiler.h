@@ -124,7 +124,7 @@ extern function_context_t function_context;
 int validate_function_call PROT((function_t *, int, parse_node_t *));
 parse_node_t *validate_efun_call PROT((int, parse_node_t *));
 extern mem_block_t mem_block[];
-extern int exact_types;
+extern int exact_types, global_modifiers;
 extern int current_type;
 extern int current_block;
 extern char *prog_code;
@@ -195,6 +195,8 @@ void pop_func_block PROT((void));
 parse_node_t *promote_to_float PROT((parse_node_t *));
 parse_node_t *promote_to_int PROT((parse_node_t *));
 parse_node_t *do_promotions PROT((parse_node_t *, int));
+parse_node_t *throw_away_call PROT((parse_node_t *));
+parse_node_t *throw_away_mapping PROT((parse_node_t *));
 
 #ifndef SUPPRESS_COMPILER_INLINES
 /* inlines - if we're lucky, they'll get honored. */

@@ -19,14 +19,16 @@ inherit "/std/object/non_object";
 inherit "/std/object/visible";
 inherit "/std/object/flags";
 inherit "/std/object/vsupport";
+inherit "/std/object/hooks";
 
-
-
+//:FUNCTION stat_me
+//write() some debugging info about the state of the object
 int stat_me() {
     write("Short: "+short()+"\n");
     write("Weight: "+query_mass()+" IDs: "+implode((mixed)parse_command_id_list(),", ")+"\n");
     write("Plurals: "+implode((mixed)parse_command_plural_id_list(),", ")+"\n");
     write("Adjectives: "+implode((mixed)parse_command_adjectiv_id_list(),", ")+"\n");
+    write("Light: " + query_light() + "\n");
     write("Long: \n"+long());
     return 1;
 }

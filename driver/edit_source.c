@@ -1,3 +1,5 @@
+#define CONFIGURE_VERSION	1
+
 #define EDIT_SOURCE
 #define NO_MALLOC
 #define NO_SOCKETS
@@ -1081,17 +1083,19 @@ static int check_include2 P4(char *, tag, char *, file,
 
     printf("Checking for include file <%s> ... ", file);
     ct = fopen("comptest.c", "w");
-    fprintf(ct, "#include <sys/types.h>\n%s\n#include <%s>\n%s\n", 
+    fprintf(ct, "#include \"configure.h\"\n#include \"std_incl.h\"\n%s\n#include <%s>\n%s\n", 
 	    before, file, after);
      fclose(ct);
      
-#ifdef DEBUG
+#if defined(DEBUG) || defined(WIN32)
     sprintf(buf, "%s %s -c comptest.c", COMPILER, CFLAGS);
 #else
     sprintf(buf, "%s %s -c comptest.c >/dev/null 2>&1", COMPILER, CFLAGS);
 #endif
     if (!system(buf)) {
 	fprintf(yyout, "#define %s\n", tag);
+	/* Make sure the define exists for later checks */
+	fflush(yyout);
 	printf("exists\n");
 	return 1;
     }
@@ -1175,13 +1179,15 @@ static int check_prog P4(char *, tag, char *, pre, char *, code, int, andrun) {
     FILE *ct;
 
     ct = fopen("comptest.c", "w");
-    fprintf(ct, "%s\n\nint main() {%s}\n", pre, code);
+    fprintf(ct, "#include \"configure.h\"\n#include \"std_incl.h\"\n%s\n\nint main() {%s}\n", (pre ? pre : ""), code);
     fclose(ct);
     
     sprintf(buf, "%s %s comptest.c -o comptest >/dev/null 2>&1", COMPILER, CFLAGS);
     if (!system(buf) && (!andrun || !system("./comptest"))) {
-	if (tag) 
+	if (tag) {
 	    fprintf(yyout, "#define %s\n", tag);
+	    fflush(yyout);
+	}
 	return 1;
     }
 
@@ -1243,8 +1249,24 @@ static void verbose_check_prog P5(char *, msg, char *, def, char *, pre,
     else printf(" does not exist\n");
 }
 
+static int check_configure_version() {
+    char buf[1024];
+    FILE *ct;
+    
+    ct = fopen("comptest.c", "w");
+    fprintf(ct, "#include \"configure.h\"\n\n#if CONFIGURE_VERSION < %i\nthrash and die\n#endif\n\nint main() { }\n", CONFIGURE_VERSION);
+    fclose(ct);
+    
+    sprintf(buf, "%s %s comptest.c -o comptest >/dev/null 2>&1", COMPILER, CFLAGS);
+    return !system(buf);
+}
+
 static void handle_configure() {
+    if (check_configure_version()) return;
+
     open_output_file("configure.h");
+
+#ifndef WIN32
     check_include("INCL_STDLIB_H", "stdlib.h");
     check_include("INCL_UNISTD_H", "unistd.h");
     check_include("INCL_TIME_H", "time.h");
@@ -1345,16 +1367,18 @@ static void handle_configure() {
     verbose_check_prog("Checking for times()", "TIMES",
 		       "", "times(0);", 0);
     verbose_check_prog("Checking for gettimeofday()", "HAS_GETTIMEOFDAY",
-		       "", "gettimeofday(0);", 0);
+		       "", "gettimeofday(0, 0);", 0);
     verbose_check_prog("Checking for fchmod()", "HAS_FCHMOD",
 		       "", "fchmod(0, 0);", 0);
     
     find_memmove();
+#endif
 
     fprintf(yyout, "#define SIZEOF_INT %i\n", sizeof(int));
     fprintf(yyout, "#define SIZEOF_PTR %i\n", sizeof(char *));
     fprintf(yyout, "#define SIZEOF_SHORT %i\n", sizeof(short));
     fprintf(yyout, "#define SIZEOF_FLOAT %i\n", sizeof(float));
+
     if (sizeof(unsigned long) == 4)
 	fprintf(yyout, "#define UINT32 unsigned long\n");
     else if (sizeof(unsigned int) == 4)
@@ -1364,7 +1388,16 @@ static void handle_configure() {
 	exit(-1);
     }
     
+    fprintf(yyout, "#define CONFIGURE_VERSION	%i\n", CONFIGURE_VERSION);
+
     close_output_file();
+
+#ifdef WIN32
+    system("copy Win32\\configure.h tmp.config.h");
+    system("type configure.h >> tmp.config.h");
+    system("del configure.h");
+    system("rename tmp.config.h configure.h");
+#else
 
     open_output_file("system_libs");
     check_library("-lresolv");
@@ -1395,6 +1428,7 @@ static void handle_configure() {
     
     fprintf(yyout, "\n\n");
     close_output_file();
+#endif
 }
 
 int main P2(int, argc, char **, argv) {

@@ -10,11 +10,11 @@
 
 inherit VERB_OB;
 
-mixed can_put_obj_word_obj(object ob1, string p, object ob2) {
+mixed can_put_obj_wrd_obj(object ob1, string p, object ob2) {
     return 1;
 }
 
-void do_put_obj_word_obj(object ob1, string p, object ob2) {
+void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
     if (!try_to_acquire(ob1))
 	return;
     switch (ob1->move(ob2, p)) {

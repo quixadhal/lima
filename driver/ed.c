@@ -858,7 +858,11 @@ static int getlst()
     int num;
 
     P_LINE2 = 0;
-    for (P_NLINES = 0; (num = getone()) >= 0;) {
+    for (P_NLINES = 0; (num = getone()) >= 0 || (num == BAD_LINE_NUMBER);) {
+	/* if it's out of bounds, go to the end of the file. */
+	if (num == BAD_LINE_NUMBER)
+	    num = P_LASTLN;
+	
 	P_LINE1 = P_LINE2;
 	P_LINE2 = num;
 	P_NLINES++;
@@ -1121,7 +1125,7 @@ static regexp *optpat()
 	return (P_OLDPAT);
     if (P_OLDPAT)
 	FREE((char *) P_OLDPAT);
-    return P_OLDPAT = regcomp(str, P_EXCOMPAT);
+    return P_OLDPAT = regcomp((unsigned char *)str, P_EXCOMPAT);
 }
 
 static int set()

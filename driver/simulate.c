@@ -15,6 +15,7 @@
 #include "eoperators.h"
 #include "ed.h"
 #include "file.h"
+#include "packages/parser.h"
 
 /*
  * 'inherit_file' is used as a flag. If it is set to a string
@@ -59,7 +60,6 @@ static sentence_t *alloc_sentence PROT((void));
 #ifndef NO_ADD_ACTION
 static void remove_sent PROT((object_t *, object_t *));
 #endif
-void error_handler PROT((char *));
 
 INLINE void check_legal_string P1(char *, s)
 {
@@ -77,7 +77,6 @@ init_privs_for_object P1(object_t *, ob)
 {
     object_t *tmp_ob;
     svalue_t *value;
-    int err;
 
     if (master_ob == (object_t *)-1) {
 	tmp_ob = ob;
@@ -113,7 +112,6 @@ static int give_uid_to_object P1(object_t *, ob)
 {
     svalue_t *ret;
     char *creator_name;
-    int err;
 
     if (master_ob == (object_t *)-1) {
 	ob->uid = add_uid("NONAME");
@@ -301,10 +299,24 @@ int strip_name P3(char *, src, char *, dest, int, size) {
 	if (last_c == '/' && *src == '/') return 0;
 	last_c = (*p++ = *src++);
     }
-    if (p - dest > 2 && p[-1] == 'c' && p[-2] == '.') 
-	p[-2] = 0;
-    else
-	*p = 0;
+
+    /* In some cases, (for example, object loading) this currently gets
+     * run twice, once in find_object, and once in load object.  The
+     * net effect of this is:
+     * /foo.c -> /foo [no such exists, try to load] -> /foo created
+     * /foo.c.c -> /foo.c [no such exists, try to load] -> /foo created
+     *
+     * causing a duplicate object crash.  There are two ways to fix this:
+     * (1) strip multiple .c's so that the output of this routine is something
+     *     that doesn't change if this is run again.
+     * (2) make sure this routine is only called once on any name.
+     *
+     * The first solution is the one currently in use.
+     */
+    while (p - dest > 2 && p[-1] == 'c' && p[-2] == '.') 
+	p -= 2;
+
+    *p = 0;
     return 1;
 }
 
@@ -840,10 +852,12 @@ void init_master P1(char *, file) {
  */
 static void destruct_object_two P1(object_t *, ob)
 {
-    object_t *super;
     object_t **pp;
     int removed;
+#ifndef NO_ENVIRONMENT
+    object_t *super;
     object_t *save_restrict_destruct = restrict_destruct;
+#endif
 
     if (restrict_destruct && restrict_destruct != ob)
 	error("Only this_object() can be destructed from move_or_destruct.\n");
@@ -1287,6 +1301,7 @@ void enable_commands P1(int, num)
 	/*
 	 * Remove all sentences defined by this object from all objects here.
 	 */
+#ifndef NO_ENVIRONMENT
 	if (current_object->flags & O_ENABLE_COMMANDS) {
 	    if (current_object->super) {
 		if (current_object->flags & O_ENABLE_COMMANDS)
@@ -1297,6 +1312,7 @@ void enable_commands P1(int, num)
 		}
 	    }
 	}
+#endif
 	current_object->flags &= ~O_ENABLE_COMMANDS;
 	command_giver = 0;
     }
@@ -1651,7 +1667,7 @@ void add_light P2(object_t *, p, int, n)
     if (n == 0)
 	return;
     p->total_light += n;
-    while (p = p->super)
+    while ((p = p->super))
 	p->total_light += n;
 }
 #endif
@@ -1735,7 +1751,9 @@ void free_sentence P1(sentence_t *, p)
 int user_parser P1(char *, buff)
 {
     char verb_buff[MAX_VERB_BUFF];
+#ifndef NO_ADD_ACTION
     object_t *super;
+#endif
     sentence_t *s;
     char *p;
     int length;
@@ -1804,9 +1822,19 @@ int user_parser P1(char *, buff)
 	    debug_message("Local command %s on %s\n",
 			  s->function, s->ob->name);
 #endif
-	last_verb = verb_buff;
-	if (s->verb && s->verb[0]) {
-	    strcpy(verb_buff, s->verb);
+	if (s->flags & V_NOSPACE) {
+	    int l1 = strlen(s->verb);
+	    int l2 = strlen(verb_buff);
+	    
+	    if (l1 < l2)
+		last_verb = verb_buff + l1;
+	    else
+		last_verb = "";
+	} else {
+	    if (!s->verb[0] || (s->flags & V_SHORT))
+		last_verb = verb_buff;
+	    else
+		last_verb = s->verb;
 	}
 	/*
 	 * If the function is static and not defined by current object, then
@@ -1819,7 +1847,9 @@ int user_parser P1(char *, buff)
 	 * Remember the object, to update moves.
 	 */
 	command_object = s->ob;
+#ifndef NO_ENVIRONMENT
 	super = command_object->super;
+#endif
 	if (s->flags & V_NOSPACE) {
 	    push_constant_string(&buff[strlen(s->verb)]);
 	} else if (buff[length] == ' ') {
@@ -1912,8 +1942,12 @@ void add_action P3(svalue_t *, str, char *, cmd, int, flag)
 #endif
     if (command_giver == 0 || (command_giver->flags & O_DESTRUCTED))
 	return;
-    if (ob != command_giver && ob->super != command_giver &&
-	ob->super != command_giver->super && ob != command_giver->super)
+    if (ob != command_giver
+#ifndef NO_ENVIRONMENT
+	&& ob->super != command_giver &&
+	ob->super != command_giver->super && ob != command_giver->super
+#endif
+	)
 	return;			/* No need for an error, they know what they
 				 * did wrong. */
 #ifdef DEBUG

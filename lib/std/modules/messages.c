@@ -2,17 +2,23 @@
 
 #include <mudlib.h>
 
-/* ### this probably shouldn't be here... but for now (simul conversion)... */
-private inherit M_GRAMMAR;
-
 /* General message handling.  Inherit it in anything that needs it.
  *
  * -Beek
  */
 
-#define A_SHORT(x) (objectp(x) ? x->a_short() : x)
+//:MODULE
+// The message module.  The correct way to compose and send any messages
+// To users is using this module, as it will automatically get the grammar
+// right for each person involved.
+
+/* More simul conversion fall out */
+string punctuate(string);
+private string vowels = "aeiouAEIOU";
+
+#define A_SHORT(x) (objectp(x) ? x->a_short() : (member_array(x[0], vowels) == -1 ? "a " : "an ") + x)
 #define SHORT(x) (objectp(x) ? x->short() : x)
-#define THE_SHORT(x) (objectp(x) ? x->the_short() : x)
+#define THE_SHORT(x) (objectp(x) ? x->the_short() : "the " + x)
 mapping messages;
 
 void add_msg(string cls, string msg) {
@@ -36,38 +42,52 @@ string *query_msg_types() {
     return keys(messages);
 }
 
+//:FUNCTION compose_message
+//The lowest level message composing function; it is passed the object
+//for whom the message is wanted, the message string, the array of people
+//involved, and the objects involved.  It returns the appropriate message.
+//Usually this routine is used through the higher level interfaces.
 
-string compose_message(object forwhom, string msg, object *who, mixed ob0, mixed ob1) {
+varargs string compose_message(object forwhom, string msg, object *who, 
+			       array obs...) {
     mixed ob;
     mixed *fmt;
     string res;
     int i;
     int c;
-    int num;
+    int num, subj;
     string str;
     string bit;
-    int has_o, has_n, has_t;
+    mapping has = ([]);
 
     fmt = reg_assoc(msg, ({ "\\$[NnVvTtPpOoRr][a-z0-9]*" }), ({ 1 }) );
     fmt = fmt[0]; // ignore the token info for now
 
-	res = fmt[0];
+    res = fmt[0];
     i=1;
     while (i<sizeof(fmt)) {
 	c = fmt[i][1];
 	if (fmt[i][2] && fmt[i][2]<'a') {
-	    num = fmt[i][2] - '0';
-	    str = fmt[i][3..<0];
+	    if (fmt[i][3] && fmt[i][3] < 'a') {
+		subj = fmt[i][2] - '0';
+		num = fmt[i][3] - '0';
+		str = fmt[i][4..<0];
+	    } else {
+		subj = 0;
+		num = fmt[i][2] - '0';
+		str = fmt[i][3..<0];
+	    }
 	} else {
-	    num =0;
+	    subj = 0;
+	    num = ((c == 't' || c == 'T') ? 1 : 0); // target defaults to 1, not zero
 	    str = fmt[i][2..<0];
 	}
 	switch (c) {
 	case 'o':
 	case 'O':
-	    if (!num && objectp(ob0) && has_o) bit = "it";
+	    ob = obs[num];
+	    if (objectp(ob) && has[ob]) bit = "it";
 	    else {
-		ob = num ? ob1 : ob0;
 		if (res[<2..<1]=="a ") {
 		    res = res[0..<3];
 		    bit = A_SHORT(ob);
@@ -75,45 +95,47 @@ string compose_message(object forwhom, string msg, object *who, mixed ob0, mixed
 		    res = res[0..<5];
 		    bit = THE_SHORT(ob);
 		} else bit = SHORT(ob);
-		if (!num) has_o = 1;
+		has[ob]++;
 	    }
 	    break;
 	case 't':
 	case 'T':
-	    num = 1;
-	    if (str=="") str = "o";
-	    if (str != "p" && has_n && (who[0] == who[1])) {
-		// objective: You kick yourself, Beek kicks himself.
-		if (str == "o") {
-		    if (forwhom == who[0]) bit = "yourself";
-		    else bit = who[0]->query_reflexive();
-		}
-		// subjective: You prove you are stupid,
-		// Beek proves he is stupid.
-		if (str == "s") {
-		    if (forwhom == who[0]) bit = "you";
-		    else bit = who[0]->query_subjective();
-		}
-		break;
-	    }
+	    /* Only difference between $n and $t is that $t defaults to $n1o */
 	    /* Fall through */
+	    if (str=="") str = "o";
 	case 'n':
 	case 'N':
+	    if (str=="") str = "s";
 	    if (str != "p") {
-		if (who[num]==forwhom) {
-		    bit = "you";
-		    if (!num) has_n = 1;
-		    else if (num==1) has_t = 1;
+		/* Handle reflexification */
+		if (subj < sizeof(who) &&
+		    (who[subj] == who[num]) && has[who[subj]]) {
+		    // objective: You kick yourself, Beek kicks himself.
+		    if (str == "o") {
+			if (forwhom == who[subj]) bit = "yourself";
+			else bit = who[subj]->query_reflexive();
+		    }
+		    // subjective: You prove you are stupid,
+		    // Beek proves he is stupid.
+		    if (str == "s") {
+			if (forwhom == who[subj]) bit = "you";
+			else bit = who[subj]->query_subjective();
+		    }
 		    break;
 		}
-		if ((num==0 && has_n) || (num==1 && has_t)) {
+		/* Other pronouns */
+		if (who[num]==forwhom) {
+		    bit = "you";
+		    has[who[num]]++;
+		    break;
+		}
+		if (has[who[num]]) {
 		    if (str[0]=='o') bit = who[num]->query_objective();
 		    else bit = who[num]->query_subjective();
 		    break;
 		}
 	    }
-	    if (!num) has_n=1;
-	    else if (num==1) has_t=1;
+	    has[who[num]]++;
 	    bit = who[num]->short();
 	    break;
 	case 'R':
@@ -125,7 +147,7 @@ string compose_message(object forwhom, string msg, object *who, mixed ob0, mixed
 	    break;
 	case 'v':
 	case 'V':
-	    if (who[num]!=forwhom) bit = pluralize(str);
+	    if (who[num]!=forwhom) bit = M_GRAMMAR->pluralize(str);
 	    else bit = str;
 	    break;
 	case 'p':
@@ -134,13 +156,12 @@ string compose_message(object forwhom, string msg, object *who, mixed ob0, mixed
 		bit = "your";
 		break;
 	    }
-	    if ((num==0 && has_n) || (num==1 && has_t)) {
+	    if (has[who[num]]) {
 		bit = who[num]->query_possessive();
 		break;
 	    }
 	    bit = who[num]->query_named_possessive();
-	    if (num==0) has_n=1;
-	    else if (num==1) has_t=1;
+	    has[who[num]]++;
 	    break;
 	}
 	// hack to prevent errors.
@@ -153,7 +174,13 @@ string compose_message(object forwhom, string msg, object *who, mixed ob0, mixed
     return res;
 }
 
-varargs string *action(object *who, mixed msg, object ob, object ob2) {
+//:FUNCTION action
+//Make the messages for a given group of people involved.  The return
+//value will have one array per person, as well as one for anyone else.
+//inform() can be used to send these messages to the right people.
+//see: inform
+
+varargs string *action(object *who, mixed msg, array obs...) {
     int i;
     string *res;
 
@@ -161,21 +188,29 @@ varargs string *action(object *who, mixed msg, object ob, object ob2) {
 	msg = msg[random(sizeof(msg))];
     res = allocate(sizeof(who)+1);
     for (i=0; i<sizeof(who); i++) {
-	res[i] = compose_message(who[i], msg, who, ob, ob2);
+	res[i] = compose_message(who[i], msg, who, obs...);
     }
-    res[sizeof(who)]=compose_message(0, msg, who, ob, ob2);
+    res[sizeof(who)]=compose_message(0, msg, who, obs...);
     return res;
 }
 
+//:FUNCTION inform
+//Given an array of participants, and an array of messages, and either an
+//object or array of objects, deliver each message to the appropriate
+//participant, being careful not to deliver a message twice.
+//The last arg is either a room, in which that room is told the 'other'
+//message, or an array of people to recieve the 'other' message.
 void inform(object *who, string *msgs, mixed others) {
     int i;
+    mapping done = ([]);
     for (i=0; i<sizeof(who); i++) {
-	if (i && who[i]==who[0]) continue;
+        if (done[who[i]]) continue;
+        done[who[i]]++;
 	tell_object(who[i], iwrap(msgs[i]));
     }
     if (pointerp(others))
     {
-	map_array(others, (: tell_object($1, $(iwrap(msgs[<1]))) :));
+	map_array(others - who, (: tell_object($1, $(iwrap(msgs[<1]))) :));
     }
     else if (others)
     {
@@ -183,7 +218,10 @@ void inform(object *who, string *msgs, mixed others) {
     }
 }
 
-varargs void simple_action(mixed msg, object ob, object ob2) {
+//:FUNCTION simple_action
+//Generate and send messages for an action involving the user and possibly
+//some objects
+varargs void simple_action(mixed msg, array obs...) {
     string us;
     string others;
     object *who;
@@ -192,46 +230,53 @@ varargs void simple_action(mixed msg, object ob, object ob2) {
     who = ({ this_object() });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
-    us = compose_message(this_object(), msg, who, ob, ob2);
-    others = compose_message(0, msg, who, ob, ob2);
+    us = compose_message(this_object(), msg, who, obs...);
+    others = compose_message(0, msg, who, obs...);
 
     tell_object(this_object(), iwrap(us));
     if (environment())
 	tell_room(environment(), iwrap(others), who);
 }
 
-varargs void my_action(mixed msg, object ob, object ob2) {
+//:FUNCTION my_action
+//Generate and send a message that should only be seen by the person doing it
+varargs void my_action(mixed msg, array obs...) {
     string us;
     object *who;
 
     who = ({ this_object() });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
-    us = compose_message(this_object(), msg, who, ob, ob2);
+    us = compose_message(this_object(), msg, who, obs...);
     tell_object(this_object(), iwrap(us));
 }
 
-varargs void other_action(mixed msg, object ob, object ob2) {
+//:FUNCTION other_action
+//Generate and send a message that should only be seen by others
+varargs void other_action(mixed msg, array obs...) {
     string others;
     object *who;
 
     who = ({ this_object() });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
-    others = compose_message(0, msg, who, ob, ob2);
+    others = compose_message(0, msg, who, obs...);
     tell_room(environment(), iwrap(others), who);
 }
 
-varargs void targetted_action(mixed msg, object target, object ob, object ob2) {
+//:FUNCTION targetted_action
+//Generate and send a message involving the doer and a target (and possibly
+//other objects)
+varargs void targetted_action(mixed msg, object target, array obs...) {
     string us, them, others;
     object *who;
 
     who = ({ this_object(), target });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
-    us = compose_message(this_object(), msg, who, ob, ob2);
-    them = compose_message(target, msg, who, ob, ob2);
-    others = compose_message(0, msg, who, ob, ob2);
+    us = compose_message(this_object(), msg, who, obs...);
+    them = compose_message(target, msg, who, obs...);
+    others = compose_message(0, msg, who, obs...);
     tell_object(this_object(), iwrap(us));
     tell_object(target, iwrap(them));
     tell_room(environment(), iwrap(others), who);

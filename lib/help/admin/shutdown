@@ -1,0 +1,15 @@
+
+USAGE:  shutdown < str >
+
+     This command will shut the mud down.  The mud will reboot in a 
+couple of minutes.
+
+
+*****  notes  ******
+
+for fun try the following
+   shutdown bite me
+   shutdown asap
+   shutdown now
+
+

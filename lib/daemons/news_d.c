@@ -326,6 +326,26 @@ nomask int get_group_last_id(string group)
     return data[group]["next_id"] - 1;
 }
 
+nomask void dump_to_file(string group, string fname)
+{
+    mapping contents = data[group];
+    int id;
+
+    foreach ( id in sort_array(keys(contents) - ({ "next_id" }), 1) )
+    {
+	class news_msg msg = contents[id];
+
+	if ( !msg->body )
+	    continue;
+
+	write_file(fname,
+		   sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n\n%s\n",
+			   msg->poster, msg->subject,
+			   intp(msg->time) ? ctime(msg->time) : msg->time,
+			   msg->body));
+    }
+}
+
 private nomask void archive_post(string group, int id)
 {
     class news_msg msg = data[group][id];

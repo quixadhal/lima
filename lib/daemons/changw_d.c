@@ -19,7 +19,8 @@ inherit M_REMOTE;
 
 #define SAVE_FILE "/data/daemons/changw_d"
 
-DOC_MODULE("This daemon acts as a gateway between local channels and remote-mud channels.");
+//:MODULE
+//This daemon acts as a gateway between local channels and remote-mud channels.
 
 private string * gatewayed_channels = ({ "wiz_s.wiz" });
 

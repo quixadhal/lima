@@ -11,7 +11,8 @@
 ** make it nicer. =/
 */
 
-DOC_MODULE("Implements generic alias handling code.")
+//:MODULE
+//Implements generic alias handling code.
 
 #include <mudlib.h>
 #include <security.h>
@@ -68,7 +69,8 @@ nomask class alias query_one_alias(string alias_name)
     return aliases[alias_name];
 }
 
-DOC(remove_alias, "Add an alias to an alias set.")
+//:FUNCTION remove_alias
+//Add an alias to an alias set.
 nomask void add_alias_simple(string alias_name, class alias the_alias)
 {
     if ( base_name(previous_object()) != ALIASMENU )
@@ -86,7 +88,8 @@ private nomask void internal_remove_alias(string alias_name)
     xaliases -= ({ alias_name });
 }
 
-DOC(remove_alias, "Remove an alias from an alias set.")
+//:FUNCTION remove_alias
+//Remove an alias from an alias set.
 nomask void remove_alias(string alias_name)
 {
     if ( base_name(previous_object()) != ALIASMENU )
@@ -129,7 +132,9 @@ private string* prep_aliases_for_save(string state)
       }
   return ({ "alias_save", "xalias_save" });
 }
-DOC(setup_for_save,"Sets up M_SAVE to save some variables")
+
+//:FUNCTION setup_for_save
+//Sets up M_SAVE to save some variables
 void setup_for_save()
 {
     /*
@@ -140,7 +145,8 @@ void setup_for_save()
   this_object()->add_save(({ (: prep_aliases_for_save:) }));
 }
 
-DOC(add_alias,"Add an alias to an alias set.")
+//:FUNCTION add_alias
+//Add an alias to an alias set.
 varargs void
 add_alias(string name, string template, string* defaults, int xverb)
 {
@@ -178,7 +184,8 @@ add_alias(string name, string template, string* defaults, int xverb)
 }
 
 
-DOC(expand_alias, "Expand an argv with any aliases if applicable.")
+//:FUNCTION expand_alias
+//Expand an argv with any aliases if applicable.
 mixed expand_alias(string* argv)
 {
   class alias this_alias;

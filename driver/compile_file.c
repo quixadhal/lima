@@ -1,8 +1,8 @@
 #include "std.h"
 #ifdef LPC_TO_C
 #define SUPRESS_COMPILER_INLINES
-#include "file_incl.h"
 #include "lpc_incl.h"
+#include "file_incl.h"
 #include "interface.h"
 #include "lex.h"
 #include "compiler.h"
@@ -154,7 +154,10 @@ int generate_source P2(svalue_t *, arg1, char *, out_fname)
     char *outp;
     char *string_needs_free;
     int index;
-    array_t tmp_arr, *arr;
+#ifdef RUNTIME_LOADING
+    array_t tmp_arr;
+#endif
+    array_t *arr;
     int f;
     int single;
     error_context_t econ;

@@ -26,7 +26,7 @@ mixed parse_rule(string str)
 
 private nomask void got_message(string verb, string rule, string str)
 {
-    string part2;
+    string array parts;
 
     if ( str == "" )
     {
@@ -34,8 +34,8 @@ private nomask void got_message(string verb, string rule, string str)
 	return;
     }
 
-    sscanf(str, "%s && %s", str, part2);
-    SOUL_D->add_emote(verb, rule, str, part2);
+    parts = explode(str, " && ");
+    SOUL_D->add_emote(verb, rule, parts);
 }
 
 private nomask void got_rule(string verb, string str)

@@ -11,7 +11,6 @@
 #include <mudlib.h>
 #include <config.h>
 #include <security.h>
-#include <commands.h>
 
 inherit M_ACCESS;
 
@@ -23,8 +22,6 @@ inherit "/secure/modules/inputsys";
 inherit "/secure/modules/userinfo";
 
 private string		name;
-private string		password;
-
 private string		body_fname;
 
 static private object	body;
@@ -44,15 +41,6 @@ nomask string query_real_name()		/* ### should remove */
 static nomask void set_userid(string new_userid)
 {
     name = new_userid;
-}
-
-nomask int matches_password(string str)
-{
-    return crypt(str, str) == password;
-}
-static nomask void set_password(string str)
-{
-    password = crypt(str, str);
 }
 
 
@@ -121,25 +109,4 @@ private nomask void net_dead()
 	body->net_dead();
     else
 	destruct(this_object());
-}
-
-
-/*
-** this is bunk... should disappear soon
-*/
-nomask void set(string key, mixed value)
-{
-    switch ( key )
-    {
-    case "password":
-        if ( previous_object() == find_object(CMD_OB_PASSWD) )
-	{
-	    set_password(value);
-	    save_me();
-	}
-	break;
-
-    default:
-	error("unknown attribute\n");
-    }
 }

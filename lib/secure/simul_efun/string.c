@@ -319,3 +319,11 @@ int is_letter(int c)
 
 
 }
+
+string format_list(string array list, string separator) {
+    if (!separator) separator = "and";
+    if (sizeof(list)==0) return "";
+    if (sizeof(list)==1) return list[0];
+    if (sizeof(list)==2) return list[0] + " " + separator + " " + list[1];
+    return implode(list[0..<2], ", ") + ", " + separator + " " + list[<1];
+}

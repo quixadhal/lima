@@ -2,8 +2,9 @@
 
 // specification is: spew file str*
 // we will recieve: ({ string, ({ args }) })
-#pragma strict_types
+
 #include <mudlib.h>
+
 inherit CMD;
 
 // Quick hack by Rust 12-12-93

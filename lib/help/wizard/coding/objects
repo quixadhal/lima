@@ -1,7 +1,6 @@
 
-The following example is a bare bones object.  It really doesnt do 
-Objects in the Lima mudlib are created a little differently than in most
-anything nor can you do anything with it other than look at it.
+The following example is a bare bones object.  It really doesnt
+do anything nor can you do anything with it but look at it.
 
 #include <mudlib.h>
 
@@ -27,6 +26,19 @@ set_proper_name("Excalibur");
     set_adjectives() so the mud knows what the player can refer
     to the object as.  For example:
 
+
+include <mudlib.h>
+
+inherit OBJ;
+
+create
+{
+     set_id( ({"sword", "Excalibur" }) );
+     set_adjectives( ({ "King Arthur's" }) );
+     set_long( "This is a hideously sharp blade" );
+
+}
+
 set_unique(1);  
 
      This will force the mud to refer to an object as 'the .....'.
@@ -35,7 +47,7 @@ set_unique(1);
 
 set_in_room_desc("A dumb terminal sits in the corner of the room.\n");
 
-     This will force the default message of 'a dumb terminal sits 
+     This will replace the default message of 'a dumb terminal sits 
      here, discarded' with the above message.  This works well.  
      However, for objects that can be taken, everytime you drop them
      they will go to the corner of the room.  This would be rather odd

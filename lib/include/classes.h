@@ -1,8 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#ifndef _CLASSES_H_
-#define _CLASSES_H_
+#ifndef __CLASSES_H__
+#define __CLASSES_H__
 
+#define CLASS_MAILMSG	"/std/classes/mailmsg"
 #define CLASS_NEWSMSG	"/std/classes/newsmsg"
 #define CLASS_STATMODS	"/std/classes/statmods"
 

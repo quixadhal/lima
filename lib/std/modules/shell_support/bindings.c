@@ -11,7 +11,8 @@
 nomask void modal_push_char(function callback);	// M_INPUT
 
 
-DOC_MODULE("Implements character mode key bindings.");
+//:MODULE
+//Implements character mode key bindings.
 
 private static int escape_hit;
 private static string matchstr = "";
@@ -81,8 +82,9 @@ private nomask void handle_one_char(int c)
 
 }
 
-DOC(init_charmode, "start up character mode, passing a map of bindings and a "
-"function to handle keystrokes not covered in the binding map.");
+//:FUNCTION init_charmode
+//start up character mode, passing a map of bindings and a 
+//function to handle keystrokes not covered in the binding map.
 
 nomask void init_charmode(mapping new_bindings, function d)
 {
@@ -93,13 +95,15 @@ nomask void init_charmode(mapping new_bindings, function d)
     modal_push_char((: handle_input :));
 }
 
-DOC(bind, "Add a key binding to a charmode shell.");
+//:FUNCTION bind
+//Add a key binding to a charmode shell.
 nomask void bind(string sequence, function callback)
 {
     bindings[sequence] = callback;
 }
 
-DOC(unbind, "Remove a key binding from a charmode shell.");
+//:FUNCTION unbind
+//Remove a key binding from a charmode shell.
 nomask void unbind(string sequence)
 {
     map_delete(bindings, sequence);

@@ -10,7 +10,8 @@ object *bodies() {
     return users()->query_body();
 }
 
-DOC(call_trace, "returns the stack of objects and functions")
+//:FUNCTION call_trace
+//returns the stack of objects and functions
 
 string
 call_trace() {
@@ -34,8 +35,10 @@ call_trace() {
 }
 
 // There should be an | operator for this.
-DOC(clean_array, "returns a version of the passed array with duplicate "
-    "entries removed.  Eg, clean_array(({1,2,2}))  => ({1,2})")
+
+//:FUNCTION clean_array
+//returns a version of the passed array with duplicate
+//entries removed.  Eg, clean_array(({1,2,2}))  => ({1,2})
 
 mixed*
 clean_array(mixed* r) {
@@ -55,12 +58,13 @@ clean_array(mixed* r) {
     return r;
 }
 
-DOC(cmp, "returns whether its two arguments are equivolent.  This is about"
-"the same as using the equivolence operator (==), but will return true"
-"in cases where == does not, such as when comparing 2 arrays. "
-"Logically 2 arrays should be equivolent, but aren't with ==. "
-"cmp knows they are.  This is mainly useful when you want to compare "
-"mappings and arrays.")
+//:FUNCTION cmp
+//returns whether its two arguments are equivalent.  This is about
+//the same as using the equivolence operator (==), but will return true
+//in cases where == does not, such as when comparing 2 arrays.
+//Logically 2 arrays should be equivolent, but aren't with ==.
+//cmp knows they are.  This is mainly useful when you want to compare
+//mappings and arrays.
 
 int cmp( mixed a, mixed b )
 {
@@ -98,9 +102,10 @@ int cmp( mixed a, mixed b )
 }
 
 
-DOC(insert, "Inserts the contents of the array of the first argument into "
-    "The array in the second argument before the nth element of the array, "
-    "where n is the 3rd argument passed to insert.")
+//:FUNCTION insert
+//Inserts the contents of the array of the first argument into
+//The array in the second argument before the nth element of the array,
+//where n is the 3rd argument passed to insert.
 
 // Rust hacked at this to make it a bit more intuitive...
 
@@ -220,9 +225,10 @@ END;
 // convert a string to almost anything.
 // bet on it being as slow as dirt, though... 
 
-DOC(eval, "evaluates the string s as an LPC value.  Eg, if you have a string "
-	"someonetyped in: \"({1,2,3,4})\"  eval returns the actual array "
-    	"({1,2,3,4}).")
+//:FUNCTION eval
+//evaluates the string s as an LPC value.  Eg, if you have a string
+//someonetyped in: "({1,2,3,4})"  eval returns the actual array
+//({1,2,3,4}).
 
 varargs mixed eval( string arg, string includefile )
 {
@@ -269,12 +275,13 @@ varargs mixed eval( string arg, string includefile )
     return arg;
 }
 
-DOC(decompose, "Takes any arrays that are elements in arr and merges "
-    "all of its elements as elements of arr.  Eg, decompose(({1,({2,3,}),4})) "
-    "will return: ({1,2,3,4}).  The algorithm is not recursive, so if any of "
-    "the arrays have arrays in them, those arrays remain intact.  Eg, "
-    "decompose( ({1,({({2,3}),4}),5}) )  returns:({1,({2,3}),4,5}). "
-    "See flatten_array for a recursive version.")
+//:FUNCTION decompose
+//Takes any arrays that are elements in arr and merges 
+//all of its elements as elements of arr.  Eg, decompose(({1,({2,3,}),4}))
+//will return: ({1,2,3,4}).  The algorithm is not recursive, so if any of
+//the arrays have arrays in them, those arrays remain intact.  Eg,
+//decompose( ({1,({({2,3}),4}),5}) )  returns:({1,({2,3}),4,5}).
+//See flatten_array for a recursive version.
 
 mixed* decompose( mixed* org )
 {
@@ -294,9 +301,10 @@ mixed* decompose( mixed* org )
 }
 
 
-DOC(len,"returns the length of any aggregate type, be it the "
-"length of a string, the number of elements in an array, or "
-"the number of entries in a mapping. ")
+//:FUNCTION len
+//returns the length of any aggregate type, be it the
+//length of a string, the number of elements in an array, or
+//the number of entries in a mapping.
 
 int 
 len( mixed f ){
@@ -304,8 +312,9 @@ len( mixed f ){
 }
 
 
-DOC(choice, "Returns a random element of the structure passed, if that "
-    "structure is an aggregate type (i.e., A string, array or mapping).")
+//:FUNCTION choice
+//Returns a random element of the structure passed, if that
+//structure is an aggregate type (i.e., A string, array or mapping).
 
 mixed choice( mixed f ){
     mixed *k;
@@ -319,8 +328,9 @@ mixed choice( mixed f ){
 }
 
 
-DOC(min, "Returns the smallest element of an aggregate type (string, array, "
-	"or mapping).")
+//:FUNCTION min
+//Returns the smallest element of an aggregate type (string, array,
+//or mapping).
 
 mixed min( mixed f ){
   if(stringp(f)) f = explode(f," ");
@@ -331,8 +341,9 @@ else
 }
 
 
-DOC(max, "Returns the largest element of a structure that is a string, "
-	"array or mapping.")
+//:FUNCTION max
+//Returns the largest element of a structure that is a string,
+//array or mapping.
 
 mixed max( mixed f ){
   if(stringp(f)) f = explode(f," ");
@@ -342,12 +353,9 @@ else
   return sort_array(f,-1)[0];
 }
 
-
-
-
-DOC(flatten_array, "Takes a array that may contain arrays, and reduces all "
-    "arrays so that the result is a one dimensional array")
-
+//:FUNCTION flatten_array
+//Takes a array that may contain arrays, and reduces all
+//arrays so that the result is a one dimensional array
 
 mixed
 flatten_array(mixed arr)
@@ -365,8 +373,9 @@ flatten_array(mixed arr)
     return arr;
 }
 
-DOC(call_out_chain, "Does a call_out to a list of functions, one following "
-    "another, with each returning the delay till the next one is called.")
+//:FUNCTION call_out_chain
+//Does a call_out to a list of functions, one following
+//another, with each returning the delay till the next one is called.
 
 static void handle_chain(object ob, array funcs, array args) {
     int delay;

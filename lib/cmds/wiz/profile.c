@@ -22,12 +22,42 @@ void profile_all(function compare) {
     worst = sort_array(worst, compare);
     worst = worst[0..19];
 
-    printf("%-40s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Tota
-l");
+    printf("%-40s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Total");
     foreach (item in worst) {
         printf("%-40s %5i %8i %8i %8i\n",
                item["name"], item["calls"], item["self"], item["children"],
                item["self"] + item["children"]);
+    }
+}
+
+int total(mapping *info) {
+    int ret;
+    mapping item;
+
+    foreach (item in info)
+        ret += item["self"];
+    return ret;
+}
+
+static void top_ten() {
+    mixed *tmp;
+    int i, j;
+
+    tmp = map(objects((: !clonep($1) :)),
+              (: ({ $1, total(function_profile($1)) }) :));
+    // We could use sort_array() here, but that's an inefficient way
+    // to get the top 10 when there are lots of objects.
+
+    for (i = 0; i < 10; i++) {
+        mixed foo;
+
+        for (j = i; j < sizeof(tmp); j++)
+            if (tmp[i][1] < tmp[j][1]) {
+                foo = tmp[i];
+                tmp[i] = tmp[j];
+                tmp[j] = foo;
+            }
+        printf("%60-O %i\n", tmp[i][0], tmp[i][1]);
     }
 }
 #endif
@@ -44,7 +74,7 @@ private void main(string str) {
     return;
 #else
     if (!str) {
-        write("profile [-total] <ob>\n");
+	top_ten();
         return;
     }
 
@@ -71,8 +101,7 @@ private void main(string str) {
     prof = filter(prof, (: $1["calls"] :));
     prof = sort_array(prof, compare);
 
-    printf("%-30s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Tota
-l");
+    printf("%-30s %5s %8s %8s %8s\n", "Name", "Calls", "Self", "Children", "Total");
     foreach (item in prof) {
         printf("%-30s %5i %8i %8i %8i\n",
                item["name"], item["calls"], item["self"], item["children"],

@@ -33,7 +33,7 @@ string in_room_desc() {
 }
 
 string inventory_header() {
-    return "It is carrying:";
+    return capitalize(query_subjective()) + " is carrying:";
 }
 
 int is_living() {

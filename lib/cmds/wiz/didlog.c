@@ -15,11 +15,16 @@ private void main(string str)
 {
     int ndays;
     string header;
-
+    string pattern;
+    
     if ( !str )
 	ndays = 1;
-    else if ( !(ndays = to_int(str)) )
-	ndays = 1;
+    else if ( !(ndays = to_int(str)) ) {
+	if (sscanf(str, "%s %d", pattern, ndays) != 2) {
+	    pattern = str;
+	    ndays = 1;
+	}
+    }
 
     if ( ndays == 1 )
 	header = "DID_D report for the past day";
@@ -29,5 +34,6 @@ private void main(string str)
     DID_D->dump_did_info(time() - ndays * 24 * 60 * 60,
 			 ({ header,
 				sprintf("%*'-'s", sizeof(header), ""),
-				"" }));
+				"" }),
+			 pattern);
 }

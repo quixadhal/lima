@@ -1,6 +1,6 @@
 $$ see: channels, chan, newbie
-USAGE:  gossip on | off      or
-        gossip list          or
+USAGE:  gossip /on | /off    or
+        gossip /list         or
         gossip <message>     or
         gossip ;<feeling>    or
         gossip :<emote>

@@ -270,6 +270,7 @@ private nomask void handle_command(string cmd)
       return;
 
     case "open" :
+if (!arg) { write("Open <host>\n"); return; }
       init_session(arg, arg);
       return;
 

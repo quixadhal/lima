@@ -15,7 +15,6 @@ object query_body();
 
 string query_userid();
 varargs void restore_me(string some_name);
-int matches_password(string str);
 
 varargs void switch_body(string new_body_fname, int permanent);
 

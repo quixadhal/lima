@@ -1,3 +1,10 @@
+Thu Aug 24 06:53:08 EDT 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.6b6
+	* crasher fix in loading objects with a .c.c suffix.  The current
+	  fix entails stripping multiple .c's off the end instead of just one.
+	* edit_source -configure now checks if the configure.h file needs to
+	  be remade due to new config checks
+
 Mon Aug 21 03:18:45 EDT 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.6b5
 	* fixed a crasher in parse_command() [reported by Magician]

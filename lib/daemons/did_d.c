@@ -7,6 +7,8 @@
 #include <security.h>
 
 inherit M_ACCESS;
+inherit M_GLOB;
+
 
 
 #define SAVE_FILE "/data/daemons/did_d"
@@ -33,10 +35,11 @@ someone_did(string str) {
     who->ilog_hook(str);
 }
 
-void dump_did_info(int time, string * header)
+void dump_did_info(int time, string * header, string pattern)
 {
     int index;
     string * output = header;
+    mixed *matches;
 
     index = sizeof(did) - 1;
     while (index > 0 && time < did[index][0]) index--;
@@ -47,6 +50,7 @@ void dump_did_info(int time, string * header)
 
     for ( ; index < sizeof(did); index++)
     {
+	if (!pattern || regexp(did[index][1], translate(pattern,1)))
         output += explode(iwrap(sprintf("%s: %s",
 					ctime(did[index][0]),
 					did[index][1])), "\n") + ({ "" });

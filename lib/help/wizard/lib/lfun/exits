@@ -1,4 +1,5 @@
 $$ see: rooms
+
 Exits in rooms are added by calling set_exits() with a mapping to the "exits"
 in the create function of the room.  The standard exits (just simple links
 to rooms) are done this way:
@@ -9,7 +10,7 @@ set_exits( ([ "north" : "/wiz/beek/rooms/north_of_center",
 This is very similar to many other muds.  The novel item is
 support for arrays as values for exits.  If the value of
 an exit is an array, it is interpreted as a list of function
-calls, (Technically, closures) and destinations.
+calls, (Technically, function pointers) and destinations.
 
 The parsing rule is that each function in the array is called
 in order, and if it is a string, it is used as an exit.
@@ -21,11 +22,11 @@ This does what you would expect.  fail is a #define that returns
 a function which prints it's argument and returns zero.  The zero
 will be important later.
 
-set_exits( ([ "north" : ({ #'pre_north, "/wiz/beek/rooms/north_of_center", 
-     #'post_north }) ]) );
+set_exits( ([ "north" : ({ (: pre_north :), "/wiz/beek/rooms/north_of_center", 
+     (: post_north :) }) ]) );
 
 This implements pre_exit functions and post exit functions.  All you
-have to know is that #'function_name is how you specify a
+have to know is that (: function_name :) is how you specify a
 function in the same object.  if the function returns 1, execution
 will continue.  If it returns zero, execution will halt.
 This means you can do stuff like:
@@ -40,7 +41,7 @@ pre_north() {
 
 Functions can also return strings:
 
-set_exits( ([ "north" : ({ #'north_exit }) ]) );
+set_exits( ([ "north" : ({ (: north_exit :) }) ]) );
 
 north_exit() {
   return "/wiz/beek/rooms/void"+random(10);
@@ -59,7 +60,7 @@ element is determined as follows:
 integers : the value is the integer
 strings  : the value is 1 if move_zorker(element, verb)
            succeeds and 0 if it fails
-closures : the closure is evaluated.  Note that if the closure
+function pointers : the pointer is evaluated.  Note that if the pointer
            returns a string, it is evaluated as above.
 
 The value is used to figure out which element to move to next.
@@ -74,7 +75,7 @@ return other numbers? *evil grin*  That number is added to the
 current item count.  So returning 2 will skip the next function,
 returning 3 will skip the next 2, etc.  For example:
 
-set_exits( ([ "north" : ({ #'check_door, fail("The door is closed.\n"),
+set_exits( ([ "north" : ({ (: check_door :), fail("The door is closed.\n"),
       "/wiz/beek/rooms/north_of_center" }) ]));
 
 check_door() {
@@ -82,18 +83,15 @@ check_door() {
 }
 
 Essentially, a function that returns numbers other than 0 or 1 acts
-like a switch statement.  Closure experts might be tempted to be
+like a switch statement.  Function pointer experts might be tempted to be
 even more Kewl [tm]:
 
-set_exits( ([ "north" : ({ #'door_flag, ...
+set_exits( ([ "north" : ({ (: door_flag :), ...
 
-where door_flag is a local variable set to 1 or 2.
+where door_flag is a global variable set to 1 or 2.
 
 Negative return values can be used for loops.
 i.e.
-
-set_exits( ([ "north" : ({ #'start_fall, #'continue_fall, #'check_end, 
-     "/wiz/beek/bottom_of_shaft" }) ]) );
 
 start_fall() {
   write("The floor drops out!  You start falling!\n");
@@ -109,6 +107,12 @@ check_end() {
   if (random(3)) return -1;
   write("You finally hit the bottom.\n");
   return 1;
+}
+
+void create() {
+   ....
+   set_exits( ([ "north" : ({ (: start_fall :), (: continue_fall :), 
+	      (: check_end :), "/wiz/beek/bottom_of_shaft" }) ]) );
 }
 
 But that's probably overkill :)

@@ -11,5 +11,28 @@ addemote kick
 rule STR
 message: $N $vkick $T
 
-  see messages for more information on the message.
+To add a new rule treat it as if the whole emote was new, just
+follow the same steps as for adding a brand new emote.
+
+The message can also be multiple messages separated by " && "; these
+as the message for the doer, others, the first target, the second target ...
+respectively.
+
+e.g. $N $vkick $t hard. && $N $vkick $t hard (how mean).
+
+gives:
+me: You kick Rust hard.
+rust: Beek kicks you hard.
+room: Beek kicks Rust hard (how mean).
+
+(when there is no message for the target, they see the first one)
+
+also: $N $vkick $t hard. && $N $vkick $t hard (how mean). && $N $vkick $t hard (ouch!).
+
+gives:
+me: You kick Rust hard.
+rust: Beek kicks you hard (ouch!).
+room: Beek kicks Rust hard (how mean).
+
+SEE ALSO: messages, rmemote, showemote
 

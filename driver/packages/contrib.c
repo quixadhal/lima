@@ -23,6 +23,11 @@
 #include "../compiler.h"
 #endif
 
+/* should be done in configure */
+#ifdef WIN32
+#define strcasecmp(X, Y) stricmp(X, Y)
+#endif
+
 /* I forgot who wrote this, please claim it :) */
 #ifdef F_REMOVE_SHADOW
 void
@@ -363,7 +368,8 @@ f_terminal_colour P2( int, num_arg, int, instruction)
     char *instr, *cp, *savestr, *deststr, **parts;
     int num, i, j, k, *lens;
     mapping_node_t *elt, **mtab;
-
+    int tmp;
+    
     cp = instr = (sp-1)->u.string;
     do {
 	cp = strchr(cp,'%');
@@ -430,15 +436,20 @@ f_terminal_colour P2( int, num_arg, int, instruction)
     {
 	for (j = i = 0, k = sp->u.map->table_size; i < num; i++)
 	{
-	    cp = parts[i];
-	    for (elt = mtab[mapHashstr(cp) & k]; elt; elt = elt->next)
-		if ( elt->values->type == T_STRING && 
-		     (elt->values + 1)->type == T_STRING &&
-		     strcmp(cp,elt->values->u.string) == 0 )
-		     {
-			cp = parts[i] = (elt->values + 1)->u.string;
-			break;
-		     }
+	    if ((cp = findstring(parts[i]))) {
+		tmp = (int)cp;
+		if (tmp < 0) tmp = -tmp;
+		for (elt = mtab[tmp & k]; elt; elt = elt->next)
+		    if ( elt->values->type == T_STRING && 
+			(elt->values + 1)->type == T_STRING &&
+			cp == elt->values->u.string)
+			{
+			    cp = parts[i] = (elt->values + 1)->u.string;
+			    break;
+			}
+	    } else {
+		cp = parts[i];
+	    }
 	    lens[i] = strlen(cp);
 	    j += lens[i];
 	}
@@ -921,7 +932,7 @@ void f_replaceable PROT((void)) {
     
     for (i = 0; i < num; i++) {
 	if (functions[i].flags & (NAME_INHERITED | NAME_NO_CODE)) continue;
-	if (strcmp(functions[i].name, "create")==0) continue;
+	if (strcmp(functions[i].name, APPLY_CREATE)==0) continue;
 	break;
     }
     free_svalue(sp, "f_replaceable");

@@ -145,6 +145,7 @@ private nomask void mail_prompt(string input)
     {
     case 'q':
 	modal_pop();
+	destruct(this_object());
 	break;
     case 'h':
 	cmd_headers(cmd_args);

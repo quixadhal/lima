@@ -278,6 +278,7 @@ void f_lookat_rotate PROT((void))
     }
 }
 
+#ifdef F_LOOKAT_ROTATE2
 void f_lookat_rotate2 PROT((void))
 {
     array_t *matrix;
@@ -321,6 +322,7 @@ void f_lookat_rotate2 PROT((void))
 	matrix->item[i].u.real = lookat_matrix[i];
     }
 }
+#endif
 
 static void print_matrix P2(Matrix, m, char *, label)
 {

@@ -568,9 +568,13 @@ i_generate_node P1(parse_node_t *, expr) {
 		parse_node_t *pn = expr->v.expr;
 		
 		while (pn) {
-		    if (expr->kind == NODE_SWITCH_STRINGS)
-			INS_POINTER((POINTER_INT)PROG_STRING(pn->r.number));
-		    else
+		    if (expr->kind == NODE_SWITCH_STRINGS) {
+			if (pn->r.number) {
+			    INS_POINTER((POINTER_INT)
+					PROG_STRING(pn->r.number));
+			} else 
+			    INS_POINTER((POINTER_INT)0);
+		    } else
 			INS_POINTER((POINTER_INT)pn->r.expr);
 		    ins_short((short)pn->v.number);
 		    pn = pn->l.expr;

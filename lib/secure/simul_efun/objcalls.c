@@ -185,10 +185,10 @@ varargs string inv_list(object o, int flag, int depth) {
 		if (j > 4) res += "many " + obs[i]->plural_short();
 		else res += j + " " + obs[i]->plural_short();
 	    } else {
-		res += (string)obs[i]->a_short();
+		res += obs[i]->a_short();
+		if (ex = obs[i]->calculate_extra())
+		    res += ex;
 	    }
-	    if (ex = (string)obs[i]->extra_short())
-		res += " (" + ex + ")";
 	    res += "\n";
 	    if (obs[i]->inventory_visible())
 		res += (string)obs[i]->inventory_recurse(depth+1);
@@ -231,4 +231,17 @@ mixed target(mixed target)
     }
 
     return ret;
+}
+
+string object_event_message(mixed msg) {
+    msg = M_MESSAGES->action(({}), msg, previous_object());
+    return msg[0];
+}
+
+void object_event(mixed msg) {
+    object ob = environment(previous_object());
+    if (!ob) return;
+    while (environment(ob) && ob->inventory_visible())
+        ob = environment(ob);
+    tell_room(ob, object_event_message(msg));
 }

@@ -8,11 +8,14 @@
 #define CMD_SEQUENTIAL		2
 #define CMD_LOOP		3
 
+void add_hook(string, function);
+
 private int		cmd_mode	= CMD_RANDOM;
 private int		chance_or_delay;
 private string * 	my_actions;
 private int		per_flag;
 private string *	response_queue = ({});
+private function	my_hook;
 
 // Script stuff
 class script{
@@ -76,6 +79,10 @@ void respond(string str) {
       }
     response_queue += ({ str });
     call_out( (: do_respond :), random(3));
+    if (!my_hook) {
+	my_hook = (: remove_call_out :);
+	add_hook("remove", my_hook);
+    }
 }
 
 private void periodic() {
@@ -92,6 +99,10 @@ private void start_up() {
     if (per_flag) return;
     call_out( (: periodic :), 5);
     per_flag = 1;
+    if (!my_hook) {
+	my_hook = (: remove_call_out :);
+	add_hook("remove", my_hook);
+    }
 }
 
 // don't want people doing this to users ...
@@ -179,7 +190,10 @@ varargs int run_script(string scriptname, int rep)
     funcs[i] = "handle_script";
   funcs += ({"finished"});
   call_out_chain(funcs,s->delays[0],s->id, s);
-
+  if (!my_hook) {
+      my_hook = (: remove_call_out :);
+      add_hook("remove", my_hook);
+  }
 }
 
 int handle_script(int scriptid, class script s)
@@ -208,9 +222,8 @@ void finished(int id, class script s)
       funcs += ({"finished"});
       call_out_chain(funcs,s->delays[0],s->id, s);
     }
-}
-
-void remove()
-{
-    remove_call_out();
+  if (!my_hook) {
+      my_hook = (: remove_call_out :);
+      add_hook("remove", my_hook);
+  }
 }

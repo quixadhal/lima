@@ -1,0 +1,23 @@
+ 
+USAGE: people   or   p
+
+  This command is very similar to who, however; it shows
+a little differant information and is only available to wizards.
+
+p
+
+-------------------------------------------------------------------------
+                           L i m a   B e a n
+                  (PST is: Thu Sep 14 13:09:20 1995)
+-------------------------------------------------------------------------
+admin      Beek            0 I  /domains/std/wizroom
+wizard     Valodin         0 I  /domains/std/wizroom
+admin      Zifnab          0  E /domains/std/wizroom
+
+
+Shown above is position, name, (not sure what the 0 is), 
+whether or not the person is idle or editting, and where they are at.
+
+Beek and Valodin are both idling, Zifnab is edittingsomething.
+
+

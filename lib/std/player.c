@@ -18,7 +18,7 @@
 
 // Files we need to inherit --
 inherit MONSTER;
-inherit M_GRAMMAR;
+//inherit M_GRAMMAR;
 inherit M_ACCESS;
 
 inherit "/std/player/quests";
@@ -50,6 +50,7 @@ private string start_location;
 private string reply;
 private int more_chunk;
 private string * channel_list = ({ });
+private string plan;
 
 // part of patch for handling auto loading  -- Pere@ZorkMUD
 private string * auto_load = ({ });
@@ -58,9 +59,6 @@ private static object link;
 private static string cap_name;
 private static int catching_scrollback;
 
-
-/* this is so that players don't show up as (wielded) */
-string extra_short() { return 0; }
 
 // interfaces for other objects to manipulate our global variables
 
@@ -105,6 +103,26 @@ string query_start_location()
 	return start_location;
     return START;
 }
+
+
+#ifdef EVERYONE_HAS_A_PLAN
+
+nomask string query_plan()
+{
+    return plan;
+}
+
+nomask void set_plan(string new_plan)
+{
+    if ( this_body() != this_object() )
+	error("illegal attempt to set plan\n");
+
+    plan = new_plan;
+    save_me();
+}
+
+#endif /* EVERYONE_HAS_A_PLAN */
+
 
 // load info for auto_loading   -- Peregrin@ZorkMUD
 
@@ -549,7 +567,9 @@ private void create(string userid)
     messages = ([]);
 
     monster::create();
+#ifdef USE_STATS
     bodystats::create();
+#endif
 
     /*
     ** Both sets of flags can only be set by this_object() -- this

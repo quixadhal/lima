@@ -1,0 +1,14 @@
+
+USAGE:  which <cmd>
+
+This command will show you the path to the command you supply.
+
+Useful to see if you are executing a command out of your
+directory or the real command.
+
+which ls
+
+ls found in: /trans/cmds/
+
+
+

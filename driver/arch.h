@@ -7,6 +7,14 @@
 #define ARCH "Sequent DYNIX"
 #endif
 
+#ifdef WINNT
+#define ARCH "Microsoft Windows NT"
+#endif
+
+#ifdef WIN95
+#define ARCH "Microsoft Windows 95"
+#endif
+
 #ifdef _SEQUENT_
 #define ARCH "Sequent DYNIX/ptx"
 #endif

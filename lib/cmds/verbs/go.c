@@ -11,11 +11,11 @@ inherit VERB_OB;
 
 string *normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
 
-mixed can_go_word_obj(string prep, object ob) {
+mixed can_go_wrd_obj(string prep, object ob) {
     return 1;
 }
 
-void do_go_word_obj(string prep, object ob) {
+void do_go_wrd_obj(string prep, object ob) {
     ob->go(prep);
 }
 

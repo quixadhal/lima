@@ -2,6 +2,7 @@ asnoop 		user str*
 clean		[obj]
 clone		cfile
 dest		obj|user
+echoall		str
 echoto		user str*
 findfunc	str obj|user
 flist -i	obj|user
@@ -11,6 +12,7 @@ light		num
 move		obj obj
 review -cd	[user]
 scan -d		[obj|user]
+showtree	[str] cfile
 start		[obj]
 timer -r        num [str] [num]
 trans		obj|user

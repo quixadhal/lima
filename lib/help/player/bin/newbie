@@ -1,6 +1,6 @@
 $$ see: channels, chan, gossip
-USAGE:  newbie on | off      or
-        newbie list          or
+USAGE:  newbie /on | /off    or
+        newbie /list         or
         newbie <message>     or
         newbie ;<feeling>    or
         newbie :<emote>

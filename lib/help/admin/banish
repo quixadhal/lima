@@ -1,0 +1,21 @@
+
+USAGE: banish <site/name>
+
+This command will banish either a certain player, or
+in extreme cases a whole site.
+
+banish zifnab
+
+This would mean that Zifnab could no longer log onto the mud
+
+banish 129.188.147.100
+
+This would prevent anyone form that particular site to log onto the mud
+
+
+*****  NOTES
+
+This also can be achieved through the admin tool.
+Type admtool and choose option b from the menu.
+
+

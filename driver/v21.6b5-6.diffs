@@ -1,0 +1,146 @@
+diff -cr v21.6b5/ChangeLog.beta v21.6b6/ChangeLog.beta
+*** v21.6b5/ChangeLog.beta	Thu Aug 24 06:45:37 1995
+--- v21.6b6/ChangeLog.beta	Wed Aug 30 10:11:33 1995
+***************
+*** 1,3 ****
+--- 1,10 ----
++ Thu Aug 24 06:53:08 EDT 1995 (tim@handel.princeton.edu (Beek))
++ 	* raised patchlevel to v21.6b6
++ 	* crasher fix in loading objects with a .c.c suffix.  The current
++ 	  fix entails stripping multiple .c's off the end instead of just one.
++ 	* edit_source -configure now checks if the configure.h file needs to
++ 	  be remade due to new config checks
++ 
+  Mon Aug 21 03:18:45 EDT 1995 (tim@handel.princeton.edu (Beek))
+  	* raised patchlevel to v21.6b5
+  	* fixed a crasher in parse_command() [reported by Magician]
+diff -cr v21.6b5/GNUmakefile v21.6b6/GNUmakefile
+*** v21.6b5/GNUmakefile	Mon Aug 21 03:18:37 1995
+--- v21.6b6/GNUmakefile	Wed Aug 30 09:43:31 1995
+***************
+*** 110,118 ****
+  	mv y.tab.c make_func.tab.c
+  
+  configure.h: edit_source
+! 	if test ! -f configure.h; then \
+! 	    ./edit_source -configure; \
+! 	fi
+  
+  $(OBJDIR)/edit_source.o: edit_source.c preprocess.c cc.h
+  
+--- 110,116 ----
+  	mv y.tab.c make_func.tab.c
+  
+  configure.h: edit_source
+! 	./edit_source -configure
+  
+  $(OBJDIR)/edit_source.o: edit_source.c preprocess.c cc.h
+  
+diff -cr v21.6b5/Makefile.master v21.6b6/Makefile.master
+*** v21.6b5/Makefile.master	Mon Aug 21 03:18:10 1995
+--- v21.6b6/Makefile.master	Wed Aug 30 09:43:47 1995
+***************
+*** 138,146 ****
+  	mv y.tab.c make_func.tab.c
+  
+  configure.h: edit_source
+! 	if test ! -f configure.h; then \
+! 	    ./edit_source -configure; \
+! 	fi
+  
+  %ifdef GNU
+  $(OBJDIR)/edit_source.o: edit_source.c preprocess.c cc.h
+--- 138,144 ----
+  	mv y.tab.c make_func.tab.c
+  
+  configure.h: edit_source
+! 	./edit_source -configure
+  
+  %ifdef GNU
+  $(OBJDIR)/edit_source.o: edit_source.c preprocess.c cc.h
+diff -cr v21.6b5/edit_source.c v21.6b6/edit_source.c
+*** v21.6b5/edit_source.c	Mon Aug 21 03:18:35 1995
+--- v21.6b6/edit_source.c	Wed Aug 30 09:50:44 1995
+***************
+*** 1,3 ****
+--- 1,5 ----
++ #define CONFIGURE_VERSION	1
++ 
+  #define EDIT_SOURCE
+  #define NO_MALLOC
+  #define NO_SOCKETS
+***************
+*** 1223,1230 ****
+--- 1225,1248 ----
+      else printf(" does not exist\n");
+  }
+  
++ static int check_configure_version() {
++     char buf[1024];
++     FILE *ct;
++     
++     ct = fopen("comptest.c", "w");
++     fprintf(ct, "#include \"configure.h\"\n\n#if CONFIGURE_VERSION < %i\nthrash and die\n#endif\n\nint main() { }\n", CONFIGURE_VERSION);
++     fclose(ct);
++     
++     sprintf(buf, "%s %s comptest.c -o comptest >/dev/null 2>&1", COMPILER, CFLAGS);
++     return !system(buf);
++ }
++ 
+  static void handle_configure() {
++     if (check_configure_version()) return;
++ 
+      open_output_file("configure.h");
++     fprintf(yyout, "#define CONFIGURE_VERSION	%i\n", CONFIGURE_VERSION);
++ 
+      check_include("INCL_STDLIB_H", "stdlib.h");
+      check_include("INCL_UNISTD_H", "unistd.h");
+      check_include("INCL_TIME_H", "time.h");
+diff -cr v21.6b5/patchlevel.h v21.6b6/patchlevel.h
+*** v21.6b5/patchlevel.h	Mon Aug 21 03:18:45 1995
+--- v21.6b6/patchlevel.h	Thu Aug 24 06:53:08 1995
+***************
+*** 1 ****
+! #define PATCH_LEVEL "v21.6b5"
+--- 1 ----
+! #define PATCH_LEVEL "v21.6b6"
+diff -cr v21.6b5/simulate.c v21.6b6/simulate.c
+*** v21.6b5/simulate.c	Mon Aug 21 03:18:05 1995
+--- v21.6b6/simulate.c	Wed Aug 30 10:10:15 1995
+***************
+*** 300,309 ****
+  	if (last_c == '/' && *src == '/') return 0;
+  	last_c = (*p++ = *src++);
+      }
+!     if (p - dest > 2 && p[-1] == 'c' && p[-2] == '.') 
+! 	p[-2] = 0;
+!     else
+! 	*p = 0;
+      return 1;
+  }
+  
+--- 300,323 ----
+  	if (last_c == '/' && *src == '/') return 0;
+  	last_c = (*p++ = *src++);
+      }
+! 
+!     /* In some cases, (for example, object loading) this currently gets
+!      * run twice, once in find_object, and once in load object.  The
+!      * net effect of this is:
+!      * /foo.c -> /foo [no such exists, try to load] -> /foo created
+!      * /foo.c.c -> /foo.c [no such exists, try to load] -> /foo created
+!      *
+!      * causing a duplicate object crash.  There are two ways to fix this:
+!      * (1) strip multiple .c's so that the output of this routine is something
+!      *     that doesn't change if this is run again.
+!      * (2) make sure this routine is only called once on any name.
+!      *
+!      * The first solution is the one currently in use.
+!      */
+!     while (p - dest > 2 && p[-1] == 'c' && p[-2] == '.') 
+! 	p -= 2;
+! 
+!     *p = 0;
+      return 1;
+  }
+  

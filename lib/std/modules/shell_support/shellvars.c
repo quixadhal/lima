@@ -6,7 +6,8 @@ private static mapping variables = ([]);
 private static mapping set_var_hooks = ([]);
 
 
-DOC(setup_for_save,"Sets up M_SAVE to save some variables")
+//:FUNCTION setup_for_save
+//Sets up M_SAVE to save some variables
 void setup_for_save()
 {
     /*
@@ -22,13 +23,20 @@ int is_variable(string var)
   return !undefinedp(variables[var]);
 }
 
-static void
+void
 set_variable(string var, mixed value)
 {
   variables[var] = value;
   this_object()->save();
   if(set_var_hooks[var])
     evaluate(set_var_hooks[var], value);
+}
+
+void
+unset_variable(string var)
+{ 
+    map_delete(variables, var);
+    this_object()->save();
 }
 
 static void

@@ -22,9 +22,7 @@
 #include "scratchpad.h"
 #include "preprocess.h"
 #include "md.h"
-/* whashstr */
 #include "hash.h"
-/* legal_path */
 #include "file.h"
 
 #define NELEM(a) (sizeof (a) / sizeof((a)[0]))
@@ -875,7 +873,7 @@ static void handle_pragma P1(char *, str)
 	    return;
 	}
     }
-    yywarn("Uknown #pragma, ignored.");
+    yywarn("Unknown #pragma, ignored.");
 }
 
 char *show_error_context(){
@@ -1454,6 +1452,13 @@ int yylex()
 		    case 'e': yylval.number = '\x1b'; break;
 		    case '\'': yylval.number = '\''; break;
 		    case '\\': yylval.number = '\\'; break;
+		    case '\n':
+			yylval.number = '\n';
+			current_line++;
+			total_lines++;
+			if ((outp = last_nl + 1))
+			    refill_buffer();
+			break;
 		    default: 
 			yywarn("Unknown \\x character.");
 			yylval.number = *(outp - 1);
@@ -1485,7 +1490,9 @@ int yylex()
 		    rc = get_array_block(terminator);
 
 		    if (rc > 0) {
-			return *outp++;
+			/* outp is pointing at "({" for histortical reasons */
+			outp += 2;
+			return L_ARRAY_OPEN;
 		    } else if (rc == -1) {
 			lexerror("End of file in array block");
 			return LEX_EOF;
@@ -2155,6 +2162,8 @@ char *get_f_name P1(int, n)
     }
 }
 
+#define get_next_char(c) if ((c = *outp++) == '\n' && outp == last_nl + 1) refill_buffer()
+
 #define GETALPHA(p, q, m) \
     while(isalunum(*p)) {\
 	*q = *p++;\
@@ -2185,7 +2194,7 @@ static int cmygetc()
     int c;
 
     for (;;) {
-	c = *outp++;
+	get_next_char(c);
 	if (c == '/') {
 	    switch(*outp++){
 		case '*': skip_comment(); break;
@@ -2517,14 +2526,22 @@ static int expand_define()
 		case '\\':
 		    if (squote || dquote) {
 			*q++ = c;
-			c = *outp++;
-		    } break;
+			get_next_char(c);
+		    }
+		    break;
 		case '\n':
 		    if (outp == last_nl + 1) refill_buffer();
 		    if (squote || dquote) {
 			lexerror("Newline in string");
 			return 0;
-		    } break;
+		    }
+		    /* Change this to a space so we don't count it a variable
+		       number of times based on how many times it is used
+		       in the expansion */
+		    current_line++;
+		    total_lines++;
+		    c = ' ';
+		    break;
 		}
 		if (c == ',' && !parcnt && !dquote && !squote) {
 		    *q++ = 0;
@@ -2547,8 +2564,9 @@ static int expand_define()
 		}
 		if (!squote && !dquote)
 		    c = cmygetc();
-		else
-		    c = *outp++;
+		else {
+		    get_next_char(c);
+		}
 	    }
 	    if (n == NARGS) {
 		lexerror("Maximum macro argument count exceeded");

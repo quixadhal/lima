@@ -15,6 +15,7 @@
 /* from M_GETTABLE */
 void set_dropmsg(string msg);
 
+void hook_state(string, string, int);
 
 private static string	wearmsg;
 private static int	is_on;
@@ -36,26 +37,23 @@ void
 set_is_on( int g )
 {
   is_on = g;
-  set_dropmsg(is_on ? "You'd have to remove it first.\n" : 0);
+  hook_state("extra_short", "being worn", is_on);
+  hook_state("prevent_drop", "You'll have to take it off first.\n", is_on);
 }
 
 
 int
 wear()
 {
-  if( is_on )
-	return write("But you're already wearing it!\n"), -1;
-
-  set_is_on(1);
-  return 1;  // A -1 will stop the default message from printing.
-
+    set_is_on(1);
+    this_body()->simple_action("$N $vwear a $o.\n", this_object());
 }
 
 /*
 ** Can't call this remove() because of the lib-dependent lfun
 */
 int
-remove_hook()
+remove_me()
 {
   if( !is_on )
 	return write("But it's already off!\n"),-1;
@@ -64,14 +62,8 @@ remove_hook()
   return 1;
 }
 
-string extra_short()
-{
-    return is_on ? "being worn" : 0;
-}
-
-nomask
-int
-prevent_drop()
-{
-  return is_on;
+mixed direct_wear_obj() {
+    if( is_on )
+	return "But you're already wearing it!\n";
+    return 1;
 }

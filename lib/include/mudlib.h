@@ -117,6 +117,8 @@
 #define M_BODY_STATS		"/std/modules/bodystats"
 
 #define M_WEARABLE		"/std/modules/wearable"
+#define M_SWITCHABLE		"/std/modules/switchable"
+#define M_LIGHTABLE		"/std/modules/lightable"
 #define M_ITEMS			"/std/modules/items"
 #define M_GETTABLE		"/std/modules/gettable"
 #define M_OPENABLE		"/std/modules/openable"

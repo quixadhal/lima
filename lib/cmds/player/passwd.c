@@ -23,7 +23,7 @@ private nomask void confirm_new_password(string s1, string s2)
     }
     else
     {
-	this_user()->set("password", s1);
+	this_user()->set_password(s1);
 	write("Password changed.\n");
     }
 

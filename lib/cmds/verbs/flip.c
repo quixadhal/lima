@@ -9,7 +9,7 @@ mixed can_flip_obj(object ob)
     return 1;
 }
 
-mixed can_flip_obj_word_obj(object ob1, string p, object ob2) {
+mixed can_flip_obj_wrd_obj(object ob1, string p, object ob2) {
     if (p == "for" || p == "to") return 1;
     return 0;
 }

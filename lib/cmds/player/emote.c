@@ -10,6 +10,13 @@ inherit M_GRAMMAR;
 private void main( string message )
 {
     string name;
+
+    if ( !message )
+    {
+	write("Emote what?\n");
+	return;
+    }
+
     name = this_body()->query_name();
     if (message[0] != '\'')
         message = punctuate(name + " " + message) + "\n";

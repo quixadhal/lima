@@ -7,7 +7,8 @@
 inherit CMD;
 
 
-private void main( string str ) {
-write("You echoall: "+str+"\n");
-shout(str+"\n");
+private void main(mixed * arg)
+{
+    write("You echoall: " + arg[0] + "\n");
+    shout(arg[0] + "\n");
 }

@@ -24,7 +24,9 @@ private static int command_number;
     
 
 // Returns a string or -1 if the item is no longer in your history
-DOC(get_nth_item, "returns the nth command if it's still in the history buffer.")
+
+//:FUNCTION get_nth_item
+//returns the nth command if it's still in the history buffer.
 nomask static mixed 
 get_nth_item(int n)
 {
@@ -69,7 +71,8 @@ get_nth_item(int n)
     return item;
 }
 
-DOC(add_history_item, "add a history item to a history buffer.")
+//:FUNCTION add_history_item
+//add a history item to a history buffer.
 static void 
 add_history_item(string item)
 {
@@ -95,22 +98,24 @@ add_history_item(string item)
     }
 }
 
-DOC(get_buffer_size, "returns the size of a history buffer.")
+//:FUNCTION get_buffer_size
+//returns the size of a history buffer.
 static int 
 get_buffer_size()
 {
   return buffer_size;
 }
 
-DOC(get_command_number, "returns how many commands have been added to the history.")
+//:FUNCTION get_command_number
+//returns how many commands have been added to the history.
 static int
 get_command_number()
 {
     return command_number;
 }
 
-DOC(get_ordered_history, "returns the history buffer in order of "
-    "least to most recent items")
+//:FUNCTION get_ordered_history
+//returns the history buffer in order of least to most recent items
 static string*
 get_ordered_history()
 {
@@ -155,7 +160,8 @@ allocate_history_buffer()
 }
 
 
-DOC(set_history_buffer_size, "sets the size of a history buffer.  -1 means no size limit.")
+//:FUNCTION set_history_buffer_size
+//sets the size of a history buffer.  -1 means no size limit.
 static int
 set_history_buffer_size(int s)
 {
@@ -173,8 +179,9 @@ create()
 }
 
 
-DOC(pattern_history_match, "returns the most recently added history item that matches "
-    "the regexp.  An implicit ^ is added to the beginning of the regexp.")
+//:FUNCTION pattern_history_match
+//returns the most recently added history item that matches
+//the regexp.  An implicit ^ is added to the beginning of the regexp.
 
 static string
 pattern_history_match(string rgx)

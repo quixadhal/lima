@@ -1,0 +1,15 @@
+
+USAGE:  rm < path/file >
+
+   This command will delete the named file from the directory.
+If only a file name is given, rm assumes the file is in your 
+current directory.
+
+rm /wiz/zifnab/harry.c
+
+will remove the file harry.c from my /wiz/zifnab
+
+rm harry.c 
+
+will remove harry.c from my current directory if it exists.
+

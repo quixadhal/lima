@@ -12,11 +12,6 @@ inherit LIVING;
  */
 inherit M_WIELDABLE;
 
-string extra_short() {
-    /* living has extra_short() too.  Make sure the right one is used */
-    return wieldable::extra_short();
-}
-
 mixed ob_state() {
     /* ob_state too.  Techinically, these are unecessary, but we'll be safe. */
     return wieldable::ob_state();
@@ -63,7 +58,6 @@ private static string* result_to_class = ({});
 void hb_off();
 void unwield();
 object get_target();
-int target_is_asleep();
 void panic();
 varargs void stop_fight(object);
 void heal_us(int);
@@ -77,14 +71,22 @@ create()
     unwield();
 }
 
+//:FUNCTION set_max_hp
+//Set the maximum number of hit points of a monster, and also set it's
+//hit points to the new max
 void set_max_hp(int x) {
     hp = max_hp = x;
 }
 
+//:FUNCTION set_hp
+//Set the hit points of a monster
+//see: set_max_hp
 void set_hp(int x) {
     hp = x;
 }
 
+//:FUNCTION print_result
+//Print the result of a round of combat
 void print_result( int res ) {
     string *msgs;
     string message;
@@ -104,11 +106,26 @@ void print_result( int res ) {
     }
 }
 
+//:FUNCTION target_is_asleep
+//Called with the person we are attacking is asleep or unconscious.  Default
+//behavior is to finish them off.
+
+/* Override this function if you want your monster to do something other
+ * than killing unconscious victims.  Rob them, etc ...
+ */
+void target_is_asleep()
+{
+    print_result(target->do_damage(RES_DISPATCH,"blow"));
+}
+
 /* This is the big honking "take a swing" subroutine.  Normally,
 it it called from heart_beat(), but can be called from elsewhere
 to implement multiple attacks, etc.  Note that the fight must
 already be started, though.  It takes a swing at the current
 target. */
+
+//:FUNCTION attack
+//Take a swing at the person we are attacking
 void attack() {
     int them, us;
     int diff;
@@ -157,6 +174,8 @@ void attack() {
 /* Pretend that our heartbeat has been on since hb_time, even though
  * it hasn't ... 
  */
+//:FUNCTION query_hp
+//Find the current number of hitpoints of a monster
 int query_hp() {
     if (hb_time) {
 	heal_us((time()-hb_time)/heal_rate);
@@ -164,21 +183,18 @@ int query_hp() {
     }
     return hp;
 }
+
+//:FUNCTION query_max_hp
+//Find the maximum number of hitpoints of a monster
 int query_max_hp()
 {
     return max_hp;
 }
 
+//:FUNCTION query_ghost
+//return 1 if the monster is dead
 int query_ghost() {
     if (hp==0) return 1;
-}
-
-/* Override this function if you want your monster to do something other
- * than killing unconscious victims.  Rob them, etc ...
- */
-void target_is_asleep()
-{
-    print_result(target->do_damage(RES_DISPATCH,"blow"));
 }
 
 void restart_heart();
@@ -190,6 +206,10 @@ void set_up_target();
  * attacker, then they will be.  We also take a swing, for good
  * measure :)
  */
+//:FUNCTION start_fight
+//Add someone to the list of people we are attacking.  If we were already
+//attacking them, make them the primary person we are attacking.  Then
+//take a swing at them.
 int start_fight(object who) {
     if (!(who->attackable())) return 0;
     if (who == target) return 1;
@@ -206,6 +226,8 @@ int start_fight(object who) {
     return 1;
 }
 
+//:FUNCTION attackable
+//return 1 if we can be attacked.
 int attackable() {
     return 1;
 }
@@ -213,6 +235,8 @@ int attackable() {
 /* Find someone to attack.  Return zero if we're dead or asleep or
  * have noone to attack.
  */
+//:FUNCTION get_target
+//Get someone to attack from our attackers list
 object get_target() {
     if (hp<=0) return 0;
     while ((!target || target->query_ghost() ||
@@ -230,6 +254,8 @@ object get_target() {
 void flee();
 void surrender();
 
+//:FUNCTION panic
+//Do something intelligent when we are about to die
 /* Override this function to have your monster do something else when it's
  * hp's get low. */
 void panic() {
@@ -237,11 +263,15 @@ void panic() {
     else surrender();
 }
 
+//:FUNCTION adjust_result
+//modify a combat result
 int adjust_result(int res)
 {
     return res;
 }
 
+//:FUNCTION query_wield_bonus
+//The bonus we get for fighting barehanded.  Usually negative (weapons help)
 int query_wield_bonus()
 {
     /* The default is for monsters not to fight well bare-handed. */
@@ -259,6 +289,8 @@ void knock_out();
  * '2' is a serious wound, and you shouldn't do more damage
  * than that.  3 == RES_KILL.  Use it to zap a player.
  */
+//:FUNCTION do_damage
+//Apply a combat result to us.
 int do_damage(int res, string kind) {
     int i;
     stunned = 0;
@@ -294,12 +326,16 @@ int do_damage(int res, string kind) {
 /* Be careful how you call this one.  It attacks the caller, which
  * might not be what you wan.
  */
+//:FUNCTION hit_living
+//Do some damage to a monster.  The monster then attacks previous_object()
 int hit_living(int res, string kind) {
     res = do_damage(res,kind);
     if (!target) start_fight(previous_object());
     return res;
 }
 
+//:FUNCTION switch_to
+//Make the specified target the primary target
 void switch_to(object who) {
     other_targets += ({ target });
     target = who;
@@ -307,6 +343,9 @@ void switch_to(object who) {
     set_up_target();
 }
 
+//:FUNCTION set_up_target
+//Set up some internal data structures which need to be changed when we
+//change targets
 void set_up_target()
 {
     if ( !weapon )
@@ -316,6 +355,8 @@ void set_up_target()
     combat_who = ({ this_object(), target });
 }
 
+//:FUNCTION query_weapon
+//return the weapon we are using.  The weapon will be us if we are unarmed.
 object query_weapon()
 {
     return weapon;
@@ -326,12 +367,18 @@ object query_weapon()
  * of your monster.  Return 1 of the monster shouldn't take a swing.
  * Return 2 if the monster should stop attacking. (useful for
  * surrender() */
+//:FUNCTION flee
+//Try to run away.
 void flee() {
 }
 
+//:FUNCTION flee
+//Try to run surrender
 void surrender() {
 }
 
+//:FUNCTION stop_hitting_me
+//remove the previous object from the target list
 void stop_hitting_me()
 {
     if (previous_object()==target)
@@ -344,6 +391,9 @@ void stop_hitting_me()
  * from attacking us.  stop_fight() or stop_fight(0) stops all
  * combat.
  */
+//:FUNCTION stop_fight
+//stop fighting with object ob (handles making sure they stop fighting
+//with us too).  stop_fight(0) stops all fights.
 varargs void stop_fight(object who)
 {
     if (!who)
@@ -364,6 +414,8 @@ varargs void stop_fight(object who)
 
 /* Call the following to make your monster do the appropriate thing */
 
+//:FUNCTION wield
+//wield the specified object
 void wield(object ob)
 {
     weapon = ob;
@@ -378,6 +430,9 @@ void wield(object ob)
 	weapon_bonus = weapon->query_wield_bonus(target);
 }
 
+//:FUNCTION do_wield
+//wield the specified object, as well as checking if it is valid and printing
+//the appropriate message
 int do_wield(object ob) {
     if (!(ob->valid_wield())) return 0;
     simple_action(ob->query_wield_message(), ob);
@@ -385,30 +440,42 @@ int do_wield(object ob) {
     return 1;
 }
 
+//:FUNCTION unwield
+//stop wielding the weapon we were wielding
 void unwield() {
     if (weapon)
 	weapon->mark_wielded_by(0);
     wield(this_object());
 }
 
+//:FUNCTION vaporize
+//remove the corpse in a puff of black smoke
 void vaporize() {
     simple_action("Soon after $n $vhave breathed $p last, $p body disappears in a puff of black smoke.\n");
     destruct(this_object());
 }
 
+//:FUNCTION die
+//Kick the bucket.
 void die() {
     hp = 0;
     call_out("vaporize", 1);
 }
 
+//:FUNCTION stun
+//Stun us
 void stun() {
     stunned = 1;
 }
 
+//:FUNCTION wake_up
+//Wake up after being asleep or stunned
 void wake_up() {
     if (hp<0) hp = -hp;
 }
 
+//:FUNCTION knock_out
+//Knock us out
 void knock_out() {
     if (hp>0) hp = -hp;
     chance = 0;
@@ -430,28 +497,37 @@ void heart_beat() {
     attack();
 }
 
-
+//:FUNCTION hb_off
+//Turn our heartbeat off, and save the time for updating things later
 void hb_off() {
     set_heart_beat(0);
     hb_time = time();
 }
 
+//:FUNCTION restart_heart
+//Turn our heart back on, and do any healing which should have occured
 void restart_heart() {
     heal_us((time() - hb_time)/heal_rate);
     set_heart_beat(1);
 }
 
+//:FUNCTION heal_us
+//Heal us a specified amount, truncating at max_hp
 void heal_us(int amt) {
     hp += amt;
     if (hp>max_hp) hp = max_hp;
 }
 
+//:FUNCTION wear_ob
+//start wearing a piece of armor
 /* if set_worn() returns 1, the armor wants to modify hits */
 void wear_ob(object ob) {
     if (ob->set_worn(this_object()))
 	armors += ({ ob });
 }
 
+//:FUNCTION remove_ob
+//stop wearing a piece of armor
 void remove_ob(object ob) {
     if (ob->set_worn(0))
 	armors -= ({ ob });

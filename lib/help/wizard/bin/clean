@@ -1,0 +1,11 @@
+
+USAGE:  clean
+
+     This command will destroy everything in your 
+environment if executed with no args. If
+given an argument it will destroy all objects in that object.
+Especially useful when a pesky wizard or two clone 20 barney's in your 
+workroom.
+ 
+SEE ALSO: dest, clone
+ 

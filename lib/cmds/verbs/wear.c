@@ -15,11 +15,10 @@ void do_wear_obj(object ob)
 	return;
 
     ob->wear();
-    this_body()->simple_action("$N $vwear $o.\n", ob);
 }
 
-mixed *query_verb_rules() {
-    return ({ "OBJ" });
+mixed *query_verb_info() {
+    return ({ ({ "OBJ" }) });
 }
 
 	

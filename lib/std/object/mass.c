@@ -4,6 +4,8 @@
 
 private int	mass;
 
+//:FUNCTION set_mass
+//Change the mass of an object
 static
 void
 set_mass( int m )
@@ -15,11 +17,16 @@ set_mass( int m )
 	env->update_capacity();
 }
 
-void set_weight( int m ) // for back compat
+//:FUNCTION set_weight
+//calls set_mass() for compat reasons
+void set_weight( int m )
+//### for back compat
 {
   set_mass( m );
 }
 
+//:FUNCTION query_mass
+//returns the mass of an object
 int query_mass()
 {
   return mass;

@@ -24,7 +24,7 @@ private void main(string str) {
         if (stringp(data[m[i]])) {
             printf("%O -> %s\n", m[i], data[m[i]]);
         } else {
-            printf("%O -> %s\n      -> %s\n", m[i], data[m[i]][0], data[m[i]][1]);
+	    printf("%O -> %s\n", m[i], implode(data[m[i]], "\n\t-> "));
         }
     }
 }

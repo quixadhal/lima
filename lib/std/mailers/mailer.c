@@ -12,16 +12,15 @@
 #include <daemons.h>
 #include <playerflags.h>
 #include <mudlib.h>
-#include <mail.h>
+#include <classes.h>
 
 inherit M_ACCESS;
 inherit M_INPUT;
 
+inherit CLASS_MAILMSG;
+
 /* ### make it private so it can't be changed? */
 static object	mailbox_ob;
-
-private static mixed	to_list;
-private static string	subject;
 
 
 /*
@@ -83,23 +82,22 @@ static nomask string * format_name_list(string prompt, string * names)
 static nomask string * build_message(int mail_key, int supress_header)
 {
     string *	output;
+    class mail_msg msg;
+
+    msg = mailbox_ob->get_one_message(mail_key);
 
     output = ({});
     if ( !supress_header )
     {
-	mixed	headers;
-
-	headers = MAIL_D->get_headers( ({ mail_key }) )[0];
-
-	output += format_name_list("To     : ", headers[2]);
-	output += format_name_list("Cc     : ", headers[3]);
-	output += ({ "From   : " + capitalize(headers[0]) });
-	output += ({ "Date   : " + headers[4] });
-	output += explode(iwrap("Subject: " + headers[1]),"\n");
+	output += format_name_list("To     : ", msg->to_list);
+	output += format_name_list("Cc     : ", msg->cc_list);
+	output += ({ "From   : " + capitalize(msg->sender) });
+	output += ({ "Date   : " + ctime(msg->date) });
+	output += explode(iwrap("Subject: " + msg->subject),"\n");
 	output += ({ sprintf("%'-'39s","-") });
     }
 
-    output += MAIL_D->get_body(mail_key);
+    output += msg->body;
     output += ({ "" });
 
     return output;
@@ -129,9 +127,9 @@ static nomask void write_dead_letter(string * buf)
 ** Build an array of lines for the body of a message to be included into
 ** another message (prefixed with "> ")
 */
-static nomask string * build_body_inclusion(int mail_key)
+static nomask string * build_body_inclusion(string * body)
 {
-    return map_array(MAIL_D->get_body(mail_key), (: "> " + $1 :) );
+    return map_array(body, (: "> " + $1 :));
 }
 
 /*
@@ -139,7 +137,7 @@ static nomask string * build_body_inclusion(int mail_key)
 **
 ** Send a mail message to the given people.
 */
-static nomask int send_mail_message(string subject,
+private nomask void send_mail_message(string subject,
 				    string *buf,
 				    mixed to_list,
 				    mixed cc_list,
@@ -157,7 +155,7 @@ static nomask int send_mail_message(string subject,
 	write("No destination names.\n");
 	if ( use_dead_letter )
 	    write_dead_letter(buf);
-	return 0;
+	return;
     }
     
     if ( stringp(cc_list) )
@@ -175,12 +173,10 @@ static nomask int send_mail_message(string subject,
 	write("No valid destination.\n");
 	if ( use_dead_letter )
 	    write_dead_letter(buf);
-	return 0;
+	return;
     }
 
     write(implode(format_name_list("Mail sent to: ", name_list), "\n") + "\n");
-
-    return 1;
 }
 
 
@@ -237,7 +233,7 @@ static nomask void cmd_headers(string rangestr)
     string* output;
     int * mail_keys;
     mapping nums;
-    mixed * headers;
+    int key;
 
     output = ({});
 
@@ -264,61 +260,58 @@ static nomask void cmd_headers(string rangestr)
 	mail_keys -= ({ 0 });
     }
 
-    headers = MAIL_D->get_headers(mail_keys);
-    if ( sizeof(headers) != sizeof(mail_keys) )
-	return write("Bad range\n");
+    foreach ( key in mail_keys )
+    {
+	class mail_msg msg = mailbox_ob->get_one_message(key);
 
-    i = sizeof(headers);
-    for ( ; j < i; j++ )
 	output +=
-	({ sprintf("%c %-3d %-15s (%s) %s",
-	    mailbox_ob->query_message_read(mail_keys[j]) ? 'N' : ' ',
-	    nums[mail_keys[j]],
-	    capitalize(headers[j][0]),
-	    headers[j][4][0..9],
-	    headers[j][1]
-	  )
-	});
+	    ({ sprintf("%c %-3d %-15s (%s) %s",
+		       mailbox_ob->query_message_read(key) ? 'N' : ' ',
+		       nums[key],
+		       capitalize(msg->sender),
+		       ctime(msg->date)[0..9],
+		       msg->subject)
+		   });
+    }
 
     clone_object(MORE_OB)->more_string(output);
 }
 
 
-private nomask void mailer_get_subject(string arg)
+private nomask void mailer_get_subject(string to_list, string arg)
 {
-    subject = arg ? arg : "<none>";
+    string subject = arg ? arg : "<none>";
 
-    clone_object(EDIT_OB)->edit_file(tmp_fname(), "mailer_done_edit", 0);
+    clone_object(EDIT_OB)->edit_file(tmp_fname(),
+				     "mailer_done_edit",
+				     ({ to_list, subject }));
 }
 
-static nomask void cmd_mail(string arg)
+static nomask void cmd_mail(string to_list)
 {
     //Until a new maskable editor is in place, don't allow a null
     // to line.
-    if ( !stringp(arg) )
+    if ( !stringp(to_list) )
     {
 	write("No destination.\n");
 	return;
     }
 
-    to_list = arg;
     write("Subject: ");
-    modal_simple((: mailer_get_subject :));
+    modal_simple((: mailer_get_subject, to_list :));
 }
 
 
-
-nomask void mailer_get_cc_list(string cc_list)
+/* to_list is a string * or a string */
+nomask void mailer_get_cc_list(mixed to_list, string subject, string cc_list)
 {
     string * buf;
     string file;
 
     file = tmp_fname();
     buf = explode(read_file(file), "\n");
-    (void)send_mail_message(subject, buf, to_list, cc_list, 1);
+    send_mail_message(subject, buf, to_list, cc_list, 1);
 
-    to_list = 0;
-    subject = 0;
     rm(file);
 }
 
@@ -331,38 +324,43 @@ nomask void mailer_done_edit(mixed ctx, string fname)
 	return;
 
     write("Cc: ");
-    modal_simple((: mailer_get_cc_list :));
+    modal_simple((: mailer_get_cc_list, ctx[0], ctx[1] :));
 }
 
 
 static nomask void cmd_reply(int user_num, int reply_all)
 {
-    mixed body;
-    mixed replyh;
-    string file;
     int key;
+    class mail_msg msg;
+    mixed body;
+    string * to_list;
+    string subject;
+    string file;
 
     key = get_message_key(user_num);
-    if ( !key ) return;
+    if ( !key )
+	return;
 
-    replyh = MAIL_D->get_headers( ({ key }) );
-    replyh = replyh[0];
-    body = build_body_inclusion(key);
+    msg = mailbox_ob->get_one_message(key);
+
+    body = build_body_inclusion(msg->body);
     body = implode(body, "\n");
     body = sprintf("On %s %s wrote:\n%s\n",
-		   replyh[4],
-		   capitalize(replyh[0]),
+		   ctime(msg->date),
+		   capitalize(msg->sender),
 		   body);
 
-    subject = "Re: " + replyh[1];
+    subject = "Re: " + msg->subject;
 
-    to_list = ({ replyh[0] });
+    to_list = ({ msg->sender });
     if ( reply_all )
-	to_list = clean_array(to_list + replyh[2] + replyh[3]);
+	to_list = clean_array(to_list + msg->to_list + msg->cc_list);
 
     file = tmp_fname();
     write_file(file, body);
-    clone_object(EDIT_OB)->edit_file(file, "mailer_done_edit", 0);
+    clone_object(EDIT_OB)->edit_file(file,
+				     "mailer_done_edit",
+				     ({ to_list, subject }));
 }
 
 
@@ -414,23 +412,23 @@ static nomask void cmd_setcurrent(mixed arg)
 
 static nomask void cmd_forward(int user_num, string newto)
 {
-    int		key;
-    mixed	headers;
-    string *	body;
+    int			key;
+    string *		body;
+    class mail_msg	msg;
 
     key = get_message_key(user_num);
     if ( !key ) return;
 
-    headers = MAIL_D->get_headers( ({ key }) )[0];
+    msg = mailbox_ob->get_one_message(key);
 
-    body = build_body_inclusion(key);
+    body = build_body_inclusion(msg->body);
     body = ({"Begin forwarded message:",
 		 sprintf("On %s %s wrote:",
-			 headers[4],
-			 capitalize(headers[0]))
+			 ctime(msg->date),
+			 capitalize(msg->sender))
 	 }) + body;
 
-    (void)send_mail_message("FWD: " + headers[1],
+    send_mail_message("FWD: " + msg->subject,
 		      body,
 		      newto,
 		      ({ }),	/* cc_list */
@@ -446,5 +444,5 @@ void create()
 
 void remove()
 {
-  destruct(this_object());
+    destruct(this_object());
 }

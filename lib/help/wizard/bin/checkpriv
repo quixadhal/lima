@@ -1,0 +1,4 @@
+
+USAGE:  checkpriv < privilege >
+
+   This command will tell you whether or not you have a certain privilege.

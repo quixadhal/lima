@@ -1,284 +1,344 @@
-Deathblade converted all input handlers to use M_INPUT and fixed the imp of 
-    M_INPUT to make it more robust against changes in this_user() from call 
-    to call. 
+Beek added 'treefor' for driver types. Very similar to codefor. 
 
-Deathblade broke the alias menu out into /obj/aliasmenu.c 
+Zifnab redid the objects and room doc any suggestions, comments, or flames 
+    greatluy appreciated 
 
-Deathblade fixed somebody's addition of ADMTOOL to commands.h. It should 
-    have been CMD_OB_ADMTOOL. 
+Beek removed the M_GRAMMAR inherit from M_MESSAGES by substituting a 
+    prototype for punctuate() 
 
-Deathblade fixed the player menu's problems with [nwbti?l] commands. 
+Beek removed a M_GRAMMAR inherit from /std/player.c; it gets it via living. 
 
-Deathblade fixed a nasty security hole. Released 0.9r2-patch1. 
+Beek added a quick fix to /std/modules/grammar to keep pluralize from 
+    bailing when strlen(str) < 2 
 
-Deathblade fixed a problem with player shells. user ob was getting level 1, 
-    causing it become a wiz, causing /std/player to create a wizard shell 
-    (wish). user ob is no longer always set to level 1. 
+Rust added plans for anyone, w/ Yaynu's help 
 
-Deathblade fixed the converse command to not prepend say 
+Rust modified the home pages to be consistant w/ the current release, and 
+    set it up so that emacs' html-helper mode will automatically time-stamp 
+    the files properly. However, I couldn't write them back to the write 
+    place, so they're in ~lima/public_html. 
 
-Deathblade fixed the alias menu in the admtool. 
+Deathblade fixed mv. cleaned up the source, too. 
 
-Deathblade made the newsreader print the total number of msgs in a group on 
-    the group prompt line. 
+Deathblade fixed cp, too. Cleaned up its code, too... sigh 
 
-Deathblade fixed a bug in /std/modules/input.c for modal_simple(). it may 
-    not always have input_user defined. switched back to this_user() which 
-    should be fine, given modal_simple's semantics. 
+Beek made Harry blush when you kiss him. 
 
-Deathblade fixed addemote to pass its values thru fptrs rather than use 
-    global vars. Should prevent errors that were being seen due to 
-    simultaneous usage of the cmd. 
+Beek fixed a few bugs in treefor (efun handling). 
 
-Deathblade upgraded news_d (and company) to use classes for the posts. 
+Deathblade upgraded to v21.7a4 and tweaked a few files that had compilation 
+    problems (read: bad prototypes). I reorg'd the code and removed the 
+    prototypes (who needs 'em?). 
 
-Deathblade added a rudimentary post removal to the news daemon/reader 
+Deathblade added a small section to the Lima Web FAQ: why so many emotes? 
+    Comes complete with a chart :-) 
 
-Deathblade applied Robo's patch to the newsreader to enable <CR> at the 
-    main prompt to drop you out. 
+Beek added support for regexps in didlog. Try didlog <pattern> <optional 
+    number of days> 
 
-Deathblade modified finger.c to select a mud with an exact match rather 
-    than failing, saying it could match (foo or foobar) (i.e. you couldn't 
-    ever finger @foo) 
+Rust changed didlog so it uses glob-style patterns instead of regexps. 
 
-Deathblade removed some posts from lima.bugs... whew. only partway though. 
-    admins can remove any. a non-admin can remove their own (fyi). 
+Beek added support for multi-targetted emotes. 
 
-Deathblade added a first pass at stats. see /std/modules/bodystats. see the 
-    "stats" command. 
-
-Deathblade wanted to mention you can generate stats for yourself with: 
-    @.me->init_stats() 
-
-Deathblade added a "todo" command 
-
-Deathblade removed /std/ghost.c. 'nuf said. 
-
-Beek added M_ACCESS inherit and an set_priv to the file created in 
-    exec_code() priv 1 evals actually have priv 1. If your eval.h has 
-    M_ACCESS in it, you'll need to remove that now. 
-
-Deathblade removed the level concept. We will move towards a string naming 
-    a wiz's "position" in the mud instead. level 0/1 for player/wiz is now 
-    detected via SECURE_D. 
-
-Deathblade rebuilt the driver with NO_WIZARD. added a wizardp() simul. 
-    removed enable/disable wizards. hacked some minor body fname stuff for 
-    now. 
-
-Deathblade fixed up code throughout the lib to deal without levels. several 
-    simuls were removed. some optimized. 
-
-Deathblade modified the admtool's user menu to alter the wiz/dewiz feature. 
-    it now forces an su. it no longers sets a level. 
-
-Deathblade fixed auto-wiz. It now creates a "real" wizard in the SECURE_D. 
-
-Beek fixed nicknames to add the id when you log in, so they work again. 
-
-Beek added a -v flag to the parse command for the really super spammy debug 
-    info; it'll work as soon as we're on a driver with DEBUG enabled. 
-
-Beek modified ansi() in M_ANSI to have an optional second arg which 
-    indicates who the message is for. 
-
-Beek added made 'Foo tells you' come out in bold if you have ansi on. 
-
-Deathblade improved admtool's internal structure. altered some priv checks. 
-    added the "domain admin" menu. other small tweaks/improvements to it. 
-
-Deathblade created a "checkpriv" command to verify if you are operating 
-    with a particular privilege. 
-
-Beek added %^SAVE%^, %^RESTORE%^ and %^HOME%^ to M_ANSI 
-
-Deathblade removed GROUP_D->adminp() usage. admin status is now defined by 
-    membership within the Admin domain. 
-
-Ohara wrote up ~ohara/stats which is a suggested breakdown of the secondary 
-    stats .. feedback to DB 
-
-Yaynu made a basic weather-daemon 
-
-Deathblade broke the player shell out of the body into PLYR_SHELL 
-    (/obj/pshell). fixed up save and destroy of shell obs. 
-
-Rust added [idle] to your in_room_desc if you've been idle for 2 minutes or 
-    more 
-
-Beek added a bodies() simul 
-
-Rust changed master::object_name to say: "rust's body" instead of NPC 
-
-Ohara wrote a rough draft for some basic skills/catagories .. 
-    comments/suggestions to lima.ideas pls .... 
-
-Deathblade thrashed hard on mudlist.c. displays mudlib by default now. use 
-    -t to display type instead (old behavior). filters muds to display only 
-    UP muds. use -a to display all muds. internally it now has a flexible 
-    system for selecting columns and widths of stuff to display. 
-
-Yaynu READ THE LIMA WWW PAGE AT: http://lima.imaginary.com 
-
-Beek changed whisper to a verb, as a test case. Also modified it to use the 
-    message module. 
-
-Beek added 'whisper to LIV STR' and 'whisper STR to LIV' 
-
-Deathblade removed cwf and pwd from /std/dev. they are now part of wish.c. 
-    modified appropriate commands/files. 
-
-Deathblade modified the start up and reconnect of the shell ob. much 
-    simpler now. 
-
-Deathblade fixed the su problem with shells. 
-
-Deathblade wanted to note that aliases work at the first cmd now, due to 
-    the restructuring of shell startup/teardown/reconnect. Prompt is 
-    forthcoming :-) 
-
-Deathblade obsoleted /std/dev. /std/player is now used for players and 
-    wizzes. just the shell is different. moved DEV funcs to 
-    /std/player/wizfuncs.c. note the order of operations at login is 
-    changed: move to room, enter game, channel signup for new users, dump 
-    DID data, run .login, look. 
-
-Deathblade worked on the login sequence to separate character creation from 
-    login. more of it uses modal_xxx now. 
-
-Deathblade updated MORE_OB and M_ANSI to deal with no body/shell. 
-
-Deathblade updated some of the query/set functions for the user ob. Also 
-    changed plmenu and player/title. 
-
-Deathblade wrote the didlog command. Some related changes in DID_D and 
-    player.c. Format is: didlog num_days (num_days defaults to 1 day). It 
-    will print the changes over the past num_days. 
-
-Deathblade moved the logon DID_D report after the look because the "more" 
-    doesn't block until completion, meaning you can get a "look" in between 
-    your more prompts. 
-
-Deathblade implemented the return_to_func in the input system. This 
-    function is called whenever your input handler is returned to (after 
-    another handler was popped). 
-
-Beek updated /std/book.c to interact correctly with the parser 
-
-Azy can't type, strange keyboard... 
-
-Deathblade added a query_history() warning for the persion queried 
-
-Rust ripped out Deathblade's query_history code, as he hadn't finished it, 
-    and I felt like pissing him off. 
-
-Beek added code to the did_d to verify that what gets reported actually 
-    happened. 
-
-Deathblade tweaked the history warning. only admins get it. 
-
-Rust changed it so it says: You have left mudname instead of you have left 
-    the game 
-
-Beek added /ftp/incoming (for mudlib submissions), and moved a bunch of 
-    files there, since the mail level of /ftp can get rather crowded. 
-
-Beek added support for default exit behavior. Doc forthcoming. 
-
-Beek added the doc in /help/wizard/lib/std/room or something like that 
-
-Deathblade installed Aldernon's new rooms. Thanx, Aldernon! 
-
-Deathblade revised the login code to use the modal input system. Cleaner. 
-    Prompt now appears on login/reconnect. 
-
-Deathblade made modal_recapture() static. Should only be used at startup 
-    and internally by the input system. Removed from M_INPUT. 
-
-Deathblade fixed a problem in the login sequence where you would mistype a 
-    name twice and it would begin to log you in as that name. The new input 
-    mechanisms helped this a lot. Also fixed some problems related to early 
-    termination of the login sequence and call_outs. 
-
-Zifnab fixed the problem with the listing of souls through the menu 
-
-Beek re-added the 'laugh' emote. Anyone have any idea where it went? 
-
-Zifnab started adding help files for some wiz cmds 
-
-Zifnab didnt get as far as i would of liked tonight will contnue tomorrow 
+Beek added rumble LIV LIV and karate LIV LIV; definately worth trying out 
     :) 
 
-Deathblade added a check for NO_WIZARDS to check_config.c. 
+Beek noticed BeekMUD only has 420 emotes. Time to upgrade ... 
 
-Deathblade updated master::valid_bind() and dbxvars to apply restrictions 
-    to variable inspection. valid_bind() is now a bit more lenient. 
+Beek added the nounverb3 emote, showing how useful WRD can be :) 
 
-Beek added number_of() to M_GRAMMAR. number_of(2, "dog" ) -> "2 dogs" 
+Beek added a verbs command for wizards 
 
-Beek added support for idle time in hours and days 
+Rust changed the mixin help dir to modules. 
 
-Beek I fixed announce to use correct grammar 
+Deathblade upgraded us to 7a5 to fix this and that... 
 
-Deathblade fixed a problem with logging in a second time and taking over 
-    your body 
+Deathblade shorted the MOTD by moving a couple items to help topics. Feel 
+    free to review/edit/comment. new topics: release, donate 
 
-Rust added a truncate simul_efun that truncates a string to a specified 
-    length and adds an elipsis ( "..." ) and then used it in who because 
-    Yaynu was being really obnoxious about long titles. 
+Beek changed soul_d to not try to do * expansion on the 'real names' 
+    portion of the arg list. 
 
-Rust reworked the in_room_desc code in player.c some so that when you 
-    truncate the desc, you don't truncate the idle info. 
+Deathblade switched us to 7a6. 
 
-Earendil env 
+Deathblade completed an initial imp of user_d.c with some test vars. will 
+    be used in finger_d and a couple other cmds. 
 
-Rust fixed the Bill the Cat Graphic for ack 
+Beek changed profile <no args> to print the top ten programs. 
 
-Deathblade fixed M_GRAMMAR to include some special cases that the driver 
-    doesn't know about yet 
+Deathblade tweaked the mudlib's override of pluralize() to fix a case for a 
+    particular emote that was added today. 
 
-Deathblade revised a lot of the user/body system for mud entry. 
+Deathblade added emote "666" as the 666th Lima Mudlib emote. :-) 
 
-Beek removed /std/object/non_object.c 
+Deathblade updated USER_D some more: added new vars, changed API a bit, 
+    commented, pre-flighted priv checks 
 
-Beek put non_object.c back :) 
+Deathblade fixed FINGER_D to report information via USER_D and the mailbox 
+    APIs (added a new func to the mbox, too). Finger now works really well. 
 
-Deathblade shifted the room's weather code to /std/room/weather. changed 
-    WEATHER_D some to make it a bit more efficient. 
+Beek changed get_item_desc() to evaluate() the value and return the result 
 
-Deathblade fixed a couple problems in edit_ob dealing with ~r and ~w 
+Beek added a format_string() simul to the strings simuls for doing "x, y, 
+    and z" and "x, y, or z" 
 
-Beek added an obscene number of new emotes. 
+Beek changed format_string to format_list to correct a brain-o. 
 
-Deathblade fixed trim_spaces() so it doesn't barf on empty strings or 
-    all-white-space strings. 
+Deathblade cleaned up the mail system to use "correct" data flow. mailbox, 
+    mail_d, classes/mail_msg, and the mailers 
 
-Deathblade added a "random [ LIV ]" command for producing random emotes 
-    (possibly targetted) 
+Deathblade fixed it so that admins cannot be forced. 
 
-Deathblade worked on stats some more. stats use the Official Ohara 
-    Percentages[tm]. con and wis now support racial modifiers. 
+Beek fixed the message module to allow (1) an arbitrary number of objects 
+    and actors, (2) correct pronouns no matter how many of them are 
+    aliased, and (3) improved reflexive support. 
 
-Beek added $np, $tp: propper name 
+Beek fixed the message module to do reflexification correctly. See the news 
+    post for details. 
 
-Rust added do_read_word_str() support to read, so that it assumes what you 
-    want to read from if it's clear. 
+Beek added a missing #ifdef USE_STATS around the call to 
+    bodystats::create() 
 
-Rust made it so openable assigns the adjectives "open" and "closed" to an 
-    object at the right time 
+Beek fixed the bug (in /std/shell) that would give you an error if your 
+    command consisted entirely of spaces. 
 
-Rust changed the call to ob->extra() to ob->extra_short() in inv_list() 
-    sefun 
+Rust added yaynu's ansi command in 
 
-Rust changed all _prep_'s I could find to _word_ 
+Rust left the Zork people a gift on ZorkMUD. See if you can find the gift. 
 
-Deathblade tweaked some logic in more_ob to avoid a driver bug. that ob 
-    needs more help, though. 
+Yaynu added ansi controls to player menu. 
 
-Deathblade fixed Rust's non-loading version of M_OPENABLE. :-) 
+Beek fixed barney; he was using $o $o2 instead of $o $o1 
 
-Deathblade fixed some AUTO_WIZ problems: new wizzies didn't actually get
-    their privs. After changing for correct privs, then needed to change
-    the force_me() calls in enter_game().
+Zifnab fixed a small bug in /cmds/wiz/home.c that wouldnt let you do home 
+    ohara 
 
-Deathbladed added NO_ENVIRONMENT check to check_config.c
+Zifnab added yaynus ansi option to the personal information of the menu 
+
+Zifnab also added mudinfo to the wizard menu 
+
+Beek fixed a bug in $Ts handling. 
+
+Beek changed && usage in addemote slightly; 'x' and 'x && y' work the same 
+    as they used to, but you can now do: 'foryou && forothers && fortarget1 
+    [&& fortarget2 ...]' 
+
+Beek fixed a bug that would cause errors in the default rule of some 
+    targetted emotes. 
+
+Rust moved all the stuff that doesn't load in /std to /std/broken by 
+    Calin's request. 
+
+Ohara added a small present for the Zorkmud folks over on zorkmud too, even 
+    more obscure than Rusts is (What the Hell IS it, rust ... ;) 
+
+Rust wanted Ohara to know it's the old login screen, duh =) 
+
+Beek fixed the verbs command to filter out emotes based on individual rules 
+
+Beek made log_error() in the master private 
+
+Beek changed log_error() back :-) 
+
+Beek fooled with the formatting of compilation errors a bit; it now prints 
+    out the src line. Comments appreciated on the format. 
+
+Beek fixed /std/shadow.c and moved it back to /std 
+
+Beek fixed the error reporting to handle tabs correctly 
+
+Beek fixed the handling of long lines and multiple instances of the context 
+    in the error code 
+
+Beek reformatted the errors yet again :-) 
+
+Zifnab added a -f flag to people to show the file name, defaults to the 
+    short of the room 
+
+Zifnab hace finished documenting the wiz commands, it is very rough and 
+    needs some cleaning up but the cmds are there :) 
+
+Zifnab need to clarify that the cmds in /cmds/wiz 
+
+Beek removed get_fakeobj() and parse_item_desc() from items.c 
+
+Beek made direct_get_obj() in /std/object/vsupport.c check for fake items. 
+
+Beek moved direct_get_obj()'s handling of containment to container.c and 
+    out of vsupport; it was duplicated for the most part 
+
+Beek fixed living.c to say He/She/It is carrying 
+
+Beek fixed the safe typo 
+
+Rust fixed the people bug 
+
+Beek added a check for "open" by itself in /trans/ob/telnet_ob 
+
+Beek fixed the 'exits' doc to not use Amylaar style closure syntax 
+
+Beek removed the player 'exits' command, as it was added over a year ago 
+    because there were no room descriptions on the example area on Zork at 
+    the time; obviously distribution libs don't need such a command, as it 
+    would show hidden exits, etc. 
+
+Beek added the 'showtree' command for figuring out inheritance trees. 
+
+Beek added a way to find out all the instances of a function in an 
+    inheritance tree; try: showtree the_short /std/player.c 
+
+Beek changed the soul_d so that if a verb has a "WRD" rule, the word MUST 
+    be and adverb; this allows such rules to not conflict with existing 
+    game verbs of the same name 
+
+Beek removed the valid_object() in master, since DOC_D no longer needs it 
+
+Beek rewrote the doc_d; it's pretty simple now; comments are welcome. Right 
+    now it does the sweep after the mud has been up 24 hrs (and every 
+    following 24 hours) 
+
+Beek made it so that all lines that begin with //### get logged to 
+    /help/autodoc/FIXME 
+
+Beek updated most of the mudlib to use the new doc syntax 
+
+Beek fixed a bug that would cause two messages to be delivered if you were 
+    both targets of a doubly targetted emote 
+
+Beek documented the functions in M_MESSAGES 
+
+Beek added a hook module; see /std/object/hooks.c 
+
+Beek fixed some incorrect handling of extra_short() in inv_list() 
+
+Beek changed remove_hook() to remove_me() in WEARABLE; the former conflicts 
+    with the hooks module 
+
+Beek used the hook module to actually solve the extra_short() problem in an 
+    elegant way ... 
+
+Beek made extra_long() use hooks as well 
+
+Beek changed prevent_get()/prevent_drop() to be done using hooks 
+
+Beek made remove call the remove hooks, which means M_ACTIONS doesn't need 
+    a remove() function 
+
+Beek made prevent_open and prevent_lock into hooks 
+
+Beek made locked and key_type private in M_LOCKABLE 
+
+Beek moved some of Zif's safe code to M_LOCKABLE 
+
+Beek made some more modifications to M_LOCKABLE to make it interact better 
+    with the parser, and handle (with key) assumptions correctly 
+
+Beek added a wish verb 
+
+Beek fixed a bunch of instances of _word_ instead of _wrd_ J found 
+
+Beek fixed inv_list()/short() to be more consistent about when to print 
+    extra_short()'s [now only printed in inv_list()s] 
+
+Beek fixed the wear verb to work again 
+
+Deathblade cleaned up /secure/user: moved more body handling into sw_body. 
+    moved plan stuff to the body. moved password handling into login.c. 
+    removed set(). removed title. 
+
+Beek changed extra_open()/extra_close() to the "open" and "close" hooks 
+
+Beek made <mudlib.h> get included from <global.h> 
+
+Beek added a M_SWITCHABLE module 
+
+Beek added M_LIGHTABLE 
+
+Beek suggest we upgraded to get around the parser crasher that keeps 
+    hitting us ... 
+
+Beek added /domains/std/lantern.c as an example of how to use LIGHTABLE and 
+    SWITCHABLE together 
+
+Beek fixed the hooks module to handled owner-dested fp's correctly 
+
+Beek added a "move" hookpoint when objects move 
+
+Beek made it so that call_hooks() can take arguments 
+
+Beek added //:HOOK to autodoc 
+
+Beek documented the lfuns in /std/container.c 
+
+Beek documented a number of objects in /std 
+
+Deathblade tweaked profile to not wrap a string 
+
+Deathblade added dump_to_file() to the NEWS_D. Will use it this week to 
+    clear out bugs. 
+
+Beek removed the call to evaluate_path() from valid_write(); the driver 
+    sends absolute paths and it's rather expensive 
+
+Beek put it back after thinking a bit more 
+
+Beek rewrote and optimized evaluate_path 
+
+Beek cleaned up some stuff in more_ob, including some sscanf()'s that could 
+    be replaced by indexing. Also fixed the adjacent %s%s bug. One notable 
+    change; searches in more are now regexps, not substrings 
+
+Beek made set_brief()/set_proper_name() handle function pointers 
+
+Deathblade removed the "emotions" alias for "feelings" . Use the real 
+    command or make a personal alias. 
+
+Deathblade removed the wiz "type" command, too. Use "which" if you want 
+    that functionality or make a personal alias. 
+
+Deathblade want to note that I removed the wiz "type" _alias_, not command. 
+
+Deathblade fixed a bug with punctuate( "  " ) 
+
+Deathblade updated rules and code for some various commands: echoall, 
+    parse, spew, shutdown, pipe 
+
+Deathblade updated help for channels 
+
+Deathblade changed the newsreader to use a more compact message line format 
+    in many cases. 
+
+Deathblade made /secure/modules/login::set_password non-private so you can 
+    actually use "passwd" to change it :-) 
+
+Deathblade removed a gazillion lima.bugs posts. 
+
+Deathblade fixed a small bug in the "emote" command w/o an arg. 
+
+Deathblade incorporated Ranma's logging of logins/outs 
+
+Deathblade folded in Ranma's logging of force cmds 
+
+Rust reworked the banish code a bit... It'll log a reason if you provide 
+    one. Site banishing works. it's now banish -n name [reason] or banish 
+    -s site [reason] or just banish to show current banishes. They both 
+    accept unix style wildcards. (cont) 
+
+Rust : The IP # must make a full match, but the name can partial match. Eg, 
+    banish -s *virginia* will banish everyone from any site w/ a virginia 
+    it, but only banish -n virginia is necessary to banish all names w/ 
+    virginia as a substring. 
+
+Rust made it so you can only use lower case letters or a dash in a new name 
+    by banishing [^a-z-] 
+
+Beek noted that banishing *virginia* is a bad idea anyway, since it will 
+    quit working when the address server goes down; you're better off 
+    banishing ip numbers 
+
+Deathblade streamlined and incorporated Ranma's path commands: addpath, 
+    rmpath, showpath. Ranma wrote help for these, too, which has been 
+    installed. 
+
+Deathblade tweaked doc_d to create the doc is the last_time == 0 
+

@@ -226,6 +226,8 @@ inheritance:
 		inherit_t inherit;
 		int initializer;
 
+		$1 |= global_modifiers;
+		
 		ob = find_object2($3);
 		if (ob == 0) {
 		    inherit_file = alloc_cstring($3, "inherit");
@@ -310,6 +312,7 @@ identifier:
 def:
 	type optional_star identifier 
             {
+		$1 |= global_modifiers;
 		/* Handle type checking here so we know whether to typecheck
 		   'argument' */
 		if ($1 & TYPE_MOD_MASK) {
@@ -381,7 +384,14 @@ def:
 	    }
     |   inheritance
     |   type_decl
+    |   modifier_change
     ;
+
+modifier_change: type_modifier_list ':'
+            {
+		global_modifiers = $1;
+	    }
+     ;
 
 member_name:
         optional_star identifier
@@ -577,13 +587,13 @@ name_list:
 new_name:
 	optional_star identifier
 	    {
-		define_variable($2, current_type | $1, 0);
+		define_variable($2, current_type | $1 | global_modifiers, 0);
 		scratch_free($2);
 	    }
     |   optional_star identifier L_ASSIGN expr0
 	    {
 		parse_node_t *expr;
-		int type = (current_type | $1) & TYPE_MOD_MASK;
+		int type = (current_type | $1 | global_modifiers) & TYPE_MOD_MASK;
 
 		if ($3 != F_ASSIGN)
 		    yyerror("Only '=' is legal in initializers.");
@@ -601,7 +611,7 @@ new_name:
 
 		CREATE_BINARY_OP(expr, F_VOID_ASSIGN, 0, $4, 0);
 		CREATE_OPCODE_1(expr->r.expr, F_GLOBAL_LVALUE, 0,
-				define_variable($2, current_type | $1, 0));
+				define_variable($2, current_type | $1 | global_modifiers, 0));
 		generate(expr);
 		switch_to_block(A_PROGRAM);
 		scratch_free($2);
@@ -2515,12 +2525,11 @@ expr4:
 expr_or_block:
         block
             {
-		CREATE_TWO_VALUES($$, TYPE_NUMBER, $1.node, 0);
-		CREATE_NUMBER($$->r.expr, 0);
+		$$ = $1.node;
 	    }
     |   '(' comma_expr ')'
             {
-		$$ = $2;
+		$$ = insert_pop_value($2);
 	    }
     ;
 
@@ -2922,6 +2931,7 @@ cond:
 			parse_node_t *repl;
 			
 			CREATE_UNARY_OP(repl, F_NOT, TYPE_NUMBER, $3);
+			$3 = repl;
 			$5 = $6;
 			$6 = 0;
 		    }

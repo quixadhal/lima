@@ -10,4 +10,4 @@ USAGE:  showemote (soul)
 "LIV LIV" -> "$N $vjump up in the air and $vkick $n1 and $n2 simultaneously.
 "LIV STR" -> $N $vkick $t $o.
  
-see also: feelings, addemote, messages
+see also: feelings, addemote, messages, rmemote

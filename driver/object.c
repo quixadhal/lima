@@ -137,11 +137,7 @@ INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 		    *cp++ = '\\';
 		    *cp++ = c;
 		}
-#ifndef MSDOS
 		else *cp++ = (c == '\n') ? '\r' : c;
-#else
-		else *cp++ = (c == '\n') ? 30 : c;
-#endif
 	    }
 
 	    *cp++ = '"';
@@ -434,11 +430,7 @@ restore_interior_string P2(char **, val, svalue_t *, sv)
 
     while ((c = *cp++) != '"') {
 	switch (c){
-#ifndef MSDOS	    
 	case '\r':
-#else
-	case 30:
-#endif
 	    {
 		*(cp-1) = '\n';
 		break;
@@ -454,11 +446,7 @@ restore_interior_string P2(char **, val, svalue_t *, sv)
 			    if (!(*new++ = *cp++)) return ROB_STRING_ERROR;
 			}
 			else {
-#ifndef MSDOS
 			    if (c == '\r')
-#else
-			    if (c == 30)
-#endif
 				*new++ = '\n';
 			    else *new++ = c;
 			}
@@ -699,7 +687,8 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 	i = oi & mask;
 	if ((elt2 = elt = a[i])) {
 	    do {
-		if (sameval(&key, elt->values)){
+		/* This should never happen, but don't bail on it */
+		if (msameval(&key, elt->values)) {
 		    free_svalue(&key, "restore_mapping: duplicate key");
 		    free_svalue(elt->values+1, "restore_mapping: replaced value");
 		    *(elt->values+1) = value;
@@ -734,7 +723,6 @@ restore_mapping P2(char **,str, svalue_t *, sv)
 	elt = new_map_node();
 	*elt->values = key;
 	*(elt->values + 1) = value;
-	elt->hashval = oi;
 	(a[i] = elt)->next = elt2;
     }
 
@@ -964,11 +952,7 @@ restore_string P2(char *, val, svalue_t *, sv)
 
     while ((c = *cp++) != '"') {
         switch (c){
-#ifndef MSDOS
 	case '\r':
-#else
-	case 30:
-#endif
             {
                 *(cp-1) = '\n';
                 break;
@@ -984,11 +968,7 @@ restore_string P2(char *, val, svalue_t *, sv)
                             if (!(*new++ = *cp++)) return ROB_STRING_ERROR;
 			}
                         else {
-#ifndef MSDOS
                             if (c == '\r')
-#else
-                            if (c == 30)
-#endif
                                 *new++ = '\n';
                             else *new++ = c;
 			}
@@ -1248,7 +1228,7 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
     int len, i;
     FILE *f;
     int failed = 0;
-    char *use_name, *new_string, *p;
+    char *use_name, *new_str, *p;
     int free_use_name = 0, theSize;
     variable_t *var = ob->prog->variable_names;
     svalue_t *v = ob->variables;
@@ -1277,9 +1257,7 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
     if (!len) len = strlen(file);
     name = DXALLOC(len + strlen(SAVE_EXTENSION) + 1, TAG_TEMPORARY, "save_object: 1");
     (void)strcpy(name, file);
-#ifndef MSDOS
     (void)strcat(name + len, SAVE_EXTENSION);
-#endif
 
     /* we don't use file after this.  It's safe to free it. */
     if (free_use_name)
@@ -1289,10 +1267,12 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
      * they are on different file systems.
      */
     sprintf(tmp_name, "%s.tmp", name);
-#ifdef MSDOS
-    (void)strcat(name, SAVE_EXTENSION);
-#endif
+
+#ifdef WIN32
+    if (!(f = fopen(tmp_name, "wb"))){
+#else
     if (!(f = fopen(tmp_name, "w"))){
+#endif
 	FREE(name);
         error("Could not open /%s for a save.\n", tmp_name);
     }
@@ -1304,20 +1284,20 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
 
 	save_svalue_depth = 0;
 	theSize = svalue_save_size(v);
-	new_string = (char *)DXALLOC(theSize, TAG_TEMPORARY, "save_object: 2");
-	*new_string = '\0';
-	p = new_string;	
+	new_str = (char *)DXALLOC(theSize, TAG_TEMPORARY, "save_object: 2");
+	*new_str = '\0';
+	p = new_str;	
 	save_svalue(v++, &p);
-	if (save_zeros || strcmp(new_string,"0")) /* Armidale */
-	    if (fprintf(f, "%s %s\n", var->name, new_string) == EOF) failed = 1;
-	FREE(new_string);
+	if (save_zeros || strcmp(new_str,"0")) /* Armidale */
+	    if (fprintf(f, "%s %s\n", var->name, new_str) == EOF) failed = 1;
+	FREE(new_str);
 	var++;
     }
     if (failed) 
 	debug_message("Failed to completely save file. Disk could be full.\n");
     else {
 	(void) fclose(f);
-#ifdef OS2
+#ifdef WIN32
         /* Need to erase it to write over it. */
         unlink(name);
 #endif
@@ -1355,15 +1335,15 @@ char *
 save_variable P1(svalue_t *, var)
 {
     int theSize;
-    char *new_string, *p;
+    char *new_str, *p;
     
     save_svalue_depth = 0;
     theSize = svalue_save_size(var);
-    new_string = new_string(theSize - 1, "save_variable");
-    *new_string = '\0';
-    p = new_string;
+    new_str = new_string(theSize - 1, "save_variable");
+    *new_str = '\0';
+    p = new_str;
     save_svalue(var, &p);
-    return new_string;
+    return new_str;
 }
 
 

@@ -16,8 +16,9 @@
 inherit M_ACCESS;
 inherit M_RECONNECT;
 
-DOC_MODULE("This daemon handles connections to other muds for the purpose of remote procedure calls.");
-
+//:MODULE
+//This daemon handles connections to other muds for the purpose of
+//remote procedure calls.
 
 #define BEEKBUG(x) TELL_BUG("beek",(x))
 
@@ -241,7 +242,7 @@ DBBUG(sprintf("call: %O", message[1..2]));
     else if ( message[0] == "auth-call" )
     {
 DBBUG(sprintf("auth-call: %O", message[1..4]));
-	// ### validate message[1] (token)
+//### validate message[1] (token)
         unguarded(message[2], (: call_other, message[3..]... :));
     }
     else if ( message[0] == "eval" )
@@ -257,7 +258,7 @@ DBBUG(sprintf("eval: %O", message[1..3]));
 	mixed result;
 
 DBBUG(sprintf("auth-eval: %O", message[1..5]));
-	// ### validate message[2] (token)
+//### validate message[2] (token)
 	result = unguarded(message[3],
         (: call_other, message[4..]... :));
 	socket->send(({ "result", message[1], result }));
@@ -408,7 +409,8 @@ void remove()
     destruct(this_object());
 }
 
-DOC(remote_call, "handles the actully calling of remote functions on other muds.");
+//:FUNCTION remote_call
+//handles the actully calling of remote functions on other muds.
 void remote_call(string mud, string obj, string func, mixed *args)
 {
     string syn = synonyms[mud];
@@ -426,7 +428,8 @@ void remote_call(string mud, string obj, string func, mixed *args)
     sockets[syn]->send(({ "call", obj, func }) + args);
 }
 
-DOC(broadcast_call, "calls a remote function on all connected muds.");
+//:FUNCTION broadcast_call
+//calls a remote function on all connected muds.
 void broadcast_call(string obj, string func, mixed *args)
 {
     /* This calls an arbitrary function, hence we need to be careful */
@@ -437,7 +440,8 @@ void broadcast_call(string obj, string func, mixed *args)
     (values(sockets) - ({ 0 }))->send(({ "call", obj, func }) + args);
 }
     
-DOC(remote_eval, "calls a remote function and returns the result to a provided function.");
+//:FUNCTION remote_eval
+//calls a remote function and returns the result to a provided function.
 void remote_eval(string mud, string obj, string func, mixed *args,
 		  function result_func)
 {
@@ -457,7 +461,9 @@ void remote_eval(string mud, string obj, string func, mixed *args,
     sockets[syn]->send(({ "eval", key, obj, func }) + args);
 }
 
-DOC(broadcast_eval, "calls a remote func in all muds and calls the result_func for each returned result");
+//:FUNCTION broadcast_eval
+//calls a remote func in all muds and calls the result_func for each
+//returned result
 void broadcast_eval(string obj, string func, mixed *args,
 		    function result_func)
 {
@@ -478,7 +484,8 @@ void broadcast_eval(string obj, string func, mixed *args,
     }
 }
 
-DOC(login_remote, "logs a user into to a remote mud");
+//:FUNCTION login_remote
+//logs a user into to a remote mud
 void login_remote(string mud, string password)
 {
     string syn = synonyms[mud];
@@ -499,7 +506,8 @@ void login_remote(string mud, string password)
 			      password }));
 }
 
-DOC(is_logged_in, "returns whether a particular user is logged into the specified mud.");
+//:FUNCTION is_logged_in
+//returns whether a particular user is logged into the specified mud.
 int is_logged_in(object user, string mud)
 {
     if ( !returned_tokens[mud] )
@@ -508,7 +516,9 @@ int is_logged_in(object user, string mud)
     return returned_tokens[mud][user] != 0;
 }
 
-DOC(auth_call, "perform an authenticated/privileged call to a remote mud, carrying over the current (stack-based) privilege level.");
+//:FUNCTION auth_call
+//perform an authenticated/privileged call to a remote mud, carrying over
+//the current (stack-based) privilege level.
 void auth_call(string mud, string obj, string func, mixed *args)
 {
     string syn = synonyms[mud];
@@ -532,7 +542,9 @@ void auth_call(string mud, string obj, string func, mixed *args)
     sockets[syn]->send(({ "auth-call", token, priv, obj, func }) + args);
 }
 
-DOC(auth_eval, "perform an authenticated/privileged evaluation (and result return) on a remote mud, carrying over the current (stack-based) privilege level.");
+//:FUNCTION auth_eval
+//perform an authenticated/privileged evaluation (and result return) on
+//a remote mud, carrying over the current (stack-based) privilege level.
 void auth_eval(string mud, string obj, string func, mixed *args,
 	       function result_func)
 {
@@ -561,7 +573,9 @@ void auth_eval(string mud, string obj, string func, mixed *args,
     sockets[syn]->send(({ "auth-eval", key, token, priv, obj, func }) + args);
 }
 
-DOC(muds_available, "returns information about the muds in the net, their connection status, and which this_user() has logged into.");
+//:FUNCTION muds_available
+//returns information about the muds in the net, their connection status,
+//and which this_user() has logged into.
 mixed * muds_available()
 {
     string * all_muds;
@@ -597,7 +611,8 @@ mixed * muds_available()
 }
 
 
-DOC(query_local_name, "returns the 'name' of the local mud");
+//:FUNCTION query_local_name
+//returns the 'name' of the local mud
 string query_local_name()
 {
     return synonyms[mud_name()];

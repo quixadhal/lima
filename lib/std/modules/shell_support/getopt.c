@@ -9,18 +9,19 @@ int classify( int opt, string options ){
 
   i = member_array(opt, options);
   if(i == -1){
-    printf("option -%c not recognized", opt);
+    printf("option -%c not recognized\n", opt);
     return 0;
   }
   if( ++i != strlen(options) ) return options[i] == ':';
 }
 
 
-DOC(getopt, "Takes an array and parses flags from it. Returns an array, the first "
-"element being a mapping of flag : value, the second element being an array of "
-"the remaining args, all flag information removed.  The second argument should "
-"be a string of single character flags that the command accepts, followed by a "
-"colon (:) if the flag can take an argument.")
+//:FUNCTION getopt
+//Takes an array and parses flags from it. Returns an array, the first
+//element being a mapping of flag : value, the second element being an
+//array of the remaining args, all flag information removed.  The second
+//argument should be a string of single character flags that the command
+//accepts, followed by a colon (:) if the flag can take an argument.
 mixed
 getopt( mixed args, string options )
 {
@@ -70,9 +71,12 @@ getopt( mixed args, string options )
 // Got the idea for this one from python, 
 // but unlike getopt, didn't pirate the implimentation =)
 //  
-DOC(argument_explode, "assumes the arg passed is the argument to some unix-like "
-"command where ares are space seperated unless enclosed in non-escaped quotes. "
-"Returns an array of the arguments.")
+
+//:FUNCTION argument_explode
+//assumes the arg passed is the argument to some unix-like
+//command where ares are space seperated unless enclosed in non-escaped
+//quotes.
+//Returns an array of the arguments.
 
 string* argument_explode(string s)
 {
@@ -131,8 +135,9 @@ string* argument_explode(string s)
   return result;
 }
 
-DOC(parse_argument, "calls argument_explode() and then getopt(), returning the "
-"value of the getopt() call.")
+//:FUNCTION parse_argument
+//calls argument_explode() and then getopt(), returning the 
+//value of the getopt() call.
 mixed parse_argument( string input, string options ){
   return getopt( argument_explode(input), options );
 }

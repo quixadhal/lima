@@ -9,8 +9,6 @@
 
 #include "std.h"
 
-#ifndef OS2
-
 enum socket_mode {
     MUD, STREAM, DATAGRAM, STREAM_BINARY, DATAGRAM_BINARY
 };
@@ -72,7 +70,5 @@ int socket_close PROT((int, int));
 int socket_release PROT((int, object_t *, svalue_t *));
 int socket_acquire PROT((int, svalue_t *, svalue_t *, svalue_t *));
 char *socket_error PROT((int));
-
-#endif				/* OS2 */
 
 #endif				/* _SOCKET_EFUNS_H_ */

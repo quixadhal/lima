@@ -15,15 +15,16 @@ inherit CMD;
   /* for iwrap() */
 inherit M_GLOB;
 
-DOC_COMMAND("Returns information on which mudlib functions contain the "
-	    "keyword passed, including a short description.")
+//:COMMAND
+//Returns information on which mudlib functions contain the
+//keyword passed, including a short description.
 
+//### This currently doesn't work with the new DOC_D
     
 //These are global to make life easier on me.
 
 string output;
 mapping apropos_info;
-
 
 void add_info_to_output_2(string, mapping, string);
 

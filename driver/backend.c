@@ -12,12 +12,9 @@
 #include "port.h"
 #include "lint.h"
 
-#if defined(OS2)
-#define INCL_DOSPROCESS
-#define INCL_DOSSEMAPHORE
-#include <os2.h>
-
-extern HEV mudos_event_sem;
+#ifdef WIN32
+#include <process.h>
+void alarm_loop PROT((void *));
 #endif
 
 error_context_t *current_error_context = 0;
@@ -135,7 +132,9 @@ void backend()
 	debug_message("No external ports specified.\n");
 
     init_user_conn();		/* initialize user connection socket */
+#ifdef SIGHUP
     signal(SIGHUP, startshutdownMudOS);
+#endif
     if (!t_flag)
 	call_heart_beat();
     clear_state();
@@ -143,34 +142,6 @@ void backend()
     if (SETJMP(econ.context))
 	restore_context(&econ);
 
-#ifdef OS2
-    do {
-	long rc_wait;
-
-	remove_destructed_objects();
-	eval_cost = 0;
-	if (MudOS_is_being_shut_down) {
-	    shutdownMudOS(0);
-	}
-	if (slow_shut_down_to_do) {
-	    int tmp = slow_shut_down_to_do;
-
-	    slow_shut_down_to_do = 0;
-	    slow_shut_down(tmp);
-	}
-	rc_wait = DosWaitEventSem(mudos_event_sem, -1);
-	DosResetEventSem(mudos_event_sem, &i);
-	process_io();
-	if (heart_beat_flag) call_heart_beat();
-	/*
-	 * process user commands.
-	 */
-	/* This should probably be done better */
-	i = max_users;
-	while (process_user_command() && i--)
-	    ;
-    } while (1);
-#else
     while (1) {
 	/*
 	 * The call of clear_state() should not really have to be done once
@@ -245,7 +216,6 @@ void backend()
 	    call_heart_beat();
 	}
     }
-#endif
 }				/* backend() */
 
 /*
@@ -400,13 +370,12 @@ static int num_hb_to_do = 0;
 static int num_hb_calls = 0;	/* starts */
 static float perc_hb_probes = 100.0;	/* decaying avge of how many complete */
 
-#ifdef OS2
-void alarm_loop()
+#ifdef WIN32
+void alarm_loop P1(void *, ignore)
 {
     while (1) {
-	DosSleep(HEARTBEAT_INTERVAL / 1000);
+	_sleep(HEARTBEAT_INTERVAL / 1000);
 	heart_beat_flag = 1;
-	DosPostEventSem(mudos_event_sem);
     }
 }				/* alarm_loop() */
 #endif
@@ -416,24 +385,24 @@ static void call_heart_beat()
     object_t *ob;
     heart_beat_t *curr_hb;
 
-#ifdef OS2
-    static TID bing = 0;
+#ifdef WIN32
+    static long Win32Thread = -1;
 #endif
 
     heart_beat_flag = 0;
-
+#ifdef SIGALRM
     signal(SIGALRM, sigalrm_handler);
-#if !defined(OS2)
+#endif
+
 #ifdef HAS_UALARM
     ualarm(HEARTBEAT_INTERVAL, 0);
 #else
+#  ifdef WIN32
+    if (Win32Thread == -1) Win32Thread = _beginthread(alarm_loop, 256, 0);
+#  else
     alarm(SYSV_HEARTBEAT_INTERVAL);	/* defined in config.h */
+#  endif
 #endif
-#else
-    if (!bing) {
-	DosCreateThread(&bing, alarm_loop, 0, 0, 100);
-    }
-#endif				/* OS2 */
 
     debug(256, ("."));
 

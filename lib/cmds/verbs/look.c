@@ -9,27 +9,6 @@
 
 inherit VERB_OB;
 
-mixed can_look(string rule)
-{
-    return 1;
-}
-
-mixed can_look_obj(object ob) {
-    return 1;
-}
-
-mixed can_look_at_obj(object ob) {
-    return 1;
-}
-
-mixed can_look_for_liv(object liv) {
-    return 1;
-}
-
-mixed can_look_at_obj_with_obj(object ob1, object ob2) {
-    return 1;
-}
-
 mixed can_look_str(string str) {
     mapping exits;
 
@@ -55,8 +34,12 @@ void do_look_at_obj(object ob, string name) {
     write(str);
 }
 
-void do_look_in_obj(object ob, string name) {
-    ob->look_in(name);
+// There was name support here, but it was done wrong, as according to 
+// container.c the first arg of look_in() is a prep, not a name.  Anyway,
+// if you're looking for what happened to that code, that's why I removed it.
+// -Beek
+void do_look_str_obj(string prep, object ob) {
+    ob->look_in(prep);
 }
 
 void do_look_obj(object ob, string name) {
@@ -118,7 +101,7 @@ mixed do_look(mixed rule, mixed ob1, object ob2)
 
 mixed * query_verb_info()
 {
-    return ({ ({ 0, "OBJ:v", "at OBJ:v", "for LIV:v", "for OBJ:v", "in OBJ:v",
+    return ({ ({ 0, "OBJ:v", "at OBJ:v", "for LIV:v", "for OBJ:v", "STR OBJ:v",
 	     "at OBS:v", "at OBS:v with OBJ", "at OBJ:v with OBJ",
 	     "STR", "OBJ:v with OBJ" }) });
     

@@ -1,29 +1,31 @@
+addpath		dir
 addto		fname|file
 at		user str*
-banish -s	[str]
+banish -sn	[str] str*
 cat		file*
 cd		[dir]
 cp -rf		file* fname|dir|file
+dbxtracer	obj str
 du		[dir]
 ed		[file|fname]
 find -in        str file*
 force		user str*
 grep -in	str file*
+in		obj str*
 loadall		dir
 ls -aslF	[file|dir*]
 mkdir		fname
 more		file*
 mv -rf		file* fname|dir|file
-update	-rR	[cfile*]
+pipe		str
 replace	-qn	str str file*
 rm		file*
 rmdir		dir*
-setlevel	user num
+rmpath		dir
 snoop		[user] [str*]
 spew		file str*
 stat		obj|user
 tail		file*
 tsh		file
 times		num str*
-in		obj str*
-dbxtracer	obj str
+update	-rR	[cfile*]

@@ -72,7 +72,7 @@
    void exit PROT((int));
 #endif
 
-#if !defined(MSDOS) && !defined(SunOS_5) && !defined(NeXT)
+#if !defined(SunOS_5) && !defined(NeXT)
 #  ifndef sgi
 #    ifndef LATTICE
        int fclose PROT_STDIO((FILE *));

@@ -11,7 +11,7 @@ inherit CMD;
 #define DIVIDER \
 "-------------------------------------------------------------------------\n"
 
-private void main()
+private void main(string arg)
 {
     object* user_obs;
     object* bodies;
@@ -44,37 +44,44 @@ private void main()
 	    name = capitalize(userid);
 	if( bodies[i]->test_flag(F_INVIS) ) name = "("+name+")";
 
-	if( o = environment(bodies[i]) )
-	    where = file_name(o);
+	if (arg != "-f")
+	{
+
+	    where = environment(bodies[i])->short();
+	}
 	else
-	    where = "(null)";
-	if(!o) name = "<"+name+">";
-
+	{
+	    if( o = environment(bodies[i]) )
+		where = file_name(o);
+	    else
+		where = "(null)";
+	    if(!o) name = "<"+name+">";
+	}
 	/* ### put "position" in here... */
-	printf("%-10s %-13s%4d %c%c %-s\n",
-	       adminp(userid) ? "admin" : wizardp(userid) ? "wizard" : "player",
-	       name,
-	       bodies[i] ? bodies[i]->query_score() : 0,
-	       (query_idle(bodies[i]->query_link()) > 60 ? 'I':' '),
-	       (bodies[i] && bodies[i]->test_flag(F_IN_EDIT) ? 'E' : ' '),
-	       where);
+	printf("%-10s %-13s%4d %c%c %-30s \n",
+	  adminp(userid) ? "admin" : wizardp(userid) ? "wizard" : "player",
+	  name,
+	  bodies[i] ? bodies[i]->query_score() : 0,
+	  (query_idle(bodies[i]->query_link()) > 60 ? 'I':' '),
+	  (bodies[i] && bodies[i]->test_flag(F_IN_EDIT) ? 'E' : ' '),
+     where);
+}
+	write(DIVIDER);
+	return;
     }
-    write(DIVIDER);
-    return;
-}
 
 
-int help()       
-{            
-    write(wrap(  
-	"Usage: people [-p|z | -w|i | -l | -m]\n"
-	"Shows relevent info of people on the mud.  The default is all on line "
-	"users, but the p or z flag will restrict this to players only, and the w and i "
-	"flags will restrict people to show wizards only. "
-	"The l flag will show all living creatures, and the m flag will show "
-	"all monsters, but no interactive users.  people -l and people -m "
-	"can give inacurate information if there has been a recent update "
-	"of the simul_efun object.\n"
-      ));          
-    return 1;    
-}
+    int help()       
+    {            
+	write(wrap(  
+	    "Usage: people [-p|z | -w|i | -l | -m]\n"
+	    "Shows relevent info of people on the mud.  The default is all on line "
+	    "users, but the p or z flag will restrict this to players only, and the w and i "
+	    "flags will restrict people to show wizards only. "
+	    "The l flag will show all living creatures, and the m flag will show "
+	    "all monsters, but no interactive users.  people -l and people -m "
+	    "can give inacurate information if there has been a recent update "
+	    "of the simul_efun object.\n"
+	  ));          
+	return 1;    
+    }

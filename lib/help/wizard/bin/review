@@ -1,0 +1,23 @@
+
+USAGE:  review  or review < msg >
+
+
+This command with no arguments will show you all your message.
+
+review
+
+leave: [$N $vleave $o] You leave somewhere
+destruct: [$N $vdest the $o.] You dest the something.
+enter: [$N $venter.] You enter.
+clean: [$N $vdo not have a message for 'clean'.] You do not have a message for '
+clean'.
+home: [$N $vgo home.] You go home.
+clone: [$N $vclone the $o.] You clone the something.
+vis: [$N $vfade into view.] You fade into view.
+invis: [$N $vfade from view.] You fade from view.
+menter: [$N $vappear in a puff of smoke.] You appear in a puff of smoke.
+:
+
+**** note at this time there appears to be no way to chagne your default msgs, it disappeared somewhere :).  
+
+:q

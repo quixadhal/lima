@@ -1,0 +1,60 @@
+
+USAGE ls [ -a -s -F ] [path]
+
+     This command will show you the files and directories in the 
+current directory.  You can change the default behavior of ls by 
+suppplying a valid path, and the optional - arguments.
+
+       -a  --  shows the hidden files (i.e. .edrc )
+       -s  --  shows the file size to the left of the file
+       -F  --  shows a / to the right of the directory name
+
+
+ls /wiz/zifnab
+
+/wiz/zifnab/:
+EVAL.c         doc            people.c       safe.c         tplmenu.c
+Mh.c           mailer.c       pool_room.c    t_people.c     workroom.c
+backup_menu.c  mailtest       rooms          t_people.c%
+
+
+ls -a /wiz/zifnab
+
+/wiz/zifnab/:
+.edrc          backup_menu.c  people.c       t_people.c
+.mailtest      doc            pool_room.c    t_people.c%
+EVAL.c         mailer.c       rooms          tplmenu.c
+Mh.c           mailtest       safe.c         workroom.c
+
+Notice the .edrc and the .mailtest shown by adding the -a option to ls
+
+
+ls -s /wiz/zifnab
+
+/wiz/zifnab/:
+1 EVAL.c           10 mailer.c        4 rooms            10 tplmenu.c
+2 Mh.c             0 mailtest         2 safe.c           1 workroom.c
+10 backup_menu.c   3 people.c         3 t_people.c
+0 doc              1 pool_room.c      3 t_people.c%
+ 
+Notice the size of the files next to the file name .
+
+ls -F /wiz/zifnab
+
+
+/wiz/zifnab/:
+EVAL.c         doc/           people.c       safe.c         tplmenu.c
+Mh.c           mailer.c       pool_room.c    t_people.c     workroom.c*
+backup_menu.c  mailtest/      rooms          t_people.c%
+
+
+Notice the / to the right of the directory name.
+
+The flags and path are both optional, if you leave off the path
+ls assumes you meant the current directory.
+
+
+ls -asF /wiz/zifnab
+ls -Fs /wiz.zifnab
+ls -F
+

@@ -427,7 +427,7 @@ INLINE void *bsdmalloc_calloc P2(size_t, num, register size_t, size)
     register void *p;
 
     size *= num;
-    if (p = bsdmalloc_malloc(size))
+    if ((p = bsdmalloc_malloc(size)))
 	memset(p, 0, size);
     return (p);
 }

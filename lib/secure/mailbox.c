@@ -8,12 +8,12 @@
 
 #include <mudlib.h>
 #include <security.h>
-#include <mail.h>
+#include <classes.h>
 #include <flags.h>
-#include <playerflags.h>
 
 inherit M_ACCESS;
-/* ### inherit DAEMON? */
+
+inherit CLASS_MAILMSG;
 
 /*
 ** mailbox: maps message keys to flags
@@ -67,34 +67,20 @@ nomask void remove()
 
 nomask string query_owner()
 {
-  return owner;
+    return owner;
 }
 
 nomask class mail_msg get_one_message(int message_key)
 {
-    mixed * hdrs;
-    string * body;
-    class mail_msg msg;
-
-    printf("prev=%O\n",previous_object(-1));
+// need some work on ensuring the call stack is correct
 //    if ( !check_privilege(owner) )
-//	error("*Security violation: you are not allowed to read this mail");
+    if ( this_user()->query_userid() != owner )
+	error("security violation: you are not allowed to use this mailbox\n");
 
     if ( undefinedp(mailbox[message_key]) )
-	error("*Security violation: that message is not in this mailbox");
+	return 0;
 
-    hdrs = MAIL_D->get_headers(({ message_key }));
-    body = MAIL_D->get_body(message_key);
-
-    msg = new(class mail_msg);
-    msg->to_list	= hdrs[0][2];
-    msg->cc_list	= hdrs[0][3];
-    msg->from		= hdrs[0][0];
-    msg->date		= message_key;
-    msg->subject	= hdrs[0][1];
-    msg->body		= body;
-
-    return msg;
+    return MAIL_D->get_one_message(message_key);
 }
 
 nomask int query_message_index()
@@ -127,6 +113,10 @@ nomask void set_message_read(int message_key)
 	save_me();
     }
 }
+nomask int query_unread_count()
+{
+    return implode(values(mailbox), (: $1 + $2 :));
+}
 nomask int first_unread_message()
 {
     int * message_keys = query_message_keys();
@@ -146,6 +136,14 @@ nomask int first_unread_message()
 
 nomask void delete_message(int message_key)
 {
+// need some work on ensuring the call stack is correct
+//    if ( !check_privilege(owner) )
+    if ( this_user()->query_userid() != owner )
+	error("security violation: you are not allowed to read this mail\n");
+
+    if ( undefinedp(mailbox[message_key]) )
+	error("non-existent message\n");
+
     MAIL_D->delete_mail(message_key, owner);
     map_delete(mailbox, message_key);
 

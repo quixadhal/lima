@@ -44,6 +44,7 @@ create() {
     add_pattern("%s drops %s.", (: "say Why did " + $1
 				 + " drop " + $2 + " ?" :));
     add_pattern("%s kicks you.", (: "kick " + $1 :));
+    add_pattern("%s kisses you.", "blush");
     add_pattern("%s nods.", function() {
 	respond("nod sol*");
 	respond("think did I miss something?");
@@ -79,10 +80,4 @@ create() {
                     "%s", (: random(5) == 0 
                        ? "say Why do you say '" + $1 + "'???" 
                        : 0 :));
-}
-
-void remove()
-{
-    actions::remove();
-    living::remove();
 }

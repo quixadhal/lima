@@ -1,23 +1,37 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-// Belboz on July 16 for Zorkmud, something that any mailer can
-// interface with, so Beek and I can have our input_to()less mailer.
-//
-// 950710, Deathblade: Added mailboxes, removed mail queue.
+/*
+** Belboz on July 16 for Zorkmud, something that any mailer can
+** interface with, so Beek and I can have our input_to()less mailer.
+**
+** 950710, Deathblade: Added mailboxes, removed mail queue.
+** 950910, Deathblade: revamped some more: doc, trim api, cleaning
+**
+** Public API:
+**
+**   send_mail(): send a piece of mail
+**   get_mailbox(): return a MAILBOX object for the specified user
+**   unload_mailbox(): the specified mailbox is no longer needed; close it
+**   close_mailboxes(): close all unneeded mailboxes
+**   rebuild_mailboxes(): rebuild all mailbox from actual message data
+**   delete_mail(): delete a piece of mail for a user
+**   get_one_message(): get a message
+*/
 
 #include <mudlib.h>
+#include <classes.h>
 
 inherit DAEMON;
-
+inherit CLASS_MAILMSG;
 
 #define MAIL_PATH	"/data/M/"
 
-string	sender;
-string  subject;
-string* body;
-string* to_list;
-string* cc_list;
-string* dels_pending;
+private string   sender;
+private string   subject;
+private string * body;
+private string * to_list;
+private string * cc_list;
+private string * dels_pending;
 
 private static mapping mailboxes = ([ ]);
 
@@ -27,12 +41,12 @@ private nomask void create()
     object mailbox;
 
     foreach ( mailbox in children(MAILBOX) )
-	{
-	    string owner;
+    {
+	string owner;
 
-	    if ( mailbox && (owner = mailbox->query_owner()) )
-		mailboxes[owner] = mailbox;
-	}
+	if ( mailbox && (owner = mailbox->query_owner()) )
+	    mailboxes[owner] = mailbox;
+    }
 }
 
 private nomask void voidout()
@@ -76,87 +90,58 @@ nomask void close_mailboxes()
 
     names = keys(mailboxes) - users()->query_userid();
     foreach ( name in names )
-	{
+    {
+	if ( mailboxes[name] )	/* might be have destructed */
 	    mailboxes[name]->remove();
-	    map_delete(mailboxes, name);
-	}
+	map_delete(mailboxes, name);
+    }
 }
 
 private nomask void process_message(string fname)
 {
-    unguarded(1, (: restore_object, "/data/M/" + fname[0..<3], 1 :));
+    unguarded(1, (: restore_object, MAIL_PATH + fname[0..<3], 1 :));
     map_array(dels_pending,
 	      (: get_mailbox($1)->receive_new_message($(to_int(fname))) :));
 }
 
 nomask void rebuild_mailboxes()
 {
-    string * messages = unguarded(1, (: get_dir, "/data/M/*.o" :));
+    string * messages = unguarded(1, (: get_dir, MAIL_PATH "*.o" :));
 
     map_array(messages, (: process_message :));
     voidout();
 }
 
-private
-int
-restore_msg( mixed timestamp )
+
+private nomask string get_fname(int message_key)
 {
-  timestamp = MAIL_PATH + timestamp;
-  return unguarded( 1, (: restore_object, timestamp, 1 :) );
+    /* ### eventually move this to /data/mail/N/N/NNNNNNNN.o */
+    return sprintf(MAIL_PATH "%d", message_key);
 }
 
-private
-int
-valid_read()
+private nomask int restore_msg(int message_key)
 {
-   string myname;
-
-  myname = this_body()->query_name();
-  return member_array( myname, dels_pending );
+    return unguarded(1, (: restore_object, get_fname(message_key), 1 :));
 }
-
-
-private
-void
-save_msg( int timestamp )
+private nomask void save_msg(int message_key)
 {
-  string	savefile;
-
-  savefile = MAIL_PATH + timestamp;
-  unguarded( 1, (: save_object, savefile :) );
+    unguarded(1, (: save_object, get_fname(message_key) :));
 }
 
 
-private
-int
-get_timestamp()
+private nomask int get_timestamp()
 {
-  int		timestamp;
-  string	file;
+    int timestamp;
 
-  timestamp = time();
-  while( ( file = MAIL_PATH + timestamp + ".o" ) && 
-         unguarded(1, (: file_size, file :)) != -1 )
-		timestamp--;
-  return timestamp;
-}
-
-private
-int
-confirm( string who )
-{
-  if(get_privilege( previous_object() ) == 1 ) 
-    return 1;
-  if( !this_user() )
-    return 0;
-
-
-  return (string)this_user()->query_userid() == who;
+    timestamp = time();
+    while ( unguarded(1, (: is_file, get_fname(timestamp) + __SAVE_EXTENSION__ :)) )
+	timestamp--;
+    return timestamp;
 }
 
 private nomask int user_exists(string user)
 {
-    return unguarded(1, (: file_size, USER_PATH(user)+".o" :)) > -1;
+    return unguarded(1, (: is_file, USER_PATH(user) + __SAVE_EXTENSION__ :));
 }
 
 private nomask void deliver_mail(int timestamp, string who)
@@ -164,188 +149,119 @@ private nomask void deliver_mail(int timestamp, string who)
     get_mailbox(who)->receive_new_message(timestamp);
 }
 
-string*
-send_mail( string 	Sender,
-	   string	Subject,
-	   string*	Body,
-	   string*	To_list,
-	   string*	Cc_list )
+nomask string * send_mail(string 	Sender,
+			  string	Subject,
+			  string*	Body,
+			  string*	To_list,
+			  string*	Cc_list)
 {
-  int		timestamp;
-  string*	recip_list;
-  string*	badtargs;
+    int		timestamp;
+    string*	recip_list;
 
-// No mail forgeries, except by system stuff =-)
-// (this is so that system objects can send mail as Root or whatever)
-  if( !confirm( Sender ) )
-  {
-    error( "Insufficient privlidge to send mail as "+Sender );
-    return 0;
-  }
-  
-  sender = Sender;
-  subject = Subject;
-  body = Body;
-  to_list = To_list;
-  cc_list = Cc_list;
+    // No mail forgeries, except by system stuff =-)
+    // (this is so that system objects can send mail as Root or whatever)
+    if ( !check_privilege(1) &&
+	 ( !this_user() || this_user()->query_userid() != Sender ) )
+	error("insufficient priviledge to send mail as " + Sender + "\n");
 
-  if( !pointerp(to_list) )
-  {
-    error( "send mail: invalid target" );
-    return 0;
-  }
-  if( !pointerp( to_list ) )
-    to_list = ({});
+    sender = Sender;
+    subject = Subject;
+    body = Body;
+    to_list = To_list;
+    cc_list = Cc_list;
 
-  if( !pointerp( cc_list ) )
-    cc_list = ({});
+    if( !pointerp(to_list) || !pointerp(cc_list) )
+	error("send mail: invalid list of recipients");
 
-  if( !pointerp( body ) )
-    body = ({ "**Blank message!**" });
+    if( !pointerp( body ) )
+	body = ({ "**Blank message!**" });
 
+    /* Convert groups to real names */
+    to_list = GROUP_D->process_list(to_list);
+    cc_list = GROUP_D->process_list(cc_list);
 
-// Convert groups to real names
-  to_list = GROUP_D->process_list(to_list);
-  cc_list = GROUP_D->process_list(cc_list);
+    /* clean the lists: remove dups, ensure lower-cased, ensure valid */
+    to_list = clean_array(to_list);
+    cc_list = clean_array(cc_list);
 
-  to_list = map_array( to_list, (: lower_case :) );
-  cc_list = map_array( cc_list, (: lower_case :) );
+    to_list = map_array(to_list, (: lower_case :));
+    cc_list = map_array(cc_list, (: lower_case :));
 
-// this is the mail pointer as well as within seconds of time()
-  timestamp = get_timestamp();
+    to_list = filter_array(to_list, (: user_exists :));
+    cc_list = filter_array(cc_list, (: user_exists :));
 
-// A list of target recipients with no names duplicated
-  recip_list = clean_array( cc_list + to_list );
+    // this is the mail pointer as well as within seconds of time()
+    timestamp = get_timestamp();
 
-  // filter out non-existent users
-  recip_list = filter_array( recip_list, (: user_exists :) );
+    // A list of target recipients with no names duplicated
+    recip_list = clean_array(cc_list + to_list);
 
-  // deliver the mail to all users
-  map_array(recip_list, (: deliver_mail, timestamp :));
+    // deliver the mail to all users
+    map_array(recip_list, (: deliver_mail, timestamp :));
 
-// Figure out if there were any bogus names in our target group
-  badtargs = clean_array( cc_list + to_list ) - recip_list;
+    // we need to keep track of who needs to delete this message before
+    // we erase this message to prevent people from making a call
+    // to delete a mail into oblivion.
+    dels_pending = recip_list;
 
-// If so, delete them from the cc and to list.
-// Also, remove duplicate entries of the same name in these lists.
-  cc_list = clean_array( cc_list - badtargs );
-  to_list = clean_array( to_list - badtargs );
+    // If there are no active copies, no one is receiving this message,
+    // so why save it?
+    if ( sizeof(recip_list) )
+	save_msg(timestamp);
 
+    voidout();
 
-// we need to keep track of who needs to delete this message before
-// we erase this message to prevent people from making a call
-// to delete a mail into oblivion.
+    // close the mailboxes of people who are not online now
+    close_mailboxes();
 
-  dels_pending = recip_list;
-
-// If there are no active copies, no one is receiving this message,
-// so why save it?
-  if( sizeof( recip_list ) )
-    save_msg( timestamp );
-
-  voidout();
-
-  // close the mailboxes of people who are not online now
-  close_mailboxes();
-
-// Let the mailer know who successfully received the message.
-  return recip_list;
-
+    // Let the mailer know who successfully received the message.
+    return recip_list;
 }
 
 
-// Maps an array of timestamps to an array of arrays containing
-// the header info for each timestamp, plus the timestamp
-// appended to the end in ctime() notation.
-// timestamps for mails that don't exist are ignored.
-
-mixed*
-get_headers( int* timestamps )
+nomask mixed get_one_message(int timestamp)
 {
-  string*	ret;
-  int		i,j;
+    class mail_msg msg;
 
-  ret = ({});
+    if ( base_name(previous_object()) != MAILBOX )
+	error("security violation: illegal attempt to read mail\n");
 
-  if( !pointerp( timestamps ) )
-    return ({});
+    if ( !restore_msg(timestamp) )
+	error("lost the message\n");
 
-  j = sizeof( timestamps );
+    if ( member_array(this_user()->query_userid(), dels_pending) == -1 )
+	error("security violation: illegal attempt to read mail\n");
 
-  for( ; i < j ; i++ )
-  {
-  if( !restore_msg( timestamps[i] ) )
-	continue;
+    msg = new(class mail_msg);
+    msg->to_list	= to_list;
+    msg->cc_list	= cc_list;
+    msg->sender		= sender;
+    msg->date		= timestamp;
+    msg->subject	= subject;
+    msg->body		= body;
+    msg->dels_pending	= dels_pending;
 
-  if( !valid_read() )
-        continue;
-    ret += ({ ({ sender, subject, to_list, cc_list, ctime( timestamps[i] ) }) });
-  }
-  voidout();
-  return ret;
+    voidout();
+
+    return msg;
 }
 
-// I figure you only want to read one body at a time.  If you need
-// more, map_array to a symbol_function of this.
-
-mixed
-get_body( int timestamp )
+nomask void delete_mail(int timestamp, string user)
 {
-  if( !restore_msg( timestamp ) )
-    return -1;
+    // Do I have permission to delete mail as user?
+    // Should only fail when I try to delete mail in someone elses box
+    if ( base_name(previous_object()) != MAILBOX ||
+	 previous_object()->query_owner() != user )
+	error("security violation: illegal attempt to delete mail\n");
 
-  if( !valid_read() )
-    return 0;
+    if ( !restore_msg(timestamp) )
+	error("lost the message\n");
 
-  call_out("voidout",0);
-  return body;
-}
+    dels_pending -= ({ user });
+    if( !sizeof(dels_pending) )
+	unguarded(1, (: rm, get_fname(timestamp) + __SAVE_EXTENSION__ :));
+    else
+	save_msg(timestamp);
 
-int
-delete_mail( int timestamp, string user )
-{
-  string	savefile;
-
-// Do I have permission to delete mail as user?
-// Should only fail when I try to delete mail in someone elses box
-  if( !confirm( user ) )
-    return 0;
-
-  if( !restore_msg( timestamp ) )
-    return -1;
-
-  savefile = MAIL_PATH + timestamp;
-
-  
-  if( member_array( user, dels_pending ) == -1 )
-    return 0;
-
-  dels_pending -= ({user});
-  if( !sizeof( dels_pending ) )
-    unguarded( 1, (: rm, savefile+".o" :) );
-  else
-    save_msg( timestamp );
-
-  voidout();
-  return 1;
-}
-
-// Whoops, I really shouldn't have sent that mail.
-int
-recall_msg( int timestamp, string uid )
-{
-
-  string	savefile;
-
-  if( !restore_msg( timestamp ) )
-    return -1;
-
-  if( uid != sender )
-    return 0;
-
-  savefile = MAIL_PATH + timestamp;
-
-  unguarded( 1, (: rm, savefile :) );
-  voidout();
-  return 1;
+    voidout();
 }

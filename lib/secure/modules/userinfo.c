@@ -31,7 +31,6 @@ mixed unguarded(mixed priv, function fp);
 
 private string email;
 private string real_name;
-private string title;
 
 
 /* ### ACK!  should disappear. need something more secure than this */
@@ -47,13 +46,7 @@ nomask void set_email(string new_email)
     email = new_email;
 }
 
-nomask void set_title(string new_title)
-{
-    if ( this_body() != query_body() )
-	error("illegal attempt to set title\n");
 
-    title = new_title;
-}
 
 /*
 ** Character creation functions: gather user info

@@ -11,7 +11,8 @@ $(OBJDIR)/%.o: %.c
 %endif
 
 all: $(OBJ)
-	ar rlcu packages.a $(OBJ)
+	ar rcu packages.a $(OBJ)
+	ranlib packages.a
 
 clean:
 	-rm -f *.o

@@ -1,0 +1,10 @@
+
+USAGE cat [path/file]
+
+    This command dumps the contents of the named file to your screen 
+with no page breaks.  If no file name is given cat assumes the 
+last file editted.
+
+
+cat /wiz/zifnab/backup_menu.c
+

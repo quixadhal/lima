@@ -61,7 +61,10 @@ mixed try_to_acquire(object ob) {
     if (ob->always_usable()) return 1;
     
     if (environment(ob) == this_body()) return 1;
-    write("(Taking " + ob->the_short() + " first)\n");
+    write("(Taking " + ob->the_short());
+    if (environment(ob) != environment(this_body()))
+	write(" from " + environment(ob)->the_short());
+    write(" first)\n");
     this_body()->do_game_command("get " + refer_to_object(ob));
     return environment(ob) == this_body();
 }     

@@ -15,7 +15,8 @@
 inherit M_ACCESS;
 inherit M_REMOTE;
 
-DOC_MODULE("This daemon manages the source control system's database.");
+//:MODULE
+//This daemon manages the source control system's database.
 
 #define SAVE_FILE	"/data/daemons/rcs_d"
 #define LOG_FILE	"/log/rcs"	/* ### move to a logging daemon? */

@@ -14,7 +14,7 @@ inherit M_PROMPT;
 
 private static object owner;
 
-void execute_command(string * argv, string original_input);
+int execute_command(string * argv, string original_input);
 string query_shellname();
 
 static function arg_to_words_func = (: explode($1," ") :);
@@ -69,6 +69,7 @@ shell_input(mixed input)
 // convert input into words
   argv = evaluate(arg_to_words_func, input);
 //  argv = map(argv, (: trim_spaces :));
+    if (!sizeof(argv)) return;
 
 // alias expansion... a leading \ ignores alias expansion
   if(strlen(argv[0]) > 1 && argv[0][0] == '\\')

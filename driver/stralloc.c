@@ -172,7 +172,8 @@ INLINE static block_t *
     REFS(b) = 0;
     NEXT(b) = base_table[h];
     base_table[h] = b;
-    ADD_NEW_STRING(len, sizeof(block_t));
+    ADD_NEW_STRING(SIZE(b), sizeof(block_t));
+    CHECK_STRING_STATS;
     return (b);
 }
 
@@ -279,6 +280,7 @@ free_string P1(char *, str)
 #endif
     SUB_NEW_STRING(SIZE(b), sizeof(block_t));
     FREE(b);
+    CHECK_STRING_STATS;
 }
 
 void
@@ -310,7 +312,7 @@ add_string_status P2(outbuffer_t *, out, int, verbose)
 	outbuf_add(out, "-------------------------\t Strings    Bytes\n");
     }
     if (verbose != -1)
-	outbuf_addv(out, "All strings\t\t%8d %8d + %d overhead\n",
+	outbuf_addv(out, "All strings:\t\t%8d %8d + %d overhead\n",
 	      num_distinct_strings, bytes_distinct_strings, overhead_bytes);
     if (verbose == 1) {
 	outbuf_addv(out, "Total asked for\t\t\t%8d %8d\n",
@@ -326,6 +328,18 @@ add_string_status P2(outbuffer_t *, out, int, verbose)
 #endif
 }
 
+#ifdef DEBUGMALLOC_EXTENSIONS
+#define DME 0,
+#else
+#define DME
+#endif
+
+/* This stuff needs a bit more work, otherwise FREE_MSTR() will crash on this
+malloc_block_t the_null_string_blocks[2] = { { DME 0, 1 }, { DME 0, 0 } };
+
+char *the_null_string = (char *)&the_null_string_blocks[1];
+*/
+
 #ifdef DEBUGMALLOC
 char *int_new_string P2(int, size, char *, tag)
 #else
@@ -334,21 +348,30 @@ char *int_new_string P1(int, size)
 {
     malloc_block_t *mbt;
 
+#if 0
+    if (!size) {
+	the_null_string_blocks[0].ref++;
+	ADD_NEW_STRING(0, sizeof(malloc_block_t));
+	return the_null_string;
+    }
+#endif
+    
     mbt = (malloc_block_t *)DXALLOC(size + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, tag);
     if (size < USHRT_MAX) {
 	mbt->size = size;
+	ADD_NEW_STRING(size, sizeof(malloc_block_t));
     } else {
 	mbt->size = USHRT_MAX;
+	ADD_NEW_STRING(USHRT_MAX, sizeof(malloc_block_t));
     }
     mbt->ref = 1;
-    ADD_NEW_STRING(size, sizeof(malloc_block_t));
+    CHECK_STRING_STATS;
     return (char *)(mbt + 1);
 }
 
 char *extend_string P2(char *, str, int, len) {
     malloc_block_t *mbt;
     
-    /* This isn't always right */
     ADD_STRING_SIZE(len - MSTR_SIZE(str));
     mbt = (malloc_block_t *)DREALLOC(MSTR_BLOCK(str), len + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, "extend_string");
     if (len < USHRT_MAX) {
@@ -356,6 +379,8 @@ char *extend_string P2(char *, str, int, len) {
     } else {
 	mbt->size = USHRT_MAX;
     }
+    CHECK_STRING_STATS;
+    
     return (char *)(mbt + 1);
 }
 

@@ -8,7 +8,7 @@
 
 /* You don't have permission to change the next 2 lines w/o our consent.*/
 #define lib_name()		"Lima"
-#define lib_version()		"0.9r3 (pre-alpha)"
+#define lib_version()		"0.9r4 (pre-alpha)"
 
 /* changes these as you please */
 #define lib_status()		"mudlib development"
@@ -21,6 +21,9 @@
 #define AUTOMATIC_REHASH
 
 #define OBVIOUS_EXITS
+
+#define EVERYONE_HAS_A_PLAN
+
 
 #define USE_GAME_FEATURES
 
@@ -65,6 +68,8 @@
 #define WIZ_DIR			"/wiz"
 #define LOG_DIR			"/log"
 
+
+#define BANISH_LOG			LOG_DIR "/banishes"
 #define WELCOME_FILE	"/data/config/WELCOME"
 #define NEW_PLAYER	"/data/config/NEW_PLAYER"
 #define MOTD_FILE	"/data/config/MOTD"

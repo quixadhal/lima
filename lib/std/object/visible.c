@@ -3,8 +3,10 @@
 #include <setbit.h>
 #include <move.h>
 
+//:FUNCTION is_visible
+//return 1 if the object can be seen.
 
-
+//### who uses this?
 int
 is_visible()
 {

@@ -61,6 +61,7 @@ static void sig_hup PROT((int)),
         sig_segv PROT((int)),
         sig_ill PROT((int)),
         sig_bus PROT((int)),
+        sig_fpe PROT((int)),
         sig_iot PROT((int));
 
 #endif				/* DEBUG */
@@ -75,6 +76,7 @@ static void sig_hup PROT((void)),
         sig_segv PROT((void)),
         sig_ill PROT((void)),
         sig_bus PROT((void)),
+        sig_fpe PROT((void)),
         sig_iot PROT((void));
 
 #endif				/* DEBUG */
@@ -88,38 +90,8 @@ static void sig_hup PROT((void)),
 int debug_level = 32768;
 #endif				/* DEBUG_MACRO */
 
-#ifdef OS2
-int old_argc;
-char **old_argv;
-
-int main(argc, argv)
-    int argc;
-    char **argv;
-{
-    old_argc = argc;
-    old_argv = argv;
-    if (argv[0][1] != ':' && argv[0][0] != '\\') {
-/* Relative thingy... */
-	char bing[80];
-
-	getcwd(bing, 80);
-	strcat(bing, "\\");
-	strcat(bing, argv[0]);
-	argv[0] = alloc_cstring(bing, "main");
-    }
-    startup_windows(argc, argv);
-}				/* main() */
-
-
-int start_mudos()
-{
-    int argc = old_argc;
-    char **argv = old_argv;
-
-#else
 int main P2(int, argc, char **, argv)
 {
-#endif
     time_t tm;
     int i, new_mudlib = 0, got_defaults = 0;
     int no_ip_demon = 0;
@@ -206,16 +178,16 @@ int main P2(int, argc, char **, argv)
 #ifdef RAND
     srand(get_current_time());
 #else
-#ifdef DRAND48
+#  ifdef DRAND48
     srand48(get_current_time());
-#else
-#ifdef RANDOM
+#  else
+#    ifdef RANDOM
     srandom(get_current_time());
-#else
+#    else
     fprintf(stderr, "Warning: no random number generator specified!\n");
+#    endif
+#  endif
 #endif
-#endif				/* DRAND48 */
-#endif				/* OS2 */
     current_time = get_current_time();
     /*
      * Initialize the microsecond clock.
@@ -463,9 +435,14 @@ int main P2(int, argc, char **, argv)
 #ifdef SIGIOT
     signal(SIGIOT, sig_iot);
 #endif
+#ifdef SIGHUP
     signal(SIGHUP, sig_hup);
+#endif
 #ifdef SIGBUS
     signal(SIGBUS, sig_bus);
+#endif
+#ifdef SIGFPE
+    signal(SIGFPE, sig_fpe);
 #endif
 #ifndef LATTICE
     signal(SIGSEGV, sig_segv);
@@ -517,7 +494,7 @@ char *int_string_unlink P1(char *, str)
 	newmbt = (malloc_block_t *)DXALLOC(l + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, desc);
 	memcpy((char *)(newmbt + 1), (char *)(mbt + 1), l+1);
 	newmbt->size = USHRT_MAX;
-	ADD_NEW_STRING(l, sizeof(malloc_block_t));
+	ADD_NEW_STRING(USHRT_MAX, sizeof(malloc_block_t));
     } else {
 	newmbt = (malloc_block_t *)DXALLOC(mbt->size + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, desc);
 	memcpy((char *)(newmbt + 1), (char *)(mbt + 1), mbt->size+1);
@@ -525,7 +502,8 @@ char *int_string_unlink P1(char *, str)
 	ADD_NEW_STRING(mbt->size, sizeof(malloc_block_t));
     }
     newmbt->ref = 1;
-
+    CHECK_STRING_STATS;
+    
     return (char *)(newmbt + 1);
 }
 
@@ -637,13 +615,7 @@ static void sig_usr1()
     push_undefined();
     apply_master_ob(APPLY_CRASH, 3);
     debug_message("Received SIGUSR1, calling exit(-1)\n");
-#if defined(OS2) && !defined(COMMAND_LINE)
-    message_box_string("Host machine is shutting down.\n");
-    FileExit();
-    return;
-#else
     exit(-1);
-#endif
 }
 
 /*
@@ -687,6 +659,14 @@ static void sig_bus()
 #endif
 {
     fatal("Bus error");
+}
+
+#ifdef SIGNAL_FUNC_TAKES_INT
+static void sig_fpe P1(int, sig)
+#else
+static void sig_fpe()
+#endif
+{
 }
 
 #ifdef SIGNAL_FUNC_TAKES_INT

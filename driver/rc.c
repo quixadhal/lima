@@ -135,16 +135,12 @@ void set_defaults P1(char *, filename)
     if (def) {
 	fprintf(stderr, "using config file: %s\n", filename);
     } else {
-#ifdef OS2
-	sprintf(defaults, "%s\\%s", CONFIG_FILE_DIR, filename);
-#else
 #ifdef LATTICE
 	if (strchr(CONFIG_FILE_DIR, ':'))
 	    sprintf(defaults, "%s%s", CONFIG_FILE_DIR, filename);
 	else
 #endif
 	    sprintf(defaults, "%s/%s", CONFIG_FILE_DIR, filename);
-#endif
 
 	def = fopen(defaults, "r");
 	if (def) {

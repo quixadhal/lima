@@ -27,9 +27,3 @@ create() {
 }));
 
 }
-
-void remove()
-{
-    actions::remove();
-    living::remove();
-}

@@ -12,10 +12,6 @@
 #include <driver/type.h>
 #include <mudlib.h>
 
-/* ### probably should not be in here, but instead in room.c. (simul conv) */
-
-
-
 /*
 ** Constant definition stuff
 */
@@ -78,7 +74,7 @@ private void parse_dsc_line(string line)
 	break;
 
     case '(':
-	colon = member_array(line, ':');
+	colon = member_array(':', line);
 	if ( colon == -1 )
 	{
 	    write("### missing colon in items defn ###\n");
@@ -91,7 +87,7 @@ private void parse_dsc_line(string line)
 	break;
 
     default:
-	colon = member(line, ':');
+	colon = member_array(':', line);
 	if ( colon == -1 )
 	{
 	    path = trim_spaces(line[cur_indent ..]);
@@ -132,14 +128,14 @@ private nomask void init_data()
 		 ]);
 
     funcs = ([
-	     "proper_name" : "set_proper_name"; T_STRING,
-	     "long" : "set_long"; T_STRING,
-	     "adj" : "set_adjectives"; T_POINTER,
-	     "weight" : "set_weight"; T_NUMBER,
-	     "gettable" : "set_gettable"; T_NUMBER,
-	     "flags" : #'parse_flags; T_STRING,
-	     "in_room" : "set_in_room_desc"; T_STRING,
-	     "untouched" : "set_untouched_desc"; T_STRING,
+	     "proper_name" : ({ "set_proper_name", STRING }),
+	     "long" : ({ "set_long", STRING }),
+	     "adj" : ({ "set_adjectives", ARRAY }),
+	     "weight" : ({ "set_weight", INT }),
+	     "gettable" : ({ "set_gettable", INT }),
+	     "flags" : ({ (: parse_flags :), STRING }),
+	     "in_room" : ({ "set_in_room_desc", STRING }),
+	     "untouched" : ({ "set_untouched_desc", STRING }),
 	     ]);
 }
 
@@ -158,5 +154,5 @@ varargs nomask void parse_dsc(string fname)
 
     init_data();
 
-    map_array(explode(dsc, "\n"), #'parse_dsc_line);
+    map_array(explode(dsc, "\n"), (: parse_dsc_line :));
 }

@@ -13,6 +13,9 @@
 */
 
 #include <mudlib.h>
+#include <hooks.h>
+
+varargs mixed call_hooks(string, int, mixed);
 
 mixed direct_look_at_obj(object ob) {
     return 1;
@@ -42,8 +45,6 @@ mixed direct_put_obj_in_obj(object ob1, object ob2) {
 
 mixed direct_get_obj(object ob)
 {
-    if ( this_object() == environment(this_body()) )
-	return "You're in it!\n";
     if ( environment() == this_body() )
 	return "You already have it!\n";
     if ( environment()->is_living() )
@@ -51,7 +52,11 @@ mixed direct_get_obj(object ob)
     if ( this_object() == this_body() )
 	return "You make an advance on yourself.\n";
 
-    return 1;
+//:HOOK prevent_get
+//A yes/no/error hook called by direct_get_obj() if the standard conditions
+//succeed
+
+    return call_hooks("prevent_get", HOOK_YES_NO_ERROR);
 }
 
 mixed direct_get_obj_from_obj(object ob1, object ob2) {
@@ -71,9 +76,18 @@ mixed direct_drop_obj(object ob)
     if ( environment() != this_body() )
 	return "You don't have it!\n";
 
-    return 1;
+//:HOOK prevent_drop
+//A yes/no/error hook called by direct_drop_obj() if the standard conditions
+//succeed
+
+    return call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
 }
 
 mixed direct_flip_obj(object ob) {
-    return M_PARSING->useless("Fiddling with " + ob->the_short());
+//:HOOK direct_flip
+//A yes/no/error hook called by direct_flip_obj(); if no hooks exists, the
+//useless message will be used.
+
+    return call_hooks("direct_flip", HOOK_YES_NO_ERROR,
+		     M_PARSING->useless("Fiddling with " + ob->the_short()));
 }

@@ -170,10 +170,84 @@ mixed name_of_file_owner(string object_name)
     }
 }
 
+// Handle tabs and non-printables; unfortunately UNIX tabs are indent
+// sensitive; this means that strlen(str) depends where we are on the line ...
+private int funky_strlen(string str, int start) {
+    int l, n, pos = start;
+    l = n = strlen(str);
+    for (int i = 0; i < n; i++) {
+	if (str[i] == '\t') {
+	    int z = 8 - (pos % 8);
+	    l += z;
+	    pos += z;
+	}
+	if (str[i] < 32 || str[i] > 126) {
+	    l--;
+	    continue;
+	}
+	pos++;
+    }
+    return l;
+}
+
+#define WIDTH 75
+#define INDENT "## "
+
+private void report_context(string src, int line, string context) {
+    string txt;
+    int len, clen;
+    int pos = strlen(INDENT);
+
+    if (!context || context == "") return;
+    if (context[<1] == '\n') context = context[0..<2];
+    
+    src = read_file((src[0] == '/' ? src : "/" + src), line, 1);
+    if (src == "") return;
+    if (src[<1] != '\n')
+	src += "\n";
+    // HACK WARNING:
+    // If there are nonprintables, we might not slash off enough, hence
+    // the while.  If there are tabs, we might slice off too much.
+    txt = src;
+    while ((len = funky_strlen(txt, pos)) > WIDTH)
+	txt = txt[0..<len-(WIDTH - 5)] + "...\n";
+    // END HACK.  RESUME NORMAL DRIVING
+    write(INDENT + txt);
+    if (context == "the end of line")
+	context = "\n";
+
+    if (sscanf(src, "%s" + context + "%s", txt, src) != 2)
+	return;
+    len = funky_strlen(txt, pos);
+    pos += len;
+
+    if (pos <= WIDTH) {
+	printf(INDENT "%-*' 's", len, "");
+	clen = funky_strlen(context, pos);
+	pos += clen;
+	printf("^%-*' 's", clen - 1, "");
+	while (sscanf(src, "%s" + context + "%s", txt, src) == 2) {
+	    len = funky_strlen(txt, pos);
+	    pos += len;
+	    clen = funky_strlen(context, pos);
+	    pos += clen;
+	    if (pos > WIDTH) {
+		if (pos - len - clen + 1 <= WIDTH)
+		    write("^");
+		break;
+	    }
+	    printf("%-*' 's^%-*' 's", len, "", clen - 1, "");
+	}
+    }
+    write("\n");
+}
+
 void log_error(string file, string message)
 {
     string name;
     string where, err, context;
+    string src, txt;
+    int line;
 
     name = name_of_file_owner(file);
 
@@ -181,13 +255,28 @@ void log_error(string file, string message)
     {
 	if (sscanf(message, "%s: %s before %s", where, err, context) == 3)
 	{
-	    printf("## Compilation error: %s\n   %s, before [%s]\n",
+#ifdef OLD_STYLE_COMPILATION_ERRORS
+	    printf(INDENT "Compilation error: %s\n   %s, before [%s]\n",
 		   err, where, trim_spaces(context));
+#else
+	    /* for safety; it'll look wierd but have the right info */
+	    src = where; 
+	    sscanf(where, "%s line %d", src, line);
+	    printf(INDENT "------- %s:%i\n## %s\n", src, line, err);
+	    report_context(src, line, context);
+#endif
 	}
 	else
 	{
+#ifdef OLD_STYLE_COMPILATION_ERRORS
 	    sscanf(message, "%s: %s", where, err);
-	    printf("## Compilation error: %s   %s\n", err, where);
+	    printf(INDENT "Compilation error: %s   %s\n", err, where);
+#else
+	    /* for safety; it'll look wierd but have the right info */
+	    src = where; 
+	    sscanf(where, "%s line %d", src, line);
+	    printf(INDENT "------- %s:%i\n## %s\n", src, line, err);
+#endif
 	}
     }
 
@@ -366,8 +455,8 @@ mixed valid_write(mixed path, object caller, string call_fun)
 
     if (caller == this_object())
         return 1;
+    path = evaluate_path(path);
 
-    path = (string)evaluate_path(path);
     if (SECURE_D->check_privilege(SECURE_D->query_protection(path,1),1))
         return path;
 
@@ -390,7 +479,7 @@ mixed valid_read(string path, object caller, string call_fun)
     if (file_name(caller)==SECURE_D && call_fun == "restore_object")
         return 1;
 
-    path = (string)evaluate_path(path);
+    path = evaluate_path(path);
     if (SECURE_D->check_privilege(SECURE_D->query_protection(path,0),0))
         return path;
 
@@ -403,14 +492,6 @@ mixed valid_read(string path, object caller, string call_fun)
 }
 
 #endif
-
-int valid_object(object o)
-{
-    if ( !clonep(o) )
-	call_out((: call_other, DOC_D, "update_docs_of", o :), 0);
-
-    return 1;
-}
 
 int valid_bind(object binder, object old_owner, object new_owner)
 {

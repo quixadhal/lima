@@ -338,6 +338,9 @@ nomask void force_me(string str)
     */
     if ( query_privilege() && !check_privilege(query_userid() + ":") )
 	error("Illegal force attempt.\n");
+// ### prevents an admin from forcing themselves. need to think...
+//    if ( adminp(this_object()) )
+//        error("illegal force attempt.\n");
 
     set_this_player(this_object());
     process_input(str);

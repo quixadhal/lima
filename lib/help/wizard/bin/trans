@@ -1,0 +1,12 @@
+
+USAGE:  trans <name>
+
+
+This command will transfer a player from their location to yours.
+
+trans ohara
+
+Will bring ohara to the room you are in.
+
+SEE ALSO:  goto
+

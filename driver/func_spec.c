@@ -105,9 +105,6 @@ void message(mixed, string, string | string * | object | object *,
     mixed *values(mapping);
     mixed *keys(mapping);
 
-#ifdef EACH
-    mixed *each(mapping, int default: 0);
-#endif
     mixed match_path(mapping, string);
 
 /* all the *p() type functions */
@@ -167,7 +164,7 @@ void message(mixed, string, string | string * | object | object *,
     string read_file(string, void | int, void | int);
     int cp(string, string);
 
-#if !defined(LATTICE) && !defined(OS2)
+#ifndef LATTICE
     int link(string, string);
 #endif
     int mkdir(string);
@@ -264,9 +261,11 @@ void message(mixed, string, string | string * | object | object *,
     int uptime();
     int strcmp(string, string);
 
+#ifndef WIN32
 #if (defined(RUSAGE) || defined(GET_PROCESS_STATS) || defined(TIMES)) || defined(LATTICE)
     mapping rusage();
 #endif				/* RUSAGE */
+#endif
 
 #ifdef OLD_ED
     void ed(string | void, string | void, string | int | void, int | void);

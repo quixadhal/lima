@@ -1,5 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
-
+#define TOO_DAMN_LONG 15
 #include <mudlib.h>
 
 inherit CMD;
@@ -12,8 +12,11 @@ private void main(string arg)
 {
     string * list;
     int count;
+    string * too_damn_long;
+    string * not_too_long;
+    string   str;
 
-    list = SOUL_D->list_emotes();
+    list = sort_array(SOUL_D->list_emotes(),1);
     count = sizeof(list);
 
     if ( !arg || arg == "" )
@@ -27,10 +30,20 @@ private void main(string arg)
         printf("No feelings matched '%s'.\n", arg);
         return;
     }
+    too_damn_long = filter(list, (: sizeof($1) >= TOO_DAMN_LONG :));
+    not_too_long = filter(list, (: sizeof($1) < TOO_DAMN_LONG :));
 
-    clone_object(MORE_OB)->more_string(
-        sprintf(HEADER "%-#79s\n" TRAILER, 
-        implode(sort_array(list, 1), "\n"),
+/*    clone_object(MORE_OB)->more_string(
+        sprintf(HEADER "%-#79s%s\n" TRAILER, 
+        implode(not_too_long, "\n"),
+	(sizeof(too_damn_long) ? ("Souls that are too damn long:\n" +
+		implode(too_damn_long,"\n")) : ""),
         sizeof(list), count, sizeof(list) * 100 / count));
+*/
+    str = HEADER + sprintf("%-#79s\n",implode(not_too_long,"\n")) +
+      (sizeof(too_damn_long) ? ("\nSouls that are too damn long:\n" +
+				implode(too_damn_long,"\n")+"\n") : "") +
+      sprintf(TRAILER, sizeof(list), count, sizeof(list) * 100 / count);
+    clone_object(MORE_OB)->more_string(str);
     return;
 }
