@@ -6,7 +6,7 @@ inherit M_MESSAGES;
 void do_player_message(string message, mixed arg) {
     mixed mess;
     
-    mess = query_msg(message) || "$N $vdo not have a message for '"+message+"'.\n";
+    mess = query_msg(message) || "$N $vdo not have a message for '"+message+"'.";
 
     if (pointerp(mess))
 	mess = choice(mess);
@@ -17,7 +17,7 @@ void do_player_message(string message, mixed arg) {
 string *get_player_message(string message, mixed arg) {
     mixed mess;
 
-    mess = query_msg(message) || "$N $vdo not have a message for '"+message+"'.\n";
+    mess = query_msg(message) || "$N $vdo not have a message for '"+message+"'.";
     if (pointerp(mess))
 	mess = choice(mess);
     return action( ({ this_object() }), mess, arg);

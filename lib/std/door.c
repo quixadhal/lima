@@ -34,7 +34,7 @@ object cached_sibling;
 
 private int block(string dir, object who) {
     if (query_closed()) {
-	who->simple_action("$N $vtry to go $o, but the $o1 is closed.\n",
+	who->simple_action("$N $vtry to go $o, but the $o1 is closed.",
 			   dir, this_object());
 	return 0;
     }
@@ -50,15 +50,15 @@ int respond_to_door_ident(string id) {
 }
 
 object get_sibling() {
-    if (!environment()) return 0;
+    if(!environment()) { ZABUG("ENV 0"); return 0; }
     if (!cached_sibling) {
 	string tmp;
 	object ob;
     
 	tmp = environment()->query_exit_value(our_dir);
-	if (!tmp) return 0;
+        if(!tmp) { ZABUG("NO EXIT VAL"); return 0; }
 	ob = load_object(tmp);
-	if (!ob) return 0;
+        if(!ob) { ZABUG("NO LOAD"); return 0; }
 
 	foreach (object ob2 in all_inventory(ob)) {
 	    if (ob2->respond_to_door_ident(our_ident)) {
@@ -141,3 +141,8 @@ void knock_knock(string s)
   ::knock_knock(s);
 }
 
+
+mixed direct_get_obj( object obj )
+{
+    return "#Opening it would be easier.\n";
+}

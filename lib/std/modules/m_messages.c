@@ -187,10 +187,13 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	// hack to prevent errors.
 	if (!bit) bit = "";
 	if (c < 'a') bit = capitalize(bit);
-	res += bit + fmt[i+1];
+//### Hack to avoid inheriting a mixin.  Better one needed.
+	if (fmt[i+1][0] == '.')
+	    res += M_GRAMMAR->punctuate(bit) + fmt[i+1][1..];
+	else
+	    res += bit + fmt[i+1];
 	i+=2;
     }
-    if (res[<1] == '.') res = punctuate(res[0..<2]);
     return res;
 }
 
@@ -226,15 +229,15 @@ void inform(object *who, string *msgs, mixed others) {
     for (i=0; i<sizeof(who); i++) {
         if (done[who[i]]) continue;
         done[who[i]]++;
-	tell_object(who[i], iwrap(msgs[i]));
+	tell(who[i], msgs[i]);
     }
     if (pointerp(others))
     {
-	map_array(others - who, (: tell_object($1, $(iwrap(msgs[<1]))) :));
+	map_array(others - who, (: tell($1, $(msgs[<1])) :));
     }
     else if (others)
     {
-	tell_room(others, iwrap(msgs[sizeof(who)]), 0, who);
+	tell_from_inside(others, msgs[sizeof(who)], MSG_INDENT, who);
     }
 }
 
@@ -251,12 +254,14 @@ varargs void simple_action(mixed msg, array obs...) {
     who = ({ this_object() });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
+    if ( msg[<1] != '\n' )
+	msg += "\n";
+
     us = compose_message(this_object(), msg, who, obs...);
     others = compose_message(0, msg, who, obs...);
 
-    tell_object(this_object(), iwrap(us));
-    if (environment())
-	tell_room(environment(), iwrap(others), 0, who);
+    tell(this_object(), us, MSG_INDENT);
+    tell_environment(this_object(), others, MSG_INDENT, who);
 }
 
 //:FUNCTION my_action
@@ -270,7 +275,7 @@ varargs void my_action(mixed msg, array obs...) {
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
     us = compose_message(this_object(), msg, who, obs...);
-    tell_object(this_object(), iwrap(us));
+    tell(this_object(), us, MSG_INDENT);
 }
 
 //:FUNCTION other_action
@@ -284,7 +289,7 @@ varargs void other_action(mixed msg, array obs...) {
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
     others = compose_message(0, msg, who, obs...);
-    tell_room(environment(), iwrap(others), 0, who);
+    tell_environment(this_object(), others, MSG_INDENT, who);
 }
 
 //:FUNCTION targetted_action
@@ -301,7 +306,7 @@ varargs void targetted_action(mixed msg, object target, array obs...) {
     us = compose_message(this_object(), msg, who, obs...);
     them = compose_message(target, msg, who, obs...);
     others = compose_message(0, msg, who, obs...);
-    tell_object(this_object(), iwrap(us));
-    tell_object(target, iwrap(them));
-    tell_room(environment(), iwrap(others), 0, who);
+    tell(this_object(), us, MSG_INDENT);
+    tell(target, them, MSG_INDENT);
+    tell_environment(this_object(), others, MSG_INDENT, who);
 }

@@ -20,7 +20,6 @@ void add_annotation(mixed o, class annotation a)
   class annotation array arrs;
 
   a->date = ctime(time());
-  a->text = wrap(a->text);
   //## Add code for owner of an annotation... check against WIZ_DIR
 
   arrs = annotations[(objectp(o) ? base_name(o) : o)]; 

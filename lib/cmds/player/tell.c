@@ -12,8 +12,8 @@ inherit M_ANSI;
 
 void create()
 {
-  ::create();
-  no_redirection();
+    ::create();
+    no_redirection();
 }
 
 private void main(string arg)
@@ -59,8 +59,8 @@ private void main(string arg)
 	    {
 		out("Vague mud name.  could be: " 
 		  + implode(previous_matches, ", ") + "\n");
-		    return;
-            }                
+		return;
+	    }                
 
 
 	    host = previous_matches[0];
@@ -71,19 +71,14 @@ private void main(string arg)
 		return;
 	    }
 
-	    if(arg[0] == ':')  {
-		arg = arg[1..];
-		IMUD_D->do_emoteto(host, user, arg);
-		outf("You emote to %s@%s: %s %s\n", capitalize(user), host, this_body()->query_name(), arg);
-
-		return;
-	    }
-	    if(arg[0] == ';')  {
+	    if( arg[0] == ';' || arg[0] == ':' )
+	    {
 		mixed *soul_ret;
 		arg = arg[1..];
 		soul_ret = SOUL_D->parse_imud_soul(arg);
 		if(!soul_ret)  {
-		    out("No such soul.\n");
+		    IMUD_D->do_emoteto(host, user, arg);
+		    outf("You emote to %s@%s: %s %s\n", capitalize(user), host, this_body()->query_name(), arg);
 		    return;
 		}
 		IMUD_D->do_emoteto(host,user,soul_ret[1][<1]);
@@ -118,35 +113,39 @@ private void main(string arg)
 	return;
     }
 
-    if(arg[0] == ':')  {
-	arg = arg[1..];
-	mystring = iwrap(sprintf("You emote to %s: %s %s\n", who == this_body() ? "yourself" : who->query_name(), this_body()->query_name(),arg));
-	deststring = iwrap(sprintf("*%s %s\n", this_body()->query_name(), arg));
-    } else if(arg[0] == ';')  {
+    if( arg[0] == ':' || arg[0] == ';' )
+    {
 	mixed *soul_ret;
 	int tindex;
 	arg = arg[1..];
 	soul_ret = SOUL_D->parse_soul(arg);
 	if(!soul_ret)  {
-	    out("No such soul.\n");
-	    return;
+	    mystring = sprintf("You emote to %s: %s %s\n", who == this_body() ? "yourself" : who->query_name(), this_body()->query_name(),arg);
+	    deststring = sprintf("*%s %s\n", this_body()->query_name(), arg);
 	}
-	mystring = iwrap(sprintf("(tell) %s", soul_ret[1][0]));
+	else
+	{
+	    mystring = sprintf("(tell) %s", soul_ret[1][0]);
 
-	if((tindex = member_array(who, soul_ret[0])) == -1)  {
-	    deststring = iwrap(sprintf("(tell) %s", soul_ret[1][<1]));
-	} else {
-	    deststring = iwrap(sprintf("(tell) %s", soul_ret[1][tindex]));
+	    if((tindex = member_array(who, soul_ret[0])) == -1)  {
+		deststring = sprintf("(tell) %s", soul_ret[1][<1]);
+	    }
+	    else
+	    {
+		deststring = sprintf("(tell) %s", soul_ret[1][tindex]);
+	    }
 	}
-    } else {
-	mystring = iwrap(sprintf("You tell %s: %s\n", who == this_body() ? "yourself" : who->query_name(), arg));
-	deststring = ansi(iwrap("%^BOLD%^" + this_body()->query_name() + " tells you: %^RESET%^" + arg + "\n"), who);
+    }
+    else
+    {
+	mystring = sprintf("You tell %s: %s\n", who == this_body() ? "yourself" : who->query_name(), arg);
+	deststring = "%^BOLD%^" + this_body()->query_name() + " tells you: %^RESET%^" + arg + "\n";
     }
 
     out(mystring);
     if(who != this_body())
     {
-	who->receive_private_msg(deststring);
+	who->receive_private_msg(deststring, MSG_INDENT);
 	who->set_reply(this_user()->query_userid());
     }
 }
@@ -155,4 +154,3 @@ nomask int
 valid_resend(string ob) {
     return ob == "/cmds/player/reply";
 }
-

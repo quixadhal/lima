@@ -298,7 +298,7 @@ svalue_t *safe_call_function_pointer PROT((funptr_t *, int));
 svalue_t *safe_apply PROT((char *, object_t *, int, int));
 void call___INIT PROT((object_t *));
 array_t *call_all_other PROT((array_t *, char *, int));
-char *function_exists PROT((char *, object_t *));
+char *function_exists PROT((char *, object_t *, int));
 void call_function PROT((program_t *, int));
 svalue_t *apply_master_ob PROT((char *, int));
 svalue_t *safe_apply_master_ob PROT((char *, int));

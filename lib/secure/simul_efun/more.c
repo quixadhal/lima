@@ -3,6 +3,7 @@
 #include <more.h>
 
 object this_body();
+varargs void tell(object, string, int);
 
 private nomask int default_num() {
     object ob;
@@ -24,7 +25,8 @@ private nomask int default_num() {
 //a string, it is exploded around "\n".  An optional second argument gives
 //the number of lines per chunk.  An optional continuation function will
 //be evaluated when the "more" is completed.
-varargs nomask void more(mixed arg, int num, function continuation)
+varargs nomask void more(mixed arg, int num, function continuation,
+			 int output_flags)
 {
     if (stringp(arg))
 	arg = explode(arg, "\n");
@@ -40,14 +42,14 @@ varargs nomask void more(mixed arg, int num, function continuation)
 
     if (sizeof(arg) < num) {
 	foreach (string line in arg) {
-	    write(line + "\n");
+	    tell(this_user(), line + "\n", output_flags);
 	}
 	if ( continuation )
 	    evaluate(continuation);
 	return;
     }
 
-    new(MORE_OB, MORE_LINES, arg, num, continuation);
+    new(MORE_OB, MORE_LINES, arg, num, continuation, output_flags);
 }
 
 //:FUNCTION more_file
@@ -56,7 +58,8 @@ varargs nomask void more(mixed arg, int num, function continuation)
 //An optional second argument gives the number of lines per chunk.  An
 //optional continuation function will be evaluated when the "more" is
 //completed.
-varargs nomask void more_file(mixed arg, int num, function continuation)
+varargs nomask void more_file(mixed arg, int num, function continuation,
+			      int output_flags)
 {
     if (stringp(arg)) 
 	arg = ({ arg });
@@ -67,5 +70,5 @@ varargs nomask void more_file(mixed arg, int num, function continuation)
     if (!num)
 	num = default_num();
 
-    new(MORE_OB, MORE_FILES, arg, num, continuation);
+    new(MORE_OB, MORE_FILES, arg, num, continuation, output_flags);
 }

@@ -37,7 +37,7 @@ private nomask string query_prompt()
     if ( topic_files )
     {
 	return sprintf("\nWhich topic to display? [1-%d,?]: ",
-		       sizeof(topic_files));
+	  sizeof(topic_files));
     }
 
     if ( cur_line )
@@ -73,7 +73,7 @@ private nomask int f_parse(string s)
 	x = explode(s[2..], ":");
 	directives[trim_spaces(x[0])] = trim_spaces(x[1]);
     }
-    
+
     return 0;
 }
 
@@ -81,19 +81,19 @@ private nomask void parse_file(string fname)
 {
     cur_line = 0;
     directives = ([ ]);
-    
+
     if( file_size( fname ) == -1 )
     {
-    lines = ({ "This helpfile no longer exists.", "Its reference will vanish next time help_d is updated" });
+	lines = ({ "This helpfile no longer exists.", "Its reference will vanish next time help_d is updated" });
 
-        return;
+	return;
     }
     lines = explode(read_file(fname), "\n");
     lines = filter_array(lines, (: f_parse :));
 
     if ( directives["see"] )
     {
-//### make this a bit more "in-your-face" ??
+	//### make this a bit more "in-your-face" ??
 	lines += ({ "", "See also: " + directives["see"] });
     }
 }
@@ -103,7 +103,7 @@ private nomask void print_lines()
     int count;
 
     count = this_body()->query_shell_ob()->get_variable("MORE") || 20;
-      if(!intp(count)) count =to_int(count);  
+    if(!intp(count)) count =to_int(count);  
     if ( sizeof(lines) - cur_line < count )
 	count = sizeof(lines) - cur_line;
 
@@ -132,7 +132,7 @@ private nomask void present_topic(string fname)
     ** Make sure it is set correctly.  cur_line will be zero if print_lines()
     ** ends up printing everything.
     */
-    modal_func(cur_line ? (: receive_more :) : (: receive_topic :));
+    modal_push(cur_line ? (: receive_more :) : (: receive_topic :), (: query_prompt()  :));
 }
 
 private nomask string format_choice(string choice)
@@ -149,7 +149,7 @@ private nomask void lookup_topic(string topic)
     {
 	write("\nSorry, there is no help on that topic (try: topics)\n\n");
 	LOG_D->log(LOG_HELP_MISS,
-		   sprintf("%s: %s\n", this_user()->query_userid(), topic));
+	  sprintf("%s: %s\n", this_user()->query_userid(), topic));
     }
     else if ( sizeof(files) == 1 )
     {
@@ -157,20 +157,20 @@ private nomask void lookup_topic(string topic)
     }
     else
     {
-//### need to devise a better scheme for presenting these.
-//### preferably, we can use the topic's "parent".  if one
-//### or more topics don't have parents, though... ??
-//### not to mention that we don't have their parents until
-//### we read the files.
-	
+	//### need to devise a better scheme for presenting these.
+	//### preferably, we can use the topic's "parent".  if one
+	//### or more topics don't have parents, though... ??
+	//### not to mention that we don't have their parents until
+	//### we read the files.
+
 	/* ack. must use a global to get the index to work */
 	i = 0;
 
 	write("There are multiple help files for \"" + topic + "\"\n" +
-	      "Please choose one:\n\n" +
-	      implode(map_array(files, (: format_choice :)),
-		      "\n") + "\n");
-	      
+	  "Please choose one:\n\n" +
+	  implode(map_array(files, (: format_choice :)),
+	    "\n") + "\n");
+
 	topic_files = files;
 	modal_func((: receive_choice :));
     }
@@ -179,7 +179,7 @@ private nomask void lookup_topic(string topic)
 private nomask void receive_choice(mixed arg)
 {
     if(arg == -1)
-      destruct(this_object());
+	destruct(this_object());
 
     if ( arg )
 	arg = trim_spaces(arg);
@@ -191,10 +191,10 @@ private nomask void receive_choice(mixed arg)
     else if ( arg == "?" )
     {
 	write("\nThe following commands are available:\n\n" +
-	      "             q : quit using the help system.\n" +
-	      "             ? : this help.\n\n" +
-	      "  <topic name> : will display help for the new topic.\n\n"
-	      );
+	  "             q : quit using the help system.\n" +
+	  "             ? : this help.\n\n" +
+	  "  <topic name> : will display help for the new topic.\n\n"
+	);
     }
     else if ( to_int(arg) > 0 )
     {
@@ -204,7 +204,7 @@ private nomask void receive_choice(mixed arg)
 	if ( which >= sizeof(topic_files) )
 	{
 	    printf("\nPlease type a number between 1 and %d.\n",
-		   sizeof(topic_files));
+	      sizeof(topic_files));
 	}
 	else
 	{
@@ -222,7 +222,7 @@ private nomask void receive_choice(mixed arg)
 private nomask void receive_more(mixed arg)
 {
     if (arg == -1)
-      destruct(this_object());
+	destruct(this_object());
     if ( arg )
 	arg = trim_spaces(arg);
 
@@ -233,16 +233,16 @@ private nomask void receive_more(mixed arg)
     else if ( arg == "?" )
     {
 	write("\nThe following commands are available:\n\n" +
-	      "             q : quit using the help system.\n" +
-	      "             ? : this help.\n\n" +
-	      "      <return> : will display more of this help topic.\n" +
-	      "  <topic name> : will display help for the new topic.\n\n"
-	      );
+	  "             q : quit using the help system.\n" +
+	  "             ? : this help.\n\n" +
+	  "      <return> : will display more of this help topic.\n" +
+	  "  <topic name> : will display help for the new topic.\n\n"
+	);
     }
-//    else if ( arg == "topics" )
-//    {
-//	display_topics();
-//    }
+    //    else if ( arg == "topics" )
+    //    {
+    //	display_topics();
+    //    }
     else if ( !arg || arg == "" )
     {
 	print_lines();
@@ -264,7 +264,7 @@ private nomask void receive_more(mixed arg)
 private nomask void receive_topic(mixed arg)
 {
     if (arg == -1)
-      destruct(this_object());
+	destruct(this_object());
 
     if ( arg )
 	arg = trim_spaces(arg);
@@ -282,10 +282,9 @@ private nomask void receive_topic(mixed arg)
 
 nomask void begin_help(string topic)
 {
-    if ( !topic || topic == "" )
+    if( !topic || topic == "")
 	topic = "topics";
-
-    modal_push((: receive_topic :), (: query_prompt :));
+	modal_push((: receive_topic :), (: query_prompt :));
     lookup_topic(topic);
 }
 
@@ -317,7 +316,7 @@ nomask void display_topics(string *arr)
     string *new_stuff, *old_stuff;
 
     old_stuff = filter_array(arr,
-			     (: stat($1)[1] <= $(this_body())->query_help_topic($1) :));
+      (: stat($1)[1] <= $(this_body())->query_help_topic($1) :));
 
     new_stuff = arr - old_stuff;
     if (sizeof(new_stuff)) display_topic_columns(new_stuff, "Unread topics:");

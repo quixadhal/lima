@@ -13,8 +13,10 @@
 /daemons/soul_d
 /daemons/imud_d
 /daemons/doc_d
-# comment this out and rm or move the file if you don't want an internal web
-# server.
+# comment this out and rm or move the file if you don't want an internal 
+# web server.
 #/daemons/http_d
+/secure/daemons/ftp_d
 /daemons/chanlog_d
-
+/daemons/memcheck_d
+/secure/daemons/imail_d

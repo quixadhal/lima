@@ -9,7 +9,7 @@ void do_wait()
     write("Do I have to do EVERYTHING for you?\n");
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
   return ({ ({ 0 }) });
 }

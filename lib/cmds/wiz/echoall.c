@@ -16,5 +16,5 @@ private void main(string orig_input, mixed * arg)
 {
     string msg = implode(arg[0], " ");
     out("You echoall: " + msg + "\n");
-    shout(msg + "\n");
+    tell(users() - ({ this_user() }), msg + "\n");
 }

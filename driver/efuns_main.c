@@ -167,7 +167,7 @@ f_bind PROT((void))
 	new_fp->f.functional.prog->func_ref++;
 #ifdef DEBUG
 	if (d_flag)
-	    printf("add func ref %s: now %i\n",
+	    printf("add func ref /%s: now %i\n",
 		   new_fp->f.functional.prog->name,
 		   new_fp->f.functional.prog->func_ref);
 #endif	
@@ -298,7 +298,7 @@ f_call_out PROT((void))
     if (!(current_object->flags & O_DESTRUCTED))
 	new_call_out(current_object, arg, arg[1].u.number, num, arg + 2);
     sp -= num + 1;
-    free_svalue(sp--);
+    free_svalue(sp--, "call_out");
 #endif
 }
 #endif
@@ -345,13 +345,12 @@ f_call_stack PROT((void))
     switch (sp->u.number) {
     case 0:
 	ret->item[0].type = T_STRING;
-	ret->item[0].subtype = STRING_SHARED;
-	ret->item[0].u.string = current_prog->name;
-	ref_string(current_prog->name);
+	ret->item[0].subtype = STRING_MALLOC;
+	ret->item[0].u.string = add_slash(current_prog->name);
 	for (i = 1; i < n; i++) {
 	    ret->item[i].type = T_STRING;
-	    ret->item[i].subtype = STRING_SHARED;
-	    ret->item[i].u.string = make_shared_string((csp - i + 1)->prog->name);
+	    ret->item[i].subtype = STRING_MALLOC;
+	    ret->item[i].u.string = add_slash((csp - i + 1)->prog->name);
 	}
 	break;
     case 1:
@@ -425,7 +424,7 @@ void
 f_classp PROT((void))
 {
     if (sp->type == T_CLASS) {
-	free_array(sp->u.arr);
+	free_class(sp->u.arr);
 	*sp = const1;
     } else {
 	free_svalue(sp, "f_classp");
@@ -574,7 +573,7 @@ f_deep_inherit_list PROT((void))
     if (!(sp->u.ob->flags & O_SWAPPED)) {
         vec = deep_inherit_list(sp->u.ob);
     } else {
-        vec = null_array();
+        vec = &the_null_array;
     }
     free_object(sp->u.ob, "f_deep_inherit_list");
     put_array(vec);
@@ -609,7 +608,7 @@ f_deep_inventory PROT((void))
 void
 f_destruct PROT((void))
 {
-    destruct_object(sp);
+    destruct_object(sp->u.ob);
     sp--; /* Ok since the object was removed from the stack */
 }
 #endif
@@ -772,7 +771,7 @@ f_error PROT((void))
     err_buf[l + 1] = '\n';
     err_buf[l + 2] = 0;
     
-    error_handler(sp->u.string);
+    error_handler(err_buf);
 }
 #endif
 
@@ -971,9 +970,24 @@ f_function_exists PROT((void))
 {
     char *str, *res;
     int l;
+    object_t *ob;
+    int flag = 0;
+    
+    if (st_num_arg > 1) {
+	if (st_num_arg > 2)
+	    flag = (sp--)->u.number;
+	ob = (sp--)->u.ob;
+	free_object(ob, "f_function_exists");
+    } else {
+	if (current_object->flags & O_DESTRUCTED) {
+	    free_string_svalue(sp);
+	    *sp = const0u;
+	    return;
+	}
+	ob = current_object;
+    }
 
-    str = function_exists((sp - 1)->u.string, sp->u.ob);
-    free_object((sp--)->u.ob, "f_function_exists");
+    str = function_exists(sp->u.string, ob, flag);
     free_string_svalue(sp);
     if (str) {
 	l = SHARED_STRLEN(str) - 2; /* no .c */
@@ -1177,7 +1191,7 @@ f_shallow_inherit_list PROT((void))
     if (!(sp->u.ob->flags & O_SWAPPED)) {
         vec = inherit_list(sp->u.ob);
     } else {
-        vec = null_array();
+        vec = &the_null_array;
     }
     free_object(sp->u.ob, "f_inherit_list");
     put_array(vec);
@@ -1624,7 +1638,8 @@ f_message PROT((void))
     case T_NUMBER:
 	if (args[2].u.number == 0) {
 	    /* this is really bad and probably should be rm'ed -Beek;
-	     * on the other hand, we don't have a debug_message() efun yet
+	     * on the other hand, we don't have a debug_message() efun yet.
+	     * Well, there is one in contrib now ...
 	     */
 	    /* for compatibility (write() simul_efuns, etc)  -bobf */
 	    check_legal_string(args[1].u.string);
@@ -1648,10 +1663,10 @@ f_message PROT((void))
 	    avoid = args[3].u.arr;
 	    break;
 	default:
-	    avoid = null_array();
+	    avoid = &the_null_array;
 	}
     } else
-	avoid = null_array();
+	avoid = &the_null_array;
     do_message(&args[0], &args[1], use, avoid, 1);
     pop_n_elems(num_arg);
 }
@@ -1756,8 +1771,12 @@ void f_mud_status PROT((void))
 		    tot_alloc_object, tot_alloc_object_size);
 	outbuf_addv(&ob, "Prog blocks:\t\t\t%8d %8d\n",
 		    total_num_prog_blocks, total_prog_block_size);
+#ifdef ARRAY_STATS
 	outbuf_addv(&ob, "Arrays:\t\t\t\t%8d %8d\n", num_arrays,
 		    total_array_size);
+#else
+	outbuf_add(&ob, "<Array statistics disabled, no information available>\n");
+#endif
 	outbuf_addv(&ob, "Mappings:\t\t\t%8d %8d\n", num_mappings,
 		    total_mapping_size);
 	outbuf_addv(&ob, "Mappings(nodes):\t\t%8d\n", total_mapping_nodes);
@@ -1771,7 +1790,9 @@ void f_mud_status PROT((void))
     }
 
     tot += total_prog_block_size +
+#ifdef ARRAY_STATS
 	total_array_size +
+#endif
 	total_mapping_size +
 	tot_alloc_sentence * sizeof(sentence_t) +
 	tot_alloc_object_size +
@@ -2721,7 +2742,7 @@ f_say PROT((void))
     };
 
     if (st_num_arg == 1) {
-	avoid = null_array();
+	avoid = &the_null_array;
 	say(sp, avoid);
 	pop_stack();
     } else {
@@ -2951,6 +2972,9 @@ f_sizeof PROT((void))
 
     switch (sp->type) {
     case T_CLASS:
+	i = sp->u.arr->size;
+	free_class(sp->u.arr);
+	break;
     case T_ARRAY:
 	i = sp->u.arr->size;
 	free_array(sp->u.arr);
@@ -3244,7 +3268,7 @@ f_tell_room PROT((void))
     }
 
     if (num_arg == 2) {
-        avoid = null_array();
+        avoid = &the_null_array;
     } else {
         avoid = arg[2].u.arr;
     }
@@ -3394,7 +3418,12 @@ f_throw PROT((void))
 void
 f_time PROT((void))
 {
+#ifdef WIN32
+    /* Necessary?  Good? -Beek */
+    push_number(current_time = time(NULL));
+#else
     push_number(current_time);
+#endif
 }
 #endif
 
@@ -3686,7 +3715,9 @@ f_memory_info PROT((void))
 	else
 	    res = 0;
 	tot = total_prog_block_size +
+#ifdef ARRAY_STATS
 	    total_array_size +
+#endif
 	    total_mapping_size +
 	    tot_alloc_object_size +
 	    tot_alloc_sentence * sizeof(sentence_t) +

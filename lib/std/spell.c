@@ -2,15 +2,14 @@
 
 #include <assert.h>
 
-varargs static void cast_spell(object, mixed);
+private static string spell_name;
 
-private static string spell_name = split_path(base_name(this_object()))[1];
+static void cast_spell(object target, object reagent);
 
 static void set_spell_name(string s)
 {
     spell_name = s;
 }
-
 string get_spell_name()
 {
     return spell_name;
@@ -42,31 +41,44 @@ static mixed valid_target(object target)
     return 1;
 }
 
-static mixed valid_circumstances(object target, object reagent)
+static mixed valid_circumstances(mixed target, mixed reagent)
 {
     /* DEFAULT: spells can be cast at any time */
     return 1;
 }
 
-static mixed can_cast_spell(object target, object reagent)
+static mixed check_valid_spell(int has_target, int has_reagent)
+{
+    return valid_circumstances(has_target, has_reagent);
+}
+
+static mixed check_valid_target(object target, mixed has_reagent)
 {
     mixed res;
 
-    res = valid_circumstances(target, reagent);
-    if ( !res )
-    {
-	return "You are unable.\n";
-    }
-    if ( stringp(res) )
-    {
+    res = valid_circumstances(target, has_reagent);
+    if ( res != 1 )
 	return res;
-    }
-    ENSURE(res == 1);
 
-    res = valid_reagent(reagent);
+    return valid_target(target);
+}
+
+static mixed check_valid_reagent(object reagent, mixed has_target)
+{
+    mixed res;
+
+    res = valid_circumstances(has_target, reagent);
+    if ( res != 1 )
+	return res;
+
+    return valid_reagent(reagent);
+
+#if 0
     if ( !res )
     {
-	return sprintf("You can't cast that with %s.\n", reagent->the_short());
+	return reagent ?
+	    sprintf("You can't cast that with %s.\n", reagent->the_short()) :
+	    "You need something to help you cast that.\n";
     }
     if ( stringp(res) )
     {
@@ -77,7 +89,9 @@ static mixed can_cast_spell(object target, object reagent)
     res = valid_target(target);
     if ( !res ) 
     {
-	return sprintf("You can't cast that on %s.\n", target->the_short());
+	return target ?
+	    sprintf("You can't cast that on %s.\n", target->the_short()) :
+	    "You need to cast that on something.\n";
     }
     if ( stringp(res) )
     {
@@ -86,12 +100,25 @@ static mixed can_cast_spell(object target, object reagent)
     ENSURE(res == 1);
 
     return 1;
+#endif
 }
 
-nomask mixed _can_cast_spell(object target, object reagent)
+nomask mixed _check_valid_spell(int has_target, int has_reagent)
 {
     ENSURE(previous_object() == find_object(SPELL_D));
-    return can_cast_spell(target, reagent);
+    return check_valid_spell(has_target, has_reagent);
+}
+
+nomask mixed _check_valid_target(object target, mixed has_reagent)
+{
+    ENSURE(previous_object() == find_object(SPELL_D));
+    return check_valid_target(target, has_reagent);
+}
+
+nomask mixed _check_valid_reagent(object reagent, mixed has_target)
+{
+    ENSURE(previous_object() == find_object(SPELL_D));
+    return check_valid_reagent(reagent, has_target);
 }
 
 // The daemon calls this, we check if it came from the daemon, and then call
@@ -108,7 +135,12 @@ void setup()
 
 nomask void create()
 {
-  SPELL_D->register_spell();
-  setup();
-}
+    if ( base_name() == SPELL )
+	return;
 
+    /* let the subclass set up the spell info/characteristics */
+    setup();
+
+    /* now register with the spell daemon */
+    SPELL_D->register_spell();
+}

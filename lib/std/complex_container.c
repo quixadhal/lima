@@ -21,6 +21,7 @@ static int valid_prep(string prep) {
     return !!relations[prep];
 }
 
+varargs string query_prep(object ob) { return ob ? obj_info[ob] : ::query_prep(); }
 
 varargs void set_max_capacity(int cap, string relation)
 {

@@ -798,8 +798,8 @@ restore_class P2(char **, str, svalue_t *, ret)
     if (save_svalue_depth) size = sizes[save_svalue_depth-1];
     else if ((size = restore_size(str,0)) < 0) return ROB_CLASS_ERROR; 
 
-    v = allocate_array(size); /* after this point we have to clean up
-				 or we'll leak */
+    v = allocate_class_by_size(size); /* after this point we have to clean up
+					 or we'll leak */
     sv = v->item;
 
     while (size--) {
@@ -868,7 +868,7 @@ restore_class P2(char **, str, svalue_t *, ret)
  generic_error:
     err = ROB_CLASS_ERROR;
  error:
-    free_array(v);
+    free_class(v);
     return err;
 }
 
@@ -1120,31 +1120,37 @@ safe_restore_svalue P2(char *, cp, svalue_t *, v)
     return 0;
 }
 
-static int var_index = 0;
-/* optimized to start where we left off, so that walking the variables in
-   order is O(N) instead of O(N^2) -Beek */
-
-variable_t *find_status P1(char *, str) {
+static int fgv_recurse P4(program_t *, prog, int *, idx, 
+			  char *, name, unsigned short *, type) {
     int i;
-    variable_t *vars = current_object->prog->variable_names;
-    int n = current_object->prog->num_variables;
-    
-    if ((str = findstring(str))) {
-	for (i=var_index; i < n; i++) {
-	    if (vars[i].name == str) {
-		var_index = i+1;
-		return &vars[i];
-	    }
-	}
-	for (i=0; i < var_index; i++) {
-	    if (vars[i].name == str) {
-		var_index = i+1;
-		return &vars[i];
-	    }
+    for (i = 0; i < prog->num_inherited; i++) {
+	if (fgv_recurse(prog->inherit[i].prog, idx, name, type)) {
+	    *type |= prog->inherit[i].type_mod;
+	    return 1;
 	}
     }
-    /* leave var_index alone; they might have just deleted this var */
+    for (i = 0; i < prog->num_variables_defined; i++) {
+	if (prog->variable_table[i] == name) {
+	    *idx += i;
+	    *type = prog->variable_types[i];
+	    return 1;
+	}
+    }
+    *idx += prog->num_variables_defined;
     return 0;
+}
+
+int find_global_variable P3(program_t *, prog, char *, name,
+			    unsigned short *, type) {
+    int idx = 0;
+    char *str = findstring(name);
+    
+    if (str && fgv_recurse(prog, &idx, str, type)) {
+	if (*type & NAME_PUBLIC)
+	    *type &= ~NAME_PRIVATE;
+	return idx;
+    }
+    return -1;
 }
 
 void
@@ -1153,12 +1159,11 @@ restore_object_from_buff P4(object_t *, ob, char *, theBuff, char *, name,
 {
     char *buff, *nextBuff, *tmp,  *space;
     char var[100];
-    variable_t *p, *var_start = ob->prog->variable_names;
+    int idx;
     svalue_t *sv = ob->variables;
     int rc;
- 
-    var_index = 0;
-
+    unsigned short t;
+    
     nextBuff = theBuff;
     while ((buff = nextBuff) && *buff) {
         svalue_t *v;
@@ -1179,11 +1184,11 @@ restore_object_from_buff P4(object_t *, ob, char *, theBuff, char *, name,
         }
         (void)strncpy(var, buff, space - buff);
         var[space - buff] = '\0';
-        p = find_status(var);
-        if (!p || (p->type & NAME_STATIC))
-            continue;
+	idx = find_global_variable(current_object->prog, var, &t);
+        if (idx == -1 || t & NAME_STATIC)
+	    continue;
 
-        v = &sv[p - var_start];
+        v = &sv[idx];
 	if (noclear)
 	    rc = safe_restore_svalue(space+1, v);
 	else
@@ -1214,19 +1219,54 @@ restore_object_from_buff P4(object_t *, ob, char *, theBuff, char *, name,
  * to assertain that the write is legal.
  * If 'save_zeros' is set, 0 valued variables will be saved
  */
+static int save_object_recurse P5(program_t *, prog, svalue_t **,
+				  svp, int, type, int, save_zeros,
+				  FILE *, f) {
+    int i;
+    int theSize;
+    char *new_str, *p;
+    
+    for (i = 0; i < prog->num_inherited; i++) {
+	if (!save_object_recurse(prog->inherit[i].prog, svp, 
+				 prog->inherit[i].type_mod | type,
+				 save_zeros, f))
+	    return 0;
+    }
+    if (type & NAME_STATIC) {
+	(*svp) += prog->num_variables_defined;
+	return 1;
+    }
+    for (i = 0; i < prog->num_variables_defined; i++) {
+	if (prog->variable_types[i] & NAME_STATIC) {
+	    (*svp)++;
+	    continue;
+	}
+	save_svalue_depth = 0;
+	theSize = svalue_save_size(*svp);
+	new_str = (char *)DXALLOC(theSize, TAG_TEMPORARY, "save_object: 2");
+	*new_str = '\0';
+	p = new_str;
+	save_svalue((*svp)++, &p);
+	/* FIXME: shouldn't use fprintf() */
+	if (save_zeros || new_str[0] != '0' || new_str[1] != 0) /* Armidale */
+	    if (fprintf(f, "%s %s\n", prog->variable_table[i], new_str) == EOF) return 0;
+	FREE(new_str);
+    }
+    return 1;
+}
+
 int
 save_object P3(object_t *, ob, char *, file, int, save_zeros)
 {
     char *name;
     static char tmp_name[80];
-    int len, i;
+    int len;
     FILE *f;
     int failed = 0;
-    char *use_name, *new_str, *p;
-    int free_use_name = 0, theSize;
-    variable_t *var = ob->prog->variable_names;
-    svalue_t *v = ob->variables;
-
+    char *use_name;
+    int free_use_name = 0;
+    svalue_t *v;
+    
     if (ob->flags & O_DESTRUCTED)
         return 0;
     if (file[0] != '/')
@@ -1262,32 +1302,14 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
      */
     sprintf(tmp_name, "%s.tmp", name);
 
-#ifdef WIN32
-    if (!(f = fopen(tmp_name, "wb"))){
-#else
-    if (!(f = fopen(tmp_name, "w"))){
-#endif
+    if (!(f = fopen(tmp_name, "w"))) {
 	FREE(name);
         error("Could not open /%s for a save.\n", tmp_name);
     }
-    fprintf(f, "#%s\n", ob->prog->name);
+    fprintf(f, "#/%s\n", ob->prog->name);
 
-    i = ob->prog->num_variables;
-    while (i--){
-	if (var->type & NAME_STATIC) { v++; var++; continue; }
-
-	save_svalue_depth = 0;
-	theSize = svalue_save_size(v);
-	new_str = (char *)DXALLOC(theSize, TAG_TEMPORARY, "save_object: 2");
-	*new_str = '\0';
-	p = new_str;	
-	save_svalue(v++, &p);
-	if (save_zeros || strcmp(new_str,"0")) /* Armidale */
-	    if (fprintf(f, "%s %s\n", var->name, new_str) == EOF) failed = 1;
-	FREE(new_str);
-	var++;
-    }
-    if (failed) 
+    v = ob->variables;
+    if (!save_object_recurse(ob->prog, &v, 0, save_zeros, f))
 	debug_message("Failed to completely save file. Disk could be full.\n");
     else {
 	(void) fclose(f);
@@ -1340,6 +1362,36 @@ save_variable P1(svalue_t *, var)
     return new_str;
 }
 
+static void cns_just_count P2(int *, idx, program_t *, prog) {
+    int i;
+    
+    for (i = 0; i < prog->num_inherited; i++)
+	cns_just_count(idx, prog->inherit[i].prog);
+    *idx += prog->num_variables_defined;
+}
+
+static void cns_recurse P3(object_t *, ob, int *, idx, program_t *, prog) {
+    int i;
+    
+    for (i = 0; i < prog->num_inherited; i++) {
+	if (prog->inherit[i].type_mod & NAME_STATIC)
+	    cns_just_count(idx, prog->inherit[i].prog);
+	else
+	    cns_recurse(ob, idx, prog->inherit[i].prog);
+    }
+    for (i = 0; i < prog->num_variables_defined; i++) {
+	if (!(prog->variable_types[i] & NAME_STATIC)) {
+	    free_svalue(&ob->variables[*idx + i], "cns_recurse");
+	    ob->variables[*idx + i] = const0u;
+	}
+    }
+    *idx += prog->num_variables_defined;
+}
+
+static void clear_non_statics P1(object_t *, ob) {
+    int idx = 0;
+    cns_recurse(ob, &idx, ob->prog);
+}
 
 int restore_object P3(object_t *, ob, char *, file, int, noclear)
 {
@@ -1380,7 +1432,11 @@ int restore_object P3(object_t *, ob, char *, file, int, noclear)
         return 0;
     }
     theBuff = DXALLOC(i + 1, TAG_TEMPORARY, "restore_object: 4");
+#ifdef WIN32
+    i = read(_fileno(f), theBuff, i);
+#else
     fread(theBuff, 1, i, f);
+#endif
     fclose(f);
     theBuff[i] = '\0';
     current_object = ob;
@@ -1389,18 +1445,8 @@ int restore_object P3(object_t *, ob, char *, file, int, noclear)
      * If 'noclear' flag is not set, all non-static variables will be
      * initialized to 0 when restored.
      */
-    if (!noclear) {
-	variable_t *v = ob->prog->variable_names;
-	svalue_t *sv = ob->variables;
-
-	i = ob->prog->num_variables; 
-	while (i--) {
-	    if (!((v++)->type & NAME_STATIC)) {
-		free_svalue(sv, "restore_object");
-		*sv++ = const0u;
-	    } else sv++;
-	}
-    }
+    if (!noclear)
+	clear_non_statics(ob);
     
     restore_object_from_buff(ob, theBuff, name, noclear);
     current_object = save;
@@ -1472,11 +1518,11 @@ void dealloc_object P2(object_t *, ob, char *, from)
 
 #ifdef DEBUG
     if (d_flag)
-	debug_message("free_object: %s.\n", ob->name);
+	debug_message("free_object: /%s.\n", ob->name);
 #endif
     if (!(ob->flags & O_DESTRUCTED)) {
 	/* This is fatal, and should never happen. */
-	fatal("FATAL: Object 0x%x %s ref count 0, but not destructed (from %s).\n",
+	fatal("FATAL: Object 0x%x /%s ref count 0, but not destructed (from %s).\n",
 	      ob, ob->name, from);
     }
     DEBUG_CHECK(ob->interactive, "Tried to free an interactive object.\n");
@@ -1488,7 +1534,7 @@ void dealloc_object P2(object_t *, ob, char *, from)
 	remove_swap_file(ob);	/* do this before prog is freed */
     if (ob->prog) {
 	tot_alloc_object_size -=
-	    (ob->prog->num_variables - 1) * sizeof(svalue_t) +
+	    (ob->prog->num_variables_total - 1) * sizeof(svalue_t) +
 	    sizeof(object_t);
 	free_prog(ob->prog, 1);
 	ob->prog = 0;
@@ -1509,10 +1555,10 @@ void dealloc_object P2(object_t *, ob, char *, from)
     if (ob->name) {
 #ifdef DEBUG
 	if (d_flag > 1)
-	    debug_message("Free object %s\n", ob->name);
+	    debug_message("Free object /%s\n", ob->name);
 #endif
 	DEBUG_CHECK1(lookup_object_hash(ob->name) == ob,
-		     "Freeing object %s but name still in name table", ob->name);
+		     "Freeing object /%s but name still in name table", ob->name);
 	FREE(ob->name);
 	ob->name = 0;
     }
@@ -1686,32 +1732,6 @@ void call_create P2(object_t *, ob, int, num_arg)
     ob->flags |= O_RESET_STATE;
 }
 
-/*
- * If there is a shadow for this object, then the message should be
- * sent to it. But only if catch_tell() is defined. Beware that one of the
- * shadows may be the originator of the message, which means that we must
- * not send the message to that shadow, or any shadows in the linked list
- * before that shadow.
- */
-#ifndef NO_SHADOWS
-int shadow_catch_message P2(object_t *, ob, char *, str)
-{
-    if (!ob->shadowed)
-	return 0;
-    while (ob->shadowed != 0 && ob->shadowed != current_object)
-	ob = ob->shadowed;
-    while (ob->shadowing) {
-	copy_and_push_string(str);
-	if (apply(APPLY_CATCH_TELL, ob, 1, ORIGIN_DRIVER))	
-	    /* this will work, since we know the */
-	    /* function is defined */
-	    return 1;
-	ob = ob->shadowing;
-    }
-    return 0;
-}
-#endif
-
 INLINE int object_visible P1(object_t *, ob)
 {
     if (ob->flags & O_HIDDEN) {
@@ -1730,7 +1750,7 @@ void reload_object P1(object_t *, obj)
 
     if (!obj->prog)
 	return;
-    for (i = 0; i < (int) obj->prog->num_variables; i++) {
+    for (i = 0; i < (int) obj->prog->num_variables_total; i++) {
 	free_svalue(&obj->variables[i], "reload_object");
 	obj->variables[i] = const0u;
     }
@@ -1749,16 +1769,15 @@ void reload_object P1(object_t *, obj)
      */
 #ifndef NO_SHADOWS
     if (obj->shadowed && !obj->shadowing) {
-	svalue_t svp;
 	object_t *ob2;
-
-	svp.type = T_OBJECT;
+	object_t *otmp;
+	
 	for (ob2 = obj->shadowed; ob2;) {
-	    svp.u.ob = ob2;
+	    otmp = ob2;
 	    ob2 = ob2->shadowed;
-	    svp.u.ob->shadowed = 0;
-	    svp.u.ob->shadowing = 0;
-	    destruct_object(&svp);
+	    otmp->shadowed = 0;
+	    otmp->shadowing = 0;
+	    destruct_object(otmp);
 	}
     }
     /*

@@ -79,7 +79,8 @@ walk_dir( string path, function func, mixed arg )
 private string array
 wiz_dir_parts = explode(WIZ_DIR, "/") - ({ "", "." });
 
-string evaluate_path(string path) {
+varargs
+string evaluate_path(string path, string prepend) {
     string *tree;
     int idx;
 
@@ -87,10 +88,12 @@ string evaluate_path(string path) {
 	if (this_body())
 	    path = this_body()->query_shell_ob()->get_variable("pwd")
 		+ "/" + path;
+     else if(prepend) 
+	path = prepend + "/" + path;
 	else {
 	    string lname = file_name(previous_object());
-	    int tmp = strsrch(path, "/", -1);
-	    path = lname[0..tmp-1] + "/" + path;
+	    int tmp = strsrch(lname, "/", -1);
+	    path = lname[0..tmp] + path;
 	}
     }
     tree = explode(path, "/") - ({ "", "." });

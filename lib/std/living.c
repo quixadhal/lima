@@ -35,7 +35,10 @@ void set_name(string n) {
 }
 
 string in_room_desc() {
-  return query_in_room_desc();
+    if (query_prone())
+	capitalize(name) + " is lying here slumped on the ground.";
+    else
+	return query_in_room_desc();
 }
 
 string inventory_header() {
@@ -62,13 +65,15 @@ mixed direct_cross_obj(object ob) {
     return "I don't think " + ob->the_short() + " would appreciate that.\n";
 }
 
+// Default behavior.  Livings that want to behave differently should
+// override this.
 mixed indirect_give_obj_to_liv(object ob, object liv) {
     return capitalize(liv->the_short()) + " politely refuses.\n";
 }
 
 mixed direct_get_obj(object ob) {
     if (ob == this_body())
-	return "You find your presence uplifting.\n";
+	return "#You find your presence uplifting.\n";
 
     return "#I can't do everything.  If you want to pick up another player, try using your social skills.\n";
 }

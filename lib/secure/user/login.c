@@ -22,14 +22,14 @@ void restore_me(string some_name, int preserve_vars);
 void register_failure(string addr);
 
 varargs void modal_push(function input_func,
-			mixed prompt,
-			int secure,
-			function return_to_func
-    );
+  mixed prompt,
+  int secure,
+  function return_to_func
+);
 varargs void modal_func(function input_func,
-			mixed prompt,
-			int secure
-    );
+  mixed prompt,
+  int secure
+);
 void modal_pop();
 void modal_recapture();
 
@@ -98,8 +98,8 @@ private nomask int check_site()
     if ( BANISH_D->check_site() )
     {
 	printf("Sorry, your site has been banished from " + mud_name() + ".  To ask for\n"
-	       "a character, please mail %s.\n",
-	       ADMIN_EMAIL);
+	  "a character, please mail %s.\n",
+	  ADMIN_EMAIL);
 
 	get_lost();
 
@@ -141,10 +141,11 @@ private nomask int valid_name(string str)
     ** Note that this regex matches the restriction imposed by the
     ** SECURE_D.  Also note the name is in lower case right now.
     */
+ZBUG( !regexp(str, "^[a-z]+$") );
     if ( !regexp(str, "^[a-z]+$") )
     {
 	write("Sorry, that name is forbidden by the implementors.  Please\n"
-	      "choose a name containing only letters.\n");
+	  "choose a name containing only letters.\n");
 	return 0;
     }
 
@@ -160,13 +161,17 @@ private nomask int check_special_commands(string arg)
     {
     case "who":
 	b = bodies()->query_name();
-	if(!sizeof(b))
+	b -= ({ "Someone" });
+	switch( sizeof(b))
 	{
+	case 0:
 	    write("No one appears to be logged on.\n");
-	    return 0;
+	case 1:
+	    printf( "Only %s is currently on.\n", b);
+	default:
+	    printf("The following people are logged on:\n%s\n",
+	      implode(b,", "));
 	}
-	printf("The following people are logged on:\n%s\n",
-	       wrap(implode(b,", ")));
 	return 0;
 
     case "":
@@ -183,7 +188,7 @@ private nomask int check_special_commands(string arg)
 }  
 
 private nomask void rcv_confirm_new_pass(string first_entry,
-					 string second_entry)
+  string second_entry)
 {
     if ( crypt(second_entry, second_entry) != first_entry )
     {
@@ -196,10 +201,6 @@ private nomask void rcv_confirm_new_pass(string first_entry,
     password = crypt(second_entry, second_entry);
 
     write("\n");	/* needed after a no-echo input */
-
-#ifdef CONF_IN_PROGRESS
-    CONF_D->add_visitor(name);
-#endif
 
     /*
     ** Done with the login sequence.  Pop our input handler now.
@@ -223,7 +224,7 @@ private nomask void rcv_new_password(string arg)
     write("\n");	/* needed after a no-echo input */
 
     modal_func((: rcv_confirm_new_pass, crypt(arg, arg) :),
-	       "Again to confirm: ", 1);
+      "Again to confirm: ", 1);
 }
 
 private nomask void rcv_check_new_user(string the_userid, string str)
@@ -233,14 +234,14 @@ private nomask void rcv_check_new_user(string the_userid, string str)
     {
     case "n":  case "no":  case "nay":
 	modal_func((: rcv_userid :),
-		   "Please enter your name (preferably correctly this time): ");
+	  "Please enter your name (preferably correctly this time): ");
 	break;
 
     case "y":  case "yes":  case "aye":
 #ifdef NO_NEW_PLAYERS
-	write(wrap("Unfortunately, "+mud_name()+" is still in the " 
-		   "developmental stage, and is not accepting new users. " 
-		   "If it is urgent, please use the guest character.")+"\n");
+	write("Unfortunately, "+mud_name()+" is still in the " 
+	  "developmental stage, and is not accepting new users. " 
+	  "If it is urgent, please use the guest character.\n");
 	get_lost();
 	return;
 #endif /* NO_NEW_PLAYERS */
@@ -325,7 +326,7 @@ private nomask void rcv_userid(string arg)
     }
 
     if ( unguarded(1, (: file_size,
-		       LINK_PATH(arg) + __SAVE_EXTENSION__ :)) <= 0 )
+	  LINK_PATH(arg) + __SAVE_EXTENSION__ :)) <= 0 )
     {
 	if ( !valid_name(arg) )
 	{
@@ -334,7 +335,7 @@ private nomask void rcv_userid(string arg)
 	}
 
 	modal_func((: rcv_check_new_user, arg :),
-		   "Is '" + capitalize(arg) + "' correct? ");
+	  "Is '" + capitalize(arg) + "' correct? ");
 	return;
     }
 
@@ -351,6 +352,7 @@ private nomask void rcv_userid(string arg)
     if ( arg == "guest" )
     {
 	modify_guest_userid();
+        modal_pop();
 	existing_user_enter_game();
 	return;
     }
@@ -376,19 +378,19 @@ private nomask void logon()
 
     write("");
     write(read_file(WELCOME_FILE));
-/*
- * Warning: We have put literally thousands of hours of work into this
- * mudlib, and given it to you for free, and all we ask is that you give
- * us credit by leaving the lib version alone and visible on the login
- * screen.  Is that really so much to ask?
- *
- * If you think you have changed the lib to the point where you should
- * be allowed to change this, ask us first.  Please make sure you have
- * extensively modified/rewritten more than half of the base mudlib first
- * (intend to modify ... doesn't cut it)
- */
-    printf("%s is running Lima 0.9r12 (pre-alpha) on %s\n\n",
-	   mud_name(), driver_version());
+    /*
+     * Warning: We have put literally thousands of hours of work into this
+     * mudlib, and given it to you for free, and all we ask is that you give
+     * us credit by leaving the lib version alone and visible on the login
+     * screen.  Is that really so much to ask?
+     *
+     * If you think you have changed the lib to the point where you should
+     * be allowed to change this, ask us first.  Please make sure you have
+     * extensively modified/rewritten more than half of the base mudlib first
+     * (intend to modify ... doesn't cut it)
+     */
+    printf("%s is running Lima 1.0a1 on %s\n\n",
+      mud_name(), driver_version());
 
 #ifdef ZORKMUD
     write("Hello, Zorker!\n");

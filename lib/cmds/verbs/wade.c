@@ -49,7 +49,7 @@ int direct_wade_in_obj(object ob)
 }
 
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "", "in OBJ", }),({  }) });
 

@@ -37,6 +37,6 @@ void do_buy_str_from_liv(string str, object liv)
 
 
 
-mixed *query_verb_info() {
+array query_verb_info() {
     return ({ ({ "OBJ from LIV", "STR from LIV" }) });
 }

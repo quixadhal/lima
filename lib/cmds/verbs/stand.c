@@ -7,12 +7,26 @@
 
 inherit VERB_OB;
 
+//### for now.  We need a better system to tell check_condition() what to
+//### ignore.
+mixed can_stand_up() {
+    return 1;
+}
+
+mixed can_stand() {
+    return 1;
+}
 
 void do_stand()
 {
   mixed s;
   string err;
 
+    if (this_body()->query_prone()) {
+	if (this_body()->get_up())
+	    this_body()->simple_action("$N $vget back up on $p feet.");
+	return;
+    }
   if(s = environment(this_body())->stand())
     {
       if(!stringp(err=this_body()->move(environment(environment(this_body())))))
@@ -20,7 +34,7 @@ void do_stand()
 	  if(stringp(s))
 	    this_body()->simple_action(s);
 	  else
-	    this_body()->simple_action("$N $vstand up.\n");
+	    this_body()->simple_action("$N $vstand up.");
 	}
       else
 	{
@@ -45,9 +59,9 @@ void do_stand_up()
   do_stand();
 }
 
-mixed array query_verb_info()
+array query_verb_info()
 {
-    return ({ ({ "", "up" }) });
+    return ({ ({ "" }), ({}), ({ "up" }), ({ "get" }) });
 }
 
 

@@ -70,6 +70,7 @@ int query_hp() {
 //Heal us a specified amount, truncating at max_hp
 void heal_us(int amt) {
     query_hp(); // healing since last checked
+    if( hp <= 0 ) return;
     increase_hp(amt);
 }
 
@@ -77,6 +78,7 @@ void heal_us(int amt) {
 //Hurt us a specified amt; you probably want to use do_damage() instead
 void hurt_us(int amt) {
     query_hp(); // healing since last checked
+    if( hp <= 0 ) return;
     reduce_hp(amt);
 }
 

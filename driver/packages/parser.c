@@ -20,10 +20,10 @@
  * . Zifnab's crasher
  */
 
-#include "std.h"
-#include "lpc_incl.h"
+#include "../std.h"
+#include "../lpc_incl.h"
 #include "parser.h"
-#include "md.h"
+#include "../md.h"
 
 #define MAX_WORDS_PER_LINE 256
 #define MAX_MATCHES 10
@@ -93,8 +93,37 @@ static svalue_t *get_the_error PROT((parser_error_t *, int));
  */
 
 #ifdef DEBUGMALLOC_EXTENSIONS
+static void mark_error P1(parser_error_t *, pe) {
+    if (pe->error_type == ERR_ALLOCATED) {
+	MSTR_EXTRA_REF(pe->err.str)++;
+    }
+}
+
 void parser_mark_verbs() {
-    int i;
+    int i, j;
+
+    if (best_result) {
+	if (best_result->ob)
+	    best_result->ob->extra_ref++;
+	if (best_result->parallel)
+	    /* mark parallel errors */;
+	
+	for (i = 0; i < 4; i++) {
+	    if (best_result->res[i].func)
+		MSTR_EXTRA_REF(best_result->res[i].func)++;
+	    if (best_result->res[i].args) {
+		for (j = 0; j < best_result->res[i].num; j++)
+		    mark_svalue(((svalue_t *)best_result->res[i].args) + j);
+		/* mark best_result->res[i].args */;
+	    }
+	}
+	/* mark best_result */
+    }
+
+    mark_error(&current_error_info);
+    mark_error(&best_error_info);
+    mark_error(&parallel_error_info);
+    mark_error(&second_parallel_error_info);
 
     for (i = 0; i < VERB_HASH_SIZE; i++) {
 	verb_t *verb_entry = verbs[i];
@@ -396,7 +425,7 @@ static void remove_ids P1(parse_info_t *, pinfo) {
 
 void f_parse_refresh PROT((void)) {
     if (!(current_object->pinfo))
-	error("%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.  Call parse_init() first.\n",
 	      current_object->name);
     remove_ids(current_object->pinfo);
     current_object->pinfo->flags &= PI_VERB_HANDLER;
@@ -630,7 +659,7 @@ static void interrogate_object P1(object_t *, ob) {
     if (ob->pinfo->flags & PI_SETUP)
 	return;
     
-    DEBUG_P(("Interogating %s.", ob->name));
+    DEBUG_P(("Interogating /%s.", ob->name));
     
     DEBUG_PP(("[parse_command_id_list]"));
     ret = apply("parse_command_id_list", ob, 0, ORIGIN_DRIVER);
@@ -759,7 +788,7 @@ static void add_to_hash_table P2(object_t *, ob, int, index) {
     if (!pi) /* woops.  Dested during parse_command_users() or something
 	        similarly nasty. */
 	return;
-    DEBUG_PP(("add_to_hash_table: %s", ob->name));
+    DEBUG_PP(("add_to_hash_table: /%s", ob->name));
     for (i = 0; i < pi->num_ids; i++) {
 	he = add_hash_entry(pi->ids[i]);
 	he->flags |= HV_NOUN;
@@ -797,7 +826,7 @@ static void init_users() {
 	if (ret->u.arr->item[i].type == T_OBJECT
 	    && (ob = ret->u.arr->item[i].u.ob)->pinfo
 	    && !(ob->pinfo->flags & PI_SETUP)) {
-	    DEBUG_PP(("adding: %s", ob->name));
+	    DEBUG_PP(("adding: /%s", ob->name));
 	    if (num_objects == MAX_NUM_OBJECTS)
 		return;
 	    loaded_objects[num_objects++] = ob;
@@ -1826,8 +1855,17 @@ static void we_are_finished P1(parse_state_t *, state) {
     }
 
     if (state->num_errors) {
+	int weight = parse_vn->weight;
+	
+	if (current_error_info.error_type == ERR_THERE_IS_NO) {
+	    /* ERR_THERE_IS_NO is basically a STR in place of an OBJ,
+	       so is weighted far too highly.  Give it approximately
+	       the same weight as a STR. */
+	    weight = 1;
+	}
+
 	if (state->num_errors == best_num_errors &&
-	    parse_vn->weight <= best_error_match) {
+	    weight <= best_error_match) {
 	    DEBUG_P(("Have better match; aborting ..."));
 	    DEBUG_DEC;
 	    return;
@@ -1836,7 +1874,7 @@ static void we_are_finished P1(parse_state_t *, state) {
 	best_error_info = current_error_info;
 	current_error_info.error_type = 0;
 	best_num_errors = state->num_errors;
-	best_error_match = parse_vn->weight;
+	best_error_match = weight;
     } else {
 	best_match = parse_vn->weight;
 	if (best_result) free_parse_result(best_result);
@@ -1891,7 +1929,7 @@ static void do_the_call PROT((void)) {
 	if (apply(best_result->res[i].func, ob,
 		  best_result->res[i].num, ORIGIN_DRIVER)) return;
     }
-    error("Parse accepted, but no do_* function found in object %s!\n",
+    error("Parse accepted, but no do_* function found in object /%s!\n",
 	  ob->name);
 }
 
@@ -2276,7 +2314,7 @@ static svalue_t * get_the_error P2(parser_error_t *, err, int, obj) {
 
 void f_parse_sentence PROT((void)) {
     if (!current_object->pinfo)
-	error("%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.  Call parse_init() first.\n",
 	      current_object->name);
 
     if (pi)
@@ -2313,17 +2351,19 @@ void f_parse_sentence PROT((void)) {
     found_level = 0;
     parse_sentence((sp-1)->u.string);
 
-    free_parse_globals();
-    
     if (best_match) {
-	do_the_call();
 	sp--; /* pop the error handler */
+	free_parse_globals();
+
+	do_the_call();
 	free_string_svalue(sp);
 	put_number(1);
     } else {
 	svalue_t *ret = get_the_error(&best_error_info, -1);
 	
 	sp--; /* pop the error handler */
+	free_parse_globals();
+	
 	free_string_svalue(sp);
 	if (ret) {
 	    *sp = *ret;
@@ -2342,10 +2382,10 @@ void f_parse_my_rules PROT((void)) {
     int flag = (st_num_arg == 3 ? (sp--)->u.number : 0);
     
     if (!(sp-1)->u.ob->pinfo)
-	error("%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.  Call parse_init() first.\n",
 	      (sp-1)->u.ob->name);
     if (!current_object->pinfo)
-	error("%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.  Call parse_init() first.\n",
 	      current_object->name);
 
     if (pi)
@@ -2441,7 +2481,7 @@ void f_parse_add_rule() {
     verb_entry = 0;
     handler = current_object;
     if (!(handler->pinfo))
-	error("%s is not known by the parser.  Call parse_init() first.\n",
+	error("/%s is not known by the parser.  Call parse_init() first.\n",
 	      handler->name);
 
     /* Create the rule */
@@ -2637,7 +2677,7 @@ void f_parse_dump PROT((void))
 		continue;
 	    }
 	    while (vn) {
-		outbuf_addv(&ob, "  (%s) %s\n", vn->handler->name, rule_string(vn));
+		outbuf_addv(&ob, "  (/%s) %s\n", vn->handler->name, rule_string(vn));
 		vn = vn->next;
 	    }
 	}

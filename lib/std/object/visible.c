@@ -3,8 +3,6 @@
 #include <setbit.h>
 #include <move.h>
 
-//:FUNCTION is_visible
-//return 1 if the object can be seen.
 int test_flag(mixed);
 void set_flag(mixed);
 void clear_flag(mixed);
@@ -16,6 +14,8 @@ void resync_visibility() {
     parse_refresh();
 }
 
+//:FUNCTION is_visible
+//return 1 if the object can be seen.
 int
 is_visible()
 {
@@ -38,6 +38,8 @@ string invis_name() {
     return "something";
 }
 
+//:FUNCTION set_visibility
+//set_visiblity(1) sets the INVIS flag, while set_visibility(0) clears it.
 void set_visibility(int x)
 {
     if (x) {
@@ -48,6 +50,8 @@ void set_visibility(int x)
     resync_visibility();
 }
 
+//:FUNCTION get_visibility
+//get_visibility() returns 1 if the INVIS flag is _not_ set.
 int get_visibility()
 {
   return !test_flag(INVIS);

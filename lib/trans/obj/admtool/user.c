@@ -17,10 +17,13 @@ varargs void modal_simple(function input_func, int secure);
 varargs void modal_func(function input_func, mixed prompt_func, int secure);
 
 #ifdef USE_WIZ_POSITION
-#define PROMPT_USER	"(AdmTool:user) [nwdpmq?] > "
+# define PROMPT_USER	"(AdmTool:user) [nwdpPmq?] > "
 #else
-#define PROMPT_USER	"(AdmTool:user) [nwdmq?] > "
+# define PROMPT_USER	"(AdmTool:user) [nwdPmq?] > "
 #endif
+
+#define SECS_PER_DAY	(24 * 60 * 60)
+
 
 private nomask void write_user_menu()
 {
@@ -33,6 +36,8 @@ private nomask void write_user_menu()
 	  "    p [name] [position] - give a wizard a position\n"
 #endif
 	  "\n"
+	  "    P [days]            - Purge users not logged in within N days\n"
+	  "\n"
 	  "    m                   - main menu\n"
 	  "    q                   - quit\n"
 	  "    ?                   - help\n"
@@ -40,11 +45,41 @@ private nomask void write_user_menu()
 	  );
 }
 
-private nomask void confirm_nuking(string name, string str)
+private nomask void nuke_user(string userid, int skip_save)
 {
     object o;
-    string err;
+    mixed err;
 
+    if ( o = find_user(userid) )
+    {
+	o->receive_private_msg("Sorry.  You're being nuked.\n");
+	o->quit();
+    }
+
+    MAILBOX_D->get_mailbox(userid)->nuke_mailbox(1);
+    MAILBOX_D->unload_mailbox(userid);
+
+    /* remove a bunch of files. note: some might not exist. */
+    err = rm(LINK_PATH(userid) + __SAVE_EXTENSION__);
+    err = rm(USER_PATH(userid) + __SAVE_EXTENSION__);
+    err = rm(PSHELL_PATH(userid) + __SAVE_EXTENSION__);
+    err = rm(WSHELL_PATH(userid) + __SAVE_EXTENSION__);
+
+    LAST_LOGIN_D->remove_user(userid, skip_save);
+
+    err = SECURE_D->delete_wizard(userid);
+
+//### deal with clearing privs and stuff
+//### this should be enough, but may need more thought (this was a quicky)
+//### need to set it to something like @disabled so that unguarded() code
+//### in the wiz dir doesn't have priv 1 now.
+    SECURE_D->set_protection(WIZ_DIR "/" + userid, 1, -1);
+    
+    printf("'%s' has been nuked.\n", capitalize(userid));
+}
+
+private nomask void confirm_nuking(string name, string str)
+{
     str = lower_case(str);
     if ( str != "y" && str != "yes" )
     {
@@ -52,23 +87,7 @@ private nomask void confirm_nuking(string name, string str)
 	return;
     }
 
-    if ( o = find_user(name) )
-	o->quit();
-
-//### handle mail
-
-    rm(sprintf("/data/links/%c/%s.o", name[0], name));
-    rm(sprintf("/data/players/%c/%s.o", name[0], name));
-
-    err = SECURE_D->delete_wizard(name);
-
-//### deal with clearing privs and stuff
-//### this should be enough, but may need more thought (this was a quicky)
-//### need to set it to something like @disabled so that unguarded() code
-//### in the wiz dir doesn't have priv 1 now.
-    SECURE_D->set_protection("/wiz/" + name, 1, -1);
-    
-    printf("'%s' has been nuked.\n", capitalize(name));
+    nuke_user(name, 0);
 }
 
 private nomask void receive_name_for_nuking(string name)
@@ -87,12 +106,13 @@ private nomask void receive_name_for_wiz(string name)
     if ( SECURE_D->query_is_wizard(name) )
     {
 	printf("** '%s' is already a wizard.\n", capitalize(name));
-	if (!is_directory ("/wiz/"+name))
-	  {
-	    printf ("However, /wiz/%s doesn't exist.  Creating...\n", name);
-	    mkdir ("/wiz/" + name);
-	    SECURE_D->set_protection ("/wiz/" + name, 1, name + ":");
-	  }
+	if ( !is_directory(WIZ_DIR "/"+name) )
+	{
+	    printf("However, %s/%s doesn't exist.  Creating...\n",
+		   WIZ_DIR, name);
+	    mkdir(WIZ_DIR "/" + name);
+	    SECURE_D->set_protection(WIZ_DIR "/" + name, 1, name + ":");
+	}
 	return;
     }
     err = SECURE_D->create_wizard(name);
@@ -101,8 +121,8 @@ private nomask void receive_name_for_wiz(string name)
 	printf("** Error: %s\n", err);
 	return;
     }
-    mkdir("/wiz/" + name);
-    SECURE_D->set_protection("/wiz/" + name, 1, name + ":");
+    mkdir(WIZ_DIR "/" + name);
+    SECURE_D->set_protection(WIZ_DIR "/" + name, 1, name + ":");
 
     printf("'%s' is now a wizard.\n", capitalize(name));
 
@@ -110,7 +130,7 @@ private nomask void receive_name_for_wiz(string name)
     ob = find_user(name);
     if ( ob )
     {
-	tell_object(ob, "You are now a wizard.  Changing bodies...\n");
+	tell(ob, "You are now a wizard.  Changing bodies...\n");
 
 	ob->force_me("su");
     }
@@ -139,7 +159,7 @@ private nomask void receive_name_for_dewiz(string name)
 	printf("** Error: %s\n", err);
 	return;
     }
-    SECURE_D->set_protection("/wiz/" + name, 1, -1);
+    SECURE_D->set_protection(WIZ_DIR "/" + name, 1, -1);
 
     printf("'%s' is no longer a wizard.\n", capitalize(name));
 
@@ -147,7 +167,7 @@ private nomask void receive_name_for_dewiz(string name)
     ob = find_user(name);
     if ( ob )
     {
-	tell_object(ob, "You have lost your wizard status.\n");
+	tell(ob, "You have lost your wizard status.\n");
 
 	ob->force_me("su");
     }
@@ -162,6 +182,33 @@ private nomask void receive_position_for_wiz(string name, string position)
 	   capitalize(lower_case(name)), position);
 }
 #endif
+
+private nomask void confirm_purge(mixed * times, string str)
+{
+    str = lower_case(str);
+    if ( str != "y" && str != "yes" )
+    {
+	write("Purge aborted!\n");
+	return;
+    }
+
+    foreach ( mixed * info in times )
+	nuke_user(info[1], 1);
+
+    LAST_LOGIN_D->save_me();
+}
+
+private nomask void receive_days_for_purge(string days)
+{
+    int limit = time() - (to_int(days) * SECS_PER_DAY);
+    mixed * times = filter(LAST_LOGIN_D->query_times(),
+			   (: $1[0] <= $(limit) :));
+
+    printf("You will nuke %d users that have not logged on after %s.\n"
+	   "Are you sure? ",
+	   sizeof(times), ctime(limit));
+    modal_simple((: confirm_purge, times :));
+}
 
 private nomask void receive_user_input(string str)
 {
@@ -197,6 +244,12 @@ private nomask void receive_user_input(string str)
 		    arg);
 	break;
 #endif
+
+    case "P":
+	do_one_arg("How many days since their last login? ",
+		   (: receive_days_for_purge :),
+		   arg);
+	break;
 
     case "?":
 	write_user_menu();

@@ -20,11 +20,11 @@ void set_permanent(string channel_name, int is_perm);
 void set_flags(string channel_name, int flags);
 
 void deliver_emote(string channel_name,
-		   string sender_name,
-		   string message);
+  string sender_name,
+  string message);
 void deliver_tell(string channel_name,
-		  string sender_name,
-		  string message);
+  string sender_name,
+  string message);
 void deliver_soul(string channel_name, mixed * soul);
 
 string make_name_list(mixed * list);
@@ -45,7 +45,7 @@ void print_mod_info(string channel_name);
 **	1 intermud
 */
 varargs nomask void cmd_channel(string channel_name, string arg,
-				int channel_type)
+  int channel_type)
 {
     class channel_info ci = query_channel_info(channel_name);
     object tb;
@@ -80,7 +80,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	{
 	    if ( sizeof(options) )
 		printf("'%s' already exists; modifying options...\n",
-		       user_channel_name);
+		  user_channel_name);
 	    else
 		printf("'%s' already exists.\n", user_channel_name);
 	}
@@ -161,7 +161,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	else if ( !ci )
 	{
 	    printf("'%s' does not exist. Use /new to create it.\n",
-		   user_channel_name);
+	      user_channel_name);
 	    return;
 	}
 	else
@@ -171,13 +171,13 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	    if ( (ci->flags & CHANNEL_WIZ_ONLY) && !wizardp(this_user()) )
 	    {
 		printf("Sorry, but '%s' is for wizards only.\n",
-		       user_channel_name);
+		  user_channel_name);
 		return;
 	    }
 	    if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) )
 	    {
 		printf("Sorry, but '%s' is for admins only.\n",
-		       user_channel_name);
+		  user_channel_name);
 		return;
 	    }
 
@@ -195,11 +195,10 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     */
     if ( !listening )
     {
-	printf("You are not listening to '%s'.\n", user_channel_name);
-
+	printf( "You are not listening to %s.\n", channel_name );
 	return;
     }
-    
+
     sender_name = tb->query_name();
 
     if ( arg == "/off" )
@@ -211,9 +210,9 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     }
     else if ( arg == "/list" || arg == "/who" )
     {
-	write(iwrap(sprintf("Users listening to '%s': %s.\n",
-			    user_channel_name,
-			    make_name_list(ci->listeners))));
+	tell(this_user(), sprintf("Users listening to '%s': %s.\n",
+	    user_channel_name,
+	    make_name_list(ci->listeners)), MSG_INDENT);
     }
     else if( arg == "/last" || arg == "/history" )
     {
@@ -223,36 +222,38 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	    history = "<none>\n";
 
 	more(sprintf("History of channel '%s':\n%s\n",
-		     user_channel_name, history));
+	    user_channel_name, history));
+    }
+    else if( arg == "/clear" )
+    {
+	if( adminp( tb ) || tb = ci->moderator )
+	{
+	    ci->history = ({});
+	    write( "Channel cleared.\n");
+	}
+	else
+	    error( "Illegal attempt to clear channel " + user_channel_name + " by " + capitalize( this_body()->query_userid()) + ".");
     }
     else if ( cmd_moderation(channel_name, arg) )
     {
 	/* it was handled */
     }
-    else if ( arg[0] == ':' )
+    else if ( arg[0] == ';' || arg[0] == ':' )
     {
-        if ( ci->moderator && ci->speaker &&
-	    tb != ci->moderator && tb != ci->speaker )
-	{
-	    printf("You are not the speaker on '%s'.\n", user_channel_name);
-	}
-	else
-	{
-	    deliver_emote(channel_name, sender_name, arg[1..]);
-	}
-    }
-    else if ( arg[0] == ';' )
-    {
-        if ( ci->moderator && ci->speaker &&
-	     tb != ci->moderator && tb != ci->speaker )
+	if ( ci->moderator && ci->speaker &&
+	  tb != ci->moderator && tb != ci->speaker )
 	{
 	    printf("You are not the speaker on '%s'.\n", user_channel_name);
 	}
 	else if ( channel_type == 1 )
 	{
 	    mixed * soul;
+	    string the_soul;
 
-	    soul = SOUL_D->parse_imud_soul(arg[1..]);
+	    if (sscanf(arg[1..],"%s %*s",the_soul)!=2)
+		the_soul=arg[1..];
+	    if (SOUL_D->query_emote(the_soul))
+		soul = SOUL_D->parse_imud_soul(arg[1..]);
 	    if ( soul )
 		deliver_soul(channel_name, soul);
 	    else
@@ -261,8 +262,12 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	else
 	{
 	    mixed * soul;
+	    string the_soul;
 
-	    soul = SOUL_D->parse_soul(arg[1..]);
+	    if (sscanf(arg[1..],"%s %*s",the_soul)!=2)
+		the_soul=arg[1..];
+	    if (SOUL_D->query_emote(the_soul))
+		soul = SOUL_D->parse_soul(arg[1..]);
 	    if ( soul )
 		deliver_soul(channel_name, soul);
 	    else
@@ -271,8 +276,8 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     }
     else
     {
-        if ( ci->moderator && ci->speaker &&
-	     tb != ci->moderator && tb != ci->speaker )
+	if ( ci->moderator && ci->speaker &&
+	  tb != ci->moderator && tb != ci->speaker )
 	{
 	    printf("You are not the speaker on '%s'.\n", user_channel_name);
 	}

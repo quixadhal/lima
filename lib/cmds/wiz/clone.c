@@ -28,11 +28,11 @@ private void main( mixed *arg ) {
 
 int help()
 {
-    write(wrap(
+    write(
 	"This command creates a copy of the object whose file name is "
 	"passed to this command.  If the object is cloned to the room "
 	"you're in, it can't be carried, otherwise it'll end up in "
 	"your inventory.\n"
-      ));
+	);
     return 1;
 }

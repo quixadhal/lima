@@ -16,13 +16,13 @@ private string		read_text;
 void
 set_text( string t )
 {
-  read_text = t;
+    read_text = t;
 }
 
 string
 read()
 {
-    this_body()->simple_action("$N $vread the $o.\n", this_object());
+    this_body()->simple_action("$N $vread the $o.", this_object());
     return read_text;
 }
 
@@ -32,9 +32,9 @@ read_entry( string entry )
 
     entry = entries[entry];
     if(!entry)
-      {
+    {
 	entry = entries[synonyms[entry]];
-      }
+    }
 
     if (functionp(entry))
 	return evaluate(entry);
@@ -48,15 +48,15 @@ read_entry( string entry )
 int
 has_entries()
 {
-  return mapp( entries );
+    return mapp( entries );
 }
 
 /* Parser interaction */
 mixed direct_read_obj(object ob) {
     if (!read_text) {
-      if (entries)
-          return "It has a number of entries about various topics.\n";
-      return 0;
+	if (entries)
+	    return "It has a number of entries about various topics.\n";
+	return "It appears to be blank.\n";
     }
     return 1;
 }
@@ -67,26 +67,26 @@ mixed direct_read_word_obj(string p, object ob) {
 
 mixed direct_read_str_word_obj(string str, string p, object ob) {
     if (!entries) {
-      if (read_text)
-          return "It's fairly short.  Just read it all.\n";
-      return 0;
+	if (read_text)
+	    return "It's fairly short.  Just read it all.\n";
+	return 0;
     }
     return 1;
 }
 
 mixed direct_read_word_str_word_obj(string p1, string str, string p2,
-                                  object ob) {
+  object ob) {
     return direct_read_str_word_obj(str, p2, ob);
 }
 
 void set_entries(mapping e)
 {
-  entries = e;
+    entries = e;
 }
 
 void set_entry_synonyms(mapping s)
 {
-  synonyms = s;
+    synonyms = s;
 }
 
 

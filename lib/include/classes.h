@@ -10,6 +10,8 @@
 #define CLASS_NEWSMSG		"/std/classes/newsmsg"
 #define CLASS_SKILL		"/std/classes/skill"
 #define CLASS_STATMODS		"/std/classes/statmods"
+#define CLASS_BODYSLOTS		"/std/classes/bodyslot"
+
 
 #define CLASS_ALIAS		"/secure/obj/shell/classes/alias"
 

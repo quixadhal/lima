@@ -44,6 +44,7 @@ private int strstr(string s, string lookfor, int start)
 // any line after the first.
 varargs string wrap(string str, int width, int indent)
 {
+
     if ( !indent )
         return sprintf("%-=*s", width || DEFAULT_WIDTH, str);
 
@@ -279,18 +280,7 @@ int count_substrings( string s, string sub, int i ){
 
 string power_str( string s, int t )
 {
-
-  string res;
-
-  res = "";
-  
-  if(!intp(t) || t<0) 
-	error("Bad range arg 2 to power_str");
-
-  while(t--)
-    res += s;
-
-  return res;
+	return repeat_string(s,t);
 }
 
 string ljust( string s, int width )

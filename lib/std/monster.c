@@ -14,42 +14,46 @@ inherit __DIR__ "monster/simple";
 #elif COMBAT_STYLE == COMBAT_TRADITIONAL
 inherit __DIR__ "monster/traditional";
 #elif COMBAT_STYLE == COMBAT_COMPLEX
-#error COMBAT_COMPLEX not written yet :-)
+#error COMBAT_COMPLEX not written yet
 inherit __DIR__ "monster/complex";
 #else
 #error Improperly specified COMBAT_STYLE in /include/config_combat.h
 #endif
 
-static object* armors = ({});
+#ifdef USE_BODYSLOTS
+object get_random_clothing();
+#else
+static object* armors = ({ });
+#endif
 
 //:FUNCTION start_fight
 //Add someone to the list of people we are attacking.  If we were already
 //attacking them, make them the primary person we are attacking.  Then
 //take a swing at them.
-int start_fight(object who) {
-    if (!(who->attackable())) return 0;
+int start_fight(object who)
+{
+    if (!(who->attackable()))
+	return 0;
     attacked_by(who, 1);
     return 1;
 }
 
 //:FUNCTION attackable
 //return 1 if we can be attacked.
-int attackable() {
+int attackable()
+{
     return 1;
 }
 
-void flee();
-void surrender();
-
-//:FUNCTION adjust_result
+//:FUNCTION adjust_my_result
 //modify a combat result we inflict
-class combat_result array
-adjust_my_result(class combat_result array res)
+class combat_result array adjust_my_result(class combat_result array res)
 {
     return res;
 }
 
-void intrinsic_resistance(class combat_result res) {
+void intrinsic_resistance(class combat_result res)
+{
 }
 
 //:FUNCTION adjust_result
@@ -58,9 +62,16 @@ nomask mixed adjust_result(mixed res)
 {
     int hp = query_hp();
     
+
+#ifdef USE_BODYSLOTS
+    object armor = get_random_clothing();
+    if(armor)
+        armor->adjust_result(res, previous_object());
+#else
     armors -= ({ 0 });
     foreach (object armor in armors)
 	res = armor->adjust_result(res, previous_object());
+#endif
 
     if (arrayp(res))
 	foreach (class combat_result result in res) {
@@ -84,7 +95,8 @@ nomask mixed adjust_result(mixed res)
     return res;
 }
 
-void commit_suicide() {
+void commit_suicide()
+{
     class combat_result res = new(class combat_result, 
 				  special : RES_NO_RESISTANCE | RES_FATAL,
 				  message : "!suicide");
@@ -103,28 +115,42 @@ void commit_suicide() {
  */
 //:FUNCTION hit_living
 //Do some damage to a monster.  The monster then attacks previous_object()
-void hit_living(class combat_result array res) {
+void hit_living(class combat_result array res)
+{
     do_damage(res);
     attacked_by(previous_object());
 }
 
+#ifndef USE_BODYSLOTS
 //:FUNCTION add_armor
 //start wearing a piece of armor
-void add_armor(object ob) {
+void add_armor(object ob)
+{
     armors += ({ ob });
 }
 
 //:FUNCTION remove_armor
 //stop wearing a piece of armor
-void remove_armor(object ob) {
+void remove_armor(object ob)
+{
     armors -= ({ ob });
 }
+#endif
+mixed direct_kill_liv(object ob)
+{
 
-mixed direct_kill_liv(object ob) {
+    if(ob->query_ghost())
+     this_body()->simple_action("$N $vtry to attack a ghost.\n");
     return 1;
 }
 
-mixed direct_kill_liv_with_obj(object ob) {
+mixed direct_kill_liv_with_obj(object ob)
+{
     return 1;
 }
 
+void create()
+{
+  ::create();
+  set_max_capacity(VERY_LARGE*3);
+}

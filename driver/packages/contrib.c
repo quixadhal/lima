@@ -132,13 +132,14 @@ f_query_notify_fail PROT((void)) {
 #ifdef F_STORE_VARIABLE
 void
 f_store_variable PROT((void)) {
-    variable_t *var;
+    int idx;
     svalue_t *sv;
-
-    var = find_status((sp-1)->u.string);
-    if (!var)
+    unsigned short type;
+    
+    idx = find_global_variable(current_object->prog, (sp-1)->u.string, &type);
+    if (idx == -1)
 	error("No variable named '%s'!\n", (sp-1)->u.string);
-    sv = &current_object->variables[var - current_object->prog->variable_names];
+    sv = &current_object->variables[idx];
     free_svalue(sv, "f_store_variable");
     *sv = *sp--;
     free_string_svalue(sp--);
@@ -148,13 +149,14 @@ f_store_variable PROT((void)) {
 #ifdef F_FETCH_VARIABLE
 void
 f_fetch_variable PROT((void)) {
-    variable_t *var;
+    int idx;
     svalue_t *sv;
-
-    var = find_status(sp->u.string);
-    if (!var)
+    unsigned short type;
+    
+    idx = find_global_variable(current_object->prog, sp->u.string, &type);
+    if (idx == -1)
 	error("No variable named '%s'!\n", sp->u.string);
-    sv = &current_object->variables[var - current_object->prog->variable_names];
+    sv = &current_object->variables[idx];
     free_string_svalue(sp--);
     push_svalue(sv);
 }
@@ -285,13 +287,13 @@ void f_functions PROT((void)) {
     while (i--) {
 	prog = sp->u.ob->prog;
 	index = i;
-	func_entry = prog->offset_table + index;
+	func_entry = FIND_FUNC_ENTRY(prog, index);
 
 	/* Walk up the inheritance tree to the real definition */
 	while (prog->function_flags[index] & NAME_INHERITED) {
 	    prog = prog->inherit[func_entry->inh.offset].prog;
 	    index = func_entry->inh.function_index_offset;
-	    func_entry = prog->offset_table + index;
+	    func_entry = FIND_FUNC_ENTRY(prog, index);
 	}
 
 	funp = prog->function_table + func_entry->def.f_index;
@@ -343,44 +345,50 @@ void f_functions PROT((void)) {
 
 /* Beek */
 #ifdef F_VARIABLES
-void f_variables PROT((void)) {
-    int i, num;
-    array_t *vec, *subvec;
-    variable_t *variables;
-    int flag = (sp--)->u.number;
-    program_t *prog = sp->u.ob->prog;
+static void fv_recurse P5(array_t *, arr, int *, idx, program_t *, prog, int, type, int, flag) {
+    int i;
+    array_t *subarr;
     char buf[256];
     char *end = EndOf(buf);
+    
+    for (i = 0; i < prog->num_inherited; i++) {
+	fv_recurse(arr, idx, prog->inherit[i].prog, 
+		   type | prog->inherit[i].type_mod, flag);
+    }
+    for (i = 0; i < prog->num_variables_defined; i++) {
+	if (flag) {
+	    arr->item[*idx + i].type = T_ARRAY;
+	    subarr = arr->item[*idx + i].u.arr = allocate_empty_array(2);
+	    subarr->item[0].type = T_STRING;
+	    subarr->item[0].subtype = STRING_SHARED;
+	    subarr->item[0].u.string = ref_string(prog->variable_table[i]);
+	    get_type_name(buf, end, prog->variable_types[i]);
+	    subarr->item[1].type = T_STRING;
+	    subarr->item[1].subtype = STRING_SHARED;
+	    subarr->item[1].u.string = make_shared_string(buf);
+	} else {
+	    arr->item[*idx + i].type = T_STRING;
+	    arr->item[*idx + i].subtype = STRING_SHARED;
+	    arr->item[*idx + i].u.string = ref_string(prog->variable_table[i]);
+	}
+    }
+    *idx += prog->num_variables_defined;
+}
+
+void f_variables PROT((void)) {
+    int idx = 0;
+    array_t *arr;
+    int flag = (sp--)->u.number;
+    program_t *prog = sp->u.ob->prog;
     
     if (sp->u.ob->flags & O_SWAPPED)
 	load_ob_from_swap(sp->u.ob);
     
-    num = prog->num_variables;
-    variables = prog->variable_names;
-
-    vec = allocate_empty_array(num);
-    i = num;
-    
-    while (i--) {
-	if (flag) {
-	    vec->item[i].type = T_ARRAY;
-	    subvec = vec->item[i].u.arr = allocate_empty_array(2);
-	    subvec->item[0].type = T_STRING;
-	    subvec->item[0].subtype = STRING_SHARED;
-	    subvec->item[0].u.string = ref_string(variables[i].name);
-	    get_type_name(buf, end, variables[i].type);
-	    subvec->item[1].type = T_STRING;
-	    subvec->item[1].subtype = STRING_SHARED;
-	    subvec->item[1].u.string = make_shared_string(buf);
-	} else {
-	    vec->item[i].type = T_STRING;
-	    vec->item[i].subtype = STRING_SHARED;
-	    vec->item[i].u.string = ref_string(variables[i].name);
-	}
-    }
+    arr = allocate_empty_array(prog->num_variables_total);
+    fv_recurse(arr, &idx, prog, 0, flag);
     
     pop_stack();
-    push_refed_array(vec);
+    push_refed_array(arr);
 }
 #endif
 
@@ -394,6 +402,9 @@ void f_heart_beats PROT((void)) {
 /*Aleas@Nightmare */
 #ifdef F_TERMINAL_COLOUR
 /* A fast implementation of the Nightmare color support.
+
+   [Ed note: These codes were actually used on Discworld
+   before Nightmare]
 
    Rewritten several times, since Beek wants it to be
    perfect :)
@@ -421,8 +432,11 @@ void f_heart_beats PROT((void)) {
 
    by Aleas@Nightmare, dec-94 */
 
-/* number of input string segments, if more, it still works, but a _slow_ realloc is required */
+/* number of input string segments, if more, it still works, but a
+   _slow_ realloc is required */
 #define NSTRSEGS 32
+#define TC_FIRST_CHAR '%'
+#define TC_SECOND_CHAR '^'
 void 
 f_terminal_colour P2( int, num_arg, int, instruction)
 {
@@ -433,19 +447,21 @@ f_terminal_colour P2( int, num_arg, int, instruction)
     int wrap = 0;
     int indent = 0;
 
-    if (st_num_arg == 4)
-	indent = (sp--)->u.number;
-    if (st_num_arg >= 3)
+    if (st_num_arg >= 3) {
+	if (st_num_arg == 4)
+	    indent = (sp--)->u.number;
 	wrap = (sp--)->u.number;
-    if (indent >= wrap - 1)
-	indent = wrap - 2;
+	if (wrap < 2 && wrap != 0) wrap = 2;
+	if (indent < 0 || indent >= wrap - 1)
+	    indent = wrap - 2;
+    }
 
     cp = instr = (sp-1)->u.string;
     do {
-	cp = strchr(cp,'%');
+	cp = strchr(cp, TC_FIRST_CHAR);
 	if (cp) 
 	{
-	    if (cp[1] == '^')
+	    if (cp[1] == TC_SECOND_CHAR)
 	    {
 		savestr = string_copy(instr, "f_terminal_colour");
 		cp = savestr + ( cp - instr );
@@ -455,138 +471,126 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 	    cp++;
 	}
     } while (cp);
-    if (cp == NULL)
-    {
-	pop_stack();	/* no delimiter in string, so return the original */
-	return;
-    }
-    /* here we have something to parse */
+    if (cp == NULL) {
+	if (wrap) {
+	    num = 1;
+	    parts = CALLOCATE(1, char *, TAG_TEMPORARY, "f_terminal_colour: parts");
+	    parts[0] = instr;
+	    savestr = 0;
+	} else {
+	    pop_stack(); /* no delimiter in string, so return the original */
+	    return;
+	}
+    } else {
+        /* here we have something to parse */
 
-    parts = CALLOCATE(NSTRSEGS, char *, TAG_TEMPORARY, "f_terminal_colour: parts");
-    if (cp - instr) 	/* starting seg, if not delimiter */
-    {
-	num = 1;
-	parts[0] = instr;
-	*cp = 0;
-    } else
-	num = 0;
-    while (cp) 
-    {
-	cp += 2;
-	instr = cp;
-	do {
-	    cp = strchr(cp,'%');
-	    if (cp) 
-	    {
-		if (cp[1] == '^')
-		    break;
-		cp++;
-	    }
-	} while (cp);
-	if (cp)
-	{
+	parts = CALLOCATE(NSTRSEGS, char *, TAG_TEMPORARY, "f_terminal_colour: parts");
+	if (cp - instr) {	/* starting seg, if not delimiter */
+	    num = 1;
+	    parts[0] = instr;
 	    *cp = 0;
-	    if (cp > instr)
-	    {
-		parts[num] = instr;
-		num++;
-		if (num % NSTRSEGS == 0)
-		    parts = RESIZE(parts, num + NSTRSEGS, char *, 
-				   TAG_TEMPORARY, "f_terminal_colour: parts realloc");
+	} else
+	    num = 0;
+	while (cp) {
+	    cp += 2;
+	    instr = cp;
+	    do {
+		cp = strchr(cp,TC_FIRST_CHAR);
+		if (cp) {
+		    if (cp[1] == TC_SECOND_CHAR)
+			break;
+		    cp++;
+		}
+	    } while (cp);
+	    if (cp) {
+		*cp = 0;
+		if (cp > instr) {
+		    parts[num] = instr;
+		    num++;
+		    if (num % NSTRSEGS == 0)
+			parts = RESIZE(parts, num + NSTRSEGS, char *, 
+				       TAG_TEMPORARY, "f_terminal_colour: parts realloc");
+		}
 	    }
 	}
+	if (*instr)	/* trailing seg, if not delimiter */
+	    parts[num++] = instr;
     }
-    if (*instr)	/* trailing seg, if not delimiter */
-	parts[num++] = instr;
 
     /* Could keep track of the lens as we create parts, removing the need
        for a strlen() below */
     lens = CALLOCATE(num, int, TAG_TEMPORARY, "f_terminal_colour: lens");
+    mtab = sp->u.map->table;
 
     /* Do the the pointer replacement and calculate the lengths */
-    if ( ( mtab = sp->u.map->table ) ) /* a mapping with values */
-    {
-	col = 0;
-	space = 0;
-	for (j = i = 0, k = sp->u.map->table_size; i < num; i++)
-	{
-	    int len;
+    col = 0;
+    space = 0;
+    for (j = i = 0, k = sp->u.map->table_size; i < num; i++) {
+	int len;
 	    
-	    if ((cp = findstring(parts[i]))) {
-		tmp = MAP_POINTER_HASH(cp);
-		for (elt = mtab[tmp & k]; elt; elt = elt->next)
-		    if ( elt->values->type == T_STRING && 
-			(elt->values + 1)->type == T_STRING &&
-			cp == elt->values->u.string)
-			{
-			    parts[i] = (elt->values + 1)->u.string;
-			    /* Negative indicates don't count for wrapping */
-			    len = SVALUE_STRLEN(elt->values + 1);
-			    if (wrap) len = -len;
-			    break;
-			}
-		if (!elt)
-		    len = SHARED_STRLEN(cp);
-	    } else {
-		len = strlen(parts[i]);
-	    }
-	    lens[i] = len;
-	    if (len > 0) {
-		j += len;
-		if (j > max_string_length) {
-		    lens[i] -= j - max_string_length;
-		    j = max_string_length;
+	if ((cp = findstring(parts[i]))) {
+	    tmp = MAP_POINTER_HASH(cp);
+	    for (elt = mtab[tmp & k]; elt; elt = elt->next)
+		if ( elt->values->type == T_STRING && 
+		     (elt->values + 1)->type == T_STRING &&
+		     cp == elt->values->u.string) {
+		    parts[i] = (elt->values + 1)->u.string;
+		    /* Negative indicates don't count for wrapping */
+		    len = SVALUE_STRLEN(elt->values + 1);
+		    if (wrap) len = -len;
+		    break;
 		}
-		if (wrap) {
-		    int z;
-		    char *p = parts[i];
-		    for (z = 0; z < lens[i]; z++) {
-			char c = p[z];
-			if (c == '\n') {
-			    col = 0;
-			} else {
-			    col++;
-			    if (c == ' ')
-				space = col;
-			    if (col == wrap) {
-				if (space) {
-				    col -= space;
-				    space = 0;
-				} else
-				    col = 0;
-			    } else 
-				continue;
-			}
-			/* If we get here, we ended a line */
-			j += indent + 1;
-			col += indent;
-			if (j > max_string_length) {
-			    lens[i] -= (j - max_string_length);
-			    j = max_string_length;
-			    if (lens[i] < z) {
-				/* must have been ok 
-				   or we wouldn't be here */
-				lens[i] = z;
-				break;
-			    }
+	    if (!elt)
+		len = SHARED_STRLEN(cp);
+	} else {
+	    len = strlen(parts[i]);
+	}
+	lens[i] = len;
+	if (len > 0) {
+	    j += len;
+	    if (j > max_string_length) {
+		lens[i] -= j - max_string_length;
+		j = max_string_length;
+	    }
+	    if (wrap) {
+		int z;
+		char *p = parts[i];
+		for (z = 0; z < lens[i]; z++) {
+		    char c = p[z];
+		    if (c == '\n') {
+			col = 0;
+		    } else {
+			col++;
+			if (c == ' ')
+			    space = col;
+			if (col == wrap) {
+			    if (space) {
+				col -= space;
+				space = 0;
+			    } else
+				col = 0;
+			} else 
+			    continue;
+		    }
+		    /* If we get here, we ended a line */
+		    j += indent + 1;
+		    col += indent;
+		    if (j > max_string_length) {
+			lens[i] -= (j - max_string_length);
+			j = max_string_length;
+			if (lens[i] < z) {
+			    /* must have been ok 
+			       or we wouldn't be here */
+			    lens[i] = z;
+			    break;
 			}
 		    }
 		}
-	    } else {
-		j += -len;
-		if (j > max_string_length) {
-		    lens[i] = -(-(lens[i]) - (j - max_string_length));
-		    j = max_string_length;
-		}
 	    }
-	}
-    } else {
-	for (j = i = 0; i < num; i++)
-	{
-	    lens[i] = strlen(parts[i]);
-	    j += lens[i];
+	} else {
+	    j += -len;
 	    if (j > max_string_length) {
-		lens[i] -= j - max_string_length;
+		lens[i] = -(-(lens[i]) - (j - max_string_length));
 		j = max_string_length;
 	    }
 	}
@@ -653,7 +657,8 @@ f_terminal_colour P2( int, num_arg, int, instruction)
     *cp = 0;
     FREE(lens);
     FREE(parts);
-    FREE_MSTR(savestr);
+    if (savestr)
+	FREE_MSTR(savestr);
     /* now we have what we want */
     pop_stack();
     free_string_svalue(sp);
@@ -727,6 +732,9 @@ char *pluralize P1(char *, str) {
 
     /*
      * trap the exceptions to the rules below and special cases.
+     *
+     * Hmm, maybe this should be a prebuilt hash table to make maintenance
+     * a bit easier.  Possibly gperf based; or is that overkill? :-)
      */
     switch (rel[0]) {
     case 'A':
@@ -789,6 +797,9 @@ char *pluralize P1(char *, str) {
 	if (!strcasecmp(rel + 1, "o")) {
 	    found = PLURAL_SUFFIX;
 	    suffix = "es";
+	} else
+	if (!strcasecmp(rel + 1, "um")) {
+	    found = PLURAL_SUFFIX;
 	}
 	break;
     case 'H':
@@ -852,12 +863,16 @@ char *pluralize P1(char *, str) {
 	    suffix = "ges";
 	    break;
 	}
-	if (!strcasecmp(rel + 1, "afe")) 
+	if (!strcasecmp(rel + 1, "afe")) {
+	    found = PLURAL_SUFFIX;
+	    break;
+	}
+	if (!strcasecmp(rel + 1, "haman")) 
 	    found = PLURAL_SUFFIX;
 	break;
     case 'T':
     case 't':
-	if (!strcasecmp(rel + 1, "heif")) {
+	if (!strcasecmp(rel + 1, "hief")) {
 	    found = PLURAL_CHOP + 1;
 	    suffix = "ves";
 	    break;
@@ -1114,7 +1129,10 @@ void f_replaceable PROT((void)) {
     
     if (st_num_arg == 2) {
 	numignore = sp->u.arr->size;
-	ignore = CALLOCATE(numignore, char *, TAG_TEMPORARY, "replaceable");
+	if (numignore)
+	    ignore = CALLOCATE(numignore, char *, TAG_TEMPORARY, "replaceable");
+	else
+	    ignore = 0;
 	for (i = 0; i < numignore; i++) {
 	    if (sp->u.arr->item[i].type == T_STRING)
 		ignore[i] = findstring(sp->u.arr->item[i].u.string);
@@ -1134,7 +1152,7 @@ void f_replaceable PROT((void)) {
     for (i = 0; i < num; i++) {
 	if (prog->function_flags[i] & (NAME_INHERITED | NAME_NO_CODE)) continue;
 	for (j = 0; j < numignore; j++)
-	    if (ignore[j] == prog->function_table[prog->offset_table[i].def.f_index].name)
+	    if (ignore[j] == prog->function_table[FIND_FUNC_ENTRY(prog, i)->def.f_index].name)
 		break;
 	if (j == numignore)
 	    break;
@@ -1155,35 +1173,105 @@ void f_program_info PROT((void)) {
     int inherit_size = 0;
     int prog_size = 0;
     int hdr_size = 0;
+    int class_size = 0;
     int type_size = 0;
+    int total_size = 0;
     object_t *ob;
+    program_t *prog;
     outbuffer_t out;
     int i, n;
-    
-    for (ob = obj_list; ob; ob = ob->next_all) {
-	if (ob->flags & (O_CLONE|O_SWAPPED)) continue;
-	hdr_size += sizeof(program_t);
-	prog_size += ob->prog->program_size;
-	func_size += ob->prog->num_functions_total * (1+sizeof(runtime_function_u))
-	    + ob->prog->num_functions_defined * sizeof(compiler_function_t);
-	string_size += ob->prog->num_strings * sizeof(char *);
-	var_size += ob->prog->num_variables * sizeof(variable_t);
-	inherit_size += ob->prog->num_inherited * sizeof(inherit_t);
-	type_size += ob->prog->num_functions_defined * sizeof(short);
-	n = 0;
-	for (i = 0; i < ob->prog->num_functions_defined; i++) {
-	    int start;
-	    short *ts = ob->prog->type_start;
-	    if (!ts) continue;
-	    start = ts[i];
-	    if (start == INDEX_START_NONE)
-		continue;
-	    start += ob->prog->offset_table[ob->prog->function_table[i].runtime_index].def.num_arg;
-	    if (start > n)
-		n = start;
+
+    if (st_num_arg == 1) {
+	ob = sp->u.ob;
+	prog = ob->prog;
+	if (!(ob->flags & (O_CLONE|O_SWAPPED))) {
+	    hdr_size += sizeof(program_t);
+	    prog_size += prog->program_size;
+	    func_size += 2 * prog->num_functions_total; /* function flags */
+#ifdef COMPRESS_FUNCTION_TABLES
+	    /* compressed table header */
+	    func_size += sizeof(compressed_offset_table_t) - 1;
+	    /* it's entries */
+	    func_size += (prog->function_compressed->first_defined - prog->function_compressed->num_compressed);
+	    /* offset table */
+	    func_size += sizeof(runtime_function_u) * (prog->num_functions_total - prog->function_compressed->num_deleted);
+#else
+	    /* offset table */
+	    func_size += prog->num_functions_total * sizeof(runtime_function_u);
+#endif
+	    /* definitions */
+	    func_size += prog->num_functions_defined * sizeof(compiler_function_t);
+	    string_size += prog->num_strings * sizeof(char *);
+	    var_size += prog->num_variables_defined * (sizeof(char *) + sizeof(unsigned short));
+	    inherit_size += prog->num_inherited * sizeof(inherit_t);
+	    if (prog->num_classes)
+		class_size += prog->num_classes * sizeof(class_def_t) + (prog->classes[prog->num_classes - 1].index + prog->classes[prog->num_classes - 1].size) * sizeof(class_member_entry_t);
+	    type_size += prog->num_functions_defined * sizeof(short);
+	    n = 0;
+	    for (i = 0; i < prog->num_functions_defined; i++) {
+		int start;
+		unsigned short *ts = prog->type_start;
+		int ri;
+		
+		if (!ts) continue;
+		start = ts[i];
+		if (start == INDEX_START_NONE)
+		    continue;
+		ri = prog->function_table[i].runtime_index;
+		start += FIND_FUNC_ENTRY(prog, ri)->def.num_arg;
+		if (start > n)
+		    n = start;
+	    }
+	    type_size += n * sizeof(short);
+	    total_size += prog->total_size;
 	}
-	type_size += n * sizeof(short);
+	pop_stack();
+    } else {
+	for (ob = obj_list; ob; ob = ob->next_all) {
+	    if (ob->flags & (O_CLONE|O_SWAPPED)) continue;
+	    prog = ob->prog;
+	    hdr_size += sizeof(program_t);
+	    prog_size += prog->program_size;
+	    func_size += prog->num_functions_total; /* function flags */
+#ifdef COMPRESS_FUNCTION_TABLES
+	    /* compressed table header */
+	    func_size += sizeof(compressed_offset_table_t) - 1;
+	    /* it's entries */
+	    func_size += (prog->function_compressed->first_defined - prog->function_compressed->num_compressed);
+	    /* offset table */
+	    func_size += sizeof(runtime_function_u) * (prog->num_functions_total - prog->function_compressed->num_deleted);
+#else
+	    /* offset table */
+	    func_size += prog->num_functions_total * sizeof(runtime_function_u);
+#endif
+	    /* definitions */
+	    func_size += prog->num_functions_defined * sizeof(compiler_function_t);
+	    string_size += prog->num_strings * sizeof(char *);
+	    var_size += prog->num_variables_defined * (sizeof(char *) + sizeof(unsigned short));
+	    inherit_size += prog->num_inherited * sizeof(inherit_t);
+	    if (prog->num_classes)
+		class_size += prog->num_classes * sizeof(class_def_t) + (prog->classes[prog->num_classes - 1].index + prog->classes[prog->num_classes - 1].size) * sizeof(class_member_entry_t);
+	    type_size += prog->num_functions_defined * sizeof(short);
+	    n = 0;
+	    for (i = 0; i < prog->num_functions_defined; i++) {
+		int start;
+		int ri;
+		
+		unsigned short *ts = prog->type_start;
+		if (!ts) continue;
+		start = ts[i];
+		if (start == INDEX_START_NONE)
+		    continue;
+		ri = prog->function_table[i].runtime_index;
+		start += FIND_FUNC_ENTRY(prog, ri)->def.num_arg;
+		if (start > n)
+		    n = start;
+	    }
+	    type_size += n * sizeof(short);
+	    total_size += prog->total_size;
+	}
     }
+
     outbuf_zero(&out);
     
     outbuf_addv(&out, "\nheader size: %i\n", hdr_size);
@@ -1191,8 +1279,11 @@ void f_program_info PROT((void)) {
     outbuf_addv(&out, "function size: %i\n", func_size);
     outbuf_addv(&out, "string size: %i\n", string_size);
     outbuf_addv(&out, "var size: %i\n", var_size);
+    outbuf_addv(&out, "class size: %i\n", class_size);
     outbuf_addv(&out, "inherit size: %i\n", inherit_size);
-    outbuf_addv(&out, "saved type size: %i\n", type_size);
+    outbuf_addv(&out, "saved type size: %i\n\n", type_size);
+
+    outbuf_addv(&out, "total size: %i\n", total_size);
     
     outbuf_push(&out);
 }
@@ -1483,40 +1574,55 @@ static int memory_share P1(svalue_t *, sv) {
  * 
  * map["program name"]["variable name"] = memory usage
  */
-void f_memory_summary PROT((void)) {
-    mapping_t *result = allocate_mapping(8);
-    object_t *ob;
+#ifdef F_MEMORY_SUMMARY
+static void fms_recurse P4(mapping_t *, map, object_t *, ob, 
+			   int *, idx, program_t *, prog) {
+    int i;
+    svalue_t *entry;
     svalue_t sv;
-
+    
     sv.type = T_STRING;
     sv.subtype = STRING_SHARED;
 
+    for (i = 0; i < prog->num_inherited; i++)
+	fms_recurse(map, ob, idx, prog->inherit[i].prog);
+
+    for (i = 0; i < prog->num_variables_defined; i++) {
+	int size = memory_share(ob->variables + *idx + i);
+	
+	sv.u.string = prog->variable_table[i];
+	entry = find_for_insert(map, &sv, 0);
+	entry->u.number += size;
+    }
+    *idx += prog->num_variables_defined;
+}
+
+void f_memory_summary PROT((void)) {
+    mapping_t *result = allocate_mapping(8);
+    object_t *ob;
+    int idx;
+    svalue_t sv;
+    
+    sv.type = T_STRING;
+    sv.subtype = STRING_SHARED;
+    
     for (ob = obj_list; ob; ob = ob->next_all) {
 	svalue_t *entry;
-	mapping_t *map;
-	int i, num;
 	
 	if (ob->flags & O_SWAPPED) 
 	    load_ob_from_swap(ob);
 
-	num = ob->prog->num_variables;
-    
 	sv.u.string = ob->prog->name;
 	entry = find_for_insert(result, &sv, 0);
 	if (entry->type == T_NUMBER) {
 	    entry->type = T_MAPPING;
 	    entry->u.map = allocate_mapping(8);
 	}
-	map = entry->u.map;
-	
-	for (i = 0; i < num; i++) {
-	    int size = memory_share(&ob->variables[i]);
-	    
-	    sv.u.string = ob->prog->variable_names[i].name;
-	    entry = find_for_insert(map, &sv, 0);
-	    entry->u.number += size;
-	}
+	idx = 0;
+	fms_recurse(entry->u.map, ob, &idx, ob->prog);
     }
     push_refed_mapping(result);
 }
+#endif
+
 #endif

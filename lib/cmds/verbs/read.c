@@ -100,7 +100,7 @@ void do_read_word_str(string p, string str) {
     
     
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ:v", "from OBJ:v", "in OBJ:v", "about STR",
 		     "about STR in OBJ:v", "about STR from OBJ:v",

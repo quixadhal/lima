@@ -15,6 +15,10 @@
 #include "cfuns.h"
 #endif
 
+#ifdef PACKAGE_PARSER
+#include "packages/parser.h"
+#endif
+
 /*
    note: do not use MALLOC() etc. in this module.  Unbridled recursion
    will occur.  (use malloc() etc. instead)
@@ -40,8 +44,8 @@
          (*(RIGHT_MAGIC_ADDR(node) + 2) << 8) + \
          (*(RIGHT_MAGIC_ADDR(node) + 3))
 
-static totals[MAX_CATEGORY];
-static blocks[MAX_CATEGORY];
+int totals[MAX_CATEGORY];
+int blocks[MAX_CATEGORY];
 
 static char *sources[] = { 
     "*", "temporary blocks", "permanent blocks", "compiler blocks", 
@@ -302,7 +306,7 @@ static void mark_object P1(object_t *, ob) {
 #endif    
 
     if (ob->prog)
-	for (i = 0; i < ob->prog->num_variables; i++)
+	for (i = 0; i < ob->prog->num_variables_total; i++)
 	    mark_svalue(&ob->variables[i]);
     else
 	outbuf_addv(&out, "can't mark variables; %s is swapped.\n",
@@ -453,28 +457,49 @@ void mark_sockets PROT((void)) {
 #ifdef STRING_STATS
 static int base_overhead = 0;
 
-int check_for_large_strings() {
+/* Compute the correct values of allocd_strings, allocd_bytes, and
+ * bytes_distinct_strings based on blocks that are actually allocated.
+ */
+void compute_string_totals P3(int *, asp, int *, abp, int *, bp) {
     int hsh;
     md_node_t *entry;
     malloc_block_t *msbl;
+    block_t *ssbl;
+    
+    *asp = 0;
+    *abp = 0;
+    *bp = 0;
     
     for (hsh = 0; hsh < TABLESIZE; hsh++) {
 	for (entry = table[hsh]; entry; entry = entry->next) {
 	    if (entry->tag == TAG_MALLOC_STRING) {
 		msbl = NODET_TO_PTR(entry, malloc_block_t*);
-		if (msbl->size == USHRT_MAX)
-		    return 1;
+		*bp += msbl->size + 1;
+		*asp += msbl->ref;
+		*abp += msbl->ref * (msbl->size + 1);
+	    }
+	    if (entry->tag == TAG_SHARED_STRING) {
+		ssbl = NODET_TO_PTR(entry, block_t*);
+		*bp += ssbl->size + 1;
+		*asp += ssbl->refs;
+		*abp += ssbl->refs * (ssbl->size + 1);
 	    }
 	}
     }
-    return 0;
 }
 
+/*
+ * Verify string statistics.  out can be zero, in which case any errors
+ * are printed to stdout and abort() is called.  Otherwise the error messages
+ * are added to the outbuffer.
+ */
 void check_string_stats P1(outbuffer_t *, out) {
     int overhead = blocks[TAG_SHARED_STRING & 0xff] * sizeof(block_t)
 	+ blocks[TAG_MALLOC_STRING & 0xff] * sizeof(malloc_block_t);
     int num = blocks[TAG_SHARED_STRING & 0xff] + blocks[TAG_MALLOC_STRING & 0xff];
-    int bytes = totals[TAG_SHARED_STRING & 0xff] + totals[TAG_MALLOC_STRING & 0xff];
+    int bytes, as, ab;
+    
+    compute_string_totals(&as, &ab, &bytes);
     
     if (!base_overhead)
 	base_overhead = overhead_bytes - overhead;
@@ -500,14 +525,33 @@ void check_string_stats P1(outbuffer_t *, out) {
 	    abort();
 	}
     }
-    if (bytes - (overhead - base_overhead) != bytes_distinct_strings
-	&& !check_for_large_strings()) {
+    if (bytes != bytes_distinct_strings) {
 	if (out) {
 	    outbuf_addv(out, "WARNING: bytes_distinct_strings is: %i should be: %i\n",
 			bytes_distinct_strings, bytes - (overhead - base_overhead));
 	} else {
 	    printf("WARNING: bytes_distinct_strings is: %i should be: %i\n",
 		   bytes_distinct_strings, bytes - (overhead - base_overhead));
+	    abort();
+	}
+    }
+    if (allocd_strings != as) {
+	if (out) {
+	    outbuf_addv(out, "WARNING: allocd_strings is: %i should be: %i\n",
+			allocd_strings, as);
+	} else {
+	    printf("WARNING: allocd_strings is: %i should be: %i\n",
+		   allocd_strings, as);
+	    abort();
+	}
+    }
+    if (allocd_bytes != ab) {
+	if (out) {
+	    outbuf_addv(out, "WARNING: allocd_bytes is: %i should be: %i\n",
+			allocd_bytes, ab);
+	} else {
+	    printf("WARNING: allocd_bytes is: %i should be: %i\n",
+		   allocd_bytes, ab);
 	    abort();
 	}
     }
@@ -656,9 +700,14 @@ void check_all_blocks P1(int, flag) {
 	if (blocks[TAG_PROGRAM & 0xff] != total_num_prog_blocks)
 	    outbuf_addv(&out, "WARNING: total_num_prog_blocks is: %i should be: %i\n",
 			total_num_prog_blocks, blocks[TAG_PROGRAM & 0xff]);
+#ifdef ARRAY_STATS
 	if (blocks[TAG_ARRAY & 0xff] != num_arrays)
 	    outbuf_addv(&out, "WARNING: num_arrays is: %i should be: %i\n",
 			num_arrays, blocks[TAG_ARRAY & 0xff]);
+	if (totals[TAG_ARRAY & 0xff] != total_array_size)
+	    outbuf_addv(&out, "WARNING: total_array_size is: %i should be: %i\n",
+			total_array_size, totals[TAG_ARRAY & 0xff]);
+#endif
 	if (blocks[TAG_MAPPING & 0xff] != num_mappings)
 	    outbuf_addv(&out, "WARNING: num_mappings is: %i should be: %i\n",
 			num_mappings, blocks[TAG_MAPPING & 0xff]);
@@ -820,8 +869,8 @@ void check_all_blocks P1(int, flag) {
 		    for (i = 0; i < (int) prog->num_strings; i++)
 			EXTRA_REF(BLOCK(prog->strings[i]))++;
 		    
-		    for (i = 0; i < (int) prog->num_variables; i++)
-			EXTRA_REF(BLOCK(prog->variable_names[i].name))++;
+		    for (i = 0; i < (int) prog->num_variables_defined; i++)
+			EXTRA_REF(BLOCK(prog->variable_table[i]))++;
 		    
 		    EXTRA_REF(BLOCK(prog->name))++;
 		}

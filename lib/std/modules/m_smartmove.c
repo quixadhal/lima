@@ -45,8 +45,8 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
 	    d = load_object(dest);
 	    if(d->query_max_capacity()-d->query_capacity()-VERY_LARGE < 0) {
 		if(sizeof(filter(all_inventory(d),(:$1->is_living():)))) {
-		    write(wrap("You might be able to fit if there weren't "
-			       "something moving around there already.\n"));
+		    write("You might be able to fit if there weren't "
+			       "something moving around there already.\n");
 		} else {
 		    write("You're unable to fit.\n");
 		}
@@ -82,13 +82,13 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     if ( !txt )
     {
 	msgs = get_player_message("leave", arg);
-	tell_room(last_loc, msgs[1], 0, ({ env }));
+	tell_from_inside(last_loc, msgs[1], 0, ({ env }));
     }
     else
     {
       msgs = action(({this_object()}), txt);
-      tell_object(this_object(),msgs[0], OUTSIDE_MSG);
-      tell_room(last_loc, msgs[1], 0, ({ env }));
+      tell_from_outside(this_object(), msgs[0]);
+      tell_from_inside(last_loc, msgs[1], 0, ({ env }));
     }
 
 
@@ -97,7 +97,7 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     if ( !txt )
     {
 	msgs = get_player_message("enter", arg);
-	tell_room(env, msgs[1], OUTSIDE_MSG, ({ this_object() }));
+	tell_from_outside(env, msgs[1], 0, ({ this_object() }));
     }
     else
     {
@@ -156,7 +156,7 @@ int go_somewhere(string arg)
 
     // allowed by the room itself; some sort of 'special' exit
     if (!value) {
-	return call_other(env, "do_go_" + value);
+	return call_other(env, "do_go_" + arg);
     }
     // This should have been trapped already, but just in case:
     if (value[0] == '#') {

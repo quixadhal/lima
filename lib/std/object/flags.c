@@ -54,6 +54,10 @@ private void init_vars()
     persist_flags = ([ ]);
 }
 
+//:FUNCTION get_flags
+//
+//get_flags(set_key) returns the flags associated with the key 'set_key'
+//Any 'get' function for the flag set is also used.
 nomask int get_flags(int set_key)
 {
     mixed * set_info;
@@ -71,6 +75,12 @@ nomask int get_flags(int set_key)
     return persist_flags[set_key];
 }
 
+//:FUNCTION set_flags
+//
+//set_flags(which, state) sets the flag specified by 'which', which includes
+//both flag set and information about which bit, to 1 if state is nonzero
+//and 0 if state is zero.  The secure, set, and change functions are also
+//called.
 private void set_flags(int which, int state)
 {
     int set_key;
@@ -114,6 +124,10 @@ private void set_flags(int which, int state)
 	evaluate(set_info[2], which, state);
 }
 
+//:FUNCTION configure_set
+//configure_set allows one to specify functions to be called to control
+//access to a set of flags, as well as do things when a flag is accessed,
+//set, or changed.
 varargs nomask void configure_set(
   int set_key,
   int non_persistent,
@@ -134,21 +148,38 @@ varargs nomask void configure_set(
 	});
 }
 
+//:FUNCTION test_flag
+//
+//test_flag(which) returns 1 if a flag is set, and zero if not.  'which'
+//includes information both about which flag set and which bit.
 nomask int test_flag(int which)
 {
     return (get_flags(FlagSet(which)) & BITMASK(which)) != 0;
 }
 
+//:FUNCTION set_flag
+//
+//set_flag(which) sets a given flag to 1.  'which'
+//includes information both about which flag set and which bit.
 nomask void set_flag(int which)
 {
     set_flags(which, 1);
 }
 
+//:FUNCTION clear_flag
+//
+//clear_flag(which) sets a given flag to 0.  'which'
+//includes information both about which flag set and which bit.
 nomask void clear_flag(int which)
 {
     set_flags(which, 0);
 }
 
+//:FUNCTION assign_flag
+//
+//assign_flag(which, state) sets a given flag to 1 if state is
+//nonzero and 0 if state is zero.  'which' includes information
+//both about which flag set and which bit.
 nomask void assign_flag(int which, int state)
 {
     set_flags(which, state);

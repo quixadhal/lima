@@ -11,6 +11,7 @@ private static string my_name;
 
 varargs void create(string long, string array ids, object dest)
 {
+    if (!clonep()) return;
     ::create();
 
     set_attached(1);

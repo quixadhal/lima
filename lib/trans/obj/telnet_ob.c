@@ -32,6 +32,9 @@
 #include <mudlib.h>
 #include <socket.h>
 
+inherit DAEMON;
+inherit M_REGEX;
+inherit M_INPUT;
 #define TELNET_HELP_FILE "/help/admin/telnet"
 #define IAC  255
 
@@ -39,9 +42,6 @@ string *iac_regex = ({sprintf("%c..",IAC)});
 string iac = sprintf("%c",IAC);
 
 
-inherit DAEMON;
-inherit M_REGEX;
-inherit M_INPUT;
 
 class connection
 {
@@ -170,18 +170,18 @@ private nomask void recv_input_from(string session, object sock, string input)
 //	handle_negotiation(info[i]);
 	continue;
       }
-      if((!hide_all_output) && active_session_name == session)
+      if(!hide_all_output && active_session_name == session)
 	{
-	  map(explode(info[i],"\n"), 
-	  (:tell_object(owner, 
-			sprintf("~ %s\n",$1)):));
-	  continue;
+            foreach (string line in explode(info[i],"\n")) {
+                tell(owner, "~ " + line + "\n");
+            }
+	    continue;
 	}
       else
 	{
 	  if(notify_on_activity && sessions[session_num]->output_buffer == "")
 	    {
-	      tell_object(owner, sprintf("%%There is activity in %s\n",
+	      tell(owner, sprintf("%%There is activity in %s\n",
 					 session));
 	    }
 	  sessions[session_num]->output_buffer += input;
@@ -343,7 +343,8 @@ private nomask void close_session(string ses, object sock)
   int i;
   int new_session = -1;
 
-  tell_object(owner, sprintf("%%Session '%s' is closed.\n", ses));
+ZBUG(owner);
+  tell(owner, sprintf("%%Session '%s' is closed.\n", ses));
 
   for(i=0; i<sizeof(sessions); i++)
     {

@@ -19,7 +19,7 @@ mixed get()
 
     if((r = ::get()) == MOVE_OK)
     {
-	this_body()->simple_action ("$N $vpick up a rock.\n");
+	this_body()->simple_action ("$N $vpick up a rock.");
 	new(__DIR__+  "rock")->move(this_body());
 	return MOVE_NO_ERROR;
     }

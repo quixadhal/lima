@@ -22,11 +22,11 @@ private void do_burning(object player)
     }
 
     //reduce hit points here
+    player->simple_action("$N $vare burned by the lava.");
     player->do_damage(new(class combat_result,
 			  kind : "fire",
 			  damage : 5,
 			  message : "$T $v1scream in pain!\n"));  
-    this_body()->simple_action("$N $vare burned by the lava.\n");
 
     // Now we call_out again...
     call_out((: do_burning($(player)) :), 5);
@@ -39,8 +39,8 @@ private void when_person_enters(object o)
     // So let's have it burn up in the lava.
     if ( !o->is_living() )
     {
-	tell_room(this_object(), capitalize(o->the_short()) + " sinks and "
-		  "melts into the lava...\n");
+        receive_inside_msg(capitalize(o->the_short()) + " sinks and "
+            "melts into the lava...\n");
 	destruct(o);
     }
 

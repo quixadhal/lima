@@ -45,7 +45,7 @@ void open_passage()
     {
       return;
     }
-  this_body()->simple_action("A bit of rock in the north wall slides away, opening the passage.\n");
+  this_body()->simple_action("A bit of rock in the north wall slides away, opening the passage.");
   o = load_object("/domains/std/rooms/caves/small_dock.c");
   add_exit("north" , "/domains/std/rooms/caves/small_dock.c");
   o->passage_opened();
@@ -55,9 +55,9 @@ void open_passage()
 
 void passage_opened()
 {
-  tell_room(this_object(), "A bit of rock in the north wall slides away, opening the passage.\n");
-  add_exit("north" , "/domains/std/rooms/caves/small_dock.c");
-  passage_open = 1;
+    receive_inside_msg("A bit of rock in the north wall slides away, opening the passage.\n");
+    add_exit("north" , "/domains/std/rooms/caves/small_dock.c");
+    passage_open = 1;
 }
 
 
@@ -66,13 +66,13 @@ void close_passage()
   object o = load_object("/domains/std/rooms/caves/small_dock.c");
   o->passage_closed();
   delete_exit("north");
-  tell_room(this_object(), "The rock slides back, once again blocking the passage.\n");
+  receive_inside_msg("The rock slides back, once again blocking the passage.\n");
   passage_open = 0;
 }
 
 void passage_closed()
 {
   delete_exit("north");
-  tell_room(this_object(), "The rock slides back, once again blocking the passage.\n");
+  receive_inside_msg("The rock slides back, once again blocking the passage.\n");
   passage_open = 0;
 }

@@ -7,20 +7,24 @@
 
 inherit VERB_OB;
 
-
 void do_lie_on_obj(object ob1)
 {
   ob1->lie();
 }
 
-void do_lie()
-{
-  this_body()->simple_action("$N $vstate that $n $vare well hung.\n");
+void do_lie_down() {
+    if (this_body()->lie_down())
+	this_body()->simple_action("$N $vlie down on the ground.");
 }
 
-mixed array query_verb_info()
+void do_lie()
 {
-    return ({ ({ "on OBJ", ""}) });
+  this_body()->simple_action("$N $vstate that $n $vare well hung.");
+}
+
+array query_verb_info()
+{
+    return ({ ({ "on OBJ", "", "down" }) });
 }
 
 

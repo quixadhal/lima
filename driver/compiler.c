@@ -55,6 +55,7 @@ function_context_t function_context;
 int exact_types, global_modifiers;
 
 int current_type;
+int var_defined;
 
 int current_block;
 char *prog_code;
@@ -198,40 +199,19 @@ void reallocate_locals() {
  * It is very important that they are stored in the same order with the
  * same index.
  */
-void copy_variables P2(program_t *, from, int, type)
-{
-    int i, numvars = from->num_variables, n;
-    variable_t *from_vars = from->variable_names;
-    ident_hash_elem_t *ihe;
-    int new_type;
-
-    for (i = 0; (unsigned) i < numvars; i++) {
-        new_type = type;
-
-        /*
-         * 'public' variables should not become private when inherited
-         * 'private'.
-         */
-        if (from_vars[i].type & NAME_PUBLIC)
-            new_type &= ~NAME_PRIVATE;
-
-        if ((ihe = lookup_ident(from->variable_names[i].name)) &&
-	    ((n = ihe->dn.global_num) != -1)) {
-            if (VARIABLE(n)->type & NAME_NO_MASK) {
-		char buf[256];
-		char *end = EndOf(buf);
-		char *p;
-
-                p = strput(buf, end, "Illegal to redefine 'nomask' variable \"");
-		p = strput(buf, end, VARIABLE(n)->name);
-		p = strput(buf, end, "\"");
-                yyerror(buf);
-	    }
-	}
-        define_variable(from->variable_names[i].name,
-                        from->variable_names[i].type | new_type,
-                        from->variable_names[i].type & NAME_PRIVATE);
-     } 
+void copy_variables P2(program_t *, from, int, type) {
+    int i;
+    
+    for (i = 0; i < from->num_inherited; i++)
+	copy_variables(from->inherit[i].prog, 
+		       type | from->inherit[i].type_mod);
+    for (i = 0; i < from->num_variables_defined; i++) {
+	int t = from->variable_types[i] | type;
+	if (t & NAME_PUBLIC)
+	    t &= ~NAME_PRIVATE;
+	
+	define_variable(from->variable_table[i], t, t & NAME_PRIVATE);
+    }
 }
 
 int add_new_function_entry() {
@@ -253,7 +233,8 @@ void copy_function P5(program_t *, prog, int, index,
     ident_hash_elem_t *ihe;
     
     int where = add_new_function_entry();
-    int f = (prog->function_flags[index] & NAME_MASK) | NAME_DEF_BY_INHERIT | NAME_UNDEFINED;
+    int flags = prog->function_flags[index];
+    int f = (flags & NAME_MASK) | NAME_DEF_BY_INHERIT | NAME_UNDEFINED;
     
     /* 'private' functions become 'hidden' */
     if (f & NAME_PRIVATE)
@@ -271,6 +252,7 @@ void copy_function P5(program_t *, prog, int, index,
 
     FUNCTION_RENTRY(where)->inh.offset = NUM_INHERITS - 1;
     FUNCTION_RENTRY(where)->inh.function_index_offset = index;
+    FUNCTION_ALIAS(where) = 1;
     
     /* add the identifier */
     ihe = find_or_add_ident(defprog->function_table[defindex].name,
@@ -477,30 +459,30 @@ void overload_function P6(program_t *, prog, int, index,
 
 	    defprog2 = prog2;
 	    defindex2 = func_entry->inh.function_index_offset;
-	    func_entry = defprog2->offset_table + defindex2;
+	    func_entry = FIND_FUNC_ENTRY(defprog2, defindex2);
 	    
 	    while (defprog2->function_flags[defindex2] & NAME_INHERITED) {
 		defprog2 = defprog2->inherit[func_entry->inh.offset].prog;
 		defindex2 = func_entry->inh.function_index_offset;
-		func_entry = defprog2->offset_table + defindex2;
+		func_entry = FIND_FUNC_ENTRY(defprog2, defindex2);
 	    }
 	    
 	    p = strput(buf, end, definition->name);
-	    p = strput(p, end, "() inherited from both ");
+	    p = strput(p, end, "() inherited from both /");
 	    p = strput(p, end, defprog->name);
 	    if (prog != defprog) {
-		p = strput(p, end, " (via ");
+		p = strput(p, end, " (via /");
 		p = strput(p, end, prog->name);
 		p = strput(p, end, ")");
 	    }
-	    p = strput(p, end, " and ");
+	    p = strput(p, end, " and /");
 	    p = strput(p, end, defprog2->name);
 	    if (prog2 != defprog2) {
-		p = strput(p, end, " (via ");
+		p = strput(p, end, " (via /");
 		p = strput(p, end, prog2->name);
 		p = strput(p, end, ")");
 	    }
-	    p = strput(p, end, "; using the definition in ");
+	    p = strput(p, end, "; using the definition in /");
 	    p = strput(p, end, prog->name);
 	    p = strput(p, end, ".");
 	    
@@ -519,8 +501,10 @@ void overload_function P6(program_t *, prog, int, index,
      * later.
      */
     alias = add_new_function_entry();
-    FUNCTION_FLAGS(alias) = NAME_ALIAS;
-    FUNCTION_RENTRY(alias)->inh.offset = oldindex;
+    FUNCTION_FLAGS(alias) = NAME_INHERITED | NAME_ALIAS;
+    FUNCTION_RENTRY(alias)->inh.offset = NUM_INHERITS - 1;
+    FUNCTION_RENTRY(alias)->inh.function_index_offset = index;
+    FUNCTION_ALIAS(alias) = oldindex;
 
     /* The rule here is that the latest function wins, so if it's not
        defined at this level and defined in the new object, we copy it in */
@@ -539,12 +523,20 @@ void overload_function P6(program_t *, prog, int, index,
 
 	FUNCTION_FLAGS(oldindex) = f;
 
+	if (FUNCTION_PROG(oldindex) == 0) {
+	    /* Woops; there was a prototype at this level already.  Mark
+	       the old function table entry for removal */
+	    COMPILER_FUNC(FUNCTION_TEMP(oldindex)->u.index)->address = USHRT_MAX;
+	}
 	FUNCTION_TEMP(oldindex)->prog = defprog;
 	FUNCTION_TEMP(oldindex)->u.func = defprog->function_table + defindex;
 
 	FUNCTION_RENTRY(oldindex)->inh.offset = NUM_INHERITS - 1;
 	FUNCTION_RENTRY(oldindex)->inh.function_index_offset = index;
     }
+
+    if (!(newflags & NAME_ALIAS))
+	FUNCTION_ALIAS(oldindex)++;
 }
 
 /*
@@ -572,14 +564,14 @@ int copy_functions P2(program_t *, from, int, typemod)
     for (i = 0; i < num_functions; i++) {
 	program_t *prog = from;
 	int index = i;
-	runtime_function_u *func_entry = prog->offset_table + index;
+	runtime_function_u *func_entry = FIND_FUNC_ENTRY(prog, index);
 	compiler_function_t *funp;
 	
 	/* Walk up the inheritance tree to the real definition */
 	while (prog->function_flags[index] & NAME_INHERITED) {
 	    prog = prog->inherit[func_entry->inh.offset].prog;
 	    index = func_entry->inh.function_index_offset;
-	    func_entry = prog->offset_table + index;
+	    func_entry = FIND_FUNC_ENTRY(prog, index);
 	}
 	DEBUG_CHECK(func_entry->def.f_index >= prog->num_functions_defined,
 		    "Function index out of bounds!");
@@ -902,6 +894,7 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
 	    if (ihe->dn.function_num == -1)
 		ihe->sem_value++;
 	    ihe->dn.function_num = runtime_num;
+	    FUNCTION_ALIAS(runtime_num) = 0;
 	}
     }
     FUNCTION_TEMP(runtime_num)->prog = 0;
@@ -914,6 +907,7 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
     FUNCTION_RENTRY(runtime_num)->def.num_local = num_local;
     FUNCTION_RENTRY(runtime_num)->def.num_arg = num_arg;
     FUNCTION_RENTRY(runtime_num)->def.f_index = num;
+    FUNCTION_ALIAS(runtime_num)++;
     
     funp->type = type & ~NAME_TYPE_MOD;
     funp->runtime_index = runtime_num;
@@ -937,19 +931,16 @@ int define_variable P3(char *, name, int, type, int, hide)
 {
     variable_t *dummy;
     int n;
-    char *str;
     ident_hash_elem_t *ihe;
 
-    str = make_shared_string(name);
+    n = (mem_block[A_VAR_TEMP].current_size / sizeof(variable_t));
 
-    n = (mem_block[A_VARIABLES].current_size / sizeof(variable_t));
-
-    ihe = find_or_add_ident(str, FOA_GLOBAL_SCOPE);
+    ihe = find_or_add_ident(name, FOA_GLOBAL_SCOPE);
     if (ihe->dn.global_num == -1) {
 	ihe->sem_value++;
 	ihe->dn.global_num = n;
     } else {
-	if (VARIABLE(ihe->dn.global_num)->type & NAME_NO_MASK) {
+	if (VAR_TEMP(ihe->dn.global_num)->type & NAME_NO_MASK) {
 	    char buf[256];
 	    char *end = EndOf(buf);
 	    char *p;
@@ -962,10 +953,9 @@ int define_variable P3(char *, name, int, type, int, hide)
 	/* Okay, the nasty idiots have two variables of the same name in
 	   the same object.  This causes headaches for save_object().
 	   To keep save_object sane, we need to make one static */
-	if (!(type & NAME_STATIC)) {
-	    /* this one isn't static, make the other one static */
-	    VARIABLE(ihe->dn.global_num)->type |= NAME_STATIC;
-	}
+	if (!(VAR_TEMP(ihe->dn.global_num)->type & NAME_STATIC))
+	    type |= NAME_STATIC;
+
 	/* hidden variables don't cause variables that are visible to become
 	   invisible; we only add them above (in the !hide case) for better
 	   error messages */
@@ -973,12 +963,28 @@ int define_variable P3(char *, name, int, type, int, hide)
 	    ihe->dn.global_num = n;
     }
 
-    dummy = (variable_t *)allocate_in_mem_block(A_VARIABLES,sizeof(variable_t));
-    dummy->name = str;
+    dummy = (variable_t *)allocate_in_mem_block(A_VAR_TEMP, sizeof(variable_t));
+    dummy->name = name;
     dummy->type = type;
 
     if (hide) dummy->type |= NAME_HIDDEN;
 
+    return n;
+}
+
+int define_new_variable P2(char *, name, int, type) {
+    int n;
+    unsigned short *tp;
+    char **np;
+    
+    var_defined = 1;
+    name = make_shared_string(name);
+    n = define_variable(name, type, 0);
+    np = (char **)allocate_in_mem_block(A_VAR_NAME, sizeof(char*));
+    *np = name;
+    tp = (unsigned short *)allocate_in_mem_block(A_VAR_TYPE, sizeof(unsigned short));
+    *tp = type;
+    
     return n;
 }
 
@@ -1426,6 +1432,7 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 	    p = strput(buff, end, "Illegal to pass variable number of arguments to non-varargs efun ");
 	    p = strput(p, end, predefs[f].word);
 	    yyerror(buff);
+	    CREATE_ERROR(args);
 	    return args;
 	} else if ((num - num_var) < min_arg) {
 	    char buff[256];
@@ -1434,6 +1441,7 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 	    
 	    p = strput(buff, end, "Too few arguments to ");
 	    p = strput(p, end, predefs[f].word);
+	    CREATE_ERROR(args);
 	    yyerror(buff);
 	    return args;
 	} else if (num > max_arg && max_arg != -1) {
@@ -1444,6 +1452,7 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 	    p = strput(buff, end, "Too many arguments to ");
 	    p = strput(p, end, predefs[f].word);
 	    yyerror(buff);
+	    CREATE_ERROR(args);
 	    return args;
 	}
 	if (max_arg != -1 && exact_types) {
@@ -1587,44 +1596,101 @@ INLINE void copy_in P2(int, which, char **, start) {
 static int compare_compiler_funcs P2(int *, x, int *, y) {
     char *n1 = COMPILER_FUNC(*x)->name;
     char *n2 = COMPILER_FUNC(*y)->name;
-
-    /* make sure #global_init# stays last */
-    if (n1[0] == '#') {
-	if (n2[0] == '#')
-	    return 0;
-	return 1;
-    }
+    int sp1, sp2;
+    
+    /* make sure #global_init# stays last; also shuffle empty entries to
+     * the end so we can delete them easily.
+     */
+    if (n1[0] == '#')
+	sp1 = 1;
+    else if (COMPILER_FUNC(*x)->address == USHRT_MAX)
+	sp1 = 2;
+    else
+	sp1 = 0;
+    
     if (n2[0] == '#')
+	sp2 = 1;
+    else if (COMPILER_FUNC(*y)->address == USHRT_MAX)
+	sp2 = 2;
+    else
+	sp2 = 0;
+    
+    if (sp1 < sp2)
 	return -1;
+    if (sp1 > sp2)
+	return 1;
     
     if (n1 < n2)
 	return -1;
     if (n1 > n2)
 	return 1;
+
     return 0;
 }
 
-static void copy_and_sort_function_table P3(program_t *,prog, int, num, char **, p) {
+static void copy_and_sort_function_table P2(program_t *,prog, char **, p) {
     int *temp, *inverse;
     int i, num_runtime;
     compiler_function_t *dest = (compiler_function_t *)*p;
-
-    if (!num) return;
-
+    int num, new_num;
+    
+    num = mem_block[A_COMPILER_FUNCTIONS].current_size / sizeof (compiler_function_t);
+    if (!num) {
+	prog->num_functions_defined = 0;
+	return;
+    }
+    
     temp = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
     for (i = 0; i < num; i++)
 	temp[i] = i;
 
     quickSort(temp, num, sizeof(int), compare_compiler_funcs);
 
+    new_num = num;
+    while (new_num && COMPILER_FUNC(temp[new_num-1])->address == USHRT_MAX)
+	new_num--;
+    prog->num_functions_defined = new_num;
+
     inverse = CALLOCATE(num, int, TAG_TEMPORARY, "copy_and_sort_function_table");
     for (i = 0; i < num; i++) 
 	inverse[temp[i]] = i;
 
-    for (i = 0; i < num; i++)
+    for (i = 0; i < new_num; i++)
 	dest[i] = *COMPILER_FUNC(temp[i]);
 
     num_runtime = mem_block[A_RUNTIME_FUNCTIONS].current_size / sizeof(runtime_function_u);
+#ifdef COMPRESS_FUNCTION_TABLES
+    {
+	compressed_offset_table_t *cftp = (compressed_offset_table_t *)mem_block[A_RUNTIME_COMPRESSED].block;
+	int f_ov = cftp->first_overload;
+	int f_def = cftp->first_defined;
+	int n_ov = f_def - cftp->num_compressed;
+	int n_def = prog->num_functions_total - f_def;
+	int n_real = f_def - cftp->num_deleted;
+	
+	for (i = 0; i < n_ov; i++) {
+	    int j = cftp->index[i];
+	    int ri = f_ov + i;
+	    if (j == 255)
+		continue;
+	    if (!(FUNCTION_FLAGS(ri) & NAME_INHERITED)) {
+		/* remember the function entries have 'moved' */
+		int oldix = FUNCTION_RENTRY(j)->def.f_index;
+		DEBUG_CHECK(oldix >= num, "Function index out of range");
+		FUNCTION_RENTRY(j)->def.f_index = inverse[oldix];
+	    }
+	}
+	for (i = 0; i < n_def; i++) {
+	    int ri = f_def + i;
+	    if (!(FUNCTION_FLAGS(ri) & NAME_INHERITED)) {
+		/* remember the function entries have 'moved' */
+		int oldix = FUNCTION_RENTRY(n_real + i)->def.f_index;
+		DEBUG_CHECK(oldix >= num, "Function index out of range");
+		FUNCTION_RENTRY(n_real + i)->def.f_index = inverse[oldix];
+	    }
+	}
+    }
+#else
     for (i = 0; i < num_runtime; i++) {
 	if (!(FUNCTION_FLAGS(i) & NAME_INHERITED)) {
 	    int oldix = FUNCTION_RENTRY(i)->def.f_index;
@@ -1632,8 +1698,9 @@ static void copy_and_sort_function_table P3(program_t *,prog, int, num, char **,
 	    FUNCTION_RENTRY(i)->def.f_index = inverse[oldix];
 	}
     }
+#endif
 
-    *p += align(num * sizeof(compiler_function_t));
+    *p += align(new_num * sizeof(compiler_function_t));
 
     if (mem_block[A_ARGUMENT_TYPES].current_size) {
 	unsigned short *dest;
@@ -1642,18 +1709,109 @@ static void copy_and_sort_function_table P3(program_t *,prog, int, num, char **,
 	copy_in(A_ARGUMENT_TYPES, p);
 
 	dest = prog->type_start = (unsigned short *) *p;
-	for (i = 0; i < num; i++)
+	for (i = 0; i < new_num; i++)
 	    dest[i] = *((unsigned short *)mem_block[A_ARGUMENT_INDEX].block + temp[i]);
 	
-	*p += align(num * sizeof(unsigned short));
+	*p += align(new_num * sizeof(unsigned short));
     } else {
 	prog->argument_types = 0;
 	prog->type_start = 0;
     }
 
+    /* Free function entries that have been discarded */
+    for (i = new_num; i < num; i++) {
+	compiler_function_t *funp = COMPILER_FUNC(temp[i]);
+	if (funp->name)
+	    free_string(funp->name);
+    }
+
     FREE(temp);
     FREE(inverse);
 }
+
+#ifdef COMPRESS_FUNCTION_TABLES
+#define EXPECTED_INDEX(rfu) (INHERIT(rfu->inh.offset)->function_index_offset + rfu->inh.function_index_offset)
+
+void compress_function_tables() {
+    compressed_offset_table_t *cftp;
+    runtime_function_u *p;
+    int f_ov, l_ov, f_def, n_def, n_tot, n_ov, i, j;
+
+    n_tot = (mem_block[A_RUNTIME_FUNCTIONS].current_size / sizeof(runtime_function_u));
+    f_def = n_tot - 1;
+    while (f_def >= 0) {
+	runtime_function_u *rfu = FUNCTION_RENTRY(f_def);
+	if ((FUNCTION_FLAGS(f_def) & NAME_INHERITED) &&
+	    f_def == EXPECTED_INDEX(rfu))
+	    break;
+	f_def--;
+    }
+    f_def++;
+    n_def = n_tot - f_def;
+    
+    f_ov = 0;
+    while (f_ov < f_def && (FUNCTION_FLAGS(f_ov) & NAME_INHERITED)) {
+	runtime_function_u *rfu = FUNCTION_RENTRY(f_ov);
+	if (f_ov != EXPECTED_INDEX(rfu))
+	    break;
+	f_ov++;
+    }
+    
+    l_ov = f_def - 1;
+    while (l_ov > f_ov && (FUNCTION_FLAGS(l_ov) & NAME_INHERITED)) {
+	runtime_function_u *rfu = FUNCTION_RENTRY(l_ov);
+	if (l_ov != EXPECTED_INDEX(rfu))
+	    break;
+	l_ov--;
+    }
+
+    n_ov = l_ov - f_ov + 1;
+    cftp = (compressed_offset_table_t*)allocate_in_mem_block(A_RUNTIME_COMPRESSED, sizeof(compressed_offset_table_t) + (n_ov - 1));
+    
+    cftp->first_defined = f_def;
+    cftp->first_overload = f_ov;
+    cftp->num_compressed = f_def - n_ov;
+
+    for (i = 0, j = 0; i < n_ov; i++) {
+	int ri = f_ov + i;
+	runtime_function_u *rfu = FUNCTION_RENTRY(ri);
+	if ((FUNCTION_FLAGS(ri) & NAME_INHERITED) && ri == EXPECTED_INDEX(rfu))
+	    cftp->index[i] = 255;
+	else {
+	    cftp->index[i] = j++;
+	    if (j == 256) {
+		/* Woops.  Fix things up a bit */
+		cftp->first_defined = f_def = f_ov + i;
+		cftp->num_compressed = i;
+		for (j = i; j < n_ov; j++)
+		    cftp->index[j] = 255;
+		j = 255;
+		break;
+	    }
+	}
+    }
+    cftp->num_deleted = cftp->first_defined - j;
+
+    /* Now modify A_RUNTIME_FUNCTIONS */
+    if (j + n_def == 0) {
+	mem_block[A_RUNTIME_FUNCTIONS].current_size = 0;
+    } else if (f_def) {
+	p = (runtime_function_u *)DXALLOC((j + n_def) * sizeof(runtime_function_u), TAG_COMPILER, "compress_function_table");
+	for (i = 0; i < n_ov; i++) {
+	    if (cftp->index[i] == 255)
+		continue;
+	    p[cftp->index[i]] = *FUNCTION_RENTRY(f_ov + i);
+	}
+	for (i = 0; i < n_def; i++) {
+	    p[i + j] = *FUNCTION_RENTRY(f_def + i);
+	}
+	FREE(mem_block[A_RUNTIME_FUNCTIONS].block);
+	mem_block[A_RUNTIME_FUNCTIONS].block = (char *)p;
+	mem_block[A_RUNTIME_FUNCTIONS].current_size =
+	    (j + n_def) * sizeof(runtime_function_u);
+    }
+}
+#endif
 
 /*
  * The program has been compiled. Prepare a 'program_t' to be returned.
@@ -1725,9 +1883,12 @@ static program_t *epilog() {
 	    FUNCTION_FLAGS(i) = funflags | NAME_INHERITED;
 	}
 	if (funflags & NAME_ALIAS) {
-	    int which = func->inh.offset;
-	    *func = *FUNCTION_RENTRY(which);
-	    FUNCTION_FLAGS(i) = FUNCTION_FLAGS(which) | NAME_ALIAS;
+	    int which = FUNCTION_ALIAS(i);
+	    if (!(FUNCTION_FLAGS(which) & NAME_INHERITED)
+		|| FUNCTION_ALIAS(which) >= 2) {
+		*func = *FUNCTION_RENTRY(which);
+		FUNCTION_FLAGS(i) = FUNCTION_FLAGS(which) | NAME_ALIAS;
+	    }
 	}
     }
     generate_final_program(1);
@@ -1740,8 +1901,12 @@ static program_t *epilog() {
     if (!(mem_block[A_ARGUMENT_TYPES].current_size))
 	mem_block[A_ARGUMENT_INDEX].current_size = 0;
 
+#ifdef COMPRESS_FUNCTION_TABLES
+    compress_function_tables();
+#endif
+
     for (i=0; i<NUMPAREAS; i++)
-	if (i != A_LINENUMBERS)
+	if (i != A_LINENUMBERS && i != A_FILE_INFO)
 	    size += align(mem_block[i].current_size);
 
     p = (char *)DXALLOC(size, TAG_PROGRAM, "epilog: 1");
@@ -1786,16 +1951,20 @@ static program_t *epilog() {
     prog->program_size = mem_block[A_PROGRAM].current_size;
     copy_in(A_PROGRAM, &p);
 
+    prog->num_functions_total = num_fun;
+
     prog->function_table = (compiler_function_t *)p;
-    prog->num_functions_defined = mem_block[A_COMPILER_FUNCTIONS].current_size / sizeof (compiler_function_t);
-    copy_and_sort_function_table(prog, prog->num_functions_defined, &p);
+    copy_and_sort_function_table(prog, &p);
 
     /* Warning: copy_and_sort_function_table modifies A_RUNTIME_FUNCTIONS,
        so this must be copied in AFTER the call. */
-    prog->offset_table = (runtime_function_u *)p;
-    prog->num_functions_total = mem_block[A_RUNTIME_FUNCTIONS].current_size /
-	sizeof (runtime_function_u);
+    prog->function_offsets = (runtime_function_u *)p;
     copy_in(A_RUNTIME_FUNCTIONS, &p);
+
+#ifdef COMPRESS_FUNCTION_TABLES
+    prog->function_compressed = (compressed_offset_table_t *)p;
+    copy_in(A_RUNTIME_COMPRESSED, &p);
+#endif
 
     prog->function_flags = (unsigned short *)p;
     copy_in(A_FUNCTION_FLAGS, &p);
@@ -1813,10 +1982,15 @@ static program_t *epilog() {
 	  sizeof (char *);
     copy_in(A_STRINGS, &p);
 
-    prog->variable_names = (variable_t *)p;
-    prog->num_variables = mem_block[A_VARIABLES].current_size /
+    prog->num_variables_defined = mem_block[A_VAR_NAME].current_size /
+	sizeof (char *);
+    prog->num_variables_total = mem_block[A_VAR_TEMP].current_size /
 	  sizeof (variable_t);
-    copy_in(A_VARIABLES, &p);
+
+    prog->variable_table = (char **)p;
+    copy_in(A_VAR_NAME, &p);
+    prog->variable_types = (unsigned short *)p;
+    copy_in(A_VAR_TYPE, &p);
 
     prog->num_inherited = mem_block[A_INHERITS].current_size /
 	  sizeof (inherit_t);
@@ -1826,6 +2000,12 @@ static program_t *epilog() {
     } else
 	prog->inherit = 0;
 
+#ifdef DEBUG
+    if (p - (char *)prog != size) {
+	fprintf(stderr, "Program size miscalculated for /%s.\n", prog->name);
+	fprintf(stderr, "is: %i, expected: %i\n", p-(char *)prog, size);
+    }
+#endif
 #ifdef BINARIES
     if ((pragmas & PRAGMA_SAVE_BINARY)
 #ifdef LPC_TO_C
@@ -1868,7 +2048,8 @@ static void prolog P2(int, f, char *, name) {
     function_context.num_parameters = -1;
     num_parse_error = 0;
     global_modifiers = 0;
-
+    var_defined = 0;
+    
     /* Initialize memory blocks where the result of the compilation
      * will be stored.
      */
@@ -1890,9 +2071,7 @@ static void prolog P2(int, f, char *, name) {
  * The program has errors, clean things up.
  */
 static void clean_parser() {
-    int i;
-    variable_t dummy;
-    char *s;
+    int i, n;
     compiler_function_t *funp;
     
     /* don't need the parse trees any more */
@@ -1906,13 +2085,13 @@ static void clean_parser() {
 	if (funp->name)
 	    free_string(funp->name);
     }
-    for (i = 0; i < mem_block[A_STRINGS].current_size; i += sizeof(char *)) {
-	COPY_PTR(&s, mem_block[A_STRINGS].block + i);
-	free_string(s);
+    n = mem_block[A_STRINGS].current_size / sizeof(char *);
+    for (i = 0; i < n; i++) {
+	free_string(*((char **)mem_block[A_STRINGS].block + i));
     }
-    for (i = 0; i < mem_block[A_VARIABLES].current_size; i += sizeof dummy) {
-	memcpy(&dummy, mem_block[A_VARIABLES].block + i, sizeof dummy);
-	free_string(dummy.name);
+    n = mem_block[A_VAR_NAME].current_size / sizeof(char *);
+    for (i = 0; i < n; i++) {
+	free_string(*((char **)mem_block[A_VAR_NAME].block + i));
     }
 
     prog = 0;

@@ -27,7 +27,7 @@
 #define DOC_MODULE(s)
 #define DOC_COMMAND(s)	string __DOCC () { return s ; }
 
-#define TELL_BUG(p,x) (find_user(p)?tell_object(find_user(p),sprintf("%s: %O\n",__FILE__,(x))):0)
+#define TELL_BUG(p,x) (tell_user(p,sprintf("%s: %O\n",__FILE__,(x))))
 
 #define BBUG(x) TELL_BUG("rust",(x))
 #define DBBUG(x) TELL_BUG("deathblade",(x))

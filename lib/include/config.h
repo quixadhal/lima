@@ -37,7 +37,7 @@
 #define USE_WIZ_POSITION	/* use the "position" scheme for wizzes */
 #define USE_QUESTS		/* quests are not always related to gaming,
 				   so we have a separate config flag */
-#define USE_STATUS_LINE              /* Allow use of Infocom-like Status Line */
+#define USE_STATUS_LINE            /* Allow use of Infocom-like Status Line */
 #define USE_GAME_FEATURES	/* use a lot of features related to gaming */
 
 #ifdef USE_GAME_FEATURES	/* pull in a set for gaming features */
@@ -46,6 +46,7 @@
 # define USE_GUILDS
 # define USE_SKILLS
 # define USE_TITLES
+# define USE_BODYSLOTS
 //# define USE_SIMPLE_LEVEL	// use the simple level number scheme for players
 #endif
 
@@ -73,6 +74,7 @@
 #define IDEA_NEWSGROUP "reporter.ideas"
 #define TODO_NEWSGROUP "reporter.todo"
 #define QUESTION_NEWSGROUP "reporter.question"
+#define FEEDBACK_NEWSGROUP "lima.discussion"
 
 
 #define BUG_MSG \
@@ -83,6 +85,15 @@
 
 // max number of entries in the channel history (the /last command)
 #define CHANNEL_HISTORY_SIZE	20
+
+// undef it to not allow anonymous ftp.  Anon ftp users are limited to /ftp/pub.
+#define ALLOW_ANON_FTP
+
+// Whether anon ftp users can *put* files.  Only works if ALLOW_ANON_FTP is
+// defined.
+
+#undef ANON_CAN_PUT
+
 
 // I'd recommend not changing anything below this point.
 #define LINK_PATH(x)		sprintf("/data/links/%c/%s",x[0],x)

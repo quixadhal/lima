@@ -33,10 +33,13 @@ string default_message(int dam, int them) {
 void create() {
     ::create();
 
+    /* self is an M_DAMAGE_SOURCE. initialize it. */
     set_combat_messages("combat-unarmed");
     set_wield_bonus(-25); // -25% to hit bare hand.
     set_weapon_class(3);  // and low WC
-    unwield();
+
+    /* by pinging query_weapon(), we will default to self as a weapon */
+    (void)query_weapon();
 }
 
 // there should be an interface to these for monsters, but for now
@@ -53,8 +56,8 @@ int damage_bonus() {
     return 0;
 }
 
-class combat_result array
-take_a_swing(object target) {
+class combat_result array take_a_swing(object target)
+{
     int them, us, chance, roll;
     class combat_result res;
     object weapon;
@@ -73,7 +76,7 @@ take_a_swing(object target) {
 	string pstr = (pen ? "[-" + (pen*PERCENT_PER_PENALTY) + "]" : "");
 
 	chance = thb + bn + hs - pen*PERCENT_PER_PENALTY;
-	tell_object(this_object(), sprintf("THB: %i%s HS: %i%s == %i\n",
+	receive_private_msg(sprintf("THB: %i%s HS: %i%s == %i\n",
 			thb, bstr, hs, pstr, chance));
     }
 #else
@@ -115,6 +118,6 @@ take_a_swing(object target) {
 }
 
 void attack() {
-    tell_object(this_object(), "Hp: " + query_hp() + "\n");
+    receive_private_msg("Hp: " + query_hp() + "\n");
     ::attack();
 }

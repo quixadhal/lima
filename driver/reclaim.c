@@ -98,7 +98,7 @@ int reclaim_objects()
     cleaned = nested = 0;
     for (ob = obj_list; ob; ob = ob->next_all)
 	if (ob->prog)
-	    for (i = 0; i < (int) ob->prog->num_variables; i++)
+	    for (i = 0; i < (int) ob->prog->num_variables_total; i++)
 		check_svalue(&ob->variables[i]);
     return cleaned;
 }

@@ -189,7 +189,7 @@ void f_db_fetch PROT((void)) {
 #ifdef MSQL    
     if( db->result_set == (m_result *)NULL ) {
 	pop_n_elems(2);
-	push_refed_array(null_array());
+	push_refed_array(&the_null_array);
 	return;
     }
     if( row < 1 || row > msqlNumRows(db->result_set) )
@@ -197,14 +197,14 @@ void f_db_fetch PROT((void)) {
     num_cols = msqlNumFields(db->result_set);
     if( num_cols < 1) {
         pop_n_elems(2);
-	push_refed_array(null_array());
+	push_refed_array(&the_null_array);
 	return;
     }
     msqlDataSeek(db->result_set, row-1);
     this_row = msqlFetchRow(db->result_set);
     if( this_row == NULL ) {
         pop_n_elems(2);
-	push_refed_array(null_array());
+	push_refed_array(&the_null_array);
 	return;
     }
     v = allocate_empty_array(num_cols);	

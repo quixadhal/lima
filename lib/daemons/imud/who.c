@@ -64,12 +64,11 @@ static nomask void rcv_who_reply(string orig_mud, string orig_user,
     {
 	string s;
 
-	s = sprintf("[%s] %d users connected\n%'-'79s\n", orig_mud,
-		    sizeof(message[0]), "");
+        s = sprintf("[%s] %d users connected\n%s\n", orig_mud, sizeof(message[0]), repeat_string("-", 78));
 	s += implode(map_array(message[0],
 			       (: sprintf("%-15s%-5O%s",
 					  $1[0], $1[1], $1[2]) :)), "\n");
-	s += sprintf("\n%'-'79s\n", "");
-	p->receive_private_msg(s);
+	s += "\n" + repeat_string("-", 78) + "\n";
+	tell(p, s);
     }
 }

@@ -57,16 +57,16 @@ void init_addr_server();
 #define PSIG(z) z()
 #endif
 
-static void sig_fpe SIGPROT;
-static void sig_cld SIGPROT;
+static void CDECL sig_fpe SIGPROT;
+static void CDECL sig_cld SIGPROT;
 
 #ifdef TRAP_CRASHES
-static void sig_usr1 SIGPROT;
-static void sig_term SIGPROT;
-static void sig_int SIGPROT;
+static void CDECL sig_usr1 SIGPROT;
+static void CDECL sig_term SIGPROT;
+static void CDECL sig_int SIGPROT;
 
 #ifndef DEBUG
-static void sig_hup SIGPROT,
+static void CDECL sig_hup SIGPROT,
         sig_abrt SIGPROT,
         sig_segv SIGPROT,
         sig_ill SIGPROT,
@@ -94,8 +94,9 @@ int main P2(int, argc, char **, argv)
 #endif
     error_context_t econ;
 
+/* FIXME: should be a configure check */
 #if !defined(LATTICE) && !defined(OLD_ULTRIX) && !defined(sequent) && \
-    !defined(sgi)
+    !defined(sgi) && !defined(WIN32)
     void tzset();
 #endif
     struct lpc_predef_s predefs;
@@ -190,7 +191,9 @@ int main P2(int, argc, char **, argv)
 	    got_defaults = 1;
 	}
     }
+    get_version(version_buf);
     if (!got_defaults) {
+	fprintf(stderr, "%s for %s.\n", version_buf, ARCH);
 	fprintf(stderr, "You must specify the configuration filename as an argument.\n");
 	exit(-1);
     }
@@ -304,7 +307,6 @@ int main P2(int, argc, char **, argv)
 	fprintf(stderr, "Bad mudlib directory: %s\n", mud_lib);
 	exit(-1);
     }
-    get_version(version_buf);
     time(&tm);
     debug_message("----------------------------------------------------------------------------\n%s (%s) starting up on %s - %s\n\n", MUD_NAME, version_buf, ARCH, ctime(&tm));
 
@@ -315,6 +317,9 @@ int main P2(int, argc, char **, argv)
     init_lpc_to_c();
 #endif
     add_predefines();
+#ifdef WIN32
+    _tzset();
+#endif
 
 #ifndef NO_IP_DEMON
     if (!no_ip_demon && ADDR_SERVER_IP)
@@ -427,10 +432,12 @@ int main P2(int, argc, char **, argv)
 #endif
 #endif				/* DEBUG */
 #endif
+#ifndef WIN32
 #ifdef USE_BSD_SIGNALS
     signal(SIGCHLD, sig_cld);
 #else
     signal(SIGCLD, sig_cld);
+#endif
 #endif
     backend();
     return 0;
@@ -579,20 +586,22 @@ char *xalloc P1(int, size)
     return p;
 }
 
-static void PSIG(sig_cld) 
+static void CDECL PSIG(sig_cld) 
 {
+#ifndef WIN32
     int status;
 #ifdef USE_BSD_SIGNALS
-    while (wait3(&status, WNOHANG, NULL))
+    while (wait3(&status, WNOHANG, NULL) > 0)
 	;
 #else
     wait(&status);
     signal(SIGCLD, sig_cld);
 #endif
+#endif
 }
 
 
-static void PSIG(sig_fpe)
+static void CDECL PSIG(sig_fpe)
 {
     signal(SIGFPE, sig_fpe);
 }
@@ -604,7 +613,7 @@ static void PSIG(sig_fpe)
    restart
  */
 
-static void PSIG(sig_usr1)
+static void CDECL PSIG(sig_usr1)
 {
     push_constant_string("Host machine shutting down");
     push_undefined();
@@ -618,43 +627,43 @@ static void PSIG(sig_usr1)
  * Actually, doing all this stuff from a signal is probably illegal
  * -Beek
  */
-static void PSIG(sig_term)
+static void CDECL PSIG(sig_term)
 {
     fatal("Process terminated");
 }
 
-static void PSIG(sig_int)
+static void CDECL PSIG(sig_int)
 {
     fatal("Process interrupted");
 }
 
 #ifndef DEBUG
-static void PSIG(sig_segv)
+static void CDECL PSIG(sig_segv)
 {
     fatal("Segmentation fault");
 }
 
-static void PSIG(sig_bus)
+static void CDECL PSIG(sig_bus)
 {
     fatal("Bus error");
 }
 
-static void PSIG(sig_ill)
+static void CDECL PSIG(sig_ill)
 {
     fatal("Illegal instruction");
 }
 
-static void PSIG(sig_hup)
+static void CDECL PSIG(sig_hup)
 {
     fatal("Hangup!");
 }
 
-static void PSIG(sig_abrt)
+static void CDECL PSIG(sig_abrt)
 {
     fatal("Aborted");
 }
 
-static void PSIG(sig_iot)
+static void CDECL PSIG(sig_iot)
 {
     fatal("Aborted(IOT)");
 }

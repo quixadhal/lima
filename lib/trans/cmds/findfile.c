@@ -53,7 +53,7 @@ private void do_building()
 
 	/* prepend the dir and write into the file */
 	map(this_dir,(:write_file(TMP_DATA_FILE,
-				  join_path($(new_path),$1[0])+"\n"):));
+	      join_path($(new_path),$1[0])+"\n"):));
 
 	/* filter out just the dirs and extract the names */
 	this_dir = map(filter(this_dir, (:$1[1] == -2:)), (:$1[0]:));
@@ -72,7 +72,7 @@ private void begin_database_build()
 {
     stack = ({""});
     path = "";
-    if(!rm(TMP_DATA_FILE))
+    if(is_file(TMP_DATA_FILE) && !rm(TMP_DATA_FILE))
     {
 	out("You don't have permission to do that.\n");
 	return;
@@ -85,7 +85,13 @@ private void begin_database_build()
 private void main(mixed * arg, mapping flags) 
 {
     string  find;
-  
+    string outstr;
+
+    if (!arg[0] && !flags["u"])
+    {
+	out( "Syntax: findfile <string>\n");
+	return;
+    }
     if(flags["u"])
     {
 	if(building_database)
@@ -102,7 +108,11 @@ private void main(mixed * arg, mapping flags)
 	/* arg[0] is an array of strings. use just the first */
 	find = arg[0];
 	ed_start(DATA_FILE);
-	out(ed_cmd(sprintf("1,$g#%s#p", find)));
+	outstr = ed_cmd(sprintf("1,$g#%s#p", find));
+if( !sizeof(outstr))
+        out( "No matching files found.\n");
+else
+    out( outstr );
 	ed_cmd("q");
 	return;
     }

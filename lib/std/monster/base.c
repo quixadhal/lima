@@ -18,6 +18,9 @@ inherit __DIR__ "base/heart_beat";
 #else
 inherit __DIR__ "base/non_heart_beat";
 #endif
+#ifdef USE_BODYSLOTS
+inherit __DIR__ "base/bodyslots";
+#endif
 
 void remove() {
 #ifndef COMBAT_USES_HEARTBEATS
@@ -49,7 +52,7 @@ void attack() {
 	if (tmp[<1] == '\n')
 	    write(tmp);
 	else
-	    simple_action(tmp + " so $p blows are ineffective.\n");
+	    simple_action(tmp + " so $p blows are ineffective.");
 	return;
     }
     if (query_ghost() || !(target = get_target())) {

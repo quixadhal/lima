@@ -86,7 +86,7 @@ int data_size P1(object_t *, ob)
     int total = 0, i;
 
     if (ob->prog) {
-	for (i = 0; i < (int) ob->prog->num_variables; i++) {
+	for (i = 0; i < (int) ob->prog->num_variables_total; i++) {
 	    total += svalue_size(&ob->variables[i]) + sizeof(svalue_t);
 	}
     }

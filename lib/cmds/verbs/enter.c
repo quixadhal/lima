@@ -7,7 +7,7 @@ void do_enter_obj(object ob, string s)
     ob->do_enter(s);
 }
 
-mixed *query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ" }) });
 }

@@ -93,7 +93,7 @@ void write(mixed);
 void tell_object(object, string);
 void shout(string);
 void receive(string);
-void message(mixed, string, string | string * | object | object *,
+void message(mixed, mixed, string | string * | object | object *,
 	          void | object | object *);
 
 /* the find_* functions */
@@ -198,7 +198,7 @@ void message(mixed, string, string | string * | object | object *,
     string ctime(int);
     int exec(object, object);
     mixed *localtime(int);
-    string function_exists(string, object default:F_THIS_OBJECT);
+    string function_exists(string, void | object, void | int);
 
     object *objects(void | string | function, void | object);
     string query_host_name();

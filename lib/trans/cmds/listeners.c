@@ -62,9 +62,8 @@ private void main()
 		flagstr = ": permanent\n";
 	}
 	    
-	out( channel_name + flagstr +
-	    iwrap("    " +
-		  implode(map_array(listeners, (: fmt_listener :)), ", ")) +
+	out( channel_name + flagstr + "    " +
+		  implode(map_array(listeners, (: fmt_listener :)), ", ") +
 	    "\n\n");
     }
 

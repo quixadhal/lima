@@ -1,6 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+
 // container.c
+//
 // possibly the grossest piece of code in the mudlib.
+// (not as bad as the code that describes Rust's mom, of course)
 
 #include <move.h>
 #include <setbit.h>
@@ -26,16 +29,6 @@ static int valid_prep(string prep) {
 //:FUNCTION container
 //Returns 1 if an object is a container
 int container()  { return 1; }
-
-//:FUNCTION ob_state
-//Determine whether an object should be grouped with other objects of the
-//same kind as it.  -1 is unique, otherwise if objects will be grouped
-//according to the return value of the function.
-int ob_state() {
-    /* if we have an inventory we should be unique */
-    if (first_inventory(this_object())) return -1;
-    return 0;
-}
 
 //:FUNCTION query_capacity
 //Returns the amount of mass currently in a container
@@ -183,6 +176,16 @@ int inventory_visible()
 	return 1;
 
     return !this_object()->query_closed();
+}
+
+//:FUNCTION ob_state
+//Determine whether an object should be grouped with other objects of the
+//same kind as it.  -1 is unique, otherwise if objects will be grouped
+//according to the return value of the function.
+int ob_state() {
+    /* if we have an inventory, and it can be seen, we should be unique */
+    if (first_inventory(this_object()) && inventory_visible()) return -1;
+    return this_object()->query_closed();
 }
 
 //:FUNCTION inventory_accessible
@@ -384,7 +387,7 @@ void set_preposition( string new_prep )
 
 // Recognize this as a shitty scope hack?  I do.
 
-string query_prep(){ return main_prep; }
+string query_prep() { return main_prep; }
 
 // Right now this is called only if mass is set in an object that is in
 //the env, or if release_object() has been called and recieve_object() bails
@@ -468,15 +471,22 @@ int environment_can_hear()
     return (internal_sounds_carry() && env && (!env->cant_hear_contents()));
 }
 
+// We use this so that bodies can overload this
+void do_receive(string msg, int msg_type) {
+    receive(msg);
+}
+
 // Inside messages propogate upward and downward...
-void receive_inside_msg(string msg, object * exclude, int message_type, 
+varargs void
+receive_inside_msg(string msg, object * exclude, int message_type, 
   mixed other)
 {
     object env;
     object array contents;
 
-    receive(msg);
+    do_receive(msg, message_type);
 
+    /* downwards (into our contents) */
     if(contents_can_hear())
     {
 	contents = all_inventory(this_object());
@@ -484,6 +494,8 @@ void receive_inside_msg(string msg, object * exclude, int message_type,
 	    contents -= exclude;
 	contents->receive_outside_msg(msg, exclude, message_type, other);
     }
+
+    /* upwards (to our environment) */
     if(environment_can_hear() && (env = environment()) && (!arrayp(exclude) || 
 	member_array(env, exclude) == -1))
     {
@@ -493,13 +505,14 @@ void receive_inside_msg(string msg, object * exclude, int message_type,
     }
 }
 
-// Outside messages propogate downward
-void receive_outside_msg(string msg, object * exclude, int message_type,
+// Outside messages propogate downward (into our contents)
+varargs void
+receive_outside_msg(string msg, object * exclude, int message_type,
   mixed other)
 {
     object array contents;
 
-    receive(msg);
+    do_receive(msg, message_type);
 
     if(contents_can_hear())
     {
@@ -511,15 +524,17 @@ void receive_outside_msg(string msg, object * exclude, int message_type,
 }
 
 //Remote messages propogate just like an inside message by defauly
-void receive_remote_msg(string msg, object array exclude, int message_type,
+varargs void 
+receive_remote_msg(string msg, object array exclude, int message_type,
   mixed other)
 {
     receive_inside_msg(msg, exclude, message_type, other);
 }
 
-void receive_private_msg(string msg, int message_type, mixed other)
+varargs void
+receive_private_msg(string msg, int message_type, mixed other)
 {
-    receive(msg);
+    do_receive(msg, message_type);
 }
 
 /* INTERNAL MUDLIB USAGE!!! NEVER CALL THIS!!! */

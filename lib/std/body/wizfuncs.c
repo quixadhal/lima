@@ -8,6 +8,7 @@
 
 object query_link();
 string query_start_location();
+varargs void receive_private_msg(string);
 
 private int ilog_time;
 
@@ -24,7 +25,7 @@ static void set_ilog_time(int t)
 // caller verification here
 void ilog_hook(string str)
 {
-    query_link()->receive_message(0,"*** " + str + "\n");
+    receive_private_msg("*** " + str + "\n");
     set_ilog_time(time());
 }
 
@@ -36,7 +37,7 @@ string query_home()
     if ( file_size(home + ".c") > 0 )
 	return home;
 
-    return query_start_location();
+    return "CLONE";
 }
 
 nomask void wiz_switch_body(string obname)

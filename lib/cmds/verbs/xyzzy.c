@@ -19,7 +19,7 @@ void do_xyzzy()
     write("A hollow voice says: Fool!\n");
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ 0 }), ({ "plugh", "plover" }) });
 }

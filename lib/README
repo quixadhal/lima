@@ -1,29 +1,27 @@
-Welcome to the pre-alpha release of the Lima Mudlib!
+Welcome to the ALPHA release of the Lima Mudlib!
 
-To compensate for our lack of documentation, please come to our lib
+When you find our documentation inadequate, please come to our lib
 support mud, Lima Bean, and ask questions (or type news and post
 them there).
 
 Lima Bean is located at:
-lima.imaginary.com 7878
-(198.92.143.9	7878)
+lima.mudlib.org 7878
+(205.179.145.14 7878)
 
-Additional information is also available on our new web pages:
-  http://lima.imaginary.com/
+Additional information and documentation is also available on our web pages:
+  http://lima.mudlib.org/
 
 
 Mudlib Features:
  o Centralized natural language parsing (zork like commands for players).
-	Definitly the most advancedds command parsing currently available.
  o Socials use the natural language parsing, and are easy to extend.
- 	There are hundreds of socials and adverbs supplied.
- o The wizard command line does file name expansions as well as the 
-	unix command line...  it's pretty handy to be able to type:
-	cd /s*/m*/s* to cd to /std/mixin/shell_support
+	(The soul is *huge*).
+ o Wizards have featureful shells including full unix globbing (ls *.[ch]),
+	command piping / redirection, etc...
  o Inline documentation.	
  o Distributed support.
  o Very modular, with clear code.
- o Support for the new Intermud-3.
+ o Support for Intermud-3.
  o Modal input, and fully featured interactive shells.
  o Real, secure security authored by Ellery @ TMI-2 (Remier Behrends).
  o Emphasis on player usability:
@@ -47,7 +45,7 @@ Credits:
 
   Special thanks to:
 	o Taro Ogawa, Ohara @ Lima Bean  (bb161@freenet.carleton.ca)
-	  Scott Gamble, Zifnab @ Lima Bean  (zifnab@lima.imaginary.com)
+	  Scott Gamble, Zifnab @ Lima Bean  (zifnab@lima.mudlib.org)
 
 	  For pushing this lib to it's limits on ZorkMud, and for always
 	  being there to lend a helping hand with the coding and design of
@@ -55,7 +53,7 @@ Credits:
 
 	o Anthon Pang, Robocoder @ Lima Bean (apang@mindlink.net)
 
-	  For maintaining the lima.imaginary.com web site and the Lima
+	  For maintaining the lima.mudlib.org web site and the Lima
 	  Mudlib web pages.
 
   Lima Bean staff:
@@ -82,6 +80,8 @@ Credits:
 	o Marc Blank and David Lebling for Zork.
 	o Mark St. Louis (leblany@bosoleil.ci.umoncton.ca) for
 		contributing almost all of the adverbs in our soul.
+	o Soeren Staun-Pedersen (Valentino, Staun@SunSITE.auc.dk) for
+		a plethora of contributions.
 	o Everyone not on staff who's put a helping hand into ZorkMud 
           and Lima, especially (all long gone):
 		Dave Tyler (Nevyn @ ZorkMud)

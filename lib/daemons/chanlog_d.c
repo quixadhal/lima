@@ -43,4 +43,6 @@ void create()
 #ifdef CONF_IN_PROGRESS
     log_channel("plyr_conf");
 #endif
+    log_channel("imud_imud_gossip");
+    log_channel("imud_imud_code");
 }

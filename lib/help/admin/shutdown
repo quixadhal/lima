@@ -1,13 +1,12 @@
 
-USAGE:  shutdown < str >
+USAGE:  shutdown  [-c]|[-t#] < str >
 
-     This command will shut the mud down.  The mud will reboot in a 
-couple of minutes.
+     This command will shut the mud down.  The -t flag will begin a delayed
+shutdown.  The number immediately after the -t is the number of minutes the
+delay should last.  While a shutdown is in progress, each minute the shutdown
+daemon will warn all users.  The -c flag will cancel a timed shutdown.
 
-
-*****  notes  ******
-
-for fun try the following
+For fun try the following:
    shutdown bite me
    shutdown asap
    shutdown now

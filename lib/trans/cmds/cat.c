@@ -51,8 +51,8 @@ private void main(mixed *arg, mapping flags, string stdin) {
 
 int help()
 {
-    write(wrap(
+    write(
 	"Usage:  cat <filename>\n"
 	"Displays the entire contents of the specified file to your screen "
-	"all at once.  See also more.\n" ));
+	"all at once.  See also more.\n" );
 }

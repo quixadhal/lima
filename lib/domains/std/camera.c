@@ -19,7 +19,7 @@ void setup() {
 int press(string s) {
     object picture;
 
-    this_body()->simple_action("$N $vtake a picture with $p $o.\nA polaroid picture slides out the front of $o.\n", this_object());
+    this_body()->simple_action("$N $vtake a picture with $p $o.\nA polaroid picture slides out the front of $o.", this_object());
 
     picture = new(__DIR__ "picture");
     if (picture->move(this_body()))

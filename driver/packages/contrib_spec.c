@@ -22,7 +22,7 @@ string pluralize(string);
 int file_length(string);
 string upper_case(string);
 int replaceable(object, void | string *);
-string program_info();
+string program_info(void | object);
 void store_variable(string, mixed);
 mixed fetch_variable(string);
 int remove_interactive(object);

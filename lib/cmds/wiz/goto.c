@@ -27,9 +27,9 @@ private void main( mixed *arg)
 	    return;
 	}
 	msgs = this_body()->get_player_message("mleave");
-	tell_room(prev, msgs[1]);
+	tell_from_inside(prev, msgs[1]);
 	msgs = this_body()->get_player_message("menter");
-	tell_room(env, msgs[1], 0, ({ this_body() }));
+	tell_from_inside(env, msgs[1], 0, ({ this_body() }));
 	this_body()->force_look();
     }
     else           // failure messages
@@ -45,9 +45,8 @@ private void main( mixed *arg)
 
 int help()
 {
-    write(wrap(
-	"Usage: goto <living|filename>\n"
-	"Goto isn't a very hard concept to understand.  If you're reading this "
-	"help, you must really be bored.\n"));
+    write("Usage: goto <living|filename>\n"
+	  "Goto isn't a very hard concept to understand.  If you're reading this "
+	  "help, you must really be bored.\n");
     return 1;
 }

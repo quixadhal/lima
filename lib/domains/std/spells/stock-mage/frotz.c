@@ -30,7 +30,7 @@ void do_effects(object target, object reagent)
     if ( old_light > 0 )
     {
 	this_body()->simple_action("Although the $o $v1are already lit, "
-				   "$n $vtry to light $o.\n", target);
+				   "$n $vtry to light $o.", target);
 	return 0;
     }
 
@@ -38,11 +38,11 @@ void do_effects(object target, object reagent)
 
     if (target->query_light() > 0)
     {
-	this_body()->simple_action("$N $vstare at the $o intensely for a brief moment.  Suddenly, $o is surrounded by a sickly light, just bright enough to see by!\n", target);
+	this_body()->simple_action("$N $vstare at the $o intensely for a brief moment.  Suddenly, $o is surrounded by a sickly light, just bright enough to see by!", target);
     }
     else 
     {
-	this_body()->simple_action("$N $vstare at the $o intensely for a brief moment.\n", target);
+	this_body()->simple_action("$N $vstare at the $o intensely for a brief moment.", target);
 	write("Nothing happens.\n");
     }
 }

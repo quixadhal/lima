@@ -10,7 +10,7 @@ void setup() {
 		 "down" : "/domains/std/wizroom.c"
     ]) );
     set_objects( ([
-	   STAIRS : ({ 0, "/domains/std/wizroom" }),
+	   STAIRS : ({ 1, 0, "/domains/std/wizroom" }),
 	   "/domains/std/magic_flame" : 1
     ]) );
 }

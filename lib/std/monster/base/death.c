@@ -35,13 +35,12 @@ void set_hp(int);
 //:FUNCTION vaporize
 //remove the monster in a puff of black smoke
 void vaporize() {
-    simple_action("Soon after $n $vhave breathed $p last, $p body disappears in a puff of black smoke.\n");
+    simple_action("Soon after $n $vhave breathed $p last, $p body disappears in a puff of black smoke.");
     all_inventory(this_object())->move(environment());
     remove();
 }
 
 void die() {
-    set_hp(0);
     call_out( (: vaporize :), 1);
 }
 #endif

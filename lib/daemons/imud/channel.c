@@ -120,9 +120,9 @@ static nomask void rcv_chan_who_reply(string orig_mud, string orig_user,
     }
     else
     {
-	tell_object(p, wrap(sprintf("%s@%s listeners: ",
+	tell(p, sprintf("%s@%s listeners: ",
 				    message[0], orig_mud) +
-			    implode(message[1], ", ") + ".\n"));
+			    implode(message[1], ", ") + ".\n");
     }
 }
 

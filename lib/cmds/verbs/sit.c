@@ -23,7 +23,7 @@ void do_sit_at_obj(object ob1)
     ob1->sit("at");
 }
 
-mixed array query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "in OBJ", "on OBJ", "at OBJ" }) });
 }

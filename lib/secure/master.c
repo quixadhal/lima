@@ -20,13 +20,13 @@ object compile_object(string path)
 
     path = "/" + path;
     pname = path;
-    
+
     while (1) {
 	int idx = strsrch(pname, "/", -1);
-	
+
 	if (idx == -1)
 	    return 0;
-	
+
 	pname = pname[0..idx-1];
 
 	if (file_size(pname + ".c") >= 0) {
@@ -38,7 +38,7 @@ object compile_object(string path)
 
 private void crash()
 {
-    shout("Game Driver shouts: Ack! I think the game is crashing!\n");
+    tell(users(), "Game Driver shouts: Ack! I think the game is crashing!\n");
     users()->quit();
 }
 
@@ -53,14 +53,14 @@ nomask string get_player_fname()
 	    err = "File '" + USER_OB + "' does not exist!";
 	write("Main login ob not loadable!\n" + err + "\n");
 	if ( err = catch(ob = load_object(USER_OB_BAK)) )
-            write("Spare login obj not loadable!\n" + err + "\n");
-        else if ( !ob )
+	    write("Spare login obj not loadable!\n" + err + "\n");
+	else if ( !ob )
 	    write("Spare login ob (" + USER_OB_BAK + ") does not exist!\n");
 	else
-            return USER_OB_BAK;
+	    return USER_OB_BAK;
     }
     else
-        return USER_OB;
+	return USER_OB;
 
     return 0;
 }
@@ -68,10 +68,9 @@ nomask string get_player_fname()
 #ifdef  DEBUG_CONNECTIONS
 void debug_connections(object ob)
 {
-   map(filter(bodies(), (:wizardp:)), 
-	(: tell_object($1, sprintf("Debugger tells you: There's a new "
-				   "connection from %s.\n", 
-				   query_ip_name($(ob)))) :));
+    tell(filter(bodies(), (:wizardp:)), 
+      sprintf("Debugger tells you: There's a new connection from %s.\n", 
+	query_ip_name(ob)));
 }
 #endif
 
@@ -85,12 +84,12 @@ object connect()
 #ifdef DEBUG_CONNECTIONS
     call_out((: debug_connections($(ob)):), 2);
 #endif
-						    
+
     write("\n");
     if ( ret )
     {
-        write(ret + "\n");
-        return 0;
+	write(ret + "\n");
+	return 0;
     }
     return ob;
 }
@@ -120,18 +119,18 @@ varargs string standard_trace(mapping mp, int flag) {
     ret = ctime( time());
     ret += "\n";
     ret += mp["error"] + "Object: " + trace_line(mp["object"], mp["program"],
-					       mp["file"], mp["line"]);
+      mp["file"], mp["line"]);
     ret += "\n";
     trace = mp["trace"];
 
     n = sizeof(trace);
-    
+
     for (i=0; i<n; i++) {
 	if (flag) ret += sprintf("#%d: ", i);
 
 	ret += sprintf("'%s' at %s", trace[i]["function"],
-		       trace_line(trace[i]["object"], trace[i]["program"],
-				  trace[i]["file"], trace[i]["line"]));
+	  trace_line(trace[i]["object"], trace[i]["program"],
+	    trace[i]["file"], trace[i]["line"]));
     }
     return ret;
 }
@@ -149,29 +148,29 @@ string error_handler(mapping mp, int caught)
        or confuse them */
     if (what[0..23] == "*Error in loading object")
 	return;
-    
+
     if ( this_user() )
     {
 	printf("%sTrace written to %s\n", what, logfile);
 	errors[this_user()->query_userid()] = mp;
     }
     errors["last"] = mp;
-    
+
     // Strip trailing \n, and indent nicely
     what = replace_string(what[0..<2], "\n", "\n         *");
     NCHANNEL_D->deliver_string("errors",
-		       sprintf("[errors] Error logged to %s\n[errors] %s\n[errors] %s\n",
-			       logfile,
-			       what,
-			       trace_line(mp["object"], mp["program"],
-					  mp["file"], mp["line"])));
-
+      sprintf("[errors] (%s) Error logged to %s\n[errors] %s\n[errors] %s\n",
+	capitalize(this_user()->query_userid()),
+	logfile,
+	what,
+	trace_line(mp["object"], mp["program"],
+	  mp["file"], mp["line"])));
     return 0;
 }
 
 mapping query_error(string name)
 {
-/* This MUST be secure */
+    /* This MUST be secure */
     if (!check_privilege(1)) return 0;
     return errors[name];
 }
@@ -194,14 +193,14 @@ mixed name_of_file_owner(string object_name)
 
     if ( sscanf(object_name, WIZ_DIR"/%s", wiz_name) == 1 )
     {
-        if ( sscanf(wiz_name, "%s/%s", start, trailer) == 2 )
-            wiz_name = start;
-        return wiz_name;
+	if ( sscanf(wiz_name, "%s/%s", start, trailer) == 2 )
+	    wiz_name = start;
+	return wiz_name;
     }
     else if (object_name[0..3] != "ftp/" && object_name[0..4] != "open/")
     {
-        /* no creator, but legal. */
-        return 1;
+	/* no creator, but legal. */
+	return 1;
     }
 }
 
@@ -233,10 +232,10 @@ private void report_context(string src, int line, string context) {
     int len, clen;
     int pos = strlen(INDENT);
     int tmp;
-    
+
     if (!context || context == "") return;
     if (context[<1] == '\n') context = context[0..<2];
-    
+
     src = read_file((src[0] == '/' ? src : "/" + src), line, 1);
     if (src == "") return;
     if (src[<1] != '\n')
@@ -297,7 +296,7 @@ void log_error(string file, string message)
 	{
 #ifdef OLD_STYLE_COMPILATION_ERRORS
 	    printf(INDENT "Compilation error: %s\n   %s, before [%s]\n",
-		   err, where, trim_spaces(context));
+	      err, where, trim_spaces(context));
 #else
 	    /* for safety; it'll look wierd but have the right info */
 	    src = where; 
@@ -361,8 +360,8 @@ string *parse_command_adjectiv_id_list()
 string *parse_command_prepos_list()
 {
     return ({ "in","from","on","under","behind","beside","of","for","to",
-	      "with", "at", "off", "out", "down", "up", "around", "over",
-	      "into", "about", });
+      "with", "at", "off", "out", "down", "up", "around", "over",
+      "into", "about", });
 }
 
 string parse_command_all_word()
@@ -381,7 +380,7 @@ string parser_error_message(int kind, object ob, mixed arg, int flag) {
 	ret = ob->short() + ": ";
     else
 	ret = "";
-    
+
     switch (kind) {
     case ERR_IS_NOT:
 	if (flag)
@@ -405,18 +404,22 @@ string parser_error_message(int kind, object ob, mixed arg, int flag) {
 	{
 	    array descs = unique_array(arg, (: $1->the_short() :));
 	    string str;
-	    
+
 	    if (sizeof(descs) == 1)
 		return ret + "Which " + descs[0][0]->short() + " do you mean?\n";
 	    str = ret + "Do you mean ";
 	    for (int i = 0; i < sizeof(descs); i++) {
 		if (sizeof(descs[i]) > 1)
+		{
 		    str += "one of ";
-		str += descs[i][0]->the_short();
-		if (i == sizeof(descs) - 1)
-		    str += " or ";
-		else 
+		    str += pluralize( descs[i][0]-> the_short());
+		}
+		else
+		    str += descs[i][0]->the_short();
+		if (i < sizeof(descs) - 2)
 		    str += ", ";
+		else if (i == sizeof(descs) - 2)
+		    str += " or ";
 	    }
 	    return str + "?\n";
 	}
@@ -464,7 +467,7 @@ int valid_override(string file, string efun_name)
     */
     return file == "/secure/simul_efun/overrides";
 }
-    
+
 int valid_socket(object ob, string what, mixed * info)
 {
     string fname;
@@ -483,18 +486,18 @@ private nomask void preload( string file )
 {
     object o;
 
-    write("Preloading: "+file+"...  ");
+    //    write("Preloading: "+file+"...  ");
     catch(o = load_object(file));
-    if ( objectp(o) )
-	write("success\n");
-    else
-	write("FAILED\n");
+    //    if ( objectp(o) )
+    //	write("success\n");
+    //    else
+    //	write("FAILED\n");
 }
 
 string* epilog( int eflag )
 {
     return filter_array(explode(read_file(PRELOAD_FILE), "\n") - ({ "" }),
-			(: $1[0] != '#' :));
+      (: $1[0] != '#' :));
 }
 
 string object_name( object ob )
@@ -508,7 +511,7 @@ string object_name( object ob )
     if ( ob->is_living() )
 	if(ob = ob->query_link()) return ob->query_userid()+"'s body";
 	else
-        return "NPC";
+	    return "NPC";
 }
 
 
@@ -531,15 +534,15 @@ mixed valid_write(mixed path, object caller, string call_fun)
     mixed foo;
 
     if (caller == this_object())
-        return 1;
+	return 1;
     path = evaluate_path(path);
 
     if (SECURE_D->check_privilege(SECURE_D->query_protection(path,1),1))
-        return path;
+	return path;
 
     write_file(ACCESS_LOG,
-	       (this_user() ? this_user()->query_userid() : file_name(caller)) +
-	       ": attempted to write " + path + "\n");
+      (this_user() ? this_user()->query_userid() : file_name(caller)) +
+      ": attempted to write " + path + "\n");
 
     printf("Permission denied: %s.\n",path);
     return 0;
@@ -550,17 +553,17 @@ mixed valid_read(string path, object caller, string call_fun)
     mixed foo;
 
     if (caller == this_object())
-        return 1;
+	return 1;
     if (file_name(caller)==SECURE_D && call_fun == "restore_object")
-        return 1;
+	return 1;
 
     path = evaluate_path(path);
     if (SECURE_D->check_privilege(SECURE_D->query_protection(path,0),0))
-        return path;
+	return path;
 
     write_file(ACCESS_LOG,
-	       (this_user() ? this_user()->query_userid() : file_name(caller)) +
-	       ": attempted to read " + path + "\n");
+      (this_user() ? this_user()->query_userid() : file_name(caller)) +
+      ": attempted to read " + path + "\n");
 
     printf("Permission denied: %s.\n",path);
     return 0;

@@ -104,6 +104,9 @@ private nomask void incarnate(int is_new, string bfn)
     start_shell();
     body->enter_game(is_new);
     run_login_script();
+
+    if ( is_new )
+	body->save_me();
 }
 
 static nomask void existing_user_enter_game()

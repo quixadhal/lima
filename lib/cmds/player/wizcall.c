@@ -6,8 +6,8 @@ inherit CMD;
 
 void create()
 {
-  ::create();
-  no_redirection();
+    ::create();
+    no_redirection();
 }
 
 private void main(string arg)
@@ -28,9 +28,8 @@ private void main(string arg)
 	return;
     }
 
-    foreach ( wiz in wizlist )
-	tell_object(wiz, iwrap(sprintf("%s wizcalls: %s\n",
-				       this_body()->query_name(), arg)));
+    tell(wizlist, this_body()->query_name() + " wizcalls: "
+			+ arg + "\n", MSG_INDENT);
 
     if ( member_array(this_user(), wizlist) == -1 )
 	outf("You wizcall: %s\n", arg);

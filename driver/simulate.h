@@ -67,7 +67,7 @@ object_t *object_present PROT((svalue_t *, object_t *));
 object_t *find_object PROT((char *));
 object_t *find_object2 PROT((char *));
 void move_object PROT((object_t *, object_t *));
-void destruct_object PROT((svalue_t *));
+void destruct_object PROT((object_t *));
 void destruct2 PROT((object_t *));
 
 void print_svalue PROT((svalue_t *));

@@ -9,7 +9,7 @@ mixed do_ask_liv_about_wrd(object liv, string item)
     else return 0;
 }
 
-mixed *query_verb_info()
+array query_verb_info()
 {
      return ({ ({"LIV about WRD" }) });
 }

@@ -5,6 +5,7 @@
 object this_body();
 object find_body(string);
 string evaluate_path(string);
+varargs void tell_environment(object, string);
 
 string 
 base_name(mixed val) {
@@ -124,7 +125,7 @@ object root_environment(object o)
   return env;
 }
 
-int immediatly_accessible( object o )
+int immediately_accessible( object o )
 {
     object	env;
 
@@ -153,14 +154,14 @@ usable( object o, int flag )
 
     if (environment(o) == this_body()) return 1;
 
-    if( immediatly_accessible( o ) )
+    if( immediately_accessible( o ) )
     {
 	if( flag )
 	{
 	    write( "(Taking the "+o->the_short()+" first)\n" );
 	    VERB_OB_GET->do_get("OBJ", o, 0);
 
-	    return immediatly_accessible(o);
+	    return immediately_accessible(o);
 	}
 	return 1;
     }
@@ -168,7 +169,7 @@ usable( object o, int flag )
     write( "(Taking the "+o->the_short()+" first)\n" );
     VERB_OB_GET->do_get("OBJ", o, 0);
 
-    return immediatly_accessible(o);
+    return immediately_accessible(o);
 }
 
 /* returns a nice listing of the given objects */
@@ -211,11 +212,11 @@ varargs string inv_list(object array obs, int flag, int depth) {
 }
  
 object owner(object ob) {
-  object env;
+    object env;
 
-  env = environment(ob);
-  while (env && !env->is_living()) env = environment(env);
-  return env;
+    env = environment(ob);
+    while (env && !env->is_living()) env = environment(env);
+    return env;
 }
 
 mixed target(mixed target)
@@ -249,9 +250,5 @@ string object_event_message(mixed msg) {
 }
 
 void object_event(mixed msg) {
-    object ob = environment(previous_object());
-    if (!ob) return;
-    while (environment(ob) && ob->inventory_visible())
-        ob = environment(ob);
-    tell_room(ob, object_event_message(msg));
+    tell_environment(previous_object(), object_event_message(msg));
 }

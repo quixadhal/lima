@@ -21,12 +21,12 @@ varargs string print_tree(string file, string func, int indent) {
 	file = "/" + file;
     
     if (!ob) {
-	return sprintf("%*-' 'sCouldn't find object: " + file + "\n", indent * 2, "");
+    return repeat_string("  ", indent) + "Couldn't find object: " + file + "\n";
 	return;
     }
-    result = sprintf("%*-' 's" + file + ":\n", indent * 2, "");
+    result = repeat_string("  ", indent) + file + ":\n";
     if (func && (function_exists(func, ob) + ".c") == file) {
-	result += sprintf("%*-' 's  [defined]\n", indent * 2, "");
+    result += repeat_string("  ", indent) + "  [defined]\n";
 	found = 1;
     } else if (!func)
 	found = 1;

@@ -306,9 +306,9 @@ nomask void deliver_string(string channel_name, string str)
 nomask void deliver_channel(string channel_name, string str)
 {
     deliver_string(channel_name,
-		   iwrap(sprintf("[%s] %s\n",
-				 user_channel_name(channel_name),
-				 str)));
+		   sprintf("[%s] %s\n",
+			   user_channel_name(channel_name),
+			   str));
 }
 
 /*
@@ -361,10 +361,10 @@ nomask void deliver_tell(string channel_name,
 
     deliver_data(channel_name, sender_name, "tell", message);
     deliver_string(channel_name,
-		   iwrap(sprintf("[%s] %s: %s\n",
-				 user_channel_name(channel_name),
-				 sender_name,
-				 punctuate(message))));
+		   sprintf("[%s] %s: %s\n",
+			   user_channel_name(channel_name),
+			   sender_name,
+			   punctuate(message)));
 }
 
 /*
@@ -376,14 +376,19 @@ nomask void deliver_emote(string channel_name,
 			  string sender_name,
 			  string message)
 {
+    if( !sizeof( message ))
+    {
+    write( "Emote what?\n" );
+        return;
+}
     sender_name = find_sender_name(sender_name);
 
     deliver_data(channel_name, sender_name, "emote", message);
     deliver_string(channel_name,
-		   iwrap(sprintf("[%s] %s %s\n",
-				 user_channel_name(channel_name),
-				 sender_name,
-				 punctuate(message))));
+		   sprintf("[%s] %s %s\n",
+			   user_channel_name(channel_name),
+			   sender_name,
+			   punctuate(message)));
 }
 
 /*
@@ -400,7 +405,7 @@ nomask void deliver_soul(string channel_name, mixed * soul)
     user_channel_name = user_channel_name(channel_name);
     soul = ({ soul[0] }) +
 	({ map_array(soul[1],
-		     (: iwrap(sprintf($("["+user_channel_name+"] %s"), $1)) :))
+		     (: sprintf($("["+user_channel_name+"] %s"), $1) :))
        });
 
     deliver_raw_soul(channel_name, soul);
@@ -415,9 +420,9 @@ nomask void deliver_notice(string channel_name,
 			   string message)
 {
     deliver_string(channel_name,
-		   iwrap(sprintf("[%s] (%s)\n",
-				 user_channel_name(channel_name),
-				 message)));
+		   sprintf("[%s] (%s)\n",
+			   user_channel_name(channel_name),
+			   message));
 }
 
 void create()

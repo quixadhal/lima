@@ -127,12 +127,12 @@ void get_simul_efuns P1(program_t *, prog)
 	    continue;
 	nprog = prog;
 	index = i;
-	func_entry = nprog->offset_table + index;
+	func_entry = FIND_FUNC_ENTRY(nprog, index);
 	
 	while (nprog->function_flags[index] & NAME_INHERITED) {
 	    nprog = nprog->inherit[func_entry->inh.offset].prog;
 	    index = func_entry->inh.function_index_offset;
-	    func_entry = nprog->offset_table + index;
+	    func_entry = FIND_FUNC_ENTRY(nprog, index);
 	}
 	
 	find_or_add_simul_efun(nprog, func_entry->def.f_index, i);

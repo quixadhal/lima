@@ -691,3 +691,6 @@
  *  completeness of malloc debugging (malloc/free will be about half as fast).]
  */
 #define NEXT_MALLOC_DEBUG
+
+#undef ARRAY_STATS
+#undef COMPRESS_FUNCTION_TABLES

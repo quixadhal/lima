@@ -8,7 +8,7 @@ void do_wish_for_str(string str) {
     write("That would be nice, wouldn't it?\n");
 }
 
-mixed *query_verb_info() 
+array query_verb_info() 
 {
     return ({ ({ "for STR" }) });
 }

@@ -11,10 +11,19 @@ private object last_location;
 void call_hooks(string, int);
 int query_light();
 
+//### move these next to /std/object/environment, and merge with some of
+//### the objcalls simuls
+//:FUNCTION contains
+//contains(o) returns 1 if o is in this object, or in an object contained
+//by this object (recursively).
 int contains(object o)
 {
     return o->is_in(this_object());
 }
+
+//:FUNCTION is_in
+//is_in(o) returns 1 if this object is in o, or in an object which is in
+//o (recursively).
 int is_in(object o)
 {
     object env = this_object();
@@ -25,7 +34,10 @@ int is_in(object o)
     }
 }
 
-
+//:FUNCTION move
+//move(dest, relation) moves this object to be 'relation' ("in", "on", etc)
+//to the object dest, if possible.  If it fails, it returns a string
+//error message or zero; if it succeeds it returns 1.
 varargs mixed move(mixed dest, string where)
 {
     object env;
@@ -55,7 +67,7 @@ varargs mixed move(mixed dest, string where)
         if (stringp(ret)) return ret;
     }
     ret = dest->receive_object( this_object(), where );
-    if (ret == 0) ret = MOVE_NOT_RECIEVED;
+    if (ret == 0) ret = MOVE_NOT_RECEIVED;
     if (stringp(ret)) {
 	if( env )
 	    env->update_capacity();
@@ -107,6 +119,10 @@ if( this_object()->has_status_line())
     return MOVE_OK;
 }
 
+//### IMO this is only used for hacks, and should be removed (-Beek)
+//:FUNCTION query_last_location
+//Returns the last object an object was inside before it moved to where
+//it is now.
 object query_last_location()
 {
     return last_location;

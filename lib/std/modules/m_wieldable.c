@@ -47,6 +47,6 @@ mixed ob_state()
 int direct_wield_obj()
 {
     object who = owner(this_object());
-    if (who && who != this_body() && who->is_living()) return 0;
-return 1;
+    if (who && who != this_body()) return 0;
+    return 1;
 }

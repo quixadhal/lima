@@ -51,6 +51,8 @@ f_crypt PROT((void))
 #endif
 
 #ifdef F_LOCALTIME
+/* FIXME: most of the #ifdefs here should be based on configure checks
+   instead.  Same for rusage() */
 void
 f_localtime PROT((void))
 {
@@ -118,6 +120,9 @@ f_localtime PROT((void))
 #ifndef WIN32
     vec->item[LT_GMTOFF].u.number = tm->tm_gmtoff;
     vec->item[LT_ZONE].u.string = string_copy(tm->tm_zone, "f_localtime");
+#else
+    vec->item[LT_GMTOFF].u.number = _timezone;
+    vec->item[LT_ZONE].u.string = string_copy(_tzname[_daylight?1:0],"f_localtime");
 #endif
 #endif
 #endif				/* sequent */
@@ -146,7 +151,7 @@ f_rusage PROT((void))
     if (getrusage(RUSAGE_SELF, &rus) < 0) {
 	m = allocate_mapping(0);
     } else {
-#ifndef SunOS_5
+#if 1 /* Was !SunOS_5 */
 	usertime = rus.ru_utime.tv_sec * 1000 + rus.ru_utime.tv_usec / 1000;
 	stime = rus.ru_stime.tv_sec * 1000 + rus.ru_stime.tv_usec / 1000;
 #else

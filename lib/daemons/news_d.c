@@ -31,6 +31,7 @@
  * 950724, Rust: added the restrict_group() interface on July 24, 1995.
  * ??????, Beek: modified the system to be automatic based on group prefixes.
  * 950811, Deathblade: converted to classes. added remove_post().
+* 9606xx, Ohara: added move_post() and reply_post.
  * 
  */
 
@@ -45,24 +46,67 @@ inherit CLASS_NEWSMSG;
 
 #define SAVE_FILE "/data/news/news_d"
 
-#define ARCHIVE_DAYS 14
 #define ARCHIVE_DIR "/data/news/archive"
 
 void archive_posts();
+nomask string * get_groups();
 
 private mapping data = ([]);
 private int new_format;
 
+// No info on a group means never archive.
+private mapping archive_info = ([ ]);
+
 private static mapping restrictions = 
 ([
-    "wiz" : (: wizardp :),
-    "admin" : (: adminp :)
+  "wiz" : (: wizardp :),
+  "admin" : (: adminp :)
 ]);
+
+#define is_group(x) (member_array(x,get_groups()) != -1)
+
 
 nomask void save_me()
 {
     unguarded(1, (: save_object, SAVE_FILE :));
 }
+
+/*
+** Set the archive time on a group.
+*/
+nomask void set_archive_time(string group, int numDays)
+{
+    if (!check_previous_privilege(1))
+    {
+	error("Insufficient privs");
+    }
+    if (!is_group(group))
+    {
+	error("First arg not a valid newsgroup");
+    }
+    if(!intp(numDays))
+    {
+	error("Number of days not an integer.");
+    }
+    if(numDays < 0)
+    {
+	error("Number of days must be greater than or equal to 0.");
+    }
+    if(!numDays) 
+    {
+	/* Never expire */
+	map_delete(archive_info, group);
+    }
+    else
+    {
+	archive_info[group] = numDays;
+    }
+    save_me();
+}
+
+
+
+
 
 /*
 ** Convert the storage format from (old-style) mappings to classes
@@ -118,7 +162,7 @@ nomask void create()
     restore_object(SAVE_FILE, 1);
     if ( !new_format )
 	convert_news();
-  
+
     archive_posts();
 }
 
@@ -130,10 +174,10 @@ private nomask int get_new_id(string group)
 private nomask void notify_users(string group, class news_msg msg)
 {
     NCHANNEL_D->deliver_channel("news",
-				sprintf("%s: %s [%s]",
-					group,
-					msg->subject[0..39],
-					msg->poster));
+      sprintf("%s: %s [%s]",
+	group,
+	msg->subject[0..39],
+	msg->poster));
 }
 
 nomask int post(string group, string subject, string message)
@@ -147,8 +191,8 @@ nomask int post(string group, string subject, string message)
     msg->time		= time();
     msg->thread_id	= post_id;
     msg->subject	= subject;
-    msg->poster		= this_body()->query_name();
     msg->userid		= this_user()->query_userid();
+    msg->poster          = capitalize( msg->userid );
     msg->body		= message;
 
     data[group][post_id] = msg;
@@ -160,16 +204,16 @@ nomask int post(string group, string subject, string message)
 }
 
 varargs nomask int system_post(string group,
-			       string subject,
-			       string message,
-			       string poster)
+  string subject,
+  string message,
+  string poster)
 {
     int post_id;
     class news_msg msg;
 
-//### need to think on this. I don't think we want to require priv 1
-//    if ( get_privilege(previous_object()) != 1 )
-//	return 0;
+    //### need to think on this. I don't think we want to require priv 1
+    //    if ( get_privilege(previous_object()) != 1 )
+    //	return 0;
     if ( !data[group] )
 	return 0;
     post_id = get_new_id(group);
@@ -179,16 +223,18 @@ varargs nomask int system_post(string group,
     msg->subject	= subject;
     if ( poster )
     {
-	msg->poster = msg->userid = poster;
+    msg->poster = poster;
+    msg->userid = lower_case(msg->poster);
     }
     else if ( this_body() )
     {
-	msg->poster = this_body()->query_name();
 	msg->userid = this_user()->query_userid();
+     msg->poster = capitalize( msg->userid );
     }
     else if ( this_user() )
     {
-	msg->poster = msg->userid = this_user()->query_userid();
+	msg->userid = this_user()->query_userid();
+	msg->poster = capitalize( msg->userid);
     }
     else
     {
@@ -243,8 +289,8 @@ nomask int followup(string group, int id, string message)
     msg->time		= time();
     msg->thread_id	= id;		/* link to original thread_id */
     msg->subject	= subject;
-    msg->poster		= this_body()->query_name();
     msg->userid		= this_user()->query_userid();
+    msg->poster       = capitalize( msg->userid );
     msg->body		= message;
 
     data[group][post_id] = msg;
@@ -267,8 +313,8 @@ nomask class news_msg get_message(string group, int id)
 	return 0;
 
     /* sigh */
-//### oops... can't do this yet... leave this unsafe for now
-//    return copy(msg);
+    //### oops... can't do this yet... leave this unsafe for now
+    //    return copy(msg);
     return msg;
 }
 
@@ -284,7 +330,7 @@ nomask void remove_post(string group, int id)
 	return;
 
     if ( !adminp(this_user()) &&
-	 msg->userid != this_user()->query_userid() )
+      msg->userid != this_user()->query_userid() )
     {
 	error("* illegal attempt to remove post\n");
     }
@@ -301,9 +347,9 @@ nomask int * get_messages(string group)
 nomask int * get_thread(string group, int thread)
 {
     return filter_array(keys(data[group]),
-			(: $1 != "next_id" &&
-			 ((class news_msg)data[$(group)][$1])->thread_id
-			 == $(thread) :) );
+      (: $1 != "next_id" &&
+	((class news_msg)data[$(group)][$1])->thread_id
+	== $(thread) :) );
 }
 
 nomask string * get_groups()
@@ -313,13 +359,15 @@ nomask string * get_groups()
     // filter before sorting; the func is typically pretty cheap, and
     // and calling them all is O(n).  Sorting the list first is more
     // expensive
-    ret = filter(keys(data), function(string group) {
-	// this will be "" if there is no '.'
-	string prefix = group[0..member_array('.', group) - 1];
-	function f = restrictions[prefix];
-	if (!f) return 1;
-return evaluate(f, this_user());
-    });
+    ret = filter(keys(data), function(string group)
+      {
+	  // this will be "" if there is no '.'
+	  string prefix = group[0..member_array('.', group) - 1];
+	  function f = restrictions[prefix];
+	  if (!f) return 1;
+	  return evaluate(f, this_user());
+      }
+    );
     return sort_array(ret, 1);
 }
 
@@ -341,10 +389,10 @@ nomask void dump_to_file(string group, string fname)
 	    continue;
 
 	write_file(fname,
-		   sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n\n%s\n",
-			   msg->poster, msg->subject,
-			   intp(msg->time) ? ctime(msg->time) : msg->time,
-			   msg->body));
+	  sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n\n%s\n",
+	    msg->poster, msg->subject,
+	    intp(msg->time) ? ctime(msg->time) : msg->time,
+	    msg->body));
     }
 }
 
@@ -353,39 +401,78 @@ private nomask void archive_post(string group, int id)
     class news_msg msg = data[group][id];
 
     unguarded(1, (: write_file, 
-		  sprintf("%s/%s", ARCHIVE_DIR, group),
-		  sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
-			  msg->poster, msg->subject,
-			  intp(msg->time) ? ctime(msg->time) : msg->time,
-			  msg->body)
-		  :) );
+	sprintf("%s/%s", ARCHIVE_DIR, group),
+	sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
+	  msg->poster, msg->subject,
+	  intp(msg->time) ? ctime(msg->time) : msg->time,
+	  msg->body)
+      :) );
 
+    /* This doesn't give w/ the newsreader. */
+#if 0
     map_delete(data[group], id);
+#else
+    /* Do this instead. */
+    remove_post(group, id);
+#endif
 }
 
 nomask void archive_posts()
 {
-#ifdef NOT_YET
+    int archive_days;
     int archive_time;
     string group;
     mapping contents;
 
-    archive_time = time() - ARCHIVE_DAYS * 24 * 60 * 60;
+
 
     foreach ( group, contents in data )
     {
 	mixed id;
 	class news_msg msg;
 
+	archive_days = archive_info[group];
+	if(!archive_days)
+	{
+	    continue;
+	}
+	archive_time = time() - archive_days * 24 * 60 * 60;
 	foreach ( id, msg in contents )
 	{
 	    if ( id == "next_id" )
 		continue;
-
-//### how to archive posts with strings as times?
-	    if ( intp(msg->time) && msg->time < archive_time )
+	    //### how to archive posts with strings as times?
+	    //There don't seem to be any.
+	    if ( intp(msg->time) && msg->time < archive_time ) 
 		archive_post(group, id);
-        }
+	}
     }
-#endif /* NOT_YET */
 }
+
+
+// Blame --OH. for this code :)
+
+nomask void move_post( string curr_group, int curr_id, string to_group )
+{
+    class  news_msg msg;
+    int new_id;
+
+    msg = copy( data[curr_group][curr_id]);
+    if( !adminp(this_user()) && msg->userid != this_user()->query_userid())
+    {
+	write( "You cannot move posts which don't belong to you.\n");
+	return;
+    }
+    if( curr_group == to_group )
+    {
+	write( "Same group. Post not moved.\n");
+	return;
+    }
+    new_id = get_new_id(to_group);
+    msg->body = "(Originally in " + curr_group + ")\n" + msg->body;
+    data[to_group][new_id] = msg;
+	remove_post( curr_group, curr_id );
+    write( "Post moved.\n");
+    save_me();
+}
+

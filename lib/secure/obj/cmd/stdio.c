@@ -7,6 +7,11 @@ private static string 		buf ;
 private static mixed		next_cmd;
 private static mixed		next_implode_info;
 private static int		no_redirect = 0;
+private static int		output_flags = 0;
+
+static int set_output_flags(int x) {
+    output_flags = x;
+}
 
 static void no_redirection()
 {
@@ -78,6 +83,7 @@ static void bare_init()
   stdoutstr = 0;
   buf = "";
   next_cmd = 0;
+  output_flags = 0;
 }
 
 static mixed hello_stdio(mixed ininfo, mixed argstohold, mixed implode_info)
@@ -133,7 +139,7 @@ static mixed done_outputing()
     {
       if(buf == "" || !buf)
 	return 0;
-      more(explode(buf,"\n"));
+      more(explode(buf,"\n"), 0, 0, output_flags);
       return 0;
     }
   if(stdoutstr)

@@ -11,14 +11,15 @@ void do_drink_obj(object ob)
 	return;
     ob->drink_it();
 }
+
 void do_drink_from_obj(object ob)
 {
    if(!try_to_acquire(ob))
     return;
-   ob->drink_it();
+   ob->drink_from_it();
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
-      return ({ ({ "OBJ","from OBJ" }) });
+      return ({ ({ "OBJ", "from OBJ" }) });
 }

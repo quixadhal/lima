@@ -98,7 +98,7 @@ void do_looking(int forced_look)
 	printf("%s\n", get_brief());
 #endif
 
-	write(wrap(get_location_description()));
+	write(get_location_description());
     }
 }
 

@@ -1,0 +1,30 @@
+Beta will be released when we arbitrarily declare that there are no
+known bugs (arbitrary meaning we reserve the right to label a bug
+we're never going to fix a feature ;-)
+
+Misc things that should be done soon or the idea discarded:
+- skill examples, combat skills, spell skills, advancement
+- use of parser for commands
+- admtool: wizdir administration
+- msg/review
+- fix location of mail messages
+- ambiguity on drop, throw, etc...
+- organize all files properly
+- modularize stats, skills, and races fully
+- conversion of SECURE_D to array of paths, not a tree
+- RCP
+- newsreader changes, mailer changes
+- widespread nickname usage
+- more ANSI usage
+
+
+Features unrelated to gaming, to be included post-alpha 
+(even though alpha means feature freeze):
+- I3: OOB services, better channels
+- time zone support
+- possibly water/underwater rooms
+
+Future versions (Post 1.0):
+- mail unsend
+- Tk interface
+- AMCP

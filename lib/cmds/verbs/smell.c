@@ -20,7 +20,7 @@ void do_smell_obj(object ob)
 }
 
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ" }), ({ "sniff" }) });
 }

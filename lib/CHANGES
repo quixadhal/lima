@@ -1,345 +1,252 @@
-Beek renamed Deathblade "deathblade_d" , and updated all occurances of in
-    the lib. Also, Rust is now "m_rust" .
+Rust installed Valentino's fix for snoopable stuff.
 
-Ohara fixed a small bug in mail .. when you delete the last message, the
-    count is now correct.
+Rust fixed ftpd to idle out properly (it was closing the connection but still thought you were connected).
 
-Beek fixed a few bugs in the hitpoint module, and generally cleaned up the
-    interface a bit.
+Rust fixed the did_d so that if there's no did information, you get something sensible, and not a 0
 
-Beek fixed mudinfo to 'deal' with 0s in services lists, since the odds of
-    TMI mudlibs being fixed in the near future is low.
+Rust made wizards w/o dirs start off in /ftp not in a non-existant dir in FTPD.
 
-Zifnab added verb support to give money to players, give amount type to foo
+Rust added # of users to who and people cause he got sick of manually counting.
 
-Beek #ifdef'd out some debugging code in M_WANDER
+Rust fixed the more object not to retain your input if there is an error in initializing (eg, string too large)
 
-Beek added a 'codesay' command; try 'codesay void f(int x) { if (x) {
-    return 1; } return 2; }' or something similar to try it out
+Rust updated secure_d to fix the quota mapping when you rm a domain or wizard.
 
-Zifnab fixed teh help bug that allowed everyone to see all the help, i.e.
-    wizards seeing admin help , and players seeing it all.
+Rust fixed player things that more in the player menu to actually more instead of dying after 1 screen.
 
-Beek fixed /include/ansi.h to use \e for escape instead of sprintf() [btw,
-    is that file used any more?]
+Rust fixed ansi so it works for players.
 
-Deathblade installed v22a25 for the next reboot of the mud. It seemed to
-    work fine with r11.
+Rust made complex container load by making the overloaded query_prep varargs... didn't look deep enough to make sure this was the right fix
 
-Zifnab fixed the bug of you seeing yourself on the bed complex_container,
-    inventory_recurse(), avoid = ({ }) to avoid = ({ avoid }) approx line
-    200
+Rust added per-group archivability to NEWS_D.  Admins should be able to do @NEWS_D->set_archive_time("wiz.chat", 90)    To make wiz.chat archive posts over 90 days old.  Posts get archived whenever the NEWS_D loads, so mainly at reboot.
 
-Ohara fixed kill to return something sensicle on kill STR since it wasn't
-    doing it.
+Deathblade fixed the channel daemon to allow both ";" and ":" for souls/emotes.
 
-Deathblade installed Jihad's version of wrap(). It is arg-compatible with
-    the old one: wrap(str, width, indent). iwrap(s) still exists and
-    defaults to standard width wrap, indent of 4. The two uses of iwrap(s,
-    n) have been changed to wrap(s, 0, n).
+Rust added a user_exists simul_efun
 
-Deathblade simplified a bit of the spell casting code. Learning/prepping it
-    for skills.
+Rust installed cowl's convert_time() function as a simul_efun.  The first arg is the # of seconds, the optional second arg will make the return be 5m instead of 5 minutes
 
-Deathblade added master::parser_error_message(). updated get/drop for OBS.
-    updated vsupport, living, and verb_ob.
+Rust fixed mail_d to do a check_previous_privilege(1) in send_mail(), not a check_privilege()
 
-Deathblade updated the include files in /include/driver from the v22a25
-    release.
+Rust made I3 mail work =)
 
-Rust installed Onyx@Red Dragon's agressive module for monsters. it's
-    M_AGGRESSIVE
+Rust noted that you should see news if you want to upgrade an older lib to use I3 mail.
 
-Rust fixed the dreaded @ "foo.c" bug.
+Rust made it so to and cc lists are comma seperated, not space seperated.  You need to get /secure/obj/mailers/mailer.c for that.
 
-Beek fixed the error handling in master.c not to bail if the error context
-    included a '%' (this essentially caused Satan's crasher, though I'm not
-    sure why it crashed)
+Ohara fixed a small bug in SOUL_D's parse_imud_soul()
 
-Beek changed /daemons/news_d to pass this_user() as arg 1 when evaluating
-    the restriction function; this means the standard restrictions are
-    simple sefun pointers (to wizardp and adminp respectively).
+Ohara changed tells to sync with channels' usage of ;/:
 
-Ohara wrote ~ohara/status.c .... may not work on all terminals, needs
-    current and max score hooked in, and needs work to fold it in (IE: when
-    score changes, and when Eroom changes) (Hey .. this IS still GUElib
-    right :)
+Ohara added clear_guilds() function .. it's all of one line, but handy for testiers :)
 
-Ohara hooked in the status line .. set status to see it .. having ansi on
-    would help. Works for points, and light and dark rooms .. doesn't
-    currently work for vehicles.
+Ohara wrote M_SECRET_DOOR ... the door to the quiet room uses it.
 
-Ohara fixed /std/non-room.c so vehicles work with the status line
+Ohara ntes that that is, of course, SECRET_DOOR
 
-Ohara wrote sline which is a nice way of getting the status line on and off
-    (Y'all sick of these reports yet? :)
+Rust don't see what's so secret about this secret door
 
-Ohara shocking eh .. and on a piece of chrome, too :)
+Ohara notes that SECRET_DOORs are not visible via "exits" or the exits display. (It's quite possible that some muds will want to use them for all doors <shrug>) As of now, they are automatically attached.
 
-Ohara refixed up (surprise) the status line .. it's now in
-    /cmds/verbs/look.c and /std/body.c (plus the points stuff..) Lemme know
-    if there are wierd probs .. I fixed a couple to do with suing - there
-    may be more.
+Rust notes that a good secret door is invisible until "found"
 
-Deathblade updated LOG_D to automatically add timestamps to certain subsets
-    of the logs; currently just channel logging now. Other possibilities
-    might include errors, quests, etc.
+Ohara notes that if Rust wants to feature extend it, he should feel more than free <smiles sweetly>
 
-Zifnab fixed the groups command, can do group -a foo x x x , foo is group,
-    x is players name. Also do groups -d foo to delete a group foo
+Ohara moved SECRET_DOOR to HIDDEN_DOOR complaints to Rust or /dev/null ...
 
-Beek changed /std/less_sparse_obj to not go through create() if it isn't a
-    clone; otherwise it ends up moving itself somewhere when loaded.
+Ohara added SECRET_DOOR ... it only displays "The door is open" and not "The door is closed" ... in the process ..
 
-Zifnab fixed the v_plains bug. (with Rust's help)
+Ohara changed the add_hook("extra_long" ..) in M_OPENABLE .. the spam was folded out into the extra_long_stuff function ... This was done to make secret doors  much neater :)
 
-Zifnab fixed less_sparse_obj.c (in the case of look at obj), it didnt
-    inherit "/std/object/vsupport.c" , was missing a callback.
+Ohara updated and enchromed exits. People may note that it works best with cardinal directions/up/down/in/out.
 
-Zifnab fied snoop loggin when the snoop failed
+Ohara wrote beep.c .... the bloody beep emote is now deprecated
 
-Deathblade fixed the reception of emoteto packets. The \n was in the wrong
-    place.
+Deathblade changed /secure/user/failures.c to use M_GRAMMAR-> rather than inheriting it (major security hole :-).
 
-Rust fixed a problem w/ tell@frontier if frontier was an exact name, and
-    there is another mud called frontiers
+Deathblade changed all uses of simple_action() to remove the trailing \n. Note that I didn't reload most of them yet...
 
-Ohara is fairly sure he fixed the sline one-line bug .. if not then it's as
-    closed to squelched as it'll be till the client's done ;) <inhales ..
-    VERY deeply>
+Deathblade modifed simple_action() to add the \n only if it isn't present. Note: xxx_action() should be similarly updated (much fewer though :-).
 
-Ohara is fairly sure he fixed the sline one-line bug .. if not then it's as
-    squelched as it'll be till the client gets done ;) <inhales deeply>
+Zakk tried to call move::create() from within object's create() and
 
-Ohara fixed the s_line to work correctly when in a moving vehicle.
+Zifnab 'foo
 
-Zifnab borrowed beeks/jeearr doc on classes from ideaexchange and put it in
-    /help/wizard/coding/classes
+Ohara changed all FUNC doc tags to FUNCTION
 
-Deathblade updated the M_GRAMMAR module per Zifnab's notice that it had
-    fallen out of date a bit.
+Ohara COMPAT_BUSTER: //:FUNC is no longer recognised by the doc_d .. it was only used in 3 files, so it shouldn't be too major a shock :)
 
-Deathblade simplified the skill system. No levels, just points. No
-    heirarchical storage of skills, but a simple map of skill to skill
-    info. Nuked skills.h. Reworked (simplified) /std/body/skills.c and
-    /daemons/skill_d.c. Add concept of training_points. More work to do on
-    mgmt and actual use.
+Ohara Enchromed trans.
 
-Zakk have more self respect than that
+Ohara removed the message from /data/config/welcome since it's no longer needed really :)
 
-Rust was alright, for a while,
+Zakk never play quake in linux
 
-Rust could smile, for awhile.
+Ohara fixed the bug where wizzes would die ... some doof called heal_us() which would NOT increase hit points when hp <= 0 ...
 
-Zakk changed force_look() from a #define to player->force_look(). (Knew I
-    forgot to didlog something a while back, sorry about the delay.)
+Ohara fixed all cases of immediatly_acessible in the lib.
 
-Beek fixed a bad prototype of remove_id in /std/object/visible
+Ohara added handling for drop notanobject
 
-Beek removed an archaic prototype of print_result() from
-    /std/living/state_of_mind and put a FIXME by an old style usage
+Ohara chaged news so that it no longer prints Invis peoples' name as "Someone"
 
-Beek fixed /std/container to return "#You're in it!" so 'get all' ignores
-    the room you are in.
+Ohara changed DID_D to not use "Someone" when you're invisible (Note: If this fails, it could be embarrrrrassing :)
 
-Deathblade updated /daemons/imud/who.c to include the person's title rather
-    than IP address in the returned data.
+Beek changed /cmds/players/i.c to inventory.c, and added 'i' as an alias.
 
-Deathblade wanted to point out that that idea was Satan's (so he says :-)
+Ohara fixed I and DID_D to only allow full wizzes to use them.
 
-Deathblade installed Satan's version command (into /cmds/player)
+Ohara changed flist to return alphabetically.
 
-Beek added the 'memusage' command; it will work as soon as we upgrade to or
-    past v22a32.
+Ohara added screen widths ... currently you need to use @this_user()->set_screen_width( whatever ) ... I strongly urge figures greater than 10 ( even 40 is pushing the useability) .. the "width" command will work as soon as I figure out why inp(1) returns 0 :P
 
-Deathblade fixed the pluralization for words ending in 's'. They should
-    have 'es' appended.
+Ohara finished width
 
-Beek added a 'sit at OBJ' rule, and made the sit verb pass the preposition
-    used to the sit function
+Ohara moved the status line to /std/body
 
-Zifnab fixed the bug with setup() not getting passed args to it. just a
-    note, if you use new(file), pass it a second arg i.e. new(file,0) the 0
-    will force setup() to be called
+Ohara changed the status line to use screen widths.]
 
-Deathblade felt like converting clone_object() to new(). So I did.
+Ohara fixed two bugs in lava room..
 
-Deathblade updated Zifnab's fix a bit more... he fixed the passing of
-    varargs, but the 0 shouldn't have been necessary (it was an old hack).
-    I'm removed the hack and cleaned up some associated code. Return to
-    using new() as normal. Per Zif's change setup() (and now the
-    mudlib_setup()/internal_setup() calls) get the varargs from the new()
-    call.
+Valentino installed a brand new MONEY_D. Nifty one. :)
 
-Beek fixed direct_wield_obj() to return zero for objects in the inventory
-    of other livings. It will work right as soon as the OBS fixes are in.
+Valentino installed /trans/obj/admtool/money.c as interface to the money_d. ('admtool' 'c')
 
-Zifnab fixed a bug with leave being a synonym for exit, ( it bugged when
-    you did a leave str), chagned the synonym to be only used for OBJ
+Valentino added a cmd 'date'. (optional flag -s for "easy-snap-line-deluxe").
 
-Zifnab fixed I3 fingers to return (private) if the email is marked as such
+Valentino put in a new 'people' cmd + manpage. (Read the man page).
 
-Zifnab made /cmds/verbs/light.c return 0 for need_to_see(), can light all
-    objects in the dark now
+Zifnab test
 
-Zifnab realized that real name could be private as well, I3 fingers now
-    return private for name as well
+Zifnab fixed the problem with can_go_foo, and do_go_foo for special case exits.  however see news for more info
 
-Zifnab fixed a bug in set_objects(), if you had an array of arguemts to be
-    passed i.e. the door, and you wanted multiple doors the int as the
-    first element of ththe array was being ignored
+Valentino added a (query_userid()) to the errors channel.
 
-Rust added >, >>, < and |. Unfortunately, no commands use them yet... I'll
-    start working on that.
+Ohara added a /clear option to channels ... you need to be admin or channel moderator to use it.
 
-Ohara remember a time when cpu returned usage of 0.3-0.5 .. now cpu is at
-    5-6 .. was it out by a factor of 100 (er 0.03-0.05) ..
+Beek fixed converse to show it's output again
 
-Ohara mutters something about discovering what tsh did by testing it on
-    dead.letter ....
+Rust added a default allow() to /std/body
 
-Rust made all commands use stdout when reasonable. stdout goes through
-    more() by default. Nothing besides grep uses stdin yet...
+Rust fixed it so adding quests from admtool saves once again
 
-Rust added a rehash command to the shell, which rehashes all dirs in your
-    path. (No arg). AUTOMATIC_REHASH has left the building, it 's gone.
+Rust made die() not bug w/ a too deep recursion error if you don't use corpses
 
-Deathblade added a teeny hack to tide us over until I can really fix the
-    underlying problem with command processing.
+Zakk finally acknowledges that armorslot stuff is in, see news.
 
-Rust fixed all of the munging of spacing.  The only shell problem left, is
-    that there needs to be a way to specify that a command doesn't want
-    anything except backtick stuff to be processed.  I'll get to that one
-    next time.
+Ohara updated version :)
 
-Beek fixed a bug in say.c due to: if (!s
+Zifnab fixed the /std/sword, messages problem.  The /daemons/messages_d.c has a #if COMBAT_SIMPLE in it that was excluding the message type for t combat-sword.  I commented this out and everythign seems to be ok.  One other note is that this is the way it was in the alpha release, kind of curious wh yit just cropped up.
 
-Beek fixed a bug in say.c due to: if (!s \| s =="") { ...
+Ohara notes the linkdead reconnection problem is fixed. Don't Ask.
 
-Beek fixed pipe to read from stdin; this makes it work like UNIX xargs. 
-    e.g."ls | pipe say"
+Ohara need to find somene who got the one lie bug ... I know of three ... haven't seen any in a while :)
 
-Beek votes that anyone doing"mudlist | pipe think" should be shot.
+Ohara may have fixed the oe-line status line bug thanks to Efindel .. if anyone had the problem before can you please check and let me know (IE: Rust, Efindel, Fathom <and any others>) Thanks .. ReTodo: Nice way to rip didlogs.
 
-Rust added a v flag to grep, and made a few more commands accept stdin
+Ohara fixed mail reply. Obviously it's real used here since noone's bugged it here and it's been broke for a while (er news reply that is)
 
-Rust added $* support to pipe when reading from stdin, so you can do things
-    like: users
+Rust modified BLOCKEXITS so that if the object doing the blocking doesn't have an environment, it assumes that you want to block in this_object()
 
-Rust added $* support to pipe when reading from stdin, so you can do things
-    like: users | grep -v duuk | pipe"tell $* isn't Duuk a hoser?"
+Zifnab reinstalled the old money_d, the new one is cool and all but it didnt work with existing stuff.
 
-Rust fixed I not to do redirection (lots of commands still need this, eg.
-    tell, emote, etc)
+Zifnab will look into reinstalling the new one
 
-Rust made all the player commands like tell, say, emote, etc... ignore
-    piping stuff...  you can do this by adding:
-    create(){::create();no_redirection();}
+Deathblade did something. Really. I removed the old quota crap from SECURE_D.
 
-Rust renamed the pipe command to xargs ;-)
+Rust installed Wraith's pull verb
 
-Deathblade upgraded to v22a36. Let's see how well this works...
+Ohara fixed Move Post in news ..
 
-Zifnab added a few help files for rooms, set_exits, add_item, set_objects
-    etc under /help/wizard/coding/rooms//*
+Ohara fixed who in login to be nice for only one person on, and streamlined a bit.
 
-Zifnab added a command to rebuild the help data, helpd for lack of a better
-    name, anyone ff to rename it
+Ohara fixed a bug where guet doing !whatever would dump back to login ... modal_pop() was missing,
 
-Zifnab at beeks suggestion added an option to admtool to rebuild the help
-    data
+Beek fixed a bug in putting together 'x, y, or z' lists in parser error messages
 
-Deathblade rearranged some of the output of the 'stats' command to print
-    out the guilds you belong to.
+Ohara changed news so that catching up (c) a group will send you to the next group with unread news.
 
-Deathblade started on a 'skills' command to print your skill information.
+Ohara fixed MOVE_NOT_RECIEVED to MOVE_NOT_RECEIVED (ta Servo)
 
-Zifnab added help for most of the modules.  There are still a few missing
-    and they need a little bit of reformatting.
+Ohara removed the spare door from wizroom. Beek fixed the bug that it demonstrated :)
 
-Rust made |<> work on channels, an oversight in not touching the chan
-    command last night.
+Ohara changed news so that you can now do news <group> from shell.
 
-Rust fixed a stupid typo that caused spaces before a " to get snarfed
+Deathblade fixed IMAIL_D to send a string for the mail contents, not an array of strings. Tweaked MAIL_D->send_mail() to accept a string for the body (and explode it).
 
-Rust updated pshell to call call_main() correctly in all cases WRT recent
-    changes
+Ohara merged the logins and quits -> logins ... gosh it was simple :)
 
-Rust made ROOM point back to indoor_room, and removed /std/room/room
+Ohara did help for question, and updated idea/bug/typo
 
-Rust upgraded us to a38, which fixes the mudlib error handler problem (thx
-    Beek!)
+Ohara did the mods to soul_d /cmds/wiz ->CMD_*
 
-Rust fixed shell builtin commands to implode properly
+Zifnab fixed m_actions so that say foo works again
 
-Rust fixed all the commands from the player menu
+Ohara fixed the "do you mean one of the sword or the blah" error.
 
-Rust tweaked M_GLOB to glob in alphabetical order, not reverse-alphabetical
-    order
+Ohara fixed news so that newsgroups with deadd news past the high water mark are not marked as unread. There's probably a better way, but this was fairly efficient as far as new code goes (more efficient would be to replace the call. FFF :)
 
-Rust moved the print command outside the shell so it could use stdin and
-    stdout.  Also means long eval results get mored, or can be redirected
-    to a file, etc...
+Ohara fixed  LOT of typos in the message daemon.
 
-Rust forgot to mention there's been a wc command for a few days.
+Ohara slashed reporter.typos, but will refrain from slashing behemoth.leaks
 
-Rust made $ variable expansions disabled by default.  Do
-    @.me->set_expand_vars(1) if you want to change this behaviour back to
-    having foo expand ;-)
+Ohara fixed doors not to be autotaken.
 
-Rust typoed: do @.me:shell->set_expand_vars(1) if you're cool ;-)
+Ohara tweaked the sword of mercy's names.
 
-Rust changed map_paths not to reverse the order of files, now ls looks
-    right again
+Ohara added "feedback", which posts to lima.discussion ...
 
-Rust added a head command, to show the front part of a file, and gave a -n
-    option to it and to tail, which gives how many lines to show (default
-    is 10 for both of them)
+Ohara alphabetised flist -i <obj> .. ufortunately this required the reversal of file and function. LWI or FFF :)
 
-Zakk put in a cut command. Much like your generic unix cut. the -d arg
-    takes regex's.
+Zifnab installed valentino's people command, making the deafult look like the old people
 
-Ohara fixed mail to be nice and unspammy on first login
+Deathblade installed Barnes' updates to admtool's banish code. Much more "admtool-ish". New option, too: Nuke and Pave.
 
-Beek removed the destruct_env_of() master apply; it was obsoleted back in
-    v20.22 ...
+Deathblade also tweaked admtool.c's check for admin status for banish and moved that into the banish.c file like all the others.
 
-Beek implemented a proper move_or_destruct() subroutine in /std/body.c;
-    it's also more robust than the old one
+Zifnab made it so taht ghosts cannot be attacked
 
-Rust fixed xargs to accept multiple words properly
+Zifnab rephrases that last didlog, attacking a ghost gives a meaningful message now
 
-Rust added a findfile command that is a lot like linux' locate command. 
-    Hopefully this will help new people find where in the lib a file is...
-    if you know part of the name or path of a file, you can do: findfile
-    blah.  findfile uses a cached database, which you can update w/ the -u
-    flag if and only if you're an admin.
+Zifnab made it sot hat ghosts cannot cast spells
 
-Ohara fixed news to correctly list number of unread messages. No doubt
-    there will be a faster way than my implimentation. :)
+Ohara converted all the mixed * in /cmds/verbs/ to mixed array
 
-Rust made xargs take $$ as well as $* as a substitution token, JIC you want
-    an alias that does an xargs (which I do want ;-)
+Beek fixed /std/body so IT LOADS; Ohara be more careful when converting things
 
-Ohara fixed news to only display the number of messages that haven't been
-    removed in initial totals ... makes it a little less intimidating for
-    new readers :)
+Zifnab made it so that players don't see I3 channels in chanlist
 
-Rust made spells use setup() and not create()
+Ohara changed the mixed array in the verbs/verb_ob to array. AFAIK this entirely failed to hose anything .. this time :)
 
-Rust fixed the cast verb and the fireball spell, so cast fireball on zifnab
-    works.  However, the combat result isn't prining the message Zifnab
-    screams in pain!
+Zakk would like to know on why when a person uses /.rhosts within a DNS network,
 
-Zifnab fixed a bug with kill_liv_with_obj
+Zakk am unable to find the RFC that discusses this. Yes I do know that this
 
-Rust think I came up w/ a reasonable formula for testing skills...
+Zakk hates mouse misfires with weird stuff in the buffer.
 
-Rust added to M_LOCKABLE code to handle magic openings, and picking,
-    including code to test skills if USE_SKILLS is defined.  This is part
-    of a first jab at a skill...
+Ohara changed admtool's security dir listing to check for directory existance.
 
-Rust added a pick verb.
+Beek removed the check_vision() call from diagnose
 
-Deathblade updated us to v22a39
+Deathblade fixed OOB error handling. the packet was malformed. Thanx to Tim@Dysfunctional Mud for finding this.
+
+Ohara shortened idle format somewhat.
+
+Zifnab fixed the log in problem.  it was a "" in the banished names list
+
+Deathblade fixed sparse_obj to not insert its master into a room (or whatever) when it got loaded
+
+Ohara fixed two mail bugs: 1/ Decapsed the To-list to ensure that To: OHaRa would work, and 2/ removing non-existant people it was sent to.
+
+Ohara fixed wall <noarg>
+
+Ohara ripped the #ifdef CONF_IN_PROGRESS lines (3!) since the CONF_D has vanished and probably won't be back.
+
+Ohara fixed people to space correctly on players.
+
+Ohara changed the channel_d so that you can't do an empy emote
+
+Ohara fixed get obj to include a (From whoever) when appropriate ... (it will eventually filter up :)
+
+Ohara removed the fix .. it added a nasty problem.
 

@@ -24,7 +24,7 @@ private void main(mixed *arg, mapping flags, string stdin)
 	  }
 	else
 	  {
-	    more(stdin);
+	    more(stdin, 0, 0, NO_ANSI);
 	    return;
 	  }
       }
@@ -35,14 +35,14 @@ private void main(mixed *arg, mapping flags, string stdin)
 	    out(file + ": Is a directory.\n");
 	    continue;
 	}
-	more_file(file);
+	more_file(file, 0, 0, NO_ANSI);
     }
 }
 
 int help()
 {
-    write(wrap("Usage: more ( <filename>* | -c <chunksize> )\n"
+    write("Usage: more ( <filename>* | -c <chunksize> )\n"
 	"The more command prints a file on the screen in managable chunks. "
-	"Type '?' while within more for detailed information.\n"));
+	"Type '?' while within more for detailed information.\n");
     return;
 }

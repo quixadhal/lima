@@ -342,11 +342,11 @@ case $ARCH in
         OSFLAGS="$OSFLAGS -D_BSD -D_ALL_SOURCE"
 	CFLAGS="$CFLAGS -D_BSD -D_ALL_SOURCE"
         ;;    
+    Solaris)
+	OSFLAGS="$OSFLAGS -DSunOS_5"
+	CFLAGS="$CFLAGS -DSunOS_5"
+	;;
 esac
-
-if test -d /usr/ucbinclude; then
-    INCLUDE="-I/usr/ucbinclude"
-fi
 
 #
 # check for some missing functions

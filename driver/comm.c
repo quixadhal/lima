@@ -97,9 +97,9 @@ void init_user_conn()
 #ifdef WINSOCK
     WSADATA WSAData;
 
-#define CLEANUP WSACleaup()
+#define CLEANUP WSACleanup()
     
-    WSAStartup(MAKEWORD(1, 1), &WDSData);
+    WSAStartup(MAKEWORD(1, 1), &WSAData);
 #else
 #define CLEANUP
 #endif
@@ -270,6 +270,40 @@ void init_addr_server P2(char *, hostname, int, addr_server_port)
 }
 
 /*
+ * If there is a shadow for this object, then the message should be
+ * sent to it. But only if catch_tell() is defined. Beware that one of the
+ * shadows may be the originator of the message, which means that we must
+ * not send the message to that shadow, or any shadows in the linked list
+ * before that shadow.
+ *
+ * Also note that we don't need to do this in the case of
+ * INTERACTIVE_CATCH_TELL, since catch_tell() was already called
+ * _instead of_ add_message(), and shadows got their chance then.
+ */
+#if !defined(INTERACTIVE_CATCH_TELL) && !defined(NO_SHADOWS)
+#define SHADOW_CATCH_MESSAGE
+#endif
+
+#ifdef SHADOW_CATCH_MESSAGE
+static int shadow_catch_message P2(object_t *, ob, char *, str)
+{
+    if (!ob->shadowed)
+	return 0;
+    while (ob->shadowed != 0 && ob->shadowed != current_object)
+	ob = ob->shadowed;
+    while (ob->shadowing) {
+	copy_and_push_string(str);
+	if (apply(APPLY_CATCH_TELL, ob, 1, ORIGIN_DRIVER))	
+	    /* this will work, since we know the */
+	    /* function is defined */
+	    return 1;
+	ob = ob->shadowing;
+    }
+    return 0;
+}
+#endif
+
+/*
  * Send a message to an interactive object. If that object is shadowed,
  * special handling is done.
  */
@@ -294,7 +328,7 @@ void add_message P2(object_t *, who, char *, data)
 	return;
     }
     ip = who->interactive;
-#ifndef NO_SHADOWS
+#ifdef SHADOW_CATCH_MESSAGE
     /*
      * shadow handling.
      */
@@ -391,7 +425,7 @@ void add_vmessage P2V(object_t *, who, char *, format)
      */
     vsprintf(new_string_data, format, args);
     va_end(args);
-#ifndef NO_SHADOWS
+#ifdef SHADOW_CATCH_MESSAGE
     /*
      * shadow handling.
      */
@@ -749,6 +783,7 @@ static int copy_chars P4(unsigned char *, from, unsigned char *, to, int, n, int
 /*
  * SIGPIPE handler -- does very little for now.
  */
+#ifndef WIN32
 #ifdef SIGNAL_FUNC_TAKES_INT
 static void sigpipe_handler P1(int, sig)
 #else
@@ -771,6 +806,7 @@ void sigalrm_handler()
     heart_beat_flag = 1;
     debug(512, ("sigalrm_handler: SIGALRM\n"));
 }				/* sigalrm_handler() */
+#endif
 
 INLINE void make_selectmasks()
 {
@@ -1085,7 +1121,7 @@ int process_user_command()
 	clear_notify(ip);
 #endif
 	update_load_av();
-	debug(512, ("process_user_command: command_giver = %s\n",
+	debug(512, ("process_user_command: command_giver = /%s\n",
 		    command_giver->name));
 	tbuf = user_command;
 	if ((user_command[0] == '!') && (
@@ -1199,12 +1235,6 @@ static void hname_handler()
 	switch (errno) {
 #ifdef EWOULDBLOCK
 	case EWOULDBLOCK:
-	    debug(512, ("hname_handler: read on fd %d: Operation would block.\n",
-			addr_server_fd));
-	    break;
-#endif
-#ifdef WSAEWOULDBLOCK
-	case WSAEWOULDBLOCK:
 	    debug(512, ("hname_handler: read on fd %d: Operation would block.\n",
 			addr_server_fd));
 	    break;
@@ -1765,9 +1795,11 @@ static int call_function_interactive P2(interactive_t *, i, char *, str)
 	FREE(args);
     }
     /* current_object no longer set */
-    if (function)
+    if (function) {
+	if (function[0] == APPLY___INIT_SPECIAL_CHAR)
+	    error("Illegal function name.\n");
        (void) apply(function, ob, num_arg + 1, ORIGIN_DRIVER);
-    else
+    } else
        call_function_pointer(funp, num_arg + 1);
 
     pop_stack();		/* remove `function' from stack */
@@ -1910,7 +1942,7 @@ static void telnet_neg P2(char *, to, char *, from)
     char *first = to;
 
     while (1) {
-	ch = (*from++ & 0xff);
+	ch = *from++;
 	switch (ch) {
 	case '\b':		/* Backspace */
 	case 0x7f:		/* Delete */
@@ -1919,13 +1951,9 @@ static void telnet_neg P2(char *, to, char *, from)
 	    to -= 1;
 	    continue;
 	default:
-	    if (ch & 0x80) {
-		continue;
-	    }
 	    *to++ = ch;
 	    if (ch == 0)
 		return;
-	    continue;
 	}			/* switch() */
     }				/* while() */
 }				/* telnet_neg() */

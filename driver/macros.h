@@ -30,7 +30,7 @@
  * functions must be done K&R (b/c va_dcl is K&R style) so don't prototype
  * vararg function arguments under AIX
  */
-#ifdef __STDC__
+#if defined(__STDC__) || defined(WIN32)
 #  define PROT(x) x
 #  define P1(t1, v1) (t1 v1)
 #  define P2(t1, v1, t2, v2) (t1 v1, t2 v2)
@@ -76,18 +76,6 @@
 
 #  define V_VAR(type, var, vlist) var = va_arg(vlist, type)
 #  define V_DCL(x) x
-#endif
-
-#ifndef INLINE
-#  if defined(__GNUC__) && !defined(__STRICT_ANSI__) && !defined(lint) && !defined(PEDANTIC)
-#    define INLINE inline
-#  else
-#    ifdef LATTICE
-#      define INLINE __inline
-#    else
-#      define INLINE
-#    endif
-#  endif
 #endif
 
 #define SAFE(x) do { x } while (0)

@@ -11,7 +11,7 @@ void create()
 
 private void main(string title)
 {
-  if(!title)
+    if(!sizeof(title))
     {
       outf("Your title is: %s\n", this_body()->query_title());
       return;

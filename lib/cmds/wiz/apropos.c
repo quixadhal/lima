@@ -1,68 +1,69 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-** Apropos command that interfaces with the DOC_D.
-** Currently not updated WRT new doc_d
-** John Viega (rust@virginia.edu)
-**
-** 15-APR-95 Created.
-*/
-
 #include <daemons.h>
-#include <mudlib.h>
-
 inherit CMD;
-inherit M_GLOB; /* for translate() */
+
+#define MIN_LEN 3
 
 //:COMMAND
 //Returns information on which mudlib functions contain the
 //keyword passed, including a short description.
-
-//### This currently doesn't work with the new DOC_D
-    
-//These are global to make life easier on me.
-
-string output;
-mapping apropos_info;
-
-void add_info_to_output_2(string, mapping, string);
-
-private
-void
-add_info_to_output(string func)
+string
+apropos(string s)
 {
-    mixed m = apropos_info[func];
-    mixed k = keys(m);
-    if(sizeof(k) == 1)
+  mapping filer=([]);
+  mapping topics;
+  string output="";
+  string *st;
+  string pwd;
+
+  topics=HELP_D->query_topics();
+  if(!topics)
     {
-	output += iwrap(sprintf("%15s (%s):  %s\n", func , k[0], m[k[0]]));
-	return;
+      error("Apropos whines about help_d not giving any info out.\n");
+      return;
     }
-    map_array(sort_array(k, 1), (: add_info_to_output_2 :), m, func);
+  foreach (string key,string *files in topics)
+    {
+      if (strsrch(key,s)!=-1)
+	foreach(string f in files)
+	  {	    
+	    st=explode(f[6..],"/");
+	    pwd=implode(st[0..sizeof(st)-2],"/");
+	    if (!arrayp(filer[pwd])) filer[pwd]=({});
+	    filer[pwd]+=({key});
+	  }
+    }
+  foreach (string key in sort_array(keys(filer),1))
+    {
+      output+="["+key+"]: ";
+      if (sizeof(filer[key])>1) output+="\n";
+      output+=implode(filer[key],", ")+"\n";
+    }
+  output+="\n";
+  return output;
 }
 
-private
-void
-add_info_to_output_2(string obj, mapping m, string func)
-{
-    output += iwrap(sprintf("%15s (%s):  %s\n", func, obj, m[obj]));
-}
 
-	      
 private void
 main(string s)
 {
-    write( "Apropos is Bugged. Bug Someone to fix it.\n")
-;
-    return;
-    output = "";
-    if(!s)
+  string yt;
+  if (!s) 
     {
-      write("Usage: apropos <pattern>");
+      write("apropos <string>\n\n"
+	    "Returns information on which mudlib functions contain the\n"
+	    "keyword passed, including a short description.\n");
       return;
     }
-
-    apropos_info = DOC_D->apropos_function(translate(s,1));
-    map_array(sort_array(keys(apropos_info),1), (: add_info_to_output :));
-    out(output);
+  if (strlen(s)<MIN_LEN)
+    {
+      write("Please find a bigger search criteria (min. "+MIN_LEN+
+	    " letters).\n");
+      return;
+    }
+  yt=apropos(s);
+  if (yt=="\n")
+    write("No help files match your word.\n");
+  out(yt);
 }

@@ -1,8 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-
-
-
 #include <mudlib.h>
 
 inherit OBJ;
@@ -126,7 +123,7 @@ void split_coins(string type, int amount)
     {
 	this_body()->add_money(type,amount);
 	coins[type] -= amount;
-	this_body()->simple_action("$N $vtake some coins.\n");
+	this_body()->simple_action("$N $vtake some coins.");
 	if (coins[type] == 0)
 	{
 	    map_delete(coins,type);

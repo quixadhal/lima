@@ -3,9 +3,11 @@
 inherit VERB_OB;
 
 void do_sell_obj_to_liv(object ob, object liv) {
+    if (!try_to_acquire(ob))
+	return;
     liv->buy_object(ob);
 }
 
-mixed *query_verb_info() {
+array query_verb_info() {
     return ({ ({ "OBJ to LIV" }) });
 }

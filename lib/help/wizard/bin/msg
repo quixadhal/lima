@@ -15,7 +15,7 @@ msg clone clear
      This will remove all messages from the type clone.
 
 
-msg clone $N $vreach back to his workroom and vgrab $o.
+msg clone $N $vreach back to $p workroom and $vgrab $o.
 
      Next time you use clone, you will see the above message.
      If you do the above again you will add another message.

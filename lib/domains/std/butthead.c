@@ -21,7 +21,7 @@ void initiate_beavis()
       beavis = new(__DIR__ "beavis");
       beavis->move(environment(this_object()));
       simple_action("Beavis strolls out of the shadows, laughing about "
-		  "his nads.\n"); 
+		  "his nads."); 
     }
   beavis->follow_the_script_dumbass();
 

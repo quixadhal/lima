@@ -14,7 +14,7 @@
 
 #ifdef WIN32
 #include <process.h>
-void alarm_loop PROT((void *));
+void CDECL alarm_loop PROT((void *));
 #endif
 
 error_context_t *current_error_context = 0;
@@ -57,15 +57,15 @@ void clear_state()
 #ifdef DEBUG
 static void report_holes() {
     if (current_object && current_object->name)
-	debug_message("current_object is %s\n", current_object->name);
+	debug_message("current_object is /%s\n", current_object->name);
     if (command_giver && command_giver->name)
-	debug_message("command_giver is %s\n", command_giver->name);
+	debug_message("command_giver is /%s\n", command_giver->name);
     if (current_interactive && current_interactive->name)
-	debug_message("current_interactive is %s\n", current_interactive->name);
+	debug_message("current_interactive is /%s\n", current_interactive->name);
     if (previous_ob && previous_ob->name)
-	debug_message("previous_ob is %s\n", previous_ob->name);
+	debug_message("previous_ob is /%s\n", previous_ob->name);
     if (current_prog && current_prog->name)
-	debug_message("current_prog is %s\n", current_prog->name);
+	debug_message("current_prog is /%s\n", current_prog->name);
     if (caller_type)
 	debug_message("caller_type is %s\n", caller_type);
 }
@@ -175,10 +175,15 @@ void backend()
 	     * not using infinite timeout so that we'll have insurance in the
 	     * unlikely event a heartbeat happens between now and the
 	     * select(). Note that SIGALRMs (for heartbeats) do make select()
-	     * drop through.
+	     * drop through. (Except on Windows)
 	     */
+#ifdef WIN32
+	    timeout.tv_sec = HEARTBEAT_INTERVAL/1000000;
+	    timeout.tv_usec = HEARTBEAT_INTERVAL%1000000;
+#else
 	    timeout.tv_sec = 60;
 	    timeout.tv_usec = 0;
+#endif
 	}
 #ifndef hpux
 	nb = select(FD_SETSIZE, &readmask, &writemask, (fd_set *) 0, &timeout);
@@ -270,7 +275,7 @@ static void look_for_objects_to_swap()
 	    && !(ob->flags & O_RESET_STATE)) {
 #ifdef DEBUG
 	    if (d_flag) {
-		debug_message("RESET %s\n", ob->name);
+		debug_message("RESET /%s\n", ob->name);
 	    }
 #endif
 	    reset_object(ob);
@@ -295,7 +300,7 @@ static void look_for_objects_to_swap()
 
 #ifdef DEBUG
 		if (d_flag)
-		    debug_message("clean up %s\n", ob->name);
+		    debug_message("clean up /%s\n", ob->name);
 #endif
 		/*
 		 * Supply a flag to the object that says if this program is
@@ -328,7 +333,7 @@ static void look_for_objects_to_swap()
 		continue;
 #ifdef DEBUG
 	    if (d_flag)
-		debug_message("swap %s\n", ob->name);
+		debug_message("swap /%s\n", ob->name);
 #endif
 	    swap(ob);		/* See if it is possible to swap out to disk */
 	}
@@ -365,10 +370,10 @@ static int num_hb_calls = 0;	/* starts */
 static float perc_hb_probes = 100.0;	/* decaying avge of how many complete */
 
 #ifdef WIN32
-void alarm_loop P1(void *, ignore)
+void CDECL alarm_loop P1(void *, ignore)
 {
     while (1) {
-	_sleep(HEARTBEAT_INTERVAL / 1000);
+	Sleep(HEARTBEAT_INTERVAL / 1000);
 	heart_beat_flag = 1;
     }
 }				/* alarm_loop() */
@@ -376,10 +381,6 @@ void alarm_loop P1(void *, ignore)
 
 static void call_heart_beat()
 {
-#ifdef PEDANTIC
-    /* IRIX 5.2 bug: not prototyped anywhere in the system includes */
-    void ualarm(int, int);
-#endif
     object_t *ob;
     heart_beat_t *curr_hb;
 

@@ -18,7 +18,11 @@
 #include "file_incl.h"
 #include "lpc_incl.h"
 #include "compiler.h"
-#include "grammar.tab.h"
+#ifdef WIN32
+#  include "grammar_tab.h"
+#else
+#  include "grammar.tab.h"
+#endif
 #include "scratchpad.h"
 #include "preprocess.h"
 #include "md.h"
@@ -346,7 +350,7 @@ skip_to P2(char *, token, char *, atoken)
 }
 
 static int
-     inc_open P2(char *, buf, char *, name)
+inc_open P2(char *, buf, char *, name)
 {
     int i, f;
     char *p;
@@ -385,12 +389,6 @@ handle_include P1(char *, name)
     incstate_t *is;
     int delim, f;
 
-#if 0
-    if (nbuf) {
-	lexerror("Internal preprocessor error");
-	return;
-    }
-#endif
     if (*name != '"' && *name != '<') {
 	defn_t *d;
 
@@ -689,13 +687,39 @@ get_text_block P1(char *, term)
 		current_line++;
 		outp = yyp;
 	    } else {
+		char *p, *q;
 		/*
 		 * put back trailing portion after terminator
 		 */
 		outp = --yyp;	/* some operating systems give EOF only once */
 
-		for (i = curchunk; i > startchunk; i--)
+		for (i = curchunk; i > startchunk; i--) {
+		    /* Ick.  go back and unprotect " and \ */
+		    p = text_line[i];
+		    while (*p && *p != '\\')
+			p++;
+		    if (*p) {
+			q = p++;
+			do {
+			    *q++ = *p++;
+			    if (*p == '\\') p++;
+			} while (*p);
+			*q = 0;
+		    }
+			
 		    add_input(text_line[i]);
+		}
+		p = text_line[startchunk] + startpos + termlen;
+		while (*p && *p != '\\')
+		    p++;
+		if (*p) {
+		    q = p++;
+		    do {
+			*q++ = *p++;
+			if (*p == '\\') p++;
+		    } while (*p);
+		    *q = 0;
+		}
 		add_input(text_line[startchunk] + startpos + termlen);
 	    }
 
@@ -910,6 +934,25 @@ char *show_error_context(){
     return buf;
 }
 
+#ifdef WIN32
+int correct_read(int handle, char *buf, unsigned int count)
+{
+    unsigned int tmp,size=0;
+
+    do {
+	tmp=read(handle,buf,count);
+	if (tmp < 0) return tmp;
+	if (tmp == 0) return size;
+	size+=tmp;
+	count-=tmp;
+	buf+=tmp;
+    } while (count>0);
+    return size;
+}
+#else
+#define correct_read read
+#endif
+
 static void refill_buffer(){
     if (cur_lbuf != &head_lbuf) {
 	if (outp >= cur_lbuf->buf_end && 
@@ -951,7 +994,7 @@ static void refill_buffer(){
 		p = outp + size - 1;
 	    }
 		
-            size = read(yyin_desc, p, MAXLINE);
+            size = correct_read(yyin_desc, p, MAXLINE);
 	    cur_lbuf->buf_end = p += size;
 	    if (size < MAXLINE){ *(last_nl = p) = LEX_EOF; return; }
 	    while (*--p != '\n');
@@ -1001,7 +1044,7 @@ static void refill_buffer(){
 		flag = 1;
 	    }
 
-	    size = read(yyin_desc, p, MAXLINE);
+	    size = correct_read(yyin_desc, p, MAXLINE);
 	    end = p += size;
 	    if (flag) cur_lbuf->buf_end = p;
 	    if (size < MAXLINE){ 

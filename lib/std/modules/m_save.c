@@ -57,7 +57,7 @@ varargs string save_to_string(int recursep) {
 
     map["#base_name#"] = base_name(this_object());
     if (save_recurse)
-	map["#inventory#"] = all_inventory()->save_to_string() - ({ 0 });
+	map["#inventory#"] = deep_inventory( this_object())->save_to_string() - ({ 0 });
 
     return save_variable(map);
 }

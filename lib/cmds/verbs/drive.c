@@ -11,7 +11,7 @@
 inherit VERB_OB;
 
 //###should be shared somehow with go.c
-string *normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
+string array normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
 
 
 private mixed can_go_that_way(object ob, string str)
@@ -66,7 +66,7 @@ void do_drive_obj_str(object o, string str)
 }
 
 
-mixed *query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "STR", "OBJ", "OBJ STR" }) });
 }

@@ -197,10 +197,10 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
     }
 
     /* var names */
-    for (i = 0; i < (int) p->num_variables; i++) {
-	len = SHARED_STRLEN(p->variable_names[i].name);
+    for (i = 0; i < (int) p->num_variables_defined; i++) {
+	len = SHARED_STRLEN(p->variable_table[i]);
 	fwrite((char *) &len, sizeof len, 1, f);
-	fwrite(p->variable_names[i].name, sizeof(char), len, f);
+	fwrite(p->variable_table[i], sizeof(char), len, f);
     }
 
     /* function names */
@@ -252,7 +252,7 @@ static int compare_compiler_funcs P2(int *, x, int *, y) {
 
 static void sort_function_table P1(program_t *, prog) {
     int *temp, *inverse, *sorttmp, *invtmp;
-    int i, num_runtime;
+    int i;
     int num = prog->num_functions_defined;
     
     if (!num) return;
@@ -299,14 +299,47 @@ static void sort_function_table P1(program_t *, prog) {
 	prog->function_table[where] = cft;
     }
 
-    num_runtime = prog->num_functions_total;
-    for (i = 0; i < num_runtime; i++) {
-	if (!(prog->function_flags[i] & NAME_INHERITED)) {
-	    int oldix = prog->offset_table[i].def.f_index;
-	    DEBUG_CHECK(oldix >= num, "Function index out of range");
-	    prog->offset_table[i].def.f_index = inverse[oldix];
+#ifdef COMPRESS_FUNCTION_TABLES
+    {
+	compressed_offset_table_t *cftp = prog->function_compressed;
+	int f_ov = cftp->first_overload;
+	int f_def = cftp->first_defined;
+	int n_ov = f_def - cftp->num_compressed;
+	int n_def = prog->num_functions_total - f_def;
+	int n_real = f_def - cftp->num_deleted;
+	
+	for (i = 0; i < n_ov; i++) {
+	    int j = cftp->index[i];
+	    int ri = f_ov + i;
+	    if (j == 255)
+		continue;
+	    if (!(prog->function_flags[ri] & NAME_INHERITED)) {
+		int oldix = prog->function_offsets[j].def.f_index;
+		DEBUG_CHECK(oldix >= num, "Function index out of range");
+		prog->function_offsets[j].def.f_index = inverse[oldix];
+	    }
+	}
+	for (i = 0; i < n_def; i++) {
+	    int ri = f_def + i;
+	    if (!(prog->function_flags[ri] & NAME_INHERITED)) {
+		int oldix = prog->function_offsets[n_real + i].def.f_index;
+		DEBUG_CHECK(oldix >= num, "Function index out of range");
+		prog->function_offsets[n_real + i].def.f_index = inverse[oldix];
+	    }
 	}
     }
+#else
+    { 
+	int num_runtime = prog->num_functions_total;
+	for (i = 0; i < num_runtime; i++) {
+	    if (!(prog->function_flags[i] & NAME_INHERITED)) {
+		int oldix = prog->function_offsets[i].def.f_index;
+		DEBUG_CHECK(oldix >= num, "Function index out of range");
+		prog->function_offsets[i].def.f_index = inverse[oldix];
+	    }
+	}
+    }
+#endif
 
     if (prog->type_start) {
 	for (i = 0; i < num; i++)
@@ -363,7 +396,7 @@ program_t *int_load_binary P1(char *, name)
     else 
 	return OUT_OF_DATE;
 
-    if (!(f = fopen(file_name, "r")))
+    if (!(f = fopen(file_name, FOPEN_READ)))
 	return OUT_OF_DATE;
 
     if (comp_flag) {
@@ -499,12 +532,12 @@ program_t *int_load_binary P1(char *, name)
     }
 
     /* var names */
-    for (i = 0; i < (int) p->num_variables; i++) {
+    for (i = 0; i < (int) p->num_variables_defined; i++) {
 	fread((char *) &len, sizeof len, 1, f);
 	ALLOC_BUF(len + 1);
 	fread(buf, sizeof(char), len, f);
 	buf[len] = '\0';
-	p->variable_names[i].name = make_shared_string(buf);
+	p->variable_table[i] = make_shared_string(buf);
     }
 
     /* function names */

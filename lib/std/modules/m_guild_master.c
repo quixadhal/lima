@@ -92,7 +92,7 @@ void check_a_member()
     {
 	this_body()->simple_action("The Guildmaster snarls at $N, "
 				   "\"As a member of $O, I cannot allow "
-				   "you membership.\"\n", p);
+				   "you membership.\"", p);
     }
 }
 #endif /* 0 */

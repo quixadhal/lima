@@ -15,6 +15,6 @@ void do_climb_down_obj(object ob) {
     ob->climb("down");
 }
 
-mixed * query_verb_info() {
+array query_verb_info() {
     return ({ ({ "OBJ", "up OBJ", "down OBJ" }) });
 }

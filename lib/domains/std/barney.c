@@ -26,7 +26,7 @@ void do_my_thing() {
     
     if (!environment()) return;
 
-    simple_action("$N $vdecide to try the '$o $o1' emote.\n",
+    simple_action("$N $vdecide to try the '$o $o1' emote.",
 		  which, rule);
     
     comm = which;

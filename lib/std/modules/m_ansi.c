@@ -14,21 +14,7 @@
 
 mapping translations, null_translations;
 
-// Subtle point: by making this private, we allow the driver to call
-// this, but if we are inherited this one disappears.
-private void create() {
-    // Don't count on this getting called when we are inherited.
-    // It's too easy for the coder to forget to call modules::create(),
-    // so we spare him the burden by doing our initialization in a
-    // lazy fashion.
-    if ( file_name(this_object()) != M_ANSI )
-	return;
-    if (clonep())
-    {
-	destruct(this_object());
-	return;
-    }
-
+private void initialize() {
     translations = ([
     "RESET" : "\e[0m",
     "BOLD" : "\e[1m",
@@ -62,6 +48,10 @@ private void create() {
 }
 
 mapping *query_translations() {
+    if ( file_name(this_object()) != M_ANSI )
+	return 0;
+    if (!translations)
+        initialize();
     return ({ translations, null_translations });
 }
 

@@ -8,14 +8,14 @@
 inherit CMD;
 
 #define DIVIDER \
-"-------------------------------------------------------------------------\n"
+"-------------------------------------------------------------------------"
 
 #ifdef ZORKMUD
 # define USER_DESC	"(ZORKERS ONLY)"
-# define WHO_FORMAT	"%s:  (GUE Time is: %s) %28s\n%s"
+# define WHO_FORMAT	"%s:  (GUE Time is: %s) %-28s%s\n%s\n"
 #else
-# define USER_DESC	"(PLAYERS ONLY)";
-# define WHO_FORMAT	"%s:  (Local Time is: %s) %28s\n%s"
+# define USER_DESC	"(PLAYERS ONLY)"
+# define WHO_FORMAT	"%s:  (Local Time is: %s) %s%d users listed.\n%s\n"
 #endif
 
 
@@ -26,7 +26,7 @@ string get_who_string(string arg)
     string name, extra, retval;
     mixed  info;
 
-    extra = retval = "";
+    extra = retval = "\n";
     if (this_user())
     {
         switch (arg)
@@ -34,18 +34,18 @@ string get_who_string(string arg)
             case "-p":
             case "-z":
                 u = filter_array(users(), (: !wizardp($1) :));
-		extra = USER_DESC;
+		extra = USER_DESC + "\n";
                 break;
             case "-w":
             case "-i":
                 u = filter_array(users(), (: wizardp :));
-                extra = "(IMPLEMENTORS ONLY)";
+                extra = "(IMPLEMENTORS ONLY)\n";
                 break;
             case "-l":
                 if ( wizardp(this_user()) )
                 {
                     u = users();
-                    extra = "(ALL LIVINGS)";
+                    extra = "(ALL LIVINGS)\n";
                     break;
                 }
             case "-m":
@@ -53,7 +53,7 @@ string get_who_string(string arg)
                 {
                     u = filter_array(children(USER_OB),
 				     (: !interactive($1) :));
-                    extra = "(NON-INTERACTIVES)";
+                    extra = "(NON-INTERACTIVES)\n";
                     break;
                 }
             default:
@@ -67,7 +67,8 @@ string get_who_string(string arg)
     else
 	  u = filter_array(users(), (: $1->query_body()->is_visible() :));
 
-    retval += sprintf(WHO_FORMAT, mud_name(), ctime(time()), extra, DIVIDER);
+    retval += sprintf(WHO_FORMAT, mud_name(), ctime(time()), extra, 
+		      sizeof(u), DIVIDER);
     i = sizeof(u);
     if(!i)
         retval += sprintf("%|70s\n","Sorry, no one fits that bill.");
@@ -87,7 +88,7 @@ string get_who_string(string arg)
             name = "("+name+")";
         if(bits & (1 << FlagIndex(F_HIDDEN)))
             name = "["+name+"]";
-        if(u[i]->test_flag(F_IN_EDIT))
+           if(u[i]->test_flag(F_IN_EDIT))
             name = "*"+ name;
         retval += sprintf("%-68s\n",name);
     }

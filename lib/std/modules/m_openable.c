@@ -23,8 +23,8 @@ varargs void add_adj();
 varargs void remove_adj();
 
 private int closed;
-private string open_msg =  "$N $vopen a $o.\n";
-private string close_msg = "$N $vclose a $o.\n";
+private string open_msg =  "$N $vopen a $o.";
+private string close_msg = "$N $vclose a $o.";
 private string open_desc;
 private string closed_desc;
 
@@ -48,6 +48,11 @@ void set_closed(int x) {
   else
       add_adj("open");
 
+  if (open_desc && !x) 
+      set_in_room_desc(open_desc);
+  if (closed_desc && x)
+      set_in_room_desc(closed_desc);
+  
   /* our inventory visibility probably just changed. */
   resync_visibility();
 }
@@ -107,8 +112,7 @@ int open_with(object with)
 //:HOOK open
 //called when an object is opened.  The return value is ignored.
     call_hooks("open", HOOK_IGNORE);
-    if( open_desc )
-	set_in_room_desc( open_desc );
+
     return 1;
 }
 
@@ -128,8 +132,7 @@ mixed close() {
 //:HOOK close
 //called when an object is closed.  The return value is ignored.
     call_hooks("close", HOOK_IGNORE);
-    if( closed_desc )
-	set_in_room_desc( closed_desc );
+
     set_closed(1);    
     return 1;
 }
@@ -152,12 +155,19 @@ mixed direct_close_obj(object ob) {
     return 1;
 }
 
+
+string extra_long_stuff()
+{
+    return capitalize(the_short()) + " is " + (query_closed() ? "closed" : "open") + ".\n";
+}
+
+
 // You should do this, or call set_closed() when you create an openable,
 // so that the proper adjective gets initialized.
 void internal_setup() {
 
     set_closed(1);
     
-    add_hook("extra_long", (: capitalize(the_short()) + " is " + (query_closed() ? "closed" : "open") + ".\n" :));
+    add_hook("extra_long", (: extra_long_stuff :));
     add_hook("prevent_look_in", (: closed ? "It is closed.\n" : (mixed)1 :));
 }

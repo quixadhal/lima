@@ -63,14 +63,14 @@ void close_passage()
   object o = load_object("/domains/std/rooms/caves/navigation_room.c");
   o->passage_closed();
   delete_exit("south");
-  tell_room(this_object(),"The passage slides shut.\n");
+  receive_inside_msg("The passage slides shut.\n");
   passage_open = 0;
 }
 
 void passage_closed()
 {
   delete_exit("south");
-  tell_room(this_object(),"The passage slides shut.\n");
+  receive_inside_msg("The passage slides shut.\n");
   passage_open = 1;
 }
 
@@ -82,7 +82,7 @@ void open_passage()
     {
       return;
     }
-  this_body()->simple_action("The rock underneath the inscription slides open, revealing a passage.\n");
+  this_body()->simple_action("The rock underneath the inscription slides open, revealing a passage.");
   QUEST_D->grant_points(this_body(),"pirate:secretPsg");
   o = load_object("/domains/std/rooms/caves/navigation_room.c");
   add_exit("south" , "/domains/std/rooms/caves/navigation_room.c");
@@ -93,8 +93,8 @@ void open_passage()
 
 void passage_opened()
 {
-  tell_room(this_object(), "The rock underneath the inscription slides open, "
-	    "revealing a passage.\n");
+    receive_inside_msg("The rock underneath the inscription slides open, "
+		       "revealing a passage.\n");
   add_exit("south" , "/domains/std/rooms/caves/navigation_room.c");
   passage_open = 1;
 }

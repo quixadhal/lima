@@ -14,7 +14,7 @@ void setup() {
 
 int press(string n)
 {
-  this_body()->simple_action("$N $vpress the button next to the passage.\n");
+  this_body()->simple_action("$N $vpress the button next to the passage.");
   environment(this_object())->open_passage();
   return 1;
 }

@@ -69,13 +69,13 @@ private void main(string s)
 {
     if ( stringp(s) && strlen(s) )
     {
-	descrip = explode(wrap(s),"\n");
+	descrip = explode(s, "\n");
 	end_describe();
 	return;
     }
 
     out("Describe yourself in "+ MAX_DESCRIP_SIZE+" lines or less.\n"
-	  "Type '.' on a line of it's own when done.\n"
+	  "Type '.' on a line of its own when done.\n"
 	  "Type '~q' to abort this description.\n"
 	  "-----------------------------------------\n");
 

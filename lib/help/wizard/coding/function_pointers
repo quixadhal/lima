@@ -1,0 +1,48 @@
+
+Function Pointers For Newbies
+
+(a.k.a What are those smilies doing in my code and how do I use them right)
+
+Most mudlib objects, especially simple ones, only consist of a
+single function: setup().  It is important to understand that this is _not_
+just a list that tells what the object is like; instead it is a
+list of commands that gets executed right after the object is made that
+_makes_ it into the type of object you want it to be.
+
+For example, all objects start with a default long description.
+set_long() then changes the description to whatever you want.
+
+Why is this distinction important?  Consider a statement like:
+
+set_long("A quickly changing display which currently reads: " + random(1000));
+
+If you try this in a test object, you will find that each object you clone
+has it's own number, but that that number never changes.  This is
+because the random() function is only called _once_ when setup() is called,
+and the long description is set to that string.  After that, whenever you
+look at the object, you see the string that the long description was set to.
+
+Now, to get the number to change every time you look at it, try:
+
+set_long( (: "A quickly changing display which currently reads: " + random(1000) :) );
+
+The (: :) means "Don't run this now, just store it and run it when you
+need it".  Now, every time you look at the object, random() is used to
+get a new random number, and a new description is returned,
+so the object looks different every time you look at it.
+
+Another common way to use function pointers is to simply use:
+
+set_long( (: long_function :) );
+
+which means that whenever the long description is needed, call the function
+'long_function' and use whatever it returns.
+long_function can then be as complex as you want, for example:
+
+string long_function() {
+    int x, y, z;
+    x = random(100); y = random(1000); z = random(10000);
+
+    return "There are 3 quickly changing numbers on the panel, which read: " + x + ", " + y + ", and " + z + ".\n";
+}
+

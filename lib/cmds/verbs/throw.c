@@ -12,39 +12,35 @@ inherit VERB_OB;
 
 varargs private nomask void throw_one(object ob, object target)
 {
-  mixed tmp;
-
-    if(environment(ob) != this_body())
-      {
-	write("You don't have it.\n");
-	return;
-      }
+    mixed tmp;
 
     tmp = ob->throw(target);
 
     if (!tmp) tmp = target ? "That doesn't make a good weapon.\n" : 
-      "Someone else might pick it up...\n";
+	"Someone else might pick it up...\n";
 
     if (stringp(tmp)) {
 	write(tmp);
 	return tmp;
     }
-
 }
-
 
 void do_throw_obj(object ob)
 {
+    if (!try_to_acquire(ob))
+	return;
     throw_one(ob);
 }
 
 void do_throw_obj_at_obj(object to_throw, object target)
 {
-  throw_one(to_throw, target);
+    if (!try_to_acquire(to_throw))
+	return;
+    throw_one(to_throw, target);
 }
 
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ:v", "OBS:v", "OBJ:v at OBJ" }) });
 }

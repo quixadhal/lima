@@ -13,7 +13,7 @@ void do_enter()
   this_body()->move_to (portal_destination, "through " + the_short ());
 }
 
-//:FUNC set_destination
+//:FUNCTION set_destination
 // Set where you go when you enter the portal
 void set_destination (string s)
 {
@@ -30,7 +30,7 @@ int direct_look_str_obj()
   return 1;
 }
 
-//:FUNC set_look_in_desc
+//:FUNCTION set_look_in_desc
 // Set what you see when you look in the portal.
 void set_look_in_desc (string s)
 {

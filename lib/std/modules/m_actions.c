@@ -37,7 +37,7 @@ object query_body() {
 }
 
 static int valid_respond(string response) {
-  return active_script ? 0 : 1;
+  return !active_script;
 }
 
 object query_shell_ob() {
@@ -61,7 +61,7 @@ object query_shell_ob() {
   
     winner = CMD_D->find_cmd_in_path(verb, ({ CMD_DIR_PLAYER "/" }));
     if (arrayp(winner)) {
-        winner[0]->call_main(argument);
+winner[0]->call_main("","","","","","",argument);
     }
     else if (environment()) {
 

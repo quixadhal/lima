@@ -29,7 +29,7 @@ void do_fill_obj_with_obj(object ob1, object ob2) {
     do_fill_it(ob1, ob2);
 }
 
-mixed * query_verb_info(string rule)
+array query_verb_info(string rule)
 {
    return ({ ({ "OBJ", "OBJ with OBJ" }) });
 }

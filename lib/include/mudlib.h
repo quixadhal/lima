@@ -39,6 +39,7 @@
 ** MONSTER	monsters -- living objects that fight
 ** CONTAINER	obs that can hold things in/on/under/behind/etc.
 ** DOOR		doors to places
+** SECRET_DOOR        secret doors.
 ** LIVING	can hold things and perform actions (no fighting)
 ** STOCK_MASTER  stock guildmaster for stock muds :)
 ** RACE		a race-modified body
@@ -162,6 +163,8 @@
 #define CONTAINER		"/std/container"
 #define COMPLEX_CONTAINER	"/std/complex_container"
 #define DOOR			"/std/door"
+#define SECRET_DOOR              "/std/secret_door"
+#define HIDDEN_DOOR      "/std/hidden_door"
 #define FURNITURE		"/std/furniture"
 #define LESS_SPARSE_OBJ		"/std/less_sparse_obj"
 #define LIVING			"/std/living"
@@ -178,7 +181,6 @@
 
 /* for mudlib objects */
 #define M_ANSI          	"/std/modules/m_ansi"
-#define M_STATUS_LINE           "/std/modules/m_status_line"
 #define M_BODY_STATS		"/std/modules/m_bodystats"
 #define M_COMPLETE		"/std/modules/m_complete"
 #define M_GLOB		        "/std/modules/m_glob"
@@ -191,6 +193,9 @@
 #define M_SAVE			"/std/modules/m_save"
 #define M_SET			"/std/modules/m_set"
 #define M_SMARTMOVE		"/std/modules/m_smartmove"
+#define M_EDIBLE		"/std/modules/m_edible"
+#define M_DRINKABLE		"/std/modules/m_drinkable"
+#define M_DRINK_CONTAINER	"/std/modules/m_drink_container"
 
 /* for area objects */
 #define M_ACTIONS               "/std/modules/m_actions"
@@ -244,7 +249,8 @@
 #define TEMP_WORKROOM		"/obj/tworkroom"
 #define WATER			"/obj/water"
 
-#define M_ACCESS		"/secure/modules/access"
+#define M_ACCESS		"/secure/modules/m_access"
+#define M_FILE			"/secure/modules/m_file"
 
 #define CMD			"/secure/obj/cmd"
 #define DAEMON			"/secure/obj/daemon"
@@ -273,5 +279,6 @@
 #define SWORD			"/std/sword"
 #define TORCH			"/std/torch"
 #define VEHICLE			"/std/vehicle"
+#define INF_SUPPLY "/std/inf_supply"
 
 #endif /* __MUDLIB_H__ */

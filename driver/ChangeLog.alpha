@@ -1,3 +1,35 @@
+----------------------------------------------------------------------------
+(v22a41 promoted to v22b1)
+
+Mon May 27 16:20:09 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a41
+	* variable information is now stored only in the program in which
+	  the variable is defined; estimated compression ratio is about
+	  10:1. YMMV
+	* COMPAT_BUSTER: all inherits must now precede all global variable
+	  definitions
+	* Added Ceda@IdeaExchange's fixes to the Windows '95 port
+	* fixed compilation error in c_prepare_catch()
+	* added a COMPRESS_FUNCTION_TABLES option, which compresses function
+	  tables even further (estimated compression: 2-3x) at the cost of
+	  slowing down function calls slightly (<5-10%)
+	* Fixed error() to correctly added a trailing \n to error messages
+	  that are missing them
+	* Crasher fix in mapping composition (from Avenger@CoreDump)
+	
+Sun May 26 00:37:08 EDT 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a40
+	* internal function aliases are handled a little smarter, anticipating
+	  more function table memory optimizations later
+	* fixed some crashers/problems involving #pragma optimize and some
+	  compiler errors
+	* fixed a crasher in passing a filename that wasn't a string constant
+	  to dump_prog()
+	* program_info() can now take an object as a first arg
+	* fixed a problem that would cause functions that were prototyped 
+	  before inherited to call the first function defined in the
+ 	  object instead.
+
 Fri May 24 00:30:10 EDT 1996 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v22a39
 	* terminal_colour() now has two more optional args; the 3rd is the

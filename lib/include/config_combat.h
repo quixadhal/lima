@@ -15,7 +15,7 @@
 
 // NOTE: Changing the following may cause existing players to lose/have
 //       incorrect stats.
-#define COMBAT_STYLE		COMBAT_TRADITIONAL
+#define COMBAT_STYLE		COMBAT_SIMPLE
 
 // Either we attack the same person over and over, and keep track of who
 // else we are hostile to, or we pick a random person.
@@ -25,7 +25,7 @@
 #undef DEATH_USES_CORPSES
 
 // Does combat use heart_beats, or is it up to the player when to attack?
-#undef COMBAT_USES_HEARTBEATS
+#define COMBAT_USES_HEARTBEATS
 
 // If this is defined, a message is sent to everyone logged on whenever
 // someone dies.

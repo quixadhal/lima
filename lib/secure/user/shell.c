@@ -12,6 +12,7 @@
 
 string query_userid();
 void force_me(string what);
+void update_translations();
 
 /*
 ** The actuall shell object we're using
@@ -32,7 +33,9 @@ static nomask void start_shell()
     }
 
     shell_ob->start_shell();
+    update_translations();
 }
+
 static nomask void stop_shell()
 {
     if ( shell_ob )

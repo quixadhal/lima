@@ -6,11 +6,11 @@ private mixed		source_filter;
 private int		light_level = 1;
 private int		is_lit;
 private int		fuel;
-private string		burned_out_msg = "The $o is burned out.\n";
-private string		die_msg = "The light from the $o flickers and dies.\n";
-private string		light_msg = "$N $vlight a $o.\n";
-private string		light_with_msg = "$N $vlight a $o with a $o1.\n";
-private string		extinguish_msg = "$N $vextinguish a $o.\n";
+private string		burned_out_msg = "The $o is burned out.";
+private string		die_msg = "The light from the $o flickers and dies.";
+private string		light_msg = "$N $vlight a $o.";
+private string		light_with_msg = "$N $vlight a $o with a $o1.";
+private string		extinguish_msg = "$N $vextinguish a $o.";
 
 void set_light(int);
 mixed call_hooks(string, int);

@@ -47,13 +47,13 @@ void receive_outside_msg(string str)
 	}
 	else
 	{
-            call_out((: this_body()->simple_action( "The Guildmaster says to $n, \"You cannot leave us, my friend.\"\n"):), 0 );
+            call_out((: this_body()->simple_action("The Guildmaster says to $n, \"You cannot leave us, my friend.\""):), 0);
 	}
     }
 }
 
 
-void guildmsg_refuse_entry( object who, string why )
+void guildmsg_refuse_entry(object who, string why)
 {
-    targetted_action( "The Guildmaster says to $t, \"You already belong to a guild\"\n", who, why );
+    targetted_action("The Guildmaster says to $t, \"You already belong to a guild\"\n", who, why);
 }

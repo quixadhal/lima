@@ -31,9 +31,9 @@
 #define SPECIAL_HASH_SIZE    16
 
 /* This is used to hash shared string pointers for various lookup tables */
-#define DO_HASH(x, n)         ((((int)x) & (n - 1)) ^ \
-			      (((int)x >> 8) & (n - 1)) ^ \
-			      (((int)x >> 16) & (n - 1)))
+#define DO_HASH(x, n)         ((((POINTER_INT)x) & (n - 1)) ^ \
+			      (((POINTER_INT)x >> 8) & (n - 1)) ^ \
+			      (((POINTER_INT)x >> 16) & (n - 1)))
 
 /*
  * bitvec stuff.  Basically, at the start of parsing, we determine what
@@ -222,5 +222,9 @@ typedef struct {
 } parse_result_t;
 
 void parse_free PROT((parse_info_t *));
+#ifdef DEBUGMALLOC_EXTENSIONS
+void parser_mark_verbs();
+void parser_mark PROT((parse_info_t *));
+#endif
 
 #endif

@@ -49,7 +49,7 @@ void do_resend(mixed arg1, mixed arg2) {
     string prog = call_stack(0)[1];
     string fun = call_stack(2)[1];
     
-    if (prog != "secure/obj/cmd.c" || fun != "resend")
+    if (prog != "/secure/obj/cmd.c" || fun != "resend")
 	error(sprintf("Illegal resend() from %s::%s()\n", prog, fun));
     if(!restrict_redirection())
       hello_stdio(0,0,0);

@@ -10,8 +10,8 @@ inherit M_GRAMMAR;
 
 void create()
 {
-  ::create();
-  no_redirection();
+    ::create();
+    no_redirection();
 }
 
 private void main(string s) {
@@ -21,9 +21,9 @@ private void main(string s) {
     }
 
 #ifdef ZORKMUD
-    this_body()->simple_action("$N $vsay, \"$O\"\n", punctuate(s));
+    this_body()->simple_action("$N $vsay, \"$O\"", punctuate(s));
 #else
-    this_body()->simple_action("$N $vsay: $o\n", punctuate(s));
+    this_body()->simple_action("$N $vsay: $o", punctuate(s));
 #endif
 }
 

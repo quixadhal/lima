@@ -16,12 +16,12 @@ void hook_state(string, function, mixed);
 mixed call_hooks(string, int);
 
 private string locked, key_type;
-string unlock_msg = "$N $vunlock the $o with $p $o1.\n";
-string unlock_fail = "$N $vtry to unlock the $o, but $p $o1 doesn't fit.\n";
-string lock_msg = "$N $vlock the $o with $p $o1.\n";
-string lock_fail = "$N $vtry to lock the $o, but $p $o1 doesn't fit.\n";
-string pick_msg = "$N $vpick open the $o.\n";
-string pick_fail = "$N $vtry to pick open the $o, but $vfail.\n";
+string unlock_msg = "$N $vunlock the $o with $p $o1.";
+string unlock_fail = "$N $vtry to unlock the $o, but $p $o1 doesn't fit.";
+string lock_msg = "$N $vlock the $o with $p $o1.";
+string lock_fail = "$N $vtry to lock the $o, but $p $o1 doesn't fit.";
+string pick_msg = "$N $vpick open the $o.";
+string pick_fail = "$N $vtry to pick open the $o, but $vfail.";
 function my_open_hook = (: capitalize(the_short() + " is locked.\n") :);
 
 int is_lockable() { return 1; }
@@ -79,24 +79,22 @@ mixed magic_unlock()
 //unlocked.  However, if your mud uses skills, use set_strength_vs_magic() 
 //instead, unless you're doing something complex.
 
-
   ex = call_hooks("prevent_magic_unlock", HOOK_YES_NO_ERROR);
-
 
   if(!ex) ex = "Your magic seems to have no effect on it.\n";
   if(stringp(ex))
     {
       return ex;
     }
+
 #ifdef USE_SKILLS
-  i = SKILL_D->test_skill("magic/unlock", this_body(),
-                                  get_strength_vs_magic());
+  i = this_body()->test_skill("spell/unlock", get_strength_vs_magic());
   if(!i)
   {
     return 0;
   }
-  
 #endif
+
   set_locked(0, "magic");
   return 1;
 }
@@ -116,7 +114,6 @@ mixed pick()
 //open.  However, if your mud uses skills, use set_resistance_to_picking() 
 //instead, unless you're doing something complex.
 
-
   ex = call_hooks("prevent_picking", HOOK_YES_NO_ERROR);
 
 
@@ -126,16 +123,16 @@ mixed pick()
       write(ex);
       return;
     }
+
 #ifdef USE_SKILLS
-  i = SKILL_D->test_skill("lockpicking", this_body(),
-                                  get_resistance_to_picking());
+  i = this_body()->test_skill("misc/lockpick", get_resistance_to_picking());
   if(!i)
   {
     this_body()->simple_action(pick_fail, this_object());
     return;
   }
-  
 #endif
+
   set_locked(0, "picked");
   this_body()->simple_action(pick_msg, this_object());
 }
@@ -221,7 +218,7 @@ mixed direct_lock_obj(object ob) {
 	return "It is already locked.\n";
     if (present("key", this_body()))
 	return 1;
-    return "With what?";
+    return "With what?\n";
 }
 
 mixed direct_unlock_obj_with_obj(object ob1, object ob2) {

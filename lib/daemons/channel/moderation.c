@@ -43,8 +43,8 @@ static nomask void print_mod_info(string channel_name)
 	    !sizeof(ci->requestors) )
 	    printf("There are no requestors.\n");
 	else
-	    write(iwrap(sprintf("Requestors are: %s.\n",
-				make_name_list(ci->requestors))));
+	    tell(this_user(), sprintf("Requestors are: %s.\n",
+                 make_name_list(ci->requestors)), MSG_INDENT);
     }
     else if ( member_array(this_body(), ci->requestors) != -1 )
     {
@@ -131,7 +131,7 @@ static nomask int cmd_moderation(string channel_name, string arg)
 		   user_channel_name);
 	}
     }
-    else if ( arg[0..3] == "/call" )
+    else if ( arg[0..4] == "/call" )
     {
 	arg = lower_case(trim_spaces(arg[4..]));
 	if ( !ci->moderator )

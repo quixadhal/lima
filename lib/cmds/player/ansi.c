@@ -21,8 +21,10 @@ if(!arg){
     if(arg == "on") {
         this_body()->query_shell_ob()->set_variable( "ansi" , 1);      
         out("Turning ansi on.\n");
+     this_user()->update_translations();
         return;}
         this_body()->query_shell_ob()->unset_variable( "ansi"); 
+     this_user()->update_translations();
         out("Turning ansi off.\n");
         return;
 }                                    

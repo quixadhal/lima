@@ -40,7 +40,9 @@ object query_weapon()
     // The odd handling here is due to the possibility of our weapon getting
     // dested.
     if (weapon) return weapon;
-    return (weapon = this_object());
+
+    wield(this_object());
+    return weapon;
 }
 
 //:FUNCTION do_wield

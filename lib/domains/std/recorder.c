@@ -64,7 +64,7 @@ int press(string name)
     if(at_beginning)
       transcript = "";
     state = RECORDING;
-    this_body()->simple_action("$N $vstart recording on $p recorder.\n");
+    this_body()->simple_action("$N $vstart recording on $p recorder.");
     at_beginning = 0;
     return 1;
   case "play":
@@ -75,7 +75,7 @@ int press(string name)
 	return 1;
       }
     state = INACTIVE;
-    this_body()->simple_action("$N $vpush the play button on $p recorder, and a transcript magically appears before $n, in lieu of an actual playback.\n");
+    this_body()->simple_action("$N $vpush the play button on $p recorder, and a transcript magically appears before $n, in lieu of an actual playback.");
     new(__DIR__ "transcript", transcript)->move(this_body());
     at_beginning = 0;
     return 1;
@@ -83,13 +83,13 @@ int press(string name)
   case "rewind button":
     at_beginning = 1;
     state = 0;
-    this_body()->simple_action("$N $vrewind $p recorder.\n");
+    this_body()->simple_action("$N $vrewind $p recorder.");
     return 1;
   case "fast forward":
   case "fast forward button":
     at_beginning = 0;
     state = 0;
-    this_body()->simple_action("$N fast $vforward $p recorder.\n");
+    this_body()->simple_action("$N fast $vforward $p recorder.");
     return 1;
   case "stop":
   case "stop button":
@@ -99,7 +99,7 @@ int press(string name)
 	return 1;
       }
     state = 0;
-    this_body()->simple_action("$N $vstop $p recorder.\n");
+    this_body()->simple_action("$N $vstop $p recorder.");
     return 1;
   default:
     return 0;

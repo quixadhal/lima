@@ -8,6 +8,7 @@
 #define _SOCKET_EFUNS_H_
 
 #include "std.h"
+#include "network_incl.h"
 
 enum socket_mode {
     MUD, STREAM, DATAGRAM, STREAM_BINARY, DATAGRAM_BINARY

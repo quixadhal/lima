@@ -16,7 +16,6 @@ private void main( string arg )
     {
         case "on":
             this_body()->query_shell_ob()->set_variable( "status", 1 );
-            write( chr(12) + "\e[2;1f" );
             this_body()->update_status_line();
             break;
         case "off":

@@ -59,6 +59,19 @@ nomask mapping query_mudlist()
     return copy(mud_info);
 }
 
+nomask int has_service(string mud, string service)
+{
+  array inf;
+
+  inf = mud_info[mud];
+
+  if(!inf)
+    {
+      return -1;
+    }
+  return inf[11][service] != 0;
+}
+
 nomask string * query_mudnames()
 {
     return keys(mud_info);
@@ -73,3 +86,4 @@ nomask int mud_exists(string mudname)
 {
     return canon_mudname(mudname) != 0;
 }
+

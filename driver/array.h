@@ -16,11 +16,14 @@ typedef struct array_s {
 /*
  * array.c
  */
+#ifdef ARRAY_STATS
 extern int num_arrays;
 extern int total_array_size;
+#endif
+
+extern array_t the_null_array;
 
 int sameval PROT((svalue_t *, svalue_t *));
-array_t *null_array PROT((void));
 array_t *allocate_array PROT((int));
 array_t *allocate_empty_array PROT((int));
 void free_array PROT((array_t *));

@@ -31,8 +31,7 @@ int
 add_quest( string quest, int value, string base, string major_milestone )
 {
 
-
-    if(!check_privilege(1)) return 0;
+   if(!check_previous_privilege(1)) return 0;
     if(quests[quest])
     {
 	write("D'oh, that quest already exists.\n");
@@ -48,18 +47,18 @@ add_quest( string quest, int value, string base, string major_milestone )
     }
     quests[quest] = ({ base , value , 0, major_milestone });
     calculate_total_points();
-    save_object(QUEST_FILE);
+    unguarded(1,(:save_object(QUEST_FILE):));
     return 1;
 }
 
 int
 delete_quest( string quest )
 {
-    if(!check_privilege(1) || !quests[quest])
+    if(!check_previous_privilege(1) || !quests[quest])
 	return 0;
 
     map_delete( quests, quest );
-    save_object(QUEST_FILE);
+    unguarded(1,(:save_object(QUEST_FILE):));
     calculate_total_points();
     return 1;
 }
@@ -78,7 +77,7 @@ grant_points( object solver, string quest )
     if( !solver->add_quest( quest, quests[quest][1] ) )
 	return 0;
     quests[quest][2]++;
-    tell_object( solver, sprintf("Your score has gone up by %d points.\n",
+    tell( solver, sprintf("Your score has gone up by %d points.\n",
 	quests[quest][1]) );
     unguarded(1, (: save_object, QUEST_FILE :));
 

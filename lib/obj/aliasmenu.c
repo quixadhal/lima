@@ -112,7 +112,7 @@ private void display_all_aliases()
     int i;
 
     output = sprintf("Alias:%9sExpansion:%29sDefaults:\n","","");
-    output += sprintf("%77'-'s\n", "");
+    output += repeat_string("-", 77) + "\n";
 
     names = sort_array(shell_ob->query_alias_names(), 1);
     foreach ( a in names )

@@ -24,6 +24,44 @@ string query_shellname()
     return "Player Shell";
 }
 
+private mapping shell_vars = ([]);
+
+void set_variable(string name, mixed value)
+{
+  if(!shell_vars)
+    shell_vars = ([]);
+  switch(name)
+    {
+    case "ansi":
+      shell_vars[name] = value;
+      return;
+    default:
+      error("Bad player shell variable.");
+    }
+}
+
+void unset_variable(string name, mixed value)
+{
+  if(!shell_vars)
+    shell_vars = ([]);
+  switch(name)
+    {
+    case "ansi":
+      map_delete(shell_vars,name);
+      return;
+    default:
+      error("Bad player shell variable.");
+
+    }
+}
+
+mixed get_variable(string name)
+{
+  if(!shell_vars)
+    shell_vars = ([]);
+  return shell_vars[name];
+}
+
 private nomask string expand_one_argument(string arg)
 {
     mixed expansion;
@@ -108,3 +146,4 @@ static nomask string query_save_path(string userid)
 {
     return PSHELL_PATH(userid);
 }
+

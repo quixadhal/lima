@@ -61,9 +61,9 @@ clean_array(mixed* r) {
 
 //:FUNCTION cmp
 //returns whether its two arguments are equivalent.  This is about
-//the same as using the equivolence operator (==), but will return true
+//the same as using the equivalence operator (==), but will return true
 //in cases where == does not, such as when comparing 2 arrays.
-//Logically 2 arrays should be equivolent, but aren't with ==.
+//Logically 2 arrays should be equivalent, but aren't with ==.
 //cmp knows they are.  This is mainly useful when you want to compare
 //mappings and arrays.
 
@@ -555,4 +555,43 @@ string implode_by_arr(string array arr1, string array arr2)
       res += arr2[i+1];
     }
   return res;
+}
+
+/* This one by cowl. */
+string convert_time(int sec, int type) {
+    int weeks, days, hours, minutes, seconds;
+    string ret;
+    minutes=sec/60;
+    seconds=sec-(minutes*60);
+    hours=minutes/60;
+    minutes=minutes-(hours*60);
+    days=hours/24;
+    hours=hours-(days*24);
+    weeks=days/7;
+    days=days-(weeks*7);
+    ret = "";
+    if (!type)
+    {
+        if(weeks) ret += sprintf("%d week%s ", weeks,
+              (weeks == 1) ? "" : "s");
+        if(days) ret += sprintf("%d day%s ", days,
+              (days == 1) ? "" : "s");
+        if(hours) ret += sprintf("%d hour%s ", hours,
+              (hours == 1) ? "" : "s");
+        if(minutes) ret += sprintf("%d minute%s ", minutes,
+              (minutes == 1) ? "" : "s");
+        ret += sprintf("%s%d second%s",
+          (sizeof(ret)) ? "and " : "",
+          seconds,
+          (seconds == 1) ? "" : "s");
+    }
+    else 
+    {
+        if (weeks) ret += weeks+"w"; 
+        if (days) ret += days+"d";
+        if (hours) ret += hours+"h";
+        if (minutes) ret += minutes+"m";
+        if (seconds) ret += seconds+"s";
+    }
+    return ret;
 }

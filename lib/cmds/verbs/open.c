@@ -22,7 +22,7 @@ int open(object ob, object with)
     if (with) {
 	try_to_acquire(with);
 	if (with->is_weapon() && ob->test_flag(DESTROYABLE)) {
-	    this_body()->simple_action("$N $vchop a $o up into itty bitty pieces with $p $o1 in a rather violent attempt to open it.\n", ob, with);
+	    this_body()->simple_action("$N $vchop a $o up into itty bitty pieces with $p $o1 in a rather violent attempt to open it.", ob, with);
 	    ob->remove();
 	    return;
 	}
@@ -42,7 +42,7 @@ void do_open_obj(object ob) {
     open(ob, 0);
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ", "up OBJ", "OBJ with OBJ" }) });
 }

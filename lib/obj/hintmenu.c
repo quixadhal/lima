@@ -40,7 +40,7 @@ void show_next_hint(string input)
 	  write("No previous hints.\n");
 	  return;
 	}
-      write(iwrap(sprintf("%d) %s\n", --hints_read,hints[hints_read-1])));
+      write(sprintf("%d) %s\n", --hints_read,hints[hints_read-1]));
       return;
     case "q":
       quit_menu_application();
@@ -56,7 +56,7 @@ void show_next_hint(string input)
       goto_menu(previous_menu);
       return;
     }
-  write(iwrap(sprintf("%d) %s\n", hints_read+1, hints[hints_read++])));
+  write(sprintf("%d) %s\n", hints_read+1, hints[hints_read++]));
 }
 
 void view_question(string area, string file, string question)

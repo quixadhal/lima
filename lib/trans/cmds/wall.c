@@ -11,8 +11,8 @@ inherit M_GRAMMAR;
 
 void create()
 {
-  ::create();
-  no_redirection();
+    ::create();
+    no_redirection();
 }
 
 private void main( string arg )
@@ -22,18 +22,17 @@ private void main( string arg )
     if ( !check_privilege(1) )
 	error("Must be an admin to use wall.\n");
 
-    if(!arg) {
+    if( !sizeof( arg ))
+    {
 	write( SYNTAX );
 	return;
     }
 
     broadcast = sprintf("System message from %s at %s:\n    %s\n",
-			this_body()->query_name(), ctime(time()),
-			iwrap(punctuate(arg)) );
+      this_body()->query_name(), ctime(time()),
+      punctuate(arg) );
 
     LOG_D->log(LOG_WALL, broadcast);
 
-    shout( broadcast );
-    // Not appropriate to use out() here.
-    write(broadcast);
+    tell(users(), broadcast, MSG_INDENT);
 }

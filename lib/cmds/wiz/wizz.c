@@ -37,9 +37,8 @@ private void main( string arg )
     name	= this_body()->query_name();
 
     if( WIZ_ROOM == file_name(start_room))
-
     {
-        this_body()->simple_action( "$N $vtwitch briefly.\n");
+        this_body()->simple_action("$N $vtwitch briefly.");
 	return;
     }
     if(!arg)
@@ -55,9 +54,9 @@ private void main( string arg )
     if( name == "Someone" )
 	return;
 
-    tell_room( start_room, sprintf( "%s is whisked away on %s!\n",
+    tell_from_inside( start_room, sprintf( "%s is whisked away on %s!\n",
 	name, arg ) );
-    tell_room( environment(this_body()),
+    tell_environment( this_body(),
       sprintf( "%s arrives on %s!\n", name, arg ), 0, ({this_body()}) );
     return;
 }
@@ -65,10 +64,10 @@ private void main( string arg )
 int help()
 {
 
-    write(wrap(
+    write(
 	"Usage: wizz [message]\n"
 	"Takes you to the wizard lounge from anywhere on the mud, and optionally "
-	"allows you to specify what you arrive on.\n" ));
+	"allows you to specify what you arrive on.\n" );
 
     return 1;
 }

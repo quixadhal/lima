@@ -9,6 +9,10 @@ void assign_flag(string, int);
 int test_flag(string);
 void set_light(int);
 
+//:FUNCTION
+//This function is guaranteed to be called when an object is destructed.
+//It tidies up some things like updating its environment's capacity and
+//light level.  It also calls the "remove" hook.
 int remove()
 {
     if (environment())
@@ -28,6 +32,11 @@ int remove()
     destruct();
 }
 
+//:FUNCTION receive_object
+//receive_object(obj, relation) should return 1 if obj can be put ("in", "on",
+//etc) the object, where 'relation' specifies the relation.  By default,
+//objects cannot contain things so MOVE_NOT_ALLOWED is returned.  See also
+//the container inheritable.
 mixed receive_object( object target, string relation )
 {
     return MOVE_NOT_ALLOWED;
@@ -38,11 +47,16 @@ varargs mixed release_object( object target, int force )
     return 1;
 }
 
+//:FUNCTION set_attached
+//set_attached(1) sets the ATTACHED flag for this object, and set_attached(0)
+//removes it.
 void set_attached(int a)
 {
     assign_flag(ATTACHED, a);
 }
 
+//:FUNCTION is_attached
+//returns 1 if the ATTACHED flag is set for this object.
 int is_attached()
 {
     return test_flag(ATTACHED);

@@ -135,10 +135,10 @@ string query_in_room_desc()
     }
   else
     {
-      return wrap((base_desc ? base_desc + "\n" : "") + 
+      return (base_desc ? base_desc + "\n" : "") + 
 		  capitalize((verb ? verb + " " : "") +
 			query_prep() + " " + the_short() + " you see " +
-			get_riders_as_string()+"."));
+			get_riders_as_string()+".");
     }
 }
 

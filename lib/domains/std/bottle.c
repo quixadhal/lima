@@ -2,23 +2,15 @@
 
 inherit OBJ;
 inherit M_GETTABLE;
+inherit M_DRINK_CONTAINER;
+inherit M_DRINKABLE;
 
 void setup()
 {
-  set_id("bottle", "flask");
- set_long("Appears to be a normal looking bottle. ");
-set_gettable(1);
-}
-
-void drink_it()
-{
-  this_body()->simple_action("$N $vtake a drink from the bottle.\n");
-}
-int direct_drink_from_obj()
-{
- return 1;
-}
-int direct_drink_obj()
-{
-   return 1;
+    set_id("bottle", "flask");
+    set_long("Appears to be a normal looking bottle.");
+    set_gettable(1);
+    set_num_drinks(5);
+    set_drink_action( (: this_body()->simple_action("$N $vtake a drink from the bottle.") :));
+    set_last_drink_action( (: this_body()->simple_action("$N $vtake a drink from the bottle, finishing it off.\n") :));
 }

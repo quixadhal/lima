@@ -8,7 +8,7 @@ void setup()
 {
     set_area("pirate");
     set_brief("North Tunnel");
-    set_long("This is a tunnel leding north fro the inside of the cave. more to follow. ");
+    set_long("This is a tunnel leading north fro the inside of the cave. more to follow. ");
 
     set_objects( (["/domains/std/objects/gate.c":  ({ "south" }) ]) );
 

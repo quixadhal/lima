@@ -6,7 +6,7 @@ inherit CLASS_COMBAT_RESULT;
 
 object query_weapon();
 object query_target();
-void simple_action(string);
+void simple_action(string msg, array obs...);
 varargs mixed *action(mixed *, mixed, object, object);
 void inform(mixed *, mixed, object);
 string default_message(int, int);
@@ -43,7 +43,7 @@ static void print_one_result(class combat_result result) {
 
     if (!message)
     {
-	simple_action("$N $vare puzzled because $n $vhave no message for '"+mess[1..]+"'.\n");
+	simple_action("$N $vare puzzled because $n $vhave no message for '"+mess[1..]+"'.");
     }
     else
     {
@@ -74,8 +74,9 @@ static void do_one_result(class combat_result res) {
     if (s & RES_NONE)
 	return;
     if (s & RES_DISARM) {
+	object w = query_weapon();
 	unwield();
-	query_weapon()->move(environment());
+	w->move(environment());
     }
     if (s & RES_FATAL) {
 	die();
@@ -98,7 +99,7 @@ static void do_one_result(class combat_result res) {
 void do_damage(mixed arg) {
     if (arrayp(arg))
 	foreach (mixed res in arg)
-    	do_one_result(res);
+	    do_one_result(res);
     else
 	do_one_result(arg);
 }

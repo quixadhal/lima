@@ -9,6 +9,7 @@ echoto		user str*
 findfunc	str obj|user
 flist -i	obj|user
 goto		obj|user
+last -sn:d:D:	[str*]
 locate		str
 lightme		num
 move		obj obj
@@ -20,7 +21,8 @@ start		[obj]
 timer -r        num [str] [num]
 trans		obj|user
 wc -lw		[file*]
-where		[user*]
+where            [user*]
 which		str
 msg             str str*
-helpd
+TODO       [str]
+null         [str]

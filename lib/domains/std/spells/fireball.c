@@ -10,21 +10,21 @@ void setup()
 
 void cast_spell(object ob, object reagent)
 {
+    object array targets;
 
-  object array targets;
     if ( !ob )
     {
-    targets = filter(all_inventory(environment(this_body())),
-		(: $1 != this_body() :));
-	this_body()->simple_action("$N $vcast a fireball spell!\n");
+	targets = filter(all_inventory(environment(this_body())),
+			 (: $1 != this_body() :));
+	this_body()->simple_action("$N $vcast a fireball spell!");
     }
     else
     {
-    targets = ({ ob });
+	targets = ({ ob });
 	this_body()->targetted_action("$N $vcast a fireball spell at $t1.\n", ob);
     }
 
-  foreach( object item in targets)
+    foreach ( object item in targets )
     {
 	/* okay... we won't have the fireball hit the caster... :-) */
 	if ( item == this_body() )

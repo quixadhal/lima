@@ -31,8 +31,8 @@ static nomask void rcv_tell(string orig_mud, string orig_user,
     }
     else
     {
-	tell_object(p, sprintf("%s@%s tells you: %s\n",
-			       message[0], orig_mud, message[1]));
+	tell(p, sprintf("%s@%s tells you: %s\n",
+			message[0], orig_mud, message[1]));
 	p->set_reply(message[0]+"@" + orig_mud);
     }
 }

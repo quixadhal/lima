@@ -1,3 +1,169 @@
+Sun Jun 30 13:52:01 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b12
+	* removed null_array() since the_null_array is now explicitly checked
+	  for during deallocation, so its refcount is irrelevant (idea from
+	  Avenger@CoreDump)
+	* fixed some crashers in errors before function calls with implicit
+	  catch()'s; for example call_out's to destructed fps when 
+	  PROFILE_FUNCTIONS was defined.
+	* fixed crasher in replaceable(something, ({})) [reported by
+	  Avenger@CoreDump]
+	* fixed crasher in ERR_IS_NOT, ERR_NO_LIVING, ERR_NOT_ACCESSIBLE
+	  errors from the parsing package [this is the Lima 'pat <obj>'
+	  crasher]
+	* Reduced the weight of rules where OBJ matches due to an error.
+	  Should eliminate cases where the parser erroneously reports
+	  'There is no ... here' instead of a more sensible error message.
+	* socket_error() message change: EEBADF is now 'Socket is closed'
+	  and not 'Descriptor is invalid'
+
+Thu Jun 27 20:46:06 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b11
+	* Fixed a crasher in updating a simul_efun which inherits an
+	  unloaded object (this also happens to be the Lima Bean
+	  'loadall /secure' crasher)
+	* Cleaned up destruct_object() a bit
+	* fixed more ARRAY_STATS problems
+	* fixed an unitialized use of version_buf when a config file
+	  isn't specified
+
+Sun Jun 16 18:08:32 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b10
+	* Fixed a compilation problem with ARRAY_STATS undefined; reported
+	  by a number of people
+	* Added the ChangeLog entries for v21.7b14 back in
+	* fixed a typo in the Makefile: -rm instead of rm in a shell section
+	* fixed a crasher in destructed function pointers in call_outs when
+	  PROFILE_FUNCTIONS was enabled; should also fix a number of other
+	  possible crashers in errors thrown in odd situations before calling
+	  functions
+	* Check if wait3()'s return value is positive, not just nonzero so
+	  we don't loop on errors (most notably ECHILD).  Fixes 
+	  external_start() to not hang the MUD on BSDish systems
+	* The two characters recognized by terminal_colour (defaults to "%^")
+	  is now configurable near the top of the routine
+
+Fri Jun  7 11:13:14 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b9
+	* Fixed typos in GNUmakefile, efuns_main.c, grammar.y.pre, simulate.c
+	* Added someone's patch for printing out the version and architecture
+	  before the 'You must specify a configuration filename' error message
+	* Note: static clean_up() functions are now called again; same with
+	  catch_tell() when NO_ADD_ACTION is on
+	
+Tue Jun  4 18:00:31 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b8
+	* The third argument passed to valid_override() now has a leading
+	  slash
+	* The filename passed to compile_object() has a leading slash
+	  [fix from Descartes]
+	* Made the "Program size miscalculated" debug message non-fatal,
+	  since it doesn't really cause anything to break.
+	* function_exists(string, object, flag); if flag is nonzero, private
+	  and static functions are checked too.
+	* Fixed two bugs in terminal_colour():
+	  . if wrap is specified and is zero, do no wrapping
+	  . pull indent and wrap off the stack in the right order if both
+	    are specified [fix from Descartes]
+
+Tue Jun  4 16:26:49 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b7
+	* fixed a few compilation problems in interpret.c
+
+Tue Jun  4 12:19:09 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b6
+	* Fixed a typo in the BSD readdir() configure check
+	* Added slashes to the front of many object/program names.  The most
+	  noteworthy are: deep_inherit_list(), inherit_list(), call_stack(),
+	  names passed to author_file(), domain_file(), privs_file(),
+	  creator_file(), a few error messages and tons of debug messages
+	* fixed the parser package to mark it's error messages when
+	  CHECK_MEMORY is on
+	* fixed a bug that caused " and \'s on the line of the terminator
+	  of an @ block to have \'s inserted before them causing syntax
+	  errors
+	* call_out, input_to, socket callbacks and add_action can no longer
+	  be used to call ##global_init##
+	* a few more testsuite tests
+	* it is now illegal to insert the character '\0' in to the middle
+	  of a string
+
+Mon Jun  3 15:03:16 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b5
+	* fixed pluralization of "gum"
+	* added Blackheart's fix for a compilation error when CALLOUT_HANDLES
+	  is turned off
+	* fixed various bugs with string statistics
+	* fixed a few bugs bug where classes would cause num_arrays to be
+	  wrong
+	* added an ARRAY_STATS option for those who want to turn array 
+	  statistics off
+	* added DEBUG checks for allocd_bytes and allocd_strings
+	* added a debugging check to make sure FREE_MSTR isn't called on
+	  a string with more than one reference
+	* fixed crasher in switch() on a non-shared string
+
+Sun Jun  2 20:10:59 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b4
+	* fixed a bug in epilog that allocated space for A_FILE_INFO
+	  in the program structure, even though that data isn't stored there,
+	  wasting approximately 100 bytes/program
+	* fixed the configuration checks to be a bit more robust with respect
+	  to various files not existing or being outdated ('configuration'
+	  in particular).  Fixes compilation errors on OSF reported by Yaynu
+	  and onSun 4.1.4 as reported by Pace
+	* When NO_SHADOWS is off, and INTERACTIVE_CATCH_TELL is on,
+	  add_message() doesn't need to call catch_tell() since the shadows
+	  already got a chance via tell_npc().  Also fixes a bug reported by
+	  Cire that caused two deep recursion errors when a user was shadowed
+	  with those option settings.  shadow_catch_message() also moved to
+	  comm.c, since it is only called from there.
+	* typo fix from Darrin Wilson for compilation with DEBUG not defined
+	* a few small optimizations to switch()
+	* changed POINTER_INT back to a signed type; the fact that it was
+	  unsigned caused switch to misbehave on negative numbers and/or
+	  other cases
+	* program_info() now calculates class size as well; also fixed a
+	  bug in the calculation of function table size.
+	* changed an instance of "catch_tell" to APPLY_CATCH_TELL
+	* characters with the 8th bit set are no longer ignored
+
+Thu May 30 21:11:57 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b3
+	* added Kaolin's fix for a crasher in terminal_colour()
+	* fixed another crasher in the prototype-before-inheriting fix
+	  (from Ceda)
+	* added some more Windows 95 fixes from Ceda
+	* made all the calls qsort() strictly conforming
+	* configure now checks for 'const' and 'inline'
+	* debugmalloc now fills freed blocks with 0x78 so using a block
+	  after it has been freed will crash/misbehave
+
+Thu May 30 15:12:42 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b2
+	* fixed a crasher when more than 65535 instances of a shared string
+	  are allocated
+	* minor fixes to various pointer hashes to avoid warnings on 64-bit
+	  architectures
+	* turned RUNTIME_LOADING off by default since not all architectures
+	  support it
+	* Fixes for terminal_colour() with illegal/negative widths/indents,
+	  also fix for crasher introduced last patchlevel
+
+Wed May 29 01:39:20 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b1
+	* fixed typo in backend.c in Windows 95 code
+	* Bumped the maximum byte transfer setting in the example config
+	  file up to 200k
+	* Added some Solaris compilation fixes based on information from
+	  Aragorn, Darrin Wilson, Descartes, et al
+	* fixed terminal_colour() to do wrapping even if there are no %^'s
+	  in the string
+	* mud_status() now notes when STRING_STATS is off
+
+----------------------------------------------------------------------------
+(v21.7b22 promoted to v21.7)
+
 Thu Apr 11 21:04:27 EDT 1996 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.7b21
 	* fixed a bug in replace_program() which would sometimes zero out
@@ -44,7 +210,6 @@ Sat Jan 20 15:03:54 EST 1996 (tim@handel.princeton.edu (Beek))
 	  wasn't being passed to the subdirectories
 	* removed the restriction that a non nomask function can't be
 	  overloaded and made nomask
-	
 
 Wed Jan  3 14:24:12 EST 1996 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.7b15
@@ -61,6 +226,15 @@ Wed Jan  3 14:24:12 EST 1996 (tim@handel.princeton.edu (Beek))
 	  <sys/dirent.h> is _NOT_ protected from multiple inclusion
 	* fixed the 'q' and 'Q' commands to not clear the buffer it there
 	  is a syntax error
+
+Tue Jan  2 17:43:55 EST 1996 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b14
+	* ported back the fixed call_out leak fix from v22a17
+	* fixed leak in illegal patterns to reg_assoc()
+	* fixed a string reference bug in parse errors very near the end
+	  of a function
+	* fixed a leak in using F_TRANSFER_LOCAL on a variable containing
+	  a dested object
 
 Sat Dec 30 20:50:17 EST 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.7b13

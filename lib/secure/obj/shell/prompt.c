@@ -21,102 +21,105 @@ mixed get_variable(string);
 
 static void set_prompt(string s)
 {
-  string*	bits;
-  int		i;
-  
-  s = replace_string(s,"%_","\n");
-  s = replace_string(s,"%m", mud_name());
-  s = replace_string(s,"%N", this_user()->query_userid());
-  if(s[0] == '"' && s[<1] == '"')
-    s = s[1..<2];
-  prompt = s;
+    string*	bits;
+    int		i;
 
-  replacements = ({});
-  bits = explode("%"+s,"%");
-  if(!sizeof(bits))
-    return;
-  for(i=1;i<sizeof(bits);i++)
+    s = replace_string(s,"%_","\n");
+    s = replace_string(s,"%m", mud_name());
+    s = replace_string(s,"%N", this_user()->query_userid());
+    if(s[0] == '"' && s[<1] == '"')
+	s = s[1..<2];
+    prompt = s;
+
+    replacements = ({});
+    bits = explode("%"+s,"%");
+    if(!sizeof(bits))
+	return;
+    for(i=1;i<sizeof(bits);i++)
     {
-      if(bits[i] == "")
+	if(bits[i] == "")
 	{
-	  i++;
-	  continue;
+	    i++;
+	    continue;
 	}
-      switch(bits[i][0])
+	switch(bits[i][0])
 	{
 	case 'h':
-	  replacements += ({P_HISTORY});
-	  break;
+	    replacements += ({P_HISTORY});
+	    break;
 	case 'r':
-	  replacements += ({P_ROOM});
-	  break;
+	    replacements += ({P_ROOM});
+	    break;
 	case 'p':
-	  replacements += ({P_PWD});
-	  break;
+	    replacements += ({P_PWD});
+	    break;
 	case 'd':
-	  replacements += ({P_DATE});
-	  break;
+	    replacements += ({P_DATE});
+	    break;
 	case 'D':
-	  replacements += ({P_DAY});
-	  break;
+	    replacements += ({P_DAY});
+	    break;
 	case 'n':
-	  replacements += ({P_NAME});
-	  break;
+	    replacements += ({P_NAME});
+	    break;
 	case 't':
-	  replacements += ({P_TIME});
-	  break;
+	    replacements += ({P_TIME});
+	    break;
 	}
     }
-  replacements = clean_array(replacements);
+    replacements = clean_array(replacements);
 }
 
 
 static string get_prompt()
 {
 
-  string	s;
-  int		rep;
-  int		i;
+    string	s;
+    int		rep;
+    int		i;
 
-  if(!prompt)
+    if(!prompt)
     {
-      set_prompt(get_variable("PROMPT") || "? for shell help> ");
+	set_prompt(get_variable("PROMPT") || "? for shell help> ");
     }
 
-  s = prompt;
+    s = prompt;
 
-  foreach(rep in replacements)
+    foreach(rep in replacements)
     {
-      switch(rep)
+	switch(rep)
 	{
 	case P_PWD:
-	  s = replace_string(s,"%p", get_variable("pwd") || "(no pwd!)");
-	  continue;
+	    s = replace_string(s,"%p", get_variable("pwd") || "(no pwd!)");
+	    continue;
 	case P_TIME:
-	  s = replace_string(s,"%t", ctime(time())[11..15]);
-	  continue;
+	    s = replace_string(s,"%t", ctime(time())[11..15]);
+	    continue;
 	case P_HISTORY:
-	  s = replace_string(s,"%h", sprintf("%d", get_command_number()));
-	  continue;
+	    s = replace_string(s,"%h", sprintf("%d", get_command_number()));
+	    continue;
 	case P_ROOM:
-	  s = replace_string(s,"%r", file_name(environment(this_body())));
-	  continue;
+	    if (environment(this_body()))
+		s = replace_string(s,"%r", file_name(environment(this_body())));
+	    else
+		s = replace_string(s, "%r", "<nowhere>");
+	    continue;
 	case P_DATE:
-	  s = replace_string(s,"%d", ctime(time())[4..9]);
-	  continue;
+	    s = replace_string(s,"%d", ctime(time())[4..9]);
+	    continue;
 	case P_DAY:
-	  s = replace_string(s,"%D", ctime(time())[0..2]);	
-	  continue;
+	    s = replace_string(s,"%D", ctime(time())[0..2]);	
+	    continue;
 	case P_NAME:
-	  s = replace_string(s,"%n", capitalize(this_body()->query_name()));
-	  continue;
+	    s = replace_string(s,"%n", capitalize(this_body()->query_name()));
+	    continue;
 	}
     }
-  return s;
+    return s;
 }
 
 
 static void create()
 {
-  this_object()->add_variable_hook("PROMPT", (:set_prompt:));
+    this_object()->add_variable_hook("PROMPT", (:set_prompt:));
 }

@@ -22,9 +22,6 @@ int need_to_think() {
 
 void do_diagnose()
 {
-    if (check_vision() != 1)
-	write("You can't see.\n");
-
     this_body()->my_action(this_body()->diagnose());
 
     // Deja vu.  Drive the players crazy :-)
@@ -32,7 +29,7 @@ void do_diagnose()
 	write("You have a funny feeling you've been here before.\n");
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
    return ({ ({ "" }) });
 }

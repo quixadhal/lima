@@ -1,6 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 // Onyx @ Red Dragon Nov. 1995.
+// Demmius @ Brelly's Home updated it for LIMA 0.9r12 June 1996.
+// Servo@MudX fixed write_mapping() to handle quotation marks August 1996
 // Roommaker for Lima muds.
 #include <menu.h>
 #include <mudlib.h>
@@ -17,14 +19,15 @@ private string lng = "";
 private string fpath;
 private string fname = "RoomMaker.c";
 private string  shrt = "RoomMaker Room";
+private string wethr = "ROOM";
 private int lite = 1;
-private int wthr =1;
+private int wthr =0;
 private mapping xits = ([]);
 private mapping tems = ([]);
 private mapping bjects = ([]);
 private string *clude = ({});
 
-#define RM_VER "v0.9"
+#define RM_VER "v0.9.1"
 
 MENU toplevel;
 
@@ -90,6 +93,7 @@ void prompt_change_light(){
 }
 void change_weather(string str){
     sscanf(str,"%d",wthr);
+    if(wthr) wethr = "OUTDOOR_ROOM";
     write("New weather is "+wthr+".\n\n");
 }
 
@@ -260,23 +264,30 @@ void view_exits(){
     write(key + " : " + value + "\n");
 }
 
-string write_mapping(mapping mmap){
-    string retval = "";  
-    mixed *keylist;
-    mixed key;
+string write_mapping( mapping mmap )
+{
+   string retval = "";
+   mixed *keylist;
 
-    if (!sizeof(mmap)) return "";
-    if (sizeof(mmap)==1)  return (keys(mmap)[0] + " : " + mmap[keys(mmap)[0]] + "\n"); 
-    keylist = keys(mmap)[0..(sizeof(mmap)-2)];
-    foreach(key in keylist)
-    retval +=key+" : "+ mmap[key] + ",\n";
-    retval += keys(mmap)[sizeof(mmap)-1] + " : " + mmap[keys(mmap)[sizeof(mmap)-1]] + "\n";
-    return retval;
+   if (!sizeof(mmap)) return "";
+   
+   keylist = keys( mmap );
+   
+   foreach ( mixed key in keylist ) {
+      retval = sprintf( "%s\"%s\" : ", retval, key );
+      if ( intp( mmap[key] ) )
+         retval = sprintf("%s %d,\n", retval, mmap[key] );
+      if ( stringp( mmap[key] ) )
+         retval = sprintf("%s \"%s\",\n", retval, mmap[key] );
+   }
+
+   return retval[0..<3]+"\n";
 }
 
 void save_this_room(){
     string name;
     string afname;
+mixed key, value;
 
     string header = "";
     afname = fpath+fname;
@@ -288,18 +299,15 @@ void save_this_room(){
     header += "*/\n\n";
     foreach (name in clude)
     header +="#include "+name+"\n";
-    header +="\ninherit ROOM;\n\n";
-    header +="void create(){\n";
-    header +="    room::create();\n";
+    header +="\ninherit " + wethr + ";\n\n";
+    header +="void setup(){\n";
     header +="    set_light("+lite+");\n";
     header += "    set_brief(\"" + shrt + "\");\n";
-    header +="    set_weather("+wthr+");\n";
     header +="    set_long(\n";
     header +="\"" + lng + "\"";
     header +="\n);\n";
-    header +="    set_items( ([\n";
-    header += write_mapping(tems);
-    header +="    ]) );\n"; 
+    foreach (key, value in tems)
+    header += "    add_item(\""+key+"\" , \""+value+"\");\n";
     header +="    set_exits( ([\n";
     header += write_mapping(xits);
     header +="    ]) );\n";
@@ -308,7 +316,7 @@ void save_this_room(){
     header +="    ]) );\n";
     header +="}";
 
-    if (write_file(afname,header,1)){
+    if (!write_file(afname,header,1)){
 	printf("Error in writing to file %s (in header)\n", afname);
 	write("File not saved.\n");
 	return;

@@ -229,7 +229,9 @@ inheritance:
 		int initializer;
 
 		$1 |= global_modifiers;
-		
+
+		if (var_defined)
+		    yyerror("Illegal to inherit after defining global variables.");
 		ob = find_object2($3);
 		if (ob == 0) {
 		    inherit_file = alloc_cstring($3, "inherit");
@@ -242,8 +244,9 @@ inheritance:
 		      mem_block[A_RUNTIME_FUNCTIONS].current_size /
 		      sizeof (runtime_function_u);
 		inherit.variable_index_offset =
-		      mem_block[A_VARIABLES].current_size /
+		      mem_block[A_VAR_TEMP].current_size /
 		      sizeof (variable_t);
+		inherit.type_mod = $1;
 		add_to_mem_block(A_INHERITS, (char *)&inherit, sizeof inherit);
 		copy_variables(ob->prog, $1);
 		copy_structures(ob->prog);
@@ -621,7 +624,7 @@ new_name:
 	    {
 		if ((current_type & ~NAME_TYPE_MOD) == TYPE_VOID)
 		    yyerror("Illegal to declare global variable of type void.");
-		define_variable($2, current_type | $1 | global_modifiers, 0);
+		define_new_variable($2, current_type | $1 | global_modifiers);
 		scratch_free($2);
 	    }
     |   optional_star identifier L_ASSIGN expr0
@@ -655,7 +658,7 @@ new_name:
 
 		CREATE_BINARY_OP(expr, F_VOID_ASSIGN, 0, $4, 0);
 		CREATE_OPCODE_1(expr->r.expr, F_GLOBAL_LVALUE, 0,
-				define_variable($2, current_type | $1 | global_modifiers, 0));
+				define_new_variable($2, current_type | $1 | global_modifiers));
 		generate(expr);
 		switch_to_block(A_PROGRAM);
 		scratch_free($2);
@@ -2266,8 +2269,8 @@ expr4:
 		      if (current_function_context)
 			  current_function_context->bindable = FP_NOT_BINDABLE;
                           CREATE_OPCODE_1($$, F_GLOBAL,
-				      VARIABLE(i)->type & ~NAME_TYPE_MOD, i);
-		      if (VARIABLE(i)->type & NAME_HIDDEN) {
+				      VAR_TEMP(i)->type & ~NAME_TYPE_MOD, i);
+		      if (VAR_TEMP(i)->type & NAME_HIDDEN) {
 			  char buf[256];
 			  char *end = EndOf(buf);
 			  char *p;
@@ -2563,13 +2566,13 @@ expr4:
 		case FP_G_VAR:
 		    CREATE_OPCODE_1($$->l.expr, F_GLOBAL, 0, $1 >> 8);
 		    $$->v.number = FP_FUNCTIONAL | FP_NOT_BINDABLE;
-		    if (VARIABLE($$->l.expr->l.number)->type & NAME_HIDDEN) {
+		    if (VAR_TEMP($$->l.expr->l.number)->type & NAME_HIDDEN) {
 		      char buf[256];
 		      char *end = EndOf(buf);
 		      char *p;
 		      
 		      p = strput(buf, end, "Illegal to use private variable '");
-		      p = strput(p, end, VARIABLE($$->l.expr->l.number)->name);
+		      p = strput(p, end, VAR_TEMP($$->l.expr->l.number)->name);
 		      p = strput(p, end, "'");
 		      yyerror(buf);
 		    }
@@ -3074,7 +3077,7 @@ efun_override: L_EFUN L_COLON_COLON identifier {
 	} else {
 	    push_malloced_string(the_file_name(current_file));
 	    share_and_push_string($3);
-	    copy_and_push_string(main_file_name());
+	    push_malloced_string(add_slash(main_file_name()));
 	    res = safe_apply_master_ob(APPLY_VALID_OVERRIDE, 3);
 	    if (!MASTER_APPROVED(res)) {
 		yyerror("Invalid simulated efunction override");
@@ -3090,7 +3093,7 @@ efun_override: L_EFUN L_COLON_COLON identifier {
 	ihe = lookup_ident("clone_object");
 	push_malloced_string(the_file_name(current_file));
 	push_constant_string("clone_object");
-	copy_and_push_string(main_file_name());
+	push_malloced_string(add_slash(main_file_name()));
 	res = safe_apply_master_ob(APPLY_VALID_OVERRIDE, 3);
 	if (!MASTER_APPROVED(res)) {
 	    yyerror("Invalid simulated efunction override");

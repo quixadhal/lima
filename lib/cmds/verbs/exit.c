@@ -3,13 +3,12 @@
 
 inherit VERB_OB;
 
-
+//### Odd.  This never uses 'ob'.
 void do_exit(object ob)
 {
   mixed s;
   string err;
   object last_loc;
-  
 
   if(objectp(ob) && ob != environment(this_body()))
     {
@@ -25,7 +24,7 @@ void do_exit(object ob)
 	  if(stringp(s))
 	    this_body()->simple_action(s);
 	  else
-	    this_body()->simple_action("$N $vexit the $o.\n", last_loc);
+	    this_body()->simple_action("$N $vexit the $o.", last_loc);
 	}
       else
 	{
@@ -51,8 +50,7 @@ void do_exit_obj(object ob)
 }
 
 
-mixed * query_verb_info()
+array query_verb_info()
 {
-//### no do_exit() or do_exit_str() functions
-return ({ ({ "OBJ", "" }), ({ "leave", "disembark" }), ({ "OBJ", "" }) });
+    return ({ ({ "OBJ", "" }), ({ "leave", "disembark" }) });
 }

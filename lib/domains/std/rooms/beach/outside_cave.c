@@ -6,11 +6,11 @@ void obj_arrived(object ob) {
     if (ob->get_size() >= VERY_LARGE) 
       {
      if(!ob->is_living())
-	tell_room(this_object(), capitalize(ob->the_short()) + " makes a "
-		  "large splash as it hits the water.\n");
+	receive_inside_msg(capitalize(ob->the_short()) + " makes a "
+			       "large splash as it hits the water.\n");
 	return;
       }
-    tell_room(this_object(), capitalize(ob->the_short()) + " sinks into the surf, and you quickly loose track of it in the violent crashing waves.\n");
+    receive_inside_msg(capitalize(ob->the_short()) + " sinks into the surf, and you quickly lose track of it in the violent crashing waves.\n");
     destruct(ob);
 }
 

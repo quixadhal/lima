@@ -12,5 +12,5 @@ private void main()
 {
     string * paths = this_body()->query_shell_ob()->query_path();
 
-    out(iwrap("Your current path is: " + implode(paths, (: $1 + ", " + $2 :)) + "\n"));
+    out("Your current path is: " + implode(paths, (: $1 + ", " + $2 :)) + "\n");
 }

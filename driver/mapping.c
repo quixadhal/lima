@@ -49,12 +49,14 @@ INLINE int growMap P1(mapping_t *, m)
 	/* resize the hash table to be twice the old size */
 	m->table = a = RESIZE(m->table, newsize, mapping_node_t *, TAG_MAP_TBL, "growMap");
 	if (!a) {
-		/*
-		  We couldn't grow the hash table.  Rather than die, we just
-		  accept the performance hit resulting from having an overfull table.
-		*/
-		m->unfilled = m->table_size;
-		return 0;
+	    /*
+	      We couldn't grow the hash table.  Rather than die, we just
+	      accept the performance hit resulting from having an overfull
+	      table.
+	      This trick won't work.  m->table is now zero. -Beek
+	      */
+	    m->unfilled = m->table_size;
+	    return 0;
 	}
 	/* hash table doubles in size -- keep track of the memory used */
 	total_mapping_size += sizeof(mapping_node_t *) * oldsize;
@@ -217,7 +219,7 @@ allocate_mapping P1(int, n)
 	if (newmap == NULL) 
 	    error("Allocate_mapping - out of memory.\n");
 
-	if (n > MAP_HASH_TABLE_SIZE){
+	if (n > MAP_HASH_TABLE_SIZE) {
 	    n |= n >> 1;
 	    n |= n >> 2;
 	    n |= n >> 4;
@@ -395,9 +397,7 @@ node_find_in_mapping P2(mapping_t *, m, svalue_t *, lv)
 	mapping_node_t *elt, **a = m->table;
  
 	debug(1,("mapping.c: find_in_mapping\n"));
-	if (!m->table) {
-		return (mapping_node_t *)0;
-	}
+
 	i = svalue_to_int(lv) & m->table_size;
 	for (elt = a[i]; elt; elt = elt->next) {
 		if (msameval(elt->values, lv))
@@ -1117,26 +1117,27 @@ compose_mapping P3(mapping_t *,m1, mapping_t *,m2, unsigned short,flag)
 		    sv = elt->values + 1;
 		    if ((elt2 = b[svalue_to_int(sv) & mask])) {
 			do {
-			    if (msameval(sv, elt2->values)){
+			    if (msameval(sv, elt2->values)) {
 				assign_svalue(sv, elt2->values + 1);
 				break;
 			    }
 			} while ((elt2 = elt2->next));
 		    }
-		    if (!elt2){
+		    if (!elt2) {
 			if (!(*prev = elt->next) && !(*a)) m1->unfilled++;
 			deleted++;
 			free_svalue(sv--, "compose_mapping");
 			free_svalue(sv, "compose_mapping");
 			free_node(elt);
+		    } else {
+			prev = &(elt->next);
 		    }
-		    prev = &(elt->next);
-		} while ((elt = elt->next));
+		} while ((elt = *prev));
 	    }
 	} while (a++, j--);
 
 
-	if (deleted){
+	if (deleted) {
 	    m1->count -= deleted;
 	    total_mapping_nodes -= deleted;
 	    total_mapping_size -= deleted * sizeof(mapping_node_t);

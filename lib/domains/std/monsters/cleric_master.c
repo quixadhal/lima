@@ -4,10 +4,5 @@ inherit STOCK_MASTER;
 
 void create()
 {
-    ::create( "stock-cleric" );
-}
-
-void receive_outside_msg( string str )
-{
-    ::receive_outside_msg( str );
+    ::create("stock-cleric");
 }

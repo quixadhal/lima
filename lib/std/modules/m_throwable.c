@@ -58,7 +58,7 @@ mixed throw(object target)
     {
 	if(!target)
 	{
-	    this_body()->simple_action("$N $vthrow a $o.\n", this_object());
+	    this_body()->simple_action("$N $vthrow a $o.", this_object());
 	    return 1;
 	}
 	else

@@ -65,7 +65,7 @@ private string path_join(string s1, string s2) {
 	return s1 + "/" + s2;
 }
 
-private void main(mixed argv, mapping flags)
+private int do_ls(mixed argv, mapping flags)
 {
   string 	path;
   mixed 	files;
@@ -86,7 +86,7 @@ private void main(mixed argv, mapping flags)
   uses_ansi = 0;
 #endif
 
-  if(uses_ansi || flags["l"] || flags["s"] || flags["F"])
+  if(uses_ansi || flags["l"] || flags["s"] || !flags["p"])
     {
       info = ([]); is_dir = ([]); sizes = ([]);
       foreach(item in argv[0])
@@ -100,7 +100,7 @@ private void main(mixed argv, mapping flags)
     }
 
   argv[0] = map_paths(argv[0]);
-  if(!flags["a"])
+  if(flags["n"])
     foreach(path, files in argv[0])
       {
 	argv[0][path] = filter(files, (:$1[0] != '.':));
@@ -123,7 +123,7 @@ private void main(mixed argv, mapping flags)
 	  outarr = map_ls_arrays((: (sizes[$2]+1024)/1024 + " " + $1 :),
 				 outarr, fullpatharr);
 
-      if(flags["F"])
+      if(!flags["p"])
 	outarr = map_ls_arrays((: is_dir[$1] ? $2+"/" :
 				info[$1] ? info[$1][2] ? $2+"*" : $2 :
 				$2+"?":), fullpatharr,
@@ -137,7 +137,11 @@ private void main(mixed argv, mapping flags)
 			 path, implode(outarr,"\n"))));
     }
   if (!sizeof(get_output()))
+    {
       out("No matching files.");
+      return 0;
+    }
+  return 1;
 }
 
 nomask int
@@ -145,5 +149,19 @@ valid_resend(string ob) {
     return ob == "/trans/cmds/dir";
 }
 
+private void main(mixed argv, mapping flags)
+{
+  do_ls(argv, flags);
+}
 
+string external_ls(string array files, mapping flags)
+{
+  mixed		info;
+
+  hello_stdio(0,0,0);
+  info = map(files, (:M_GLOB->glob($1):));
+  if(!do_ls(({files}), flags))
+    return 0;
+  return get_output();
+}
 

@@ -28,7 +28,7 @@ dealloc_funp P1(funptr_t *, fp)
     	fp->f.functional.prog->func_ref--;
 #ifdef DEBUG
 	if (d_flag)
-	    printf("subtr func ref %s: now %i\n",
+	    printf("subtr func ref /%s: now %i\n",
 		   fp->f.functional.prog->name,
 		   fp->f.functional.prog->func_ref);
 #endif
@@ -909,7 +909,7 @@ f_switch()
 {
     unsigned short offset, end_off;
     int d;
-    POINTER_INT s = 0;
+    POINTER_INT s;
     POINTER_INT r;
     int i;
     char *l, *end_tab;
@@ -930,14 +930,15 @@ f_switch()
 	if (sp->type == T_NUMBER && !sp->u.number) {
 	    /* special case: 0 as a string */
 	    s = 0;
+	    sp--;
 	} else if (sp->type == T_STRING) {
-	    switch (sp->subtype) {
-	    case STRING_SHARED:
-		s = (POINTER_INT) sp->u.string;
-		break;
-	    default:
-		s = (POINTER_INT) findstring(sp->u.string);
-		break;
+	    if (sp->subtype == STRING_SHARED) {
+		s = (POINTER_INT)sp->u.string;
+		free_string(sp->u.string);
+		sp--;
+	    } else {
+		s = (POINTER_INT)findstring(sp->u.string);
+		free_string_svalue(sp--);
 	    }
 	    if (s == 0) {
 		/*
@@ -945,7 +946,6 @@ f_switch()
 		 * ZERO_AS_STR_CASE_LABEL.
 		 */
 		COPY_SHORT(&offset, pc + SW_DEFAULT);
-		pop_stack();
 		pc = current_prog->program + offset;
 		return;
 	    }
@@ -954,10 +954,9 @@ f_switch()
 	}
     } else {			/* Integer table, check type */
 	CHECK_TYPES(sp, T_NUMBER, 1, F_SWITCH);
-	s = sp->u.number;
+	s = (sp--)->u.number;
 	i = (int) pc[0] & 0xf;
     }
-    pop_stack();
     end_tab = current_prog->program + end_off;
     /*
      * i is the table size as a power of 2.  Tells us where to start
@@ -1224,7 +1223,7 @@ make_functional_funp P5(short, num_arg, short, num_local, short, len, svalue_t *
     current_prog->func_ref++;
 #ifdef DEBUG
 	if (d_flag)
-	    printf("add func ref %s: now %i\n",
+	    printf("add func ref /%s: now %i\n",
 		   current_prog->name,
 		   current_prog->func_ref);
 #endif

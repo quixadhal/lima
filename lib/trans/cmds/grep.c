@@ -80,7 +80,11 @@ main(mixed argv, mapping flags, string stdin)
 	ed_start(file);
 	if(flags["n"])
 	    ed_cmd("n");
-	this_output = ed_cmd("1,$g/"+pattern+"/p");
+	if (catch(this_output = ed_cmd("1,$g/"+pattern+"/p")))
+        {
+         printf("Warning: %s was too large for LPC to grep.\n", file);
+         continue;
+        }
 	if(this_output && strlen(this_output))
 	    outf("[%s]:\n%s\n\n", file, this_output);
 	ed_cmd("q");

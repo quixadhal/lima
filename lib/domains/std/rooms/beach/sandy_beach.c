@@ -54,10 +54,10 @@ mixed wade(string str)
     case "waves":
     case "surf":
     case "ocean":
-      write ( wrap("You wade into the ocean.  Though the undercurrent "
+      write ( "You wade into the ocean.  Though the undercurrent "
 		   "is strong, you manage to keep your balance.  You wander "
 		   "towards the east, where there is no beach, but there are "
-		   "interesting mountains...\n\n"));
+		   "interesting mountains...\n\n");
       this_body()->other_action("$N $vwade around in the ocean for a while, "
 				"eventually wandering out of sight to the "
 				"east.\n");

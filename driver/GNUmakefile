@@ -1,11 +1,11 @@
 MAKE=gmake
 SHELL=/bin/sh
 OBJDIR=obj
-DRIVER_BIN=driver.v22a39
+DRIVER_BIN=driver
 PROOF=
 STRFUNCS=
 INSTALL=install -c
-INSTALL_DIR=/usr/local/driver
+INSTALL_DIR=../bin
 OPTIMIZE=
 CPP=gcc -E
 CFLAGS= -g -DDEBUG
@@ -155,11 +155,15 @@ make_func.tab.c: make_func.y cc.h
 	mv y.tab.c make_func.tab.c
 
 configure.h: edit_source build.MudOS
-	if test -r configure.h -a "Machine `uname -a` Configure version 4" = "`cat configuration`"; then \
+	if test \( ! -r configure.h \) -o \( ! -r configuration \); then \
+	    rm -f configuration; \
+	    touch configuration; \
+	fi
+	if test "Machine `uname -a` Configure version 5" = "`cat configuration`"; then \
 	    echo "Skipping configuration ..."; \
 	else \
 	    ./edit_source -configure; \
-	    echo "Machine `uname -a` Configure version 4" > configuration; \
+	    echo "Machine `uname -a` Configure version 5" > configuration; \
 	fi
 
 $(OBJDIR)/edit_source.o: edit_source.c preprocess.c cc.h

@@ -33,7 +33,7 @@ void setup() {
     
     data = allocate(SIZE);
     for (int i = 0; i < SIZE; i++) {
-	data[i] = sprintf("%-*'.'s", SIZE, "");
+        data[i] = repeat_string(".", SIZE);
     }
 
     data[0][0] = '@';

@@ -14,7 +14,7 @@ void do_lock_obj(object ob)
     ob->lock(ob);
 }
 
-mixed *query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ", "OBJ with OBJ" }) });
 }

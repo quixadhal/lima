@@ -8,7 +8,7 @@ void do_count_obj( object ob ) {
     ob->do_count();
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ" }) });
 }

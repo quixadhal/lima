@@ -19,11 +19,10 @@ private void main(mixed *arg)
 
 int help()
 {
-write(wrap(
-"Usage: cd [directory]\n"
+write("Usage: cd [directory]\n"
 "Most file commands assume you're talking about your current working "
 "directory, if you do not specify a full path.  This command sets your "
 "current directory.  If no argument is given,  your home directory will "
 "become your current working dir.  See also, ls, pwd, ed.\n"
-));
+);
 }

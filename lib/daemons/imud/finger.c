@@ -65,10 +65,10 @@ static nomask void rcv_finger_reply(string orig_mud, string orig_user,
 	if ( message[8] == "" ) message[8] = 0;
 
 	if ( message[2] )
-	    s = sprintf("Name:  %-35sIn real life: %s\n",
+	    s = sprintf("\nName:  %-35sIn real life: %s\n",
 			message[0], message[2]);
 	else
-	    s = sprintf("Name:  %s\n", message[0]);
+	    s = sprintf("\nName:  %s\n", message[0]);
 	if ( message[3] )
 	    s += sprintf("%' '42sEmail: %s\n", "", message[3]);
 	s += sprintf("Level: %-35sTitle: %s\n",
@@ -118,6 +118,6 @@ static nomask void rcv_finger_reply(string orig_mud, string orig_user,
 	if ( message[8] )
 	    s += message[8];
 
-	tell_object(p, s);
+	tell(p, s);
     }
 }

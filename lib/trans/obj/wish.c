@@ -201,6 +201,7 @@ varargs static void execute_command(string array argv, string original_input)
 
     // If there is a local shell command that matches our input, try to
     // execute it.
+    if (!sizeof(argv)) return;
     evaluate(tmp=dispatch[argv[0]], argv, implode_info);
     if(tmp)
 	return;

@@ -34,6 +34,7 @@ private static mapping log_files = ([
 				     "Idea" : LOG_IDEA,
 				     "Todo" : LOG_TODO,
                                     "Question" : LOG_QUESTION,
+                                    "Feedback" : LOG_FEEDBACK,
 				     ]);
 private static mapping news_groups = ([
 				       "Bug" : BUG_NEWSGROUP,
@@ -41,6 +42,7 @@ private static mapping news_groups = ([
 				       "Idea" : IDEA_NEWSGROUP,
 				       "Todo" : TODO_NEWSGROUP,
                                      "Question" : QUESTION_NEWSGROUP,
+                                       "Feedback" : FEEDBACK_NEWSGROUP,
 				       ]);
 
 private nomask void issue_report(string type, string subject, string text)
@@ -54,10 +56,6 @@ private nomask void issue_report(string type, string subject, string text)
     if ( subject )
     {
         text = sprintf( "%s\n", text);
-
-//### this should probably be located somewhere "handy"; possibly in
-//### NEWS_D itself
-	NEWSREADER->wrap_post(text);
 
 	unguarded(1, (: NEWS_D->system_post($(news_groups[type]),
 					    $(subject),

@@ -274,12 +274,8 @@ create()
 					 (: simple_cmd :), "n"));
   add_menu_item (toplevel, new_menu_item("Send or read mail (mail)",
 					 (: start_mail :), "m"));
-  // The 1 at the end of this next one creates a prompt:
-  // "[Hit enter to return to menu] "
-  // You can also do this by calling prompt_then_return() from your
-  // function.
   add_menu_item (toplevel, new_menu_item("See who's on (who)", 
-					    (: simple_cmd :), "w", 1));
+					    (: simple_cmd :), "w"));
   add_menu_item (toplevel, new_menu_item("Get info about a person (finger)", 
   					    (: get_input_then_call, 
 					      (: handle_finger :),
@@ -376,7 +372,7 @@ add_menu_item(personalmenu, new_menu_item("Set ANSI on/off", (: get_input_then_c
   add_menu_item (remotemenu, main_seperator);
   add_menu_item (remotemenu, new_menu_item("List muds " + mud_name() + 
 					   " knows about", 
-                (: simple_cmd :), "l", 1 ));
+                (: simple_cmd :), "l"));
   add_menu_item (remotemenu, new_menu_item("See who's on another mud",
 					   (:remote_who:), "w"));
   add_menu_item (remotemenu, quit_item);

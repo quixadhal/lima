@@ -20,7 +20,6 @@ private mapping privileges; // mapping containing all privileges
                             // values are arrays of parents and children
 private mapping read_access; // maps directory -> protection level
 private mapping write_access; // dto.
-private mapping quota;  // map!s wizard/domain names -> quota size
 private mapping wizards; // mapping containing all wizards and their level
 private mapping domains; // maps domains -> mappings of members/lords
                          //                 (valued 2 for lords, 1 for members)
@@ -63,7 +62,6 @@ void create()
     privileges = ([ ]);
     read_access = allocate_mapping(1);
     write_access = allocate_mapping(1);
-    quota = ([ ]);
     domains = ([ ]);
     domainlists = ([ ]);
     wizards = ([ ]);
@@ -207,18 +205,6 @@ nomask string set_protection(string file,int write,mixed prot)
   }
 }
 
-nomask string set_quota(string name,int amount)
-{
-  if (undefinedp(quota[name]))
-    return ERR_NOWIZ;
-  if (!check_privilege(1)) // Only staff members can set quota
-    return ERR_PRIV;
-  if (eval_cost()<1000)
-    for (;;);
-  quota[name] = amount;
-  save_data();
-}
-
 private int valid_domain_name(string name)
 {
 	return sizeof(regexp( ({ name }), "^[-a-z_]*$"));
@@ -237,7 +223,6 @@ nomask varargs string create_domain(string domain)
     return "domain already exists";
   domains[domain] = ([ ]);
   privileges[capitalize(domain)] = ([ "":({}),":":({}) ]);
-  quota[capitalize(domain)] = 8;
   save_data();
   syslog("Created domain " + domain);
   return 0;
@@ -318,7 +303,6 @@ nomask string create_wizard(string wizard)
     for (;;);
   wizards[wizard] = 1;
   privileges[wizard] = ([ "":({}),":":({}) ]);
-  quota[wizard] = 8;
   save_data();
   syslog("Created wizard " + wizard);
   return 0;

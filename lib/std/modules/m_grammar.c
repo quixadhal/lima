@@ -17,27 +17,20 @@
 
 string pluralize(string str)
 {
-    if ( driver_version() == "MudOS v22a38" )
-    {
-	switch (str)
-	{
-	case "were": return "was";
-	case "staff": return "staves";
-	case "die": return "dies";
-	}
-	if ( str[<2..<1] == "ff" )	/* e.g. "bluff" */
-	    return str + "s";
-	if ( str[<5..<1] == "penis" )
-	    return str + "es";
-    }
-
     switch (str)
     {
+    case "were": return "was";
+    case "staff": return "staves";
+    case "die": return "dies";
     case "laf": return "lafs";
     case "snarf": return "snarfs";
-    default:
-	return efun::pluralize(str);
     }
+    if ( str[<2..<1] == "ff" )	/* e.g. "bluff" */
+	return str + "s";
+    if ( str[<5..<1] == "penis" )
+	return str + "es";
+
+    return efun::pluralize(str);
 }	
 
 // punctuate Written by Rust.
@@ -72,3 +65,32 @@ string number_of(int num, string what) {
     return num + " " + pluralize(what);
 }
 
+//:FUNCTION number_word
+//
+//number_word(1) == "one", etc.  number_word(10) == "10" and similarly
+//for numbers greater than 10, which is consistent with most English
+//style guidelines
+string number_word(int num) {
+    switch (num) {
+    case 1:
+	return "one";
+    case 2:
+	return "two";
+    case 3:
+	return "three";
+    case 4:
+	return "four";
+    case 5:
+	return "five";
+    case 6:
+	return "six";
+    case 7:
+	return "seven";
+    case 8:
+	return "eight";
+    case 9:
+	return "nine";
+    default:
+	return num+"";
+    }
+}

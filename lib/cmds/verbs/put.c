@@ -34,10 +34,15 @@ void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
     write(tmp);
 }
 
-mixed * query_verb_info()
+void do_put_obs_wrd_obj(array info, string p, object ob2) {
+    handle_obs(info, (: do_put_obj_wrd_obj :), p, ob2);
+}
+
+
+array query_verb_info()
 {
     return ({
-	({ "OBS WRD OBJ", "OBJ WRD OBJ" }), ({ "insert", "place", "stuff" })
+	({ "OBS WRD OBJ" }), ({ "insert", "place", "stuff", "hide" })
 	  });
     
     /*

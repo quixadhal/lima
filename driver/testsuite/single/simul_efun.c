@@ -208,3 +208,5 @@ author_file(string file)
 {
 	return ROOT_UID;
 }
+
+void simul() {}

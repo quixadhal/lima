@@ -52,6 +52,7 @@ private void main(string arg)
 	    "admin               Admin\n"
 	    ;
 
+    if (wizardp(this_user()) )
     s += implode(({ "" }) + keys(chanlist),
 		 (: $1 + fmt_imud_channel($2, $(chanlist)[$2]) :));
 

@@ -12,7 +12,7 @@ void cast_spell(object ob, object reagent)
 {
     if ( !ob )
     {
-	this_body()->simple_action("$N $vcast $p test spell.\n");
+	this_body()->simple_action("$N $vcast $p test spell.");
     }
     else
     {

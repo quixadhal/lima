@@ -52,7 +52,7 @@ string get_base_long()
     if (!res)
 	return "You see nothing special about " + the_short() + "\n";
 
-    return wrap(res);
+    return res;
 }
 
 string get_extra_long()

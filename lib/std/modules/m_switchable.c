@@ -4,8 +4,8 @@
 #include <hooks.h>
 
 private int 		is_on;
-private string		switch_on_msg = "$N $vswitch a $o on.\n";
-private string		switch_off_msg = "$N $vswitch a $o off.\n";
+private string		switch_on_msg = "$N $vswitch a $o on.";
+private string		switch_off_msg = "$N $vswitch a $o off.";
 
 void hook_state(string, string, int);
 void add_hook(string, mixed);

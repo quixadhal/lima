@@ -30,7 +30,10 @@ void set_down_destination(mixed x) {
 }
 
 void use(mixed dest, mixed dir) {
-    this_body()->move_to(dest, dir);
+/*
+this_body()->simple_action( "$N $vclimb " + dir + " the $o.", this_object());
+*/
+this_body()->move_to( dest, dir );
 }
 
 // we assume direction is "up", "down" or 0

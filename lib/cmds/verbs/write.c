@@ -16,7 +16,7 @@ void do_write_obj_with_str(object ob, string str) {
     write("Done.\n");
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "STR on OBJ", "OBJ with STR" }), ({ "inscribe" }) });
 }

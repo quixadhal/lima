@@ -63,12 +63,12 @@ private nomask int do_su(string old_userid, string new_userid, string new_body)
     new_name = body->query_name();
     if ( old_userid != new_userid )
     {
-	tell_room(environment(body),
-		  sprintf("%s has polymorphed into %s.\n",
-			  old_name, new_name), 0,
-		  ({ body }) );
+	tell_environment(body,
+			 sprintf("%s has polymorphed into %s.\n",
+				 old_name, new_name), 0,
+			 ({ body }) );
     }
-    tell_object(this_object(), sprintf("Done. You are now %s.\n", new_name));
+    receive(sprintf("Done. You are now %s.\n", new_name));
 }
 
 private nomask void confirm_valid_su(string old_userid,

@@ -13,7 +13,7 @@ void do_mount_obj(object ob1)
   ob1->mount();
 } 
 
-mixed array query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "OBJ" }) });
 }

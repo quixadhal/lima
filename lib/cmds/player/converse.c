@@ -14,9 +14,9 @@ private nomask void handle_piping(string arg)
 {
     if( arg == "**" || arg == ".")
     {
-	out("Done.\n");
-        modal_pop();
-        destruct();
+	write("Done.\n");
+	modal_pop();
+	destruct();
 	return;
     }
 
@@ -26,28 +26,28 @@ private nomask void handle_piping(string arg)
 nomask void start_cmd()
 {
     if(!clonep() || (base_name(previous_object()) != base_name()))  {
-        write("Illegal attempt to spoof command\n");
-        destruct();
-        return;
+	write("Illegal attempt to spoof command\n");
+	destruct();
+	return;
     }
 
-    out("Entering converse mode. Type '**' or '.' to quit.\n");
-    out("-------------------------------------------------\n");
     modal_push((: handle_piping :),
 #if 0 // Clients can't handle \r without \n well - Beek
-               "\r" BLANKLINE "\r" PROMPT "\r"
+      "\r" BLANKLINE "\r" PROMPT "\r"
 #else
-               PROMPT "\b"
+      PROMPT "\b"
 #endif
-               );
+    );
 }
 
 
 nomask private void main()
 {
     if(!clonep())  {
-        new(base_name())->start_cmd();
-        return;
+	out("Entering converse mode. Type '**' or '.' to quit.\n");
+	out("-------------------------------------------------\n");
+	new(base_name())->start_cmd();
+	return;
     }
     destruct();
 }

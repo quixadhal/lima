@@ -2,7 +2,7 @@ Proposal for class documentation.
 
 March 24, 1995
 
-$ This was written by Jeearr, originally.  What you are now reading is the
+$ This was written by Tigran, originally.  What you are now reading is the
 $ annotated version.  Any line starting with a '$' was added by me (Beek).
 
   A class is kind of like a combination between a structure and a datatype.
@@ -158,7 +158,7 @@ $ since the driver has no way of knowing the type of 'z["hi"]'
        
          (class myclass)arg1->member1
 
-$ actually, you need ((class myclass)arg1)->member1.  Jeearr's version
+$ actually, you need ((class myclass)arg1)->member1.  Tigran's version
 $ casts 'arg1->member1' to a class type, because of the precedence of
 $ casts is fairly low.
          
@@ -176,7 +176,7 @@ $ This is not true in current drivers.  I think it was in older drivers
 $ due to a bug in typechecking for classes.
          
   Q: Can classes be inherited?
-$ Yes. The question Jeearr meant to answer is:
+$ Yes. The question Tigran meant to answer is:
 $
 $ Q: Can classes inherit other classes?
     A: No.  This would allow function overloading which is not the direction

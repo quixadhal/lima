@@ -1,89 +1,190 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-//  Rust 2-6-94
+/*
+** 25-Jul-96    Valentino.     Created.
+*/
+
 #include <playerflags.h>
-#include <levels.h>
-#include <mudlib.h>
 
 inherit CMD;
 
+#define DELIM sprintf(repeat_string("-",73)+"\n")
+#define WHO_FORMAT	"%s:  (Local Time is: %s) %28s\n%s"
+#define DEBUG(arg) if (debug && member_array(arg,msgs)==-1) msgs+=({arg})
 
-#define DIVIDER \
-"-------------------------------------------------------------------------\n"
+string *msgs=({});
+
+string get_who_string(string arg)
+{
+    string retval="";
+    int debug;
+    object array b = bodies();
+    string *args=({});
+    string tmp;
+
+    if (arg)
+    {
+	args=explode(arg,"");
+    }
+    else
+    {
+	tmp=this_body()->query_shell_ob()->get_variable("people_flags");
+	if (tmp)
+	    args=explode(tmp,"");
+	else
+	{
+	    /*	  write("Syntax: people [Flags]\n"+
+		  "      flags: WPADhlntp\n");
+	    if (wizardp(this_user()))
+	      write("Wizardflags: wfaiIF\n");
+	    return "See the manpages for more help.\n";
+	    */
+	    args = explode( "anFwh", "" );
+	}
+    }
+    if (member_array("D",args)!=-1)
+    {
+	debug=1;
+	args-=({"D"});
+    }
+    retval+=DELIM;
+
+    if (member_array("W",args)!=-1)
+    {
+	b=filter_array(b, (: wizardp($1) :));
+	args-=({"W"});
+	DEBUG("Wizards only");
+    }
+    else
+    if (member_array("A",args)!=-1)
+    {
+	b=filter_array(b, (: adminp($1) :));
+	args-=({"A"});
+	DEBUG("Admins only");
+    }
+    else
+    if (member_array("P",args)!=-1)
+    {
+	b=filter_array(b, (: !wizardp($1) :));
+	args-=({"P"});
+	DEBUG("Players only");
+    }
+    if (!wizardp(this_user()))
+    {
+	b=filter_array(b, (: $1->query_body()->is_visible():) );
+    }
+
+    if (member_array("h",args)!=-1)
+    {
+	args-=({"h"});
+	DEBUG("Header");
+	retval+=sprintf("%|70s\n%|70s\n%|70s\n"+DELIM,
+	  implode(explode(mud_name(),"")," "),
+	  "(PST is: "+ctime(time())+")",
+	  "There are "+ sizeof(b) +" users connected.");
+    }
+    else
+    if (member_array("H",args)!=-1)
+    {
+	args-=({"H"});
+	DEBUG("Small Header");
+	retval += sprintf("%s:  (Local Time is: %s)\n",
+	  mud_name(), ctime(time()));
+	retval+=DELIM;
+    }
+    foreach (object body in b)
+    {
+	foreach (string arg2 in args)
+	{
+	    switch (arg2)
+	    {
+	    case "l":
+		DEBUG("Delimiter");
+		retval+=DELIM;
+		break;
+	    case "n":
+		DEBUG("Names");
+		retval+=sprintf("%-14s ",body->query_name());
+		break;	
+	    case "w":
+		if (!wizardp(this_user())) break;
+		retval+=sprintf("%-25.25s ", environment(body)->get_brief() ?
+		  environment(body)->get_brief() : 
+		  "(Nowhere)");
+		break;
+	    case "f":
+		if (!wizardp(this_user())) break;
+		retval+=sprintf("%-20s ", file_name(environment(body)) ?
+		  file_name(environment(body)) : "(lost?)");
+		break;
+	    case "t":
+		DEBUG("Titles");
+		retval+=sprintf("  %s  ",body->query_formatted_desc(78));
+		break;	
+	    case "p":
+		DEBUG("Position");
+		retval+=sprintf("%|14.14s ",body->query_wiz_position() ?
+		  body->query_wiz_position() : "(None)");
+		break;
+	    case "a":
+		if (!wizardp(this_user())) break;
+		DEBUG("Position II");
+		if (wizardp(body))
+		    retval+=sprintf("%-10s ",adminp(body) ? "Admin" : "Wizard");
+		else
+		    retval += "Player     ";
+		break;
+	    case "i":
+		if (!wizardp(this_user())) break;
+		DEBUG("Idle times");
+		retval+=sprintf("%-8.8s ", query_idle(body->query_link()) ? 
+		  convert_time(query_idle(body->query_link()),2) :
+		  "");
+		break;
+	    case "I":
+		if (!wizardp(this_user())) break;
+		DEBUG("Ip's");
+		retval+=sprintf("%s ", query_ip_name(body->query_link()));
+		break;
+	    case "S":
+		if (!wizardp(this_user())) break;
+		retval += body ? body->query_score() : 0;
+		break;
+	    case "F":
+		if (!wizardp(this_user())) break;
+		DEBUG("Flags");
+		retval+=sprintf("%2d%2c%c ",
+		  body->query_score(),
+		  (query_idle(body->query_link()) > 60 ? 'I':' '),
+		  (body && body->test_flag(F_IN_EDIT) ? 'E' : ' ')
+		);
+		break;
+	    default:
+		if(arg2)
+		    retval += "Who: Unknown flag '"+arg2+"' -  ignored.\n";
+	    }
+	}
+	retval+="\n";
+    }
+    retval+=DELIM;
+    return retval;
+}
 
 private void main(string arg)
 {
-    object* user_obs;
-    object* bodies;
-    int i;
-    string name;
-    string where;
-    object o;
-
-    user_obs = users();
-
-    bodies = user_obs->query_body() - ({ 0 });
-    bodies = sort_array(bodies, (: $1->query_score() > $2->query_score() :));
-
-    out(DIVIDER);
-    outf("%|70s\n", implode(explode(mud_name(),"")," "));
-    outf("%|70s\n", "(PST is: "+ctime(time())+")");
-    out(DIVIDER);
-    i = sizeof(bodies);
-    if(!i)
-	outf("%-17s%4s     %15s  %s\n","[(*SATAN*)]","none","666.666.666.666","HELL!!!!!");
-    while ( i-- )
-    {
-	string userid;
-
-	userid = bodies[i]->query_userid();
-
-	if ( !userid )
-	    name = "login";
-	else
-	    name = capitalize(userid);
-	if( !(bodies[i]->is_visible()) ) name = "("+name+")";
-
-	if (arg != "-f")
-	{
-	    if (environment(bodies[i]))
-		where = environment(bodies[i])->get_brief();
-	    else
-		where = "(nowhere)";
-	}
-	else
-	{
-	    if( o = environment(bodies[i]) )
-		where = file_name(o);
-	    else
-		where = "(null)";
-	    if(!o) name = "<"+name+">";
-	}
-//### put "position" in here...
-	outf("%-10s %-13s%4d %c%c %-30s \n",
-	  adminp(userid) ? "admin" : wizardp(userid) ? "wizard" : "player",
-	  name,
-	  bodies[i] ? bodies[i]->query_score() : 0,
-	  (query_idle(bodies[i]->query_link()) > 60 ? 'I':' '),
-	  (bodies[i] && bodies[i]->test_flag(F_IN_EDIT) ? 'E' : ' '),
-     where);
+    string outtie;
+    if( arg == "" )
+	arg = 0;
+    msgs=0;
+    msgs=({});
+    outtie=get_who_string(arg);
+    if (sizeof(msgs)) outf(implode(msgs,", ")+".\n");
+    out(outtie);
 }
-	out(DIVIDER);
-	return;
-    }
 
-
-    int help()       
-    {            
-	write(wrap(  
-	    "Usage: people [-p|z | -w|i | -l | -m]\n"
-	    "Shows relevent info of people on the mud.  The default is all on line "
-	    "users, but the p or z flag will restrict this to players only, and the w and i "
-	    "flags will restrict people to show wizards only. "
-	    "The l flag will show all living creatures, and the m flag will show "
-	    "all monsters, but no interactive users.  people -l and people -m "
-	    "can give inacurate information if there has been a recent update "
-	    "of the simul_efun object.\n"
-	  ));          
-	return 1;    
-    }
+void player_menu_entry()
+{
+    bare_init();
+    main(0);
+    done_outputing();
+}

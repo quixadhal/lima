@@ -7,7 +7,7 @@
 
 mapping messages = 
 ([
-#if COMBAT_STYLE == COMBAT_SIMPLE
+//#if COMBAT_STYLE == COMBAT_SIMPLE
 "combat-unarmed" :
   ([ "miss" :
     ({ "$N $vswing a fist at $t, but $vmiss wildly.\n",
@@ -21,7 +21,7 @@ mapping messages =
      "fatal" : "$N $vdrive $t back with a series punches of kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
     
     "disarm" : "$N $vgrab $p1 arm, and $vslam it down on $p knee, causing $n1 to drop $p1 $o1.\n",
-    "knockdown" : "$N $vstep behind $t, and trips $t, sending $t flying.\n",
+    "knockdown" : "$N $vstep behind $t, and $vtrip $t, sending $t flying.\n",
     "knockout" : "$N $vdeliver a quick jab to the head; $N1 $v1are knocked cold.\n",
     "dispatch" : "$N $vwalk up to $p1 motionless body, and calmly $vsnap $p1 neck.\n",
     "wakeup": "$N slowly $vregain $p feet.\n"
@@ -42,7 +42,7 @@ mapping messages =
     "dispatch" : "$N $vwalk up to $p1 motionless body, and calmly $vsnap $p1 neck.\n",
     "wakeup" : "$N slowly $vregain $p feet.\n",
     ]),
-#else
+//#else
   "combat-unarmed" :
   ([
     "miss" :
@@ -59,9 +59,9 @@ mapping messages =
     "dam4" : "$N $vtrip $t, and lands a vicious blow just below $p1 ribs.\n",
     "dam5" : "$N1 $v1are sent flying backwards by $p well-executed kick to $p1 chest.\n",
     "dam6" : "$N1 $v1are caught off guard, and $n $vtake advantage and pummel $t soundly.\n",
-    "dam7" : "$N relentlessly pounds $t with repeated blows to the head.\n",
+    "dam7" : "$N relentlessly $vpound $t with repeated blows to the head.\n",
     "dam8" : "$N $vland an incredible combination of punches and kicks, beating $t badly.  $N1 $v1are not in very good shape.\n",
-    "dam9" :"$N $vunleashes a series of stunning blows to $p1 head!  $N1 $v1are hurt badly!\n",
+    "dam9" :"$N $vunleash a series of stunning blows to $p1 head!  $N1 $v1are hurt badly!\n",
     "dam10" : "$N $vbeat $t within an inch of $p1 life.\n"
     ]),
   "combat-sword" :
@@ -69,12 +69,12 @@ mapping messages =
     "miss" :
     ({ "$N $vslash at $t but $vmiss by a mile.\n",
        "$N just $vmiss $t with a quick thrust.\n" }),
-    "none" : "$N just barely nick $t with a swipe of $p $o.\n",
+    "none" : "$N just barely $vnick $t with a swipe of $p $o.\n",
     "dam1" : "$N $vprick $t with a quick stab of $p $o.\n",
     "dam2" : "Blood flows from $p1 hand as $n $vsneak past $p1 guard.\n",
-    "dam3" : "$N1 $vare not quit fast enough; $n $o slices $t across the arm.\n",
+    "dam3" : "$N1 $vare not quite fast enough; $n $o slices $t across the arm.\n",
     "dam4" : "$N $vcatch $t in the arm with a quick thrust.\n",
-    "dam5" : "$N $vcut $t with slice of $p $o.\n",
+    "dam5" : "$N $vcut $t with a slice of $p $o.\n",
     "dam6" : "$N $vwound $t with a quick slash.\n",
     "dam7" : "$N $vthrust quickly and $vwithdraw, leaving $t wounded.\n",
     "dam8" : "$N $vconnect!  $N1 $v1are hurt badly.\n",
@@ -96,7 +96,7 @@ mapping messages =
     "none" : "$N $vhit $t with $p $o, but $t $vdo not seem hurt by it.\n",
     "disarm" : "$N $vgrab $p1 arm, and $vslam it down on $p knee, causing $n1 to drop $p1 $o1.\n",
     "knockdown" : "$N $vstep behind $t, and trips $t, sending $t flying.\n",
-    "fatal" : "$N $vdrive $t back with a series punches of kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
+    "fatal" : "$N $vdrive $t back with a series of punches of kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
     "knockout" : "$N $vfeint past $p1 guard and $vknock $t senseless.\n",
     "dispatch" : "$N $vhave no sense of honor; $n $vlop $p1 head clean off.\n",
     "wakeup" : "$N slowly $vregain $p feet.\n",
@@ -111,7 +111,7 @@ mapping messages =
     "dam9" :"$N $vunleashes a series of stunning blows to $p1 head!  $N1 $v1are hurt badly!\n",
     "dam10" : "$N $vbeat $t within an inch of $p1 life.\n"
     ]),
-#endif
+//#endif
 
   "living-default" :
   ([

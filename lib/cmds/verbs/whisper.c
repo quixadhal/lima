@@ -31,7 +31,7 @@ void do_whisper_to_liv_str(object liv, string str) {
     whisper_it(liv,str);
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "LIV STR", "STR to LIV", "to LIV STR" }) });
 }

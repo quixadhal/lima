@@ -21,12 +21,13 @@ inherit __DIR__ "admtool/i3chan";
 inherit __DIR__ "admtool/security";
 inherit __DIR__ "admtool/domain";
 inherit __DIR__ "admtool/news";
+inherit __DIR__ "admtool/money";
 inherit __DIR__ "admtool/alias";
 inherit __DIR__ "admtool/quest";
 inherit __DIR__ "admtool/banish";
 inherit __DIR__ "admtool/group";
 
-#define PROMPT_MAIN	"(AdmTool:main) [usdQbinagq?] > "
+#define PROMPT_MAIN	"(AdmTool:main) [usdcQbinagq?] > "
 
 private nomask void receive_main_input(string str);
 
@@ -38,6 +39,7 @@ private nomask void write_main_menu()
 	  "    u - user adminstration      [admin]\n"
 	  "    s - security adminstration\n"
 	  "    d - domain adminstration\n"
+	  "    c - currency adminstration\n"	  
 	  "    Q - quest administration\n"
 	  "    b - site/name banishment    [admin]\n"
 	  "    i - Intermud channel admin  [admin]\n"
@@ -95,12 +97,11 @@ private nomask void receive_main_input(string str)
         begin_quest_menu();
 	break;
 	
+    case "c":
+        begin_money_menu();
+        break;
+
     case "b":
-	if ( !check_privilege(1) )
-	{
-	    write("Sorry... admin only.\n");
-	    return;
-	}
 	begin_banish_menu();
 	break;
 
@@ -192,6 +193,49 @@ private nomask void rcv_first_of_two(string arg2_prompt,
 	modal_simple((: evaluate, fp, arg1 :));
     }
 }
+private nomask void rcv_last_of_three(string arg3_prompt,
+				      function fp,
+				      string arg1,string arg2)
+{   
+  string arg3;
+  
+  if ( arg1 == "" )
+    {
+      write("Aborted.\n");
+      return;
+    }
+    if ( sscanf(arg2, "%s %s", arg2, arg3) == 2 )
+    {
+      evaluate(fp, arg1, arg2,arg3);
+    }
+    else
+      {
+	printf(arg3_prompt, arg2);
+	modal_simple((: evaluate, fp, arg1,arg2 :));
+      }
+}
+
+private nomask void rcv_second_of_three(string arg2_prompt,
+					string arg3_prompt,
+					function fp,
+					string arg)
+{
+  string arg1,arg2,arg3;
+  if (sscanf(arg, "%s %s %s", arg1, arg2, arg3 )==3)
+    {
+      evaluate(fp, arg1, arg2,arg3);
+    }
+  else
+    if ( sscanf(arg, "%s %s", arg1, arg2) == 2 )
+      {
+	rcv_last_of_three(arg3_prompt,fp,arg1,arg2);
+      }
+    else
+  {
+    printf(arg2_prompt,arg);
+    modal_simple((: rcv_last_of_three, arg3_prompt,fp,arg:));
+  }
+}
 
 static nomask void do_two_args(string arg1_prompt,
 				string arg2_prompt,
@@ -215,6 +259,39 @@ static nomask void do_two_args(string arg1_prompt,
     {
 	printf(arg1_prompt);
 	modal_simple((: rcv_first_of_two, arg2_prompt, fp :));
+    }
+}
+
+static nomask void do_three_args(string arg1_prompt,
+				 string arg2_prompt,
+				 string arg3_prompt,
+				 function fp,
+				 string arg)
+{
+  string arg1,arg2,arg3;
+  if ( arg )
+    {
+      /* All 3 args */
+      if (sscanf(arg, "%s %s %s", arg1, arg2, arg3 )==3)
+	{
+	  evaluate(fp, arg1, arg2,arg3);
+	}
+      else
+	/* 2 args */
+	if (sscanf(arg, "%s %s", arg1, arg2 )==2)
+	  {
+	    rcv_last_of_three(arg3_prompt,fp,arg1,arg2);
+	  }
+      else
+	{ /* 1 arg */
+	  rcv_second_of_three(arg2_prompt,arg3_prompt,fp,arg);
+	}
+    }
+  else
+    {
+      /* 0 Args */
+      printf(arg1_prompt,arg1);
+      modal_simple((: rcv_second_of_three,arg2_prompt,arg3_prompt,fp :));
     }
 }
 

@@ -17,11 +17,21 @@ private void we_moved() {
 	foreach (string dir in current_blocks)
 	    env->remove_hook("block_" + dir, hook);
     }
+    else
+      {
+	foreach (string dir in current_blocks)
+	    remove_hook("block_" + dir, hook);
+      }
     env = environment();
     if (env) {
 	foreach (string dir in current_blocks)
 	    env->add_hook("block_" + dir, hook);
     }
+    else
+      {
+	foreach (string dir in current_blocks)
+	    add_hook("block_" + dir, hook);
+      }
 }
 
 //:FUNC add_block
@@ -32,6 +42,9 @@ void add_block(string array exits...) {
     if (env)
 	foreach (string dir in exits)
 	    env->add_hook("block_" + dir, hook);
+    else
+	foreach (string dir in exits)
+	    add_hook("block_" + dir, hook);
     if (sizeof(current_blocks))
 	add_hook("move", move_hook);
 }
@@ -43,6 +56,9 @@ void remove_block(string array exits...) {
     if (env)
 	foreach (string dir in exits)
 	    env->remove_hook("block_" + dir, hook);
+    else
+	foreach (string dir in exits)
+	    remove_hook("block_" + dir, hook);
     if (!sizeof(current_blocks))
 	remove_hook("move", move_hook);
 }

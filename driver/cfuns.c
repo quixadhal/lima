@@ -34,7 +34,7 @@ void c_member P1(int, idx) {
     arr = sp->u.arr;
     if (idx >= arr->size) error("Class has no corresponding member.\n");
     assign_svalue_no_free(sp, &arr->item[idx]);
-    free_array(arr);
+    free_class(arr);
 }
 
 void c_member_lvalue P1(int, idx) {
@@ -46,7 +46,7 @@ void c_member_lvalue P1(int, idx) {
     if (idx >= arr->size) error("Class has no corresponding member.\n");
     sp->type = T_LVALUE;
     sp->u.lvalue = arr->item + idx;
-    free_array(arr);
+    free_class(arr);
 }
 
 void c_return() {
@@ -1337,7 +1337,7 @@ void c_parse_command P1(int, num_arg) {
 }
 
 void c_prepare_catch P1(error_context_t *, econ) {
-    if (!save_context(&econ))
+    if (!save_context(econ))
 	error("Can't catch too deep recursion error.\n");
     push_control_stack(FRAME_CATCH);
 #if defined(DEBUG) || defined(TRACE_CODE)

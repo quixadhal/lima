@@ -20,7 +20,7 @@ mixed do_board_obj(object ob)
     ob->board();
 }
    
-mixed * query_verb_info()
+array query_verb_info()
 {
    return ({ ({ "OBJ" }) });
 }

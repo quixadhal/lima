@@ -80,7 +80,7 @@ new_call_out P5(object_t *, ob, svalue_t *, fun, int, delay, int, num_args, sval
 {
     pending_call_t *cop, **copp;
     int tm;
-    
+
     if (delay < 1)
 	delay = 1;
     /* Needs to be initialized here in case of very early call_outs */
@@ -223,6 +223,9 @@ void call_out()
 			    extra = 0;
 			
 			if (cop->ob) {
+			    if (cop->function.s[0] == APPLY___INIT_SPECIAL_CHAR)
+				error("Illegal function name\n");
+    
 			    (void) apply(cop->function.s, cop->ob, extra,
 					 ORIGIN_CALL_OUT);
 			} else {

@@ -30,7 +30,10 @@ mixed real_name;
 #endif
 	}) :));
 
+  if (sizeof(info) > 1)
     email = info[1];
+  else
+    email = "(unknown)";
     if(email[0] == '#')
 info[1] = 0;
 
@@ -77,12 +80,12 @@ string show_big_finger(int htmlize)
 				   get_level($2),
 				   get_idle($2),
 				   query_ip_name($2)) :),
-		   sprintf("\n[%s] %d user%s presently connected (%s)\n%79'-'s\n",
+		   sprintf("\n[%s] %d user%s presently connected (%s)\n%s\n",
 			   mud_name(),
 			   sizeof(u),
 			   sizeof(u) == 1 ? "" : "s",
 			   ctime(time()),
-			   ""));
+			   repeat_string("-", 75)));
     else
       {
 	retval = sprintf("<META HTTP-EQUIV=\"Refresh\" CONTENT=30><center><TABLE BORDER=5><caption><font size=+2>%s</font></caption>"

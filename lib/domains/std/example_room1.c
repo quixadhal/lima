@@ -21,7 +21,7 @@ void setup(){
 	"north" : "/domains/std/rooms/v_plains/4/7",
 	"east" : (: environment(this_body())->is_vehicle() && member_array("car", environment(this_body())->query_id()) != -1 ? "/domains/std/car_wash.c" : "#Perhaps it would be better if you were in a car!\n" :),
     ]) );
-    set_exit_msg("east", "As you enter the car wash, jets of water begin washing the under carraige of the car. \n");
+    set_exit_msg("east", "As you enter the car wash, jets of water begin washing the under carriage of the car. \n");
  
     add_item( "suit" , "armor" , "suit of armor" , "The armor is very old and well worn.  While examining the armor you imagine you hear the sounds of combat coming from behind you.");
 

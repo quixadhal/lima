@@ -62,28 +62,6 @@
 #endif
 
 #if !defined(SunOS_5) && !defined(NeXT)
-#  ifndef sgi
-#    ifndef LATTICE
-       int fclose PROT_STDIO((FILE *));
-#    endif
-     int pclose PROT_STDIO((FILE *));
-#  endif
-
-#  if !defined(LATTICE) && !defined(sgi)
-     int fflush PROT_STDIO((FILE *));
-     int fclose PROT_STDIO((FILE *));
-#  endif
-
-   int pipe PROT((int *));
-   int dup2 PROT((int, int));
-
-#  ifndef LATTICE
-     int close PROT((int));
-#  endif
-#  ifndef sgi
-     int _filbuf();
-#  endif
-
 #  ifdef sun
      char *_crypt PROT((char *, char *));
 #  endif
@@ -99,7 +77,7 @@
 #  endif
 
 /* SGI is missing some prototypes in the .h files */
-#ifdef LINT
+#ifdef PEDANTIC
 #  ifdef sgi
      void ualarm PROT((int, int));
 #  endif

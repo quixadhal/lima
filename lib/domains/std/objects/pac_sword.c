@@ -28,6 +28,8 @@ adjust_my_result(class combat_result array result) {
 void setup() {
     set_adj("glowing");
     set_id("sword");
-    set_proper_name("Sword of Mercy");
+    add_id( "mercy" );
+    add_adj( "sword of" );
+    set_proper_name("the Sword of Mercy");
     set_size(MEDIUM);
 }

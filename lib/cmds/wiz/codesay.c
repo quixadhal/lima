@@ -12,7 +12,7 @@ void create()
 }
 
 private void main(string s) {
-    if (!s | s == "") {
+    if (!s || s == "") {
 	write("Say what?\n");
 	return;
     }
@@ -31,8 +31,8 @@ private void main(string s) {
     s = "\n\t" + replace_string(s, "\n", "\n\t");
     
 #ifdef ZORKMUD
-    this_body()->simple_action("$N $vsay, \"$O\"\n", punctuate(s));
+    this_body()->simple_action("$N $vsay, \"$O\"", punctuate(s));
 #else
-    this_body()->simple_action("$N $vsay: $o\n", punctuate(s));
+    this_body()->simple_action("$N $vsay: $o", punctuate(s));
 #endif
 }

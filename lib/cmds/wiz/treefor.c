@@ -112,7 +112,7 @@ void main(string str)
         "#include <daemons.h>\n"
         "#include <config.h>\n"
         "mixed eval_function(){\n return __TREE__{";
-    tmp_file = wiz_dir(this_user()) + "/EVAL.c";
+    tmp_file = "/tmp/EVAL.c";
     rm(tmp_file);
     if(o = find_object(tmp_file)) destruct(o);
     if(!write_file(tmp_file,initial_write_to_file)) {

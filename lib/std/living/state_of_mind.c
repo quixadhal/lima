@@ -1,7 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 //### This stuff needs to be linked to affect commands.
-private static int stunned, asleep, chance;
+//### some of these also should probably be bits
+private static int stunned, asleep, chance, prone;
 
 int query_ghost() {
     return 0;
@@ -13,6 +14,20 @@ int query_asleep() {
 
 int query_stunned() {
     return stunned;
+}
+
+int query_prone() {
+    return prone;
+}
+
+int lie_down() {
+    prone = 1;
+    return 1;
+}
+
+int get_up() {
+    prone = 0;
+    return 1;
 }
 
 /* Call the following to make your monster do the appropriate thing */
@@ -47,6 +62,9 @@ mixed check_condition(int urgent) {
 	asleep = 0;
 	return 0;
     }
+
+    if (query_prone())
+	return "You will have to get up first.\n";
     
     if (urgent && stunned > time())
 	return "$N $vare still recovering from that last blow, ";

@@ -28,7 +28,7 @@ void do_listen ()
     }
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "", "to OBJ" }), ({ }) });
 }

@@ -21,18 +21,20 @@ private static mapping legal_logs = ([
     LOG_BUG		: DIR_LOG "/BUGS",
     LOG_CHANNEL		: DIR_LOG "/chanlog",
     LOG_FORCE		: DIR_LOG "/forces",
+    LOG_FTP		: DIR_LOG "/ftp",
     LOG_HELP_MISS	: DIR_LOG "/HELP_MISS",
     LOG_I3_ERROR	: DIR_LOG "/i3_errors",
     LOG_IDEA		: DIR_LOG "/IDEAS",
     LOG_LOGIN		: DIR_LOG "/logins",
     LOG_LOGIN_FAILURE	: DIR_LOG "/LOGIN_FAIL",
+    LOG_MAIL_ERROR	: DIR_LOG "/mail_errs",
     LOG_QUEST		: DIR_LOG "/quests",
-    LOG_QUIT		: DIR_LOG "/quits",
+    LOG_QUIT            : DIR_LOG "/logins",
     LOG_SHUTDOWN	: DIR_LOG "/SHUTDOWN",
     LOG_TODO		: DIR_LOG "/TODOS",
     LOG_TYPO		: DIR_LOG "/TYPOS",
     LOG_WALL		: DIR_LOG "/walls",
-
+    LOG_FTP		: DIR_LOG "/ftp",
     LOG_SNOOP		: DIR_SECURE_LOG "/snoops",
 ]);
 

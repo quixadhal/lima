@@ -14,6 +14,6 @@ mixed do_close_obj(object ob) {
     ob->close();
 }
 
-mixed * query_verb_info() {
+array query_verb_info() {
   return ({ ({ "OBJ" }) });
 }

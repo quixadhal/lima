@@ -92,7 +92,7 @@ maximum read file size : 200000
 
 # max number of bytes you allow to be read and written with read_bytes 
 # and write_bytes
-maximum byte transfer : 10000
+maximum byte transfer : 200000
 
 # Reserve an extra memory area from malloc(), to free when we run out
 # of memory and allow the mudlib to shutdown.

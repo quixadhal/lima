@@ -29,7 +29,7 @@ void do_dismount(object what)
 	    this_body()->simple_action(s);
 	  else
 	    this_body()->simple_action("$N $vget off " + what->the_short()+
-				       ".\n");
+				       ".");
 	}
       else
 	{
@@ -50,7 +50,7 @@ void do_dismount_obj(object o)
   do_dismount(o);
 }
 
-mixed array query_verb_info()
+array query_verb_info()
 {
     return ({ ({ "", "OBJ" }) });
 }

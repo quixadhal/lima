@@ -23,7 +23,7 @@ void do_press_obj_str(object ob, string str) {
     ob->press_str(str);
 }
 
-mixed *query_verb_info() {
+array query_verb_info() {
     return ({ ({ "OBJ", "OBJ STR", "OBJ with OBJ" }), ({ "push" }) });
 }
 

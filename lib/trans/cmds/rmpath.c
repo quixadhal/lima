@@ -25,7 +25,7 @@ private void main(string * arg)
     paths -= ({ path });
     shell_ob->set_variable("path", paths);
 
-    out(iwrap(implode(paths,
+    out(implode(paths,
 			(: $1 + $2[0..<2] + ", " :),
-			"Your path is now: ")[0..<3]) + "\n");
+			"Your path is now: ")[0..<3] + "\n");
 }

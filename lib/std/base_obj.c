@@ -18,7 +18,6 @@ inherit __DIR__ "object/non_object";
 
 void create()
 {
-    parse_init();
     names::create();
     flags::create();
 }
@@ -45,6 +44,7 @@ int is_visible()
     return 1;
 }
 
+//### explain this comment.
 // Here on purpose.
 varargs mixed call_hooks(mixed s ...)
 {

@@ -25,9 +25,9 @@ private void main()
 	return;
     }
     if(end_of_pipeline())
-      out(wrap(implode(ulist->query_userid(),
+      out(implode(ulist->query_userid(),
 		       (: $1 + " " + ($2 ? $2 : "(login)") :),
-		       "")[1..] + "\n"));
+		       "")[1..] + "\n");
     else
       out((implode(ulist->query_userid(),
 		       (: $1 + "\n" + ($2 ? $2 : "(login)") :),

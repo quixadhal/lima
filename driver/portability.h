@@ -23,21 +23,15 @@
 /* define this if you're using HP-UX 7.x (or below?) */
 #undef OLD_HPUX
 
-/* hack to figure out if we are being compiled under Solaris or not */
-/* newer versions of gcc are smart enough to tell us */
-#if defined(sun) && !defined(SunOS_5)
-#  if defined(__svr4__) || defined(__sol__) || defined(SVR4)
-#    define SunOS_5
-#  else
-#    define SunOS_4
-#  endif
-#endif
-
 #if defined(WINNT) || defined(WIN95)
 #  ifndef WIN32
 #    define WIN32
      typedef char * caddr_t;
 #  endif
+#  define symlink(x, y) dos_style_link(x, y)
+#  define CDECL __cdecl
+#else
+#  define CDECL
 #endif
 
 #ifdef WIN32
@@ -126,6 +120,7 @@
 #  define HAS_SETDTABLESIZE
 #endif
 
+/* Should be a configure check */
 #define SIGNAL_FUNC_TAKES_INT defined(_AIX) || defined(NeXT) \
     || defined(_SEQUENT_) || defined(SVR4) \
     || defined(__386BSD__) || defined(apollo) || defined(cray) \
@@ -197,7 +192,26 @@
 #endif
 
 #ifdef HAS_STRERROR
-#define port_strerror strerror
+#  define port_strerror strerror
+#endif
+
+#ifdef WIN32
+#define socket_errno WSAGetLastError()
+#define socket_perror(x, y) SocketPerror(x, y)
+void SocketPerror(char *str, char *file);
+
+#define FOPEN_READ "rb"
+#define FOPEN_WRITE "wb"
+#define OPEN_WRITE (O_WRONLY | O_BINARY)
+#define OPEN_READ (O_RDONLY | O_BINARY)
+#else
+#define socket_errno errno
+#define socket_perror(x, y) debug_perror(x, y)
+
+#define FOPEN_READ "r"
+#define FOPEN_WRITE "w"
+#define OPEN_WRITE O_WRONLY
+#define OPEN_READ O_RDONLY
 #endif
 
 #endif				/* _PORT_H */

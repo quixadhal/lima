@@ -111,11 +111,11 @@ not = clean_array( arglist - valid );
 valid = clean_array( valid );
 
 if( sizeof( not ) )
-    out(iwrap(sprintf("Unable to remove: %s.\n", implode( not, ", "))));
+    out(sprintf("Unable to remove: %s.\n", implode( not, ", ")));
 
 if( sizeof( valid ) )
 {
-    out(iwrap(sprintf("Removed: %s.\n", implode( valid, ", " ))));
+    out(sprintf("Removed: %s.\n", implode( valid, ", " )));
     groups[this_group] -= valid;
     if( !sizeof( groups[this_group] ) )
 	map_delete(groups, this_group);
@@ -128,9 +128,9 @@ return;
 private nomask void print_groups(mapping groups)
 {
     map_array(sort_array(keys(groups), 1),
-      (: out(iwrap(sprintf("%s: %s\n", $1,
+      (: out(sprintf("%s: %s\n", $1,
 	      implode(map_array(sort_array($2[$1], 1),
-		  (: capitalize :)), ", ")))) :),
+		  (: capitalize :)), ", "))) :),
       groups);
 
     out("\n");

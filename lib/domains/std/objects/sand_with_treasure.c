@@ -26,42 +26,42 @@ void dig(object o)
     case 0:
       my_hole = new("/domains/std/objects/hole");
       my_hole->move(environment(this_object()));
-      this_body()->simple_action("$N $vseem to be digging a hole here...\n");
+      this_body()->simple_action("$N $vseem to be digging a hole here...");
       my_hole->change_desc("There is a small hole in the sand.");
       break;
     case 1:
       my_hole->set_in_room_desc("There is a hole in the sand.");
     case 2:
-      this_body()->simple_action("$N $vdig the hole a bit deeper.\n");
+      this_body()->simple_action("$N $vdig the hole a bit deeper.");
       break;
     case 3:
       my_hole->change_desc("There is a large hole in the sand.");
       my_hole->change_max_capacity(VERY_LARGE);
     case 4:
-      this_body()->simple_action("$N $vdig the hole a bit deeper.\n");
+      this_body()->simple_action("$N $vdig the hole a bit deeper.");
       break;
     case 5:
       my_hole->change_desc("There is a very large hole in the sand.");
       my_hole->change_max_capacity(VERY_LARGE*2);
     case 6:
-      this_body()->simple_action("$N $vdig the hole a bit deeper.\n");
+      this_body()->simple_action("$N $vdig the hole a bit deeper.");
       break;
     case 7:
       this_body()->simple_action("$N $vdig at the hole some more and $vuncover "
-				 "a treasure chest!\n");
+				 "a treasure chest!");
       QUEST_D->grant_points(this_body(), "pirate");
       break;
     case 8:
-      this_body()->simple_action("$N $vdig the hole a bit deeper.\n");
+      this_body()->simple_action("$N $vdig the hole a bit deeper.");
       break;
     case 9:
     case 10:
-      this_body()->simple_action("$N $vdig the hole a bit deeper.\n");
+      this_body()->simple_action("$N $vdig the hole a bit deeper.");
       break;
     default:
       this_body()->simple_action("$N $vdig at the hole, but $vmake no progress, "
 				 "as the hole fills in\neverything removed "
-				 "from it.\n");
+				 "from it.");
       break;
 				
     }

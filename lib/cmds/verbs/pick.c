@@ -20,7 +20,7 @@ void do_pick_obj_with_obj(object ob1, object ob2)
   ob1->open_with(ob2);
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return 
 	({ 

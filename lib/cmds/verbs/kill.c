@@ -35,7 +35,7 @@ void do_kill_str(string str)
    write("You don't see that here.\n");
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
    return ({ ({ "", "LIV", "LIV with OBJ", "STR" }) });
 }

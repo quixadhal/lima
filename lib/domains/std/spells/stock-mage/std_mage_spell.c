@@ -1,5 +1,12 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+/*
+** std_mage_spell.c -- standard spell superclass for "stock mages"
+**
+** Adds delays from casting to effect and adds the requirement that the
+** caster must be in the "stock-mage" guild.
+*/
+
 #include <assert.h>
 
 inherit SPELL;

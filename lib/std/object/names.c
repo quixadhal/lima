@@ -271,6 +271,24 @@ string array query_id() {
     else return ids;
 }
 
+//:FUNCTION query_primary_id
+//Returns the primary id of an object
+string query_primary_id() {
+    return primary_id;
+}
+
+//:FUNCTION query_primary_adj
+//Returns the primary adj of an object
+string query_primary_adj() {
+    return primary_id;
+}
+
+//:FUNCTION query_primary_id
+//Returns the primary name (primary adj + primary id) of an object
+string query_primary_name() {
+    return (primary_adj ? primary_adj + " " : "") + primary_id;
+}
+
 //:FUNCTION query_adj
 //return the adjectives
 string array query_adj()

@@ -1,5 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//### lots of functions in here need to be autodoc'd
+
 // /std/player.c  Written after login.c 1-12-94
 // Rust@ZorkMUD
 // with mods by alot of us:
@@ -17,19 +19,21 @@
 #include <move.h>
 #include <hooks.h>
 #include <size.h>
+#include <combat.h>
 
 // Files we need to inherit --
 inherit MONSTER;
 inherit M_ACCESS;
 inherit M_SMARTMOVE;
+inherit M_INPUT;
 
-#ifdef USE_STATUS_LINE
-inherit M_STATUS_LINE;
+#ifdef USE_STATS
+inherit M_BODY_STATS;
 #endif
 
 #ifndef EVERYTHING_SAVES
 private inherit M_SAVE; // don't want people calling load_from_string()
-                        // externally
+// externally
 #endif
 
 inherit __DIR__ "body/quests";
@@ -41,6 +45,12 @@ inherit __DIR__ "body/wizfuncs";
 inherit __DIR__ "body/money";
 inherit __DIR__ "body/start";
 inherit __DIR__ "body/time";
+inherit __DIR__ "body/naming";
+
+#ifdef USE_STATUS_LINE
+inherit __DIR__ "body/status_line";
+#endif
+
 
 #ifdef USE_SKILLS
 inherit __DIR__ "body/skills";
@@ -59,71 +69,33 @@ inherit __DIR__ "body/guilds";
 #endif
 
 // Global variables --
-private string name = "guest";
-private string describe;
-private string invis_name;
-private string nickname;
 private string reply;
 private string array channel_list = ({ });
 private string plan;
 private static object link;
-private static string cap_name;
 private static int catching_scrollback;
 private mixed saved_items;
 
-#ifdef USE_STATS
-inherit M_BODY_STATS;
-
-int to_hit_base() {
-    return 50 - query_agi();
-}
-
-void refresh_stats() {
-    m_bodystats::refresh_stats();
-}
-#endif
-
 // interfaces for other objects to manipulate our global variables
 
+//:FUNCTION query_link
+//Return our link object
 nomask object query_link(){  return link; }
 
-string short() { return query_name(); }
 
-string a_short() { return query_name(); }
 
-string the_short() { return query_name(); }
-
-string query_name()
-{
-    if ( invis_name == cap_name || !invis_name ) invis_name = "Someone";
-    if ( !is_visible() ) return invis_name;
-    if ( test_flag(F_DEAD) ) return "A ghost";
-    return cap_name;
-}
-
-string query_long_name()
-{
-    if (query_ghost())
-	return "The ghost of " + cap_name;
-#ifdef USE_TITLES
-    return query_title();
-#else
-    return cap_name;
-#endif
-}
-
-nomask string query_userid()
-{
-    return name;
-}
 
 #ifdef EVERYONE_HAS_A_PLAN
 
+//:FUNCTION query_plan
+//Returns our plan
 nomask string query_plan()
 {
     return plan;
 }
 
+//:FUNCTION set_plan
+//Sets our plan
 nomask void set_plan(string new_plan)
 {
     if ( this_body() != this_object() )
@@ -152,13 +124,12 @@ private nomask void init_cmd_hook()
     }
     else
     {
-        mailbox->set_message_index(idx);
-	write("\n>>You have new mail<<\n\n");
+	mailbox->set_message_index(idx);
+	write("\n>>You have new mail<<\n");
     }
 
-    add_id_no_plural( name );
-    if (nickname)
-	add_id_no_plural(nickname);
+write( "\n" );
+    naming_init_ids();
 
 #ifdef USE_MASS
     set_mass(100);
@@ -178,7 +149,7 @@ private nomask void finish_enter_game()
 {
 
     NCHANNEL_D->deliver_emote("announce", query_name(),
-			      sprintf("enters %s.", mud_name()));
+      sprintf("enters %s.", mud_name()));
 
     /* move the body.  make sure this comes before the simple_action */
     if ( !move_to_start() )
@@ -190,7 +161,7 @@ private nomask void finish_enter_game()
     /* we don't want other people to get the extra newlines */
     write("\n");
     if(is_visible())
-	simple_action("$N $venter "+mud_name()+".\n");
+	simple_action("$N $venter "+mud_name()+".");
     write("\n");
 
     NCHANNEL_D->register_channels(channel_list);
@@ -202,12 +173,12 @@ nomask void su_enter_game(object where)
 {
     init_cmd_hook();
 
-//### this should go away once we torch the corresponding leave msg for 'su'
+    //### this should go away once we torch the corresponding leave msg for 'su'
     NCHANNEL_D->deliver_emote("announce", query_name(),
-			      sprintf("enters %s.", mud_name()));
+      sprintf("enters %s.", mud_name()));
 
     if ( is_visible() )
-	simple_action("$N $venter "+mud_name()+".\n");
+	simple_action("$N $venter "+mud_name()+".");
 
     NCHANNEL_D->register_channels(channel_list);
 
@@ -220,17 +191,17 @@ void enter_game(int is_new)
     if ( is_new && wizardp(link) )
     {
 	write("\n"
-	      "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
-	      "Doing: wiz /on\n"
-	      "Doing: chan news /on   (you'll see when new news is posted.)\n"
-	      "Doing: gossip /on\n"
-	      "Doing: newbie /on\n"
-	      "Doing: announce /on\n"
-	      "\n");
+	  "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
+	  "Doing: wiz /on\n"
+	  "Doing: chan news /on   (you'll see when new news is posted.)\n"
+	  "Doing: gossip /on\n"
+	  "Doing: newbie /on\n"
+	  "Doing: announce /on\n"
+	  "\n");
 
 	/* these will be registered later */
 	channel_list = ({ "wiz", "news", "gossip",
-			  "newbie", "announce" });
+	  "newbie", "announce" });
 
 	/* So the hapless new wizard doesn't get spammed. */
 	set_ilog_time(time());
@@ -238,9 +209,9 @@ void enter_game(int is_new)
     else if ( is_new )
     {
 	write("\n"
-	      "Tuning in the newbie channel for you.  (newbie /on)\n"
-	      "Tuning in the gossip channel for you.  (gossip /on)\n"
-	      "\n");
+	  "Tuning in the newbie channel for you.  (newbie /on)\n"
+	  "Tuning in the gossip channel for you.  (gossip /on)\n"
+	  "\n");
 
 	/* these will be registered later */
 	channel_list = ({ "gossip", "newbie" });
@@ -249,12 +220,12 @@ void enter_game(int is_new)
     if ( wizardp(link) )
     {
 	DID_D->dump_did_info(query_ilog_time(),
-			     ({ "",
-				"Changes since you last logged in",
-				"********************************",
-				"" }),
-			     0,
-			     (: finish_enter_game :));
+	  ({ "",
+	    "Changes since you last logged in",
+	    "********************************",
+	    "" }),
+	  0,
+	  (: finish_enter_game :));
 	set_ilog_time(time());
     }
     else
@@ -263,23 +234,28 @@ void enter_game(int is_new)
     }
 }
 
+//:FUNCTION save_me
+//Saves us :-)
 void save_me()
 {
     object shell_ob = link && link->query_shell_ob();
+    string userid = query_userid();
 
     /* save the shell information */
     if ( shell_ob )
 	shell_ob->save_me();
 
-//### This check is bogus.  What should it be?
-// This check also doesn't work for su's -- John
-//    if (previous_object()==this_object())
-	saved_items = save_to_string(1); // 1 meaning it is recursive.
+    //### This check is bogus.  What should it be?
+    // This check also doesn't work for su's -- John
+    //    if (previous_object()==this_object())
+    saved_items = save_to_string(1); // 1 meaning it is recursive.
 
-    unguarded( 1, (: save_object , USER_PATH(name) :) );
+    unguarded( 1, (: save_object , USER_PATH(userid) :) );
     saved_items = 0;
 }
 
+//:FUNCTION remove
+//Handle mailboxes and the last login daemon, as well as the normal stuff
 void remove()
 {
     object ob;
@@ -299,6 +275,9 @@ void remove()
     ::remove();
 }
 
+//### This should be protected.
+//:FUNCTION quit
+//Quit the game.
 void quit()
 {
     if ( !clonep() )
@@ -308,10 +287,10 @@ void quit()
     }
 
     if (is_visible())
-	simple_action("$N $vhave left "+mud_name()+".\n");
+	simple_action("$N $vhave left "+mud_name()+".");
 
     NCHANNEL_D->deliver_emote("announce", query_name(),
-			      sprintf("has left %s.", mud_name()));
+      sprintf("has left %s.", mud_name()));
     NCHANNEL_D->unregister_channels();
 
 #ifdef PLAYERS_START_WHERE_THEY_QUIT
@@ -322,116 +301,78 @@ void quit()
     remove();
 }
 
-
-string query_idle_string()
-{
-    int idle_time;
-    string result="";
-    if(interactive(link))
-       idle_time = query_idle(link)/60;
-    if(!idle_time)
-      return "";
-
-    // Don't worry about weeks or months :)
-    if (idle_time > 24 * 60)
-        result += " [idle " + number_of(idle_time/(24*60), "day") + "]";
-    else if (idle_time > 60) 
-        result += " [idle " + number_of(idle_time/60, "hour") + "]";
-    else
-        result += " [idle " + number_of(idle_time, "minute") + "]";
-
-    return result;
+void do_receive(string msg, int msg_type) {
+    if ( link )
+	link->do_receive(msg, msg_type);
 }
 
-
-// This is used by in_room_desc and by who, one of which truncates,
-// one of which doesnt.  Both want an idle time.
-
-string base_in_room_desc()
+//:FUNCTION set_reply
+//set_reply(s) sets the person to whom 'reply' goes to.
+void set_reply(string o)
 {
-    string result;
-
-    result = query_long_name();
-
-    /* if they are link-dead, then prepend something... */
-    if ( !link || !interactive(link) )
-	result = "The lifeless body of " + result;
-
-    return result;
-}
-
-string in_room_desc()
-{
-  return base_in_room_desc() + query_idle_string();
-}
-
-string query_formatted_desc(int num_chars)
-{
-    string idle_string;
-    int i;
-  
-    idle_string = query_idle_string();
-    if ( i = strlen(idle_string) )
-    {
-	num_chars -= (i + 1);
-	idle_string = " " + idle_string;
-    }
-    return truncate(base_in_room_desc(), num_chars) +  idle_string;
-}
-
-void set_reply(string o){
     reply = o;
 }
 
-string query_reply(){ return reply; }
+//:FUNCTION query_reply
+//query the person to whom reply goes to
+string query_reply()
+{
+    return reply;
+}
 
+//:FUNCTION net_dead
+//This function is called when we lose our link
 void net_dead()
 {
-//### add security here?
+    //### add security here?
 
     if(is_visible())
-	simple_action("$N $vhave gone link-dead.\n");
+	simple_action("$N $vhave gone link-dead.");
 
     NCHANNEL_D->deliver_emote("announce", query_name(),
-			      sprintf("has gone link-dead.", mud_name()));
+      sprintf("has gone link-dead.", mud_name()));
 
     if ( link && link->query_shell_ob()->get_variable("save_scrollback") )
 	catching_scrollback = 1;
 }
 
+//:FUNCTION reconnect
+//This function is called when we get our link back
 void reconnect(object new_link)
 {
-//### add security here?
+    //### add security here?
 
     link = new_link;
     if(is_visible())
-	simple_action("$N $vhave reconnected.\n");
+	simple_action("$N $vhave reconnected.");
 
     NCHANNEL_D->deliver_emote("announce", query_name(),
-			      sprintf("has reconnected.", mud_name()));
+      sprintf("has reconnected.", mud_name()));
 
     catching_scrollback = 0;
     if ( link->query_shell_ob() )
 	link->query_shell_ob()->end_scrollback();
 }
 
+//:FUNCTION die
+//This function si called when we die :-)
 void die()
 {
     if ( wizardp(link) )
     {
 	if(is_visible())
-	    simple_action("If $n $vwas mortal, $n would now no longer be mortal.\n");
-	heal_us(10000);
+	    simple_action("If $n $vwere mortal, $n would now no longer be mortal.");
+        set_hp(query_max_hp());
 	stop_fight();
 	return;
     }
 
     set_hp(0);
     if(is_visible())
-	simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.\n");
+	simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.");
     receive_private_msg("\n\n   ****  You have died  ****\n\n"
-			"A pity, really.  Way too many people dying these days for me to just patch\n"
-			"everyone up.  Oh well, you'll live.\n",0,0);
+      "A pity, really.  Way too many people dying these days for me to just patch\n"
+      "everyone up.  Oh well, you'll live.\n",0,0);
     rack_up_a_death();
 
 #ifdef DEATH_MESSAGES
@@ -442,13 +383,13 @@ void die()
 	//  action(({ this_object()}),
 	//     (MESSAGES_D->get_messages("player_death"))[query_level()/5])[1];
 	string msg = action(({this_object()}), 
-			    MESSAGES_D->get_messages("player-death"))[1];
-			    shout(msg);
+	  MESSAGES_D->get_messages("player-death"))[1];
+	shout(msg);
     }
 #endif
 }
 
-
+//### Should this be here?
 void clean_up()
 {
     if ( link )
@@ -457,10 +398,11 @@ void clean_up()
 	quit();
 }
 
-
+//:FUNCTION id
+//id(s) returns 1 if we respond to the name 's'
 int id(string arg)
 {
-    if(!is_visible() && arg == lower_case(invis_name))
+    if(!is_visible() && arg == lower_case(query_invis_name()))
 	return 1;
 
     return ::id(arg);
@@ -469,39 +411,11 @@ int id(string arg)
 int stat_me()
 {
     write(short()+"\n");
-    write("Name: "+cap_name+"\n");
+    write("Userid: " + query_userid() + "\n");
     ::stat_me();
     if ( link )
 	link->stat_me();
     return 1;
-}
-
-void set_description(string str) {
-  if(base_name(previous_object()) == CMD_OB_DESCRIBE)
-    describe = str;
-  save_me();
-}
-
-string our_description() {
-    if (describe)
-	return in_room_desc() + "\n" + describe +"\n";
-    else
-	return in_room_desc() + "\n" + cap_name + " is boring and hasn't described " + query_reflexive() + ".\n";
-}
-
-void set_nickname(string arg) {
-    if (file_name(previous_object()) != CMD_OB_NICKNAME)
-	error("Illegal call to set_nickname\n");
-
-    if ( nickname )
-	remove_id(nickname);
-
-    nickname = arg;
-    add_id_no_plural(nickname);
-}
-
-string query_nickname() {
-    return nickname;
 }
 
 private void create(string userid)
@@ -528,18 +442,17 @@ private void create(string userid)
     ** is non-persistent (not saved).
     */
     /* Beek - note: this first check uses this_body() and hence is
-              completely bogus. */
+	      completely bogus. */
     configure_set(PLAYER_FLAGS, 0,
-		  (: this_object() != this_body() :) );
+      (: this_object() != this_body() :) );
     configure_set(PLAYER_NP_FLAGS, 1,
-		  (: this_object() != this_body() ||
-		   ($2 && $1 == 97 && previous_object() != find_object("/bin/player/_inactive")) :) 
-        	   );
+      (: this_object() != this_body() ||
+	($2 && $1 == 97 && previous_object() != find_object("/bin/player/_inactive")) :) 
+    );
 
     set_long( (: our_description :) );
+    naming_create(userid);
 
-    cap_name = capitalize(userid);
-    name = userid;
     unguarded(1, (: restore_object, USER_PATH(userid), 1 :));
 
 #ifdef USE_GUILDS
@@ -549,7 +462,7 @@ private void create(string userid)
     // up to the player
     set_attack_speed(0);
 
-//### transition stuff for upgrading old channel data
+    //### transition stuff for upgrading old channel data
     if ( (idx = member_array("plyr_news", channel_list)) != -1 )
 	channel_list[idx] = "news";
     if ( (idx = member_array("plyr_gossip", channel_list)) != -1 )
@@ -570,9 +483,10 @@ private void create(string userid)
 */
 void channel_rcv_string(string channel_name, string message)
 {
-    tell_object(this_object(), message);
+    receive_private_msg(message);
 }
-void channel_rcv_soul(string channel_name, mixed * data)
+
+void channel_rcv_soul(string channel_name, array data)
 {
     string msg;
 
@@ -582,9 +496,10 @@ void channel_rcv_soul(string channel_name, mixed * data)
 	msg = data[1][2];
     else
 	msg = data[1][1];
-	
-    tell_object(this_object(), msg);
+
+    receive_private_msg(msg);
 }
+
 void channel_add(string which_channel)
 {
     channel_list += ({ which_channel });
@@ -605,12 +520,13 @@ nomask object query_body()
 {
     return this_object();
 }
+
 nomask object query_shell_ob()
 {
     return link && link->query_shell_ob();
 }
 
-nomask mixed * query_failures()
+nomask array query_failures()
 {
     return link->query_failures();
 }
@@ -625,63 +541,25 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
     return 1;
 }
 
-/* helper function to forward a message to the user object */
-private nomask void forward_to_user(string msg)
-{
-    if ( link )
-	link->receive_message(0, msg);
-}
-
-// Inside messages propogate upward and downward...
-void receive_inside_msg(string msg, object array exclude, int message_type, 
-			mixed other)
-{
-    forward_to_user(msg);
-
-    ::receive_inside_msg(msg, exclude, message_type, other);
-}
-
-// Outside messages propogate downward
-void receive_outside_msg(string msg, object array exclude, int message_type,
-			 mixed other)
-{
-    forward_to_user(msg);
-
-    ::receive_outside_msg(msg, exclude, message_type, other);
-}
-
-//Remote messages propogate just like an inside message by default
-void receive_remote_msg(string msg, object array exclude, int message_type,
-			mixed other)
-{
-    receive_inside_msg(msg, exclude, message_type, other);
-}
-
-// Private messages just go to the user object
-void receive_private_msg(string msg, int message_type, mixed other)
-{
-    forward_to_user(msg);
-}
-
 int go_somewhere(string arg)
 {
-  object env;
-  int    ret;
+    object env;
+    int    ret;
 
-  if(!(ret=::go_somewhere(arg)) && (env = environment(this_object())))
-    return env->go_somewhere(arg);
+    if(!(ret=::go_somewhere(arg)) && (env = environment(this_object())))
+	return env->go_somewhere(arg);
 
-  return ret;
+    return ret;
 }
 
 string inventory_header()
 {
-  return query_name() + " is carrying:\n";
+    return query_name() + " is carrying:\n";
 }
 
 int ob_state() 
 {
-  return -1;
+    return -1;
 }
 
 
@@ -701,7 +579,7 @@ void move_or_destruct(object suggested_dest) {
 
     // Might want to add another failsafe room on the end of this list
     // that doesn't inherit room.c and is guaranteed to load/accept people.
-    foreach (destination in ({ suggested_dest, VOID_ROOM, START })) {
+    foreach (destination in ({ suggested_dest, VOID_ROOM, this_body()->query_start_location(), START, WIZARD_START  })) {
 	err = catch {
 	    if (stringp(destination))
 		destination = load_object(destination);
@@ -711,14 +589,82 @@ void move_or_destruct(object suggested_dest) {
 		    throw(err);
 	    } else
 		throw("Being destructed.\n");
-        };
-        if (destination && !err) {
-            write(dested_env->short() + " being destructed: You have been moved to " + destination->short() + "\n");
-            return;
-        } else {
+	};
+	if (destination && !err) {
+	    receive_private_msg(dested_env->short() + " being destructed: You have been moved to " + destination->short() + ".\n");
+	    return;
+	} else {
 	    if (destination)
-		write("Cannot move to " + destination->short() + ": " + err);
+		receive_private_msg("Cannot move to " + destination->short() + ": " + err);
 	}
     }
-    write("Uh oh..., couldn't move you anywhere.  Goodbye.\n");
+    receive_private_msg("Uh oh..., couldn't move you anywhere.  Goodbye.\n");
+    (this_object()->query_link())->remove();
+}
+
+
+#ifdef USE_STATS
+
+int to_hit_base() {
+    return 50 - query_agi();
+}
+
+void refresh_stats() {
+    m_bodystats::refresh_stats();
+}
+
+#endif /* USE_STATS */
+
+/*
+** These are overrides from our ancestor (MONSTER)
+*/
+string query_name() { return naming::query_name(); }
+string short() { return query_name(); }
+string a_short() { return query_name(); }
+string the_short() { return query_name(); }
+string in_room_desc() { return base_in_room_desc() + query_idle_string(); }
+
+/* end of naming overrides */
+
+#ifdef USE_SKILLS
+
+class combat_result array negotiate_result(class combat_result array result)
+{
+    result = ::negotiate_result(result);
+
+    /*
+    ** See if we have disarmed the opponent by using our 'combat/disarm'
+    ** skill.  Apply appropriate training, too.
+    */
+    //### where's a better place to put this?
+    //### ack. we should be caching our aggregate_skill()
+    //### what the heck is the opposing skill?
+    //### ... for now, use 5000; eventually, use target's experience
+
+    if ( test_skill("combat/disarm", 5000) )
+    {
+	result = ({ new(class combat_result,
+	    special : RES_DISARM,
+	    message : "!disarm") }) + result;
+
+	learn_skill("combat/disarm", 10);
+    }
+    else
+    {
+	//### learning too fast? make this a 1 in N chance?
+	learn_skill("combat/disarm", 1);
+    }
+
+    return result;
+}
+
+#endif /* USE_SKILLS */
+
+int allow(string what)
+{
+  if(this_body() == this_object())
+  {
+    return 1;
+  }
+  return 0;
 }

@@ -77,12 +77,13 @@ INLINE void *debugcalloc P4(int, nitems, int, size, int, tag, char *, desc)
 
 INLINE void debugfree P1(void *, ptr)
 {
-    void *tmp;
+    md_node_t *tmp;
 
     NOISY1("free (%x)\n", ptr);
     stats.free_calls++;
     tmp = (md_node_t *) ptr - 1;
     if (MDfree(tmp)) {
+	memset(ptr, 'x', tmp->size);
 	FREE(tmp);		/* only free if safe to do so */
     }
 }

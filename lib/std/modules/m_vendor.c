@@ -202,7 +202,7 @@ while (i--)
 		j += 1;
 		if (j == number)
 		{
-		    this_body()->simple_action("$N $vbuy a "+ item +" from the shopkeeper.\n");
+		    this_body()->simple_action("$N $vbuy a "+ item +" from the shopkeeper.");
 		    load_from_string(stored_items[i][0],1);
 
 		    if (ob=present(item, this_object()))

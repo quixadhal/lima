@@ -54,9 +54,9 @@ void bp PROT((void)) {
 #ifdef STRING_STATS
 int num_distinct_strings = 0;
 int bytes_distinct_strings = 0;
+int overhead_bytes = 0;
 int allocd_strings = 0;
 int allocd_bytes = 0;
-int overhead_bytes = 0;
 int search_len = 0;
 int num_str_searches = 0;
 #endif
@@ -154,7 +154,7 @@ char *
 /* alloc_new_string: Make a space for a string.  */
 
 INLINE static block_t *
-        alloc_new_string P2(char *, string, int, h)
+alloc_new_string P2(char *, string, int, h)
 {
     block_t *b;
     int len = strlen(string);
@@ -173,7 +173,7 @@ INLINE static block_t *
     NEXT(b) = base_table[h];
     base_table[h] = b;
     ADD_NEW_STRING(SIZE(b), sizeof(block_t));
-    CHECK_STRING_STATS;
+    ADD_STRING(SIZE(b));
     return (b);
 }
 
@@ -189,9 +189,9 @@ char *
     } else {
 	if (REFS(b))
 	    REFS(b)++;
+	ADD_STRING(SIZE(b));
     }
     NDBG(b);
-    ADD_STRING(SIZE(b));
     return (STRING(b));
 }
 
@@ -243,8 +243,6 @@ free_string P1(char *, str)
     b = BLOCK(str);
     DEBUG_CHECK1(b != findblock(str),"stralloc.c: free_string called on non-shared string: %s.\n", str);
     
-    SUB_STRING(SIZE(b));
-
     /*
      * if a string has been ref'd USHRT_MAX times then we assume that its used
      * often enough to justify never freeing it.
@@ -253,6 +251,8 @@ free_string P1(char *, str)
 	return;
 
     REFS(b)--;
+    SUB_STRING(SIZE(b));
+
     NDBG(b);
     if (REFS(b) > 0)
 	return;
@@ -319,6 +319,8 @@ add_string_status P2(outbuffer_t *, out, int, verbose)
     }
     return (bytes_distinct_strings + overhead_bytes);
 #else
+    if (verbose)
+	outbuf_add(out, "<String statistics disabled, no information available>\n");
     return 0;
 #endif
 }
@@ -360,20 +362,24 @@ char *int_new_string P1(int, size)
 	ADD_NEW_STRING(USHRT_MAX, sizeof(malloc_block_t));
     }
     mbt->ref = 1;
+    ADD_STRING(mbt->size);
     CHECK_STRING_STATS;
     return (char *)(mbt + 1);
 }
 
 char *extend_string P2(char *, str, int, len) {
     malloc_block_t *mbt;
-    
-    ADD_STRING_SIZE(len - MSTR_SIZE(str));
+#ifdef STRING_STATS
+    int oldsize = MSTR_SIZE(str);
+#endif
+
     mbt = (malloc_block_t *)DREALLOC(MSTR_BLOCK(str), len + sizeof(malloc_block_t) + 1, TAG_MALLOC_STRING, "extend_string");
     if (len < USHRT_MAX) {
 	mbt->size = len;
     } else {
 	mbt->size = USHRT_MAX;
     }
+    ADD_STRING_SIZE(mbt->size - oldsize);
     CHECK_STRING_STATS;
     
     return (char *)(mbt + 1);

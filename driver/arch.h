@@ -39,26 +39,32 @@
 #define ARCH "Accel"
 #endif
 
+/* Attempt to guess whether we are running Solaris or not */
 #if defined(sun) && !defined(SunOS_5)
-#ifdef sun4
-#define ARCH "Sun4"
-#else
+#  if defined(__svr4__) || defined(__sol__) || defined(SVR4)
+#    define SunOS_5
+#  else
+#    ifdef sun4
+#      define ARCH "Sun4"
+#    else
 
-#ifdef sun3
-#define ARCH "Sun3"
-#else
-#define ARCH "Sun"
+#      ifdef sun3
+#        define ARCH "Sun3"
+#      else
+#        define ARCH "Sun"
+#      endif
+#    endif
+#  endif
 #endif
 
-#endif
-#endif
-
-#ifdef SunOS_5
+#if defined(SunOS_5)
 #define ARCH "Solaris"
 #endif
+
 #ifdef _AUX_SOURCE
 #define ARCH "A/UX"
 #endif
+
 #ifdef linux
 #  ifdef __mc68000
 #    define ARCH "Linux/m68k"
@@ -66,15 +72,19 @@
 #    define ARCH "Linux"
 #  endif
 #endif
+
 #ifdef hp68k
 #define ARCH "HP/68k"
 #endif
+
 #ifdef hppa
 #define ARCH "HP/PA-RISC"
 #endif
+
 #ifdef cray
 #define ARCH "Cray"
 #endif
+
 #ifdef __alpha
 #define ARCH "Alpha"
 #endif

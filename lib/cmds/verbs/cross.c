@@ -16,7 +16,7 @@ void do_cross_obj(object ob)
     ob->cross();
 }
 
-mixed * query_verb_info(string rule)
+array query_verb_info(string rule)
 {
     return ({ ({ "OBJ" }) });
 }

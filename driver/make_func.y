@@ -7,6 +7,10 @@
 #include "preprocess.h"
 #include "edit_source.h"
 
+#ifdef WIN32
+#include <process.h>
+#endif
+
     int num_buff = 0;
     int op_code, efun_code, efun1_code;
     char *oper_codes[MAX_FUNC];

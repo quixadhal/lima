@@ -7,6 +7,6 @@ void do_remove_obj(object ob)
     ob->do_remove();
 }
 
-mixed *query_verb_info() {
+array query_verb_info() {
     return ({ ({ "OBJ" }), ({ "take off" }) });
 }

@@ -12,28 +12,32 @@
 
 inherit CMD;
 
-#define SYNTAX "Usage:  force <living> <command>\n"
-
 void create()
 {
-  ::create();
-  no_redirection();
+    ::create();
+    no_redirection();
 }
 
 private void main(string orig_input)
 {
-    
-    string what = orig_input[(strsrch(orig_input," "))+1..];
-    object targ_user = find_body(orig_input[0..strsrch(orig_input, " ")-1]);
+    int space = strsrch(orig_input, " ");
+    string what = orig_input[space+1..];
+    object targ_user = find_user(orig_input[0..space-1]);
     string s;
 
-    tell_object(targ_user, this_body()->query_name()+" forced you to: "+what+"\n");
-    tell_object(this_user(), "You forced "+targ_user->query_name()+" to: "+what+"\n");
+    if ( !targ_user )
+    {
+	printf("No such user: %s\n", orig_input[0..space-1]);
+	return;
+    }
+
+    tell(targ_user, this_body()->query_name()+" forced you to: "+what+"\n");
+    write("You forced "+targ_user->query_body()->query_name()+" to: "+what+"\n");
 
     s = sprintf("%s forces %s to (%s) [%s]\n",
-		this_user()->query_userid(), targ_user->query_link()->query_userid(),
+		this_user()->query_userid(), targ_user->query_userid(),
 		what, ctime(time()));
     LOG_D->log(LOG_FORCE, s);
 
-    targ_user->query_link()->force_me(what);
+    targ_user->force_me(what);
 }

@@ -29,6 +29,11 @@ private nomask void drop_one(object ob)
 	write(tmp);
 }
 
+mixed can_drop_str( string str )
+{
+    return "You don't have that.\n";
+}
+
 void do_drop_obj(object ob)
 {
     drop_one(ob);
@@ -48,39 +53,52 @@ void do_drop_obs(array info)
     }
 }
 
-
-mixed do_drop_wrd_str(string amount, string str)
-{
-    object ob;
-    string *sentence = explode(str," ");
-    int number;
-
-    if( sscanf(amount, "%d", number) == 1)
-    {
-	if(this_body()->query_amt_money(sentence[0]) < number)
-	{
-	    write("You dont have "+ amount +" "+ sentence[0] +".\n");
+//### see comments in get.
+mixed can_drop_wrd_str(string amount, string str) {
+    int z;
+    string s1, s2;
+    
+    sscanf(amount, "%d%s", z, s1);
+    if (s1 != "") return 0;
+    sscanf(str, "%s %s", s1, s2);
+    if (s2) {
+	if (s2 != "coin" && s2 != "coins")
 	    return 0;
-	}
-	else
-	{
-	    this_body()->subtract_money(sentence[0],number);
-	    if(ob = present("coins",environment(this_body())))
-	    {
-		ob->merge_coins(number,sentence[0]);
-	    }
-	    else
-	    {
-		new(COINS, number,sentence[0])->move(environment(this_body()));
-	    }
-	    this_body()->simple_action("$N $vdrop "+ number +" "+ sentence[0] +" coins.\n");
-	}
+	return 1;
     }
-    else
-	write("You can't drop that.\n");
+    return str == "coin" || str == "coins";
 }
 
-mixed * query_verb_info()
+void do_drop_wrd_str(string amount, string str)
 {
-    return ({ ({ "OBS", "WRD STR" }), ({ "put down" }) });
+    string s;
+    object ob;
+    int number;
+
+    /* Can't fail */
+    sscanf(amount, "%d", number);
+    
+    sscanf(str, "%s %s", str, s);
+    
+    if (number < 0) {
+	write("Nice try.\n");
+	return;
+    }
+    if(this_body()->query_amt_money(str) < number) {
+	write("You dont have "+ number +" "+ str +" coins.\n");
+	return;
+    } else {
+	this_body()->subtract_money(str,number);
+	if(ob = present("coins",environment(this_body()))) {
+	    ob->merge_coins(number,str);
+	} else {
+	    new(COINS, number, str)->move(environment(this_body()));
+	}
+	this_body()->simple_action("$N $vdrop "+ number +" "+ str +" coins.");
+    }
+}
+
+array query_verb_info()
+{
+    return ({ ({ "STR", "OBS", "WRD STR" }), ({ "put down" }) });
 }

@@ -30,6 +30,7 @@ private string * lines;
 private int line_index;
 private int chunk_size;
 private function continue_func;
+private int output_flags;
 
 private nomask string query_prompt()
 {
@@ -258,7 +259,7 @@ private nomask void do_more(mixed arg) {
 	    }
 	}
 	for(x = line_index;x < sizeof(lines) && x < line_index + chunk_size; x++)
-	    write(lines[x] + "\n");
+	    tell(this_user(), lines[x] + "\n", output_flags);
 	if (sizeof(lines) >= chunk_size || (file_list && sizeof(file_list) > 1))
 	  {
 	    /* return to prompt about more lines/next file */
@@ -273,7 +274,8 @@ private nomask void do_more(mixed arg) {
     return;
 }
 
-void create(int kind, mixed arg, int c, function continuation) {
+void create(int kind, mixed arg, int c, function continuation,
+	    int of) {
     ::create();
 
     switch (kind) {
@@ -292,6 +294,7 @@ void create(int kind, mixed arg, int c, function continuation) {
     direction = 1;
     chunk_size = c;
     continue_func = continuation;
+    output_flags = of;
     modal_push((: do_more :), (: query_prompt :));
-    do_more(0);
+    if (catch(do_more(0))) modal_pop();
 }

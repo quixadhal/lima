@@ -22,7 +22,7 @@
 ** ({ ({ first rules }), ({ syns for first rules }), ({ second rules }),
 **    ... etc ... })
 */
-mixed * query_verb_info()
+array query_verb_info()
 {
     return ({ ({ }) });
 }
@@ -73,7 +73,7 @@ void create()
 string refer_to_object(object ob) {
     // In the future, this should be smarter.  Ideally it would generate
     // something unique like 'my first sword' or 'the third sword on the table'
-    return ob->query_id()[0];
+    return ob->query_primary_name();
 }
  
 mixed try_to_acquire(object ob) {
@@ -81,9 +81,14 @@ mixed try_to_acquire(object ob) {
      * actually being in the player's inventory
      */
     if (ob->always_usable()) return 1;
-    
+
     if (environment(ob) == this_body()) return 1;
     write("(Taking " + ob->the_short());
+    if (!environment(ob)) {
+	write("What a quaint idea.\n");
+	return 0;
+    }
+
     if (environment(ob) != environment(this_body()))
 	write(" from " + environment(ob)->the_short());
     write(" first)\n");
@@ -138,6 +143,17 @@ mixed default_checks() {
 	return check_condition();
 
     return 1;
+}
+
+void handle_obs(array info, function callback, mixed extra...) {
+    foreach (mixed ob in info) {
+	if (stringp(ob))
+	    write(ob);
+	else {
+	    write(ob->short() + ": ");
+	    evaluate(callback, ob, extra...);
+	}
+    }
 }
 
 /* we defined the rule, so assume by default we allow it */

@@ -77,7 +77,6 @@ void mudlib_setup()
     set_max_capacity(1000000);
     add_id_no_plural("here");
     add_id("environment");
-    set_getmsg( "A surreal notion.\n");
     set_gettable( -1 );
     set_flag( ATTACHED );
 }
@@ -116,6 +115,6 @@ string get_brief()
 mixed direct_get_obj( object ob, string name )
 {
     if( this_object() == environment( this_body()))
-        return "A surreal idea.\n";
+        return "#A surreal idea.\n";
     return ::direct_get_obj( ob, name );
 }

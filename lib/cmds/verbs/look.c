@@ -11,6 +11,7 @@
 #include <mudlib.h>
 
 inherit VERB_OB;
+inherit M_GRAMMAR;
 
 int need_to_be_alive() {
     return 0;
@@ -34,11 +35,18 @@ void do_look() {
 
 void do_look_at_obj(object ob, string name) {
     string str;
-
+    
     if (!(str = ob->get_item_desc(name)))
 	str = ob->long();
-    if (str[<1] != '\n') str += "\n";
+
+    if (sizeof(str) && str[<1] != '\n') str += "\n";
     write(str);
+}
+
+void do_look_at_obs(array info, string name) {
+    string str;
+
+    handle_obs(info, (: do_look_at_obj :), name);
 }
 
 // There was name support here, but it was done wrong, as according to 
@@ -53,60 +61,92 @@ void do_look_obj(object ob, string name) {
     do_look_at_obj(ob, name);
 }
 
+void do_look_obs(array info, string name) {
+    handle_obs(info, (: do_look_at_obj :), name);
+}
+
 void do_look_at_obj_with_obj(object o1, object o2) {
     // o2->indirect_look_at_obj_with_obj() has already indicated this is ok.
     o2->use("look", o1);
+}
+
+void do_look_at_obs_with_obj(array info, object o2) {
+    handle_obs(info, (: do_look_at_obj_with_obj :), o2);
 }
 
 void do_look_obj_with_obj(object o1, object o2) {
     do_look_at_obj_with_obj(o1, o2);
 }
 
-void do_look_for_liv(object ob) {
-    if (environment(this_body()) != environment(ob)) {
-	// I don't think this can happen
-	write("Search around a bit ...\n");
-    } else {
-	this_body()->my_action("$O is right here!\n", ob);
-    }
+void do_look_obs_with_obj(array info, object o2) {
+    handle_obs(info, (: do_look_at_obj_with_obj :), o2);
 }
 
 void do_look_for_obj(object ob) {
-//### actually, OBJ has to be here, right?
-//### Beek: No, it can be in a bag/bottle etc.  Still, this should be smarter
-    if (environment(this_body()) == environment(ob)) {
-	this_body()->my_action("$O is right here!\n", ob);
-    } else 
-      write("I'm sure that's around here somewhere...\n");
-}
+    object env = environment(ob);
+    string relation;
+    
+    if (environment(this_body()) == env) {
+//### we need a way to conjugate this
+	this_body()->my_action("The $o0 is right here!\n", ob);
+    } else {
+	relation = env->query_prep(ob);
 
-void do_look_str(string str) {
-    mixed value = environment(this_body())->query_exit_value(str);
-    object ob = load_object(value);
-
-    ob->remote_look(environment(this_body()));
-}
-
-#if 0
-mixed do_look(mixed rule, mixed ob1, object ob2)
-{
-    string *	exits;
-
-    switch (rule) {
-    case "at OBS":
-    case "at OBS with OBJ":
-	return "Try looking at just one thing at a time.\n";
+	printf("%O %O\n", ob, env);
+	this_body()->my_action("The $o0 is " + relation + " the $o1.\n",
+			       ob, env);
     }
-
 }
-#endif
 
-mixed * query_verb_info()
+string look_for_phrase(object ob) {
+    object env = environment(ob);
+    
+    if (env == environment(this_body()))
+	return "on the ground";
+    return env->query_prep(ob) + " " + env->the_short();
+}
+
+void do_look_for_obs(array info) {
+    mixed ua;
+    array k;
+    int i, n;
+    string res;
+    
+    /* ignore errors */
+    info = filter(info, (: objectp :));
+    ua = unique_array(info, (: look_for_phrase :));
+
+    n = sizeof(ua);
+    res = "There " + (sizeof(ua[0]) > 1 ? "are " : "is ");
+    for (i = 0; i < n; i++) {
+	if (i != 0) {
+	    if (i == n - 1)
+		res += " and ";
+	    else
+		res += ", ";
+	}
+	res += number_word(sizeof(ua[i])) + " " + look_for_phrase(ua[i][0]);
+    }
+    write(res + ".\n");
+#if 0
+    if (environment(this_body()) == env) {
+	this_body()->my_action("$O is right here!\n", ob);
+    } else {
+	relation = env->query_prep(ob);
+	
+	this_body()->my_action("The $O is " + relation + " the $O.\n",
+			       ob, env);
+    }
+#endif
+}
+
+array query_verb_info()
 {
-    return ({ ({ 0, "OBJ:v", "at OBJ:v", "for LIV:v", "for OBJ:v", "STR OBJ:v",
-	     "at OBS:v", "at OBS:v with OBJ", "at OBJ:v with OBJ",
-          "STR", "OBJ:v with OBJ" }), ({ "examine" }), 
-         ({"OBJ","OBS","OBS with OBJ" }) });
+    return ({ 
+         ({ "OBS:v", "OBS:v with OBJ" }), ({ "examine" }),
+	 ({ "", "at OBS:v", "for OBS:v", "STR OBJ:v",
+		"at OBS:v with OBJ" })
+    });
     
     /*
     ** "examine OBJ" -> "look OBJ"

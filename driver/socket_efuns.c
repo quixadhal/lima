@@ -230,18 +230,18 @@ socket_create P3(enum socket_mode, mode, svalue_t *, read_callback, svalue_t *, 
     if (i >= 0) {
 	fd = socket(AF_INET, type, 0);
 	if (fd == -1) {
-	    debug_perror("socket_create: socket", 0);
+	    socket_perror("socket_create: socket", 0);
 	    return EESOCKET;
 	}
 	optval = 1;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval,
 		       sizeof(optval)) == -1) {
-	    debug_perror("socket_create: setsockopt", 0);
+	    socket_perror("socket_create: setsockopt", 0);
 	    OS_socket_close(fd);
 	    return EESETSOCKOPT;
 	}
 	if (set_socket_nonblocking(fd, 1) == -1) {
-	    debug_perror("socket_create: set_socket_nonblocking", 0);
+	    socket_perror("socket_create: set_socket_nonblocking", 0);
 	    OS_socket_close(fd);
 	    return EENONBLOCK;
 	}
@@ -302,7 +302,7 @@ socket_bind P2(int, fd, int, port)
     sin.sin_port = htons((u_short) port);
 
     if (bind(lpc_socks[fd].fd, (struct sockaddr *) & sin, sizeof(sin)) == -1) {
-	switch (errno) {
+	switch (socket_errno) {
 #ifdef WINSOCK
 	case WSAEADDRINUSE:
 	    return EEADDRINUSE;
@@ -311,13 +311,13 @@ socket_bind P2(int, fd, int, port)
 	    return EEADDRINUSE;
 #endif
 	default:
-	    debug_perror("socket_bind: bind", 0);
+	    socket_perror("socket_bind: bind", 0);
 	    return EEBIND;
 	}
     }
     len = sizeof(sin);
     if (getsockname(lpc_socks[fd].fd, (struct sockaddr *) & lpc_socks[fd].l_addr, &len) == -1) {
-	debug_perror("socket_bind: getsockname", 0);
+	socket_perror("socket_bind: getsockname", 0);
 	return EEGETSOCKNAME;
     }
     lpc_socks[fd].state = BOUND;
@@ -349,7 +349,7 @@ socket_listen P2(int, fd, svalue_t *, callback)
 	return EEISCONN;
 
     if (listen(lpc_socks[fd].fd, 5) == -1) {
-	debug_perror("socket_listen: listen", 0);
+	socket_perror("socket_listen: listen", 0);
 	return EELISTEN;
     }
     lpc_socks[fd].state = LISTEN;
@@ -388,13 +388,13 @@ socket_accept P3(int, fd, svalue_t *, read_callback, svalue_t *, write_callback)
     len = sizeof(sin);
     accept_fd = accept(lpc_socks[fd].fd, (struct sockaddr *) & sin, (int *) &len);
     if (accept_fd == -1) {
-	switch (errno) {
+	switch (socket_errno) {
 	case EWOULDBLOCK:
 	    return EEWOULDBLOCK;
 	case EINTR:
 	    return EEINTR;
 	default:
-	    debug_perror("socket_accept: accept", 0);
+	    socket_perror("socket_accept: accept", 0);
 	    return EEACCEPT;
 	}
     }
@@ -497,7 +497,7 @@ socket_connect P4(int, fd, char *, name, svalue_t *, read_callback, svalue_t *, 
 
     if (connect(lpc_socks[fd].fd, (struct sockaddr *) & lpc_socks[fd].r_addr,
 		sizeof(struct sockaddr_in)) == -1) {
-	switch (errno) {
+	switch (socket_errno) {
 	case EINTR:
 	    return EEINTR;
 #ifdef WINSOCK
@@ -508,6 +508,8 @@ socket_connect P4(int, fd, char *, name, svalue_t *, read_callback, svalue_t *, 
 	case WSAECONNREFUSED:
 	    return EECONNREFUSED;
 	case WSAEINPROGRESS:
+	    break;
+	case WSAEWOULDBLOCK:
 	    break;
 #else
 	case EADDRINUSE:
@@ -520,7 +522,7 @@ socket_connect P4(int, fd, char *, name, svalue_t *, read_callback, svalue_t *, 
 	    break;
 #endif
 	default:
-	    debug_perror("socket_connect: connect", 0);
+	    socket_perror("socket_connect: connect", 0);
 	    return EECONNECT;
 	}
     }
@@ -642,7 +644,7 @@ socket_write P3(int, fd, svalue_t *, message, char *, name)
 	    if (sendto(lpc_socks[fd].fd, (char *)message->u.string,
 		       strlen(message->u.string) + 1, 0,
 		       (struct sockaddr *) & sin, sizeof(sin)) == -1) {
-		debug_perror("socket_write: sendto", 0);
+		socket_perror("socket_write: sendto", 0);
 		return EESENDTO;
 	    }
 	    return EESUCCESS;
@@ -652,7 +654,7 @@ socket_write P3(int, fd, svalue_t *, message, char *, name)
 	    if (sendto(lpc_socks[fd].fd, (char *)message->u.buf->item,
 		       message->u.buf->size, 0,
 		       (struct sockaddr *) & sin, sizeof(sin)) == -1) {
-		debug_perror("socket_write: sendto", 0);
+		socket_perror("socket_write: sendto", 0);
 		return EESENDTO;
 	    }
 	    return EESUCCESS;
@@ -668,7 +670,7 @@ socket_write P3(int, fd, svalue_t *, message, char *, name)
     off = OS_socket_write(lpc_socks[fd].fd, buf, len);
     if (off == -1) {
 	FREE(buf);
-	switch (errno) {
+	switch (socket_errno) {
 #ifdef WINSOCK
 	case WSAEWOULDBLOCK:
 	    return EEWOULDBLOCK;
@@ -678,7 +680,7 @@ socket_write P3(int, fd, svalue_t *, message, char *, name)
 #endif
 
 	default:
-	    debug_perror("socket_write: send", 0);
+	    socket_perror("socket_write: send", 0);
 	    return EESEND;
 	}
     }
@@ -707,6 +709,8 @@ call_callback P3(int, fd, int, what, int, num_arg) {
     if (lpc_socks[fd].flags & what) {
 	safe_call_function_pointer(callback.f, num_arg);
     } else if (callback.s) {
+	if (callback.s[0] == APPLY___INIT_SPECIAL_CHAR)
+	    error("Illegal function name.\n");
 	safe_apply(callback.s, lpc_socks[fd].owner_ob, num_arg, ORIGIN_DRIVER);
     }
 }
@@ -880,7 +884,7 @@ socket_read_select_handler P1(int, fd)
 	break;
     }
     if (cc == -1) {
-	switch (errno) {
+	switch (socket_errno) {
 #ifdef WINSOCK
 	case WSAECONNREFUSED:
 #else
@@ -957,7 +961,7 @@ socket_close P2(int, fd, int, flags)
 	return EEBADF;
     if (!(flags & SC_FORCE) && lpc_socks[fd].owner_ob != current_object)
 	return EESECURITY;
-    while (OS_socket_close(lpc_socks[fd].fd) == -1 && errno == EINTR)
+    while (OS_socket_close(lpc_socks[fd].fd) == -1 && socket_errno == EINTR)
 	;	/* empty while */
     lpc_socks[fd].state = CLOSED;
     if (lpc_socks[fd].r_buf != NULL)
@@ -1210,4 +1214,64 @@ void dump_socket_status P1(outbuffer_t *, out)
 	outbuf_addv(out, "%-21s\n", inet_address(&lpc_socks[i].r_addr));
     }
 }
+
+#ifdef WIN32
+void SocketPerror P2(char *, what, char *, file) {
+    static char *errstrings[] = 
+    {  "Operation would block",
+       "Blocking call in progress",
+       "as in BSD",
+       "Invalid socket",
+       "Missing destination",
+       "Data is too large",
+       "as in BSD",
+       /* WSAEPROTOTYPE */
+       "Wrong protocol type",
+       "Unsupported option",
+       "Unsupported protocol",
+       "Unsupported socket type",
+       "Socket can't listen",
+       "WSAEPFNOSUPPORT",
+       "Can't use adress family",
+       "Addr is used",
+       "Addr is not available",
+       "No buffer space",
+       "Already connected",
+       "Not connected",
+       "WSAESHUTDOWN",
+       "WSAETOOMANYREFS",
+       "Time-out",
+       "Connection refused",
+       "WSAELOOP",
+       "WSAEHOSTDOWN",
+       "WSAEHOSTUNREACH",
+       "WSASYSNOTREADY",
+       "WSAVERNOTSUPPORTED",
+       "Winsock not initialised",
+       "WSAHOST_NOT_FOUND",
+       "WSATRY_AGAIN",
+       "WSANO_RECOVERY",
+       "WSANO_DATA"
+    };
+    
+    char *s;
+    
+    switch (socket_errno) {
+    case WSAEINTR: s = "Function interrupted";
+    case WSAEACCES: s = "Cannot broadcast";
+    case WSAEFAULT: s = "Buffer is invalid";
+    case WSAEINVAL: s = "Unbound socket";
+    case WSAEMFILE: s = "No more descriptors";
+	
+    default: if ( (socket_errno >= WSAEWOULDBLOCK) && (socket_errno <= WSANO_DATA)) {
+	s = errstrings[socket_errno - WSAEWOULDBLOCK];
+    } else s = "unknown error";
+    }  
+    if (file)
+   	debug_message("System Error: %s:%s:%s\n", what, file, s);
+    else
+	debug_message("System Error: %s:%s\n", what, s);
+}
+#endif
+
 #endif				/* SOCKET_EFUNS */

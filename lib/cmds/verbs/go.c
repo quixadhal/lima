@@ -18,7 +18,7 @@ int need_to_see() {
 }
 
 //###should be shared somehow with drive.c
-string *normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
+string array normal_dirs = ({  "up", "down", "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
 
 void do_go_wrd_obj(string prep, object ob) {
     ob->go(prep);
@@ -69,10 +69,9 @@ void do_go_str(string str) {
     this_body()->go_somewhere(str);
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
-    return ({ ({ "down OBJ", "up OBJ", "around OBJ:v", "to OBJ:v",
-  "over OBJ", "on OBJ", "into OBJ", "in OBJ", "STR" }), ({ "leave" }), ({ "STR" }) });
+    return ({ ({ "STR" }), ({ "leave" }), ({ "down OBJ", "up OBJ", "around OBJ:v", "to OBJ:v", "over OBJ", "on OBJ", "into OBJ", "in OBJ", "STR" }) });
 
     /*
     ** exit 1 -> go 1

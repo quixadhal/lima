@@ -9,7 +9,7 @@ int do_turn_obj(object ob1)
       return 0;
 }
 
-mixed query_verb_info()
+array query_verb_info()
 {
    return ({ ({ "OBJ" }) });
 }

@@ -78,6 +78,7 @@ private void Mh_cmd_help()
 {
     string* output;
 
+//### FIXME: This is _really_ gross. Use @@END.
     output = explode(
       "Help for Mh (Mail handler)  Version 0.9\n"+sprintf("%'-'40s","\n")+
       "M?					This help screen\n"

@@ -8,6 +8,7 @@
 **
 ** 09-Feb-95. Deathblade. Created.
 ** 05-Jan-96. Cowl. Added STREAM BINARY connect and listen styles
+** 12-Jul-96. Rust. Added write callback.
 */
 
 #include <mudlib.h>
@@ -27,12 +28,19 @@ static private int	style;
 static private int	fdOwned = -1;	/* no socket yet */
 static private function	read_func;
 static private function	close_func;
+static private function write_func;
 
 static private mixed *	write_queue = ({ });
 static private int	blocked;
 
 /* For debug purposes only */
 static private mixed addr;
+
+void set_write_callback(function f)
+{
+  write_func = f;
+}
+
 int stat_me()
 {
     switch ( style )
@@ -330,6 +338,10 @@ SKTLOG("send: err",err);
 	    blocked = 1;
 	    return;
 	}
+	if(write_func)
+	  {
+	    evaluate(write_func, this_object());
+	  }
     }
 
     if ( err < 0 )
@@ -338,6 +350,7 @@ SKTLOG("send: err",err);
 
 private nomask void write_callback(int fd)
 {
+
 SKTLOG("write_callback: self",this_object());
 SKTLOG("write_callback: fd",fd);
 SKTLOG("write_callback: # elem",sizeof(write_queue));
@@ -345,6 +358,11 @@ SKTLOG("write_callback: # elem",sizeof(write_queue));
     /*
     ** No longer blocked (can accept new data).
     */
+    if(!sizeof(write_queue) && write_func && blocked)
+      {
+	evaluate(write_func, this_object());
+      }
+
     blocked = 0;
 
     while ( sizeof(write_queue) > 0 )
@@ -366,8 +384,15 @@ SKTLOG("write_callback: err",err);
 	    return;
 	}
 	if ( err < 0 )
+	  {
 	    error("could not write: " + socket_error(err) + "\n");
+	  }
+	else if(write_func)
+	  {
+	    evaluate(write_func, this_object());
+	  }
     }
+
 }
 
 void remove()

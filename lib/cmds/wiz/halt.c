@@ -7,5 +7,5 @@ inherit CMD;
 private void main()
 {
     all_inventory(environment(this_body()))->stop_fight();
-    this_body()->simple_action("$N $vhalt combat in the room.\n");
+    this_body()->simple_action("$N $vhalt combat in the room.");
 }

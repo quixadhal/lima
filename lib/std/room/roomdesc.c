@@ -129,7 +129,7 @@ varargs string show_objects(object except)
       obj_show += except->inventory_recurse(0,this_body());
 
     if (user_show != "") obj_show += "\n"+user_show;
-    return wrap(obj_show);
+    return obj_show;
 }
 
 private int dont_show_long()
@@ -141,17 +141,13 @@ private int dont_show_long()
 string long()
 {
 #ifdef OBVIOUS_EXITS_BOTTOM
-    return sprintf("%s%s%sObvious Exits: %s\nYou also see:\n%s",
-                   (dont_show_long() ? "" : get_base_long()[0..<2]),
-		   get_state_specific_long(),
-		   get_extra_long(),
+    return sprintf("%sObvious Exits: %s\nYou also see:\n%s",
+                   (dont_show_long() ? "" : get_base_long()[0..<2] + get_state_specific_long() + get_extra_long()),
                    show_exits(),
                    show_objects());
 #else
-    return sprintf("%s%s%s%s",
-                   (dont_show_long() ? "" : get_base_long()[0..<2]),
-		   get_state_specific_long(),
-		   get_extra_long(),
+    return sprintf("%s%s",
+                   (dont_show_long() ? "" : get_base_long()[0..<2] + get_state_specific_long() + get_extra_long()),
 		   show_objects());
 #endif
 }
@@ -208,7 +204,7 @@ void do_looking(int forced_look)
 	printf("%s\n", short());
 #endif
 
-	write(wrap(long()));
+	write(long());
     }
 }
 

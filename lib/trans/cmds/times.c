@@ -13,10 +13,11 @@ void create()
 }
 
 #define USAGE	"Usage:  times <#> <command>\n"
-private void main( mixed * arg)
+private void main( string orig_input, mixed *arg )
 {
     int repeats;
     string	command;
+
 
     command = implode(arg[1]," ");
     repeats = arg[0];

@@ -96,7 +96,7 @@ nomask void process_dir(string path)
 
 	if ( initiator )
 	{
-	    tell_object(initiator, "HELP_D has finished the rebuild.\n");
+	    tell(initiator, "HELP_D has finished the rebuild.\n");
 	    initiator = 0;
 	}
     }

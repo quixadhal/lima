@@ -15,7 +15,7 @@ private void main(string str) {
     int ndays;
     string header;
     string pattern;
-    
+
     if ( !str )
 	ndays = 1;
     else if ( !(ndays = to_int(str)) ) {
@@ -31,9 +31,9 @@ private void main(string str) {
 	header = sprintf("DID_D report for the past %d days", ndays);
 
     out(DID_D->get_did_info(time() - ndays * 24 * 60 * 60,
-			 ({ header,
-				sprintf("%*'-'s", sizeof(header), ""),
-				"" }),
-			 pattern));
+	({ header,
+	  repeat_string("-", sizeof(header)),
+	  "" }),
+	pattern));
 }
 

@@ -14,12 +14,12 @@ void create()
 }
 
 private void main(string s) {
-    if (!s | s == "") {
+    if (!s || s == "") {
 	out("Shout what?\n");
 	return;
     }
 
-    map(users()-({this_user()}), (: tell_object($1, iwrap(sprintf("%s shouts: %s\n", this_body()->query_name(), punctuate($2)))) :), s);
-    out(iwrap("You shout: " + punctuate(s) + "\n"));
+    tell(users()-({this_user()}), this_body()->query_name() + " shouts: " + punctuate(s) + "\n", MSG_INDENT);
+    out("You shout: " + punctuate(s) + "\n");
 }
 

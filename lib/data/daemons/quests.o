@@ -1,0 +1,2 @@
+#/daemons/quest_d.c
+quests (["pirate":({"/domains/std/objects/sand_with_treasure",20,22,"Find the pirate's hidden treasure!",}),"pirate:secretPsg":({"/domains/std/rooms/caves/small_dock",10,20,0,}),"pirate:foundCave":({"/domains/std/rooms/beach/sandy_beach",10,61,0,}),])

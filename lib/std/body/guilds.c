@@ -179,6 +179,13 @@ string array guilds_belong()
 			       (: ((class guild_info)$2)->member_level :)));
 }
 
+void clear_guilds()
+{
+    guilds = ([ ]);
+    return;
+}
+
+
 /* when restoring old player files */
 static nomask void fix_guild_data()
 {

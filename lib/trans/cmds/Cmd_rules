@@ -10,12 +10,12 @@ dbxtracer	obj str
 du		[dir]
 ed		[file|fname]
 find -in        str file*
-findfile -u     [str]
+findfile -u	[str]
 force		user str*
-grep -inv	str [file*]
+grep -inv	str [file|dir*]
 in		obj str*
 loadall		dir
-ls -aslF	[file|dir*]
+ls -npsl	[file|dir*]
 mkdir		fname
 more		[file*]
 mv -rf		file* fname|dir|file
@@ -23,6 +23,7 @@ replace	-qn	str str file*
 rm		file*
 rmdir		dir*
 rmpath		dir
+shutdown -ct:	str*
 snoop		[user] [str*]
 spew		file str*
 stat		obj|user
@@ -32,4 +33,6 @@ tsh		file
 times		num str*
 update	-rRz	[cfile*]
 xargs		str*
+dir -cFls	[dir|file*]
+
 

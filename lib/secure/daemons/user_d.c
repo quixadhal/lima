@@ -190,3 +190,8 @@ nomask void set_variable(string userid, string varname, mixed value)
 	       sprintf("\n%s %s\n", varname, save_variable(value)),
 	       1);
 }
+
+nomask int user_exists(string s)
+{
+  return unguarded(1, (: is_file(LINK_PATH($(s)) + __SAVE_EXTENSION__) :));
+}

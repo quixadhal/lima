@@ -69,10 +69,9 @@ static nomask string * format_name_list(string prompt, string * names)
     if ( !names || !sizeof(names) )
 	return ({ });
 
-    return explode(wrap(prompt + implode(map_array(names, (: capitalize :)),
-                                          ", "),
-			0, strlen(prompt)),
-		   "\n");
+    return explode(prompt + implode(map_array(names, (: capitalize :)),
+	  ", "),
+      "\n");
 }
 
 /*
@@ -86,6 +85,8 @@ static nomask string * build_message(int mail_key, int supress_header)
     class mail_msg msg;
 
     msg = mailbox_ob->get_one_message(mail_key);
+    if ( !msg )
+	return ({ "*** LOST THE MESSAGE! ***" });
 
     output = ({});
     if ( !supress_header )
@@ -94,8 +95,8 @@ static nomask string * build_message(int mail_key, int supress_header)
 	output += format_name_list("Cc     : ", msg->cc_list);
 	output += ({ "From   : " + capitalize(msg->sender) });
 	output += ({ "Date   : " + ctime(msg->date) });
-	output += explode(iwrap("Subject: " + msg->subject),"\n");
-	output += ({ sprintf("%'-'39s","-") });
+	output += explode("Subject: " + msg->subject,"\n");
+    output += ({ repeat_string("-", 39) });
     }
 
     output += msg->body;
@@ -113,12 +114,12 @@ static nomask string * build_message(int mail_key, int supress_header)
 static nomask void write_dead_letter(string * buf)
 {
     if ( wizardp(this_user()) && 
-	file_size("/wiz/"+this_user()->query_userid()) == -2 )
+      file_size("/wiz/"+this_user()->query_userid()) == -2 )
     {
 	write("Appending to ~/dead.letter\n");
 	write_file(sprintf("/wiz/%s/dead.letter",
-			   this_user()->query_userid()),
-		   implode(buf,"\n")+"\n");
+	    this_user()->query_userid()),
+	  implode(buf,"\n")+"\n");
     }
 }
 
@@ -139,15 +140,15 @@ static nomask string * build_body_inclusion(string * body)
 ** Send a mail message to the given people.
 */
 private nomask void send_mail_message(string subject,
-				    string *buf,
-				    mixed to_list,
-				    mixed cc_list,
-				    int use_dead_letter)
+  string *buf,
+  mixed to_list,
+  mixed cc_list,
+  int use_dead_letter)
 {
     string * name_list;
 
     if ( stringp(to_list) )
-	to_list = explode(to_list, " ");
+	to_list = map(explode(to_list, ","), (:trim_spaces:));
     else if ( !pointerp(to_list) )
 	to_list = ({ });
 
@@ -158,17 +159,17 @@ private nomask void send_mail_message(string subject,
 	    write_dead_letter(buf);
 	return;
     }
-    
+
     if ( stringp(cc_list) )
-	cc_list = explode(cc_list, " ");
+	cc_list = map(explode(cc_list, ","), (:trim_spaces:));
     else if ( !pointerp(cc_list) )
 	cc_list = ({ });
 
     name_list = MAIL_D->send_mail(this_user()->query_userid(),
-				  subject,
-				  buf,
-				  to_list,
-				  cc_list);
+      subject,
+      buf,
+      to_list,
+      cc_list);
     if ( !sizeof(name_list) )
     {
 	write("No valid destination.\n");
@@ -195,8 +196,8 @@ private nomask void send_mail_message(string subject,
 */
 
 static nomask void cmd_read(int user_num,
-			    string outputfile,
-			    int supress_header)
+  string outputfile,
+  int supress_header)
 {
     int		timestamp;
     string *	output;
@@ -265,14 +266,20 @@ static nomask void cmd_headers(string rangestr)
     {
 	class mail_msg msg = mailbox_ob->get_one_message(key);
 
-	output +=
+	if ( !msg )
+	    output +=
+	    ({ sprintf("  %-3d %-15s  %10s  %s",
+		nums[key], "", "", "*** LOST MESSAGE ***")
+	    });
+	else
+	    output +=
 	    ({ sprintf("%c %-3d %-15s (%s) %s",
-		       mailbox_ob->query_message_read(key) ? 'N' : ' ',
-		       nums[key],
-		       capitalize(msg->sender),
-		       ctime(msg->date)[0..9],
-		       msg->subject)
-		   });
+		mailbox_ob->query_message_read(key) ? 'N' : ' ',
+		nums[key],
+		capitalize(msg->sender),
+		ctime(msg->date)[0..9],
+		msg->subject)
+	    });
     }
 
     more(output);
@@ -282,8 +289,8 @@ static nomask void cmd_headers(string rangestr)
 
 /* to_list is a string * or a string */
 private nomask void mailer_get_cc_list(mixed to_list,
-				       string subject,
-				       string cc_list)
+  string subject,
+  string cc_list)
 {
     string * buf;
     string file;
@@ -296,8 +303,8 @@ private nomask void mailer_get_cc_list(mixed to_list,
 }
 
 private nomask void mailer_done_edit(string to_list,
-				     string subject,
-				     string fname)
+  string subject,
+  string fname)
 {
     /*
     ** Just return if they cancelled the edit
@@ -314,7 +321,7 @@ private nomask void mailer_get_subject(string to_list, string arg)
     string subject = arg ? arg : "<none>";
 
     new(EDIT_OB, EDIT_FILE, tmp_fname(),
-	(: mailer_done_edit, to_list, subject :));
+      (: mailer_done_edit, to_list, subject :));
 }
 
 static nomask void cmd_mail(string to_list)
@@ -345,13 +352,18 @@ static nomask void cmd_reply(int user_num, int reply_all)
 	return;
 
     msg = mailbox_ob->get_one_message(key);
+    if ( !msg )
+    {
+	write("*** ERROR: the message was lost!\n");
+	return;
+    }
 
     body = build_body_inclusion(msg->body);
     body = implode(body, "\n");
     body = sprintf("On %s %s wrote:\n%s\n",
-		   ctime(msg->date),
-		   capitalize(msg->sender),
-		   body);
+      ctime(msg->date),
+      capitalize(msg->sender),
+      body);
 
     subject = "Re: " + msg->subject;
 
@@ -363,7 +375,7 @@ static nomask void cmd_reply(int user_num, int reply_all)
     write_file(file, body);
 
     new(EDIT_OB, EDIT_FILE, tmp_fname(),
-	(: mailer_done_edit, to_list, subject :));
+      (: mailer_done_edit, to_list, subject :));
 }
 
 
@@ -399,7 +411,7 @@ static nomask void cmd_setcurrent(mixed arg)
 
     if ( !arg )
 	return (void)printf("Current message is: %d\n",
-			    mailbox_ob->query_message_index() + 1);
+	  mailbox_ob->query_message_index() + 1);
 
     arg = to_int( arg );
     if ( arg <= 0 || arg > count )
@@ -423,20 +435,34 @@ static nomask void cmd_forward(int user_num, string newto)
     if ( !key ) return;
 
     msg = mailbox_ob->get_one_message(key);
+    if ( !msg )
+    {
+	write("*** ERROR: the message was lost!\n");
+	return;
+    }
 
     body = build_body_inclusion(msg->body);
     body = ({"Begin forwarded message:",
-		 sprintf("On %s %s wrote:",
-			 ctime(msg->date),
-			 capitalize(msg->sender))
-	 }) + body;
+      sprintf("On %s %s wrote:",
+	ctime(msg->date),
+	capitalize(msg->sender))
+    }) + body;
 
     send_mail_message("FWD: " + msg->subject,
-		      body,
-		      newto,
-		      ({ }),	/* cc_list */
-		      0);
+      body,
+      newto,
+      ({ }),	/* cc_list */
+      0);
 }
+
+void send_news_reply(string subject, string * text, string * to)
+{
+    if ( base_name(previous_object()) != NEWSREADER )
+	error("security: attempted use by: " + base_name(previous_object()) + "\n");
+
+    send_mail_message(subject, text, to, 0, 0);
+}
+
 
 void create()
 {

@@ -22,10 +22,10 @@ int validate_auth(string mudname, int provided_key);
 string canon_mudname(string mudname);
 mapping query_mudlist();
 
-void file_process_packet(object socket, mixed * message);
+//void file_process_packet(object socket, mixed * message);
 void file_has_outgoing(string remote_mudname);
 void file_send_outgoing(string remote_mudname, object socket);
-void mail_process_packet(object socket, mixed * message);
+//void mail_process_packet(object socket, mixed * message);
 void mail_has_outgoing(string remote_mudname);
 void mail_send_outgoing(string remote_mudname, object socket);
 
@@ -49,6 +49,7 @@ class oob_info
     int		activity_time;	/* time of last message */
 
     string	addr;		/* address of remote OOB port (for opening) */
+    function	fail_func;	/* Function to call if we couldn't open a					   connection. */
 }
 
 /* map socket objects to oob connection information. */
@@ -127,9 +128,8 @@ private nomask void oob_error(class oob_info info,
 
     oob_send(info, ({ "error", 5,
 			  mud_name(), 0,
-			  info->remote_mudname, 0,
-			  message
-			  }));
+			  info->remote_mudname, 0
+			  }) + message);
     log_error_snd(info->remote_mudname, message);
 }
 
@@ -276,12 +276,15 @@ DBBUG(message);
 		info->remote_mudname = message[1];
 		if ( oob_mudname_map[info->remote_mudname] )
 		{
+#if 0   // Consistancy problems here... -- Rust
 		    oob_error(info,
 			      "bad-connection",
 			      "you are already connected",
 			      message);
 		    oob_close(info);
 		    return;
+#endif
+		    oob_close(oob_mudname_map[info->remote_mudname]);
 		}
 
 		oob_mudname_map[info->remote_mudname] = info;
@@ -312,12 +315,19 @@ DBBUG(message);
 	    }
 	    else
 	    {
-		/*
+
+#if 0		
+	        // You can't do this, because then the other side can't
+		// init a connection -- Rust
+	        /*
 		** Wait to close the connection.  We may "reopen" the
 		** connection during this time period.  Note that the
 		** period cleanup routine will close this as necessary.
 		*/
 		info->state = OOB_STATE_CLOSE_PENDING;
+#else
+	   oob_close(info);
+#endif
 	    }
 	}
 	else if ( info->state == OOB_STATE_WAIT_END )
@@ -344,6 +354,7 @@ DBBUG(message);
 	break;
 
     case "error":
+      BBUG(message);
 	log_error_rcv(info->remote_mudname, message[6..]);
 	break;
 
@@ -422,7 +433,7 @@ DBBUG("opening connection");
     info->state = OOB_STATE_SENT_BEGIN;
 }
 
-nomask void oob_initiate_connection(string mudname)
+varargs nomask void oob_initiate_connection(string mudname, function fail_func)
 {
     class oob_info info;
     mixed * mudinfo;
@@ -441,7 +452,7 @@ nomask void oob_initiate_connection(string mudname)
 	** Already connected.  See if we are in CLOSE_PENDING.  If so,
 	** then send an outgoing request and move back to SENT_DATA.
 	*/
-	if ( info->state == OOB_STATE_CLOSE_PENDING )
+	if ( info->state == OOB_STATE_CLOSE_PENDING)
 	{
 	    oob_send_outgoing(info);
 	    info->state = OOB_STATE_SENT_DATA;
@@ -454,6 +465,7 @@ nomask void oob_initiate_connection(string mudname)
     info->remote_mudname = mudname;
     info->we_originated  = 1;
     info->activity_time  = time();
+    info->fail_func = fail_func;
 
     oob_mudname_map[mudname] = info;
 

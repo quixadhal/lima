@@ -205,7 +205,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 0.9r12 (pre-alpha)",
+			      "Lima 1.0a1",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -223,6 +223,7 @@ private nomask void reconnect()
 				  "file" : 1,
 				  "http" : 80,
 				  "ftp" : 21,
+                                  "mail" : 1
 				  ]),
 			      0,	/* other_data */
 			      }));
@@ -340,8 +341,8 @@ private nomask void rcv_error(string orig_mud, string orig_user,
 
     if ( targ_user && (ob = find_user(targ_user)) )
     {
-	tell_object(ob, sprintf("Intermud tells you: %s: %s\n",
-				message[0], message[1]));
+	tell(ob, sprintf("Intermud tells you: %s: %s\n",
+			 message[0], message[1]));
     }
     else
     {

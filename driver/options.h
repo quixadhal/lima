@@ -216,6 +216,11 @@
  */
 #define STRING_STATS
 
+/*
+ * Similarly for arrays ...
+ */
+#define ARRAY_STATS
+
 /* LOG_CATCHES: define this to cause errors that are catch()'d to be
  *   sent to the debug log anyway.
  *
@@ -315,6 +320,12 @@
  *   reloaded that otherwise would).
  */
 #undef LAZY_RESETS
+
+/* COMPRESS_FUNCTION_TABLES: Causes function tables to take up significantly
+ * less memory, at the cost of a slight increase in function call overhead
+ * (speed).
+ */
+#define COMPRESS_FUNCTION_TABLES
 
 /* SAVE_EXTENSION: defines the file extension used by save_object().
  *   and restore_object().  Some sysadmins run scripts that periodically
@@ -628,7 +639,7 @@
  * call.  SunOS and IRIX do, as do a number of others.  AIX and Ultrix don't.
  * Linux does if you are using ELF.
  */
-#define RUNTIME_LOADING
+#undef RUNTIME_LOADING
 
 /* TRACE_CODE: define this to enable code tracing (the driver will print
  *   out the previous lines of code to an error) eval_instruction() runs about

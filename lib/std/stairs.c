@@ -3,23 +3,66 @@
 inherit OBJ;
 inherit M_CLIMBABLE;
 
-void create(mixed up_dest, mixed down_dest) {
-   ::create();
-    add_id_no_plural("stairs");
+int plural_flag;
+
+void set_plural() {
+    plural_flag = 1;
     set_unique(1); // plural
-    set_up_destination(up_dest);
-    set_down_destination(down_dest);
-    // Just a default.
-    if (up_dest) {
-	if (down_dest) {
-	    set_long("The stairs lead up and down.\n");
-	    set_in_room_desc("There are stairs here, leading up and down.");
+}
+
+mixed direct_get_obj( object ob ) {
+    if (plural_flag)
+	return "#Try climbing them instead.\n";
+    else
+	return "#Try climbing it instead.\n";
+}
+
+static void setup_messages(string name, mixed up_dest, mixed down_dest) {
+    if (plural_flag) {
+	add_id_no_plural(name);
+
+	if (up_dest) {
+	    if (down_dest) {
+		set_long("The " + name + " lead up and down.\n");
+		set_in_room_desc("There are " + name + " here, leading up and down.");
+	    } else {
+		set_long("The " + name + " lead upwards.\n");
+		set_in_room_desc("There are " + name + " here, leading upwards.");
+	    }
 	} else {
-	    set_long("The stairs lead upwards.\n");
-	    set_in_room_desc("There are stairs here, leading upwards.");
+	    set_long("The " + name + " lead downwards.\n");
+	    set_in_room_desc("There are " + name + " here, leading downwards.");
 	}
     } else {
-	set_long("The stairs lead downwards.\n");
-	set_in_room_desc("There are stairs here, leading downwards.\n");
+	add_id(name);
+
+	if (up_dest) {
+	    if (down_dest) {
+		set_long("The " + name + " leads up and down.\n");
+		set_in_room_desc("There is a " + name + " here, leading up and down.");
+	    } else {
+		set_long("The " + name + " leads upwards.\n");
+		set_in_room_desc("There is a " + name + " here, leading upwards.");
+	    }
+	} else {
+	    set_long("The " + name + " leads downwards.\n");
+	    set_in_room_desc("There is a " + name + " here, leading downwards.");
+	}
     }
+}
+
+// Separated from create() so that objects can overload this separately
+void more_create(mixed up_dest, mixed down_dest, int attached) {
+    set_plural();
+    setup_messages("stairs", up_dest, down_dest);
+}
+
+void create( mixed up_dest, mixed down_dest, int attached )
+{
+::create();
+    more_create( up_dest, down_dest, attached );
+    if( attached )
+        set_flag( ATTACHED );
+    set_up_destination(up_dest);
+    set_down_destination(down_dest);
 }

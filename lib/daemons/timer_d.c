@@ -45,7 +45,7 @@ nomask void process_timer(object owner)
     if ( data->channel_name )
         NCHANNEL_D->deliver_notice(data->channel_name, notice);
     else
-        tell_object(owner, notice + ".\n");
+        tell(owner, notice + ".\n");
 
     if ( data->time_left == 0 && data->repeating )
     {
@@ -60,7 +60,7 @@ nomask void process_timer(object owner)
         if ( data->channel_name )
             NCHANNEL_D->deliver_notice(data->channel_name, notice);
         else
-            tell_object(owner, notice + ".\n");
+            tell(owner, notice + ".\n");
     }
     else if ( data->time_left > 0 )
     {

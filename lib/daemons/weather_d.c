@@ -64,11 +64,11 @@ private void change_weather()
     weather_state = random(sizeof(types));
     if ( weather_state != last_state )
     {
-	buf_me_once = iwrap(show_weather_change(last_state));
+	buf_me_once = show_weather_change(last_state);
 	foreach ( body in bodies() - ({ 0 }) )
 	{
 	    if ( environment(body) && environment(body)->query_weather() )
-		tell_object(body, buf_me_once);
+		tell(body, buf_me_once);
 	}
     }
 

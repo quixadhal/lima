@@ -33,26 +33,29 @@ typedef struct {
 #define A_PROGRAM		0	/* executable code */
 #define A_RUNTIME_FUNCTIONS	1	/* table of functions */
 #define A_COMPILER_FUNCTIONS    2
-#define A_FUNCTION_FLAGS	3
-#define A_STRINGS		4	/* table of strings */
-#define A_VARIABLES		5	/* table of variables */
-#define A_LINENUMBERS		6	/* linenumber information */
-#define A_FILE_INFO             7       /* start of file line nos */
-#define A_INHERITS		8	/* table of inherited progs */
-#define A_CLASS_DEF             9
-#define A_CLASS_MEMBER          10
-#define A_ARGUMENT_TYPES	11	/* */
-#define A_ARGUMENT_INDEX	12	/* */
-#define NUMPAREAS		13
-#define A_CASES                 13      /* keep track of cases */
-#define A_STRING_NEXT		14	/* next prog string in hash chain */
-#define A_STRING_REFS		15	/* reference count of prog string */
-#define A_INCLUDES		16	/* list of included files */
-#define A_PATCH			17	/* for save_binary() */
-#define A_INITIALIZER           18
-#define A_FUNCTIONALS           19
-#define A_FUNCTION_DEFS		20
-#define NUMAREAS		21
+#define A_RUNTIME_COMPRESSED	3
+#define A_FUNCTION_FLAGS	4
+#define A_STRINGS		5	/* table of strings */
+#define A_VAR_NAME		6
+#define A_VAR_TYPE		7
+#define A_LINENUMBERS		8	/* linenumber information */
+#define A_FILE_INFO             9       /* start of file line nos */
+#define A_INHERITS		10	/* table of inherited progs */
+#define A_CLASS_DEF             11
+#define A_CLASS_MEMBER          12
+#define A_ARGUMENT_TYPES	13	/* */
+#define A_ARGUMENT_INDEX	14	/* */
+#define NUMPAREAS		15
+#define A_CASES                 15      /* keep track of cases */
+#define A_STRING_NEXT		16	/* next prog string in hash chain */
+#define A_STRING_REFS		17	/* reference count of prog string */
+#define A_INCLUDES		18	/* list of included files */
+#define A_PATCH			19	/* for save_binary() */
+#define A_INITIALIZER           20
+#define A_FUNCTIONALS           21
+#define A_FUNCTION_DEFS		22
+#define A_VAR_TEMP	        23	/* table of variables */
+#define NUMAREAS		24
 
 #define CURRENT_PROGRAM_SIZE (prog_code - mem_block[current_block].block)
 #define UPDATE_PROGRAM_SIZE mem_block[current_block].current_size = CURRENT_PROGRAM_SIZE
@@ -96,6 +99,7 @@ typedef struct function_context_s {
 } function_context_t;
 
 extern function_context_t *current_function_context;
+extern int var_defined;
 
 /*
  * Some good macros to have.
@@ -114,19 +118,20 @@ extern function_context_t *current_function_context;
 #define COMPILER_FUNC(n) ((compiler_function_t *)mem_block[A_COMPILER_FUNCTIONS].block + (n))
 /* program for inherited entry from full function index */
 #define FUNCTION_PROG(n) (FUNCTION_TEMP(n)->prog)
+#define FUNCTION_ALIAS(n) (FUNCTION_TEMP(n)->alias_for)
 /* compiler_function_t from full function index */
 #define FUNCTION_DEF(n) (FUNCTION_PROG(n) ? FUNCTION_TEMP(n)->u.func : COMPILER_FUNC(FUNCTION_TEMP(n)->u.index))
 /* runtime_function_u from full function index */
 #define FUNCTION_RENTRY(n) ((runtime_function_u *)mem_block[A_RUNTIME_FUNCTIONS].block + (n))
-/* runtime_function_u from full function index, but digs down to the definition */
-#define FUNCTION_DEF_RENTRY(n) (FUNCTION_PROG(n) ? FUNCTION_PROG(n)->offset_table + FUNCTION_TEMP(n)->u.func->runtime_index : FUNCTION_RENTRY(n))
+/* runtime_function_u from full function index, but digs down to the definition.  This is rather complex; maybe it should be stored in FUNCTION_TEMP too */
+#define FUNCTION_DEF_RENTRY(n) (FUNCTION_PROG(n) ? FIND_FUNC_ENTRY(FUNCTION_PROG(n), FUNCTION_TEMP(n)->u.func->runtime_index) : FUNCTION_RENTRY(n))
 /* flags from full function index */
 #define FUNCTION_FLAGS(n) *((unsigned short *)mem_block[A_FUNCTION_FLAGS].block + (n))
 
 #define NUM_INHERITS (mem_block[A_INHERITS].current_size / sizeof(inherit_t))
 
 #define INHERIT(n)  ((inherit_t *)mem_block[A_INHERITS].block + (n))
-#define VARIABLE(n) ((variable_t *)mem_block[A_VARIABLES].block + (n))
+#define VAR_TEMP(n) ((variable_t *)mem_block[A_VAR_TEMP].block + (n))
 #define SIMUL(n)    (simuls[n].func)
 #define PROG_STRING(n)   (((char **)mem_block[A_STRINGS].block)[n])
 #define CLASS(n)    ((class_def_t *)mem_block[A_CLASS_DEF].block + (n))
@@ -205,6 +210,7 @@ void arrange_call_inherited PROT((char *, parse_node_t *));
 void add_arg_type PROT((unsigned short));
 int define_new_function PROT((char *, int, int, int, int));
 int define_variable PROT((char *, int, int));
+int define_new_variable PROT((char *, int));
 short store_prog_string PROT((char *));
 void free_prog_string PROT((short));
 #ifdef DEBUG

@@ -51,24 +51,23 @@ void do_get_obj(object ob) {
 
 void do_get_obs(object array info)
 {
-    foreach(mixed ob in info)
-    {
-	if (stringp(ob))
-	    write(ob);
-	else
-	{
-	    write(ob->short() + ": ");
-	    get_one(ob, 0);
-	}
-    }
+    handle_obs(info, (: get_one :));
 }
 
 void do_get_obj_from_obj(object ob1, object ob2) {
     get_one(ob1, 0);
 }
 
+void do_get_obs_from_obj(array info, object ob2) {
+    handle_obs(info, (: get_one :));
+}
+
 void do_get_obj_out_of_obj(object ob1, object ob2) {
     get_one(ob1, 0);
+}
+
+void do_get_obs_out_of_obj(array info, object ob2) {
+    handle_obs(info, (: get_one :));
 }
 
 void do_get_obj_with_obj(object ob1, object ob2) {
@@ -99,7 +98,7 @@ void do_get_off_obj(object what)
 		this_body()->simple_action(s);
 	    else
 		this_body()->simple_action("$N $vget off " + what->the_short()+
-		  ".\n");
+		  ".");
 	}
 	else
 	{
@@ -112,75 +111,57 @@ void do_get_off_obj(object what)
     }
 }
 
-mixed do_get_wrd_str(string amount, string str)
-{
-    string *sentence = explode(str, " ");
-    object ob;
-
-    int number;
-
-    if (sscanf(amount, "%d", number) == 1)
-    {
-	if(ob = present("coins", environment(this_body())))
-	{
-	    ob->get(number,sentence[0]);
-	    return 1;
-	}
-	else
-	{
-	    this_body()->my_action("Get what what?\n");
-	}
+//### FIXME: These next two handle get 10 gold coins well enough if the
+//### coins are in the room, but even get 10 gold coins from corpse will
+//### fail.  What we probably want to do is have rules 'WRD OBJ from OBJ'
+//### and 'WRD OBJ' and do something like ob->get_multiple(...).
+mixed can_get_wrd_str(string amount, string str) {
+    int z;
+    string s1, s2;
+    
+    sscanf(amount, "%d%s", z, s1);
+    if (s1 != "") return 0;
+    
+    sscanf(str, "%s %s", s1, s2);
+    if (s2) {
+	if (s2 != "coin" && s2 != "coins")
+	    return 0;
+	return 1;
     }
-    else
-    {
-	this_body()->my_action("Get what?\n");
-    }
+    return str == "coin" || str == "coins";
 }
 
-void do_get_up()
+void do_get_wrd_str(string amount, string str)
 {
-    mixed s;
-    string err;
+    string s;
+    object ob;
+    int number;
 
-    if(s = environment(this_body())->stand())
-    {
-	if(!stringp(err=this_body()->move(environment(environment(this_body())))))
-	{
-	    if(stringp(s))
-		this_body()->simple_action(s);
-	    else
-		this_body()->simple_action("$N $vstand up.\n");
-	}
-	else
-	{
-	    write(err+"\n");
-	}
-    }
-    else
-    {
-	if(environment(environment(this_body())))
-	{
-	    write("You are unable.\n");
-	}
-	else
-	{
-	    write("You are already standing.\n");
-	}
+    /* Can't fail */
+    sscanf(amount, "%d", number);
+
+    sscanf(str, "%s %s", str, s); // If there are two words, we want the first
+
+    if(ob = present("coins", environment(this_body()))) {
+	ob->get(number, str);
+	return;
+    } else {
+	this_body()->my_action("There are no coins here.\n");
     }
 }
 
 int do_get_off()
 {
-    do_get_up();
+    "/cmds/verbs/stand"->do_stand();
 }
 
-mixed * query_verb_info()
+array query_verb_info()
 {
     return 
 	({ 
-	    ({ "WRD STR", "OBJ from OBJ", "OBJ out of OBJ",
+	    ({ "WRD STR", "OBS from OBJ", "OBS out of OBJ",
 		   "OBJ with OBJ" }), ({ "take", "carry" }),
-	    ({ "up", "off", "off OBJ", "on OBJ" }), ({ }),
-	    ({ "OBJ", "OBS" }), ({ "pick up" })
+	    ({ "off", "off OBJ", "on OBJ" }), ({ }),
+	    ({ "OBS" }), ({ "pick up" })
 	});
 }

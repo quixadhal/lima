@@ -27,7 +27,7 @@ private void main(string arg)
     {
         if(file_name(environment(this_body())) == this_body()->query_home())
 	{
-            this_body()->simple_action( "$N $vtwitch briefly.\n");
+            this_body()->simple_action("$N $vtwitch briefly.");
 	    return;
 	}
 	msgs = this_body()->get_player_message("home");
@@ -44,8 +44,7 @@ private void main(string arg)
 	    this_body()->move(home);
 
 	msgs = this_body()->get_player_message("menter");
-	if (environment(this_body()))
-	    tell_room(environment(this_body()), msgs[1], 0, ({ this_body() }));
+	tell_environment(this_body(), msgs[1], 0, ({ this_body() }));
 
 	if ( !(this_body()->test_flag(F_BRIEF)) )
 	    this_body()->do_game_command("look");
@@ -62,15 +61,15 @@ private void main(string arg)
 
     if( file_name( environment( this_body())) == home )
     {
-        this_body()->simple_action( "$N $vtwitch briefly.\n" );
+        this_body()->simple_action("$N $vtwitch briefly.");
         return;
     }
     this_body()->simple_action("$N $vleave to visit " + capitalize(arg) +
-      "'s home.\n");
+      "'s home.");
 
     this_body()->move(home);
 
-    tell_room(environment(this_body()), this_body()->query_name() +
+    tell_environment(this_body(), this_body()->query_name() +
       " dropped by to check on " + capitalize(arg) + ".\n",
       0, ({ this_body() }));
 

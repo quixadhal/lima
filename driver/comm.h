@@ -6,6 +6,8 @@
 #ifndef COMM_H
 #define COMM_H
 
+#include "network_incl.h"
+
 #define MAX_TEXT                   2048
 #define MAX_SOCKET_PACKET_SIZE     1024
 #define DESIRED_SOCKET_PACKET_SIZE 800

@@ -39,7 +39,6 @@
 #include <io.h>
 #endif
 
-extern int errno;
 extern int sys_nerr;
 
 int legal_path PROT((char *));
@@ -48,8 +47,8 @@ static int match_string PROT((char *, char *));
 static int isdir PROT((char *path));
 static int copy PROT((char *from, char *to));
 static int do_move PROT((char *from, char *to, int flag));
-static int pstrcmp PROT((svalue_t *, svalue_t *));
-static int parrcmp PROT((svalue_t *, svalue_t *));
+static int CDECL pstrcmp PROT((CONST void *, CONST void *));
+static int CDECL parrcmp PROT((CONST void *, CONST void *));
 static void encode_stat PROT((svalue_t *, int, char *, struct stat *));
 
 #define MAX_LINES 50
@@ -57,14 +56,20 @@ static void encode_stat PROT((svalue_t *, int, char *, struct stat *));
 /*
  * These are used by qsort in get_dir().
  */
-static int pstrcmp P2(svalue_t *, p1, svalue_t *, p2)
+static int CDECL pstrcmp P2(CONST void *, p1, CONST void *, p2)
 {
-    return strcmp(p1->u.string, p2->u.string);
+    svalue_t *x = (svalue_t *)p1;
+    svalue_t *y = (svalue_t *)p2;
+    
+    return strcmp(x->u.string, y->u.string);
 }
 
-static int parrcmp P2(svalue_t *, p1, svalue_t *, p2)
+static int CDECL parrcmp P2(CONST void *, p1, CONST void *, p2)
 {
-    return strcmp(p1->u.arr->item[0].u.string, p2->u.arr->item[0].u.string);
+    svalue_t *x = (svalue_t *)p1;
+    svalue_t *y = (svalue_t *)p2;
+    
+    return strcmp(x->u.arr->item[0].u.string, y->u.arr->item[0].u.string);
 }
 
 static void encode_stat P4(svalue_t *, vp, int, flags, char *, str, struct stat *, st)
@@ -164,7 +169,7 @@ array_t *get_dir P2(char *, path, int, flags)
 	/*
 	 * If path ends with '/' or "/." remove it
 	 */
-#ifdef WIN32
+#if 0 /* was WIN32 */
 	if ((p = strrchr(temppath, '\\')) == 0)
 	    p = temppath;
 	if (p[0] == '\\' && ((p[1] == '.' && p[2] == '\0') || p[1] == '\0'))
@@ -191,7 +196,7 @@ array_t *get_dir P2(char *, path, int, flags)
 #endif
 	}
 	do_match = 1;
-#ifdef WIN32
+#if 0 /* def WIN32 */
     } else if (*p != '\0' && strcmp(temppath, ".")) {
 	if (*p == '\\' && *(p + 1) != '\0')
 #else
@@ -209,7 +214,8 @@ array_t *get_dir P2(char *, path, int, flags)
 #ifdef WIN32
     FileHandle = -1;
     FileCount = 1;
-    strcat(temppath, "\\*");
+/*    strcat(temppath, "\\*"); */
+    strcat(temppath, "/*");
     if ((FileHandle = _findfirst(temppath, &FindBuffer)) == -1) return 0;
 #else
     if ((dirp = opendir(temppath)) == 0)
@@ -266,9 +272,10 @@ array_t *get_dir P2(char *, path, int, flags)
 #ifdef WIN32
     FileHandle = -1;
     if ((FileHandle = _findfirst(temppath, &FindBuffer)) == -1) return 0;
-    endtemp = temppath + strlen(tmppath) - 2;
+    endtemp = temppath + strlen(temppath) - 2;
     *endtemp = 0;
-    strcat(endtemp++, "\\");
+/*    strcat(endtemp++, "\\"); */
+    strcat(endtemp++, "/");
     i = 0;
     do {
 	if (!do_match && (!strcmp(FindBuffer.name, ".") ||
@@ -318,13 +325,8 @@ array_t *get_dir P2(char *, path, int, flags)
 #endif				/* OS2 */
 
     /* Sort the names. */
-#if 1
     qsort((void *) v->item, count, sizeof v->item[0],
-	  (int (*) ()) ((flags == -1) ? parrcmp : pstrcmp));
-#else
-    qsort((char *) v->item, count, sizeof v->item[0],
 	  (flags == -1) ? parrcmp : pstrcmp);
-#endif
     return v;
 }
 
@@ -486,7 +488,7 @@ int write_file P3(char *, file, char *, str, int, flags)
 	return 0;
 #ifdef WIN32
     fmode[0] = (flags & 1) ? 'w' : 'a';
-    fmode[1] = 'b';
+    fmode[1] = 't';
     fmode[2] = '\0';
     f = fopen(file, fmode);
 #else    
@@ -522,7 +524,7 @@ char *read_file P3(char *, file, int, start, int, len)
     if (stat(file, &st) == -1 || (st.st_mode & S_IFDIR))
 	return 0;
 
-    f = fopen(file, "r");
+    f = fopen(file, FOPEN_READ);
     if (f == 0)
 	return 0;
 
@@ -546,6 +548,8 @@ char *read_file P3(char *, file, int, start, int, len)
 	len = READ_FILE_MAX_SIZE;
     str = new_string(size, "read_file: str");
     str[size] = '\0';
+
+#ifndef WIN32
     do {
 	if ((fread(str, size, 1, f) != 1) || !size) {
 	    fclose(f);
@@ -599,11 +603,85 @@ char *read_file P3(char *, file, int, start, int, len)
 	*p2 = '\0';
 	str = extend_string(str, p2 - str);
     } 
+#else
+    /* WIN32 defined */
+    do {
+	if ((fread(str, size, 1, f) != 1) || !size) {
+	    fclose(f);
+	    FREE_MSTR(str);
+	    return 0;
+	}
+
+	if (size > st.st_size) {
+	    size = st.st_size;
+	}		
+	st.st_size -= size;	/* It's OK, size is actual FILE size */
+	end = str + size;    /* OK */
+	for (p = str; --start && (p2 = (char *) memchr(p, '\n', end - p));) {
+	    p = p2 + 1;
+	}
+    } while (start > 1);
+
+    /* Now we have 'p' at desired position. From now on we have to translate \r\n to single \n */
+    
+    {
+	char *startline=p;
 	
+	if (len != READ_FILE_MAX_SIZE || st.st_size){
+	    for (p2 = str; p != end;) {
+		if ((*p == '\r') || (*p == 0x1a)) {
+		    p++;	/* \r will be skipped */
+		} else if ((*p2++ = *p++) == '\n') {
+		    if (!--len) break;
+		}
+	    }
+	    if (len && st.st_size) {
+		/* the next line is wrong; I have to compute this value according to 'p' (to count \r) */
+		/*	   	size -= (p2 - str); */
+		size -= (p-startline);
+		if (size > st.st_size)	size = st.st_size;
+		
+		if ((fread(p2, size, 1, f) != 1) || !size) {
+		    fclose(f);
+		    FREE_MSTR(str);
+		    return 0;
+ 	    	}
+	    	st.st_size -= size;
+
+	    	end = p2 + size;
+
+	    	for (p=p2; p != end;) {
+		    if ((*p == '\r') || (*p == 0x1a)) {
+			p++;
+		    } else if ((*p2++ = *p++) == '\n') {
+			if (!--len) break;
+		    }
+	    	}
+	    	if (st.st_size && len) {
+		    /* tried to read more than READ_MAX_FILE_SIZE */
+		    fclose(f);
+		    FREE_MSTR(str);
+		    return 0;
+	    	}
+	    }
+	} else {
+	    /* I HAVE to translate \r\n ! */
+	    for (p2 = str; p != end;) {
+		if ((*p == '\r') || (*p == 0x1a)) {
+		    p++;	/* \r will be skipped */
+		} else if ((*p2++ = *p++) == '\n') {
+		    if (!--len) break;
+		}
+	    }
+	}
+	*p2 = '\0';
+	str = extend_string(str, p2 - str);
+    } 
+#endif
+
     fclose(f);
     return str;
 }				/* read_file() */
-
 
 char *read_bytes P4(char *, file, int, start, int, len, int *, rlen)
 {
@@ -751,6 +829,14 @@ char *check_valid_path P4(char *, path, object_t *, call_object, char *, call_fu
 
     if (call_object == 0 || call_object->flags & O_DESTRUCTED)
 	return 0;
+#ifdef WIN32
+    {
+	char *p;
+	
+	for(p=path; *p; p++) if (*p == '\\') *p='/';
+    }
+#endif
+
     copy_and_push_string(path);
     push_object(call_object);
     push_constant_string(call_fun);
@@ -768,7 +854,7 @@ char *check_valid_path P4(char *, path, object_t *, call_object, char *, call_fu
 	path = ".";
 #endif
     if (legal_path(path)) {
-#ifdef WIN32
+#if 0 /* def WIN32 */
 	static char paths[10][100];
 	char *fluff;
 	static int bing = 0;
@@ -872,11 +958,11 @@ static int copy P2(char *, from, char *, to)
     if (unlink(to) && errno != ENOENT) {
 	return 1;
     }
-    ifd = open(from, O_RDONLY);
+    ifd = open(from, OPEN_READ);
     if (ifd < 0) {
 	return errno;
     }
-    ofd = open(to, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    ofd = open(to, OPEN_WRITE | O_CREAT | O_TRUNC, 0666);
     if (ofd < 0) {
 	close(ifd);
 	return 1;
@@ -1093,7 +1179,7 @@ int copy_file P2(char *, from, char *, to)
     if (to == 0)
 	return -2;
 
-    from_fd = open(from, O_RDONLY);
+    from_fd = open(from, OPEN_READ);
     if (from_fd < 0)
 	return (-1);
 
@@ -1112,7 +1198,7 @@ int copy_file P2(char *, from, char *, to)
 	close(from_fd);
 	return copy_file(from, newto);
     }
-    to_fd = open(to, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    to_fd = open(to, OPEN_WRITE | O_CREAT | O_TRUNC, 0666);
     if (to_fd < 0) {
 	close(from_fd);
 	return (-2);

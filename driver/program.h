@@ -97,6 +97,14 @@ typedef union {
 } runtime_function_u;
 
 typedef struct {
+    unsigned short first_defined;
+    unsigned short first_overload; 
+    unsigned short num_compressed;
+    unsigned short num_deleted;
+    unsigned char index[1];
+} compressed_offset_table_t;
+
+typedef struct {
     char *name;
     unsigned short type;
     unsigned short runtime_index;
@@ -116,6 +124,9 @@ typedef struct {
 	compiler_function_t *func;
 	int index;
     } u;
+    /* For non-aliases, this is a count of the number of non-aliases we've
+       seen for this function. */
+    unsigned short alias_for;
 } compiler_temp_t;
 
 typedef struct {
@@ -139,6 +150,7 @@ typedef struct {
     struct program_s *prog;
     unsigned short function_index_offset;
     unsigned short variable_index_offset;
+    unsigned short type_mod;
 } inherit_t;
 
 typedef struct program_s {
@@ -159,11 +171,15 @@ typedef struct program_s {
     int line_swap_index;	/* Where line number info is swapped */
     compiler_function_t *function_table;
     unsigned short *function_flags; /* separate for alignment reasons */
-    runtime_function_u *offset_table;
+    runtime_function_u *function_offsets;
+#ifdef COMPRESS_FUNCTION_TABLES
+    compressed_offset_table_t *function_compressed;
+#endif
     class_def_t *classes;
     class_member_entry_t *class_members;
     char **strings;		/* All strings uses by the program */
-    variable_t *variable_names;	/* All variables defined */
+    char **variable_table;	/* variables defined by this program */
+    unsigned short *variable_types;	/* variables defined by this program */
     inherit_t *inherit;	/* List of inherited prgms */
     int total_size;		/* Sum of all data in this struct */
     int heart_beat;		/* Index of the heart beat function. -1 means
@@ -189,7 +205,8 @@ typedef struct program_s {
     unsigned short num_functions_total;
     unsigned short num_functions_defined;
     unsigned short num_strings;
-    unsigned short num_variables;
+    unsigned short num_variables_total;
+    unsigned short num_variables_defined;
     unsigned short num_inherited;
 } program_t;
 
@@ -198,5 +215,16 @@ extern int total_prog_block_size;
 void reference_prog PROT((program_t *, char *));
 void free_prog PROT((program_t *, int));
 void deallocate_program PROT((program_t *));
+char *variable_name PROT((program_t *, int));
+runtime_function_u *find_func_entry PROT((program_t *, int));
+
+/* the simple version */
+#define FUNC_ENTRY(p, i) ((p)->function_offsets + (i))
+#ifdef COMPRESS_FUNCTION_TABLES
+/* Find a function entry */
+#define FIND_FUNC_ENTRY(p, i) (((i) < (p)->function_compressed->first_defined) ? find_func_entry(p, i) : FUNC_ENTRY(p, (i) - (p)->function_compressed->num_deleted))
+#else
+#define FIND_FUNC_ENTRY(p, i) FUNC_ENTRY(p, i)
+#endif
 
 #endif

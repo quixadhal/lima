@@ -8,7 +8,7 @@
 int dos_style_link P2(char *, x, char *, y) {
     char link_cmd[100];
     sprintf(link_cmd, "copy %s %s", x, y);
-    system(link_cmd);
+    return system(link_cmd);
 }
 #endif
 
@@ -265,6 +265,7 @@ INLINE char *memmove P3(register char *, b, register char *, a, register int, s)
 }
 #endif
 
+#if 0
 #ifdef WIN32
 char *crypt P2(char *, str, char *, salt)
 {
@@ -274,4 +275,14 @@ char *crypt P2(char *, str, char *, salt)
     buf[50] = 0;
     return buf;
 }				/* crypt() */
+#endif
+#endif
+
+#ifdef WIN32
+char *WinStrError(int err) {
+    static char buf[30];
+    if (errno < 10000) return strerror(err);
+    sprintf(buf, "error #%d", err);
+    return buf;
+}
 #endif

@@ -12,7 +12,7 @@ void do_wear_obj(object ob)
     ob->do_wear();
 }
 
-mixed *query_verb_info() {
+array query_verb_info() {
     return ({ ({ "OBJ" }), ({ "put on" }) });
 }
 

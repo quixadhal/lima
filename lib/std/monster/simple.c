@@ -8,8 +8,8 @@
 
 inherit __DIR__ "base";
 
-private class combat_result
-make_result(int diff) {
+private class combat_result make_result(int diff)
+{
     class combat_result ret = new(class combat_result);
     int tmp;
 
@@ -50,10 +50,13 @@ make_result(int diff) {
 void create() {
     ::create();
     
+    /* self is an M_DAMAGE_SOURCE. initialize it. */
     set_combat_messages("combat-unarmed");
     //The bonus we get for fighting barehanded. Usually negative (weapons help)
     set_wield_bonus(-3);
-    unwield(); // this actually wields us
+
+    /* by pinging query_weapon(), we will default to self as a weapon */
+    (void)query_weapon();
 }
 
 /* This is the big honking "take a swing" subroutine.  Normally,
@@ -64,16 +67,17 @@ target. */
 
 //:FUNCTION take_a_swing
 //Take a swing at the person we are attacking
-class combat_result array take_a_swing(object target) {
+class combat_result array take_a_swing(object target)
+{
     int diff;
     class combat_result array result;
     int hp;
-    string tmp;
-int them;
-int us;
+    int them;
+    int us;
     
-    them=target->query_hp();
+    them = target->query_hp();
     hp = query_hp();
+
 #ifdef DEBUG_COMBAT
     {
         int bn = query_weapon()->query_wield_bonus(target);
@@ -82,16 +86,19 @@ int us;
         string pstr = (pen ? "[-" + pen + "]" : "");
         us = hp + query_weapon()->query_wield_bonus(target) - query_penalty();
         diff = us - them;
-        tell_object(this_object(), sprintf("US: %i%s%s THEM: %i == %+i\n", hp, bstr, pstr, them, diff));
+        receive_private_msg(sprintf("US: %i%s%s THEM: %i == %+i\n", hp, bstr, pstr, them, diff));
     }
 #else
     us = hp + query_weapon()->query_wield_bonus(target) - query_penalty();
     diff = us - them;
 #endif
-    if (diff>3) diff=3;
-    else if (diff<-5) diff=-5;
 
-    if (hp<3 && random(5)<=diff) {
+    if (diff > 3)
+	diff = 3;
+    else if ( diff < -5 )
+	diff = -5;
+
+    if ( hp < 3 && random(5) <= diff) {
 	/* Act intelligent and attempt to stay alive ... */
 	switch (panic()) {
 	case 2:

@@ -93,7 +93,7 @@ private nomask void receive_alias_input(string cmd)
 	}
 
 	output = sprintf("Alias:%9sExpansion:%29sDefaults:\n","","");
-	output += sprintf("%77'-'s\n", "");
+    output += repeat_string("-", 77) + "\n";
 
 	foreach(a, val in aliases)
 	{

@@ -37,6 +37,9 @@ Rewritten by Beek; the equivalent of the above is now:
  //:HOOK
  //This documents a hook called with call_hooks
 
+ //:EXAMPLE
+ //This is an example to illustrate some code.
+
 Data is updated nightly and dumped to the /help/autodoc directory
 */
 
@@ -86,7 +89,7 @@ private:
 
 static private string * filtered_dirs = ({
   "/data/", "/ftp/", "/help/", "/include/",
-  "/log/", "/open/", "/tmp/", "/wiz/"
+  "/log/", "/open/", "/tmp/", "/user/"
 });
 
 void save_me() {
@@ -98,12 +101,17 @@ string mod_name(string foo) {
     return foo[strsrch(foo, "/", -1) + 1..];
 }
 
-void process_file(string fname) {
-    array lines = regexp(explode(read_file(fname), "\n"), "^//", 1);
+void process_file(string fname) 
+{
+    string file = read_file(fname);
     string line;
+    array lines;
     string outfile = 0;
     int last_line = -20;
     int idx = 0;
+
+    if (!file) return;
+    lines = regexp(explode(file, "\n"), "^//", 1);
 
     rm("/help/autodoc/FIXME/" + mod_name(fname));
 
@@ -129,14 +137,15 @@ void process_file(string fname) {
             } else
 	    if (sscanf(line, "FUNCTION %s", line) == 1) {
                 mkdir("/help/autodoc/functions/" + mod_name(fname));
-		outfile = "/help/autodoc/functions/" + mod_name(fname) + "/" + line;
+		outfile = "/help/autodoc/functions/" + mod_name(fname) + 
+		"/" + line;
                 rm(outfile);
                 write_file(outfile, "Found in: " + fname + "\n\n");
-	    } else
-	    if (sscanf(line, "FUNC %s", line) == 1) {
-                mkdir("/help/autodoc/functions/" + mod_name(fname));
-		outfile = "/help/autodoc/functions/" + mod_name(fname) + "/" + line;
+            } else
+            if (sscanf(line, "EXAMPLE %s", line) == 1) {
+		outfile = "/help/autodoc/examples/" + line;
                 rm(outfile);
+                write_file(outfile, "Found in: " + fname + "\n\n");
                 write_file(outfile, "Found in: " + fname + "\n\n");
 	    } else {
 		outfile = 0;

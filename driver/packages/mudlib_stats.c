@@ -309,7 +309,7 @@ static void init_author_for_ob P1(object_t *, ob)
 {
     svalue_t *ret;
 
-    share_and_push_string(ob->name);
+    push_malloced_string(add_slash(ob->name));
     ret = apply_master_ob(APPLY_AUTHOR_FILE, 1);
     if (ret == (svalue_t *)-1) {
 	ob->stats.author = master_author;
@@ -395,7 +395,7 @@ static void init_domain_for_ob P1(object_t *, ob)
     /*
      * Ask master object who the creator of this object is.
      */
-    share_and_push_string(ob->name);
+    push_malloced_string(add_slash(ob->name));
     if (!domain_file_fname)
 	domain_file_fname = make_shared_string(APPLY_DOMAIN_FILE);
     ret = apply(domain_file_fname, tmp_ob, 1, ORIGIN_DRIVER);

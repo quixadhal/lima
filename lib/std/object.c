@@ -52,7 +52,7 @@ int stat_me()
 }
 
 
-//:FUNC setup
+//:FUNCTION setup
 // This function is overloaded by area implementors.  Nothing in
 // the mudlib proper should override this.  Further, nothing should
 // ever go into this function.  This allows an area implementor to
@@ -63,7 +63,7 @@ void setup(mixed array args...)
     /* Overload me! */
 }
 
-//:FUNC mudlib_setup
+//:FUNCTION mudlib_setup
 // This function is overloaded by all mudlib objects deriving from
 // this class.  They should inherit as necessary.  The intention of
 // overriding this instead of create() to is ensure that the mudlib
@@ -100,15 +100,22 @@ void create(mixed array args...)
 
 
 /* arbitrate some stuff that was stubbed in BASE_OBJ */
-varargs mixed call_hooks(array args...)
+varargs mixed  call_hooks( array args...)
 {
     return hooks::call_hooks(args...);
 }
+
 int is_visible()
 {
     return visible::is_visible();
 }
+
 void set_light(int x)
 {
     light::set_light(x);
+}
+
+int allow(string what)
+{
+  return 1;
 }

@@ -72,7 +72,9 @@ nomask string query_owner()
 
 nomask class mail_msg get_one_message(int message_key)
 {
-// need some work on ensuring the call stack is correct
+    class mail_msg msg;
+
+//### need some work on ensuring the call stack is correct
 //    if ( !check_privilege(owner) )
     if ( this_user()->query_userid() != owner )
 	error("security violation: you are not allowed to use this mailbox\n");
@@ -80,7 +82,15 @@ nomask class mail_msg get_one_message(int message_key)
     if ( undefinedp(mailbox[message_key]) )
 	return 0;
 
-    return MAIL_D->get_one_message(message_key);
+    msg = MAIL_D->get_one_message(message_key);
+    if ( !msg )
+    {
+	/* damn. bad message. remove it from the mailbox. */
+	map_delete(mailbox, message_key);
+	save_me();
+    }
+
+    return msg;
 }
 
 nomask int query_message_index()
@@ -136,7 +146,7 @@ nomask int first_unread_message()
 
 nomask void delete_message(int message_key)
 {
-// need some work on ensuring the call stack is correct
+//### need some work on ensuring the call stack is correct
 //    if ( !check_privilege(owner) )
     if ( this_user()->query_userid() != owner )
 	error("security violation: you are not allowed to read this mail\n");
@@ -149,6 +159,18 @@ nomask void delete_message(int message_key)
     map_delete(mailbox, message_key);
 
     save_me();
+}
+
+nomask void nuke_mailbox()
+{
+    if ( !check_previous_privilege(1) )
+	error("security violation: illegal nuke of mailbox\n");
+
+    foreach ( int message_key in keys(mailbox) )
+	MAIL_D->delete_mail(message_key, owner);
+
+    mailbox = ([ ]);
+    unguarded(1, (: rm, get_fname() + __SAVE_EXTENSION__ :));
 }
 
 //### temp functions?  wait and see
@@ -165,5 +187,5 @@ nomask void receive_new_message(int message_key)
 
     if ( (user = find_user(owner)) &&
 	 user->query_body()->test_flag(F_BIFF) )
-	tell_object(user, ">>You have new mail<<\n");
+	tell(user, ">>You have new mail<<\n");
 }

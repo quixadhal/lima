@@ -6,6 +6,7 @@
 object this_body();
 int check_privilege(mixed priv);
 int adminp(mixed m);
+varargs void tell(object, string);
 
 //:FUNC ed
 //The ed() efun is not used by the LIMA mudlib, as we use the new ed
@@ -38,6 +39,7 @@ nomask object find_player(string str)
     error("find_player() is obsolete.  Use find_body() instead.\n");
 }
 
+//### obsolete?
 nomask int notify_fail(string msg)
 {
     if ( this_body() )
@@ -98,7 +100,8 @@ varargs nomask mixed snoop(mixed snoopee)
 {
     object result;
 
-    if (snoopee && !snoopee->test_flag(F_SNOOPABLE) 
+   if(snoopee && snoopee->query_body() && !snoopee->query_body()->
+	test_flag(F_SNOOPABLE)
       && !check_privilege(1)) {
 	write("Failed.\n");
 	return 0;
@@ -116,7 +119,7 @@ varargs nomask mixed snoop(mixed snoopee)
 	    if(efun::query_snoop(u[i]) == this_user())
 		targ = u[i];
 	if(adminp(targ))
-	    tell_object(targ,"You are no longer being snooped.\n");
+	    tell(targ,"You are no longer being snooped.\n");
     }
     result = snoopee ? efun::snoop(this_user(), snoopee)
     : efun::snoop(this_user());
@@ -125,53 +128,28 @@ varargs nomask mixed snoop(mixed snoopee)
     } else {
 	write("Ok.\n");
 	if(adminp(snoopee))
-	    tell_object(snoopee,sprintf("%s starts to snoop you!\n",
+	    tell(snoopee,sprintf("%s starts to snoop you!\n",
 		this_body()->query_name()));
     }
     return result;
 }
 
 varargs void
-tell_object(mixed ob, string str, int message_type, object array exclude,
-		mixed other)
+tell_object()
 {
-  if(!objectp(ob))
-    {
-      if(!stringp(ob))
-	return;
-      ob = load_object(ob);
-      if(!objectp(ob))
-	error("Bad argument 1 to tell_object()\n");
-    }
-
-
-  switch(message_type)
-    {
-    case INSIDE_MSG:
-      ob->receive_inside_msg(str, exclude, message_type, other);
-      break;
-    case OUTSIDE_MSG:
-      ob->receive_outside_msg(str, exclude, message_type, other);
-      break;
-    case REMOTE_MSG:
-      ob->receive_remote_msg(str, exclude, message_type, other);
-      break;
-    case PRIVATE_MSG:
-      ob->receive_private_msg(str, message_type, other);
-    }
+    error("Use tell() instead.\n");
 }
 
-varargs void tell_room(mixed o, string s, int m, object array x, mixed t)
+varargs void tell_room()
 {
-  if(m==PRIVATE_MSG)
-    m = REMOTE_MSG;
-  tell_object(o,s,m,x,t);
+    error("Use tell_environment() or tell_from_inside() instead.\n");
 }
 
-void shout(string s)
-{
-  map(users()-({this_user()}), (: tell_object($1, $(s), PRIVATE_MSG):));
+varargs void
+shout() {
+    error("Use tell(users() - ({ this_user() }), msg) instead.\n");
 }
+
 
 //:FUNC say
 //The say() efun is not used by the LIMA mudlib, in favor of the extensive
@@ -180,4 +158,18 @@ void shout(string s)
 void say(string m)
 {
     error("say() not available. Consider using this_body()->other_action()\n");
+}
+
+void write(string str) {
+    if (this_user())
+	tell(this_user(), str);
+    else
+	debug_message("]" + str);
+}
+
+void printf(string format, array rest...) {
+    if (this_user())
+	tell(this_user(), sprintf(format, rest...));
+    else
+	debug_message("]" + sprintf(format, rest...));
 }

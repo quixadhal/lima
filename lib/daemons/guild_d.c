@@ -95,6 +95,15 @@ void guild_remove( string name )
 }
 
 
+void remove_all_guilds()
+{
+if(!check_previous_privilege( PRIV_NEEDED))
+    error( "Insufficient priv to remove all guilds.");
+    guilds = ([]);
+    save_me();
+    write( "Guilds Wiped.\n");
+}
+
 private void guild_check(string name)
 {
     if ( guilds[name] )

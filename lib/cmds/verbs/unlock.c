@@ -14,7 +14,7 @@ mixed do_unlock_obj(object ob)
     ob->unlock();
 }
 
-mixed *query_verb_info()
+array query_verb_info()
 {
   return ({ ({ "OBJ", "OBJ with OBJ" }) });
 }

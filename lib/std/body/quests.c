@@ -12,30 +12,30 @@ void save_me();
 int
 add_quest( string quest, int pts )
 {
-  if( !quests )
+    if( !quests )
 	quests = ({});
 
-  if( previous_object() != find_object( QUEST_D ) )
+    if( previous_object() != find_object( QUEST_D ) )
 	return 0;
-  if( member_array( quest, quests ) != -1 )
+    if( member_array( quest, quests ) != -1 )
 	return 0;
 
-  quests += ({ quest });
-  points += pts;
-  save_me();
-  return 1;
+    quests += ({ quest });
+    points += pts;
+    save_me();
+    return 1;
 }
 
 int
 check_quest( string quest )
 {
-  return member_array(quest, quests) != -1;
+    return member_array(quest, quests) != -1;
 }
 
 string*
 query_quests()
 {
-  return quests;
+    return quests;
 }
 
 
@@ -43,24 +43,24 @@ static
 void
 rack_up_a_death()
 {
-  deaths++;
-  points -= 20;
-  save_me();
+    deaths++;
+    points -= 20;
+    save_me();
 
 #ifdef USE_STATUS_LINE
+    if( this_body()->has_status_line())  this_body()->update_status_line();
 #endif
-if( this_body()->has_status_line())  this_body()->update_status_line();
 }
 
 int 
 query_deaths()
 {
-  return deaths;
+    return deaths;
 }
 
 
 int
 query_score()
 {
-  return points;
+    return points;
 }

@@ -45,6 +45,6 @@ nomask private void main(string arg)
 nomask int help()
 {
     printf("USAGE:  inactive\n"+
-      wrap("This is the best way for you to let people that you are away from your keyboard.  You just have to hit the enter key when you return, and you will leave off where you left off, unless you, of course, exceed the limit for idling.  In which case, you won't.  =->")+"\n");
+      "This is the best way for you to let people that you are away from your keyboard.  You just have to hit the enter key when you return, and you will leave off where you left off, unless you, of course, exceed the limit for idling.  In which case, you won't.  =->"+"\n");
     return 1;
 }

@@ -75,12 +75,15 @@ private void main(mixed *arg, mapping flags)
 	info = INFO_MUDTYPE;
     else
 	info = INFO_DEFAULT;
+
     search_str = flags["s"];
+    if ( search_str )
+	search_str = lower_case(search_str);
 
     format = implode(info, (: $1 + sprintf("%%-%ds  ", $2[1]) :), "");
     format[<1] = '\n';
 
-    matched = sizeof(matches);
+    matched = sizeof( matches );
 
     if ( flags["a"] )
     {
@@ -89,18 +92,19 @@ private void main(mixed *arg, mapping flags)
     else
     {
 	matches = filter_array(matches, (: $(mudlist)[$1][0] == -1 :));
-	upcount = sizeof(matches);
+    upcount = sizeof( matches );
     }
+
     output = "";
     if ( wizardp(this_user()) )
 	output += "Type mudinfo <mudname> for more info on a mud.\n";
-    output += sprintf(format + "%76'-'s\n",
-		      map_array(info, (: $(headers)[$1[0]] :))...,
-		      "");
+    output += sprintf(format + repeat_string("-", 76) + "\n",
+		      map_array(info, (: $(headers)[$1[0]] :))...);
 
     foreach ( match in sort_array(matches, 1) )
     {
         string	line;
+
 	mudinfo = mudlist[match];
 	line = sprintf(format,
 		       mudinfo[0] == -1 ? "U" : "D",
@@ -108,15 +112,17 @@ private void main(mixed *arg, mapping flags)
 		       map_array(info[2..],
 				 (: ($(mudinfo)[$1[0]]+"")[0..$1[1]-1] :)
 			   )...);
-	if (search_str)
+	if ( search_str )
 	{
-	    if( regexp( lower_case( line ), lower_case( search_str )))
+	    if ( regexp(lower_case(line), search_str) )
 	    {
 		output += line;
 	    }
 	    else
 	    {
-		matched--; mudinfo[0] == -1 ? upcount-- : 0;
+		--matched;
+		if ( mudinfo[0] == -1 )
+		    --upcount;
 	    }
 	}
 	else
@@ -125,6 +131,7 @@ private void main(mixed *arg, mapping flags)
 	}
 
     }
+
     output = sprintf("%d matches out of %d muds. %d are UP.\n",
 		     matched, sizeof(mudlist), upcount) + output;
 

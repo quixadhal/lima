@@ -15,7 +15,7 @@ void do_pour_obj_in_obj(object ob1, object ob2) {
     ob1->pour_into(ob2);
 }
 
-mixed * query_verb_info(string rule)
+array query_verb_info(string rule)
 {
 return ({ ({ "OBJ in OBJ" }) });
 }

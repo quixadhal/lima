@@ -61,8 +61,9 @@ static nomask void report_login_failures()
 	return;
 
 //### hmm... this count is total, not since last login
-    printf("You had %d failed login attempt(s) since your last login.\n",
-	   count);
+    printf("You had " +
+	   M_GRAMMAR->number_of(count, "failed login attempt") +
+	   " since your last login.\n");
 
     notify_time = time();
     save_me();
