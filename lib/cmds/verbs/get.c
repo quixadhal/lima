@@ -2,7 +2,6 @@
 
 /*
 ** get.c
-**
 */
 
 #include <mudlib.h>
@@ -73,10 +72,14 @@ void do_get_obj_with_obj(object ob1, object ob2) {
     get_one(ob1, ob2);
 }
 
+void do_get_wrd_obj(string prep,object ob)
+{
+  ob->do_verb_rule("get", "WRD OBJ",prep,ob);
+}
+
 mixed can_get_wrd_str(string amount, string str) {
     int z;
     string s1, s2;
-    
     sscanf(amount, "%d%s", z, s1);
     if (s1 != "" && amount != "all")
         return 0;
@@ -115,6 +118,6 @@ void do_get_wrd_str(string amount, string str) {
 void create()
 {
     add_rules( ({ "OBS", "WRD STR", "OBS from OBJ", "OBS out of OBJ",
-		    "OBJ with OBJ", "WRD STR from OBJ" }), 
+"OBJ with OBJ", "WRD STR from OBJ", "WRD OBJ" }),
 	       ({ "take", "carry", "pick up" }) );
 }

@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-
+int query_attack_speed();
 string query_random_armor_slot();
 object query_target();
 object get_target();
@@ -37,6 +37,8 @@ void take_a_swing(object target)
       chance = 98;
 
    if(badly_wounded() && random(3) == 0)
+      panic();
+#if 0
       switch(panic())
       {
          case 2:
@@ -45,11 +47,12 @@ void take_a_swing(object target)
          case 1:
             return 0;
       }
+#endif /* 0 */
 
    roll = random(100);
    if(roll > chance)
    {
-      if(random(100) < disarm_chance(target))
+      if(random(100) < disarm_chance(target) && target->query_weapon() != target)
          add_event(target, weapon, 0, "disarm");
       else
          add_event(target, weapon, 0, "miss");
@@ -77,22 +80,25 @@ void attack()
       return;
    }
     
-   /* any reason to continue the carnage? */
-   if(query_ghost() || !(target = get_target()))
+   for(int n = 0; n < query_attack_speed(); n++)
    {
-      stop_fight();
-      return;
-   }
+      /* any reason to continue the carnage? */
+      if(query_ghost() || !(target = get_target()))
+      {
+         stop_fight();
+         return;
+      }
     
-   if(target->query_asleep())
-   {
-      /* Our target is unconscious.  We get to have our way with them
-       * *evil grin*
-       */
-      target_is_asleep();
-      return;
-   }
+      if(target->query_asleep())
+      {
+         /* Our target is unconcious. We get to have our way with them
+          * *evil grin*
+          */
+         target_is_asleep();
+         return;
+      }
 
-   take_a_swing(target);
-   handle_events();
+      take_a_swing(target);
+      handle_events();
+   }
 }

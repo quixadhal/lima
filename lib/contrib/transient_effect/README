@@ -1,0 +1,6 @@
+The transient_effects inheritable is made to be used for things that
+affect a living thing, such as intoxication, poisons, diseases, or
+just about anything else.  The duration of the effect lasts across
+logins/logouts and the object is removed when the duration expires.
+The drunk.c file in this directory is an example of an intoxication
+effect using this object.

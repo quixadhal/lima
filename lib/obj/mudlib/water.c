@@ -3,8 +3,7 @@
 #include <mudlib.h>
 #include <setbit.h>
 
-inherit OBJ;
-inherit M_GETTABLE;
+inherit FLUID;
 inherit M_DRINKABLE;
 
 void mudlib_setup()
@@ -15,7 +14,7 @@ void mudlib_setup()
   set_id( "water", "liquid", "h2o" );
   set_long("You see nothing special about the water.");
   set_gettable("Try putting it in something.\n");
-  set_droppable("Try pouring it into or on something.\n");
+   // set_droppable("Try pouring it into or onto something.\n");
 }
 
 int move_water(object target) {

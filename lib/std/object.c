@@ -84,7 +84,6 @@ void mudlib_setup(mixed array args...)
 void create(mixed array args...)
 {
     base_obj::create();
-    properties::create();
     configure_set(STD_FLAGS, 0, (: resync_visibility :));
 
     if ( clonep(this_object()) )
@@ -148,7 +147,9 @@ int clean_up(int instances)
     // as that would cause this program to need to be recompiled later.
     // (note: instances is only ever nonzero for blueprints)
     // This may change later, though.
-    if ( instances )
+    // Instances are always coing to be at least one because the blueprint is 
+    // counted.  -- Tigran
+    if ( instances>1 )
 	return ASK_AGAIN;
 
     // We don't have an environment.  We appear to be useless!

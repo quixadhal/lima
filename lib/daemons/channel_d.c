@@ -130,7 +130,7 @@ private void register_one(int add_hook, object listener, string channel_name)
 	/* ### don't error... might prevent somebody from logging in */
 	return;
     }
-    if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) )
+    if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) && member_array(this_user()->query_userid(), SECURE_D->query_domain_members("admin-channels")) == -1)
     {
 	/* ### don't error... might prevent somebody from logging in */
 	return;

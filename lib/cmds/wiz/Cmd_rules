@@ -16,7 +16,7 @@ move		obj obj
 objcount	[num]
 review -cd	[user]
 scan -d		[obj]
-showtree	[str] obfile
+showtree	[str|obfile] obfile
 start		[obj]
 timer -r        num [str] [num]
 trans		obj

@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_wade()
 {
@@ -18,32 +18,13 @@ void do_wade()
     }
 }
 
-
-
-void do_wade_in_obj(object ob, string str) {
-  mixed s;
-    s = ob->wade(str);
-    if(stringp(s))
-      {
-	write(s);
-	return;
-      }
-    if(!s)
-      {
-	write("You can't wade in that!\n");
-      }
-}
-
-int direct_wade_in_obj(object ob)
+void do_wade_wrd_obj(string prep,object ob)
 {
-  return 1;
+  ob->do_verb_rule("wade", "WRD OBJ", prep, ob);
 }
 
-
-array query_verb_info()
+void create()
 {
-    return ({ ({ "", "in OBJ", }),({  }) });
+    add_rules ( ({ "", "WRD OBJ", }),({  }) );
 
 }
-
-

@@ -1,2 +1,2 @@
 #/daemons/annotation_d.c
-annotations (["/std/food":({(/"asdf","","icculus",0,"Tue Apr 28 21:08:22 1998",0,/),}),])
+annotations (["/std/food":({(/"asdf","","icculus",0,"Tue Apr 28 21:08:22 1998",0,/),}),"/domains/std/Wizroom":({(/"test","asfjkl;","dunedain",0,"Mon Sep 21 15:13:15 1998",0,/),}),])

@@ -34,9 +34,6 @@ void setup()
 	"southwest" : o,
       ]) );
 
-    // they came from the sandy_beach
-    set_enter_msg("(wade)", ({ 0, "$N $vwade over to you." }));
-
     add_item( "surf", "water", 
       ([
 	"adjs": "fierce",

@@ -84,6 +84,11 @@ private nomask void receive_name_for_wiz(string name)
     string err;
 
     name = lower_case(name);
+    if(!USER_D->user_exists(name))
+    {
+       printf("** Error: '%s' doesn't actually exist as a user.\n", name);
+       return;
+    }
     if ( SECURE_D->query_is_wizard(name) )
     {
 	printf("** '%s' is already a wizard.\n", capitalize(name));

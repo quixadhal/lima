@@ -44,6 +44,7 @@ private nosave int      current_thread;
 private nosave int      queue_position;
 private nosave int array message_queue=({});
 private nosave int array all_messages=({});
+private nosave mapping active_messages=([]);
 private nosave mapping unread_cache=([]);
 
 #define TOP_PROMPT      ("(...) " + mud_name() + " News [q?lg] > ")
@@ -84,8 +85,7 @@ varargs private string get_unread_ids(string group,int update)
     {
       string unread=set_difference(set_add_range("",1,NEWS_D->get_group_last_id(group) ),
 				   SAVE_OB->get_news_id_read(group) );
-      /* Filter removed articles */
-      ids=filter(NEWS_D->get_messages(group), (: !NEWS_D->get_message($(group),$1)->body :));
+      ids=active_messages[group];
       /* Add unread messages into the unread set */
       map(ids,(:member_set($1,$(unread))?$(unread)=set_remove($(unread),$1):0 :) );
       unread_cache[group]=unread;
@@ -130,7 +130,6 @@ private int get_lowest_unread_thread_id(string group)
 
 private void receive_search(int flag, string str) {
     mixed array results;
-
     if(!sizeof(str))
       {
         write( "You must specify a search.\n");
@@ -148,24 +147,15 @@ private void receive_search(int flag, string str) {
     more(({ sizeof(results) + " matches:", "" }) + map(results, (: $1[0] + ":" + $1[1] :)));
 }
 
-private int filter_removed(int id, string group)
-{
-  if(!NEWS_D->get_message(group,id))
-    return 0;
-  if(NEWS_D->get_message(group,id)->body)
-    return 1;
-  return 0;
-}
-
 private int count_active_messages(string group)
 {
-  return sizeof(filter(NEWS_D->get_messages(group,1), (: filter_removed :), group));
+  return sizeof(active_messages[group]);
 }
 
 private int count_unread_messages(string group)
 {
   string unread=get_unread_ids(group);
-  int array ids=filter(NEWS_D->get_messages(group),(:filter_removed:),group);
+  int array ids=active_messages[group];
   int i;
   foreach(int id in ids)
     {
@@ -175,59 +165,30 @@ private int count_unread_messages(string group)
   return i;
 }
 
-private nomask int sort_messages_by_thread(int first,int second)
-{
-  int i1=NEWS_D->get_thread_id(current_group,first);
-  int i2=NEWS_D->get_thread_id(current_group,second);
-  if(i1<i2)
-    return -1;
-  if(i1>i2)
-    return 1;
-  if(first<second)
-    return -1;
-  return 1;
-}
-
 private void create_queues()
 {
-  all_messages=NEWS_D->get_messages(current_group,1);
+  all_messages=active_messages[current_group];
   queue_position=-1;
   current_id=-1;
-  if(SAVE_OB->query_threading())
-    all_messages=sort_array(all_messages,(:sort_messages_by_thread:));
-  else
-    all_messages=sort_array(all_messages,0);
-  all_messages=filter(all_messages, (: filter_removed :), current_group );  
   message_queue=filter(all_messages, (: member_set :),get_unread_ids(current_group,1));
 }
 
 varargs private void update_queues()
 {
-  int id;
-  if(current_id!=-1&&current_id<=sizeof(all_messages))
-    id=all_messages[current_id];
-  all_messages=clean_array(all_messages+NEWS_D->get_messages(current_group,1));
-  message_queue=clean_array(message_queue+filter(all_messages,(:member_set:),get_unread_ids(current_group,1)));
-  all_messages=filter(all_messages,(: filter_removed :), current_group);
-  message_queue=filter(message_queue, (: filter_removed :), current_group);
+  /* First, update the entire active news.  */
+  active_messages=([]);
   if(SAVE_OB->query_threading())
-    {
-      all_messages=sort_array(all_messages, (:sort_messages_by_thread:));
-      message_queue=sort_array(message_queue, (:sort_messages_by_thread:));
-    }
+    active_messages=NEWS_D->get_all_thread_data();
   else
     {
-      all_messages=sort_array(all_messages,0);
-      message_queue=sort_array(message_queue,0);
+      foreach(string group in NEWS_D->get_groups())
+	active_messages[group]=NEWS_D->get_messages(group,1);
     }
-  if(id)
-    {
-      current_id=member_array(id,all_messages);
-      if(queue_position!=-1)
-	queue_position=member_array(id,message_queue);
-    }
+  all_messages=active_messages[current_group];
+  message_queue=clean_array(message_queue+filter(all_messages,(:member_set:),get_unread_ids(current_group,1)));
+  if(queue_position!=-1)
+    queue_position=member_array(current_id,message_queue);
 }
-			    
 
 /* This is a fairly decent place to set up the queue */
 private nomask string format_group_line(string group)
@@ -235,9 +196,7 @@ private nomask string format_group_line(string group)
     int last_id;
     int all;
     current_group=group;
-    all=sizeof(filter(NEWS_D->get_messages(group),
-		      (: filter_removed :),
-		      group));
+    all=sizeof(active_messages[group]);
     last_id = NEWS_D->get_group_last_id(group);
     return sprintf("%s  %-40s (%d %s, %d new)%%^RESET%%^",
 		   SAVE_OB->check_subscribed(group)?"%^NEWS_GROUP_SUBSCRIBED%^":"%^NEWS_GROUP_UNSUBSCRIBED%^",
@@ -298,14 +257,14 @@ varargs private nomask void add_new_groups(string arg)
 
 private nomask string grp_cmd_prompt()
 {
-    int unread_no=count_unread_messages(current_group);
-    return sprintf("(%s:%d) %d %s unread of %d [q?lLmgsSputncU] > ",
-                   current_group,
-                   sizeof(message_queue)>1?current_id+1:0,
-                   unread_no,
-                   unread_no == 1 ? "msg" : "msgs",
-                   count_active_messages(current_group)
-                   );
+  int unread_no=count_unread_messages(current_group);
+  return sprintf("(%s:%d) %d %s unread of %d [q?lLmgsSputncU] > ",
+		 current_group,
+		 sizeof(message_queue)>1?current_id+1:0,
+		 unread_no,
+		 unread_no == 1 ? "msg" : "msgs",
+		 count_active_messages(current_group)
+		 );
 }
 
 private nomask string msg_cmd_prompt()
@@ -313,7 +272,7 @@ private nomask string msg_cmd_prompt()
   return sprintf("(%s:%d:#%d) %d unread [q?lLmghsSprRfFncUMDut#g] > ",
 		 current_group,
 		 queue_position+1,
-		 current_id+1,
+		 current_id,
 		 count_unread_messages(current_group));
 }
 
@@ -337,7 +296,6 @@ private nosave mixed group_selection_menu_items;
 private nomask void menu_select_newsgroup(string num)
 {
     int index;
-
     if ( num=="q" )
     {
         write( "Selection aborted.\n");
@@ -383,7 +341,7 @@ private nomask void menu_select_movegroup(string num)
     }
     to_group = group_selection_menu_items[index - 1];
     group_selection_menu_items = 0;
-    NEWS_D->move_post( current_group, all_messages[current_id], to_group);
+    NEWS_D->move_post( current_group, current_id, to_group);
     switch_to_message();
 }
 
@@ -416,10 +374,10 @@ private nomask void read_group(string group)
 
 private nomask void receive_group(mixed group)
 {
-    if ( group == -1 )
-        destruct(this_object());
-    
-    read_group(trim_spaces(group));
+  if ( group == -1 )
+    destruct(this_object());
+  
+  read_group(trim_spaces(group));
 }
 
 private nomask int test_for_new(string group)
@@ -431,7 +389,6 @@ private nomask int test_for_new(string group)
 private nomask void display_groups_with_new(string arg)
 {
   string * groups=SAVE_OB->subscribed_groups();
-
     /*
     ** Argument options:
     **   -c   Check news. Display new news and then exit.
@@ -471,12 +428,14 @@ private nomask void next_group()
     int max_group;
     int i;
     int next_group;
-    
     groups = filter_array(SAVE_OB->subscribed_groups(), (: test_for_new :));
     max_group = sizeof( groups ) - 1;
     if( max_group == -1 )
     {
         write("No more groups with new news.\n");
+	/* Hrmm, this looks like a good time to catch up all newsgroups 
+	 * to keep that set string from being too nasty */
+	map(SAVE_OB->subscribed_groups(),(: SAVE_OB->catch_up_newsgroup($1) :) );
         switch_to_top();
         current_group=0;
     }
@@ -512,17 +471,18 @@ private nomask void previous_message()
 
 private nomask void next_message()
 {
+  int array old_queue;
   queue_position++;
   if(queue_position>=sizeof(message_queue))
     {
       int i;
       string unread;
-      int array old_queue=message_queue;
       /* First check to see that there is no more news in this group */
       i=sizeof(message_queue);
+      old_queue=message_queue;
       update_queues();
       /* This should not have to be done here...
-       * .make an update type command -- Tigran */
+       * make an update type command -- Tigran */
       /* The fact that it is here is more than likely by popular 
        * demand :( -- Tigran */
       if(sizeof(old_queue) != sizeof(message_queue) && !sizeof(old_queue - message_queue))
@@ -553,7 +513,7 @@ string format_message_line(int short_fmt, int id,int all)
     class news_msg msg;
     int i=0;
     if(current_id>-1)
-      if(current_id==member_array(id,all_messages))
+      if(current_id==id)
 	i=1;
     msg = NEWS_D->get_message(current_group, id);
     return sprintf(short_fmt ? "%s%s%d. %s  [%s on %s]%%^RESET%%^" :
@@ -561,7 +521,7 @@ string format_message_line(int short_fmt, int id,int all)
 		   member_set(id,SAVE_OB->get_news_id_read(current_group))?
 		     "%^NEWS_MSG_READ%^":"%^NEWS_MSG_UNREAD%^",
 		   i?">":" ",
-		   all?member_array(id,message_queue)+1:member_array(id,all_messages)+1,
+		   all?id:member_array(id,message_queue)+1,
 		   msg->subject[0..34],
 		   msg->poster,
 		   intp(msg->time) ? ctime(msg->time)[4..9] : msg->time);
@@ -581,20 +541,14 @@ private nomask void display_messages(int display_all)
 	ids=all_messages;
 	lines = ({sprintf("Messages on %s are:", current_group)});
       }
-    ids=filter(ids, (: filter_removed :), current_group );
-    if(SAVE_OB->query_threading())
-      ids=sort_array(ids,(:sort_messages_by_thread:) );
-    else
-      ids=sort_array(ids,0);
     lines+=map_array(ids,
-		     (: format_message_line(0, $1, ($(display_all)?0:1) ) :) );
+		     (: format_message_line(0, $1, ($(display_all)?1:0) ) :) );
     more(lines);
 }
 
 nomask void wrap_post(string * text)
 {
     int i = sizeof(text);
-
     while ( i-- )
     {
         /* only wrap really long lines */
@@ -611,7 +565,6 @@ nomask void wrap_post(string * text)
 private nomask void receive_post_text(string subject, string * text)
 {
     int id;
-
     if ( !text )
     {
         write("Post aborted.\n");
@@ -651,7 +604,7 @@ private nomask void post_message()
 nomask void receive_reply_text( string * text)
 {
   class news_msg msg = ((class news_msg)NEWS_D->get_message(current_group,
-							    all_messages[current_id]));
+							    current_id));
   if ( !text )
     {
       write("Post aborted.\n");
@@ -669,8 +622,7 @@ nomask void receive_reply_text( string * text)
 private nomask void reply_to_message()
 {
     class news_msg msg = ((class news_msg)NEWS_D->get_message(current_group,
-							      all_messages[current_id]));
-
+							      current_id));
     if ( !msg )
     {
         write("You may not reply to that message -- it was removed.\n");
@@ -682,9 +634,8 @@ private nomask void reply_to_message()
 private nomask void reply_with_message()
 {
     class news_msg msg = ((class news_msg)NEWS_D->get_message(current_group,
-							      all_messages[current_id]));
+							      current_id));
     string * lines;
-
     if ( !msg )
     {
         write("You may not reply to that message -- it was removed.\n");
@@ -702,7 +653,6 @@ private nomask void reply_with_message()
 nomask void receive_followup_text(string * text)
 {
     int id;
-
     if ( !text )
     {
         write("Post aborted.\n");
@@ -715,7 +665,7 @@ nomask void receive_followup_text(string * text)
     ** message to read.
     */
     id = NEWS_D->followup(current_group,
-			  all_messages[current_id],
+			  current_id,
 			  implode(text, "\n") + "\n");
     write("Posted:  " + format_message_line(1, id) + "\n");
 }
@@ -723,8 +673,7 @@ nomask void receive_followup_text(string * text)
 private nomask void followup_to_message()
 {
     class news_msg msg = ((class news_msg)NEWS_D->get_message(current_group,
-							      all_messages[current_id]));
-
+							      current_id));
     if ( !msg->body )
     {
         write("You may not followup to that message -- it was removed.\n");
@@ -741,9 +690,8 @@ private nomask void followup_to_message()
 private nomask void followup_with_message()
 {
     class news_msg msg = ((class news_msg)NEWS_D->get_message(current_group,
-							      all_messages[current_id]));
+							      current_id));
     string * lines;
-
     if ( !msg->body )
     {
         write("You may not followup to that message -- it was removed.\n");
@@ -793,7 +741,7 @@ private nomask void read_message(string group,int id)
       return;
     }
     queue_position=member_array(id,message_queue);
-    current_id=member_array(id,all_messages);
+    current_id=id;
     switch_to_message();
     more(post);
 }
@@ -916,13 +864,13 @@ private nomask void group_commands(string cmd)
     else if (cmd[0]=='#')
       {
 	int num;
-	num=to_int(cmd[1..])-1;
-	if(num>=sizeof(all_messages)||num<0)
+	num=to_int(cmd[1..]);
+	if(!NEWS_D->get_message(current_group,num))
 	  {
 	    write("No such message.\n");
 	    return;
 	  }
-	read_message(current_group,all_messages[num]);
+	read_message(current_group,num);
 	return;
       }
     else if ( cmd == "<")
@@ -985,7 +933,7 @@ private nomask void receive_remove_verify(string str)
         write("Removal aborted.\n");
         return;
     }
-    NEWS_D->remove_post(current_group, all_messages[current_id]);
+    NEWS_D->remove_post(current_group, current_id);
     update_queues();
     switch_to_group();
 }
@@ -994,7 +942,6 @@ private nomask void get_move_group(string str)
 {
     string * matches;
     int i;
-
     matches = complete (str, NEWS_D->get_groups());
     switch ( sizeof(matches) )
     {
@@ -1003,7 +950,7 @@ private nomask void get_move_group(string str)
         return;
     case 1:
         NEWS_D->move_post(current_group,
-			  all_messages[current_id],
+			  current_id,
 			  matches[0]);
         break;
     default:
@@ -1030,8 +977,8 @@ private nomask void receive_move_verify( string str )
 
 private nomask void remove_message()
 {
-    class news_msg msg = ((class news_msg)NEWS_D->get_message(current_group,all_messages[current_id]));
-
+    class news_msg msg;
+    msg=((class news_msg)NEWS_D->get_message(current_group,current_id));
     if ( !msg )
     {
         write("This post has already been removed.\n");
@@ -1044,7 +991,7 @@ private nomask void remove_message()
         return;
     }
     printf("Deleting: %s\nAre you sure? [yn] > ",
-      format_message_line(1, all_messages[current_id]));
+      format_message_line(1, current_id));
     modal_simple((: receive_remove_verify :));
 }
 
@@ -1207,20 +1154,28 @@ nomask void convert_news()
 
 varargs nomask void begin_reading(string arg)
 {
-    convert_news();
-    if ( !sizeof(NEWS_D->get_groups()) )
+  /* Pull in the active newsgroups */
+  if(SAVE_OB->query_threading())
+    active_messages=NEWS_D->get_all_thread_data();
+  else
+    {
+      foreach(string group in NEWS_D->get_groups())
+	active_messages[group]=sort_array(NEWS_D->get_messages(group,1),1);
+    }
+  convert_news();
+  if ( !sizeof(NEWS_D->get_groups()) )
     {
       printf( "%s has no newsgroups right now.\n", mud_name());
       destruct();
       return;
     }
-    /* Initialize the modal */
-    switch_to_top();
-    SAVE_OB->validate_groups();
-    if ( sizeof(arg) && arg[0] != '-' )
+  /* Initialize the modal */
+  switch_to_top();
+  SAVE_OB->validate_groups();
+  if ( sizeof(arg) && arg[0] != '-' )
     {
       read_group(arg);
       return;
     }
-    add_new_groups();
+  add_new_groups();
 }

@@ -11,6 +11,7 @@ private void main( mixed *arg )
 {
     object ob;
 
+
     ob = arg[0];
 
     if (ob->short()) {

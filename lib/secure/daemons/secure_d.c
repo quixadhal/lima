@@ -31,7 +31,7 @@ valid_name( string s )
     // replace valid chars by '*', and compare to a string of all '*'s
     return
 	map(s, (: ($1 < 'a' || $1 > 'z') ? ' ' : '*' :))
-	== map(s, (: '*' :));
+	== map(s, (: '*' :)) && s!="";
 }
 
 private void save_data()
@@ -74,7 +74,7 @@ void create()
     write_access = ([]);
 }
 
-int query_prevent_shadow() { return 1; }
+int query_allow_shadow() { return 0; }
 
 // The following function HAS to be private. Otherwise somebody
 // might gain write access to the server's datastructures.

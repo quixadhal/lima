@@ -29,8 +29,8 @@ void add_hook(string tag, function hook);
 private nosave function f_follow=(:follow_hook:);
 private nosave function arrive=(:arrive_hook:);
 private mixed array follow_search=({});
-private nosave object my_location;
 private object follow;
+private nosave object my_location;
 private nosave int following;
 
 //:FUNCTION set_follow_string()
@@ -43,10 +43,10 @@ private nosave int following;
 //is passed to the function pointer.
 void set_follow_search(mixed array follow...)
 {
-  follow_search=flatten_array(follow);
+  follow_search=clean_array(flatten_array(follow));
 }
 
-//:FUNTION add_follow_search()
+//:FUNCTION add_follow_search()
 //Add names to the list of objects that the object will follow
 //See set_follow_search
 void add_follow_search(mixed array follow...)
@@ -58,7 +58,7 @@ void add_follow_search(mixed array follow...)
 //Remove names from the list of objects that the object will follow
 void remove_follow_search(mixed array follow...)
 {
-  follow_search-=follow;
+  follow_search-=flatten_array(follow);
 }
 
 //:FUNCTION clear_follow_search()
@@ -77,10 +77,8 @@ varargs private mixed array expand_follows()
 	potentials+=({evaluate(elem,this_object())});
       else if(stringp(elem)||objectp(elem) )
 	potentials+=({elem});
-      else if(arrayp(elem))
-	potentials+=elem;
     }
-  return flatten_array(potentials);
+  return clean_array(potentials);
 }
 
 //:FUNCTION query_follow_search()
@@ -128,7 +126,8 @@ void acquire_follow()
 {
   int i;
   mixed array potentials=({});
-  if(follow&&present(follow,environment(this_object() ) ) )
+  if(follow &&
+     present(follow,environment(this_object() ) ) )
     return;
   
   potentials=filter(expand_follows(), (: present($1,environment(this_object())) :) );
@@ -218,6 +217,7 @@ void do_follow_obj(object ob)
   if(member_array(ob,follow_search)>-1)
     {
       remove_follow_search(ob);
+      clear_follow();
       this_body()->my_action("You stop following "+ob->short()+".");
     }
   else

@@ -36,7 +36,7 @@ private void when_person_enters(object o)
     // If the object passed to us isn't living, then it was a regular old
     // object (probably someone dropped it)
     // So let's have it burn up in the lava.
-    if ( !o->is_living() )
+    if ( !o->is_living()&&!o->is_vehicle() )
     {
         receive_inside_msg(capitalize(o->the_short()) + " sinks and "
             "melts into the lava...\n");

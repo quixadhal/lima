@@ -69,7 +69,7 @@ private void main( string arg )
 	arglist = filter_array(arglist[2..],
 	  function(string x, string this_group, string *grp_members)
 	  {
-	      if ( pointerp(grp_members) &&
+	      if ( arrayp(grp_members) &&
 		member_array(grp_members, x) != -1 )
 	      {
 		  outf("%s is already in group %s.\n",

@@ -5,6 +5,8 @@ inherit M_GETTABLE;
 
 void setup()
 {
+   set_relations("in", "on");
+   set_default_relation("in");
     set_adj( "small", "brass" );
     set_id( "dish" );
     set_long( "This small brass dish is affixed to the wall, and holds a blue flame." );

@@ -1,0 +1,2 @@
+#/daemons/quest_d.c
+quests (["pirate:foundCave":({"/domains/std/rooms/beach/sandy_beach",10,4,0,}),"pirate":({"/domains/std/objects/sand_with_treasure",20,5,"Congratulations! You completed the sample Pirate quest.",}),"pirate:secretPsg":({"/domains/std/rooms/caves/small_dock",10,2,0,}),])

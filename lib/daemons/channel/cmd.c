@@ -174,7 +174,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 		  user_channel_name);
 		return;
 	    }
-	    if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) )
+        if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) && member_array(this_user()->query_userid(), SECURE_D->query_domain_members("admin-channels")) == -1)
 	    {
 		printf("Sorry, but '%s' is for admins only.\n",
 		  user_channel_name);

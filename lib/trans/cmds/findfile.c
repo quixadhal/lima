@@ -50,10 +50,15 @@ private void do_building()
 	new_path = path + stack[0]+"/";
 	stack = stack[1..];
 	this_dir = get_dir(new_path+"*",-1);
-	if(arrayp(this_dir))
-	    this_dir = this_dir[2..];
-	else
-	    continue;
+    if(arrayp(this_dir))
+    {
+      int w;
+  
+      if( (w = member_array(".", get_dir(new_path+"*"))) != -1 )
+        this_dir = this_dir[0..(w-1)] + this_dir[(w+2)..];
+    }
+    else
+      continue;
 
 	/* prepend the dir and write into the file */
 	map(this_dir,(:write_file(TMP_DATA_FILE,

@@ -4,7 +4,6 @@
 inherit CONTAINER;
 inherit __DIR__ "living/grammar";
 inherit __DIR__ "living/messages";
-inherit __DIR__ "living/state_of_mind";
 inherit __DIR__ "living/misc";
 
 /* This is a pure 'living' object, not what is traditionally meant
@@ -22,7 +21,10 @@ private string name;
 void mudlib_setup()
 {
     ::mudlib_setup();
-    set_max_capacity(100);
+    /* We always should have an 'in' relation in living objects. */
+    /* This takes care of capacity too */
+    add_relation("in",100);
+    set_default_relation("in");
     set_def_msgs("living-default");
 }
 
@@ -35,10 +37,7 @@ void set_name(string n) {
 }
 
 string in_room_desc() {
-    if (query_prone())
-	capitalize(name) + " is lying here slumped on the ground.";
-    else
-	return query_in_room_desc();
+  return query_in_room_desc();
 }
 
 string inventory_header() {

@@ -1,8 +1,13 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+/* 12-18-98 Tigran made the variables sets and psets initialize when declared
+ *          and removed create().
+ *          Added query_perm_sets() for consistancy
+ */
+
 /* This is our property implementation.  Use as little as possible */
-private nosave mapping sets ;
-private mapping psets ;
+private nosave mapping sets =([]);
+private mapping psets =([]);
 
 
 nomask void
@@ -23,7 +28,7 @@ query(mixed key){
     return sets[key];
 }
 
-nomask mixed
+nomask mapping
 query_sets() {
     return sets;
 }
@@ -39,9 +44,7 @@ nomask void set_perm(mixed key, mixed value){
 }
 
 nomask mixed query_perm(mixed key){
-    if(!mapp(psets))
-	psets = ([]);
-    return psets[key];
+  return psets[key];
 }
 
 nomask void delete_perm(mixed key){
@@ -50,15 +53,12 @@ nomask void delete_perm(mixed key){
 
 nomask void add_perm(mixed key, mixed value)
 {
-
     if(typeof(value) == typeof(psets[key]))
 	if(!functionp(value))
 	    psets[key]+=value;
 }
 
-void
-create()
+nomask mapping query_perm_sets()
 {
-  sets = ([]);
-  psets = ([]);
+  return psets;
 }

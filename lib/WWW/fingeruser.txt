@@ -1,0 +1,7 @@
+<title>Finger a User</title>
+<form action="/cgi/who.c" METHOD="get">
+Enter the name of the person you want info on:<p>
+<center>
+<input type="text" name="" size=15> <p>
+<input type="submit" value="send data">
+</center>

@@ -115,24 +115,6 @@ private nomask void parse_file(string fname)
     }
 }
 
-private nomask void print_lines()
-{
-    int count;
-
-    count = get_user_variable("MORE") || 20;
-    if ( !intp(count) )
-	count = to_int(count);  
-    if ( sizeof(lines) - cur_line < count )
-	count = sizeof(lines) - cur_line;
-
-    write(implode(lines[cur_line .. (cur_line + count - 1)], "\n") + "\n");
-
-    if ( (cur_line += count) == sizeof(lines) )
-    {
-	cur_line = 0;
-    }
-}
-
 /*
 ** present_topic()
 **
@@ -148,13 +130,13 @@ private nomask void present_topic(string fname)
 	parse_directory(fname);
 
 	write("\n");
-	print_lines();
+	more(lines);
 	break;
     default:
 	parse_file(fname);
 
 	write("\n");
-	print_lines();
+	more(lines);
     }
 
     /*
@@ -162,7 +144,7 @@ private nomask void present_topic(string fname)
     ** Make sure it is set correctly.  cur_line will be zero if print_lines()
     ** ends up printing everything.
     */
-    modal_push(cur_line ? (: receive_more :) : (: receive_topic :), (: query_prompt()  :));
+    //    modal_push(cur_line ? (: receive_more :) : (: receive_topic :), (: query_prompt()  :));
 }
 
 private nomask string format_choice(string choice)
@@ -275,7 +257,7 @@ private nomask void receive_more(mixed arg)
     //    }
     else if ( !arg || arg == "" )
     {
-	print_lines();
+      more(lines);
 	if ( cur_line == 0 )
 	{
 	    modal_func((: receive_topic :));

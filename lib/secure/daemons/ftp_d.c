@@ -32,6 +32,8 @@
 **    o unless specified otherwize, forces -l flag on LIST and -1 flag on NLST.
 **    o directories report size 0.
 **  o If home directory does not exist, it defaults to "/".
+** Tigran Jan 15, 1999
+**  o Added passive mode connections.
 */
 
 #include <socket.h>
@@ -46,6 +48,7 @@ inherit M_ACCESS;
 #define LTYPE_LIST 0
 #define LTYPE_NLST 1
 
+private nosave mapping passives = ([]);
 private nosave mapping sessions = ([]);
 private nosave mapping dataports = ([]);
 private nosave mapping dispatch = 
@@ -66,8 +69,9 @@ private nosave mapping dispatch =
   "noop" : (: FTP_CMD_noop :),
   "dele" : (: FTP_CMD_dele :),
   "syst" : (: FTP_CMD_syst :),
+  "pasv" : (: FTP_CMD_pasv :),
 ]);
-
+private string iphost;
 private object sock;
 
 private mixed outfile=([]);
@@ -186,10 +190,10 @@ private void FTP_read(object socket, string data)
       FTP_addSession(socket);
       return;
     }
-
   thisSession = sessions[socket];
-  thisSession->idleTime = 0;
 
+  thisSession->idleTime = 0;
+  
   if (!thisSession->command) thisSession->command="";
 
   data=replace_string(data,"\r","");
@@ -249,6 +253,35 @@ private void FTP_read(object socket, string data)
   return;
 }
 
+private void FTP_PASV_read(class ftp_session info,object socket,string text)
+{
+  info->dataPipe=socket;
+  /* I'm not sure I like this...but it shouldn't hurt anything resetting 
+   * the callback function */
+  info->dataPipe->set_write_callback((:FTP_write:));
+
+  /* We now know that the passive connection worked, so the listening socket
+   * can be destroyed */
+  destruct(passives[info->cmdPipe]);
+
+  dataports[info->dataPipe] = info->cmdPipe;
+  if(!text)
+    return;
+  switch(info->binary)
+    {
+    case 0:
+      text=replace_string(text,"\r","");
+      unguarded(info->priv, (:write_file($(info->targetFile), $(text)):));
+      return;
+    case 1:
+      unguarded(info->priv, (:write_buffer($(info->targetFile), $(info->filepos), $(text)):));
+      info->filepos+=sizeof(text);
+      return;
+    default:
+      ENSURE(0);
+    }
+}
+
 private void FTP_close(object socket)
 {
   map_delete(sessions, socket);
@@ -258,12 +291,12 @@ private void create()
 {
   sock = new(SOCKET, SKT_STYLE_LISTEN, PORT_FTP, (: FTP_read :),
 	     (: FTP_close :));
+  resolve(query_host_name(),(: iphost=$2 :) );
 }
 
 private void FTP_DATA_read(object socket, mixed text)
 {
   class ftp_session	info;
-
   info = sessions[dataports[socket]];
 
   switch(info->binary)
@@ -390,6 +423,46 @@ private void FTP_CMD_quit(class ftp_session info, string arg)
 
 }
 
+private void FTP_CMD_pasv(class ftp_session info, string arg)
+{
+  string ip;
+  int port_dec;
+  int array port;
+  int listen_socket;
+  if(arg)
+    {
+      info->cmdPipe->send("500 command not understood.\n");
+      return;
+    }
+  ip=replace_string(iphost,".",",");
+  if(info->dataPipe)
+    {
+      destruct(info->dataPipe);
+    }
+  switch(info->binary)
+    {
+    case 0:
+      listen_socket = unguarded(1,(:new(SOCKET, SKT_STYLE_LISTEN, 
+					 0,
+					 (: FTP_PASV_read, $(info) :),
+					 (: FTP_DATA_close :) ) :) );
+      break;
+    case 1:
+      listen_socket = unguarded(1,(:new(SOCKET, SKT_STYLE_LISTEN_B, 
+					 0,
+					 (: FTP_PASV_read, $(info) :),
+					 (: FTP_DATA_close :) ):));
+      break;
+    default:
+      return;
+    }
+  passives[info->cmdPipe]=listen_socket;
+  port_dec=listen_socket->local_port();
+  port=({port_dec>>8,port_dec%256});
+  info->cmdPipe->send(sprintf("227 Entering Passive mode. (%s,%i,%i)\n",
+			      ip,port[0],port[1]) );
+}
+
 private void FTP_CMD_port(class ftp_session info, string arg)
 {
   string 	ip, *parts;
@@ -404,8 +477,9 @@ private void FTP_CMD_port(class ftp_session info, string arg)
       return;
     }
   ip = implode(parts[0..3],".");
-  // Make a 16 bit port # out of 2 8 bit values. 
+  /* Make a 16 bit port # out of 2 8 bit values.  */
   port = (to_int(parts[4]) << 8) + to_int(parts[5]);
+  
   if(info->dataPipe)
     {
       destruct(info->dataPipe);
@@ -415,20 +489,20 @@ private void FTP_CMD_port(class ftp_session info, string arg)
     case 0:
       info->dataPipe = unguarded(1,(:new(SOCKET, SKT_STYLE_CONNECT, 
 					 sprintf("%s %d", $(ip), $(port)),
-				    (: FTP_DATA_read :),
-				    (: FTP_DATA_close :) ):));
+					 (: FTP_DATA_read :),
+					 (: FTP_DATA_close :) ):));
       break;
     case 1:
       info->dataPipe = unguarded(1,(:new(SOCKET, SKT_STYLE_CONNECT_B, 
 					 sprintf("%s %d", $(ip), $(port)),
-				    (: FTP_DATA_read :),
-				    (: FTP_DATA_close :) ):));
+					 (: FTP_DATA_read :),
+					 (: FTP_DATA_close :) ):));
       break;
     default:
       return;
     }
-  // map the data port to the cmd port so we can find the cmd port when
-  // we're given the data port.
+  /* map the data port to the cmd port so we can find the cmd port when
+   * we're given the data port. */
   dataports[info->dataPipe] = info->cmdPipe;
   info->dataPipe->set_write_callback((:FTP_write:));
   info->cmdPipe->send("200 PORT command successful.\n");
@@ -443,11 +517,8 @@ private void do_list(class ftp_session info, string arg, int ltype)
   
   flags=find_flags(arg);
   arg=strip_flags(arg);
-
   if(!arg || arg == "")
-    {
       arg = ".";
-    }
   /* This hack added by Tigran because things like /secure/master.c/.
    * evaluate and cause havoc w/ ftp clients like efs for Xemacs and
    * ange-ftp for Emacs.  Besides it shouldn't happen anyways */
@@ -461,13 +532,9 @@ private void do_list(class ftp_session info, string arg, int ltype)
 	}
     }
   arg = evaluate_path(arg, info->pwd);
-
   ANON_CHECK(arg);
-
   if(unguarded(1, (:is_directory($(arg)):)))
-    {      
       arg = join_path(arg, "*");
-    }
   if(unguarded(info->priv, (:file_size(base_path($(arg))):)) == -1)
     {
       info->cmdPipe->send(sprintf("550 %s: No such file OR directory.\n", arg));
@@ -545,9 +612,7 @@ private void do_list(class ftp_session info, string arg, int ltype)
 	{
 	  mixed array these_files;
 	  if((i*3+2)<size)
-	    {
 	      these_files=files[(i*3)..(i*3+2)];
-	    }
 	  else if(i*3<size)
 	    {
 	      these_files=files[(i*3)..];
@@ -596,11 +661,24 @@ private void do_list(class ftp_session info, string arg, int ltype)
 
 private void FTP_CMD_list(class ftp_session info, string arg)
 {
+    /* Make sure the dataPort is connected, otherwise this will error */
+  if(!info->dataPipe)
+    {
+      call_out( (: FTP_CMD_list :),2,info,arg);
+      return;
+    }
   do_list(info, arg, LTYPE_LIST);
 }
 
 private void FTP_CMD_nlst(class ftp_session info,string arg)
 {
+  /* Make sure the dataPort is connected, otherwise this will error */
+  if(!info->dataPipe)
+    {
+      call_out( (: FTP_CMD_nlst :),2,info,arg);
+      return;
+    }
+  
   do_list(info,arg, LTYPE_NLST);
 }
 
@@ -609,6 +687,12 @@ private void FTP_CMD_retr(class ftp_session info, string arg)
   string	target_file;
   int           i;
 
+  /* Make sure the dataPort is connected, otherwise this will error */
+  if(!info->dataPipe)
+    {
+      call_out( (: FTP_CMD_retr :),2,info,arg);
+      return;
+    }
   NEEDS_ARG();
   
   target_file = evaluate_path(arg, info->pwd);
@@ -680,6 +764,13 @@ void FTP_CMD_noop(class ftp_session info, string arg)
 private void FTP_CMD_stor(class ftp_session info, string arg)
 {
 
+  /* Make sure the dataPort is connected, otherwise this will error */
+  if(!info->dataPipe)
+    {
+      call_out( (: FTP_CMD_stor :),2,info,arg);
+      return;
+    }
+
   NEEDS_ARG();
 
   arg = evaluate_path(arg, info->pwd);
@@ -722,7 +813,7 @@ private void FTP_CMD_stor(class ftp_session info, string arg)
     }
   FTPLOGF("%s PUT %s.\n", capitalize(info->user), arg);
 
-  // Reset the file position flag.
+  /* Reset the file position flag. */
   info->filepos=0;
   info->cmdPipe->send(sprintf("150 Opening %s mode data connection for %s.\n",
 			      info->binary ? "binary" : "ascii",

@@ -1,7 +1,0 @@
-
-USAGE:  findfunc func_name
-
-    This command will look for the given func_name in the
-specified object and return the path and file name of where 
-that function is.
-

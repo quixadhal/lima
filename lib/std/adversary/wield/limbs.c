@@ -79,7 +79,7 @@ varargs int do_wield(object ob, string limb)
 {
    if(!(ob->valid_wield()))
       return 0;
-   if(ob->query_wielded_by() == this_body())
+   if(ob->query_wielded_by() == this_object())
       return 0;
    simple_action(ob->query_wield_message(), ob);
    wield(ob, limb);

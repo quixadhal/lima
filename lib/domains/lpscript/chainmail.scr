@@ -6,4 +6,5 @@ primary_adj= chainmail
 primary_id= shirt
 id= chainmail
 armor_class= 4
-resist= blade +2
+#resist= blade +2
+bodyslot= torso

@@ -9,7 +9,6 @@
 //    don't go whining to us about it. You're on your own.
 // Iizuka: Created May 7, 1998.
 
-#include <combat_modules.h>
 
 void check_combat_config()
 {

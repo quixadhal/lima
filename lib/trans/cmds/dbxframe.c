@@ -26,7 +26,7 @@ string print_vars(mixed *vars) {
 	}
 	else if (stringp(vars[i]))
 	    result[i] = "\""+vars[i]+"\"";
-	else if (pointerp(vars[i]))
+	else if (arrayp(vars[i]))
 	    result[i] = "({ ... })";
 	else if (floatp(vars[i]))
 	    result[i] = vars[i]+"";

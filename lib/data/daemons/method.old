@@ -1,0 +1,2 @@
+#/daemons/method_d.c
+methods (["lie on":({"lie on",}),"mount":({"mount","sit on","get on",}),"crawl under":({"crawl under","get under",}),"stand":({"stand","stand up",}),"stand on":({"get on","stand on",}),"dismount":({"dismount","get off",}),"climb down":({"climb down",}),"leave":({"exit","leave","get out",}),"climb up":({"climb up",}),"wade in":({"wade in",}),"enter":({"enter",}),"sit on":({"get on","sit on",}),"sit in":({"enter","sit in","get in",}),"go":({"go",}),])

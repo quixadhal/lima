@@ -36,7 +36,7 @@ private varargs void add_alias_to_mapping(mapping m,
     if(strsrch(template,"$*") == -1)
 	template += " $*";
     ((class alias) m[a])->template = template;
-    ((class alias) m[a])->defaults = pointerp(defaults) ? defaults : ({""});
+    ((class alias) m[a])->defaults = arrayp(defaults) ? defaults : ({""});
     ((class alias) m[a])->num_args = sizeof(((class alias) m[a])->defaults) - 1;
     ((class alias) m[a])->global_alias_status = global_status;
 }

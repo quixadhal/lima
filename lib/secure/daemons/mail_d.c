@@ -175,7 +175,7 @@ varargs nomask string * send_mail(string 	Sender,
 
     if ( stringp(Body) )
 	Body = explode(Body, "\n");
-    else if ( !pointerp(Body) )
+    else if ( !arrayp(Body) )
 	Body = ({ "**Blank message!**" });
 
     msg = new(class mail_msg);
@@ -185,7 +185,7 @@ varargs nomask string * send_mail(string 	Sender,
     msg->subject = Subject;
     msg->body = Body;
 
-    if ( !pointerp(msg->to_list) || !pointerp(msg->cc_list) )
+    if ( !arrayp(msg->to_list) || !arrayp(msg->cc_list) )
 	error("send mail: invalid list of recipients");
 
     /* 

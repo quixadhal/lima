@@ -1,0 +1,7 @@
+Files that have been changed in the process of adding spouse system
+/secure/daemons/finger_d.c
+/std/classes/finger.c
+/trans/cmds/finger.c
+/std/body.c
+/secure/daemons/user_d.c
+

@@ -32,15 +32,6 @@ mixed ob_state()
    return slot;
 }
 
-void remove()
-{
-   object env = environment();
-
-   if(!slot || !env)
-      return 0;
-   env->remove_item(this_object(), slot);
-}
-
 //:FUNCTION set_wearmsg
 //Set the message used when an object is worn.
 void set_wearmsg(string s)
@@ -100,6 +91,16 @@ void set_worn(int g)
    hook_state("prevent_drop", "You'll have to take it off first.\n", g);
 }
 
+void remove()
+{
+   object env = environment();
+
+   if(!slot || !env)
+      return 0;
+   set_worn(0);
+   env->remove_item(this_object(), slot);
+}
+
 void do_wear()
 {
    if(!slot)
@@ -146,4 +147,12 @@ mixed direct_remove_obj()
    if(environment() != this_body() || !test_flag(F_WORN))
       return "But you aren't wearing it!\n";
    return 1;
+}
+
+mapping lpscript_attributes()
+{
+   return ([
+      "bodyslot" : ({ LPSCRIPT_STRING, "setup", "set_slot" }),
+         "wearmsg" : ({ LPSCRIPT_STRING, "setup", "set_wearmsg" }),
+   ]);
 }

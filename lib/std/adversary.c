@@ -5,7 +5,6 @@
  *   Lots of work done by Iizuka to get this working.
  */
 
-#include <combat_modules.h>
 
 inherit LIVING;
 inherit M_DAMAGE_SOURCE;
@@ -14,6 +13,7 @@ inherit M_DAMAGE_SOURCE;
 
 inherit SUBDIR "main";
 inherit SUBDIR "behaviors";
+inherit SUBDIR "state_of_mind";
 inherit SUBDIR "target";
 inherit SUBDIR "messages";
 inherit SUBDIR "mod_config";
@@ -29,14 +29,13 @@ inherit MODULE("blows", BLOW_MODULE);
 inherit MODULE("formula", FORMULA_MODULE);
 inherit MODULE("advancement", ADVANCEMENT_MODULE);
 
-varargs void set_attack_speed() {}
-
 void mudlib_setup()
 {
    living::mudlib_setup();
    set_to_hit_bonus(-25);  // -25% to hit bare hand.
    set_weapon_class(3);    // and low WC
    set_combat_messages("combat-unarmed");
+   set_death_message(query_default_death_message());
 
    /* by pinging query_weapon(), we will default to self as a weapon */
    query_weapon();
@@ -48,9 +47,9 @@ void remove()
 }
 
 //:FUNCTION start_fight
-//Add someone to the list of people we are attacking.  If we were already
-//attacking them, make them the primary person we are attacking.  Then
-//take a swing at them.
+// Add someone to the list of people we are attacking.  If we were already
+// attacking them, make them the primary person we are attacking.  Then
+// take a swing at them.
 int start_fight(object who)
 {
    if(!(who->attackable()))
@@ -60,7 +59,7 @@ int start_fight(object who)
 }
 
 //:FUNCTION attackable
-//return 1 if we can be attacked.
+// return 1 if we can be attacked.
 int attackable()
 {
    return 1;
@@ -68,7 +67,7 @@ int attackable()
 
 void create(mixed array args...)
 {
-   ::create(args);
+   ::create(args...);
 
    // Please read the headers in /std/adversary/mod_config.c before
    // removing this line.
@@ -96,6 +95,8 @@ mapping lpscript_attributes()
           ]);
 }
 
+//:FUNCTION query_ghost
+// Returns 1 if the adversary is dead.
 int query_ghost()
 {
    return HEALTH_MODULE::query_ghost();
@@ -106,6 +107,8 @@ int event_damage(class event_info evt)
    return BLOW_MODULE::event_damage(evt);
 }
 
+//:FUNCTION diagnose
+// Returns a string describing the current state of the adversary.
 string diagnose()
 {
    return HEALTH_MODULE::diagnose();

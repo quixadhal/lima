@@ -20,16 +20,15 @@ nosave private string vowels = "aeiouAEIOU";
 #define SHORT(x) (objectp(x) ? x->short() : x)
 #define THE_SHORT(x) (objectp(x) ? x->the_short() : "the " + x)
 mapping messages = ([]);
-mapping def_messages = ([]);
+string def_message_type;
 
 void set_def_msgs(string type) {
-    if (!(def_messages = MESSAGES_D->get_messages(type)))
-	error("No messages of that type.\n");
+    def_message_type=type;
 }
 
 void add_msg(string cls, string msg) {
     if (!messages) messages = ([]);
-    if (pointerp(messages[cls]))
+    if (arrayp(messages[cls]))
 	messages[cls] += ({ msg });
     else if (messages[cls]) {
 	messages[cls]=({ messages[cls], msg });
@@ -37,7 +36,10 @@ void add_msg(string cls, string msg) {
 	messages[cls]=msg;
 }
 
-string query_msg(string which) { return messages[which] || def_messages[which]; }
+string query_msg(string which)
+{
+  return messages[which] || MESSAGES_D->get_messages(def_message_type)[which];
+}
 
 void set_msgs(string cls, string *msgs) {
     if (!messages) messages = ([]);
@@ -53,12 +55,13 @@ void clear_messages() {
 }
 
 string *query_msg_types() {
-    return clean_array(keys(messages) + keys(def_messages));
+    return clean_array(keys(messages) +
+      keys(MESSAGES_D->get_messages(def_message_type)));
 }
 
 array handle_ob(mixed ob, string res, mapping has) {
     string bit;
-    
+
     if (objectp(ob) && has[ob]) bit = "it";
     else {
 	if (res[<2..<1]=="a ") {
@@ -100,7 +103,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
     
     fmt = reg_assoc(msg, ({ "\\$[NnVvTtPpOoRr][a-z0-9]*" }), ({ 1 }) );
     fmt = fmt[0]; // ignore the token info for now
-    
+
     res = fmt[0];
     i=1;
     while (i<sizeof(fmt)) {
@@ -130,7 +133,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
 		    tmp = handle_ob(ob[z], res, has);
 		    ob[z] = tmp[1];
 		}
-		res = tmp[0];
+ 		res = tmp[0];
 		bit = format_list(ob);
 	    } else {
 		tmp = handle_ob(ob, res, has);
@@ -145,39 +148,50 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	    if (str=="") str = "o";
 	case 'n':
 	case 'N':
-	    if (str=="") str = "s";
-	    if (str != "p") {
-		/* Handle reflexification */
-		if (subj < sizeof(who) &&
-		  (who[subj] == who[num]) && has[who[subj]]) {
+	  if (str=="") str = "s";
+	  if (str != "p")
+	    {
+	      if(str!="d")
+		{
+		  /* Handle reflexification */
+		  if (subj < sizeof(who) &&
+		      (who[subj] == who[num]) && has[who[subj]]) {
 		    // objective: You kick yourself, Beek kicks himself.
 		    if (str == "o") {
-			if (forwhom == who[subj]) bit = "yourself";
-			else bit = who[subj]->query_reflexive();
+		      if (forwhom == who[subj]) bit = "yourself";
+		      else bit = who[subj]->query_reflexive();
 		    }
 		    // subjective: You prove you are stupid,
 		    // Beek proves he is stupid.
 		    if (str == "s") {
-			if (forwhom == who[subj]) bit = "you";
-			else bit = who[subj]->query_subjective();
+		      if (forwhom == who[subj]) bit = "you";
+		      else bit = who[subj]->query_subjective();
 		    }
 		    break;
-		}
-		/* Other pronouns */
-		if (who[num]==forwhom) {
+		  }
+		  /* Other pronouns */
+		  if (who[num]==forwhom) {
 		    bit = "you";
 		    has[who[num]]++;
 		    break;
-		}
-		if (has[who[num]]) {
-		    if (str[0]=='o') bit = who[num]->query_objective();
-		    else bit = who[num]->query_subjective();
+		  }
+		  if (has[who[num]]) {
+		    if (str[0]=='o')
+		      {
+			bit = who[num]->query_objective();
+		      }
+		    else 
+		      bit = who[num]->query_subjective();
 		    break;
+		  }
+		  has[who[num]]++;
+		  bit = who[num]->a_short();
+		  break;
 		}
-	    }
-	    has[who[num]]++;
-	    bit = who[num]->short();
-	    break;
+              }
+	      has[who[num]]++;
+	      bit = who[num]->short();
+	      break;
 	case 'R':
 	case 'r':
 	    if (forwhom == who[num])
@@ -192,7 +206,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
 		str += "'t";
 		fmt[i+1] = fmt[i+1][2..];
 	    }
-	    
+
 	    if (num >= sizeof(who) || who[num]!=forwhom) bit = M_GRAMMAR->pluralize(str);
 	    else bit = str;
 	    break;
@@ -235,7 +249,7 @@ varargs string *action(object *who, mixed msg, array obs...) {
     int i;
     string *res;
 
-    if (pointerp(msg))
+    if (arrayp(msg))
 	msg = msg[random(sizeof(msg))];
     res = allocate(sizeof(who)+1);
     for (i=0; i<sizeof(who); i++) {
@@ -262,7 +276,7 @@ void inform(object *who, string *msgs, mixed others) {
 	done[who[i]]++;
 	tell(who[i], msgs[i], MSG_INDENT);
     }
-    if (pointerp(others))
+    if (arrayp(others))
     {
 	map_array(others - who, (: tell($1, $(msgs[<1]), MSG_INDENT) :));
     }
@@ -283,7 +297,7 @@ varargs void simple_action(mixed msg, array obs...) {
     if( !sizeof( msg )) return;
     /* faster to only make who once */
     who = ({ this_object() });
-    if (pointerp(msg))
+    if (arrayp(msg))
 	msg = msg[random(sizeof(msg))];
 
     us = compose_message(this_object(), msg, who, obs...);
@@ -301,7 +315,7 @@ varargs void my_action(mixed msg, array obs...) {
 
     if (!sizeof( msg )) return;
     who = ({ this_object() });
-    if (pointerp(msg))
+    if (arrayp(msg))
 	msg = msg[random(sizeof(msg))];
     us = compose_message(this_object(), msg, who, obs...);
     tell(this_object(), us, MSG_INDENT);
@@ -315,7 +329,7 @@ varargs void other_action(mixed msg, array obs...) {
 
     if( !sizeof(msg)) return;
     who = ({ this_object() });
-    if (pointerp(msg))
+    if (arrayp(msg))
 	msg = msg[random(sizeof(msg))];
     others = compose_message(0, msg, who, obs...);
     tell_environment(this_object(), others, MSG_INDENT, who);
@@ -330,7 +344,7 @@ varargs void targetted_action(mixed msg, object target, array obs...) {
 
     if( !sizeof(msg)) return;
     who = ({ this_object(), target });
-    if (pointerp(msg))
+    if (arrayp(msg))
 	msg = msg[random(sizeof(msg))];
     us = compose_message(this_object(), msg, who, obs...);
     them = compose_message(target, msg, who, obs...);
@@ -339,3 +353,11 @@ varargs void targetted_action(mixed msg, object target, array obs...) {
     tell(target, them, MSG_INDENT);
     tell_environment(this_object(), others, MSG_INDENT, who);
 }
+
+//:FUNCTION targeted_action
+//Generate and send a message involving the doer and a target (and possibly
+//other objects)
+void targeted_action(mixed msg, object target, array obs...) {
+targetted_action(msg, target, obs); }
+
+

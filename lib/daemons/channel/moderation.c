@@ -133,7 +133,7 @@ protected nomask int cmd_moderation(string channel_name, string arg)
     }
     else if ( arg[0..4] == "/call" )
     {
-	arg = lower_case(trim_spaces(arg[4..]));
+	arg = lower_case(trim_spaces(arg[5..]));
 	if ( !ci->moderator )
 	{
 	    printf("'%s' is not moderated.\n", user_channel_name);

@@ -14,7 +14,7 @@ private nomask void privilege_owners()
 {
     string * owners = SECURE_D->query_privilege_owners();
 
-    printf("Owners:\n%-#79s\n", implode(sort_array(owners, 1), "\n"));
+    more(sprintf("Owners:\n%-#79s\n", implode(sort_array(owners, 1), "\n")));
 }
 
 private nomask void receive_privilege_for_show(string priv)

@@ -17,18 +17,20 @@ set_relations("on");
     set_adj("ugly");
     set_id("horse");
     set_long("Damn, the horse is ugly!");
-set_preposition("on");
-    set_max_capacity(VERY_LARGE*2);
+    add_relation("on",VERY_LARGE*2);
+    set_default_relation("on");
     // So people will see: Sitting on the horse you see Rust...
-    set_primary_verb("sitting");
+//  set_primary_verb("sitting");
     set_in_room_desc("There is an ugly horse here.");
     set_get_on_msg("$N $vget onto the ugly horse.\n");
     set_get_off_msg("$N $vdismount from the ugly horse.\n");
 
 // We could opt for simple messages, and uncomment these
 // 2 lines, but we can also go for more complex msgs (see below).
-//    set_arrival_msg("The $N $vtrot off $o.\n");
-//    set_departure_msg("A $N $vtrot in.\n");
+    set_arrival_msg("The $N $vtrot off $o.\n");
+    set_departure_msg("A $N $vtrot in.\n");
+    add_method("mount", this_object());
+    add_method("dismount", (: environment(this_object()) :) );
 }
 
 

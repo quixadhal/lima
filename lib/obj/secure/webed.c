@@ -158,6 +158,7 @@ int validate_user(mapping form)
 string save_text_to_file(mapping form)
 {
   string filename = form["saveas"];
+  string contents = replace_string(form["contents"], "\r\n", "\n");
   int result;
 
   if(!validate_user(form))
@@ -166,7 +167,7 @@ string save_text_to_file(mapping form)
     }
 
   result = unguarded(get_priv(form), (: write_file($(filename), 
-					  $(form["contents"]), 1) :));
+                                          $(contents), 1) :));
 
   if(!result)
     {

@@ -4,8 +4,6 @@ inherit CONTAINER;
 inherit M_GETTABLE;
 inherit M_FLUID_CONTAINER;
 
-
-
 void setup()
 {
     set_adj("clear", "glass", "blown");
@@ -14,6 +12,3 @@ void setup()
     set_size(  1  );
     set_max_capacity( 1 );
 }
-
-
-

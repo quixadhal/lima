@@ -5,12 +5,11 @@
 // 26 June, 1998: Iizuka created.
 
 #include <hooks.h>
+#include <light.h>
 
 inherit M_LIGHTABLE;
 inherit M_LIGHT_SOURCE;
 inherit M_DECAY;
-
-#define FUEL_DELAY  10
 
 private string die_msg = "The light from the $o $vflicker and $vdie.";
 
@@ -24,7 +23,7 @@ string query_die_msg()
    return die_msg;
 }
 
-void set_lit(int x)
+protected void set_lit(int x)
 {
    m_lightable::set_lit(x);
    m_light_source::set_lit(x);

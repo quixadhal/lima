@@ -22,7 +22,7 @@
 inherit CONTAINER;
 inherit M_ITEMS;
 inherit M_GETTABLE;
-inherit __DIR__ "room/exits";
+inherit M_EXIT;
 inherit __DIR__ "room/roomdesc";
 inherit __DIR__ "room/state";
 
@@ -55,7 +55,6 @@ int can_hold_water()
 void create(array args...)
 {
     container::create();
-    exits::create();
 
     // cloned rooms will already have this stuff happen... We need this
     // because setup() is the way people configure mudlib objects.
@@ -87,7 +86,10 @@ void mudlib_setup()
 {
     ::mudlib_setup();
     set_light(DEFAULT_LIGHT_LEVEL);
-    set_max_capacity(1000000);
+    /* First add the relation 'in'. */
+    add_relation("in",1000000);
+    /* Make it the default relation for all rooms */
+    set_default_relation("in");
     add_id_no_plural("here");
     add_id("environment");
     set_gettable( -1 );

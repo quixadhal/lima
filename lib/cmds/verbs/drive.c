@@ -16,9 +16,9 @@ string array normal_directions = ({ "north", "south", "east", "west",
 
 mixed can_drive_str(string str)
 {
-   mixed value = environment(this_body())->can_go_somewhere(str);
+   mixed value = environment(environment(this_body()))->can_go_str(str);
    if(!stringp(value) && (value == 1))
-      return default_checks();
+     return default_checks();
    if(!stringp(value) && (member_array(str, normal_directions) != -1))
       return "It doesn't appear you can drive that way.\n";
    return value;
@@ -26,7 +26,7 @@ mixed can_drive_str(string str)
 
 void do_drive_str(string str)
 {
-    environment(this_body())->do_go_somewhere(str);
+  environment(environment(this_body()))->do_go_str(str);
 }
 
 mixed can_drive_obj()

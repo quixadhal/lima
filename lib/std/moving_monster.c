@@ -9,7 +9,8 @@
 //
 // MOVING_MONSTER enables the use of the 'go' verb in npcs (via 
 // do_game_command()) by inheriting M_SMARTMOVE.  
-inherit MONSTER;
+inherit ADVERSARY;
+inherit M_ACTIONS;
 inherit M_SMARTMOVE;
 
 /* Maybe something more should be here, but I couldn't think of anything

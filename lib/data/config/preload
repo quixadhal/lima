@@ -20,3 +20,5 @@
 /daemons/chanlog_d
 /daemons/memcheck_d
 /secure/daemons/imail_d
+/daemons/news_d
+/secure/daemons/rcp_d

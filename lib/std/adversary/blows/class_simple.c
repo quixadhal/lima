@@ -8,7 +8,7 @@ nosave class event_info array queue = ({ });
 
 void add_event(object target, object weapon, mixed target_extra, mixed data)
 {
-   queue += ({ new(event_info, target: target, weapon: weapon, data: data
+   queue += ({ new(class event_info, target: target, weapon: weapon, data: data
 #ifdef HEALTH_USES_LIMBS
                , target_extra: target_extra
 #endif

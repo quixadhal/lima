@@ -1,9 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 // By Ohara
 
-
 inherit DOOR;
-
 
 string our_dir;
 
@@ -30,9 +28,9 @@ void set_closed( int x )
 }
 
 
-varargs void on_clone( string ident, string dir, string room )
+varargs void on_clone( string dir, string room,mixed rest... )
 {
-    ::on_clone( ident, dir, room );
+    ::on_clone( dir, room, rest...);
     do_hidden_stuff();
 }
 

@@ -7,7 +7,6 @@
 
 inherit MOVING_MONSTER;
 inherit M_FOLLOW;
-inherit M_ACTIONS;
 
 void mudlib_setup()
 {

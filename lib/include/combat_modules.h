@@ -28,26 +28,31 @@
 #define BLOW_SIMPLE           1
 #define BLOW_TYPES            2
 #define FORMULA_SIMPLE        1
-#define ADVANCEMENT_LEVEL     1
+#define ADVANCEMENT_SIMPLE    1
 
 /*
 ** Customize the following options, but be aware that
 ** changing some of them later on can, and probably will,
 ** screw up your user data files.
 */
-#define DEATH_STYLE       DEATH_CORPSES
+#define DEATH_STYLE       DEATH_VAPORIZE
 #define HEALTH_STYLE      HEALTH_HITPOINTS
 #define WIELD_STYLE       WIELD_SINGLE
 #define ARMOR_STYLE       ARMOR_COMPLEX_SLOTS
 #define PULSE_STYLE       PULSE_HEART_BEAT
 #define BLOW_STYLE        BLOW_TYPES
 #define FORMULA_STYLE     FORMULA_SIMPLE
-#define ADVANCEMENT_STYLE ADVANCEMENT_LEVEL
+#define ADVANCEMENT_STYLE ADVANCEMENT_SIMPLE
 
-/* #define or #undef this one */
+/* #define or #undef these. Modify them without fear of messing anything
+   up in your .o files. */
 #define TARGETTING_IS_RANDOM
 #undef DEBUG_COMBAT
 #define DEATH_MESSAGES
+
+/* The maximum number of attacks an adversary can ever have. Again, this
+   won't mess up your .o files either. */
+#define MAX_ATTACK_SPEED   10
 
 /* internal use. Don't edit below here unless you really
    know what you're doing. */
@@ -117,8 +122,8 @@
 #define FORMULA_MODULE simple
 #endif
 
-#if ADVANCEMENT_STYLE == ADVANCEMENT_LEVEL
-#define ADVANCEMENT_MODULE level
+#if ADVANCEMENT_STYLE == ADVANCEMENT_SIMPLE
+#define ADVANCEMENT_MODULE simple
 #endif
 
 #endif

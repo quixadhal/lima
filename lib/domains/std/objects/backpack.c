@@ -13,6 +13,8 @@ void setup() {
     
     set_id("backpack", "pack");
     set_long("It's a simple leather backpack, with a flap and strap allowing you to close it.");
+    add_relation("in");
+    set_default_relation("in");
     set_objects( ([
 		   ]) );
     set_max_capacity(3*MEDIUM);

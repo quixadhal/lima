@@ -33,7 +33,7 @@ private void agro_func(object who)
    if(who == this_object())
       foreach(item in all_inventory(environment()))
       {
-         if(item->attackable())
+         if(item->attackable() && item != this_object())
 	    handle_attack(item);
       }
    else handle_attack(who);

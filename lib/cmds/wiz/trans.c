@@ -35,7 +35,7 @@ private void main( mixed *arg)
 
     /* Be careful here or it will be impossible to trans someone with no env() */
     if (!(target->query_link() && interactive(target->query_link()) && target_name == "Someone") && start_place)
-	tell_from_inside( start_place , sprintf( "%s dissapears in a puff of smoke.\n",
+        tell_from_inside(start_place, sprintf("%s disappears in a puff of smoke.\n",
 	    target_name ) );
     outf( "You summon %s to you.\n", target_name );
     tell( target, "You are magically transported somewhere.\n" );

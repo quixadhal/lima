@@ -3,22 +3,23 @@
 //:MODULE portal
 // A simple one way portal
 
-inherit EXIT_OBJ;
+inherit COMPLEX_EXIT_OBJ;
 inherit M_GETTABLE;
 
 string look_in_desc;
 
 
 //:FUNCTION set_destination
-// Set where you go when you enter the portal
-void set_destination(string s)
+// Set where you go when you enter the portal.  Valid arguments are a function
+//pointer or a filename
+void set_destination(function f)
 {
-    set_default_destination(s);
+  add_method("enter",f);
 }
 
 string get_destination()
 {
-    return query_default_destination();
+  return query_method_destination("enter");
 }
 
 int direct_look_str_obj()
@@ -57,8 +58,5 @@ varargs void mudlib_setup(string destination)
     set_id( "portal" );
     set_attached();
     set_gettable( "#It's a portal not a portable.");
-    if ( destination ) set_default_destination( destination );
-    set_go_method("enter");
-//    set_default_exit_msg( (: prep_default_msg :) );
-//    set_default_enter_msg( (: prep_default_msg :) );
+    if ( destination ) add_method( "enter", destination );
 }

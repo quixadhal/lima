@@ -152,12 +152,12 @@ private nomask void send_mail_message(string subject,
 
     if ( stringp(to_list) )
 	to_list = map(explode(to_list, ","), (:trim_spaces:));
-    else if ( !pointerp(to_list) )
+    else if ( !arrayp(to_list) )
 	to_list = ({ });
 
     if ( stringp(cc_list) )
 	cc_list = map(explode(cc_list, ","), (:trim_spaces:));
-    else if ( !pointerp(cc_list) )
+    else if ( !arrayp(cc_list) )
 	cc_list = ({ });
 
     name_list = MAIL_D->send_mail(this_user()->query_userid(),

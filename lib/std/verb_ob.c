@@ -38,7 +38,7 @@ void create()
     // backwards compat
     info[0] = map(info[0], (: (stringp($1) ? $1 : ($1 ? "STR" : "") ) :) );
     
-    if ( !info || !pointerp(info) || !pointerp(info[0]) )
+    if ( !info || !arrayp(info) || !arrayp(info[0]) )
 	throw("bad verb info");
 
     switch (sizeof(info)) {

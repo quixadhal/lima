@@ -52,7 +52,7 @@ void do_command(string who, string str) {
 	comms = str;
     }
     
-    if (pointerp(comms))
+    if (arrayp(comms))
 	comms = choice(comms);
     
     respond(comms);

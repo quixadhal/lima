@@ -22,9 +22,12 @@ private int heal_rate = 15;
 private int dead = 0;
 
 //:FUNCTION update_body_style
+// int update_body_style(string body_style);
 // Queries BODY_D for the number and type of limbs that will be used.
 // e.g. update_body_style("humanoid") will give the body a torso, head,
 // two arms, and two legs.
+// Returns 0 if the body style doesn't exist or if it doesn't contain
+// at least one vital or system limb.
 int update_body_style(string body_style)
 {
    mapping new_body = BODY_D->get_body(body_style);
@@ -41,7 +44,28 @@ int update_body_style(string body_style)
    return 1;
 }
 
+int is_vital_limb(string limb)
+{
+   return ((class limb) health[limb])->flags & LIMB_VITAL;
+}
+
+int is_system_limb(string limb)
+{
+   return ((class limb) health[limb])->flags & LIMB_SYSTEM;
+}
+
+int is_wielding_limb(string limb)
+{
+   return ((class limb) health[limb])->flags & LIMB_WIELDING;
+}
+
+int is_mobile_limb(string limb)
+{
+   return ((class limb) health[limb])->flags & LIMB_MOBILE;
+}
+
 //:FUNCTION query_limbs
+// string array query_limbs();
 // Returns a string array containing all limbs that health is applied to.
 string array query_limbs()
 {
@@ -49,6 +73,7 @@ string array query_limbs()
 }
 
 //:FUNCTION query_wielding_limbs
+// string array query_wielding_limbs();
 // Returns a string array containing all the limbs that can wield weapons.
 string array query_wielding_limbs()
 {
@@ -56,6 +81,7 @@ string array query_wielding_limbs()
 }
 
 //:FUNCTION query_vital_limbs
+// string array query_vital_limbs();
 // Returns a string array containing all the limbs that are considered
 // vital for survival. If any one of these limbs is disabled, the
 // adversary dies.
@@ -64,6 +90,8 @@ string array query_vital_limbs()
    return filter(keys(health), (: ((class limb)health[$1])->flags & LIMB_VITAL :));
 }
 
+//:FUNCTION query_mobile_limbs
+// string array query_mobile_limbs();
 // Lima doesn't do anything with mobile limbs, but they're provided for
 // those who want health of mobile limbs to affect movement and such.
 string array query_mobile_limbs()
@@ -72,6 +100,7 @@ string array query_mobile_limbs()
 }
 
 //:FUNCTION query_system_limbs
+// string array query_system_limbs();
 // Returns a string array of 'system' limbs. When ALL system limbs are
 // disabled, the adversary dies.
 string array query_system_limbs()
@@ -80,6 +109,7 @@ string array query_system_limbs()
 }
 
 //:FUNCTION query_non_limbs
+// string array query_non_limbs();
 // Returns a list of body parts that are not worth tracking health for.
 // Such body parts are defined by having a max_health of -1.
 string array query_non_limbs()
@@ -99,9 +129,9 @@ int query_heal_rate()
    return heal_rate;
 }
 
-//:FUNCTION set_max_health
-//Set the maximum number of hit points of a monster, and also set it's 
-//hit points to the new max
+//:FUNCTION set_max_limb_health
+// void set_max_limb_health(string limb, int x);
+// Sets the maximum health for a given limb.
 void set_max_limb_health(string limb, int x)
 {
    class limb tmp = health[limb];
@@ -117,6 +147,10 @@ void set_max_limb_health(string limb, int x)
    tmp->health = x;
 }
 
+//:FUNCTION set_max_health
+// void set_max_health(int x);
+// Set the maximum number of hit points of a monster, and also set it's 
+// hit points to the new max
 void set_max_health(int x)
 {
    int max = 0;
@@ -132,6 +166,9 @@ void set_max_health(int x)
    }
 }
 
+//:FUNCTION kill_us
+// void kill_us();
+// Kills us. =)
 void kill_us()
 {
    dead = 1;
@@ -146,6 +183,7 @@ string query_random_limb()
 }
 
 //:FUNCTION disable_limb
+// void disable_limb(string limb);
 // Disables a limb. For effects on vital and system limbs, see
 // query_vital_limbs() and query_system_limbs().
 void disable_limb(string limb)
@@ -182,6 +220,7 @@ void disable_limb(string limb)
 }
 
 //:FUNCTION enable_limb
+// void enable_limb(string limb);
 // Re-enables a disabled limb.
 void enable_limb(string limb)
 {
@@ -211,7 +250,8 @@ varargs void set_health(string limb, int x)
 }
 
 //:FUNCTION hurt_us
-//Hurt us a specified amt; you probably want to use do_damage() instead
+// varargs int hurt_us(int x, string limb);
+// Hurt us a specified amount.
 varargs int hurt_us(int x, string limb)
 {
    class limb tmp;
@@ -238,7 +278,8 @@ varargs int hurt_us(int x, string limb)
 }
 
 //:FUNCTION heal_limb
-//Heal us a specified amount, truncating at max_health
+// protected void heal_limb(string limb, int x);
+// Heal us a specified amount, truncating at max_health.
 protected void heal_limb(string limb, int x)
 {
    class limb tmp = health[limb];
@@ -257,11 +298,17 @@ protected void heal_limb(string limb, int x)
       tmp->health = tmp->max_health;
 }
 
+//:FUNCTION is_limb
+// int is_limb(string s);
+// Returns 1 if 's' is a valid limb.
 int is_limb(string s)
 {
    return !undefinedp(health[s]);
 }
 
+//:FUNCTION query_max_health
+// varargs int query_max_health(string limb);
+// Tells us the maximum health of a given limb.
 varargs int query_max_health(string limb)
 {
    int x = 1;
@@ -276,7 +323,8 @@ varargs int query_max_health(string limb)
 }
 
 //:FUNCTION heal_us
-//Heals all limbs by x amount
+// varargs void heal_us(int x, string limb);
+// Heals all limbs by 'x' amount.
 varargs void heal_us(int x, string limb)
 {
    if(!limb || undefinedp(limb))
@@ -289,6 +337,9 @@ varargs void heal_us(int x, string limb)
       heal_limb(limb, x);
 }
 
+//:FUNCTION heal_all
+// void heal_all();
+// Heal us entirely.
 void heal_all()
 {
    foreach(string l in keys(health))
@@ -298,7 +349,8 @@ void heal_all()
 }
 
 //:FUNCTION reincarnate
-//Makes us alive again
+// void reincarnate();
+// Makes us alive again!
 void reincarnate()
 {
    if(dead)
@@ -324,20 +376,22 @@ void update_health()
 }
 
 //:FUNCTION query_health
-//Find the current number of hitpoints of a monster
+// int query_health(string limb);
+// Find the current number of hitpoints of a monster
 int query_health(string limb)
 {
    update_health();
    return ((class limb)health[limb])->health;
 }
 
-//:FUNCTION query_ghost
-//return 1 if the monster is dead
 int query_ghost()
 {
    return dead;
 }
 
+//:FUNCTION badly_wounded
+// int badly_wounded();
+// Returns 1 if we're near death.
 int badly_wounded()
 {
    foreach (string l, class limb lb in health)
@@ -363,9 +417,9 @@ string diagnose()
       ret = "";
 
    damaged_limbs = filter(query_limbs(),
-                   (: health[$1]->health < health[$1]->max_health :));
+                   (: query_health($1) < health[$1]->max_health :));
    foreach(string limb in damaged_limbs)
-      ret += diagnose_msg(query_health(limb) * 100 / query_max_health(limb));
+      ret += diagnose_msg(health[limb]->health * 100 / health[limb]->max_health);
 
    if(ret == "")
       ret = "You are in excellent health.\n";

@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit EXIT_OBJ;
+inherit COMPLEX_EXIT_OBJ;
 
 mixed direct_get_obj( object ob ) {
     if( query_plural())
@@ -9,60 +9,53 @@ mixed direct_get_obj( object ob ) {
         return "#Try climbing it instead.";
 }
 
-varargs protected void setup_messages(string name, mixed up_dest, mixed down_dest, mixed prep_only)
+varargs protected void setup_messages(string name, mixed up_dest, mixed down_dest)
 {
-    string dirs;
-    if (up_dest && (!stringp(up_dest) || strlen(up_dest) > 0)) {
-        if (!arrayp(prep_only))
-            add_exit("up", up_dest, prep_only);
-        else
-            add_exit("up", up_dest, prep_only[0]);
-    }
-
-    if (down_dest && (!stringp(down_dest) || strlen(down_dest) > 0)) {
-        if (!arrayp(prep_only))
-            add_exit("down", down_dest, prep_only);
-        else
-            add_exit("down", down_dest, prep_only[1]);
-    }
-
-    if (up_dest)
+  string dirs;
+  if(up_dest)
+    add_method("ascend",up_dest);
+  if(down_dest)
+    add_method("descend",down_dest);
+  if (up_dest)
     {
-        if (down_dest)
-            dirs = "up and down";
-        else
-            dirs = "upwards";
+      if (down_dest)
+	dirs = "up and down";
+      else
+	dirs = "upwards";
     }
-    else
+  else
     {
-        if( down_dest )
-            dirs = "downwards";
-        else
-            dirs = "nowhere";
+      if( down_dest )
+	dirs = "downwards";
+      else
+	dirs = "nowhere";
     }
-
-    if (query_plural())
-        add_id_no_plural(name);
-    else
-        add_id( name );
-
-    set_long( "The " +name+ " lead" +(query_plural()?" ":"s ") +dirs );
-    set_in_room_desc( "There " +(query_plural()?"are ":"is a ")+name+ " here, leading " +dirs+ ".");
-    set_go_method("climb");
+  if (query_plural())
+    add_id_no_plural(name);
+  else
+    add_id( name );
+  set_long(sprintf("The %s %s %s",
+		   name,
+		   query_plural()?"lead":"leads",
+		   dirs) );
+  set_in_room_desc(sprintf("There %s %s here, leading %s.",
+			   query_plural()?"are ":"is a ",
+			   name,
+			   dirs) );
 }
 
 
 // Separated from create() so that objects can overload this separately
-void more_create(mixed up_dest, mixed down_dest, int prep_only) {
+void more_create(mixed up_dest, mixed down_dest) {
     set_plural(1);
-    setup_messages("stairs", up_dest, down_dest, prep_only);
+    setup_messages("stairs", up_dest, down_dest);
 }
 
 
-void mudlib_setup( mixed up_dest, mixed down_dest, int prep_only )
+void mudlib_setup( mixed up_dest, mixed down_dest)
 {
     ::mudlib_setup();
-    more_create( up_dest, down_dest, prep_only );
+    more_create( up_dest, down_dest );
+    set_base((:environment():) );
     set_attached( 1 );
 }
-

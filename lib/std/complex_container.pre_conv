@@ -77,6 +77,30 @@ void set_relations(string array rels...) {
 	relations[str] = ({ });
 }
 
+//:FUNCTION add_relations()
+//Add additional relations to the container
+void add_relations(string array rels...)
+{
+  foreach(string str in rels)
+    if(!relations[str])
+      relations[str]=({});
+}
+
+//:FUNCTIONS remove_relations()
+//Remove relations from an object.  This will only work if the relations are
+//unoccupied
+void remove_relatiosn(string array rels...)
+{
+  foreach(string str in rels)
+    {
+      if(member_array(str,keys(relations))>-1)
+	if(!sizeof(relations[str]))
+	  map_delete(relations,str);
+    }
+}
+
+//:FUNCTION get_relations()
+//Return all of the possible relations for an object
 string array get_relations()
 {
     return keys(relations);

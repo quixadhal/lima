@@ -80,16 +80,21 @@ void create() {
 	    "LS_DEFAULT" : "cyan",
 	    "LS_HEADING" : "bold"
 	    ]);
-#endif
 
     translations = translations + defaults;
+#endif
+
 
     null_translations = map(translations, function(){ return "";} );
     identity_translations = map(translations, (: "%^" + $1 + "%^" :));
 }
 
 void resync() {
+
+#ifdef CONFIGURABLE_COLOUR
     translations = translations + defaults;
+#endif
+
     null_translations = map(translations, function(){ return "";} );
     identity_translations = map(translations, (: "%^" + $1 + "%^" :));
 
@@ -97,6 +102,8 @@ void resync() {
     users()->update_translations();
 }
 
+
+#ifdef CONFIGURABLE_COLOUR
 void add_default_colour(string key, string value) {
     require_privilege("Mudlib:daemons");
     
@@ -111,4 +118,5 @@ void remove_default_colour(string key) {
     map_delete(defaults, upper_case(key));
     resync();
 }
-    
+#endif
+

@@ -29,7 +29,6 @@ string query_name();
 string query_title();
 #endif
 
-int query_prone();
 
 string query_long_name()
 {
@@ -77,8 +76,6 @@ string base_in_room_desc()
 
     result = query_long_name();
 
-    if (query_prone())
-        return capitalize(query_name()) + " is lying here slumped on the ground.";
 
     /* if they are link-dead, then prepend something... */
     if ( !link || !interactive(link) )

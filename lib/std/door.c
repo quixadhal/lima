@@ -22,19 +22,25 @@
  * overriding the values we got from it.
  */
 
-inherit EXIT_OBJ;
+inherit COMPLEX_EXIT_OBJ;
 inherit M_LOCKABLE;
 inherit M_OPENABLE;
 inherit M_KNOCKABLE;
 inherit M_SIBLING;
 
 mixed door_check(string dir, object who) {
-RABUG("door_check called");
-    if (query_closed()) {
-	who->simple_action( "$N $vtry to go $o, but the $o1 is closed.", dir, this_object());
-	return 0;
-    }
-    return 1;
+  if (query_closed()) {
+    this_body()->other_action( "$N $vtry to go $o, but the $o1 is closed.", 
+			     this_body(),
+			     dir, 
+			     this_object());
+    return sprintf("You try to go %s, but the %s is closed",
+		   query_obvious_description(),
+		   dir);
+  }
+  if(!load_object(query_method_destination("go")))
+    return "Error, the destination does not exist, please mail the creator of this room";
+  return 1;
 }
 
 void update_state(object ob) {
@@ -66,30 +72,32 @@ void do_on_open() {
         object_event("The $o opens.\n");
 }
 
-varargs void on_clone( string ident, string dir )
+varargs void on_clone(string dir, mixed rest...)
 {
-    object sib = get_sibling();
-RABUG("door's on_clone()");
-    ::on_clone();
+    object sib;
+    complex_exit_obj::on_clone(dir,rest...);
+    m_sibling::on_clone(dir,rest...);
+    sib=get_sibling();
     if( sib ) update_state( sib );
 }
 
 
 // Break this out so other kinds of doors can overload this
-void setup_exits(string dir, string room) {
-    RABUG("Setup_exits");
-    add_exit(dir, room);
-    set_exit_check(dir, (: door_check :) );
+void setup_exits(string dir,string room) {
+    add_method("go", room,(:door_check:));
+    set_obvious_description(dir);
 }
 
 // should be called only once, from create.
 void setup_door(string ident, string dir, string room) {
-    setup_sibling(ident, room);
     add_adj(dir);
+    /* It is necessary to add the direction as an id too because people 
+     * will still 'go west' for the west door */
+    add_id_no_plural(dir);
     set_unique(1); // doors should have a unique enough description that
     // we can refer to them with 'the'
-
-    setup_exits(dir, room);
+    respond_to_sibling_ident(ident);
+    setup_exits(dir,room);
 }
 
 
@@ -127,7 +135,4 @@ mixed direct_get_obj( object obj )
 }
 
 
-mapping lpscript_attributes()
-{
-    return exit_obj::lpscript_attributes() + m_openable::lpscript_attributes();
-}
+

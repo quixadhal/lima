@@ -8,7 +8,7 @@
 #include <mudlib.h>
 #include <move.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 varargs private nomask void throw_one(object ob, object target)
 {
@@ -40,8 +40,8 @@ void do_throw_obj_at_obj(object to_throw, object target)
 }
 
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ:v", "OBS:v", "OBJ:v at OBJ" }) });
+    add_rules (({ "OBJ:v", "OBS:v", "OBJ:v at OBJ" }) );
 }
 

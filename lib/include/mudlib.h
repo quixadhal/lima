@@ -14,7 +14,6 @@
 
 /*
 ** BODY		main player object (body)
-** GHOST	ghost object (body)
 ** USER_OB	user's connection object
 ** USER_OB_BAK	user's connection object (backup version)
 **
@@ -36,7 +35,6 @@
 ** MOUNT	
 ** WEAPON	weapons
 ** ARMOR	armor
-** MONSTER	monsters -- living objects that fight
 ** CONTAINER	obs that can hold things in/on/under/behind/etc.
 ** DOOR		doors to places
 ** SECRET_DOOR        secret doors.
@@ -142,10 +140,10 @@
 ** STAIRS
 ** TORCH
 ** VEHICLE
+** HOLE
 */
 
 #define BODY			"/std/body"
-#define GHOST			"/std/ghost"	// ### bogus
 #define USER_OB			"/secure/user"
 #define USER_OB_BAK		"/secure/user_bak"
 
@@ -168,9 +166,12 @@
 #define AGGRESSIVE_MONSTER      "/std/aggressive_monster"
 #define ARMOR			"/std/armor"
 #define BASE_OBJ		"/std/base_obj"
+#define CHEST			"/std/chest"
 #define COMBAT_SPELL            "/std/combat_spell"
 #define CONTAINER		"/std/container"
-#define COMPLEX_CONTAINER	"/std/complex_container"
+#define CORPSE			"/std/corpse"
+#define EXIT_OBJ                 "/std/complex_exit_obj"
+#define COMPLEX_EXIT_OBJ        "/std/complex_exit_obj"
 #define DOOR			"/std/door"
 #define SECRET_DOOR             "/std/secret_door"
 #define FLAME			"/std/flame"
@@ -183,7 +184,6 @@
 #define LIGHT_OBJECT            "/std/light_object"
 #define LIVING			"/std/living"
 #define	MENUS			"/std/menu"
-#define MONSTER                 ADVERSARY
 #define MOVING_MONSTER          "/std/moving_monster"
 #define FOLLOWING_MONSTER       "/std/following_monster"
 #define WANDERING_MONSTER       "/std/wandering_monster"
@@ -256,7 +256,7 @@
 #define M_WIELDABLE		"/std/modules/m_wieldable"
 #define M_WRITING_SURFACE	"/std/modules/m_writing_surface"
 #define M_EXIT                  "/std/modules/m_exit"
-#define M_EXIT_OBJ              "/std/modules/m_exit_obj"
+#define M_COMPLEX_EXIT          "/std/modules/m_complex_exit"
 
 #define M_LIB_LOCKABLE		"/domains/std/lockable"
 #define M_LIB_OPENABLE		"/domains/std/openable"
@@ -270,7 +270,6 @@
 
 #define ALIASMENU		"/obj/mudlib/aliasmenu"
 #define ANNO_MENU		"/obj/mudlib/annotationmenu"
-#define CORPSE			"/obj/mudlib/corpse"
 #define FAKE_ITEM_MGR		"/obj/mudlib/fake_item_mgr"
 #define HELPSYS			"/obj/mudlib/helpsys"
 #define HINT_MENU		"/obj/mudlib/hintmenu"
@@ -280,6 +279,7 @@
 #define PLAYER_MENU		"/obj/mudlib/plmenu"
 #define PLYR_SHELL		"/obj/mudlib/pshell"
 #define SIMPLE_OB		"/obj/mudlib/simple_ob"
+#define TEAM_MENU               "/obj/mudlib/team_menu"
 #define TEMP_WORKROOM		"/obj/mudlib/TWorkroom"
 #define WATER			"/obj/mudlib/water"
 
@@ -308,9 +308,11 @@
 // These next few are 'high level' inheritables and probably should have
 // their own dir.
 #define ACCOUNTANT              "/std/accountant"
+#define BED			"/std/bed"
 #define MONEY                   "/std/money"
 #define BOOK			"/std/book"
 #define COINS			"/std/coins"
+#define HOLE			"/std/hole"
 #define LADDER			"/std/ladder"
 #define LANTERN                 "/std/lantern"
 #define PORTAL			"/std/portal"
@@ -318,7 +320,6 @@
 #define SWORD			"/std/sword"
 #define TORCH			"/std/torch"
 #define VEHICLE			"/std/vehicle"
-#define EXIT_OBJ "/std/exit_obj"
-#define INF_SUPPLY "/std/inf_supply"
+#define INF_SUPPLY              "/std/inf_supply"
 
 #endif /* __MUDLIB_H__ */

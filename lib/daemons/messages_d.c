@@ -126,6 +126,7 @@ mapping messages =
     "destruct": "$N $vdest the $o.",
     "fol_leave": "$N $vfollow $t $o.",
     "fol_enter": "$N $venter following $t.",
+    "clean": "$N $vtake a broom and $vclean $p surroundings.",
     ]),
   // These messages stolen from Distortion :-)
   "player-death" : ({

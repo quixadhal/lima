@@ -15,14 +15,14 @@ mixed parse_rule(string str)
     case "":
     case 0:
     case "0":
-        return "";
+	return "";
 
     case "1":
     case "all":
-        return "STR";
+	return "STR";
 
     default:
-        return str;
+	return str;
     }
 }
 
@@ -48,9 +48,11 @@ private nomask void got_rule(string verb, string str)
     if ( rule == "." )
     {
 	write("Addemote aborted.\n");
-        return;
+	return;
     }
 
+    write("Separate message rules for different message targets by '&&'s.\n");
+    write("e.g.: This is seen by the user && This is seen by the target && This is seen by everyone else\n");
     write("Message: ");
     modal_simple((: got_message, verb, rule :));
 }
@@ -74,7 +76,7 @@ nomask private void main(string str)
     }
     else
     {
-        rule = parse_rule(rule);
+	rule = parse_rule(rule);
 	write("Message: ");
 	modal_simple((: got_message, verb, rule :));
     }

@@ -23,7 +23,7 @@ private int dead = 0;
 void set_heal_rate(int x)
 {
    if(x < 0)
-      x = 0; /* a number of things depend on this */
+      x = 0; /* a number of things depend upon this */
 
    heal_rate = x;
 }
@@ -34,14 +34,18 @@ int query_heal_rate()
 }
 
 //:FUNCTION set_max_health
-//Set the maximum number of hit points of a monster, and also set it's 
-//hit points to the new max
+// void set_max_health(int x);
+// Set the maximum number of hit points of a monster, and also set it's 
+// hit points to the new max.
 void set_max_health(int x)
 {
    health = max_health = x;
    health_time = time(); /* old healing irrelevant */
 }
 
+//:FUNCTION kill_us
+// void kill_us()
+// Call this function to kill an adversary completely.
 void kill_us()
 {
    dead = 1;
@@ -49,9 +53,10 @@ void kill_us()
 }
 
 //:FUNCTION set_health
-//Set the hit points of a monster.  Usually, you want to use heal_us() or
-//set_max_health instead.
-//see: set_max_health
+// void set_health(int x);
+// Set the hit points of a monster.  Usually, you want to use heal_us() or
+// set_max_health instead.
+// see also: set_max_health
 void set_health(int x)
 {
    if(x > max_health)
@@ -66,7 +71,8 @@ void set_health(int x)
 }
 
 //:FUNCTION hurt_us
-//Hurt us a specified amount.
+// varargs int hurt_us(int x, string unused);
+// Hurt us a specified amount.
 varargs int hurt_us(int x, string unused)
 {
    query_health(); /* must update healing first */
@@ -78,7 +84,8 @@ varargs int hurt_us(int x, string unused)
 }
 
 //:FUNCTION heal_us
-//Heal us a specified amount, truncating at max_health
+// void heal_us(int x);
+// Heal us a specified amount, truncating at max_health.
 void heal_us(int x)
 {
     /* DO NOT cause health to be updated in this routine, since this routine
@@ -96,7 +103,8 @@ void heal_us(int x)
 }
 
 //:FUNCTION reincarnate
-//Makes us alive again
+// void reincarnate();
+// Makes us alive again!
 void reincarnate()
 {
    dead = 0;
@@ -108,7 +116,8 @@ void reincarnate()
 }
 
 //:FUNCTION query_health
-//Find the current number of hitpoints of a monster
+// varargs int query_health(string unused);
+// Find the current number of hitpoints of a monster
 varargs int query_health(string unused)
 {
    if(!dead && time() != health_time)
@@ -121,24 +130,29 @@ varargs int query_health(string unused)
 }
 
 //:FUNCTION query_max_health
-//Find the maximum number of hitpoints of a monster
+// int query_max_health();
+// Find the maximum number of hitpoints of a monster.
 int query_max_health()
 {
    return max_health;
 }
 
+//:FUNCTION heal_all
+// void heal_all();
+// Heal us completely.
 void heal_all()
 {
    set_health(query_max_health());
 }
 
-//:FUNCTION query_ghost
-//return 1 if the monster is dead
 int query_ghost()
 {
    return dead;
 }
 
+//:FUNCTION badly_wounded
+// int badly_wounded();
+// Returns 1 if we're nearing death.
 int badly_wounded()
 {
    return health < max_health / 5;
@@ -161,4 +175,3 @@ string diagnose()
    ret += diagnose_msg(query_health() * 100 / query_max_health());
    return ret;
 }
-

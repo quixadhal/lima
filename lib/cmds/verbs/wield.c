@@ -1,5 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <combat_modules.h>
+
 inherit NVERB_OB;
 
 void do_wield_obj(object ob)
@@ -10,6 +12,7 @@ void do_wield_obj(object ob)
    this_body()->do_wield(ob);
 }
 
+#if WIELD_STYLE == WIELD_LIMBS
 void do_wield_obj_in_str(object ob, string limb)
 {
    if(!try_to_acquire(ob))
@@ -17,6 +20,7 @@ void do_wield_obj_in_str(object ob, string limb)
 
    this_body()->do_wield(ob, limb);
 }
+#endif
 
 void create()
 {

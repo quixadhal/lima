@@ -34,7 +34,8 @@ inherit __DIR__ "imud/mail";
 
 nosave private object	router_socket;
 
-private string *	router_list = ({ ({ "*gjs", "208.192.43.105 9000"}) });
+private string *        router_list = ({ ({ "*gjs", "216.98.238.194 9000"}) });
+//private string *	router_list = ({ ({ "*gjs", "208.192.43.105 9000"}) });
 private int		password;
 
 void rcv_startup_reply(string orig_mud, string orig_user,
@@ -135,7 +136,7 @@ if (message[0]!= "mudlist")
     string s = sprintf("%O", message);
     if ( sizeof(s) > 200 )
 	s[200..] = "...";
-    DBBUG(s);
+    //    TBUG(s);
 }
 
     if ( !dispatch[message[0]] )
@@ -147,7 +148,6 @@ if (message[0]!= "mudlist")
 			    message }));
 	return;
     }
-
     evaluate(dispatch[message[0]],
 	     message[2], message[3], message[5], message[6..]);
 }
@@ -155,7 +155,7 @@ if (message[0]!= "mudlist")
 /* handle closures of the router socket */
 private nomask void handle_router_close(object socket)
 {
-    DBBUG("router closed");
+  //    TBUG("router closed");
     router_socket = 0;
 
     /* mark all the muds as down. when we reconnect we'll get new data */
@@ -182,7 +182,7 @@ private nomask void reconnect()
 
     if ( err )
     {
-	DBBUG(err);
+      //	TBUG(err);
 
 	if ( router_socket )
 	{
@@ -202,7 +202,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 1.0a8",
+                              "Lima 1.0a9",
 			      "Lima",
 			      driver_version(),
 			      "LP",

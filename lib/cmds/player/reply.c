@@ -25,6 +25,7 @@ private void main(string arg)
 	return;
       }
     target = this_body()->query_reply();
+  if(!target){out("You cannot reply to nothing.");return;}
 
     if( !find_user( target ) && !sscanf( target, "%s@%s", tmp, tmp2 ) )
     { 

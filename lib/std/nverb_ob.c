@@ -74,6 +74,9 @@ mixed check_ghost() {
 mixed check_vision() {
     if (environment(this_body())->query_light())
         return 1;
+    if (environment(this_body())->parent_environment_accessible())
+       if (environment(environment(this_body()))->query_light())
+           return 1;
     return "You can't see a thing!\n";
 }
 

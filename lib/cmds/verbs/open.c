@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 /* open <something destroyable> with <weapon> */
 mixed direct_open_obj_with_obj(object ob1, object ob2) {
@@ -40,7 +40,7 @@ void do_open_obj(object ob) {
     open(ob, 0);
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ", "up OBJ", "OBJ with OBJ" }) });
+  add_rules( ({ "OBJ", "up OBJ", "OBJ with OBJ" }) );
 }

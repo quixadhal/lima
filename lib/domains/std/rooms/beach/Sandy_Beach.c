@@ -22,27 +22,15 @@ void setup()
 
     // The message given when the player tries to walk in any direction
     // but an explicitly defined direction.
-    set_default_exit( "The mountains are too steep to climb.  You'd have to go around them...\n");
+    set_default_error( "The mountains are too steep to climb.  You'd have to go around them...\n");
 
     // Places to go - in this case there are no places: All the exits
     // are strings to be printed when the player tries to use them.
     set_exits( ([
-	"south" : o,
-	"southeast" : o,
-	"southwest" : o,
-      ]) );
-
-    set_exit_msg("(wade)", ({
-	// Messages given when someone wades out. The "(wade)" is the name
-	// passed.
-	"$N $vwade into the ocean.  Though the undercurrent "
-	"is strong, $n $vmanage to keep $p balance.  $N $vwander "
-	"towards the east, where there is no beach, but there are "
-	"interesting mountains...",
-
-	"$N $vwade around in the ocean for a while, "
-	"eventually wandering out of sight to the east."
-      }) );
+		 "south" : o,
+		 "southeast" : o,
+		 "southwest" : o,
+		 ]) );
 
     add_item( "tide", "You can't look at it, but if you were to wade in the water, you sure would feel it." );
 
@@ -64,24 +52,4 @@ void setup()
 	"/domains/std/objects/ocean" : 1,
 
       ]) );
-}
-
-mixed wade(string str)
-{
-    switch(str)
-    {
-    case 0:
-	write("(wade in the water)\n");
-    case "water":
-    case "waves":
-    case "surf":
-    case "ocean":
-	// The "(wade)" is the exit name passed, which is used by set_exit_msg()
-	this_body()->move_to(__DIR__ "Outside_Cave", "(wade)");
-	QUEST_D->grant_points(this_body(),"pirate:foundCave");
-	return 1;
-
-    default:
-	return "How stupid!\n";
-    }
 }

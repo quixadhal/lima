@@ -3,7 +3,7 @@
 inherit CONTAINER;
 inherit M_GETTABLE;
 inherit M_LIGHTABLE;
-
+inherit M_LIGHT_SOURCE;
 
 mixed light_me( object ob )
 {
@@ -12,7 +12,6 @@ mixed light_me( object ob )
 	return "Perhaps you should try using something that you're holding.";
     return 1;
 }
-
 
 void setup()
 {
@@ -23,6 +22,8 @@ void setup()
     set_getmsg( "#You'd only get tangled up in it.\n");
     set_source( (: light_me( $1 ) :));
     set_light_msgs( "As $n $vlight the web, it bursts into flame and burns away, revealing a key!", "As $n $vlight the web with the $o, the web bursts into flame and burns away, revealing a key!");
+    add_relation("in");
+    set_default_relation("in");
 }
 
 

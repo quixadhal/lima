@@ -28,6 +28,7 @@ string pluralize(string str)
     case "laf": return "lafs";
     case "barf": return "barfs";
     case "snarf": return "snarfs";
+    case "hum": return "hums";
     }
 
     if ( str[<2..<1] == "ff" )	/* e.g. "bluff" */

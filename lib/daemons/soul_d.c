@@ -189,6 +189,7 @@ mixed * internal_get_soul(string verb, string rule, mixed *args,
 	object *w;
 
 	w = ( j ? imud_who : who );
+//RABUG(sprintf("%O", w));
 
 	for (i = 0; i < sizeof(w); i++) {
 	    string tmp;
@@ -200,6 +201,8 @@ mixed * internal_get_soul(string verb, string rule, mixed *args,
 		else
 		  tmp = soul[0];
 	    }
+//RABUG(sprintf("i: %d, tmp: %s, soul: %O", i, tmp, soul));
+//RABUG(sprintf("w[i]: %O, w: %O, args: %O", w[i], w, args));
 	    result[1+j][i] = compose_message(w[i], tmp, w, args...);
 	}
 	//### tmp fix
@@ -246,7 +249,7 @@ emote_apropos(string str) {
 	num_rules = sizeof(rules);
 	for (j=0; j<num_rules; j++) {
 	    data = rules_for_verb[rules[j]];
-	    if (pointerp(data)) {
+	    if (arrayp(data)) {
 		if (strsrch(lower_case(data[0]), lower_case(str)) != -1 || 
 		    strsrch(lower_case(data[1]), lower_case(str)) != -1)
 		    found += ({ verbs[i] + " " + rules[j] });

@@ -36,7 +36,7 @@ private void main(string arg)
 	break;
 
     default:
-	mudname = lower_case(mudname);
+        mudname = lower_case(arg);
 	foreach ( test in matches )
 	    if ( lower_case(test) == mudname )
 	    {

@@ -15,9 +15,9 @@ void do_on_close()
     environment( this_object())->clear_room_state( "oak_door");
 }
 
-void on_clone()
+void on_clone(mixed args...)
 {
-    ::on_clone();
+    ::on_clone(args...);
     if( is_open() ) do_on_open();
     else do_on_close();
 }

@@ -145,7 +145,7 @@ query_long() {
 string numbers;
 
 convert_number(n) {
-    if (!pointerp(numbers))
+    if (!arrayp(numbers))
 	numbers = query_numbers();
     if (n > 9)
 	return "lot of";

@@ -8,7 +8,7 @@
 #include <move.h>
 #include <setbit.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_pick_obj(object ob)
 {
@@ -20,10 +20,7 @@ void do_pick_obj_with_obj(object ob1, object ob2)
   ob1->open_with(ob2);
 }
 
-array query_verb_info()
+void create()
 {
-    return 
-	({ 
-	    ({ "OBJ", "OBJ with OBJ" })
-	});
+  add_rules(({ "OBJ", "OBJ with OBJ" }));
 }

@@ -34,7 +34,7 @@ private void we_moved() {
       }
 }
 
-//:FUNC add_block
+//:FUNCTION add_block
 //Adds the exits specified to the list of exits this object is blocking
 //'all' can be used to block all exits
 void add_block(string array exits...) {
@@ -49,7 +49,7 @@ void add_block(string array exits...) {
 	add_hook("move", move_hook);
 }
 
-//:FUNC remove_block
+//:FUNCTION remove_block
 //Removes the exits specified to the list of exits this object is blocking
 void remove_block(string array exits...) {
     current_blocks -= exits;
@@ -63,7 +63,7 @@ void remove_block(string array exits...) {
 	remove_hook("move", move_hook);
 }
 
-//:FUNC set_block_action
+//:FUNCTION set_block_action
 //If given a string, that 'targetted_action' will be done when someone
 //tries to move a direction we are blocking, unless it starts with a
 //'#', in which case it is just written to the user.  If it is a function,
@@ -89,7 +89,6 @@ mixed handle_blocks(string dir) {
 	    targetted_action(block_action, this_body(), dir, this_object());
 	return 1;
     }
-write( "FOO\n");
     if(!functionp(block_action))
 	error("Blocked exit, but set_block_action() not called.\n");
     

@@ -34,6 +34,7 @@ int compare_objects(object o1, object o2)
 {
     return (base_name(o1)==base_name(o2) &&
       o1->ob_state()==o2->ob_state() &&
+      o1->get_attributes() == o2->get_attributes() &&
       (int)o2->ob_state() != -1);
 }
 

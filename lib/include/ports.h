@@ -13,6 +13,7 @@
 #define PORT_I3_UDP_OOB	(__PORT__ + 2)
 #define PORT_HTTP	(__PORT__ + 3)
 #define PORT_FTP	(__PORT__ + 4)
+#define PORT_RCP	(__PORT__ + 5)
 
 
 #endif /* __PORTS_H__ */

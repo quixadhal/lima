@@ -8,7 +8,7 @@ void setup()
     set_area("pirate");
     set_brief("Navigation room");
 
-set_long( "Maps of the seven seas, marked up with what is probably travel routes, line the walls of this cave. The ceiling has a painting of the stars. In the centre of the room is a small table, while on the north wall is a button." );
+    set_long( "Maps of the seven seas, marked up with what is probably travel routes, line the walls of this cave. The ceiling has a painting of the stars. In the centre of the room is a small table, while on the north wall is a button." );
     set_light(0);
     set_hidden_exits( "north" );
     add_item("ceiling", "stars" ,
@@ -19,8 +19,9 @@ set_long( "Maps of the seven seas, marked up with what is probably travel routes
     set_objects( ([
 	"/domains/std/objects/navigation_table" : 1,
 	"/domains/std/objects/navigation_button" : 1,
-	"/domains/std/objects/rock_wall" : 1,
-        "/domains/std/objects/maps" : 1,
+	"/domains/std/objects/rock_wall" :
+	({ "north", "/domains/std/rooms/caves/Small_Dock", }),
+	"/domains/std/objects/maps" : 1,
       ]) );
 }
 

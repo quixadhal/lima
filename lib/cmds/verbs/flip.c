@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 mixed can_flip_obj_wrd_obj(object ob1, string p, object ob2) {
     if (p == "for" || p == "to") return default_checks();
@@ -49,7 +49,8 @@ void do_flip_obj(object ob) {
     ob->flip();
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ", "OBJ for OBJ","OBJ to OBJ","off OBJ","on OBJ with OBJ","OBJ off","OBJ with OBJ","OBJ on","on OBJ" }), ({ "turn" }) });
+  add_rules( ({"OBJ", "OBJ for OBJ","OBJ to OBJ","off OBJ","on OBJ with OBJ",
+	       "OBJ off","OBJ with OBJ","OBJ on","on OBJ" }) );
 }

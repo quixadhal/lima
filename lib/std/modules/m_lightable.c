@@ -60,7 +60,7 @@ string lighted_attributes()
    return "(providing adequate light)";
 }
 
-void set_lit(int x)
+protected void set_lit(int x)
 {
    assign_flag(F_LIGHTED, x);
    hook_state("extra_short", light_hook, x);

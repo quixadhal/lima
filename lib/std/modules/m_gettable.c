@@ -76,7 +76,7 @@ mixed get() {
     
     env = environment();
     while (env) {
-	if (tmp = environment()->can_take_from());
+	if (tmp = environment()->inventory_accessible());
 	    return tmp;
 	env = environment(env);
     }

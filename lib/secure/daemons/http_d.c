@@ -32,7 +32,6 @@
 
  *
  */
-
 #include <socket.h>
 #include <http_d.h>
 #include <log.h>
@@ -52,6 +51,100 @@ class client_request
     string  request;
 }
 
+mapping content_types = ([ 
+			  "pfr"   : "application/font-tdpfr",
+			  "movie" : "video/x-sgi-movie",
+			  "man"   : "application/x-troff-man",
+			  "ms"    : "application/x-troff-ms",
+			  "me"    : "application/x-troff-me",
+			  "t"     : "application/x-troff",
+			  "tr"    : "application/x-troff",
+			  "roff"  : "application/x-troff",
+			  "enc"   : "application/pre-encrypted",
+			  "ckl"   : "application/x-fortezza-ckl",
+			  "crl"   : "application/x-pkcs7-crl",
+			  "p7s"   : "application/x-pkcs7-signature",
+			  "p7m"   : "application/x-pkcs7-mime",
+			  "p7c"   : "application/x-pkcs7-mime",
+			  "jsc"   : "application/x-javascript-config",
+			  "pac"   : "application/x-ns-proxy-autoconfig",
+			  "js"    : "application/x-javascript",
+			  "mocha" : "application/x-javascript",
+			  "pl"    : "application/x-perl",
+			  "tcl"   : "application/x-tcl",
+			  "sh"    : "application/x-sh",
+			  "csh"   : "application/x-csh",
+			  "ai"    : "application/postscript",
+			  "eps"   : "application/postscript",
+			  "ps"    : "application/postscript",
+			  "exe"   : "application/octet-stream",
+			  "bin"   : "application/octet-stream",
+			  "jar"   : "application/java-archive",
+			  "cpio"  : "application/x-cpio",
+			  "gtar"  : "application/x-gtar",
+			  "tar"   : "application/x-tar",
+			  "shar"  : "application/x-shar",
+			  "zip"   : "application/x-zip-compressed",
+			  "sit"   : "application/x-stuffit",
+			  "hqx"   : "application/mac-binhex40",
+			  "avi"   : "video/x-msvideo",
+			  "qt"    : "video/quicktime",
+			  "mov"   : "video/quicktime",
+			  "moov"  : "video/quicktime",
+			  "mpv2"  : "video/x-mpeg2",
+			  "mp2v"  : "video/x-mpeg2",
+			  "mpeg"  : "video/mpeg",
+			  "mpg"   : "video/mpeg",
+			  "mpe"   : "video/mpeg",
+			  "mpv"   : "video/mpeg",
+			  "vbs"   : "video/mpeg",
+			  "mpegv" : "video/mpeg",
+			  "ra"    : "audio/x-pn-realaudio",
+			  "ram"   : "audio/x-pn-realaudio",
+			  "mp2"   : "audio/x-mpeg",
+			  "mpa"   : "audio/x-mpeg",
+			  "abs"   : "audio/x-mpeg",
+			  "mpega" : "audio/x-mpeg",
+			  "wav"   : "audio/x-wav",
+			  "aif"   : "audio/x-aiff",
+			  "aiff"  : "audio/x-aiff",
+			  "aifc"  : "audio/x-aiff",
+			  "au"    : "audio/basic",
+			  "snd"   : "audio/basic",
+			  "fif"   : "application/fractals",
+			  "ief"   : "image/ief",
+			  "png"   : "image/png",
+			  "pcd"   : "image/x-photo-cd",
+			  "bmp"   : "image/x-MS-bmp",
+			  "rgb"   : "image/x-rgb",
+			  "ppm"   : "image/x-portable-pixmap",
+			  "pgm"   : "image/x-portable-greymap",
+			  "pbm"   : "image/x-portable-bitmap",
+			  "pnm"   : "image/x-portable-anymap",
+			  "xwd"   : "image/x-xwindowdump",
+			  "xpm"   : "image/x-xpixmap",
+			  "xbm"   : "image/x-xbitmap",
+			  "ras"   : "image/x-cmu-raster",
+			  "tiff"  : "image/tiff",
+			  "tif"   : "image/tiff",
+			  "jpeg"  : "image/jpeg",
+			  "jpg"   : "image/jpeg",
+			  "jpe"   : "image/jpeg",
+			  "jfif"  : "image/jpeg",
+			  "pjpeg" : "image/jpeg",
+			  "pjp"   : "image/jpeg",
+			  "gif"   : "image/gif",
+			  "vcf"   : "text/x-vcard",
+			  "texi"  : "application/x-texinfo",
+			  "dvi"   : "application/x-dvi",
+			  "latex" : "application/x-latex",
+			  "tex"   : "application/x-tex",
+			  "pdf"   : "application/pdf",
+			  "rtf"   : "application/rtf",
+			  "html"  : "text/html",
+			  "htm"   : "text/html",
+			  "txt"   : "text/plain",
+			  "text"  : "text/plain",]);
 
 private nosave mapping sending=([]);
 private nosave object http_sock;
@@ -155,6 +248,16 @@ private string expand_user(string path)
 // Rewritten by Rust.
 private string convert_to_actual_path(string path)
 {
+/* Zif added this.  its not the most elegant way of doing 
+  * It i am sure, however people were able to do any number
+  * of ../'s to get to any file in the mudlib...
+* and I tried to use replace_string on that and had no luck.
+*
+  * i.e. lima.mudlib.org:3003/../secure/master.c
+  *      lima.mudlib.org:3003/../../../../secure/master.c
+  */
+
+path= evaluate_path(path);
     if(path[0] == '/')
     {
 	path = path[1..];
@@ -184,16 +287,15 @@ private string convert_to_actual_path(string path)
     }
 }
 
-
-private buffer write_callback(object socket) {
+private void write_callback(object socket) {
     string file;
     int i1,i2,i3;
-
+    if(!socket)
+      return;
     if (!sending[socket]) {
 	socket->remove();
-	return allocate_buffer(0);
+	return;
     }
-
     file=sending[socket][0];
     i1=sending[socket][1];
 
@@ -204,7 +306,7 @@ private buffer write_callback(object socket) {
     // In case the file gets deleted in the middle of a transfer.
     if (i3<0) {
 	socket->remove();
-	return allocate_buffer(0);
+	return;
     }
 
     if (i1+i2>file_size(file)) {
@@ -213,8 +315,7 @@ private buffer write_callback(object socket) {
     } else {
 	sending[socket]=({file,i1+i2});
     }
-
-    return read_buffer(file,i1,i2);
+    socket->send(read_buffer(file,i1,i2));
 }
 
 private void remove_connection(object s)
@@ -225,18 +326,20 @@ private void remove_connection(object s)
     }
 }
 
-private nomask void http_send(mixed text,object socket)
+varargs private nomask void http_send(mixed text,object socket,string ext)
 {
   string send;
   string day_of_week;
   string month;
+  mixed body;
   int day_of_month;
   int hour;
   int minute;
   int second;
   int year;
-
+  string content;
   string time_string=ctime(time());
+
   sscanf(time_string,
 	 "%s %s %d %d:%d:%d %d",
 	 day_of_week,
@@ -254,15 +357,28 @@ private nomask void http_send(mixed text,object socket)
 		      hour,
 		      minute,
 		      second);
-  send=sprintf("HTTP/1.1 200 OK\n"
-	       "Date: %s\n"
-	       "Server: Lima/1.1\n"
-	       "Connection: close\n"
-	       "Content-Type: text/html\n\n"
-	       "%s",
+  
+  content=content_types[ext];
+  if(!content)
+    content="text/html";
+  if(stringp(text)&&
+     strlen(text)>0)
+     body=replace_string(text,"\n","\r\n");
+  send=sprintf("HTTP/1.1 200 OK\r\n"
+	       "Date: %s\r\n"
+	       "Server: Lima/1.1\r\n"
+	       "Connection: close\r\n"
+	       "Content-Type: %s\r\n"
+	       "Content-Length: %i\r\n"
+	       "\r\n",
 	       time_string,
-	       stringp(text)?text:read_buffer(text));;
-  socket->send(replace_string(send,"\n","\r\n"));
+	       content,
+	       body?sizeof(body):file_size(sending[socket][0]));
+  socket->send(send);
+  if(body)
+    socket->send(body);
+  else
+    write_callback(socket);
   return;
 }
 
@@ -321,6 +437,9 @@ private nomask void handle_get_request(class client_request req, object socket)
     // an HTML document. gateways can only be called from a secure dir.
     switch(extention) {
 	string result, err;
+        mixed foo;
+
+
     case "c":
 	if(args)
 	    err = catch(result = call_other(file, "main", args));
@@ -337,7 +456,8 @@ private nomask void handle_get_request(class client_request req, object socket)
     default:
 	sending[socket]=({ file+"."+extention,0});
 	socket->set_write_callback( (:write_callback:) );
-	http_send(write_callback(socket),socket);
+	http_send("",socket,extention);
+	//	http_send(write_callback(socket),socket,extention);
 	break;
     }
 }
@@ -363,7 +483,7 @@ class client_request alloc_request(object socket)
 private nomask void handle_request(object socket)
 { 
     class client_request req;
-
+    
     req = requests[socket];
     if(!req || req->end_of_input)
     {
@@ -377,7 +497,6 @@ private nomask void handle_request(object socket)
     // uncommenting this will cause the req->method in the next line of
     // code to bug.
     //  map_delete(requests, socket);
-
     switch (req->method)
     {
     case "GET":

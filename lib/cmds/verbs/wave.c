@@ -3,7 +3,7 @@
 #include <mudlib.h>
 #include <setbit.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 inherit M_PARSING;
 
 // Anything can be waved at/be waved.  Might not do anything, tho :)
@@ -37,7 +37,7 @@ void do_wave_obj_at_obj(object ob1, object ob2) {
     do_wave_it(ob1, ob2);
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ", "OBJ at OBJ:v" }) });
+    add_rules ( ({ "OBJ", "OBJ at OBJ:v" }) );
 }

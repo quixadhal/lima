@@ -1,11 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-//
 // written by Rust Jan 12, 1994
 // Underwent a mighty transformation at the hands of Deathblade on
 //	Apr 30, 1995 to move to new user/body system.
 //
-
 
 #include <daemons.h>
 #include <config.h>
@@ -24,17 +22,16 @@ void sw_body_handle_existing_logon(int);
 void register_failure(string addr);
 
 varargs void modal_push(function input_func,
-  mixed prompt,
-  int secure,
-  function return_to_func
-);
+                        mixed prompt,
+                        int secure,
+                        function return_to_func);
+
 varargs void modal_func(function input_func,
-  mixed prompt,
-  int secure
-);
+                        mixed prompt,
+                        int secure);
+
 void modal_pop();
 void modal_recapture();
-
 mixed unguarded(mixed priv, function fp);
 
 /* Login states */
@@ -46,14 +43,11 @@ mixed unguarded(mixed priv, function fp);
 #define CONFIRM_PASSWORD	4
 #define GET_PASSWORD		10
 
-/*
-** The user's password (duh!)
-*/
 private string password;
 
 private nomask void get_lost_now()
 {
-    destruct();
+   destruct();
 }
 
 /*
@@ -66,9 +60,9 @@ private nomask void get_lost_now()
 //### from arbitrary routines
 private nomask void get_lost()
 {
-    remove_call_out();
-    modal_func((: 1 :), "");	/* ignore all input */
-    call_out((: get_lost_now :), 2);
+   remove_call_out();
+   modal_func((: 1 :), "");	/* ignore all input */
+   call_out((: get_lost_now :), 2);
 }
 
 /*
@@ -77,54 +71,55 @@ private nomask void get_lost()
 
 nomask int matches_password(string str)
 {
-    return crypt(str, password) == password;
+   return crypt(str, password) == password;
 }
 
 nomask void set_password(string str)
 {
-    if ( base_name(previous_object()) != CMD_OB_PASSWD )
-	error("illegal attempt to set a password\n");
+   if(base_name(previous_object()) != CMD_OB_PASSWD)
+      error("illegal attempt to set a password\n");
 
-    password = crypt(str, 0);
-    save_me();
+   password = crypt(str, 0);
+   save_me();
 }
 
 varargs private nomask int check_site(string name)
 {
-  if ( BANISH_D->check_site() )
-    {
+   if(BANISH_D->check_site())
+   {
       if(BANISH_D->check_registered(0,name))
-	return 1;
+         return 1;
       return 0;
-    }
-  return 1;
+   }
+
+   return 1;
 }
 
 private nomask int valid_name(string str)
 {
-    int len;
+   int len;
 
-    if ( BANISH_D->check_name(str) )
-    {
-	write("Sorry, that name is forbidden by the implementors.  Please choose another.\n");
-	return 0;
-    }
-    if ( !check_site(str) )
-      {
-	printf("Sorry, your site has been banished from %s.  To ask for\n"
-	       "a character, please mail %s.\n",
-	       mud_name(),
-	       ADMIN_EMAIL);
-	get_lost();
-	return 0;
-      }
+   if(BANISH_D->check_name(str))
+   {
+      write("Sorry, that name is forbidden by the implementors.  Please choose another.\n");
+      return 0;
+   }
+   if(!check_site(str))
+   {
+      printf("Sorry, your site has been banished from %s.  To ask for\n"
+             "a character, please mail %s.\n",
+             mud_name(),
+             ADMIN_EMAIL);
+      get_lost();
+      return 0;
+   }
 
-    len = strlen(str);
-    if ( len > 12 )
-    {
-	write("Sorry, that name's too long.  Try again.\n> ");
-	return 0;
-    }
+   len = strlen(str);
+   if(len > 12)
+   {
+      write("Sorry, that name's too long.  Try again.\n> ");
+      return 0;
+   }
 
     /*
     ** We used to rely on the banish code to do this, but that is a
@@ -138,69 +133,71 @@ private nomask int valid_name(string str)
     ** Note that this regex matches the restriction imposed by the
     ** SECURE_D.  Also note the name is in lower case right now.
     */
-    if ( !regexp(str, "^[a-z]+$") )
-    {
-	write("Sorry, that name is forbidden by the implementors.  Please\n"
-	  "choose a name containing only letters.\n");
-	return 0;
-    }
+   if(!regexp(str, "^[a-z]+$"))
+   {
+      write("Sorry, that name is forbidden by the implementors.  Please\n"
+            "choose a name containing only letters.\n");
+      return 0;
+   }
 
-    return 1;
+   return 1;
 }
-
 
 private nomask int check_special_commands(string arg)
 {
-    string array b;
+   string array b;
 
-    switch ( arg )
-    {
-    case "who":
-	b = bodies()->query_name();
-	b -= ({ "Someone" });
-	b-= ({ });
-b-= ({ 0 });
-	switch ( sizeof(b) )
-	{
-	case 0:
-	    write("No one appears to be logged on.\n");
-	    break;
+   switch(arg)
+   {
+      case "who":
+         b = bodies()->query_name();
+         b -= ({ "Someone" });
+         b -= ({ });
+         b-= ({ 0 });
+         switch(sizeof(b))
+	 {
+            case 0:
+               write("No one appears to be logged on.\n");
+               break;
 
-	case 1:
-	    printf( "Only %s is currently on.\n", b[0]);
-	    break;
+            case 1:
+               printf("Only %s is currently on.\n", b[0]);
+               break;
 
-	default:
-	    printf("The following people are logged on:\n%s\n",
-		   implode(b,", "));
-	    break;
-	}
-	return 0;
+            default:
+               printf("The following people are logged on:\n%s\n",
+	       implode(b,", "));
+               break;
+         }
 
-    case "":
-    case "quit":
-    case "exit":
-    case "leave":
-	write("Bye.\n");
-	get_lost();
-	return 0;
+         return 0;
 
-    default:
-	return 1;
-    }
+      case "":
+      case "quit":
+      case "exit":
+      case "leave":
+         write("Bye.\n");
+         get_lost();
+         return 0;
+
+      default:
+         return 1;
+   }
 }  
 
 private nomask void modify_guest_userid()
 {
-    string array userids = users()->query_userid();
+   string array userids = users()->query_userid();
 
-    for ( int i = 1; ; ++i )
-	if ( member_array("guest" + i, userids) == -1 )
-	{
-	    set_userid("guest" + i);
-	    save_me();
-	    return;
-	}
+   for(int i = 1; ; ++i)
+   {
+      if(member_array("guest" + i, userids) == -1)
+      {
+         set_userid("guest" + i);
+         save_me();
+         return;
+      }
+   }
 }
 
 /*
@@ -227,14 +224,24 @@ private nomask void modify_guest_userid()
  * out which routine calls which routine.
  */
 private nomask varargs
-void login_handle_logon(int state, mixed extra, string arg) {
-    switch (state) {
-    case INITIAL_PROMPT:
-	/* setup timeout */
-	call_out((: login_handle_logon, TIMEOUT :), LOGIN_NAME_WAIT);
+void login_handle_logon(int state, mixed extra, string arg)
+{
+   switch (state)
+   {
+      string array foo;
 
-	write("");
-	write(read_file(WELCOME_FILE));
+      case INITIAL_PROMPT:
+	 /* setup timeout */
+	 call_out((: login_handle_logon, TIMEOUT :), LOGIN_NAME_WAIT);
+
+	 write("");
+#ifdef WELCOME_DIR
+         foo = get_dir(WELCOME_DIR + "/");
+         write(read_file(absolute_path(WELCOME_DIR + "/" +
+                         foo[random(sizeof(foo))])));
+#else
+         write(read_file(WELCOME_FILE));
+#endif
         /*
 	 * Warning: We have put literally thousands of hours of work into this
 	 * mudlib, and given it to you for free, and all we ask is that you give
@@ -246,184 +253,201 @@ void login_handle_logon(int state, mixed extra, string arg) {
 	 * extensively modified/rewritten more than half of the base mudlib first
 	 * (intend to modify ... doesn't cut it)
 	 */
-	printf("%s is running Lima 1.0a8 on %s\n\n",
-	       mud_name(), driver_version());
+         printf("%s is running Lima 1.0a9 on %s\n\n",
+                mud_name(), driver_version());
 	
 #ifdef ZORKMUD
-	write("Hello, Zorker!\n");
+         write("Hello, Zorker!\n");
 #else
-	write("Hello, Player!\n");
+         write("Hello, Player!\n");
 #endif
 
-	modal_push((: login_handle_logon, NAME_PROMPT, 0 :), LOGIN_PROMPT);
-	
-	/* do this to kick off the modal system and print a prompt */
-	modal_recapture();
-	break;
+         modal_push((: login_handle_logon, NAME_PROMPT, 0 :), LOGIN_PROMPT);
 
-	/******************* NAME PROMPT **********************/
-    case NAME_PROMPT:
-	if ( !arg || arg == "" ) {
-	    write("Sorry, everybody needs a name here.  Please try again.\n");
-	    return;
-	}
+        /* do this to kick off the modal system and print a prompt */
+         modal_recapture();
+         break;
 
-	arg = lower_case(arg);
-	if ( !check_special_commands(arg) )
-	    return;
-	if(!valid_name(arg) )
-	  return;
-	if ( unguarded(1, (: file_size,
-			   LINK_PATH(arg) + __SAVE_EXTENSION__ :)) <= 0 ) {
-	    modal_func((: login_handle_logon, CONFIRM_NEW_NAME, arg :),
-		       "Is '" + capitalize(arg) + "' correct? ");
-	    return;
-	}
+        /******************* NAME PROMPT **********************/
+      case NAME_PROMPT:
+         if(!arg || arg == "")
+         {
+            write("Sorry, everybody needs a name here.  Please try again.\n");
+            return;
+         }
+
+         arg = lower_case(arg);
+         if(!check_special_commands(arg))
+            return;
+         if(!valid_name(arg))
+            return;
+         if(unguarded(1, (: file_size, LINK_PATH(arg) +
+                            __SAVE_EXTENSION__ :)) <= 0)
+         {
+            modal_func((: login_handle_logon, CONFIRM_NEW_NAME, arg :),
+                          "Is '" + capitalize(arg) + "' correct? ");
+            return;
+         }
 
 	/* always check the site */
-	if ( arg == "guest" && !check_site() )
-	    return;
+         if(arg == "guest" && !check_site())
+            return;
 
-	/*
-	** Restore the object, without worrying about preserving variables.
-	** Note that this sets the userid value.
-	*/
-	restore_me(arg, 0);
+         /*
+         ** Restore the object, without worrying about preserving variables.
+         ** Note that this sets the userid value.
+         */
+         restore_me(arg, 0);
 
-	if ( arg == "guest" ) {
-	    modify_guest_userid();
-	    modal_pop();
-	    sw_body_handle_existing_logon(1);
-	    return;
-	}
+         if(arg == "guest")
+         {
+            modify_guest_userid();
+            modal_pop();
+            sw_body_handle_existing_logon(1);
+            return;
+         }
 
-	modal_func((: login_handle_logon, GET_PASSWORD, 0 :), "Password: ", 1);
+         modal_func((: login_handle_logon, GET_PASSWORD, 0 :), "Password: ", 1);
 
 	/*
 	** Adjust the time we'll wait for the user
 	*/
-	remove_call_out();	/* all call outs */
-	call_out((: login_handle_logon, -1 :), LOGIN_PASSWORD_WAIT);
-	break;
+         remove_call_out();    /* all call outs */
+         call_out((: login_handle_logon, -1 :), LOGIN_PASSWORD_WAIT);
+         break;
 
-	/************ IS 'NAME' CORRECT? ************/
-    case CONFIRM_NEW_NAME:
-	arg = lower_case(arg);
-	switch ( arg ) {
-	case "n":  case "no":  case "nay":
-	    modal_func((: login_handle_logon, NAME_PROMPT, 0 :),
-		       "Please enter your name (preferably correctly this time): ");
-	    break;
+        /************ IS 'NAME' CORRECT? ************/
+      case CONFIRM_NEW_NAME:
+         arg = lower_case(arg);
+         switch(arg)
+         {
+            case "n":
+            case "no":
+            case "nay":
+               modal_func((: login_handle_logon, NAME_PROMPT, 0 :),
+                             "Please enter your name (preferably correctly this time): ");
+               break;
 
-	case "y":  case "yes":  case "aye":
+            case "y":
+            case "yes": 
+            case "aye":
 #ifdef NO_NEW_PLAYERS
 // Added Guest allowance during NO_NEW_PLAYERS
 // Vette April 17, 1997
-//
-            if (GUEST_D->guest_exists(extra)) {
-              write("Access granted.\n");
-              GUEST_D->remove_guest(extra);
-            }
-            else {
-              write("Unfortunately, "+mud_name()+" is still in the "
-                  "developmental stage, and is not accepting new users. "
-                  "If it is urgent, please use the guest character.\n");
-              get_lost();
-              return;
-            }
+               if(GUEST_D->guest_exists(extra))
+               {
+                  write("Access granted.\n");
+                  GUEST_D->remove_guest(extra);
+               }
+               else
+               {
+                  write("Unfortunately, "+mud_name()+" is still in the "
+                        "developmental stage, and is not accepting new users. "
+                        "If it is urgent, please use the guest character.\n");
+                  get_lost();
+                  return;
+               }
 #endif /* NO_NEW_PLAYERS */
 
-	    /*
-	    ** Begin the character creatin sequence. Store their name.
-	    */
-	    set_userid(extra);
+               /*
+               ** Begin the character creatin sequence. Store their name.
+               */
+               set_userid(extra);
 
 #ifdef ZORKMUD
-	    write("\nAh, a New Zorker.\n");
+               write("\nAh, a New Zorker.\n");
 #else
-	    write("\nAh, a New Player.\n");
+               write("\nAh, a New Player.\n");
 #endif
 
-	    modal_func((: login_handle_logon, NEW_PASSWORD, 0 :), "Password: ", 1);
-	    break;
+               modal_func((: login_handle_logon, NEW_PASSWORD, 0 :),
+                          "Password: ", 1);
+               break;
 
-	case "maybe":  case "possibly":  case "mu":  case "perhaps":
-	    write("You can play games later. ");
+            case "maybe":
+            case "possibly":
+            case "mu":
+            case "perhaps":
+               write("You can play games later. ");
 
 	    /* FALLTHRU */
-	default:
-	    write("Please answer Yes or No.\n");
-	    break;
-	}
-	break;
+            default:
+               write("Please answer Yes or No.\n");
+               break;
+         }
+         break;
 
-	/************ NEW PASSWORD *****************/
-    case NEW_PASSWORD:
-	if ( strlen(arg) < 5 ) {
-	    write("Your password must have at least 5 characters in it.\n");
-	    return;
-	}
+      /************ NEW PASSWORD *****************/
+      case NEW_PASSWORD:
+         if(strlen(arg) < 5)
+         {
+            write("Your password must have at least 5 characters in it.\n");
+            return;
+         }
 
-	write("\n");	/* needed after a no-echo input */
+         write("\n");   /* needed after a no-echo input */
 
-	modal_func((: login_handle_logon, CONFIRM_PASSWORD, crypt(arg, 0) :),
-		   "Again to confirm: ", 1);
-	break;
-	
-	/************ CONFIRM PASSWORD *************/
-    case CONFIRM_PASSWORD:
-	if ( crypt(arg, extra) != extra ) {
-	    write("\nSocks don't need to, but passwords have to match.\n");
+         modal_func((: login_handle_logon, CONFIRM_PASSWORD, crypt(arg, 0) :),
+                       "Again to confirm: ", 1);
+         break;
 
-	    modal_func((: login_handle_logon, NEW_PASSWORD, 0 :), "Password: ", 1);
-	    return;
-	}
+         /************ CONFIRM PASSWORD *************/
+      case CONFIRM_PASSWORD:
+         if(crypt(arg, extra) != extra)
+         {
+            write("\nSocks don't need to, but passwords have to match.\n");
 
-	password = extra;
+            modal_func((: login_handle_logon, NEW_PASSWORD, 0 :),
+                          "Password: ", 1);
+            return;
+         }
 
-	write("\n");	/* needed after a no-echo input */
+         password = extra;
+         write("\n");     /* needed after a no-echo input */
 
-	/*
-	** Done with the login sequence.  Pop our input handler now.
-	*/
-	modal_pop();
+         /*
+         ** Done with the login sequence.  Pop our input handler now.
+         */
+         modal_pop();
 
-	/*
-	** Time  go get some "user" information.
-	*/
-	userinfo_handle_logon();
-	break;
-	
-	/************ PASSWORD PROMPT **************/
-    case GET_PASSWORD:
-	if ( matches_password(arg) ) {
-	    /*
-	    ** Done with the login sequence.  Pop our input handler now.
-	    */
-	    modal_pop();
+         /*
+         ** Time  go get some "user" information.
+         */
+         userinfo_handle_logon();
+         break;
 
-	    sw_body_handle_existing_logon(0);
-	    return;
-	}
+         /************ PASSWORD PROMPT **************/
+      case GET_PASSWORD:
+         if(matches_password(arg))
+         {
+            /*
+            ** Done with the login sequence.  Pop our input handler now.
+            */
+            modal_pop();
 
-	register_failure(query_ip_name(this_object()));
-	if ( extra == 2 ) {
-	    write("\nYou're just too much for me.\nSorry.\n");
+            sw_body_handle_existing_logon(0);
+            return;
+         }
 
-	    get_lost();
-	    return;
-	}
+         register_failure(query_ip_name(this_object()));
+         if(extra == 2)
+         {
+            write("\nYou're just too much for me.\nSorry.\n");
 
-	write("\nHmmm.....\nI'll give you another chance.\n");
+            get_lost();
+            return;
+         }
 
-	modal_func((: login_handle_logon, GET_PASSWORD, extra + 1 :), "Password: ", 1);
-	break;
+         write("\nHmmm.....\nI'll give you another chance.\n");
+         modal_func((: login_handle_logon, GET_PASSWORD, extra + 1 :),
+                       "Password: ", 1);
+         break;
 
-    case TIMEOUT:   /* The timer has expired */
-	write("\nSorry, you've taken too long.\n");
-	get_lost();
-	break;
-    }
+      case TIMEOUT:   /* The timer has expired */
+         write("\nSorry, you've taken too long.\n");
+         get_lost();
+         break;
+   }
 }
 
 /*
@@ -433,5 +457,5 @@ void login_handle_logon(int state, mixed extra, string arg) {
 */
 private nomask void logon()
 {
-    login_handle_logon(INITIAL_PROMPT, 0);
+   login_handle_logon(INITIAL_PROMPT, 0);
 }

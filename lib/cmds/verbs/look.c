@@ -17,7 +17,7 @@ inherit M_GRAMMAR;
 void create() {
     clear_flag(NEED_TO_BE_ALIVE);
 
-    add_rules( ({ "", "at OBS:v", "for OBS:v", "STR OBJ:v",
+    add_rules( ({ "", "STR","at OBS:v", "for OBS:v", "STR OBJ:v",
 		      "at OBS:v with OBJ", "WRD OBJ" }) );
 
     add_rules( ({ "OBS:v", "OBS:v with OBJ" }), ({ "examine" }) );

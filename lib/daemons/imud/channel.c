@@ -352,6 +352,10 @@ nomask void ignore_channel(string channel_name) {
     send_to_router("channel-listen", ({ channel_name, 0 }));
 }
 
+nomask void ban_mud(string chan, string mud) {
+    send_to_router("channel-admin", ({ chan, ({}), ({ mud })}));
+}
+
 nomask void relisten_all_channels() {
   foreach (string str in listened_channels) listen_to_channel(str);
   return;

@@ -66,20 +66,53 @@ inherit M_DAEMON_DATA;
 
 // Public functions --------------------------------------------------------
 
-//:FUNCTION scan_mudlib
-//
-// Recursively searches the mudlib for files which have been changed
-// since the last time the docs were updated, and recreates the documentation
-// for those files.
 
 private void continue_scan();
 private int last_time;
 private array files_to_do, dirs_to_do;
 
+private void delete_directory(string directory)
+{
+  if(file_size(directory)==-1)
+    return;
+  foreach(mixed array file in get_dir(sprintf("%s/",directory),-1))
+    {
+      string target=sprintf("%s/%s",directory,file[0]);
+      if(file[1]==-2)
+	delete_directory(target);
+      else
+	rm(target);
+    }
+  rmdir(directory);
+}
+
+private void make_directories()
+{
+  mkdir("/help/autodoc");
+  mkdir("/help/autodoc/FIXME");
+  mkdir("/help/autodoc/command");
+  mkdir("/help/autodoc/examples");
+  mkdir("/help/autodoc/functions");
+  mkdir("/help/autodoc/hook");
+  mkdir("/help/autodoc/modules");
+  mkdir("/help/autodoc/todo");
+  mkdir(sprintf("/help/autodoc/%s",MUD_AUTODOC_DIR));
+}  
+  
+//:FUNCTION scan_mudlib
+//
+// Recursively searches the mudlib for files which have been changed
+// since the last time the docs were updated, and recreates the documentation
+// for those files.
 void scan_mudlib() {
     printf("Starting scan ...\n");
     files_to_do = ({ });
     dirs_to_do = ({ "/" });
+    if(!last_time)
+      {
+	delete_directory("/help/autodoc");
+	make_directories();
+      }
     continue_scan();
 }
 
@@ -118,8 +151,19 @@ void process_file(string fname) {
     string outfile = 0;
     int i;
 
+    /* If the file has not been modified since the last time that DOC_D
+     * scanned, there is no reason for it to be checked again -- Tigran */
+    if(last_time &&
+       get_dir(fname,-1)[0][2]<last_time)
+      return;
+
     rm("/help/autodoc/FIXME/" + mod_name(fname));
     rm("/help/autodoc/todo/" + mod_name(fname));
+    rm("/help/autodoc/modules/" + mod_name(fname));
+    rm("/help/autodoc/command/" + mod_name(fname));
+    rm("/help/autodoc/hook/" + mod_name(fname));
+    rm("/help/autodoc/" + MUD_AUTODOC_DIR + "/" + mod_name(fname));
+    delete_directory("/help/autodoc/functions/" + mod_name(fname));
 
     if (!file) return;
     lines = explode(file, "\n");
@@ -141,7 +185,6 @@ void process_file(string fname) {
 	    i++;
 	    if (line == "TODO") {
 		outfile = "/help/autodoc/todo/" + mod_name(fname);
-		rm(outfile);
 		write_file(outfile, "TODO in file "+fname+" line "+i+":\n\n");
 		while (lines[i][0..1] == "//") {
 		    write_file(outfile, lines[i][2..]+"\n");
@@ -150,7 +193,6 @@ void process_file(string fname) {
 	    }
 	    else if (line == "MODULE") {
 		outfile = "/help/autodoc/modules/" + mod_name(fname);
-		rm(outfile);
 		write_file(outfile, "Module "+mod_name(fname)+" (file: "+fname+"):\n\n");
 		while (lines[i][0..1] == "//") {
 		    write_file(outfile, lines[i][2..]+"\n");
@@ -159,7 +201,6 @@ void process_file(string fname) {
 	    }
 	    else if (line == "COMMAND") {
 		outfile = "/help/autodoc/command/" + mod_name(fname);
-		rm(outfile);
 		write_file(outfile,"Command "+mod_name(fname)+" (file: "+fname+"):\n\n");
 		while (lines[i][0..1] == "//") {
 		    write_file(outfile, lines[i][2..]+"\n");
@@ -168,7 +209,7 @@ void process_file(string fname) {
 	    }
 	    else if (sscanf(line, "HOOK %s", line) == 1) {
 		outfile = "/help/autodoc/hook/" + line;
-		rm(outfile);
+		//		rm(outfile);
 		write_file(outfile, "Hook "+line+":\nCalled by module "
 		  +mod_name(fname)+" (file: "+fname+")\n\n");
 		while (lines[i][0..1] == "//") {
@@ -182,7 +223,6 @@ void process_file(string fname) {
 		      + ": " + line + "\n");
 		mkdir("/help/autodoc/functions/" + mod_name(fname));
 		outfile = "/help/autodoc/functions/" + mod_name(fname) + "/" + func_name(line);
-		rm(outfile);
 		write_file(outfile, "Function "+line+":\nDefined in module "
 		  +mod_name(fname)+" (file: "+fname+")\n\n");
 		while (lines[i][0..1] == "//") {
@@ -202,9 +242,7 @@ void process_file(string fname) {
 		}
 	    }
 	    else if (line == AUTODOC_MUDNAME) {
-		mkdir("/help/autodoc/"+MUD_AUTODOC_DIR);
 		outfile = "/help/autodoc/"+MUD_AUTODOC_DIR+"/" + mod_name(fname);
-		rm(outfile);
 		write_file(outfile,"**** "+fname+" ****\n\n");
 		while (lines[i][0..1] == "//") {
 		    write_file(outfile, lines[i][2..]+"\n");

@@ -12,5 +12,5 @@ void setup() {
     set_exits( ([
 	"west" : "entrance"
     ]) );
-    set_default_exit("You walk into one of the walls, making a complete fool of yourself.\n");
+    set_default_error("You walk into one of the walls, making a complete fool of yourself.\n");
 }

@@ -64,7 +64,7 @@ varargs nomask int do_game_command(string str, int debug)
 
     /*
     ** If a string was returned, then the parser figured something out.
-    ** Write it out and we're done.
+    ** Write it out and we're done .
     */
 
     if ( stringp(result) )
@@ -124,7 +124,13 @@ varargs nomask int do_game_command(string str, int debug)
        failure.  The go command is careful to return explicit
        error messages if the command makes sense, so we can safely
        ignore it. */
-    if (stringp(result) && result[0..12] != "You can't go ") {
+    /* With the changing of exits to be more than just strings, the above is 
+     * no longer sufficient.  If the object is not found, an entirely 
+     * different error message is passed that we have to catch as well.
+     * That one being 'There is no ...' */
+    if (stringp(result) && 
+	(result[0..12] != "You can't go " && result[0..11] != "There is no ")) 
+	{
 	write(result);
 	return 1;
     }

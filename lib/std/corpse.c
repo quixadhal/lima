@@ -45,9 +45,10 @@ void mudlib_setup(string name, string long, object l)
     }
     set_in_room_desc(capitalize(the_name) + " is lying here slumped on the ground.");
     set_plural_in_room_desc("Lying on the ground are %s bodies of " + the_name + ".");
+    add_relation("on");
+    set_default_relation("on");
     set_max_capacity(VERY_LARGE);
     set_size(VERY_LARGE);
-    set_preposition("on");
     set_num_decays(3);
     set_decay_action("Insects $vgnaw at the withering corpse.\n");
     set_last_decay_action("A corpse $vdecay into dust and ash.\n");

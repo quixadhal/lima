@@ -30,6 +30,7 @@
 #define LOG_QUEST		"quest"
 #define LOG_QUESTION		"question"
 #define LOG_QUIT		"quit"
+#define LOG_RCP			"rcp"
 #define LOG_SHUTDOWN		"shutdown"
 #define LOG_SNOOP		"snoop"
 #define LOG_SOCKET		"socket"

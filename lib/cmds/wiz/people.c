@@ -21,7 +21,7 @@ string *msgs=({});
 string get_who_string(string arg)
 {
     string retval="";
-    int debug;
+    int debug, no_delim;
     object array b = bodies() - ({ 0 });
     string *args=({});
     string tmp;
@@ -51,7 +51,13 @@ string get_who_string(string arg)
 	debug=1;
 	args-=({"D"});
     }
-    retval+=DELIM;
+    if(member_array("S", args) !=-1)
+    {
+      no_delim = 1;
+      args -= ({"S"});
+    }
+    if(!no_delim)
+        retval+=DELIM;
 
     if (member_array("W",args)!=-1)
     {
@@ -82,7 +88,7 @@ string get_who_string(string arg)
     {
 	args-=({"h"});
 	DEBUG("Header");
-	retval += colour_center(implode(explode(mud_name(), ""), " ")) + "\n" + colour_center("(PST is: " + ctime(time()) + ")") + "\n" + colour_center("There are " + sizeof(b) + " users connected.") + "\n" + DELIM;
+	retval += colour_center(implode(explode(mud_name(), ""), " ")) + "\n" + colour_center("(PST is: " + ctime(time()) + ")") + "\n" + colour_center("There are " + sizeof(b) + " users connected.") + "\n" + no_delim?"":DELIM;
     }
     else
     if (member_array("H",args)!=-1)
@@ -91,7 +97,8 @@ string get_who_string(string arg)
 	DEBUG("Small Header");
 	retval += sprintf("%s:  (Local Time is: %s)\n",
 	  mud_name(), ctime(time()));
-	retval+=DELIM;
+    if(!no_delim)
+	    retval+=DELIM;
     }
     foreach (object body in b)
     {
@@ -167,7 +174,8 @@ string get_who_string(string arg)
 	}
 	retval+="\n";
     }
-    retval+=DELIM;
+  if(!no_delim)
+      retval+=DELIM;
     return retval;
 }
 

@@ -28,13 +28,12 @@ private void main(string arg)
 
    if(target->query_ghost())
    {
-      this_body()->simple_action("$N $vbring $t back to life.\n", target);
+      this_body()->targetted_action("$N $vbring $t back to life.\n", target);
       target->reincarnate();
    }
    else
    {
-      this_body()->my_action("$N $vget the impression $t doesn't need any
-help.\n",
+      this_body()->targetted_action("$N $vget the impression $t doesn't need any help.\n",
                              target);
    }
 }

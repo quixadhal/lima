@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 
-inherit VERB_OB;
+inherit NVERB_OB;
 inherit M_MESSAGES;
 inherit M_GRAMMAR;
 
@@ -30,7 +30,7 @@ void do_whisper_to_liv_str(object liv, string str) {
     whisper_it(liv,str);
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "LIV STR", "STR to LIV", "to LIV STR" }) });
+    add_rules ( ({ "LIV STR", "STR to LIV", "to LIV STR" }) );
 }

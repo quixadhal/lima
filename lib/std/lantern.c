@@ -29,7 +29,9 @@ mixed direct_flip_obj_off(object ob)
 
 void mudlib_setup()
 {
-   ::mudlib_setup();
+   object::mudlib_setup();
+   light_object::mudlib_setup();
+   add_save( ({ "num_decays" }) );
    set_id("lantern");
    set_size(MEDIUM);
    set_long("It's an unremarkable lantern.");

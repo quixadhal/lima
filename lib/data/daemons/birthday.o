@@ -1,0 +1,3 @@
+#/daemons/birthday_d.c
+birthdays (["Feb 22":"Rust","Dec 22":"dunedain,Dunedain","Oct 26":"Jordan","Oct 97":"","Aug  7":"Emily","Dec 18":"Candy","Mar  8":",Anne","Jul 11":"kudra","Feb 17":"Descartes",])
+reverse (["Emily":"Aug  7","dunedain":"Dec 22","Jordan":"Oct 26","Dunedain":"Dec 22","Descartes":"Feb 17","kudra":"Jul 11","Anne":"Mar  8","Candy":"Dec 18","Rust":"Feb 22",])

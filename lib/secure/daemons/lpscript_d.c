@@ -7,7 +7,7 @@ private mapping inheritable = ([
     "valuable" : M_VALUABLE,
     "room" : ROOM,
     "living" : LIVING,
-    "monster" : MONSTER,
+    "monster" : ADVERSARY,
     "actor": M_ACTIONS,
     "portal" : PORTAL,
     "secret door" : SECRET_DOOR,

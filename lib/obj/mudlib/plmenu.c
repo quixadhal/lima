@@ -89,7 +89,7 @@ void find_soul(string s)
 
 void show_souls(string s)
 {
-    CMD_OB_FEELINGS->player_menu_entry(s);
+    CMD_OB_FEELINGS->player_menu_entry();
 }
 
  
@@ -101,7 +101,7 @@ void show_adverbs(string s)
 "kick rust energetically, but kick rust en* won't because it also\n"
 "matches endearingly and enthusiastically.\n");
 
-CMD_OB_ADVERBS->player_menu_entry(s);
+CMD_OB_ADVERBS->player_menu_entry();
 }
 
 
@@ -115,6 +115,12 @@ void change_url(string s)
 {
   this_user()->set_url(s);
   write("Home page address changed.\n");
+}
+
+void change_real_name(string s)
+{
+   this_user()->set_real_name(s);
+   write("Real name changed.\n");
 }
 
 void change_title(string s)
@@ -153,6 +159,11 @@ void prompt_change_title()
 void prompt_change_email()
 {
     input_one_arg("Change e-mail to what? ", (: change_email :));
+}
+
+void prompt_change_real_name()
+{
+   input_one_arg("Change real name to what? ", (: change_real_name :));
 }
 
 void prompt_change_url()
@@ -306,8 +317,8 @@ void create()
 					     biffmenu, "n"));
   add_menu_item (personalmenu, new_menu_item("Set whether or not you can be "
 					     "snooped", snoopablemenu, "s"));
-  //  add_menu_item (personalmenu, new_menu_item("Change your supplied real name",
-  //					     (: prompt_change_real_name :), "n"));
+   add_menu_item(personalmenu, new_menu_item("Change your supplied real name",
+                                              (: prompt_change_real_name :), "r"));
   add_menu_item(personalmenu, new_menu_item("Set ANSI on/off",
 					    (: input_one_arg,
 					     "Ansi 'on' or 'off' ? (default off): ",

@@ -138,7 +138,7 @@ private nomask void init_cmd_hook()
 	write("\n>>You have new mail<<\n");
     }
 
-    write( "\n" );
+   write("\n");
     naming_init_ids();
 
 #ifdef USE_MASS
@@ -244,6 +244,7 @@ void enter_game(int state)
 	/* FALLTHROUGH */
     case 2:
 	do_game_command("look");
+        query_health(this_body()->query_random_limb());
     }
 }
 
@@ -361,9 +362,7 @@ void reconnect(object new_link)
       sprintf("has reconnected.", mud_name()));
 }
 
-//:FUNCTION die
-//This function is called when we die :-)
-void die()
+protected void die()
 {
     if ( wizardp(link) )
     {

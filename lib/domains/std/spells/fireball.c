@@ -1,11 +1,16 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 inherit SPELL;
-inherit CLASS_COMBAT_RESULT;
+inherit COMBAT_SPELL;
 
 void setup()
 {
-    set_spell_name("fireball");
+   set_spell_name("fireball");
+}
+
+int calculate_damage()
+{
+   return random(5) + 1;
 }
 
 void cast_spell(object ob, object reagent)
@@ -15,7 +20,7 @@ void cast_spell(object ob, object reagent)
     if ( !ob )
     {
 	targets = filter(all_inventory(environment(this_body())),
-			 (: $1 != this_body() :));
+                         (: $1 != this_body() && $1->is_living() :));
 	this_body()->simple_action("$N $vcast a fireball spell!");
     }
     else
@@ -31,10 +36,7 @@ void cast_spell(object ob, object reagent)
 	    continue;
 
 	//reduce hit points here
-	item->do_damage(new(class combat_result,
-			    kind : "fire",
-			    damage : 5,
-			    message : "$T $v1scream in pain!\n"));
+        do_spell_damage(item, (: calculate_damage :));
     }
 }
 

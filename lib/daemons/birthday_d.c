@@ -12,7 +12,10 @@ void refresh() {
 }
 
 varargs string array query_birthdays(string when) {
-    mixed item = birthdays[when || today];
+    mixed item;
+
+    refresh();
+    item = birthdays[when || today];
     return item ? explode(item, ",") : ({ });
 }
 
@@ -36,7 +39,7 @@ varargs mapping query_month(string mo) {
 
 void add_birthday(string name, string when) {
     if (strlen(when) == 5)
-	when = when[0..3] + " " + when[4..4];
+        when = when[0..2] + " " + when[3..4];
     if (strlen(when) != 6 || when[3] != ' ')
 	error("Bad date format\n");
 

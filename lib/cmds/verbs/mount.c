@@ -5,17 +5,17 @@
 */
 
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 
-void do_mount_obj(object ob1)
+void do_mount_obj(object ob)
 {
-  ob1->mount();
+  ob->do_verb_rule("mount", "OBJ", ob);
 } 
 
-array query_verb_info()
+create()
 {
-    return ({ ({ "OBJ" }) });
+    add_rules( ({"OBJ"}) );
 }
 
 

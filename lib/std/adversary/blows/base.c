@@ -97,16 +97,25 @@ void handle_events()
    {
       queue[i] = modify_our_event(queue[i]);
       if(!queue[i])
+      {
+         i++;
          continue;
+      }
       if(queue[i]->weapon)
       {
          queue[i] = queue[i]->weapon->source_modify_event(queue[i]);
          if(!queue[i])
+         {
+            i++;
             continue;
+         }
       }
       queue[i] = queue[i]->target->modify_event(queue[i]);
       if(!queue[i])
+      {
+         i++;
          continue;
+      }
 
       handle_result(queue[i]);
       i++;

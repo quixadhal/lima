@@ -78,7 +78,10 @@ int do_ls(mixed argv, mapping flags)
 	argv[0] = decompose(map(argv[0], (:is_directory($1) ?
 	      glob(path_join($1, "*")) : $1 :)));
 
-    uses_ansi = get_user_variable("colour-ls");
+    // Changed because this is non-intuitive compared to the rest of the 
+    // uses of colour -- Tigran.
+    //uses_ansi = get_user_variable("colour-ls");
+    uses_ansi=i_use_ansi();
 
     if (uses_ansi || flags["l"] || flags["s"] || !flags["p"])
     {

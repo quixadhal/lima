@@ -45,6 +45,9 @@ protected nomask void add_body_slot(string sname, int num, int maxsize)
 
 #define SLOT(x) ((class slot)slots[x])
 
+//:FUNCTION wear_item
+// nomask int wear_item(object what, string sname);
+// Wear object 'what' on slot 'sname'.
 nomask int wear_item(object what, string sname)
 {
    object array athere;
@@ -117,11 +120,17 @@ protected nomask void reset_body_slots()
    slots = ([ ]);
 }
 
+//:FUNCTION has_body_slot
+// nomask int has_body_slot(string what);
+// Returns 1 if the adversary has a 'what' body slot.
 nomask int has_body_slot(string what)
 {
    return !!slots[what];
 }
 
+//:FUNCTION query_armor_slots
+// string array query_armor_slots()
+// Returns a list of all armor slots on the adversary.
 string array query_armor_slots()
 {
    return keys(slots);

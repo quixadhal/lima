@@ -41,13 +41,15 @@ ob = find_object( absolute_path(file, get_user_variable("pwd")));
 // [str] cfile
 private void main(mixed *arg) {
     string file, func;
-
+    object target;
     if (arg[1]) {
-	file = arg[1];
+      target=arg[1];
+	file = base_name(target);
 	func = arg[0];
 	out("Tracing definitions of '" + func + "' in " + file + "\n");
     } else {
-	file = arg[0];
+        target=arg[0];
+	file=base_name(target);
 	func = 0;
     }
 

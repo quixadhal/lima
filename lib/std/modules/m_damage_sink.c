@@ -6,6 +6,7 @@
 inherit CLASS_EVENT_INFO;
 
 private mapping resistances = ([]);
+private mapping weaknesses = ([]);
 private int armor_class;
 
 //:FUNCTION set_armor_class
@@ -28,6 +29,8 @@ class event_info sink_modify_event(class event_info evt)
    if(stringp(evt->data))
       return evt;
 #if BLOW_STYLE == BLOW_TYPES
+   if(member_array(evt->data[0], keys(weaknesses)) != -1)
+      evt->data[1] += random(weaknesses[evt->data[0]]);
    if(member_array(evt->data[0], keys(resistances)) != -1)
       evt->data[1] -= random(resistances[evt->data[0]] + armor_class);
    else
@@ -52,6 +55,16 @@ void set_resist(string type, int amt)
 void set_resistances(mapping x)
 {
    resistances = x;
+}
+
+void set_weakness(string type, int amt)
+{
+   weaknesses[type] = amt;
+}
+
+void set_weaknesses(mapping weak)
+{
+   weaknesses = weak;
 }
 
 //:FUNCTION is_armor

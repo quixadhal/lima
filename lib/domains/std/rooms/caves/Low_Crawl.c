@@ -15,7 +15,7 @@ void setup()
     "south" : "Grotto",
     "north" : "Inside_Cave",
     ]) );
-    set_default_exit( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales without foundation.  Exits to the south, and\nnorth may prove more fruitful.\n");
+    set_default_error( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales without foundation.  Exits to the south, and\nnorth may prove more fruitful.\n");
 
     add_item( "crawl", "low crawl" , "As you try and look around, more rocks and gravel fall from the ceiling and you quickly shut your eyes.");
 

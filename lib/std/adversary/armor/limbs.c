@@ -31,6 +31,9 @@ class wear_info find_wi(string s)
    return wi;
 }
 
+//:FUNCTION query_armors
+// object array query_armors(string s);
+// Returns the armors that are covering limb 's'.
 object array query_armors(string s)
 {
    class wear_info wi;
@@ -47,6 +50,9 @@ object array query_armors(string s)
       return wi->others ? wi->others : 0;
 }
 
+//:FUNCTION wear_item
+// nomask int wear_item(object what, string where);
+// Forces the adversary to wear 'what' on its 'where' limb.
 nomask int wear_item(object what, string where)
 {
    class wear_info wi;
@@ -72,6 +78,9 @@ nomask int wear_item(object what, string where)
    return 1;
 }
 
+//:FUNCTION remove_item
+// nomask int remove_item(object what, string where);
+// Removes armor 'what' from the 'where' limb.
 nomask int remove_item(object what, string where)
 {
    class wear_info wi;
@@ -100,11 +109,17 @@ nomask int remove_item(object what, string where)
    return 1;
 }
 
+//:FUNCTION has_body_slot
+// int has_body_slot(string slot);
+// Returns 1 if the body slot is a valid one.
 int has_body_slot(string slot)
 {
    return is_limb(slot);
 }
 
+//:FUNCTION query_armor_slots
+// string array query_armor_slots()
+// Returns all valid armor slots on an adversary.
 string array query_armor_slots()
 {
    return query_limbs() - query_non_limbs();

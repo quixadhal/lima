@@ -37,5 +37,10 @@ void remove() {
 
 mapping lpscript_attributes()
 {
-    return object::lpscript_attributes() + m_damage_sink::lpscript_attributes() + m_gettable::lpscript_attributes();
+   return object::lpscript_attributes() + m_damage_sink::lpscript_attributes() + m_gettable::lpscript_attributes() + m_wearable::lpscript_attributes();
+}
+
+mixed ob_state()
+{
+   return m_wearable::ob_state();
 }

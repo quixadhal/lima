@@ -52,12 +52,12 @@ int stat_me()
 	break;
 
     case SKT_STYLE_CONNECT:
-	printf("%O: connected to %O\n", this_object(), addr);
+	printf("%O: connected to %O\n", this_object(), socket_address(fdOwned));
 	printf("    read_func=%O  close_func=%O\n", read_func, close_func);
 	break;
 
     case SKT_STYLE_UDP:
-	printf("%O: UDP at %O\n", this_object(), addr);
+	printf("%O: UDP at %O\n", this_object(), socket_address(fdOwned));
 	printf("    read_func=%O\n", read_func);
 	break;
 
@@ -67,7 +67,7 @@ int stat_me()
 	break;
 
     case SKT_STYLE_CONNECT_M:
-	printf("%O: (mud) connected to %O\n", this_object(), addr);
+	printf("%O: (mud) connected to %O\n", this_object(), socket_address(fdOwned));
 	printf("    read_func=%O  close_func=%O\n", read_func, close_func);
 	break;
 
@@ -207,7 +207,7 @@ SKTLOG("release_callback: err",err);
 {
     object	s;
     int		err;
-
+    
 SKTLOG("listen_callback: self",this_object());
 SKTLOG("listen_callback: fd",fd);
     fd = socket_accept(fd, (: read_callback :), (: write_callback :));
@@ -311,6 +311,13 @@ nomask mixed *address()
     return ({ host, port });
 }
 
+nomask int local_port()
+{
+  return to_int(explode(socket_status(fdOwned)[3],".")[<1]);
+}
+
+  
+
 void create(int skt_style, mixed p1, mixed p2, mixed p3)
 {
     int err;
@@ -320,7 +327,7 @@ void create(int skt_style, mixed p1, mixed p2, mixed p3)
 
 SKTLOG("create: self",this_object());
     style = skt_style;
-    addr = p1;
+    //    addr = p1;
 
     switch ( style )
     {

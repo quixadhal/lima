@@ -87,6 +87,13 @@ string array rev_explode(string arr_in, string delim)
   return arr_out;
 }
 
+//:FUNCTION abs
+// Absolute value function
+int abs(int x)
+{
+   return x < 0 ? -x : x;
+}
+
 
 //:FUNCTION cmp
 //returns whether its two arguments are equivalent.  This is about
@@ -275,7 +282,7 @@ varargs mixed exec_code(string arg, string dir, string includefile)
 
     if(!stringp(arg))
 	error("Bad type argument 1 to exec_code");
-    info = reg_assoc(arg, ({"\\.[a-z:/\_]+"}),({0}))[0];
+    info = reg_assoc(arg, ({"\\.[a-zA-Z:/\_]+"}),({0}))[0];
     for(i=0; i < sizeof(info);i++)
 	{
 	    if(info[i][0] == '.' && strlen(info[i]) > 1 )

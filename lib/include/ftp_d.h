@@ -47,4 +47,5 @@ private void FTP_CMD_port(class ftp_session, string);
 private void FTP_CMD_noop(class ftp_session, string);
 private void FTP_CMD_dele(class ftp_session, string);
 private void FTP_CMD_syst(class ftp_session, string);
+private void FTP_CMD_pasv(class ftp_session, string);
 string FTP_CMD_retr_callback(object);

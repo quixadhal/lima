@@ -16,6 +16,10 @@ private void move_one(string src, string dst, int force)
     {
 	outf("Could not read %s.  Move failed.\n", src);
     }
+    else if ( src == dst )
+      {
+	outf("%s and %s same filename.  Move failed.\n",dst,src);
+      }
     else if ( !write_file(dst, contents, 1) )
     {
 	outf("%s could not be written to.  Move failed.\n", dst);

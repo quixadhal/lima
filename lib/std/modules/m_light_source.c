@@ -38,7 +38,7 @@ string query_burned_out_msg()
    return burned_out_msg;
 }
 
-void set_lit(int x)
+protected void set_lit(int x)
 {
    is_lit = x;
 }

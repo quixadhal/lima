@@ -20,7 +20,7 @@ void setup()
 	"north" : "Low_Crawl"
       ]) );
     set_hidden_exits("south");
-    set_default_exit( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales without foundation.\n");
+    set_default_error( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales without foundation.\n");
 
     set_objects( ([
 	"/domains/std/objects/dead_adventurer" : 1,

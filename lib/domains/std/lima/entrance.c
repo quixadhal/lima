@@ -13,5 +13,5 @@ void setup() {
     set_exits( ([
 	"east" : "inside_house"
     ]) );
-    set_default_exit("A hollow voice says: Fool!\n");
+    set_default_exit_message("A hollow voice says: Fool!\n");
 }

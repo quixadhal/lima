@@ -9,7 +9,7 @@
 #include <move.h>
 #include <setbit.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_swim()
 {
@@ -49,9 +49,10 @@ int direct_swim_in_obj(object ob)
 }
 
 
-array query_verb_info()
+
+void create()
 {
-    return ({ ({ "", "in OBJ", }),({ "dive" }) });
+   add_rules( ({ "", "in OBJ", }),({ "dive" }) );
 
 }
 

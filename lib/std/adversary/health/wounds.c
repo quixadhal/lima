@@ -2,6 +2,17 @@
 
 inherit __DIR__ "limbs";
 
+class diagnosis
+{
+   int bruises;
+   int scratches;
+   int cuts;
+   int wounds;
+   int injuries;
+   int gashes;
+   int mutilations;
+}
+
 string number_word(int);       /* M_GRAMMAR */
 string number_of(int, string);
 
@@ -199,7 +210,7 @@ array query_wounds(string limb)
 
 string diagnose_msg(string limb)
 {
-   mapping stuff = ([ ]);
+   class diagnosis stuff = new(class diagnosis);
    int array my_wounds = query_wounds(limb);
    int max = query_max_health(limb);
    string array types = ({ });
@@ -213,19 +224,32 @@ string diagnose_msg(string limb)
    {
       switch(x * 100 / max)
       {
-         case 0..10:   stuff["bruise"]++;     break;
-         case 11..20:  stuff["scratch"]++;    break;
-         case 21..30:  stuff["cut"]++;        break;
-         case 31..50:  stuff["wound"]++;      break;
-         case 51..71:  stuff["injury"]++;     break;
-         case 72..85:  stuff["gash"]++;       break;
-         case 86..100: stuff["mutilation"]++; break;
+         case 0..10:   stuff->bruises++;     break;
+         case 11..20:  stuff->scratches++;   break;
+         case 21..30:  stuff->cuts++;        break;
+         case 31..50:  stuff->wounds++;      break;
+         case 51..71:  stuff->injuries++;    break;
+         case 72..85:  stuff->gashes++;      break;
+         case 86..100: stuff->mutilations++; break;
       }
    }
 
-   foreach(string s in keys(stuff))
-      types += ({ number_of(stuff[s], s) });
-   return "$P " + limb + " $vhave sustained " + format_list(types, 0) + ".\n";
+   if(stuff->bruises)
+      types += ({ number_of(stuff->bruises, "bruise") });
+   if(stuff->scratches)
+      types += ({ number_of(stuff->scratches, "scratch") });
+   if(stuff->cuts)
+      types += ({ number_of(stuff->cuts, "cut") });
+   if(stuff->wounds)
+      types += ({ number_of(stuff->wounds, "wound") });
+   if(stuff->injuries)
+      types += ({ number_of(stuff->injuries, "injury") });
+   if(stuff->gashes)
+      types += ({ number_of(stuff->gashes, "gash") });
+   if(stuff->mutilations)
+      types += ({ number_of(stuff->mutilations, "mutilation") });
+
+   return "$P " + limb + " has sustained " + format_list(types, 0) + ".\n";
 }
 
 varargs string diagnose(string limb)
@@ -242,4 +266,3 @@ varargs string diagnose(string limb)
 
    return ret;
 }
-

@@ -3,6 +3,8 @@
 // _su.c   (switch user cmd)
 // Rust@ZorkMUD
 // Megaboz@ZorkMUD added help 5-5-94
+// Beek added race support.
+// LsD fixed race support to not have a security hole.
 
 #include <daemons.h>
 #include <mudlib.h>
@@ -16,26 +18,17 @@ private void main(string arg)
 	name = this_user()->query_userid();
 	race = 0;
     } else
-    if (sscanf(arg, "(%s)%s", race, name) == 2) {
-	if (name == "") name = this_user()->query_userid();
-    } else {
-	name = arg;
-	race = 0;
-    }
-
+   if (sscanf(arg, "(%s)%s", race, name) == 2) {
+     if (name == "") name = this_user()->query_userid();
+   } else {
+     name = arg;
+     race = 0;
+   }
     if (race) {
-	string array dirs = ({ DIR_RACES });
-	dirs = map(dirs, (: $1[<1] == '/' ? $1 : $1 + "/" :));
-	while (sizeof(dirs)) {
-	    foreach (string file in get_dir(dirs[0])) {
-		if (file_size(dirs[0] + file) == -2)
-		    dirs += ({ dirs[0] + file + "/" });
-		else
-		if (race + ".c" == file) race = dirs[0] + file;
-	    }
-	    dirs = dirs[1..];
-	}
-	if (race[<2..] != ".c") {
+        race = DIR_RACES + "/" + depath(evaluate_path(race));
+	if (race[<2..] != ".c") race += ".c";
+	if (!is_file(race)) {
+	    BBUG(race);
 	    out("No such race.\n");
 	    return;
 	}
@@ -46,6 +39,6 @@ private void main(string arg)
 	this_body()->save_me();  
 	this_body()->save_autoload();  
     }
-
+    BBUG(race);
     this_user()->switch_user(name, race);
 }

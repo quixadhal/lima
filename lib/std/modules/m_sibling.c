@@ -8,8 +8,11 @@ private object cached_sibling;
 
 
 void setup_sibling(string ident, string room) {
-    our_ident = ident;
-    sibling_room = absolute_path(room, environment(this_object()));
+  if(ident)
+    {
+      our_ident = ident;
+    }
+  sibling_room = absolute_path(room, environment(this_object()));
 }
 
 
@@ -21,11 +24,14 @@ object get_sibling() {
     if(!environment()) { ZABUG("ENV 0"); return 0; }
     if (!cached_sibling) {
 	object ob;
-    
+	if(!sibling_room)
+	  return 0;
 	ob = load_object(sibling_room);
-        if(!ob) { ZABUG("NO LOAD"); return 0; }
+        if(!ob) { TBUG("NO LOAD"); return 0; }
 
 	foreach (object ob2 in all_inventory(ob)) {
+	  TBUG(ob);
+	  TBUG(our_ident);
 	    if (ob2->respond_to_sibling_ident(our_ident)) {
 		cached_sibling = ob2;
 		break;
@@ -53,4 +59,12 @@ private void initial_move() {
 	update_state(ob);
 }
 
-
+/* 
+ * This is here to properly setup the sibling room.  If it's done in setup()
+ * or mudlib_create() etc, it is called before the door is moved into its
+ * environment which makes things work 'not quite right'
+ */
+varargs void on_clone(string direction,string room, mixed rest...)
+{
+  setup_sibling(0,room);
+}

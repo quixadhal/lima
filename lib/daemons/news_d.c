@@ -39,6 +39,9 @@
  *                 restriction functions in many places they previously 
  *                 weren't.  Also improved the mail_forward interface.
  *                 Restricted dump() to Mudlib:daemons
+ * 990110, Tigran: Unstagnated the removed mapping.  I must have been high 
+ *                 before.  I can find no reason that the original threaded
+ *                 article is still necessary.  Anyways removed is used again
  */
 
 #include <mudlib.h>
@@ -58,11 +61,13 @@ inherit CLASS_NEWSMSG;
 
 void archive_posts();
 nomask string * get_groups();
+nomask void update_threads(string group);
+nomask void update_all_threads();
 
 private mapping data = ([]);
 private mapping removed = ([]);
 private nosave mapping recent_changes = ([]);
-
+private nosave mapping threading_data=([]);
 // No info on a group means never archive.
 private mapping archive_info = ([ ]);
 
@@ -153,20 +158,21 @@ nomask void create()
 	      map_delete(data, key);
 	      map_delete(recent_changes, key);
 	      map_delete(removed, key);
-            } else {
-                /* possible for new groups */
-                if (!data[key])
-                    data[key] = ([]);
-                if (!removed[key])
-                    removed[key] = ({});
-
-                recent_changes[key] = ([]);
-                foreach (string key2 in keys(value)) {
-                    data[key][key2] = value[key2];
-                    if (classp(value[key2]) &&
-                        ((class news_msg)value[key2])->body == 0)
-                        removed[key] += ({ key2 });
-                }
+            } 
+	    else {
+	      /* possible for new groups */
+	      if (!data[key])
+		data[key] = ([]);
+	      if (!removed[key])
+		removed[key] = ({});
+	      
+	      recent_changes[key] = ([]);
+	      foreach (string key2 in keys(value)) {
+		data[key][key2] = value[key2];
+		if (classp(value[key2]) &&
+		    ((class news_msg)value[key2])->body == 0)
+		  removed[key] += ({ key2 });
+	      }
             }
         }
     }
@@ -178,6 +184,7 @@ nomask void create()
             }
         }
     }
+    update_all_threads();
     save_me();
     archive_posts();
 }
@@ -338,11 +345,14 @@ nomask int is_read_restricted(string group)
 {
   string closest="";
   mixed array restrict;
-  string whoami=this_user()->query_userid();
+  string whoami;
   string rest;
   mixed array priv;
   /* Never ever restrict the administration from being able to access a
    * newsgroup */
+  if(!this_user())
+    return 0;
+  whoami=this_user()->query_userid();
   if(adminp(whoami))
     return 0;
   foreach(rest,priv in restrictions)
@@ -471,6 +481,7 @@ nomask int post(string group, string subject, string message)
     msg->poster          = capitalize( msg->userid );
 
     data[group][post_id] = msg;
+    update_threads(group);
     recent_changes[group][post_id] = msg;
     save_recent();
 
@@ -534,6 +545,7 @@ varargs nomask int system_post(string group,
 
     data[group][post_id] = msg;
     recent_changes[group][post_id] = msg;
+    update_threads(group);
     save_recent();
 
     notify_users(group, msg);
@@ -551,6 +563,7 @@ varargs nomask void add_group(string group)
     data[group] = (["next_id":1]);
     recent_changes[group] = (["next_id":1]);
     removed[group] = ({});
+    update_all_threads();
     save_recent();
 }
 
@@ -559,6 +572,7 @@ nomask void remove_group(string group)
     if (!check_privilege("Mudlib:daemons")) error("Permission denied.\n");
     map_delete(data, group);
     recent_changes[group] = "#removed#";
+    update_all_threads();
     save_recent();
 }
 
@@ -587,7 +601,7 @@ nomask int followup(string group, int id, string message)
     data[group][post_id] = msg;
     recent_changes[group][post_id] = msg;
     save_recent();
-
+    update_threads(group);
     notify_users(group, msg);
 
     if (mail_forward[group])
@@ -633,10 +647,12 @@ nomask void remove_post(string group, int id)
 
     msg->body = 0;
     recent_changes[group][id] = msg;
+    removed[group]+=({id});
+    update_threads(group);
     save_recent();
 }
 
-nomask int * get_messages(string group, int no_removed)
+varargs nomask int * get_messages(string group, int no_removed)
 {
     array ret = keys(data[group]) - ({ "next_id" });
     
@@ -766,6 +782,7 @@ private nomask void archive_posts()
                 archive_post(group, id);
         }
     }
+    update_all_threads();
 }
 
 
@@ -798,6 +815,8 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
     recent_changes[to_group][new_id] = msg;
     remove_post( curr_group, curr_id );
     write( "Post moved.\n");
+    update_threads(to_group);
+    update_threads(curr_group);
     save_recent();
 }
 
@@ -872,4 +891,45 @@ array search_for_author(string who) {
     }
 
     return ret;
+}
+
+private nomask int sort_messages_by_thread(int first,int second,string group)
+{
+  int i1=get_thread_id(group,first);
+  int i2=get_thread_id(group,second);
+  if(i1<i2)
+    return -1;
+  if(i1>i2)
+    return 1;
+  if(first<second)
+    return -1;
+  return 1;
+}
+
+nomask string array get_threads(string group)
+{
+  return threading_data[group];
+}
+
+nomask mapping get_all_thread_data()
+{
+  return threading_data;
+}
+
+private nomask void update_threads(string group)
+{
+  threading_data[group]=sort_array(get_messages(group,1),
+			    (: sort_messages_by_thread :), group);
+}
+
+private nomask void update_all_threads()
+{
+  threading_data=([]);
+  foreach(string group in get_groups())
+    {
+      reset_eval_cost();
+      threading_data[group]=sort_array( get_messages(group,1), 
+					(: sort_messages_by_thread :), 
+					group);
+   }
 }

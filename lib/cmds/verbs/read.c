@@ -1,7 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit VERB_OB;
-
+inherit NVERB_OB;
 
 private object* get_all_readable_entry_items()
 {
@@ -41,7 +40,6 @@ mixed can_read_word_str_word_obj(string p1, string str, string p2, object ob) {
     if (p2 != "in" && p2 != "from") return 0;
     return check_vision();
 }
-
 
 protected void read_it(object ob, string str) {
     string text;
@@ -94,10 +92,9 @@ void do_read_word_str(string p, string str) {
 
 
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ:v", "from OBJ:v", "in OBJ:v", "about STR",
-	"about STR in OBJ:v", "about STR from OBJ:v",
-	"STR in OBJ:v", "STR from OBJ:v", 
-      }) });
+    add_rules( ({ "OBJ:v", "from OBJ:v", "in OBJ:v", "about STR",
+		  "about STR in OBJ:v", "about STR from OBJ:v",
+	          "STR in OBJ:v", "STR from OBJ:v", }) );
 }

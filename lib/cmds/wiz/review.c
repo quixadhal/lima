@@ -35,9 +35,9 @@ private void main(mixed *arg, mapping flags)
 	if (debug)
 	    out("["+msg[i]+"]");
 	ob_msgs = ob->query_msg(msg[i]);
-	if (!stringp(ob_msgs) && !pointerp(ob_msgs))
+	if (!stringp(ob_msgs) && !arrayp(ob_msgs))
 	    continue;
-	if (!pointerp(ob_msgs))
+	if (!arrayp(ob_msgs))
 	    ob_msgs = ({ ob_msgs });
 
 	for ( j = 0; j < sizeof(ob_msgs); j++ )
@@ -67,6 +67,11 @@ private void main(mixed *arg, mapping flags)
 	    case "destruct":
 		msgs = action( ({ ob }), ob_msgs[j], "something");
 		break;
+
+            case "fol_leave":
+            case "fol_enter":
+                msgs = action( ({ ob, this_object() }), ob_msgs[j], "somewhere");
+                break;
 
 	    default:
 		msgs = action( ({ ob }), ob_msgs[j]);

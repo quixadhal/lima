@@ -26,7 +26,7 @@ void setup()
 	"north" : "North_Cave",
 	]) );
     set_hidden_exits("east","west");
-    set_default_exit ("You can't find an exit in that direction.\n");
+    set_default_error ("You can't find an exit in that direction.\n");
 
     add_item( "stalagmite", "stalactite", "stalagmites", "stalagmite",
 	      "columns", "column", 

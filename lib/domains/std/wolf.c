@@ -16,7 +16,7 @@
 inherit FOLLOWING_MONSTER;
 inherit M_TRIGGERS;
 
-private string array masters = ({ "tigran" });
+private string array masters = ({ "tigran", "iizuka" });
 
 void do_follow(string name) {
   object ob;

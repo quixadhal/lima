@@ -13,7 +13,6 @@
  * April, 1998: Iizuka made significant changes and updated for adversary.
  */
 
-#include <combat_modules.h>
 
 inherit CLASS_EVENT_INFO;
 
@@ -70,7 +69,7 @@ mixed query_combat_message(string type)
 
 private mixed merge_lists(mixed list, mixed item, mixed def)
 {
-   if(pointerp(list))
+   if(arrayp(list))
       return list + ({ item });
    else if(list)
       return ({ list, item });

@@ -7,98 +7,51 @@
 **
 ** 951123, Deathblade: created
 ** 951221, Rust: rewrote it completely due to the new mesaging system.
+** 032299, Tigran: Heavy modifications to work with the new exit system
 */
 
 inherit NON_ROOM;
 inherit M_SMARTMOVE;
 inherit M_MESSAGES;
 
-private nosave string arrival_msg;
-private nosave string departure_msg;
-// Something like: sitting, standing, for: sitting on the horse you see...
-// This is really a gerundive, but we'll call it a verb so as not to confuse
-// people.
-private nosave string primary_verb;
 private nosave int notify_all = 1;
 private nosave string entrancemsg;
 private nosave string exitmsg;
-
+nosave function set_driving_hook;
+nosave function change_driving_hook;
 
 protected void set_move_notification(int a)
 {
-    notify_all = a;
+  notify_all = a;
 }
 
 protected void set_arrival_msg(string s)
 {
-    arrival_msg = s;
+  add_msg("enter",s);
 }
 
 protected void set_departure_msg(string s)
 {
-    departure_msg = s;
+  add_msg("leave",s);
 }
 
-protected void set_primary_verb(string s)
-{
-    primary_verb = s;
-}
 
 string get_arrival_msg()
 {
-    return arrival_msg;
+  return query_msg("enter");
 }
 
 string get_departure_msg()
 {
-    return departure_msg;
+  return query_msg("leave");
 }
 
-string get_primary_verb()
-{
-    return primary_verb;
-}
 
 void set_vehicle_msg(string inmsg, string outmsg)
 {
     entrancemsg = inmsg;
     exitmsg = outmsg;
 }
-
-//### this isn't right, but I didn't want to redesign _too_ much just yet
-string *get_player_message(string message, mixed arg) {
-    string mess;
-
-    if ( message == "leave" )
-    {
-	mess = get_arrival_msg() ||  "The $N $vleave $o.\n";
-    }
-    else if ( message == "enter" )
-    {
-	mess = get_departure_msg() || "The $N $venter.\n";
-    }
-
-    return action( ({ this_object() }), mess, arg);
-}
-
-mixed can_go_somewhere(string str)
-{
-    mixed ret;
-    this_body()->set_driving_vehicle(this_object());
-    ret = environment(this_object())->can_go_somewhere(str);
-    this_body()->set_driving_vehicle(0);
-    return ret;
-}
-
-void do_go_somewhere(string str)
-{
-    mixed ret;
-    this_body()->set_driving_vehicle(this_object());
-    ret = environment(this_object())->do_go_somewhere(str);
-    this_body()->set_driving_vehicle(0);
-    return ret;
-}
-
 
 mixed default_message(int enter)
 {
@@ -111,18 +64,6 @@ mixed default_message(int enter)
 	return entrancemsg;
     }
     return "";
-}
-
-mixed default_destination()
-{
-    if (is_player_inside())
-    {
-	return file_name(environment(this_object()));
-    }
-    else
-    {
-	return file_name(this_object());
-    }
 }
 
 int can_travel()
@@ -164,25 +105,6 @@ string get_riders_as_string()
     riders[<1]->short();
 }
 
-string query_in_room_desc()
-{
-    string verb = get_primary_verb();
-    string base_desc = ::query_in_room_desc();
-
-
-    if(!inventory_visible() || !sizeof(get_riders()))
-    {
-	return base_desc;
-    }
-    else
-    {
-	return (base_desc ? base_desc + "\n" : "") + 
-	capitalize((verb ? verb + " " : "") +
-	  query_prep() + " " + the_short() + " you see " +
-	  get_riders_as_string()+".");
-    }
-}
-
 //Override of notify_move() from M_SMARTMOVE so we can tell all
 // the passengers that we moved. (if we want to)
 
@@ -199,25 +121,52 @@ void notify_move()
     }
 }
 
-
-
 int is_vehicle()
 {
     return 1;
 }
 
+mixed enter_check()
+{
+  if(environment(this_body())!=environment(this_object())&&
+     query_relation(this_body()) )
+    return "You are already there.  Maybe you should stand up first.";
+  return 1;
+}
+
+void change_driving_hook_func(string direction)
+{
+  object array new_driver=get_riders();
+  this_body()->set_driving_vehicle(0);
+  if(sizeof(new_driver))
+    {
+      new_driver[0]->set_driving_vehicle(1);
+      new_driver[0]->simple_action("$N $vmove into the drivers position.",new_driver[0]);
+    }
+}
+  
+
+void set_driving_hook_func(string direction)
+{
+  if(sizeof(get_riders())==1)
+    this_body()->set_driving_vehicle(1);
+}
+
+
 void mudlib_setup()
 {
     ::mudlib_setup();
-    set_default_destination( (: default_destination :) );
-    set_default_enter_msg( (: default_message, 1 :) );
-    set_default_exit_msg((: default_message, 0 :));
-    add_prep("in", file_name(this_object()));
-    add_prep("out", (: environment, this_object() :) );
-    set_prep_enter_msg("in",  (: default_message, 1 :) );
-    set_prep_exit_msg("in", (: default_message, 0 :) );
-    set_prep_enter_msg("out", (: default_message, 1 :) );
-    set_prep_exit_msg("out",  (: default_message, 0 :) );
-    set_prep_check("in", (: !is_player_inside() ? 1 : "#You can't get in something you're already in." :) );
-    set_prep_check("out", (: is_player_inside() ? 1 : "#You can't get out of something you aren't in." :) );
+    change_driving_hook=(:change_driving_hook_func:);
+    set_driving_hook=(:set_driving_hook_func:);
+    /* Add the relations that should more than likely exist on all vehicles.  
+     * It seems as though "on" is really the only one that is applicable.
+     * If it isn't, well then remove the relation and add the appropriate one*/
+    add_relation("in",VERY_LARGE*3);
+    set_default_relation("in");
+    add_hook("person_arrived",set_driving_hook);
+    add_hook("person_left,",change_driving_hook);
+    add_method("get in",this_object(),(:enter_check:));
+    add_method("get out",(:environment(this_object()):));
+    set_default_enter_message( (: default_message, 1 :) );
+    set_default_exit_message((: default_message, 0 :));
 }

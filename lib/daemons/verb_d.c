@@ -25,11 +25,17 @@
 private void reload_verb(string file)
 {
     object ob;
+    string err;
 
     if ( ob = find_object(CMD_DIR_VERBS "/" + file) )
 	destruct(ob);
+    err = catch
+    {
 
-    load_object(CMD_DIR_VERBS "/" + file);
+	load_object(CMD_DIR_VERBS "/" + file);
+    };
+    if (err != 0)
+	printf("VERB_D failed to load: %s\n", CMD_DIR_VERBS "/" + file);
 }
 
 /*

@@ -22,7 +22,7 @@ private nomask void drop_one(object ob)
 	return tmp;
     }
 
-    tmp = ob->move(environment(this_body()));
+    tmp = ob->move(environment(this_body()),environment(this_body())->query_relation(this_body()));
     if (tmp == MOVE_OK) {
 	write("Done.\n");
         if(ob)

@@ -14,6 +14,9 @@ private int wear_non_armor(object what, string sname)
    return 1;
 }
 
+//:FUNCTION wear_item
+// nomask int wear_item(object what, string sname);
+// Wear item 'what' on armor slot 'sname'.
 nomask int wear_item(object what, string sname)
 {
    if(wear_non_armor(what, sname) == 1)
@@ -26,6 +29,9 @@ nomask int wear_item(object what, string sname)
    return 1;
 }
 
+//:FUNCTION remove_item
+// nomask int remove_item(object what, string sname);
+// Remove armor 'what' from armor slot 'sname'.
 nomask int remove_item(object what, string sname)
 {
    if(slots[sname])
@@ -45,11 +51,17 @@ nomask mixed get_random_clothing()
    return choice(values(slots));
 }
 
+//:FUNCTION has_body_slot
+// nomask int has_body_slot(string what);
+// Returns 1 if 'what' is a valid armor slot.
 nomask int has_body_slot(string what)
 {
    return (!undefinedp(slots[what]) || !undefinedp(non_armors[what]));
 }
 
+//:FUNCTION query_armor_slots
+// string array query_armor_slots();
+// Returns an array of all valid armor slots.
 string array query_armor_slots()
 {
    return keys(slots);

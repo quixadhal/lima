@@ -2,9 +2,9 @@
 
 inherit NVERB_OB;
 
-void do_enter_obj(object ob, string s)
+void do_enter_obj(object ob)
 {
-   environment(this_body())->do_go_obj(ob, 0);
+  ob->do_verb_rule("enter","OBJ",ob);
 }
 
 void create()

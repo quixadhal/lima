@@ -1,7 +1,24 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <combat_modules.h>
+
+private nosave int attack_speed = 1;
+
 int query_level();
 int query_weapon_class();
+
+void set_attack_speed(int speed)
+{
+   if(speed < 1)
+      return;
+
+   attack_speed = speed > MAX_ATTACK_SPEED ? MAX_ATTACK_SPEED : speed;
+}
+
+int query_attack_speed()
+{
+   return attack_speed;
+}
 
 int base_chance_to_be_hit()
 {

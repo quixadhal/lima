@@ -16,7 +16,6 @@
 **           been updated in respect to this.
 */
 
-#include <combat_modules.h>
 #include <flags.h>
 
 void unwield_me();

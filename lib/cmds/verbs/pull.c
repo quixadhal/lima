@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_pull_obj(object ob, string name) {
     ob->pull(name);
@@ -15,6 +15,6 @@ void do_pull_obj_str(object ob, string str) {
     ob->pull_str(str);
 }
 
-array query_verb_info() {
-    return ({ ({ "OBJ", "OBJ STR", "OBJ with OBJ" }), ({ "yank" }) });
+void create() {
+    add_rules( ({ "OBJ", "OBJ STR", "OBJ with OBJ" }), ({ "yank" }) );
 }

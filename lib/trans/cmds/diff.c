@@ -62,7 +62,7 @@ void main( string a )
   }
   lines1 = get_lines( file_name1 );
   lines2 = get_lines( file_name2 );
-  if( !pointerp( lines1 ) || !pointerp( lines2 ) )
+  if( !arrayp( lines1 ) || !arrayp( lines2 ) )
   {
     write( "No comparison made.\n" );
     return;

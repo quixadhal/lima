@@ -38,6 +38,7 @@ private nosave mapping legal_logs = ([
     LOG_TYPO		: DIR_LOG "/typos",
     LOG_WALL		: DIR_LOG "/walls",
     LOG_FTP		: DIR_LOG "/ftp",
+    LOG_RCP             : DIR_LOG "/rcp",
 ]);
 
 private nosave string * timestamps = ({
