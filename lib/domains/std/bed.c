@@ -6,9 +6,8 @@
 
 inherit FURNITURE;
 
-void create()
+void setup()
 {
-  ::create();
   set_id("bed");
   set_in_room_desc("There is a bed in the corner of the room.");
   set_get_on_msg("$N $vsit on the bed.\n");

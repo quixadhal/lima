@@ -13,7 +13,7 @@ private void main()
 {
     string ex;
 
-    if (ex = inv_list(this_body(), 0, 1)) {
+    if (ex = inv_list(all_inventory(this_body()))) {
         write("You are carrying:\n" + ex);
     } else {
 	write("You are empty handed.\n");

@@ -8,10 +8,9 @@ int passage_open = 0;
 
 void close_passage();
 
-void create() 
-{ 
-  ::create(); 
-  set_area ("pirate");
+void setup() 
+{
+  set_area("pirate");
   set_brief("Navigation room");
 
   set_long("Maps of the seven seas, marked up with what is probably "

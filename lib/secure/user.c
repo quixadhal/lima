@@ -21,6 +21,7 @@ inherit __DIR__ "user/failures";
 inherit __DIR__ "user/inputsys";
 inherit __DIR__ "user/userinfo";
 inherit __DIR__ "user/messages";
+inherit __DIR__ "user/shell";
 
 /*
 ** This users's userid (login id).
@@ -64,6 +65,7 @@ void remove()
 	destruct(body);
 
     remove_call_out();
+    stop_shell();
     destruct();
 }
 
@@ -124,5 +126,7 @@ private nomask void net_dead()
 	call_out((: remove :), 300);
     }
     else
-	destruct();
+    {
+	remove();
+    }
 }

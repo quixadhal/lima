@@ -215,7 +215,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 			    user_channel_name,
 			    make_name_list(ci->listeners))));
     }
-    else if ( arg == "/last" )
+    else if( arg == "/last" || arg == "/history" )
     {
 	string history = implode(ci->history, "");
 

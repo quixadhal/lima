@@ -6,10 +6,9 @@
  
 inherit OUTDOOR_ROOM;
  
-create()
+void setup()
 {
-               
-    ::create();
+set_area("wiz_area");
     set_brief("Environmental room");
     set_long("The weather seems to change here a lot. Harry hates this \
 place.");

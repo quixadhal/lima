@@ -23,16 +23,20 @@ inherit MONSTER;
 inherit M_ACCESS;
 inherit M_SMARTMOVE;
 
+#ifndef EVERYTHING_SAVES
+private inherit M_SAVE; // don't want people calling load_from_string()
+                        // externally
+#endif
+
 inherit __DIR__ "body/quests";
 inherit __DIR__ "body/mailbase";
 inherit __DIR__ "body/newsdata";
-inherit __DIR__ "body/path";
 inherit __DIR__ "body/cmd";
 inherit __DIR__ "body/help";
-inherit __DIR__ "body/bodyshell";
 inherit __DIR__ "body/wizfuncs";
 inherit __DIR__ "body/money";
 inherit __DIR__ "body/start";
+inherit __DIR__ "body/time";
 
 #ifdef USE_SKILLS
 inherit __DIR__ "body/skills";
@@ -58,10 +62,10 @@ private string nickname;
 private string reply;
 private string array channel_list = ({ });
 private string plan;
-private string array auto_load = ({ });
 private static object link;
 private static string cap_name;
 private static int catching_scrollback;
+private mixed saved_items;
 
 #ifdef USE_STATS
 inherit M_BODY_STATS;
@@ -71,7 +75,7 @@ int to_hit_base() {
 }
 
 void refresh_stats() {
-    bodystats::refresh_stats();
+    m_bodystats::refresh_stats();
 }
 #endif
 
@@ -95,6 +99,8 @@ string query_name()
 
 string query_long_name()
 {
+    if (query_ghost())
+	return "The ghost of " + cap_name;
 #ifdef USE_TITLES
     return query_title();
 #else
@@ -124,46 +130,6 @@ nomask void set_plan(string new_plan)
 }
 
 #endif /* EVERYONE_HAS_A_PLAN */
-
-
-
-void
-load_autoload() 
-{
-    object ob;
-    
-    if (!arrayp(auto_load)) return;
-
-    foreach (string fn in auto_load) {
-	if (!stringp(fn))  {
-	    write("[bad filename]\n");
-	    if (wizardp(this_user()))
-		printf("%s\n",fn);
-	    continue;
-	}
-	if (!load_object(fn)) {
-	    write(" [cannot find an item]\n");
-	    if (wizardp(this_user()))
-		printf("%s\n",fn);
-	    continue;
-	}
-	ob = clone_object(fn);
-	ob->init_arg();  // Rust.  This should pass an arg?
-	if (ob->move(this_object()) != MOVE_OK)
-	    if (!move_to_start(ob))
-		ob->remove();
-    }
-    auto_load = ({ });
-}
-
-
-void save_autoload() 
-{
-    object array obs;
-    
-    obs = filter(all_inventory(this_object()), (: $1->query_auto_load() :));
-    auto_load = map(obs, (: base_name :));
-}
 
 /* initialize various internal things */
 private nomask void init_cmd_hook()
@@ -198,13 +164,16 @@ private nomask void init_cmd_hook()
 #endif
     set_max_capacity(VERY_LARGE);
 
-    start_shell();
-    load_autoload();
+    if (saved_items) {
+	load_from_string(saved_items, 1);
+	saved_items = 0;
+    }
 }
 
 private nomask void finish_enter_game()
 {
-    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
+
+    NCHANNEL_D->deliver_emote("announce", query_name(),
 			      sprintf("enters %s.", mud_name()));
 
     /* move the body.  make sure this comes before the simple_action */
@@ -230,7 +199,7 @@ nomask void su_enter_game(object where)
     init_cmd_hook();
 
 //### this should go away once we torch the corresponding leave msg for 'su'
-    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
+    NCHANNEL_D->deliver_emote("announce", query_name(),
 			      sprintf("enters %s.", mud_name()));
 
     if ( is_visible() )
@@ -244,7 +213,6 @@ nomask void su_enter_game(object where)
 void enter_game(int is_new)
 {
     init_cmd_hook();
-
     if ( is_new && wizardp(link) )
     {
 	write("\n"
@@ -257,8 +225,8 @@ void enter_game(int is_new)
 	      "\n");
 
 	/* these will be registered later */
-	channel_list = ({ "wiz_wiz", "plyr_news", "plyr_gossip",
-			  "plyr_newbie", "wiz_announce" });
+	channel_list = ({ "wiz", "news", "gossip",
+			  "newbie", "announce" });
 
 	/* So the hapless new wizard doesn't get spammed. */
 	set_ilog_time(time());
@@ -271,7 +239,7 @@ void enter_game(int is_new)
 	      "\n");
 
 	/* these will be registered later */
-	channel_list = ({ "plyr_gossip", "plyr_newbie" });
+	channel_list = ({ "gossip", "newbie" });
     }
 
     if ( wizardp(link) )
@@ -293,13 +261,19 @@ void enter_game(int is_new)
 
 void save_me()
 {
-    /* prepare to save the shell data */
-    bodyshell::prepare_to_save();
+    object shell_ob = link && link->query_shell_ob();
 
-    if (previous_object()==this_object())
-	save_autoload();
+    /* save the shell information */
+    if ( shell_ob )
+	shell_ob->save_me();
+
+//### This check is bogus.  What should it be?
+// This check also doesn't work for su's -- John
+//    if (previous_object()==this_object())
+	saved_items = save_to_string(1); // 1 meaning it is recursive.
 
     unguarded( 1, (: save_object , USER_PATH(name) :) );
+    saved_items = 0;
 }
 
 void remove()
@@ -314,8 +288,6 @@ void remove()
 
     save_me();
 
-    if ( ob = query_shell_ob() )
-	ob->remove();
     MAILBOX_D->unload_mailbox(query_userid());
     unload_mailer();
     LAST_LOGIN_D->register_last(query_userid());
@@ -334,9 +306,7 @@ void quit()
     if (is_visible())
 	simple_action("$N $vhave left "+mud_name()+".\n");
 
-    save_autoload();
-
-    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
+    NCHANNEL_D->deliver_emote("announce", query_name(),
 			      sprintf("has left %s.", mud_name()));
     NCHANNEL_D->unregister_channels();
 
@@ -418,10 +388,10 @@ void net_dead()
     if(is_visible())
 	simple_action("$N $vhave gone link-dead.\n");
 
-    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
+    NCHANNEL_D->deliver_emote("announce", query_name(),
 			      sprintf("has gone link-dead.", mud_name()));
 
-    if(query_shell_ob()->get_variable("save_scrollback"))
+    if ( link && link->query_shell_ob()->get_variable("save_scrollback") )
 	catching_scrollback = 1;
 }
 
@@ -433,22 +403,12 @@ void reconnect(object new_link)
     if(is_visible())
 	simple_action("$N $vhave reconnected.\n");
 
-    NCHANNEL_D->deliver_emote("wiz_announce", query_name(),
+    NCHANNEL_D->deliver_emote("announce", query_name(),
 			      sprintf("has reconnected.", mud_name()));
 
     catching_scrollback = 0;
-    if ( query_shell_ob() )
-	query_shell_ob()->end_scrollback();
-
-    start_shell();
-}
-
-nomask void reset_input_handler()
-{
-    if ( previous_object() != query_link() )
-	error("illegal attempt to modify input processing\n");
-
-    start_shell();
+    if ( link->query_shell_ob() )
+	link->query_shell_ob()->end_scrollback();
 }
 
 void die()
@@ -462,13 +422,13 @@ void die()
 	return;
     }
 
+    set_hp(0);
     if(is_visible())
 	simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.\n");
     receive_private_msg("\n\n   ****  You have died  ****\n\n"
 			"A pity, really.  Way too many people dying these days for me to just patch\n"
 			"everyone up.  Oh well, you'll live.\n",0,0);
     rack_up_a_death();
-    link->switch_body(GHOST, 1);
 
 #ifdef DEATH_MESSAGES
     {
@@ -542,6 +502,8 @@ string query_nickname() {
 
 private void create(string userid)
 {
+    int idx;
+
     if ( !clonep() )
 	return;
 
@@ -552,7 +514,7 @@ private void create(string userid)
 
     monster::create();
 #ifdef USE_STATS
-    bodystats::create();
+    m_bodystats::create();
 #endif
 
     /*
@@ -582,6 +544,20 @@ private void create(string userid)
 
     // up to the player
     set_attack_speed(0);
+
+//### transition stuff for upgrading old channel data
+    if ( (idx = member_array("plyr_news", channel_list)) != -1 )
+	channel_list[idx] = "news";
+    if ( (idx = member_array("plyr_gossip", channel_list)) != -1 )
+	channel_list[idx] = "gossip";
+    if ( (idx = member_array("plyr_newbie", channel_list)) != -1 )
+	channel_list[idx] = "newbie";
+    if ( (idx = member_array("wiz_wiz", channel_list)) != -1 )
+	channel_list[idx] = "wiz";
+    if ( (idx = member_array("wiz_errors", channel_list)) != -1 )
+	channel_list[idx] = "errors";
+    if ( (idx = member_array("wiz_announce", channel_list)) != -1 )
+	channel_list[idx] = "announce";
 }
 
 
@@ -624,6 +600,10 @@ string * query_channel_list()
 nomask object query_body()
 {
     return this_object();
+}
+nomask object query_shell_ob()
+{
+    return link && link->query_shell_ob();
 }
 
 nomask mixed * query_failures()
@@ -690,10 +670,12 @@ int go_somewhere(string arg)
   return ret;
 }
 
-
-
-
 string inventory_header()
 {
-  return query_name() + " is carrying: ";
+  return query_name() + " is carrying:\n";
+}
+
+int ob_state() 
+{
+  return -1;
 }

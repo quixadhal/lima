@@ -4,17 +4,16 @@
 inherit OBJ;
 inherit M_READABLE;
 
-create()
+void setup()
 {
-    object::create();
     set_id("sign");
     set_adj("small", "weathered");
     set_size(LARGE);
 
-  set_in_room_desc("There is a small sign here, trenched deeply in the sand.");
+    set_in_room_desc("There is a small sign here, trenched deeply in the sand.");
 
-set_long("The sign is quite weathered, but is still readable, nonetheless.\n"); 
-set_text( @ENDMARKER
+    set_long("The sign is quite weathered, but is still readable, nonetheless.\n"); 
+    set_text( @ENDMARKER
 
 Warning:
 

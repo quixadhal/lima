@@ -4,16 +4,6 @@
 inherit VERB_OB;
 
 
-mixed can_exit_obj(object ob)
-{
-   return 1;
-}
-
-mixed can_exit()
-{
-  return 1;
-}
-
 void do_exit(object ob)
 {
   mixed s;

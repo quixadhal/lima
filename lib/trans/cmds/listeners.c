@@ -58,7 +58,7 @@ private void main()
 	    if ( flags & CHANNEL_WIZ_ONLY )
 		flagstr = ": wiz permanent\n";
 	    else if ( flags & CHANNEL_ADMIN_ONLY )
-		flagstr = ": wiz permanent\n";
+		flagstr = ": admin permanent\n";
 	    else
 		flagstr = ": permanent\n";
 	}

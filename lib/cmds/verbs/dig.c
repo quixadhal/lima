@@ -10,11 +10,6 @@
 inherit VERB_OB;
 
 
-int can_dig()
-{
-  return 1;
-}
-
 void do_dig()
 {
   write("Try: dig in something with something.\n");
@@ -71,11 +66,16 @@ void do_dig_up_obj(object ob1)
   do_dig_in_obj(ob1);
 }
 
+void do_dig_str(string s)
+{
+  if(s == "hole" || s == "a hole")
+    return do_dig();
+}
+
 mixed array query_verb_info()
 {
-    return ({ ({ "", "in OBJ", "in OBJ with OBJ", "with OBJ", "OBJ",
+    return ({ ({ "", "STR", "in OBJ", "in OBJ with OBJ", "with OBJ", "OBJ",
 		   "out OBJ", "OBJ with OBJ", "out OBJ with OBJ",
 		   "up OBJ", "up OBJ with OBJ", "with OBJ in OBJ", }) });
 }
-
 

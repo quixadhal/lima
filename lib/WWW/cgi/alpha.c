@@ -3,5 +3,5 @@
 #include <daemons.h>
 
 string main(string user) {
-    return read_file("/FOR_ALPHA");
+    return replace_string(read_file("/FOR_ALPHA"), "\n", "<BR>\n");
 }

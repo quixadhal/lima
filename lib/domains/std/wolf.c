@@ -15,12 +15,13 @@
 inherit LIVING;
 inherit M_ACTIONS;
 inherit M_TRIGGERS;
+inherit M_SMARTMOVE;
 
 void follow_callback(string);
 
 private static object target, target_where;
 private static function f_follow = (: follow_callback :);
-private string array masters = ({ "Beek", "Rackain" });
+private string array masters = ({ "Beek", "Zifnab", "Rackain" });
 
 void i_moved() {
     if (target_where)
@@ -75,11 +76,10 @@ void do_command(string who, string str) {
 	respond(str);
 }
 
-void create()
+void setup()
 {
     int *handle;
     
-    ::create();
     set_name("Wolf");
     set_gender(1);
     set_in_room_desc("A White Timber Wolf");

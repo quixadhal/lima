@@ -5,9 +5,8 @@ inherit M_DIGGER;
 inherit M_GETTABLE;
 inherit M_INPUT;
 
-void create()
+void setup()
 {
-  ::create();
   set_adj("plastic");
   set_id("shovel");
   set_long ("It's a plastic shovel.\n");

@@ -50,17 +50,6 @@ void do_dismount_obj(object o)
   do_dismount(o);
 }
 
-int can_dismount_obj()
-{
-  return 1;
-}
-
-int can_dismount()
-{
-  return 1;
-}
-
-
 mixed array query_verb_info()
 {
     return ({ ({ "", "OBJ" }) });

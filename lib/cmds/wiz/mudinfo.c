@@ -60,7 +60,7 @@ private void main(string arg)
 	if(!sizeof(mudinfo[11]))
 	    output += "None given\n";
 	else
-	    output += implode(keys(mudinfo[11]), ", ") + "\n";
+	    output += implode(sort_array(keys(mudinfo[11]), 1), ", ") + "\n";
 	if ( mudinfo[12] )
 	    output += "Other data: " + implode(keys(mudinfo[12]), ", ") + "\n";
 	output += "\n";

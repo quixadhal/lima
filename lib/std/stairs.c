@@ -4,8 +4,8 @@ inherit OBJ;
 inherit M_CLIMBABLE;
 
 void create(mixed up_dest, mixed down_dest) {
-    ::create();
-    set_id("stairs");
+   ::create();
+    add_id_no_plural("stairs");
     set_unique(1); // plural
     set_up_destination(up_dest);
     set_down_destination(down_dest);

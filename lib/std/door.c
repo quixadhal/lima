@@ -32,11 +32,6 @@ string our_ident;
 string our_dir;
 object cached_sibling;
 
-void create() {
-    object::create();
-    openable::create();
-}
-
 private int block(string dir, object who) {
     if (query_closed()) {
 	who->simple_action("$N $vtry to go $o, but the $o1 is closed.\n",
@@ -82,8 +77,8 @@ void update_sibling() {
 }
 
 void update_state(object ob) {
-    openable::set_closed(ob->query_closed());
-    lockable::set_locked(ob->query_locked(), ob->query_key_type());
+    m_openable::set_closed(ob->query_closed());
+    m_lockable::set_locked(ob->query_locked(), ob->query_key_type());
 }
 
 private void initial_move() {
@@ -120,12 +115,12 @@ void setup_door(string ident, string dir) {
 }
 
 varargs void set_locked(string x, string y) {
-    lockable::set_locked(x, y);
+    m_lockable::set_locked(x, y);
     update_sibling();
 }
 
 void set_closed(int x) {
-    openable::set_closed(x);
+    m_openable::set_closed(x);
     update_sibling();
 }
 

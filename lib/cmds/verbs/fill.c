@@ -6,15 +6,6 @@
 inherit M_PARSING;
 inherit VERB_OB;
 
-mixed can_fill_obj(object ob)
-{
-    return 1;
-}
-
-mixed can_fill_obj_with_obj(object ob1, object ob2) {
-    return 1;
-}
-
 int do_fill_it(object ob, object with)
 {
     if (!with) {

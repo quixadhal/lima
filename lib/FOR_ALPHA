@@ -4,14 +4,8 @@ When this list is empty, we will release the alpha version of the
 Lima Mudlib.
 
 - skills: examples, combat skills, spell skills, advancement
-- I3: OOB services, better channels, ucache, auth
-- /std must be Mudlib:xxxx
-- channels: auto-"aliases"
-- damage types
-- complex containers (in/on/behind&under ...)
-- mail unsend
-- time zone support
-- A wondering monster inheritable, since tons of people want it
+- Hook OBS into the mud
+- unique object module
 
 
 Non-features that won't define alpha:
@@ -21,6 +15,7 @@ Non-features that won't define alpha:
 - fix location of mail messages
 - ambiguity on drop, throw, etc...
 - organize all files properly
+- modularize stats, skills, and races fully
 - bug fixes
 - conversion of SECURE_D to array of paths, not a tree
 - RCP
@@ -29,10 +24,16 @@ Non-features that won't define alpha:
 - more ANSI usage
 
 
+Features unrelated to gaming, to be included post-alpha:
+- I3: OOB services, better channels
+- time zone support
+
+
 Undecided features:
 - water/underwater rooms
 
 Future versions:
+- mail unsend
 - Tk interface
 - AMCP
 - >, <, |

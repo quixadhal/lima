@@ -9,12 +9,16 @@
 
 inherit VERB_OB;
 
+int need_to_be_alive() {
+    return 0;
+}
+
+int need_to_see() {
+    return 0;
+}
+
 //###should be shared somehow with drive.c
 string *normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
-
-mixed can_go_wrd_obj(string prep, object ob) {
-    return 1;
-}
 
 void do_go_wrd_obj(string prep, object ob) {
     ob->go(prep);
@@ -22,7 +26,6 @@ void do_go_wrd_obj(string prep, object ob) {
 
 // This is one of the most heinous functions in this lib. Sorry.
 mixed can_go_str(string str) {
-
     int is_normal = (member_array(str, normal_dirs) != -1);
     mixed value;
     object env = environment(this_body());
@@ -39,20 +42,20 @@ mixed can_go_str(string str) {
 	  {
 	    if(stringp(other_value) && other_value[0] != '#')
 	      {
-		return 1;
+		return default_checks();
 	      }
 	    else
 	      {
 		if(stringp(other_value))
 		  return other_value[1..];
 		else
-		  return 1;
+		  return default_checks();
 	      }
 	  }
 	return value[1..];
       }
     if (value)
-	return 1;
+	return default_checks();
 
     if (is_normal) {
 	mixed ret = call_other(environment(this_body()), "can_go_" + str);
@@ -62,6 +65,7 @@ mixed can_go_str(string str) {
 }
 
 void do_go_str(string str) {
+
     this_body()->go_somewhere(str);
 }
 

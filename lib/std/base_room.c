@@ -27,6 +27,9 @@ inherit __DIR__ "room/roomdesc";
 
 private static string area_name;
 
+//:FUNCTION stat_me
+//Writes some debugging info about the object.  Shows the container info,
+//as well as the short and exits.
 int stat_me() {
     printf("Room: %s [ %s ]\n\n",
       short(), implode(query_exit_directions(1), ", "));
@@ -41,7 +44,7 @@ void set_brief(string str) {
 }
 
 //:FUNCTION can_hold_water
-//Return 1 if the object can hold water
+//Return 1 if the object can hold water.
 /* by default, rooms can hold water */
 int can_hold_water()
 {
@@ -53,29 +56,46 @@ void create()
     container::create();
     exits::create();
 
+    // cloned rooms will already have this stuff happen... We need this
+    // because setup() is the way people configure mudlib objects.
+    // Almost always, except in the case of rooms, game objects are clones.
+    if( !clonep(this_object()) )
+    {
+	// initialize the mudlib (default) stuff, then the area coder's
+	mudlib_setup();
+	this_object()->internal_setup();
+
+	setup();
+    }
+}
+
+void mudlib_setup()
+{
+    ::mudlib_setup();
     set_light(DEFAULT_LIGHT_LEVEL);
-    set_max_capacity( 1000000 );
+    set_max_capacity(1000000);
     add_id_no_plural("here");
     add_id("environment");
 }
 
-void set_area (string name)
+//:FUNCTION set_area
+//Used by weather to know which rooms are the same as this one.
+void set_area(string name)
 {
   area_name = name;
 }
 
-string get_area ()
+//:FUNCTION set_area
+//Find out what 'area' the room belongs to.  See set_area.
+string get_area()
 {
     return area_name;
 }
-
 
 string query_name ()
 {
     return "the ground";
 }
-
-
 
 // Conflict resolution
 string long()

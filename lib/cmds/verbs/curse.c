@@ -4,9 +4,16 @@
 
 inherit VERB_OB;
 
-mixed can_curse() /* ability to, not permission to :) */
-{
-    return 1;
+int need_to_be_alive() {
+    return 0;
+}
+
+int need_to_think() {
+    return 0;
+}
+
+int need_to_see() {
+    return 0;
 }
 
 mixed do_curse()

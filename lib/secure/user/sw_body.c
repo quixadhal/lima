@@ -9,7 +9,6 @@ string query_userid();
 
 void save_me();
 void remove();
-void force_me (string);
 
 void report_login_failures();
 
@@ -17,6 +16,9 @@ varargs void modal_simple(function input_func, int secure);
 
 void set_privilege(mixed priv);		// from M_ACCESS
 mixed unguarded(mixed priv, function fp);
+
+void start_shell();
+void run_login_script();
 
 int query_n_gen();
 
@@ -71,13 +73,13 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
     body = new(new_body_fname, query_userid());
 
     old_body->move(VOID_ROOM);
-//### This dests this_object(), which causes a number of the latter calls
-//### to fail.
     old_body->quit();
-    if(old_body)
+    if ( old_body )
 	catch(old_body->remove());
 
     report_login_failures();
+
+    /* NOTE: we are keeping the same shell for now... */
 
     body->su_enter_game();
     body->move(where);
@@ -98,20 +100,10 @@ private nomask void incarnate(int is_new, string bfn)
     if ( query_n_gen() != -1 )
 	body->set_gender(query_n_gen());
     save_me();
-    
-    body->enter_game(is_new);
-    if (wizardp (this_object ()))
-	{
-	  string login_file;
 
-	  // do .login stuff
-	  login_file = wiz_dir (this_object ()) + "/.login";
-	  if (file_size (login_file) > 0)
-	    {
-	      map_array (explode (read_file (login_file), "\n"),
-		(: force_me :));
-	    }
-	}
+    start_shell();
+    body->enter_game(is_new);
+    run_login_script();
 }
 
 static nomask void existing_user_enter_game()
@@ -184,6 +176,7 @@ static nomask void existing_user_ready()
 	if ( body = the_user->query_body() )
 	{
 	    the_user->steal_body();
+	    start_shell();
 	    body->reconnect(this_object());
 	}
 	else

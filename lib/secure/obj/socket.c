@@ -17,6 +17,12 @@
 //#define SKTLOG(x,y)	write_file("/open/sktlog",sprintf("%s: %O\n",x,y))
 #define SKTLOG(x,y)
 
+/*
+** If this is defined, then the specified privilege is needed to create
+** an outbound connection
+*/
+#define REQUIRE_PRIV	"Mudlib:socket"
+
 static private int	style;
 static private int	fdOwned = -1;	/* no socket yet */
 static private function	read_func;
@@ -101,6 +107,12 @@ SKTLOG("create: SKT_STYLE_LISTEN",fdOwned);
     case SKT_STYLE_CONNECT:
 	read_func = p2;
 	close_func = p3;
+#ifdef REQUIRE_PRIV
+	if ( !check_previous_privilege(REQUIRE_PRIV) )
+	{
+	    error("Insufficient privs to open an outgoing socket.\n");
+	}
+#endif
 	fdOwned = socket_create(1 /* STREAM */,
 				"read_callback",
 				"close_callback");
@@ -129,6 +141,12 @@ SKTLOG("create: SKT_STYLE_LISTEN_B",fdOwned);
         break;
 
     case SKT_STYLE_CONNECT_B:
+#ifdef REQUIRE_PRIV
+	if ( !check_previous_privilege(REQUIRE_PRIV) )
+	{
+	    error("Insufficient privs to open an outgoing socket.\n");
+	}
+#endif
         read_func = p2;
         close_func = p3;
         fdOwned = socket_create(3 /* STREAM BINARY */,
@@ -144,6 +162,12 @@ SKTLOG("create: close_func",close_func);
         break;
 
     case SKT_STYLE_UDP:
+#ifdef REQUIRE_PRIV
+	if ( !check_previous_privilege(REQUIRE_PRIV) )
+	{
+	    error("Insufficient privs to open a datagram socket.\n");
+	}
+#endif
 	read_func = p2;
 	fdOwned = socket_create(2 /* DATAGRAM */, "read_udp_callback");
 	if ( fdOwned < 0 )
@@ -169,6 +193,12 @@ SKTLOG("create: SKT_STYLE_LISTEN_M",fdOwned);
 	break;
 
     case SKT_STYLE_CONNECT_M:
+#ifdef REQUIRE_PRIV
+	if ( !check_previous_privilege(REQUIRE_PRIV) )
+	{
+	    error("Insufficient privs to open an outgoing socket.\n");
+	}
+#endif
 	read_func = p2;
 	close_func = p3;
 	fdOwned = socket_create(0 /* MUD */,
@@ -250,12 +280,16 @@ private nomask void close_callback(int fd)
 SKTLOG("close_callback: self",this_object());
 SKTLOG("close_callback: fd",fd);
 SKTLOG("close_callback: close_func",close_func);
+
+    /* this descriptor is closed. don't try to close again. */
+    fdOwned = -1;
+
     if ( close_func )
     {
 	catch(evaluate(close_func, this_object()));
     }
 
-    destruct(this_object());
+    destruct();
 }
 
 varargs nomask void send(mixed message, string address)

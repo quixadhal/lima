@@ -5,7 +5,8 @@ USAGE:  force (living command)
 
 force ohara north
 
-This would force ohara to move to the north if possible.
+This would force Ohara to move to the north if possible.
+Ohara would like you to note that "possible" and "a good idea" are two separate things.
 
 
 ***********  WARNING  ************
@@ -13,6 +14,8 @@ This would force ohara to move to the north if possible.
    The admin of this mud will not tolerate any type of toying
 with players.  Do not force a player into a certain death situation.
 Doing this is a direct violation of the mud policy and is grounds for
-disciniplary (sp???) action.
+disciplinary action.
 
+ Ohara also notes that any toying with him may result in a
+    force <insert your name here> dest <insert your name here too>
 

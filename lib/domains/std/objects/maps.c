@@ -5,10 +5,8 @@
 inherit OBJ;
 inherit M_GETTABLE;
 
-void
-create() {
-    ::create();
-    
+void setup()
+{
     set_id("maps");
     set_long("They have scribblings all over them.");
     set_flag(ATTACHED);

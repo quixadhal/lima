@@ -5,18 +5,6 @@
 inherit VERB_OB;
 inherit M_PARSING;
 
-mixed can_press_obj(object ob) {
-    return 1;
-}
-
-mixed can_press_obj_str(object ob, string str) {
-    return 1;
-}
-
-mixed can_press_obj_with_obj(object ob, object ob2) {
-    return 1;
-}
-
 mixed direct_press_obj(object ob) {
     return 1;
 }

@@ -3,8 +3,7 @@
 inherit LIVING;
 inherit M_VENDOR;
 
-void create() {
-    ::create();
+void setup() {
     set_name("Biff");
     add_id("shopkeeper");
     set_gender(1);

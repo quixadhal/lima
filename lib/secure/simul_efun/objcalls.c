@@ -171,56 +171,44 @@ usable( object o, int flag )
     return immediatly_accessible(o);
 }
 
-
-/* returns a nice listing of the objects in a given object */
+/* returns a nice listing of the given objects */
 /* if (flag) then don't print untouched obs */
 /* depth is for internal use only */
-/* So is avoid... */
-varargs string inv_list(object o, int flag, int depth, mixed avoid) {
-    object *obs;
+varargs string inv_list(object array obs, int flag, int depth) {
     string res;
     string ex;
     int i,j;
     int n;
 
-    if(!arrayp(avoid))
-      avoid = ({ avoid });
-    if (!o) o = this_object();
-    obs = all_inventory(o) - avoid;
-    if (!(n=sizeof(obs))) {
-	return 0;
-    }
+    depth++;
     res = "";
-    for (i=0; i<n; i++) {
-	if (!obs[i]->is_visible()) continue;
-	if (!obs[i]->short()) continue;
-	if (flag && !obs[i]->test_flag(TOUCHED) && obs[i]->untouched_long()) continue;
-        if (obs[i]->is_attached()) {
-            if (obs[i]->inventory_visible())
-                res += (string)obs[i]->inventory_recurse(depth+1, avoid);
+    foreach (object ob in obs) {
+	if (!ob->is_visible()) continue;
+	if (!ob->short()) continue;
+	if (flag && !ob->test_flag(TOUCHED) && ob->untouched_long()) continue;
+        if (ob->is_attached()) {
+            if (ob->inventory_visible())
+                res += ob->inventory_recurse(depth);
             continue;
         }
-	if (!duplicatep(obs[i]))
+	if (!duplicatep(ob))
 	{
 	    for (j=0; j<depth; j++) res+="  ";
-	    if ((j=count(obs[i]))>1) {
-		if (j > 4) res += "many " + obs[i]->plural_short();
-		else res += j + " " + obs[i]->plural_short();
+	    if ((j=count(ob))>1) {
+		if (j > 4) res += "many " + ob->plural_short();
+		else res += j + " " + ob->plural_short();
 	    } else {
-		res += obs[i]->a_short();
-		if (ex = obs[i]->calculate_extra())
+		res += ob->a_short();
+		if (ex = ob->calculate_extra())
 		    res += ex;
 	    }
 	    res += "\n";
-	    if (obs[i]->inventory_visible())
-		res += (string)obs[i]->inventory_recurse(depth+1, avoid);
+	    if (ob->inventory_visible())
+		res += ob->inventory_recurse(depth);
 	}
     }
-    if (res == "") return 0;
-    return res;
+    return res == "" ? 0 : res;
 }
- 
- 
  
 object owner(object ob) {
   object env;

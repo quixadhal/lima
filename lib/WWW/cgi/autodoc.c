@@ -3,12 +3,11 @@
 private string upper;
 
 void create() {
-    string ascii = "";
-    for(int i=0; i < 256; i++) {
-	if (i)
-	    ascii += chr(i);
-	else
-	    ascii += " ";
+    string ascii = set_bit("", 127*6);
+
+    ascii += ascii;
+    for (int i = 1; i < 256; i++) {
+        ascii[i] = i;
     }
     
     upper = ascii[0..('a'-1)] + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + ascii[('z'+1)..];

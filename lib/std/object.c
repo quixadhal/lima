@@ -21,6 +21,10 @@ inherit __DIR__ "object/mass";
 #endif
 #endif  //USE_SIZE
 
+#ifdef EVERYTHING_SAVES
+inherit M_SAVE;
+#endif
+
 inherit __DIR__ "object/light";		/* before non_object */
 inherit __DIR__ "object/properties";
 inherit __DIR__ "object/move";
@@ -47,11 +51,55 @@ int stat_me()
     return 1;
 }
 
-create(){
+
+//:FUNC setup
+// This function is overloaded by area implementors.  Nothing in
+// the mudlib proper should override this.  Further, nothing should
+// ever go into this function.  This allows an area implementor to
+// simply respond to setup() and not worry about inheriting the
+// function call.
+void setup()
+{
+    /* Overload me! */
+}
+
+//:FUNC mudlib_setup
+// This function is overloaded by all mudlib objects deriving from
+// this class.  They should inherit as necessary.  The intention of
+// overriding this instead of create() to is ensure that the mudlib
+// initialization completes _before_ the call to the area coder's
+// setup() function.  Specifically, the mudlib objects need to
+// initialize defaults that will then be changed by the setup() call.
+// Note that if the mudlib object overrode create(), then its init
+// code would occur _after_ the area coder's setup() and possibly
+// blow away some of their settings.
+void mudlib_setup()
+{
+    /* Overload me! */
+
+}
+void do_setup()
+{
+    if ( clonep(this_object()) )
+    {
+	mudlib_setup();
+
+	// Use a call_other to avoid a redeclaration warning, since
+	// mostly modules that aren't directly inheriting us will define
+        // this function.
+	this_object()->internal_setup(); 
+	setup();
+    }
+}
+
+void create(int skip_setup)
+{
     ::create();
     properties::create();
     configure_set(STD_FLAGS, 0, 0, (: resync_visibility :), 0, 0);
-//    restore_object("/data/"+base_name(this_object()));
+
+    if ( !skip_setup )
+	do_setup();
 }
 
 

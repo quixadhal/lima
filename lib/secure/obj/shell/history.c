@@ -261,7 +261,7 @@ query_history()
     {
 	object ob = query_owner();
 
-	if ( ob && (ob = ob->query_link()) )
+	if ( ob )
 	{
 	    string msg = sprintf("%s read the history of %s\n",
 				 this_user()->query_userid(),
@@ -270,8 +270,8 @@ query_history()
 	    LOG_D->log(LOG_SNOOP, msg);
 
 	    if ( adminp(ob) )
-		tell_object(ob, sprintf("%s has just read your history!\n",
-					this_body()->query_name()));
+		ob->receive_private_msg(sprintf("%s has just read your history!\n",
+						this_body()->query_name()));
 	}
 
 	return get_ordered_history();

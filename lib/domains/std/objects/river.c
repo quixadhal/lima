@@ -2,9 +2,8 @@
 
 inherit OBJ;
 
-void create()
+void setup()
 {
-  ::create();
   set_adj("lazy");
   set_id("river","water");
   set_in_room_desc("");

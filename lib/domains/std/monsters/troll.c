@@ -3,10 +3,9 @@
 inherit MONSTER;
 inherit M_BLOCKEXITS;
 
-void create() {
+void setup() {
     object sword;
 
-    ::create();
     set_name("Bill");
     set_id("troll", "bill");
     set_gender(1);

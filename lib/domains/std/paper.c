@@ -4,9 +4,7 @@ inherit OBJ;
 inherit M_GETTABLE;
 inherit M_WRITING_SURFACE;
 
-void create() {
-    ::create();
-	
+void setup() {
     set_adj("piece of", "scrap of");
     set_id("paper", "scrap");
     set_long("It's a rather plain scrap of white paper.\n");

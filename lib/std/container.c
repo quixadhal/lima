@@ -17,6 +17,11 @@ private string main_prep = "in";
 private int contained_light;
 private int contained_light_added;
 
+//:FUNCTION valid_prep
+//Overloaded by complex_container
+static int valid_prep(string prep) {
+    return prep == main_prep;
+}
 
 //:FUNCTION container
 //Returns 1 if an object is a container
@@ -40,6 +45,7 @@ int query_capacity()
 }
 
 #ifdef USE_MASS
+//:FUNCTION query_mass
 int query_mass()
 {
   return capacity + ::query_mass();
@@ -49,7 +55,7 @@ int query_mass()
 #ifdef USE_SIZE
 int query_aggregate_size()
 {
-  return capacity + :: get_size();
+  return capacity + ::get_size();
 }
 #endif
 
@@ -60,6 +66,7 @@ static void
 set_capacity( int c )
 {
 //### what calls this?  Is it needed?
+//### Yes, I think recalc stuff uses this at some point.  Worth checking, tho
   capacity = c;
 }
 
@@ -84,7 +91,7 @@ mixed receive_object( object target, string relation )
     if( origin() != ORIGIN_LOCAL )
     {
         /* allow a matching relation or newly cloned objects */
-        if ( relation && relation != main_prep && relation != "#CLONE#" )
+        if ( relation && !valid_prep(relation) && relation != "#CLONE#" )
             return "You can't put things " + relation + " that.\n";
     }
 #ifdef USE_SIZE
@@ -120,15 +127,8 @@ varargs mixed release_object( object target, int force )
 
 //:FUNCTION set_max_capacity
 //Change the maximum capacity of an object.
-void
+static void
 set_max_capacity(int x) {
-
-/* You can mask this if you want it to be changed externally in
-   your room, but this is to prevent pranks
- */
-//### why not just static it?
-    if( origin() != ORIGIN_LOCAL)
-	return 0;
     max_capacity = x;
 }
 
@@ -150,10 +150,10 @@ string look_in( string relation )
     if (stringp(ex))
 	return ex;
     
-    if (relation && relation != main_prep)
+    if (relation && !valid_prep(relation))
         return "There is nothing there.\n";
 
-    inv = inv_list(this_object(), 0, 1);
+    inv = inv_list(all_inventory());
     if ( !inv )
 	inv = "  nothing";
     
@@ -162,10 +162,11 @@ string look_in( string relation )
 	inv ));
 }
 
-void create() {
+void mudlib_setup()
+{
+    ::mudlib_setup();
     objects = ([]);
-    set_capacity( 0 );
-    ::create();
+    set_capacity(0);
 }
 
 //:FUNCTION inventory_visible
@@ -195,7 +196,11 @@ int inventory_accessible() {
 //:FUNCTION inventory_header
 //Returns a string header to put before inventory lists
 string inventory_header() {
-    return "It contains:";
+    switch (main_prep) {
+    case "in": return "It contains:\n";
+    case "on": return "Sitting on it you see:\n";
+    default: return capitalize(main_prep)+" it you see:\n";
+    }
 }
 
 string long()
@@ -204,9 +209,9 @@ string long()
     string contents;
 
     res = ::long();
-    contents = inv_list(this_object(), 1, 1);
+    contents = inv_list(all_inventory(), 1);
     if (inventory_visible() && contents)
-	res += inventory_header() + "\n" + contents;
+	res += inventory_header() + contents;
     return res;
 }
 
@@ -216,7 +221,9 @@ string simple_long() {
     return ::long();
 }
 
-void reset(){
+
+void make_objects_if_needed()
+{
     int tally, num;
     mixed *rest;
     mixed value;
@@ -240,6 +247,7 @@ void reset(){
 	} else
 	    continue;
 
+#ifdef NOPE
 	oids = file->query_id();
 	if( pointerp(oids) && sizeof(oids) )
 	    name = oids[0];
@@ -247,18 +255,31 @@ void reset(){
 	    name = oids;
 	else
 	    name = "";
-
 	tally = sizeof(filter_array(inv, (: $1->id($(name)) :) ));
+#endif
+	{
+	    if ( file[<2..] == ".c" )
+		file = file[0..<3];
+	    tally = sizeof(filter(inv, (: base_name($1) == $(file) :)));
+	}
 	num -= tally;
 	for (int j = 0; j < num; j++) {
-	    ret = new(file, rest...)->move(this_object(), "#CLONE#");
-	    if ( ret != MOVE_OK )
+	  // Temporary till a varargs bug is fixed.
+	  ret = new(file)->move(this_object(), "#CLONE#");
+	  //ret = new(file, rest...)->move(this_object(), "#CLONE#");
+	  if ( ret != MOVE_OK )
 	    {
-		error("Initial clone failed for '" + file +"': " + ret + "\n");
+	      error("Initial clone failed for '" + file +"': " + ret + "\n");
 	    }
 	}
     }
 }
+
+void reset()
+{
+    make_objects_if_needed();
+}
+
 
 //:FUNCTION set_objects
 //Provide a list of objects to be loaded now and at every reset.  The key
@@ -272,7 +293,7 @@ void reset(){
 //count up to that number.
 void set_objects(mapping m) {
     objects = m;
-    reset();
+    make_objects_if_needed();
 }
 
 //:FUNCTION can_take_from
@@ -296,12 +317,14 @@ int can_put_in() {
 //:FUNCTION introduce_contents
 //returns a string appropriate for introduction the contents of an object
 //in room descriptions.
-string
-introduce_contents() {
-    switch (main_prep) {
+varargs string
+introduce_contents(string prep) {
+    if (!prep)
+	prep = main_prep;
+    switch (prep) {
     case "in": return capitalize(the_short()) + " contains:\n";
     case "on": return "Sitting on "+the_short()+" you see:\n";
-    default: return capitalize(main_prep)+" "+the_short()+" you see:\n";
+    default: return capitalize(prep)+" "+the_short()+" you see:\n";
     }
 }
 
@@ -313,21 +336,25 @@ varargs string inventory_recurse(int depth, mixed avoid) {
     string tmp;
 
     str = "";
-    if(!arrayp(avoid))
-      avoid = ({ avoid });
-    obs = all_inventory(this_object()) - avoid;
+    if (avoid) 
+    {
+	if(!arrayp(avoid)) avoid = ({ avoid });
+	obs = all_inventory() - avoid;
+    }
+    else
+	obs = all_inventory();
 
-    for (i=0; i<sizeof(obs); i++) {
-        if (!(obs[i]->is_visible())) continue;
-        if (!obs[i]->test_flag(TOUCHED) && obs[i]->untouched_long()) {
-	    str += obs[i]->untouched_long()+"\n";
-             if (obs[i]->inventory_visible())
-                 str += obs[i]->inventory_recurse(depth+1, avoid);
+    foreach (object ob in obs) {
+        if (!(ob->is_visible())) continue;
+        if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
+	    str += ob->untouched_long()+"\n";
+             if (ob->inventory_visible())
+                 str += ob->inventory_recurse(0, avoid);
         }
     }
     res = introduce_contents();
-    if (tmp = inv_list(this_object(), 1, depth + 1, avoid)) {
-      for (i=0; i<depth-1; i++) str += "  ";
+    if (tmp = inv_list(obs, 1, depth)) {
+      for (i=0; i<depth; i++) str += "  ";
       str += res + tmp;
     }
     return str;
@@ -383,13 +410,13 @@ mixed direct_get_obj(object ob, string name) {
 }
 
 mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
-    if (prep == main_prep)  {
+    if (valid_prep(prep))  {
         if(prep == "in")  {
             if (this_object()->query_closed()) {
                 return capitalize(the_short())+" is closed.\n";
             } 
         }
-    return 1;
+	return 1;
     }                                                   
 
     switch (prep) {
@@ -403,8 +430,17 @@ mixed indirect_put_obj_wrd_obj(object ob1, string prep, object ob2) {
     }
 }
 
+mixed indirect_get_obj_from_obj(object ob1, object ob2) {
+    if(main_prep == "in")  {
+	if (this_object()->query_closed()) {
+	    return capitalize(the_short())+" is closed.\n";
+	}
+    }
+    return 1;
+}
+
 mixed direct_look_str_obj(string prep, object ob) {
-    if (prep == main_prep)
+    if (valid_prep(prep))
 	return 1;
     return "There is nothing " + prep + " " + the_short() + ".\n";
 }
@@ -516,7 +552,6 @@ int stat_me()
 {
     write("Container capacity: "+query_capacity()+"/"+max_capacity+"\n");
     write("main_prep: " + main_prep + "\n");
-    write("It contains:\n"+
-      inv_list(this_object(), 0, 1)+"\n");
+    write("It contains:\n"+ show_contents() + "\n");
     return ::stat_me();
 }

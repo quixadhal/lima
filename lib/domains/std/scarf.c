@@ -5,10 +5,11 @@
 inherit OBJ;
 inherit M_GETTABLE;
 inherit M_WEARABLE;
+inherit M_VALUABLE;
 
-void create() {
-    ::create();
+void setup() {
     set_adj("red");
     set_id("scarf");
     set_gettable(1);
+set_value(10);
 }

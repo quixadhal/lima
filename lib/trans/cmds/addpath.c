@@ -21,7 +21,7 @@ private void main(string * arg)
 	return;
     }
 
-    paths = shell_ob->get_variable("path");
+    paths = shell_ob->query_path();
     foreach ( item in paths )
     {
 	if ( item == arg[0] )

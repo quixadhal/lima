@@ -2,7 +2,7 @@
 
 inherit STOCK_MASTER;
 
-create()
+void create()
 {
     ::create( "stock-cleric" );
 }

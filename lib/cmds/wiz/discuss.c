@@ -5,10 +5,10 @@ inherit CMD;
 
 private void main(mixed *arg)
 {
-  if(userp(arg[0]) || member_array(arg[0],bodies()) != -1)
+    if(userp(arg[0]) || member_array(arg[0],bodies()) != -1)
     {
-      write("You can't discuss a user, just objects.\n");
-      return;
+	write("You can't discuss a user, just objects.\n");
+	return;
     }
-  new("/obj/annotationmenu", arg[0])->start_menu();
+    new(ANNO_MENU, arg[0])->start_menu();
 }

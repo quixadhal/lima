@@ -23,7 +23,7 @@ void remove() {
 #ifndef COMBAT_USES_HEARTBEATS
     non_heart_beat::remove();
 #endif
-    damage_source::remove();
+    m_damage_source::remove();
     living::remove();
 }
 
@@ -63,7 +63,7 @@ void attack() {
 	target_is_asleep();
 	return;
     }
-    result = take_a_swing(tmp);
+    result = take_a_swing(target);
     if (!result) return;
     
     result = negotiate_result(result);
@@ -104,4 +104,9 @@ string diagnose() {
     default:
 	error("query_hp() out of bounds.\n");
     }
+}
+
+int query_ghost()
+{
+    return hit_points::query_ghost();
 }

@@ -3,16 +3,18 @@
 // An NNTP client object.   (RFC 977: Network News Transfer Protocol)
 // Protocol by Brian Kantor and Phil Lapsley.
 // Created: May 4, 1995 by John Viega (rust@virginia.edu)
+// More user friendly date handling added Aug 8. by Edward Kmett (Harmless)
+// ARTICLE reponse code, well um.. removed by Edward Kmett
 
 #include <socket.h>
 #include <mudlib.h>
+#include <driver/localtime.h>
 
 #define NNTP_PORT "119"
 #define MAX_PORT 32000 
 
-DOC_MODULE("interface to an external nntp server.")
-
-
+//:MODULE
+//interface to an external nntp server.
 
 private object   news_socket;
 private string   news_host;
@@ -55,7 +57,7 @@ private nomask void handle_response(int code, mixed response)
   case "LIST":
     if(code != 215)
       {
-	evaluate(response_callback, "nntp error: unexpected reply.");
+	evaluate(response_callback, "nntp error: unexpected reply: " +code);
 	return;
       }
     evaluate(response_callback, map_array(response[1..],(:explode($1," "):)));
@@ -63,7 +65,7 @@ private nomask void handle_response(int code, mixed response)
   case "GROUP":
     if(code != 211)
       {
-	evaluate(response_callback, "nntp error: unexpected reply.");
+	evaluate(response_callback, "nntp error: unexpected reply: " + code);
 	return;
       }
     response = explode(response, " ");
@@ -86,11 +88,10 @@ private nomask void handle_response(int code, mixed response)
       }
     evaluate(response_callback, code, count, first, last, name);
     return;
-
   case "STAT_NEXT_OR_LAST":
     if((code-22)%100)
       {
-	evaluate(response_callback, "nntp error: unexpected reply.");
+	evaluate(response_callback, "nntp error: unexpected reply:" + code);
 	return;
       }
     response = explode(response, " ");
@@ -104,10 +105,10 @@ private nomask void handle_response(int code, mixed response)
       }
     evaluate(response_callback, code, nr, id);
     return;
-  case "ARTICLE":
-    if((code-22)%100)
+  case "ARTICLE_OF_CLOTHING":
+    if((code-20)%100)
       {
-	evaluate(response_callback, "nntp error: unexpected reply.");
+	evaluate(response_callback, "nntp error: unexpected reply: " + code);
 	return;
       }
     tmp = explode(response, " ");
@@ -246,24 +247,48 @@ varargs void create(function callback, string host, mixed port)
 
 }
 
+private mapping remap  = ([
+                           "Jan":"01","Feb":"02","Mar":"03",
+                           "Apr":"04","May":"05","Jun":"06",
+                           "Jul":"07","Aug":"08","Sep":"09",
+                           "Oct":"10","Nov":"11","Dec":"12"
+                         ]);
 
-DOC(newgroups, "Send an nntp NEWGROUPS command.")
+//:FUNCTION dt_stamp
+//Return an nntp compatible yymmdd hhmmss string
 
-void newgroups(string date, string time)
+string dt_stamp(int time)
 {
-    expected_responses += ({"NEWGROUPS"});
-    news_socket->send("NEWGROUPS "+date+" "+time+CRLF);
+  string s;
+  int * tmp ;
+  tmp = localtime(time);
+  s = ctime(time+tmp[LT_GMTOFF]);
+  if (s[8] == ' ')
+   return s[22..] + remap[s[4..6]] + "0" + s[9..12] + s[14..15] + s[17..18];
+  else return s[22..] + remap[s[4..6]] + s[8..12] + s[14..15] + s[17..18];
 }
 
-DOC(newnews, "Send an nntp NEWNEWS command.")
+//:FUNCTION newgroups
+//Send an nntp NEWGROUPS command.
 
-void newnews(string group, string date, string time)
+void newgroups(int datetime)
+{
+    
+    expected_responses += ({"NEWGROUPS"});
+    news_socket->send("NEWGROUPS "+dt_stamp(datetime)+ " GMT"+CRLF);
+}
+
+//:FUNCTION newnews
+//Send an nntp NEWNEWS command.
+
+void newnews(string group, int datetime)
 {
     expected_responses += ({"NEWNEWS"});
-    news_socket->send("NEWNEWS " + group + " " + date + " " + time+CRLF);
+    news_socket->send("NEWNEWS " + group + " " + dt_stamp(datetime) + " GMT"+CRLF);
 }
 
-DOC(list, "Send an nntp LIST command.")
+//:FUNCTION list
+//Send an nntp LIST command.
 
 void list()
 {
@@ -271,7 +296,8 @@ void list()
     news_socket->send("LIST"+CRLF);
 }
 
-DOC(group, "Send an nntp GROUP command.")
+//:FUNCTION group
+//Send an nntp GROUP command.
 
 void group(string name)
 {
@@ -279,7 +305,8 @@ void group(string name)
     news_socket->send("GROUP "+name+CRLF);
 }
 
-DOC(help, "Send an nntp HELP command.")
+//:FUNCTION help
+//Send an nntp HELP command.
 
 void help()
 {
@@ -287,7 +314,8 @@ void help()
     news_socket->send("HELP"+CRLF);
 }
 
-DOC(stat, "Send an nntp STAT command.")
+//:FUNCTION stat
+//Send an nntp STAT command.
 
 void stat(string id)
 {
@@ -295,7 +323,8 @@ void stat(string id)
     news_socket->send("STAT " + id+CRLF);
 }
 
-DOC(next, "Send an nntp NEXT command.")
+//:FUNCTION next
+//Send an nntp NEXT command.
 
 void next()
 {
@@ -304,7 +333,8 @@ void next()
 
 }
 
-DOC(last, "Send an nntp LAST command.")
+//:FUNCTION last
+//Send an nntp LAST command.
 
 void last()
 {
@@ -312,7 +342,8 @@ void last()
     news_socket->send("LAST"+CRLF);
 }    
 
-DOC(head, "Send an nntp HEAD command.")
+//:FUNCTION head
+//Send an nntp HEAD command.
 
 varargs void head(string id)
 {
@@ -324,7 +355,8 @@ varargs void head(string id)
 }
 
 
-DOC(body, "Send an nntp BODY command.")
+//:FUNCTION body
+//Send an nntp BODY command.
 
 varargs void body(string id)
 {
@@ -336,7 +368,8 @@ varargs void body(string id)
 }
 
 
-DOC(article, "Send an nntp ARTICLE command.")
+//:FUNCTION article
+//Send an nntp ARTICLE command.
 
 varargs void article(string id)
 {
@@ -347,7 +380,8 @@ varargs void article(string id)
       news_socket->send("ARTICLE "+id+CRLF);
 }
 
-DOC(xhdr, "Send an nntp XHDR command.")
+//:FUNCTION xhdr
+//Send an nntp XHDR command.
 
 void xhdr(string hdr, string str)
 {
@@ -355,7 +389,8 @@ void xhdr(string hdr, string str)
   news_socket->send("XHDR "+hdr+" "+str+CRLF);
 }
 
-DOC(post, "Send an nntp POST command.")
+//:FUNCTION post
+//Send an nntp POST command.
 
 void post(string file)
 {
@@ -384,7 +419,8 @@ void post(string file)
   
 }
 
-DOC(slave, "Send an nntp SLAVE command.")
+//:FUNCTION slave
+//Send an nntp SLAVE command.
 
 void slave()
 {
@@ -392,7 +428,8 @@ void slave()
   news_socket->send("SLAVE"+CRLF);
 }
 
-DOC(ihave, "Send an nntp IHAVE command.")
+//:FUNCTION ihave
+//Send an nntp IHAVE command.
 
 void ihave(string id, mixed file)
 {
@@ -411,7 +448,8 @@ void ihave(string id, mixed file)
   news_socket->send("IHAVE "+id+CRLF);
 }
 
-DOC(quit, "Send an nntp QUIT command, and clean up.")
+//:FUNCTION quit
+//Send an nntp QUIT command, and clean up.
 
 void quit()
 {

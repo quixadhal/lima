@@ -12,14 +12,14 @@ private void main(string which)
 
     if ( !which )
     {
-	write("Usage: semote <feeling>\n");
+	write("You need to specify a soul.\n");
 	return;
     }
 
     data = SOUL_D->query_emote(which);
     if ( !data )
     {
-	write("That feeling does not exist!\n");
+	write("That soul does not exist!\n");
 	return;
     }
 
@@ -87,4 +87,9 @@ string short()
 string the_short()
 {
     return "Somebody";
+}
+
+void player_menu_entry (string s)
+{
+  main (s);
 }

@@ -5,9 +5,7 @@ inherit M_OPENABLE;
 inherit M_READABLE;
 inherit M_GETTABLE;
 
-void
-create() {
-    ::create();
+void setup() {
     
     set_adj("large", "treasure", "sandy");
     set_id("chest");

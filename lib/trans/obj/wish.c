@@ -1,18 +1,16 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <security.h>
 #include <mudlib.h>
 #include <commands.h>
 
 inherit SHELL;
 inherit M_SHELLVARS;
 inherit M_PROMPT;
-
 inherit M_COMPLETE;
-inherit M_ACCESS;
 inherit M_GETOPT;
 inherit M_REGEX;
 
+private static string path;
 
 int is_variable(string name);
 
@@ -21,6 +19,7 @@ private mixed evaluate_code(mixed code)
     string dir;
     
     code = reg_assoc(code,({"\\$[a-zA-Z0-9]+"}),({0}))[0];
+    
     code = 
 	map(code, (: (strlen($1) > 1 && $1[0] == '$' && is_variable($1[1..]))  ?
 		   "(this_body()->query_shell_ob()->get_variable(\""+$1[1..]+"\"))" :
@@ -43,7 +42,7 @@ private nomask string * expand_arguments(string* argv)
 {
     int i;
 
-    if(this_body() != query_owner())
+    if ( this_user() != query_owner() )
 	error("get your own shell, asswipe!\n");
 
     for(i=0;i<sizeof(argv);i++)
@@ -72,6 +71,20 @@ private void print_argument(mixed argv)
     write("\n");
 }  
 
+
+// called when the value of the "path" variable changes
+private void set_path(string arg) {
+    if (!arrayp(arg))
+	return;
+    arg = filter(arg, (: stringp :));
+    path = map(arg, (: evaluate_path :));
+}
+
+string query_path() {
+    // New shells need to query this to get the saved value
+    if (!path) set_path(get_variable("path"));
+    return path;
+}
 
 private void fix_path()
 {
@@ -116,6 +129,8 @@ static void prepare_shell()
     shell_bind_if_undefined("?",	(: show_shell_help :));
     shell_bind_if_undefined("set",	(: cmd_set :));
     shell_bind_if_undefined("unset",	(: cmd_unset :));
+
+    add_variable_hook("path", (: set_path :));
 }
     
 string query_shellname()
@@ -126,8 +141,9 @@ string query_shellname()
 static void execute_command(string * argv, string original_input)
 {
     mixed	tmp;
-    string	path = get_variable("path");
+    string	path = query_path();
     mixed 	cmd_info;
+    string	channel_name;
 
     /* BEGINNING OF EXPANSION */
 
@@ -143,10 +159,9 @@ static void execute_command(string * argv, string original_input)
     // In some shells, this is the hook for doing username completion,
     // globbing, flag pre-parsing, etc...  In others, it's used to execute
     // code encased in ` `'s.
-    argv = expand_arguments(argv);
+    argv = expand_arguments(argv - ({ "" }));
     if(!argv)
 	return;
-    argv -= ({ "" });
 
     if(wizardp(this_user()))
 	argv = map(argv, 
@@ -189,7 +204,7 @@ static void execute_command(string * argv, string original_input)
 	cmd_info[0]->call_main(cmd_info[2], cmd_info[1]);
 	return;
     }
-    if ( cmd_info != 0 && cmd_info >= 0 )
+    if ( cmd_info > 0 )
     {
 	if ( cmd_info != 1 )
 	    printf("Found command is uncallable.\n");
@@ -206,6 +221,16 @@ static void execute_command(string * argv, string original_input)
 	return;
 
     /* try a channel */
+    channel_name = NCHANNEL_D->is_valid_channel(argv[0], this_body()->query_channel_list());
+    if ( channel_name )
+    {
+	int chan_type = channel_name[0..4] == "imud_";
+
+	NCHANNEL_D->cmd_channel(channel_name,
+				implode(argv[1..], " "),
+				chan_type);
+	return;
+    }
 
 #ifdef AUTOMATIC_REHASH
 
@@ -256,4 +281,9 @@ void setup_for_save()
 static mixed what_prompt()
 {
     return (: get_prompt :);
+}
+
+static nomask string query_save_path(string userid)
+{
+    return WSHELL_PATH(userid);
 }

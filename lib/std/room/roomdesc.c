@@ -139,7 +139,7 @@ private int dont_show_long()
 string long()
 {
 #ifdef OBVIOUS_EXITS_BOTTOM
-    return sprintf("%s%sObvious Exits: %s\n%s",
+    return sprintf("%s%s%sObvious Exits: %s\nYou also see:\n%s",
                    (dont_show_long() ? "" : get_base_long()[0..<2]),
 		   get_state_specific_long(),
 		   get_extra_long(),

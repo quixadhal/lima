@@ -10,11 +10,10 @@ inherit MONSTER;
 inherit M_GUILD_MASTER;
 inherit M_REGEX;
 
-void create()
+void setup()
 {
     object sword;
 
-    ::create();
     set_name("Guildmaster");
     set_proper_name("The Guildmaster");
     add_id("master");

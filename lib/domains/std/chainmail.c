@@ -2,8 +2,7 @@
 
 inherit ARMOR;
 
-create() {
-    ::create();
+void setup() {
     set_adj("chainmail");
     set_id("shirt", "chainmail");
     set_armor_class(4);

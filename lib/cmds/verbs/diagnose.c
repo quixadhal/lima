@@ -8,9 +8,16 @@
 inherit VERB_OB;
 inherit M_MESSAGES;
 
-mixed can_diagnose()
-{
-    return 1; // can do this when asleep, dead, blind, etc
+int need_to_see() {
+    return 0;
+}
+
+int need_to_be_alive() {
+    return 0;
+}
+
+int need_to_think() {
+    return 0;
 }
 
 void do_diagnose()

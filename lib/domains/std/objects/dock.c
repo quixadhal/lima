@@ -2,9 +2,8 @@
 
 inherit OBJ;
 
-void create()
+void setup()
 {
-  ::create();
   set_adj("rotting", "rotten", "wooden");
   set_id("dock");
   set_attached(1);

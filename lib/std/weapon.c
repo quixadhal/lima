@@ -7,13 +7,14 @@ inherit M_WIELDABLE;
 inherit M_GETTABLE;
 inherit M_MESSAGES;
 
-void create() {
-    ::create();
+void mudlib_setup()
+{
+    ::mudlib_setup();
     add_id("weapon");
     set_gettable(1);
 }
-     
+
 void remove() {
     object::remove();
-    wieldable::remove();
+    m_wieldable::remove();
 }	    

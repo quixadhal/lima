@@ -8,5 +8,5 @@ void do_remove_obj(object ob)
 }
 
 mixed *query_verb_info() {
-    return ({ ({ "OBJ" }) });
+    return ({ ({ "OBJ" }), ({ "take off" }) });
 }

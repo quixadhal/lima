@@ -9,7 +9,6 @@
 #include <commands.h>
 
 object query_link();			// in /std/body.c
-string * query_path();			// in /std/body/path.c
 string move(object location);		// in /std/object/move.c
 mixed expand_if_alias(string input);	// in /std/body/alias.c
 object query_mailer();			// in /std/body/mailbase.c

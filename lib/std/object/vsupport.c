@@ -24,7 +24,10 @@ mixed direct_give_obj_to_liv(string rule)
 }
 
 mixed direct_eat_obj(object ob) {
-    return "I don't think " + ob->the_short() + " would agree with you.\n";
+    //return "I don't think " + ob->the_short() + " would agree with you.\n";
+ // not sure why the above is here but it seemed to be causing
+//the parser to return it is not alive.
+  return 1;
 }
 
 mixed direct_look_str_obj(string prep, object ob) {

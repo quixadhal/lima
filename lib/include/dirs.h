@@ -6,5 +6,6 @@
 #define DIR_LOG		"/log"
 #define DIR_SECURE_LOG	"/data/secure"
 #define DIR_RACES	"/std/race"
+#define DIR_I3_FILES	"/ftp"
 
 #endif /* DIRS_H */

@@ -10,16 +10,13 @@
 #include <mudlib.h>
 #include <size.h>
 
+inherit CONTAINER;
 inherit M_OPENABLE;
 inherit M_GETTABLE;
 inherit M_LOCKABLE;
-inherit CONTAINER;
 
-create()
+void setup()
 {
-    container::create();
-    openable::create();
-
     set_adj("large");
     set_id("safe");
 

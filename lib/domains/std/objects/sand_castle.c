@@ -4,9 +4,8 @@ inherit OBJ;
 inherit M_DIGGABLE;
 inherit M_INPUT;
 
-void create()
+void setup()
 {
-  ::create();
   set_adj("sand", "intricate", "towering");
   set_id("castle","sculpture");
   set_in_room_desc("An intricate sand castle towers before you.");

@@ -5,9 +5,8 @@
 inherit OBJ;
 
 void
-create() 
+setup() 
 {
-    ::create();
     
     set_id("passage");
     set_id("outline");

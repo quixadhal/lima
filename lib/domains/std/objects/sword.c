@@ -3,8 +3,7 @@
 inherit SWORD;
 inherit M_VALUABLE;
 
-create() {
-    ::create();
+void setup() {
     set_adj("dull");
     set_id("sword");
     set_weapon_class(15);

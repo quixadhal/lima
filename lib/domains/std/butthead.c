@@ -29,9 +29,7 @@ void initiate_beavis()
 
 
 
-create() {
-  
-    ::create();
+void setup() {
     set_name("Butthead");
     set_gender(1);
     set_proper_name("Butthead");

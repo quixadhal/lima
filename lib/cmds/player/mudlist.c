@@ -77,9 +77,6 @@ private void main(mixed *arg, mapping flags)
 	info = INFO_DEFAULT;
     search_str = flags["s"];
 
-
-	
-
     format = implode(info, (: $1 + sprintf("%%-%ds ", $2[1]) :), "");
     format[<1] = '\n';
 
@@ -106,26 +103,26 @@ private void main(mixed *arg, mapping flags)
         string	line;
 	mudinfo = mudlist[match];
 	line = sprintf(format,
-			  mudinfo[0] == -1 ? "U" : "D",
-			  match[0..info[1][1]-1],
-			  map_array(info[2..],
-				    (: ($(mudinfo)[$1[0]]+"")[0..$1[1]-1] :)
-					)...);
+		       mudinfo[0] == -1 ? "U" : "D",
+		       match[0..info[1][1]-1],
+		       map_array(info[2..],
+				 (: ($(mudinfo)[$1[0]]+"")[0..$1[1]-1] :)
+			   )...);
 	if (search_str)
-	  {
-        if( regexp( lower_case( line ), lower_case( search_str )))
-	      {
+	{
+	    if( regexp( lower_case( line ), lower_case( search_str )))
+	    {
 		output += line;
-	      }
+	    }
 	    else
-	      {
+	    {
 		matched--; mudinfo[0] == -1 ? upcount-- : 0;
-	      }
-	  }
+	    }
+	}
 	else
-	  {
+	{
 	    output += line;
-	  }
+	}
 
     }
     output = sprintf("%d matches out of %d muds. %d are UP.\n",

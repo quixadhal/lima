@@ -4,8 +4,7 @@
 
 inherit ROOM;
 
-void create(){
-    ::create();
+void setup(){
 
     /* ensure this place is lit, regardless of DEFAULT_LIGHT_LEVEL */
     set_light(1);

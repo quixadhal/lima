@@ -5,8 +5,8 @@
 inherit CONTAINER;
 
 void
-create() {
-    ::create();
+setup() 
+{
     
     set_id("hole");
     set_long("There isn't anything special about the hole.\n");

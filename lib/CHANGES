@@ -1,291 +1,424 @@
-Deathblade updated the I3 daemon's version, too (I should automate this... 
-    :-) 
+Beek added an autodoc help file, so people can't complain they don't 
+    understand the format 
 
-Cowl wrote a quickie cgi that will find, and display in an unordered list, 
-    all wizards with web dirs, clickable to get to thier home pages 
-    (/WWW/cgi/homepages.c) 
+Beek changed /std/modules/complete not to use regexp (intermud tell doesn't 
+    bug on regexp special chars now) 
 
-Ohara fixed that persistant finger bug. 
+Beek added a few //:FUNCTION lines to various objects 
 
-Ohara removed a lot more bugs from the bug spool. Could someone with more 
-    clues than me please go through it and clean it up sometime :) 
+Beek added EVERYTHING_SAVES to config.h; if it's on M_SAVE comes in at 
+    OBJECT. The lib would still need to be changed to call add_saved() in 
+    the right places, though 
 
-Rust added: http://lima.imaginary.com:7958/cgi/changes.c 
+Beek removed the old autoload code; anything you have in your inventory 
+    that inherits M_SAVE should save and restore with you now. 
 
-Cowl changed the seperator between filename and arguments in a URL from '?' 
-    to the standard '?=' in the http daemon 
+Beek changed the virtual lookup to take the last cfile whose name 
+    corresponds to a directory, whether that directory exists or not. 
 
-Rust added http://lima.imaginary.com:7958/fingeruser.html which allows you 
-    to finger a user. If a user didn't supply a homepage for their finger 
-    info, and they've got a mud homepage, a link to that is given by the 
-    finger_d as their homepage. 
+Beek added /domains/std/rooms/labyrinth as an example of a nontrivial 
+    virtual room use (AKA "Yes, you can do things other than parametrized 
+    grid" ) 
 
-Rust added a bunch of mudlist/info web stuff for people whoose browsers 
-    support tables. http://lima.imaginary.com:7958/mudlist.html 
+Beek :note: The labyrinth is still a bit buggy. 
 
-Ohara fixed the reporter bug/typo/idea/todos to save 2 lines per post. PS: 
-    There's a hell of a lot of redundancy in the four functions. This 
-    should probably be fixed. 
+Rust made M_SAVE::save_to_string take recursion as an argument, cause 
+    people are forgetting to call set_save_recurse on their own... 
 
-Beek made a clog entry just so I would show up on Rust's CGI. Sorry guys 
-    :-) 
+Rust maded saved_items non-static, since their whole point is to be 
+    persistant ;-) I also made save_recurse static. 
 
-Deathblade fixed NEWS_D to save itself after posts are removed. 
+Rust made a fix to /std/save::load_from_string that prevented recursive 
+    restores from working... 
 
-Ohara changed channels so that /who and /list are equivalent. 
+Rust fixed a bug in M_SAVE: If recursion was on, it always moved the object 
+    into the previous object. Which moved the body object into the user 
+    object. And the user object wouldn't let go.... N 
 
-Zifnab fixed it so that return at the main menu of the alias menu quits the 
-    menu 
+Rust made it so that if you have EVERYTHING_SAVES on, all your objects are 
+    there when you quit and come back. 
 
-Ohara and Dana and Perk decided to kick Zifnab off and rename Lima Bean to 
-    Ozmud. 
+Rust made M_SAVE ignore missing objects. So if an object got moved, or 
+    removed, you don't get it back when you restore. 
 
-Rust removed the _d from the file names of all the daemons. 
+Ohara fixed stairs to have no plurular, so frotz should work on them. 
+    Hopefully. 
 
-Rust added an assert.h assert(x) works if DEBUG is on, and ASSERT(x) always 
-    works. They can not be embedded in an expression intentionally (they 
-    must be used as standalone statements). 
+Ohara changed home to tell you that you're going home .. I'm not certain 
+    whether I should have changed from a tell_room to an other_action tho. 
 
-Rust added a spell system, and 2 tiny examples in /domains/std/spells (You 
-    have to be a wizard to use one, and you have to be in the stock mage 
-    guild and level 1 in the guild to use the other). Next time I'm here, 
-    I'll do some more examples. 
+Deathblade updated the I3 daemon with the ucache and most of the auth 
+    services. Added empty response for oob-req. Added response for 
+    chan-use-req and channel-t (latter is stubbed). 
 
-Rust added smell and listen support. You can define a smell () or a sound 
-    () function in an object, which should handle what happens when someone 
-    smells or listens to the object. 
+Beek fixed a bug in /std/object/names.c which caused the primary_id to get 
+    set to 'nondescript thing' too early, causing objects which never call 
+    set_id, but do call add_id (e.g. the stairs) to be nondescript 
 
-Rust updated /USAGE a bit. We've mentioned in a few places that you're not 
-    to change the mudlib name w/o permission, and now it is formalized 
-    there. Also, we now require that you display the mudlib name on the 
-    title screen unless you have permission. 
+Beek changed the shell to only interpret commands as paths if they include 
+    at least one '/'. This means that CWD isn't searched; if you want to 
+    execute something in your CWD use ./cmd 
 
-Ohara fixed mail so that a return will take you to the next message, or 
-    quit if you have no more mail. 
+Beek fixed a few spots that didn't realize find_cmd() could return 
+    non-zero, non-object/string results in the case of broken commands 
 
-Ohara fixed that bug in more where a n on the last one would overrun. 
+Beek made find_cmd() call find_cmd_in_path() at the end; the code was 
+    duplicated, with the exception of a bug that was only fixed in one of 
+    the two ... 
 
-Ohara fixed the plan bug where ~q-ing would error. 
+Beek changed the wiz shell to only do globbing on cmds with /'s in them ... 
 
-Ohara fixed the bug in the banish menu of the admtool. 
+Beek added some path handling logic, to avoid calling evaluate_path() on 
+    every element of the path for every coomand 
 
-Ohara changed more so that news/mail using it wouldn't bug. hitting 'n' now 
-    terminates the current post.. It would be nice to have it go straight 
-    to the next post. FFF. 
+Beek ripped /std/body/path.c; suprisingly, it was COMPLETELY unused. 
 
-Ohara fixed didlog with a little help from my friends .... 
+Beek :note: use ->query_shell_ob()->query_path() now; it's automagically 
+    updated from the "path" var, and is guaranteed to contain absolute 
+    paths 
 
-Deathblade moved shell variables to just the wizard shell. More changes 
-    coming... 
+Beek finally removed the map(... (: evaluate_path :) ) from find_cmd(), 
+    which was what started this entire thing :-) 
 
-Deathblade moved the (arbitrary) prompt functionality from the generic 
-    shell to the wizard shell. 
+Beek fixed update -z to not bail if you remove a file that an object 
+    inherits 
 
-Ohara fixed the M_MESSAGE to not bug out when passed a null string. 
+Beek fixed /std/water_room.c (room::create) 
 
-Deathblade moved default aliases to ALIAS_D (/daemons/alias). moved the 
-    save file from /data/std/alias.o to /data/daemons/alias.o. move the 
-    M_ACCESS from M_ALIAS to WISH 
+Beek fixed showpath to not end in a comma 
 
-Zakk fixed all the commands that used M_INPUT to allow more than one person 
-    to use them. 
+Beek fixed glob'ed and explicit path commands to work with Cmd_rules; the 
+    'name' was causing it to miss 
 
-Rust moved .login handling from the body to the user, since it didn't work 
-    when it was in the body. your .login won't handle aliases, I think 
+Beek fearlessly wandered into shell expansion, slew the hideous print ` "" 
+    ` -> print `code` bug, and returned alive. 
 
-Ohara fixed mudlist -s to be case insensitive. 
+Beek cleaned up lima.bugs again (87 of 1193 remain :-) ) 
 
-Deathblade added channel restrictions to the daemon; added /new; torched 
-    achan, ichan, wchan; see "help channels" 
+Beek removed can_ functions from a ton of verbs 
 
-Deathblade wanted to note the changes in data files lately that are COMPAT 
-    BUSTERS: /data/std/alias.o moved to /data/daemons/alias.o. Some of 
-    those aliases changed to no longer use wchan and ichan. Many channels 
-    need to have their options updated to be permanent (wiz) channels. A 
-    channel_d.o will be shipped with the lib that has the right flags. 
+Ohara notes that the codeboys are slaves to noone but himself. People 
+    ordering them to "just fix it" are liable to unpleasantness unless 
+    their name happens to be five letters long, begin with "Oh" , and end 
+    in "ara" , in which case it better damn well be done ;) 
 
-Deathblade added channel history. Use /last on your favorite channel :-). 
-    Limit of 20 lines (configurable in config.h). 
+Deathblade fixed the bug where mail didn't receive the proper time on it 
 
-Ohara fixed news to print "msg" instead of "msgs" when there is <2 posts 
-    left. 
+Deathblade fixed the login code to contain its own regexp for names rather 
+    than relying on the totally non-obvious usage of the banish code to 
+    enforce names. Not to mention that a banish.o is NOT shipped with the 
+    lib (who knew we had to ship one? :-). 
 
-Deathblade moved GROUP_D to /daemons and added management via admtool. 
+Deathblade began some OOB work; fleshed out the auth service a bit more. 
 
-Ohara cleaned up lima.ideas .. as with lima.bugs, more work is needed to 
-    cut stuff that's now redundant :) 
+Beek noted that regexp(str, re) is the same as sizeof(regexp( ({ str }), 
+    re)), and fixed DB's code :-) 
 
-Zifnab added basic support for dropping and getting coins. rules are 
-    drop_wrd_str and get_wrd_string, object is /std/coins (probably needs 
-    to move) 
+Beek fixed a small type error in actions.c 
 
-Beek changed Ohara's news fix to do it the right way: number_of(last_id, 
-    "msg" ) 
+Beek made some changes to inv_list(); it takes an array of objects now, and 
+    depth counting starts at zero again, so the extra 0, 1 isn't needed 
 
-Ohara complains bitterly about undocumented features, and there use in one 
-    line fixes which would be easier to do than fill the bug spool with ;) 
+Beek fixed inventory_header() to be right for objects that have called 
+    set_preposition() 
 
-Beek changed update -z to consider files loaded at the same time to _not_ 
-    be out of date with respect to each other 
+Beek cleaned up some inventory handling a bit more; mostly foreach()ing 
+    things, etc 
 
-Deathblade changed hit_points::reduce_hp() to die when hp <= 0, not just < 
-    0. Monsters that hit 0 wouldn't die and couldn't be attacked to finish 
-    them off. 
+Beek added COMPLEX_CONTAINER 
 
-Deathblade moved REPORTER to REPORTER_D since it was never cloned or 
-    subclassed. moved replicated functionality in from bug/typo/idea/todo. 
+Beek made a number of changes to verbs: 'take' is now a synonym for certain 
+    rules of 'get' (but not others; take off != get off); 'carry' is only a 
+    synonym for ones that make sense. Also added a small take verb to 
+    handle 'take off OBJ' 
 
-Deathblade updated the player menu to not require a force. Many player 
-    commands now have a new func: player_menu_entry() which typically calls 
-    main(). It could apply extra security or limitations if needed (as 
-    main() is normally very secure) 
+Beek made 'put down' a synonym for 'drop' and 'put on' an synonym for 
+    'wear' 
 
-Deathblade changed /obj to have Mudlib:objects on it 
+Beek torched the take verb, and did it as a synonym 
 
-Beek made reduce_hp() static, to prevent abuse 
+Beek changed query_verb_info() syntax slightly [compat tho]; it's now ({ 
+    array of rules, syns for those rules, more rules, more syns, etc ... }) 
 
-Beek made massive modifications to how combat results are handled; it is 
-    now abstracted and uniform across combat systems. Note: it hasn't been 
-    tested yet, so it's probably broken. I'll get back to it. 
+Beek added a simple 'ring' verb 
 
-Ohara is fairly sure he fixed the newsreader bug .. when it had no 
-    newsgroups it was trying to use a %s without passing an arg (in this 
-    case mud_name()) 
+Beek fixed the labyrinth to not accept illegal path names 
 
-Deathblade converted sw_user.c to use USER_D rather than the old whacko 
-    USERLIST_D to fetch the password. It does an unguarded() appropriately, 
-    so it can now actually _get_ the password when you su (it used to bug 
-    on this cuz it didn't have privs). 
+Beek added add_hidden_exit(exit [,exit...]) and remove_hidden_exit() 
 
-Deathblade nuked the old USERLIST_D. It is so old and ugly that it would be 
-    harder to update than to write from scratch. Its concept might even be 
-    bogus given the existence of new mechanisms. 
+Ohara added a 'question' command ala bug/idea/typo/todo 
 
-Deathblade added a thread_id to class mail_msg for possible mail message 
-    threading in the future. 
+Beek fixed a typo that caused combat to error 
 
-Deathblade updated the mail message storage to use class mail_msg rather 
-    than the old many-variable approach. 
+Beek fixed body::die() to actually make the player a ghost 
 
-Deathblade separated mail processing from mailbox handling. The former is 
-    the good old MAIL_D. The latter is now MAILBOX_D (/daemons/mailbox.c). 
-    MAIL_D is still secure. 
+Beek removed the link switch to ghost body 
 
-Deathblade fixed up simple.c so that it at least loads. No guarantees on 
-    functionaly, as Beek said, but at least the mud will come up :-) 
+Beek fixed heal_us() to not allow ressurection 
 
-Ohara announces that lima.bugs is down to >100< posts. Ohara also notes 
-    that this is pre-post-alpha bug fixing. If DB can redefine language, so 
-    can he. 
+Beek added a reincarnate() function 
 
-Beek discovered that combat, suprisingly, works. 
+Beek made the 'go' and 'look' verbs usable by ghosts 
 
-Beek moved stunned/knockout handling to /std/living/state_of_mind, and also 
-    moved duplicated code in simple and tradition combat up to the combat 
-    base. 
+Beek made /std/verb_ob's default_checks() use the functions need_to_see(), 
+    need_to_be_alive(), and need_to_think() so these can be overloaded 
+    separately 
 
-Beek added check_condition() to verb_ob, which checks whether a player is 
-    stunned/asleep 
+Rust made it so that outgoing sockets can only be made by priv 1 objects. 
 
-Beek changed the default can_* function to check light and condition. Verbs 
-    which define can_* functions (but not direct_*, etc) should check the 
-    result of the default_checks() routine 
+Rust moved the imud_d to /trans 
 
-Beek added a query_ghost() check as well 
+Rust fixed the listing f souls from the player menu 
 
-Beek fixed diagnose to actually say something useful 
+Rust made it so you can change your www home page from the player menu 
 
-Ohara fixed mudinfo to show info on the current mud when no arg given 
+Rust added the option to test a soul to the player menu. 
 
-Ohara moved uptime to time, cutting out some redundancy. 
+Rust added an ob_state override to /std/body, which fixes the bug of seeing 
+    2 of yourself on furniture, hopefully. 
 
-Deathblade got VERB_OB to load after some recent edits (nudge nudge). There 
-    is still a problem in the default_checks() function where it needs a 
-    value and I have no idea where to get it from. 
+Rust fixed complex_container to have a different maximum capacity / 
+    capacity for each relationship. You now need to call 
+    set_max_capacity(value,relation) for each relation. 
 
-Ohara added leave and disembark as synonyms for exit .. He also restored 
-    the "" rule. 
+Rust changed the non-room class (inherited by furniture and vehicles) to 
+    inherit complex_container instead of container. 
 
-Ohara ripped /include/obbits.h 
+Rust fixed a bunch of bugs. The only important change to take note of is 
+    that you can't mail admin, you now have to mail (admin) 
 
-Ohara ripped /std/object/bits.c . .. blame DB if anything explodes :) 
+Deathblade ifdef'd socket's requirement for privs. IMUD_D creates sockets 
+    in call_outs() where the base priv on the call stack is 0. And I'm not 
+    about to add some damn unguarded() calls into IMUD_D just to create the 
+    socket. 
 
-Ohara added c/-c and C/-C options to news .. the first will only put you in 
-    news if there are unread groups, and the second just shows unread 
-    groups without entering news 
+Deathblade pulled the shell handling out of the body in preparation for the 
+    body to become low priv (yet the shell needs to remain high priv). The 
+    user ob now handles the shell ob. 
 
-Ohara changed errors to date and timestamp. 
+Deathblade created /data/shells and secured it. /obj/pshell had to move 
+    (for now) to /trans/obj/pshell to deal with that security. SHELL now 
+    saves into that area (altho the shell's save code is nasty). 
 
-Ohara wrote moreob .. allows you to more an object by using an id. 
+Deathblade used a little sed script to copy people's shell data into the 
+    new area. 
 
-Beek fixed /std/verb_ob to not need an action; small tweaks to 
-    /std/living/state_of_mind as well 
+Deathblade cleaned up a bit of the creation/removal/start/stop of the 
+    shell. 
 
-Beek fixed basename() to distinguish between basename(0) and basename() 
+Deathblade changed /data/shells to /data/wshells. Added /data/pshells. The 
+    wizard/player shell data saves in the appropriate dir now. Correct 
+    privs are assigned and pshell was moved back to /obj. 
 
-Ohara fixed home to just twitch when in your home .. 
+Deathblade added a config option: HANDLE_MANY_WIZARDS. If this is set, then 
+    /data/wshells should have a to z subdirs (like Lima Bean). In the 
+    distribution, this will not be set and all wizard shell data will 
+    simply be saved in /data/wshells. 
 
-Ohara fixed wizz to twitch when in wizroom .. 
+Beek made ghosts show up as "The ghost of ..." in rooms 
 
-Beek made more accept objects 
+Zifnab added an example of a simple book in /domains/std 
 
-Deathblade updated objcount to have an optional numeric arg to specify the 
-    cutoff level for display of obs. 
+Zifnab added an example of functions in exits (couldnt find one in 
+    /domains/std) it is a car wash for DB's camaro :) 
 
-Deathblade changed the command rule for "more" back to just "file*" until 
-    CMD_D is fixed. It doesn't like "obj|file*" and that broke "more" 
-    completely. 
+Robocoder optimized a teeny weeny 'lil bit o' code in /WWW/cgi/autodoc.c to 
+    create the 'upper' string faster 
 
-Deathblade moved CMD_D to /secure/daemons 
+Rust added /domains/std/portal, which is a simple one way portal 
 
-Rust changed the map-type stuff to area. Now room has: set_area () and 
-    get_area (). set_area takes an arbitrary string, which is the name of 
-    your area. It'll eventually be used to keep wandering monsters in one 
-    place, and could be used for weather, etc.... 
+Ohara fixed that typo in admtool. Woo Woo :) 
 
-Rust updated the pirate area to use set_area ( "pirate" ) 
+Deathblade added auto- "alias" for channels to the wiz and player shells. 
+    If the command matches a channel's "public" name (not the internal 
+    name), then the rest of the line is used as a channel command. 
 
-Rust moved /std/room.c to /std/base_room.c and made simple indoor_room and 
-    outdoor_room subclasses. indoor_room is now ROOM when you do: inherit 
-    ROOM; 
+Deathblade removed the plyr_ prefix from news, newbie, gossip. Auto-rename 
+    is done for people at body restore type. Modified NEWS_D to post to 
+    "news" . 
 
-Rust noted: the difference between indoor and outdoor rooms is only 
-    weather, right now (plus is_indoors(), is_outdoors()) 
+Deathblade fixed a small typo in the 'listeners' command: admin channels 
+    were listed as wiz 
 
-Rust noted that outdoor rooms can be gotten by inheriting OUTDOOR_ROOM 
+Deathblade added all permanent channels to the list that are recognized for 
+    auto-aliasing. They will be recognized whether you are listening or 
+    not. This allows you to do: newbie /on 
 
-Rust updated the outdoor rooms in the domains/std stuff to inherit 
-    OUTDOOR_ROOM 
+Deathblade removed the following channel aliases: wiz, announce, newbie, 
+    gossip. They are no longer needed. Until some more work is done on the 
+    I3 channels, the aliases will be handy and will remain. 
 
-Deathblade implemented BASE_OBJ as a common base class or *SPARSE_OBJ and 
-    OBJ. Simplified the sparse obs 
+Deathblade updated "help channels" to remove the paragraph talking about 
+    aliasing the channel stuff. 
 
-Rust fixed weather so that it works again 
+Deathblade updated related channel help with the new commands and info on 
+    auto-aliasing. 
 
-Deathblade moved CMD, DAEMON, MAILER, SHELL, and SOCKET to a new directory: 
-    /secure/obj 
+Deathblade renamed wiz_wiz, wiz_announce, and wiz_errors to drop the wiz_ 
+    prefix. Auto-renaming installed in the body at restore time. Fixed all 
+    lib uses of the channels (body, master, imud_d). adm_admin also 
+    happened to be renamed, but the lib doesn't refer to it (except for it 
+    being a permanent channel distributed with the lib) 
 
-Rust changed room::create () to ::create() in example rooms =( 
+Deathblade fixed a bug in FINGER_D where it assumed wiz_position always 
+    exists 
 
-Rust added a compatibility module: room::create() will be valid in r10, but 
-    in the release after that, it'll cease to work. 
+Deathblade created Mudlib:socket, make socket.c check for it, and added 
+    Mudlib:daemons and Mudlib:objects to the privilege so that daemons and 
+    objects can open sockets. 
 
-Deathblade renamed player.c to body.c (and its subdir and stuff) 
+Deathblade updated IMUD_D to use unguarded() when creating its socket :-). 
+    I did not update /obj/nntp.c or /trans/obj/telnet_ob.c 
 
-Deathblade tweaked CMD to tell it that it is no in /secure/obj/cmd.c 
+Deathblade folded in Harmless's updates to /obj/nntp.c (finally got around 
+    to it!) 
 
-Deathblade updated a number of files to remove /std dependencies. I updated 
-    /data/config/preload. etc. New locations of files seem okay now. 
+Ohara updated mail help 
 
-Beek fixed the http daemon not to throw an error whenever someone connects 
-    (/std/socket passes zero to the read callback) 
+Ohara bugfixed scan 
 
-Beek added an autodoc CGI; check out 
-    http://lima.imaginary.com:7958/cgi/autodoc.c; the most impressive one 
-    is http://lima.imaginary.com:7958/cgi/autodoc.c?=tree-body ;-) 
+Ohara updated the help on force a little :) 
 
-Deathblade fixed up the ROOM compatibility module. Recall: change all 
-    room::create() uses to just ::create(). Optionally, change inherit 
-    ROOM; to inherit INSIDE_ROOM; or inherit OUTSIDE_ROOM;. This compat 
-    feature will disappear in a future release. 
+Deathblade forgot to mention: rmemote is only available to wizzes with 
+    directories 
+
+Deathblade just removed /trans/daemons. 
+
+Rust added /domains/std/lava_room as an example for someone who was trying 
+    to do essentially the same thing 
+
+Rust made it so that game objects get setup() called in them when they're 
+    cloned. This is a better(tm) place to do the stuff that you normally do 
+    in create(). The examples and some of the mudlib will need to be 
+    changed accordingly... 
+
+Rust wanted to let you know, setup() isn't a compat buster, create() will 
+    still work, it just might have extra side effects (like call_outs you 
+    didn't expect in monsters, etc... stuff that has always happened...) 
+
+Rust added an internal_setup(). Mudlib files which need to initialize data 
+    that really shouldn't be in the blueprint object should override it. 
+
+Deathblade fixed a small problem in socket.c to clear the fdOwned in the 
+    close_callack so it doesn't try to get closed again. 
+
+Deathblade worked more on OOB. Framework is getting there. File and mail 
+    services still need a bunch of work 
+
+Yaynu think a intresting and easy to use monster system on LIMA would be 
+    one of the 
+
+Deathblade worked with Hanzou@FotD to debug the OOB framework and one of 
+    the handlers for the remote directory listing. We now support sending 
+    file-list-req and receiving file-list-reply. Awfully limited, but a 
+    start. The framework appears to work correctly now. 
+
+Zifnab fixed a bug in /std/monster/base/target.c it wasnt loading. just 
+    atypo mis placed ; 
+
+Beek fixed complex container to use simple_long() instead of ::long() in 
+    long(), so the inventory list isn't duplicated 
+
+Deathblade updated all the objects in /domains/std to NOT call ::create(). 
+    BAD BAD BAD. Whoever updated all the objects to use setup() should have 
+    removed those. They cause infinite recursions. 7 meg log files are bad 
+    :-). 
+
+Deathblade changed the guild masters to override create() rather than 
+    setup(). They need to inherit create() with an extra param. No can do 
+    when overriding setup(). 
+
+Deathblade shifted the calling of setup() from create() to do_setup(); 
+    create() normally calls it. I added a flag create() to object.c and 
+    container.c to skip that call if needed. corpse.c sets the flag so that 
+    it can complete its initialization before setup() is called. It then 
+    manually calls do_setup() 
+
+Deathblade add the skip_setup flag to /std/weapon and call it from 
+    /std/sword so that the sword can fully initialize before calling 
+    setup(). (sigh) 
+
+Zifnab added additional functionality to /std/modules/vendor.c to allow the 
+    vendor/shopkeeper to store items away 
+
+Deathblade changed container::make_objects_if_needed to work off of file 
+    name rather than id since the master ob doesn't have an id as it 
+    expects (the master's setup() is never called meaning add_id() is not). 
+    Correct way to do this? dunno, but it should prevent endless cloning 
+
+Deathblade meant blueprint, not master :-) 
+
+Zifnab added examine as a synonym for look 
+
+Zifnab added set_relations( "on" ) to /domains/std/horse.c so it would 
+    clone, not sure if thats the right fix for it or not 
+
+Zifnab fixed /std/monster/simple.c which wouldnt update before 
+
+Deathblade fixed news so that you can add/remote groups now. check for 
+    ADMTOOL, not CMD_OB_ADMTOOL 
+
+Rust re-added a shout override. Why was the old one removed?? 
+
+Zifnab added a module for wandering monsters /std/modules/wander.c Inherit 
+    M_WANDER 
+
+Ohara added /history as a synonym for /last to channels. 
+
+Deathblade removed the create() override in /std/book.c; no longer needed. 
+    Removed the extraneous M_OPENABLE from /domains/std/lima_guide.c; 
+    already present in BOOK. 
+
+Deathblade fixed /domains/std/picture. On inventory restore, its use of 
+    this_body() would bug. 
+
+Deathblade got more of the OOB file stuff to work. Outgoing file commands 
+    work; incoming connections do not. 
+
+Ohara fixed 'get me' 
+
+Deathblade said 'eat me' 
+
+Deathblade whacked on the I3 finger reply. It deals with the login/out and 
+    idle time better now. It still needs some formatting to make it similar 
+    to local fingers, though. (combine some code?) 
+
+Deathblade changed 'vowels' in /std/modules/messages.c to static so it 
+    wouldn't get saved in most obs 
+
+Deathblade changed /std/torch to do a set_id( "torch" ) rather than 
+    add_id(). torches were coming out as weapons. 
+
+Deathblade added mudlib_setup() to the initialization sequence and 
+    converted many OBJ subclasses in /std to use it appropriately. There 
+    are still some that override create() because they have parameters 
+    (which apparently crash the current driver if you try to pass them from 
+    create() to setup(), so that isn't done right now). 
+
+Deathblade modified /data/players to be Mudlib:std for read/write and /std 
+    to be Mudlib:std. 
+
+Deathblade completed I3 file transfer. "iftp mudname" is the command to use 
+    it. Not very friendly at this point, particularly in error 
+    reporting/status, but it works. 
+
+Deathblade fixed a small bug in monster.c that was whacking combat. There 
+    is still a bug with corpses/going-up-in-smoke; otherwise, monsters 
+    stick around and are thought to be ghosts, so combat is ineffective 
+    with them. 
+
+Zifnab the wolf now follows players again, 2 fixes to it, 1) inherit 
+    M_SMARTMOVE 2) the wolf had no light i.e. if i left the room it couldnt 
+    see. i did set_light(500), in the wolf and that took care of that 
+
+Zifnab removed the set_light() form the wolf, at rassilon's prodding, the 
+    wolf no longer follows anything unless hes in a lit room :) 
+
+Deathblade renamed the daemons back to xxx_d and followed up with modules 
+    becoming m_xxx. 
+
+Deathblade modifed IMUD_D to properly handle the I3 router telling it to 
+    switch to a new router. Tested against sample redirector "router" 
+
+Beek fixed 'go' to not require you to be able to see 
 

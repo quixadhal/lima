@@ -51,8 +51,7 @@ private void main(mixed *arg, mapping flags)
 
     if (!arg[0]) arg[0] = environment(this_body());
     outstr = "Scanning " + file_name( arg[0] ) + ":\n";
-    outstr += "\nReal Objects:\n";
     objs = scan_object( arg[0], 0 );
-    outstr += (objs != "")? objs : "    None";
+    outstr += (objs != "")? objs : "    None\n";
     write( outstr );
 }

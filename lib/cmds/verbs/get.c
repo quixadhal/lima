@@ -11,22 +11,6 @@
 
 inherit VERB_OB;
 
-mixed can_get_obj(object ob) {
-    return 1;
-}
-
-mixed can_get_obj_from_obj(object ob1, object ob2) {
-    return 1;
-}
-
-mixed can_get_obj_out_of_obj(object ob1, object ob2) {
-    return 1;
-}
-
-mixed can_get_obj_with_obj(object ob1, object ob2) {
-    return 1;
-}
-
 // no multiple object support yet 
 private nomask void get_one(object ob, object with_ob)
 {
@@ -140,21 +124,6 @@ mixed do_get_wrd_str(string amount, string str)
 	this_body()->my_action("Get what?\n");
     }
 }
-int can_get_off_obj()
-{
-    return 1;
-}
-
-int can_get_on_obj()
-{
-    return 1;
-}
-
-int can_get_up()
-{
-    return 1;
-}
-
 
 void do_get_up()
 {
@@ -189,11 +158,6 @@ void do_get_up()
 
 }
 
-int can_get_off()
-{
-    return 1;
-}
-
 int do_get_off()
 {
     do_get_up();
@@ -201,12 +165,10 @@ int do_get_off()
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBJ", "WRD STR", "OBS", "OBJ from OBJ", "OBJ out of OBJ", "up", "off",
-    "OBJ with OBJ", "off OBJ", "on OBJ" }), ({ "carry" }) });
-
-    /*
-    ** "take OBS" -> "get OBS"
-    ** "get down" -> "go down"
-    ** "get up" -> "stand"
-    */
+    return 
+	({ 
+	    ({ "OBJ", "WRD STR", "OBS", "OBJ from OBJ", "OBJ out of OBJ",
+		   "OBJ with OBJ" }), ({ "take", "carry" }),
+	    ({ "up", "off", "off OBJ", "on OBJ" })
+	});
 }

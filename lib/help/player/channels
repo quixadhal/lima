@@ -21,6 +21,8 @@ chan gossip		- find out whether the 'gossip' channel is
 chan gossip /on		- turn listening on for the 'gossip' channel
 chan gossip /off	- stop listening to 'gossip'
 chan gossip /list	- find out who is listening to 'gossip'
+chan gossip /who	- same as /list
+chan gossip /last	- show the last 20 messages on the channel
 chan gossip <msg>	- send <msg> to all listeners
 chan gossip ;<feeling>	- perform <feeling> over the channel
 			  (e.g. chan gossip ;grin)
@@ -31,11 +33,8 @@ chan mine /new		- create the "mine" channel
 Of course, the 'gossip' may be replaced with any channel name you
 might want to use.
 
-Two aliases have been set up to make things easier:
+Once you are listening to a channel, then you can simply use that
+channel's name as a command.  For example, if you listen to the gossip
+channel, then you can do:
 
-gossip		chan gossip
-newbie		chan newbie
-
-This allows you to just type something like: gossip I'm hungry!
-If you set up your own channels with friends, then you might want
-to add similar aliases.
+gossip ;smile

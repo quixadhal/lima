@@ -8,18 +8,22 @@ chan gossip		- find out whether the 'gossip' channel is
 chan gossip /on		- turn listening on for the 'gossip' channel
 chan gossip /off	- stop listening to 'gossip'
 chan gossip /list	- find out who is listening to 'gossip'
+chan gossip /who	- same as /list
+chan gossip /last	- show the last 20 messages on the channel
 chan gossip <msg>	- send <msg> to all listeners
 chan gossip ;<feeling>	- perform <feeling> over the channel
 			  (e.g. chan gossip ;grin)
 chan gossip :<emote>	- send <emote> to all listeners
 			  (e.g. chan gossip :wants a big sword!)
+chan mine /new		- create the "mine" channel
 
 Of course, the 'gossip' may be replaced with any channel name you
 might want to use.
 
 chan will create a channel, if necessary, when you first start
 to listen to it.  There are (currently) no restrictions on the
-number or channels you may listen to or create.
+number or channels you may listen to or create.  Once you listen
+to a channel, you can simply use its name for operating the channel.
 
 Two player channels are standard: gossip and newbie
 
@@ -29,10 +33,8 @@ Some examples:
 You are listening to: gossip, newbie, mychannel
 > chan gossip /off
 You are no longer listening to 'gossip'.
-> chan mychannel /list
+> mychannel /list
 Users listening to 'mychannel': Johndoe, Smurfhead, Tarzan
-> alias mychannel chan mychannel
-alias added: mychannel  chan mychannel $*
 > mychannel hello!
 [mychannel] Smurfhead: hello!
 > mychannel :turns a bright shade of blue
@@ -41,11 +43,3 @@ alias added: mychannel  chan mychannel $*
 [mychannel] You laugh at Tarzan.
 >
 > [mychannel] Tarzan bops you on the nose.
-
-
-It's always nice to do something like:
-
-alias mychannel chan mychannel 
-
-so that you don't have to type so much when you are actually 
-using your channel.

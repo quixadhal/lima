@@ -68,6 +68,12 @@ void handle_finger(string person)
     prompt_then_return();
 }
 
+void test_soul(string s)
+{
+    CMD_OB_SEMOTE->player_menu_entry(s);
+    prompt_then_return();
+}
+
 void find_soul(string s)
 {
     if(!s) {
@@ -80,7 +86,7 @@ void find_soul(string s)
 
 void show_souls(string s)
 {
-    CMD_OB_FEELINGS->player_menu_entry("^" + s);
+    CMD_OB_FEELINGS->player_menu_entry(s);
 }
 
  
@@ -102,6 +108,12 @@ void change_email(string s)
   write("Email info changed.\n");
 }
 
+void change_url(string s)
+{
+  this_user()->set_url(s);
+  write("Home page address changed.\n");
+}
+
 void
 change_title(string s)
 {
@@ -118,10 +130,12 @@ query_personal_info()
 {
   printf("Your title is: %s\n"
 	 "Your provided e-mail address is: %s\n"
+	 "Your provided WWW home page is: %s\n"
 	 "You %sget notified when new mail arrives.\n" 
 	 "Wizards %s snoop you.\n",
 	 this_body()->query_title(),
 	 this_user()->query_email(),
+	 this_user()->query_url(),
 	 this_body()->test_flag(F_BIFF) ? "" : "DON'T ",
 	 this_body()->test_flag(F_SNOOPABLE) ? "CAN" : "can't"
 	 );
@@ -140,6 +154,13 @@ prompt_change_email()
 {
   get_input_then_call ((: change_email :), "Change e-mail to what? ");
 }
+
+void 
+prompt_change_url()
+{
+  get_input_then_call ((: change_url :), "Change your WWW homepage address to what? ");
+}
+
 
 void 
 set_biff(string s)
@@ -292,11 +313,11 @@ create()
 					      "contains string: ":),
 			       "f"));
 
-  //  add_menu_item (soulmenu, 
-  //		 new_menu_item("Test a soul", (: get_input_then_call,
-  //				      (: test_soul :),
-  //				      "Soul to test: ":),
-  //		       "t"));
+  add_menu_item (soulmenu, 
+  		 new_menu_item("Test a soul", (: get_input_then_call,
+  				      (: test_soul :),
+  				      "Soul to test: ":),
+  		       "t"));
 
   add_menu_item (soulmenu, quit_item);
   
@@ -320,6 +341,9 @@ create()
   add_menu_item (personalmenu, new_menu_item("Change your supplied "
 					     "e-mail address",
 					     (: prompt_change_email :), "e"));
+  add_menu_item (personalmenu, new_menu_item("Change your supplied WWW home "
+					     "page address",
+					     (: prompt_change_url :), "w"));
   add_menu_item (personalmenu, new_menu_item("Set or unset mail notification",
 					     biffmenu, "n"));
   add_menu_item (personalmenu, new_menu_item("Set whether or not you can be "

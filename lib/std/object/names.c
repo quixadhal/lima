@@ -75,16 +75,17 @@ string calculate_extra() {
 
 private void resync() {
     if (!proper_name) {
-	if (!primary_id) {
-	    if (sizeof(ids))
-		primary_id = ids[0];
+	if (!primary_id && sizeof(ids))
+	    primary_id = ids[0];
+
+	if (primary_id) {
+	    if (primary_adj)
+		internal_short = primary_adj + " " + primary_id;
 	    else
-		primary_id = "nondescript thing";
+		internal_short = primary_id;
+	} else {
+	    internal_short = "nondescript thing";
 	}
-	if (primary_adj)
-	    internal_short = primary_adj + " " + primary_id;
-	else
-	    internal_short = primary_id;
     } else
 	internal_short = proper_name;
     parse_refresh();

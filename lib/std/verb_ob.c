@@ -16,6 +16,11 @@
 ** return an array with 1 or 2 elements.  The first element should
 ** be an array of rules.  If the second is provided, then it should
 ** be an array of synonyms.
+**
+** Extension: You can have more than one set of rules/synonyms.
+** Synonyms only correspond to the corresponding rule.  E.g.
+** ({ ({ first rules }), ({ syns for first rules }), ({ second rules }),
+**    ... etc ... })
 */
 mixed * query_verb_info()
 {
@@ -26,7 +31,7 @@ void create()
 {
     mixed *	info;
     string	verb;
-
+    
     parse_init();
     verb = split_path(file_name())[1];
     info = query_verb_info();
@@ -34,19 +39,38 @@ void create()
     // backwards compat
     info[0] = map(info[0], (: (stringp($1) ? $1 : ($1 ? "STR" : "") ) :) );
     // unsupported
+//### necessary any more?
     info[0] = filter(info[0], (: strsrch($1,"OBS") == -1 :));
     
     if ( !info || !pointerp(info) || !pointerp(info[0]) )
 	throw("bad verb info");
 
-    map_array(info[0], (: parse_add_rule($(verb), $1) :));
-
-    if (sizeof(info) == 2)
-      map_array(info[1], (:parse_add_synonym($1, $(verb)):));
-
-/* Old stuff         foreach (verb in info[1])
-            map_array(info[0], (: parse_add_rule($(verb), $1) :));
-*/
+    switch (sizeof(info)) {
+    case 0:
+	break;
+    case 1:
+	foreach (string rule in info[0])
+	    parse_add_rule(verb, rule);
+	break;
+    case 2:
+	foreach (string rule in info[0])
+	    parse_add_rule(verb, rule);
+	foreach (string syn in info[1])
+	    parse_add_synonym(syn, verb);
+	break;
+    default:
+	for (int i = 0; i < sizeof(info); i += 2) {
+	    if (i == sizeof(info) - 1)
+		foreach (string rule in info[i])
+		    parse_add_rule(verb, rule);
+	    else
+		foreach (string rule in info[i]) {
+		    parse_add_rule(verb, rule);
+		    foreach (string syn in info[i+1])
+			parse_add_synonym(syn, verb, rule);
+		}
+	}
+    }
 }
 
 string refer_to_object(object ob) {
@@ -90,16 +114,33 @@ mixed check_condition() {
     return 1;
 }
 
+int need_to_see() {
+    return 1;
+}
+
+int need_to_be_alive() {
+    return 1;
+}
+
+int need_to_think() {
+    return 1;
+}
+
 /* All (most) can_* functions should call this */
 mixed default_checks() {
     mixed tmp;
 
-    if ((tmp = check_vision()) != 1)
+    if (need_to_see() && (tmp = check_vision()) != 1)
 	return tmp;
-    if ((tmp = check_ghost()) != 1)
+ 
+    if (need_to_be_alive() && (tmp = check_ghost()) != 1)
 	return tmp;
+    // This checks stunned, asleep
+ 
+    if (need_to_think())
+	return check_condition();
 
-    return check_condition();
+    return 1;
 }
 
 /* we defined the rule, so assume by default we allow it */

@@ -3,9 +3,8 @@
 
 inherit OBJ;
 
-create()
+void setup()
 {
-  ::create();
   set_attached(1);
   set_id("ocean","water","surf","waves");
   set_long("There is nothing special about the ocean.");

@@ -87,12 +87,11 @@ mapping parse_file(string file) {
     return ret;
 }
 
-void create() {
+void setup() {
     string file;
     mapping m;
     string name;
     
-    ::create();
     master = this_user();
     if (file = read_file("/wiz/" + master->query_name() + "/.petrc"))
 	m = parse_file(file);

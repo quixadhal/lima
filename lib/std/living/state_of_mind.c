@@ -5,6 +5,10 @@ private static int stunned, asleep, chance;
 
 void print_result(string);
 
+int query_ghost() {
+    return 0;
+}
+
 int query_asleep() {
     return asleep;
 }
@@ -40,6 +44,12 @@ void knock_out() {
 // Warning: Elsewhere we rely on the fact that if urgent == 0, nothing
 // is printed, and a complete sentence is returned.
 mixed check_condition(int urgent) {
+    if (query_ghost()) {
+	stunned = 0;
+	asleep = 0;
+	return 0;
+    }
+    
     if (urgent && stunned > time())
 	return "$N $vare still recovering from that last blow, ";
 

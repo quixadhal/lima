@@ -10,11 +10,6 @@
 
 inherit VERB_OB;
 
-mixed can_drop_obj(object ob)
-{
-    return 1;
-}
-
 private nomask void drop_one(object ob)
 {
     mixed tmp = ob->drop();
@@ -28,7 +23,8 @@ private nomask void drop_one(object ob)
     tmp = ob->move(environment(this_body()));
     if (tmp == MOVE_OK) {
 	write("Done.\n");
-	this_body()->other_action("$N $vdrop a $o.\n", ob);
+        if(ob)
+  	this_body()->other_action("$N $vdrop a $o.\n", ob);
     } else
 	write(tmp);
 }
@@ -74,11 +70,9 @@ mixed do_drop_wrd_str(string amount, string str)
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBJ", "OBS", "WRD STR" }) });
+    return ({ ({ "OBJ", "OBS", "WRD STR" }), ({ "put down" }) });
 
     /*
     ** torch OBJ when OBS matches 1 ob
-    **
-    ** "put down OBS" -> "drop OBS"
     */
 }

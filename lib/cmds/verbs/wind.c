@@ -5,15 +5,6 @@
  
 inherit VERB_OB;
  
-mixed can_wind_obj(object ob)
-{
-   return 1;
-}
-
-mixed can_wind_obj_with_obj(object ob1, object ob2) {
-    return 1;
-}
-
 void do_wind_obj(object ob) {
     ob->wind();
 }

@@ -4,39 +4,38 @@ inherit BASE_ROOM;
 inherit __DIR__ "room/weather";
 
 
-int is_outdoors ()
+int is_outdoors()
 {
-  return 1;
+    return 1;
 }
 
-void create ()
+void mudlib_setup()
 {
-  ::create ();
-  add_id_no_plural ("ground");
+    ::mudlib_setup();
+    add_id_no_plural("ground");
 }
 
 // Make weather show something....
-
-string get_extra_long ()
+string get_extra_long()
 {
-  string	weather_str;
-  string	other_extra_long;
+    string	weather_str;
+    string	other_extra_long;
 
-  weather_str = get_weather ();
-  if (!weather_str || !strlen (weather_str))
+    weather_str = get_weather();
+    if (!weather_str || !strlen(weather_str))
     {
-      return ::get_extra_long ();
+	return ::get_extra_long();
     }
-  else
+    else
     {
-      other_extra_long = ::get_extra_long ();
-      if (!other_extra_long)
+	other_extra_long = ::get_extra_long();
+	if (!other_extra_long)
 	{
-	  return weather_str;
+	    return weather_str;
 	}
-      else
+	else
 	{
-	  return other_extra_long + weather_str + "\n";
+	    return other_extra_long + weather_str + "\n";
 	}
     }
 }

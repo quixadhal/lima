@@ -5,15 +5,15 @@
 #endif
 
 // private so they don't become simuls
-private inherit "/secure/check_config";
+private inherit __DIR__ "check_config";
 
 // these first since others might use them.
-inherit "/secure/simul_efun/overrides";
+inherit __DIR__ "simul_efun/overrides";
 
-inherit "/secure/simul_efun/security";
-inherit "/secure/simul_efun/objcalls";
-inherit "/secure/simul_efun/userfuncs";
-inherit "/secure/simul_efun/path";
-inherit "/secure/simul_efun/string";
-inherit "/secure/simul_efun/misc";
-inherit "/secure/simul_efun/more";
+inherit __DIR__ "simul_efun/security";
+inherit __DIR__ "simul_efun/objcalls";
+inherit __DIR__ "simul_efun/userfuncs";
+inherit __DIR__ "simul_efun/path";
+inherit __DIR__ "simul_efun/string";
+inherit __DIR__ "simul_efun/misc";
+inherit __DIR__ "simul_efun/more";

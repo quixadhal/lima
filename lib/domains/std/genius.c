@@ -14,10 +14,9 @@ int ends_with(string str, string suff) {
     return str[<strlen(suff)..] == suff;
 }
 
-create() {
+void setup() {
     int *handle;
     
-    ::create();
     set_name("Logical Genius");
     set_gender(1);
     set_proper_name("Logical Genius");

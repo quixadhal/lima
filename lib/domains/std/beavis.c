@@ -13,9 +13,7 @@ void follow_the_script_dumbass()
 
 
 
-create() {
-  
-    ::create();
+void setup() {
     set_name("Beavis");
     set_gender(1);
     set_proper_name("Beavis");

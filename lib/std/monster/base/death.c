@@ -6,7 +6,7 @@ void remove();
 string query_name();
 
 private string corpse_long;
-private string corpse_filename = "/obj/corpse";
+private string corpse_filename = CORPSE;
 
 void set_corpse_long(string str) {
     corpse_long = str;

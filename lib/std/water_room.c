@@ -1,9 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+
 // This doesn't do anything yet....
 
 #include <mudlib.h>
-inherit ROOM;
+inherit INDOOR_ROOM;
 
-create() {
-  base_room::create();
+void mudlib_setup()
+{
+    ::mudlib_setup();
 }

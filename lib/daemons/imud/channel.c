@@ -20,7 +20,8 @@ void send_to_router(string type, mixed * message);
 void send_to_mud(string type, string mudname, mixed * message);
 void return_error(string mudname, string username,
 		  string errcode, string errmsg);
-string wrap(string str);
+void add_cache_entry(string mudname, string username,
+		     string visname, int gender);
 
 
 static nomask int query_chanlist_id()
@@ -91,7 +92,7 @@ static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 static nomask void rcv_chan_who_req(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
-  object * listeners = NCHANNEL_D->query_listeners( message [0] );
+    object * listeners = NCHANNEL_D->query_listeners(message[0]);
 
     if ( !listeners )
     {
@@ -189,12 +190,46 @@ static nomask void rcv_channel_t(string orig_mud, string orig_user,
 #endif
 }
 
-static nomask void init_channels()
+static nomask void rcv_chan_user_req(string orig_mud, string orig_user,
+				     string target_user, mixed * message)
+{
+    object p;
+
+    p = find_body(message[0]);
+    if ( !p )
+    {
+	return_error(orig_mud, orig_user, "unk-user",
+		     sprintf("'%s' is unknown", message[0]));
+    }
+    else
+    {
+	int gender = p->query_gender();
+
+	/* map to I3's concept of gender: male(0), female(1), neuter(2)
+	   ours is: neuter(0), male(1), female(2) */
+	gender = (gender + 1) % 3;	/* Lima -> I3 */
+	
+	send_to_mud("chan-user-reply", orig_mud,
+		    ({ message[0], p->query_name(), gender }));
+    }
+}
+
+static nomask void rcv_chan_user_reply(string orig_mud, string orig_user,
+				       string target_user, mixed * message)
+{
+    int gender = (message[2] + 2) % 3;	/* I3 -> Lima */
+
+    add_cache_entry(orig_mud, message[0], message[1], gender);
+
+    /* ### do rest of emote now... */
+}
+
+static nomask void chan_startup()
 {
     NCHANNEL_D->register_channels(map_array(keys(chanlist),
 					    (: "imud_" + $1 :)));
 }
-static nomask void free_channels()
+static nomask void chan_shutdown()
 {
     NCHANNEL_D->unregister_channels();
 }

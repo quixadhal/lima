@@ -4,10 +4,9 @@
 #include <size.h>
 inherit ROOM;
 
-create()
+void setup()
 {
-    set_area ("pirate");
-    ::create();
+    set_area("pirate");
     set_brief("Low Crawl");
     set_long(
       "You have to get on your hands and knees to proceed through this crawl.  Even on your hands and knees your back is scraping the ceiling causing loose rocks and gravel to fall around you making it difficult to move.  To the north the crawl widens, and from the south you feel a breeze of air that smells faintly salty strike your face.\n");

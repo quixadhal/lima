@@ -113,7 +113,8 @@ private nomask int valid_name(string str)
 {
     int len;
 
-    if(BANISH_D->check_name(str)){
+    if ( BANISH_D->check_name(str) )
+    {
 	write("Sorry, that name is forbidden by the implementors.  Please choose another.\n");
 	return 0;
     }
@@ -122,18 +123,31 @@ private nomask int valid_name(string str)
 	return 0;
 
     len = strlen(str);
-    if(len>12){
+    if ( len > 12 )
+    {
 	write("Sorry, that name's too long.  Try again.\n> ");
 	return 0;
     }
-/* This code isn't necessary, since a regexp in the banish code does this. */
-//    while(len--)
-//	if((str[len] < 'a' || str[len] > 'z') && 
-//	  (len && str[len] != '-')){
-//	    write(
-//	      "You can only use lower-case letters, or a dash if it doesn't start your name.\nTry again.\n> ");
-//	    return 0;
-//        }
+
+    /*
+    ** We used to rely on the banish code to do this, but that is a
+    ** Bad Thing as it is too easy to see those entries deleted.  In
+    ** particular, we've been distributing the lib for a while now
+    ** without a banish.o that contains this rule.  To use the banish
+    ** code to implement a feature here is too convoluted and unintuitive.
+    **
+    ** So... we'll put a regex here to check the name.
+    **
+    ** Note that this regex matches the restriction imposed by the
+    ** SECURE_D.  Also note the name is in lower case right now.
+    */
+    if ( !regexp(str, "^[a-z]+$") )
+    {
+	write("Sorry, that name is forbidden by the implementors.  Please\n"
+	      "choose a name containing only letters.\n");
+	return 0;
+    }
+
     return 1;
 }
 
@@ -373,7 +387,7 @@ private nomask void logon()
  * extensively modified/rewritten more than half of the base mudlib first
  * (intend to modify ... doesn't cut it)
  */
-    printf("%s is running Lima 0.9r10 (pre-alpha) on %s\n\n",
+    printf("%s is running Lima 0.9r11 (pre-alpha) on %s\n\n",
 	   mud_name(), driver_version());
 
 #ifdef ZORKMUD

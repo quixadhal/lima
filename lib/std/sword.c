@@ -2,8 +2,9 @@
 
 inherit WEAPON;
 
-create() {
-    ::create();
+void mudlib_setup()
+{
+    ::mudlib_setup();
     set_id("sword");
     set_combat_messages("combat-sword");
     set_wield_type("blade");

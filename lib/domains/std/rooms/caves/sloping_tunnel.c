@@ -5,12 +5,9 @@
 inherit ROOM;
 
 
-void create() 
-{ 
-  
-  ::create(); 
-
-  set_area ("pirate");
+void setup() 
+{
+  set_area("pirate");
   set_brief("Sloping tunnel");
 
   set_long("Nothing yet.\n");

@@ -9,8 +9,7 @@ inherit M_WEARABLE;
 inherit M_GETTABLE;
 
 void
-create() {
-    ::create();
+setup() {
     
     set_id("backpack", "pack");
     set_long("It's a simple leather backpack, with a flap and strap allowing you to close it.");

@@ -96,12 +96,18 @@
 ** ADMTOOL	administration tool's input menu object
 ** DATAEDIT	save file data editor
 **
-** HELPSYS	help system
-** NEWSREADER	a basic newsreader
-** TEMP_WORKROOM
 ** ALIASMENU
+** ANNO_MENU
+** CORPSE
+** HELPSYS	help system
+** HINT_MENU
+** IFTP_OB	command object to transfer files between muds via I3
+** NEWSREADER	a basic newsreader
+** NNTP_OB
 ** PLAYER_MENU
 ** PLYR_SHELL
+** TEMP_WORKROOM
+** WATER	some water
 **
 ** VERB_OB	basic functionality for parser-based verbs
 ** MENUS   	generic menuing facility
@@ -114,7 +120,6 @@
 **
 ** SHELL
 ** M_ALIAS 	module for storing and expanding aliases
-** M_CHAR_BINDINGS	??
 ** M_GETOPT	functions for command processing
 ** M_HISTORY 	module for handling command history
 ** M_PROMPT
@@ -150,63 +155,67 @@
 #define VOID_ROOM		"/domains/std/void"
 #define WIZ_ROOM		"/domains/std/wizroom"
 
-#define BASE_OBJ		"/std/base_obj"
-#define OBJ 			"/std/object"
-#define SPARSE_OBJ		"/std/sparse_obj"
-#define LESS_SPARSE_OBJ		"/std/less_sparse_obj"
-#define FURNITURE		"/std/furniture"
-#define MOUNT			"/std/mount"
-#define WEAPON			"/std/weapon"
 #define ARMOR			"/std/armor"
-#define MONSTER			"/std/monster"
+#define BASE_OBJ		"/std/base_obj"
 #define CONTAINER		"/std/container"
+#define COMPLEX_CONTAINER	"/std/complex_container"
 #define DOOR			"/std/door"
+#define FURNITURE		"/std/furniture"
+#define LESS_SPARSE_OBJ		"/std/less_sparse_obj"
 #define LIVING			"/std/living"
-#define STOCK_MASTER            "/std/stock_master"
+#define	MENUS			"/std/menu"
+#define MONSTER			"/std/monster"
+#define MOUNT			"/std/mount"
+#define OBJ 			"/std/object"
 #define RACE			"/std/race"
-#define COINS			"/std/coins"
+#define SPARSE_OBJ		"/std/sparse_obj"
 #define SPELL			"/std/spell"
+#define STOCK_MASTER            "/std/stock_master"
+#define VERB_OB			"/std/verb_ob"
+#define WEAPON			"/std/weapon"
 
-#define M_GLOB		        "/std/modules/glob"
-#define M_GRAMMAR		"/std/modules/grammar"
-#define M_CMDIO			"/std/modules/cmdio"
-#define M_PARSING		"/std/modules/parsing"
-#define M_REGEX			"/std/modules/regex"
-#define M_INPUT			"/std/modules/input"
-#define M_COMPLETE		"/std/modules/complete"
-#define M_RECONNECT		"/std/modules/reconnect"
-#define M_ANSI          	"/std/modules/ansi"
-#define M_SAVE			"/std/modules/save"
+/* for mudlib objects */
+#define M_ANSI          	"/std/modules/m_ansi"
+#define M_BODY_STATS		"/std/modules/m_bodystats"
+#define M_COMPLETE		"/std/modules/m_complete"
+#define M_GLOB		        "/std/modules/m_glob"
+#define M_GRAMMAR		"/std/modules/m_grammar"
+#define M_INPUT			"/std/modules/m_input"
+#define M_ITEMS			"/std/modules/m_items"
+#define M_PARSING		"/std/modules/m_parsing"
+#define M_RECONNECT		"/std/modules/m_reconnect"
+#define M_REGEX			"/std/modules/m_regex"
+#define M_SAVE			"/std/modules/m_save"
+#define M_SET			"/std/modules/m_set"
+#define M_SMARTMOVE		"/std/modules/m_smartmove"
 
-#define M_BODY_STATS		"/std/modules/bodystats"
-#define M_SMARTMOVE		"/std/modules/smartmove"
-
-#define M_WEARABLE		"/std/modules/wearable"
-#define M_SWITCHABLE		"/std/modules/switchable"
-#define M_LIGHTABLE		"/std/modules/lightable"
-#define M_ITEMS			"/std/modules/items"
-#define M_GETTABLE		"/std/modules/gettable"
-#define M_THROWABLE		"/std/modules/throwable"
-#define M_OPENABLE		"/std/modules/openable"
-#define M_CLIMBABLE		"/std/modules/climbable"
-#define M_LOCKABLE		"/std/modules/lockable"
-#define M_READABLE		"/std/modules/readable"
-#define M_DAMAGE_SOURCE		"/std/modules/damage_source"
-#define M_DAMAGE_SINK		"/std/modules/damage_sink"
-#define M_WIELDABLE		"/std/modules/wieldable"
-#define M_MESSAGES		"/std/modules/messages"
-#define M_ACTIONS               "/std/modules/actions"
-#define M_TRIGGERS		"/std/modules/triggers"
-#define M_WRITING_SURFACE	"/std/modules/writing_surface"
-#define M_VENDOR		"/std/modules/vendor"
-#define M_DIGGER		"/std/modules/digger"
-#define M_DIGGABLE		"/std/modules/diggable"
-#define M_BLOCKEXITS		"/std/modules/blockexits"
-#define M_KNOCKABLE		"/std/modules/knockable"
-#define M_VALUABLE		"/std/modules/valuable"
-#define M_MOUNTABLE		"/std/modules/mountable"
-#define M_ENTERABLE		"/std/modules/enterable"
-#define M_GUILD_MASTER          "/std/modules/guild_master"
+/* for area objects */
+#define M_ACTIONS               "/std/modules/m_actions"
+#define M_BLOCKEXITS		"/std/modules/m_blockexits"
+#define M_CLIMBABLE		"/std/modules/m_climbable"
+#define M_DAMAGE_SINK		"/std/modules/m_damage_sink"
+#define M_DAMAGE_SOURCE		"/std/modules/m_damage_source"
+#define M_DIGGABLE		"/std/modules/m_diggable"
+#define M_DIGGER		"/std/modules/m_digger"
+#define M_ENTERABLE		"/std/modules/m_enterable"
+#define M_GETTABLE		"/std/modules/m_gettable"
+#define M_GUILD_MASTER          "/std/modules/m_guild_master"
+#define M_KNOCKABLE		"/std/modules/m_knockable"
+#define M_LIGHTABLE		"/std/modules/m_lightable"
+#define M_LOCKABLE		"/std/modules/m_lockable"
+#define M_MESSAGES		"/std/modules/m_messages"
+#define M_MOUNTABLE		"/std/modules/m_mountable"
+#define M_OPENABLE		"/std/modules/m_openable"
+#define M_READABLE		"/std/modules/m_readable"
+#define M_SWITCHABLE		"/std/modules/m_switchable"
+#define M_THROWABLE		"/std/modules/m_throwable"
+#define M_TRIGGERS		"/std/modules/m_triggers"
+#define M_VALUABLE		"/std/modules/m_valuable"
+#define M_VENDOR		"/std/modules/m_vendor"
+#define M_WANDER                "/std/modules/m_wander"
+#define M_WEARABLE		"/std/modules/m_wearable"
+#define M_WIELDABLE		"/std/modules/m_wieldable"
+#define M_WRITING_SURFACE	"/std/modules/m_writing_surface"
 
 #define M_LIB_LOCKABLE		"/domains/std/lockable"
 #define M_LIB_OPENABLE		"/domains/std/openable"
@@ -218,15 +227,20 @@
 #define ADMTOOL			"/trans/obj/admtool"
 #define DATAEDIT		"/trans/obj/dataedit"
 
-#define HELPSYS			"/obj/helpsys"
-#define NEWSREADER		"/obj/newsreader"
-#define TEMP_WORKROOM		"/obj/tworkroom"
 #define ALIASMENU		"/obj/aliasmenu"
+#define ANNO_MENU		"/obj/annotationmenu"
+#define CORPSE			"/obj/corpse"
+#define HELPSYS			"/obj/helpsys"
+#define HINT_MENU		"/obj/hintmenu"
+#define IFTP_OB			"/obj/iftp_ob"
+#define NEWSREADER		"/obj/newsreader"
+#define NNTP_OB			"/obj/nntp"
 #define PLAYER_MENU		"/obj/plmenu"
 #define PLYR_SHELL		"/obj/pshell"
+#define TEMP_WORKROOM		"/obj/tworkroom"
+#define WATER			"/obj/water"
 
-#define VERB_OB			"/std/verb_ob"
-#define	MENUS			"/std/menu"
+#define M_ACCESS		"/secure/modules/access"
 
 #define CMD			"/secure/obj/cmd"
 #define DAEMON			"/secure/obj/daemon"
@@ -236,20 +250,23 @@
 
 #define SHELL		 	"/secure/obj/shell"
 #define M_ALIAS			"/secure/obj/shell/alias"
-#define M_CHAR_BINDINGS 	"/secure/obj/shell/bindings"
-#define M_GETOPT		"/secure/obj/shell/getopt"
 #define M_HISTORY	   	"/secure/obj/shell/history"
-#define M_PROMPT		"/secure/obj/shell/prompt"
 #define M_SCROLLBACK		"/secure/obj/shell/scrollback"
 #define M_SHELLFUNCS		"/secure/obj/shell/shellfuncs"
+
+/* used by 'wish';  M_GETOPT also used in CMD_D */
+#define M_GETOPT		"/secure/obj/shell/getopt"
+#define M_PROMPT		"/secure/obj/shell/prompt"
 #define M_SHELLVARS 		"/secure/obj/shell/shellvars"
 
 // These next few are 'high level' inheritables and probably should have
 // their own dir.
-#define SWORD			"/std/sword"
 #define BOOK			"/std/book"
+#define COINS			"/std/coins"
 #define LADDER			"/std/ladder"
+#define PORTAL			"/std/portal"
 #define STAIRS			"/std/stairs"
+#define SWORD			"/std/sword"
 #define TORCH			"/std/torch"
 #define VEHICLE			"/std/vehicle"
 

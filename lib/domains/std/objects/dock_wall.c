@@ -3,9 +3,8 @@
 inherit OBJ;
 inherit M_READABLE;
 
-void create()
+ void setup()
 {
-  ::create();
   set_id ("wall","inscription", "writing", "passage");
   set_in_room_desc ("There is an inscription carved into the south wall.");
   set_long ("The inscription is carved into the cave wall.  You notice under the inscription the outline of a passage.\n");

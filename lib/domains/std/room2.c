@@ -6,9 +6,8 @@
 
 inherit ROOM;
 
-void
-create() {
-    ::create();
+void setup() {
+  set_area("wiz_area");
     
     set_brief("Relations and Toys");
     set_long("Guess what?  It's yet another example room.  The first example "

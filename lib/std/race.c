@@ -90,3 +90,10 @@ int damage_bonus() {
     return 0;
 }
 #endif
+
+// A default query_race, just in case it is forgotten
+
+string query_race()
+{
+  error("No valid query_race() defined...\n");
+}

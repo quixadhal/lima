@@ -16,8 +16,7 @@ adjust_result(mixed result) {
     return result;
 }
 
-create() {
-    ::create();
+void setup() {
     set_adj("admantine");
     set_id("platemail");
     // platemail acts as if it were plural

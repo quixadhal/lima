@@ -5,11 +5,6 @@
 
 inherit VERB_OB;
 
-mixed can_drink_obj(object ob)
-{
-    return 1;
-}
-
 void do_drink_obj(object ob)
 {
     if (!try_to_acquire(ob))

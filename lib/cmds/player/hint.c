@@ -3,8 +3,7 @@
 #include <mudlib.h>
 inherit CMD;
 
-private void
-main()
+private void main()
 {
-  new("/obj/hintmenu")->start_menu();
+    new(HINT_MENU)->start_menu();
 }

@@ -25,8 +25,7 @@ adjust_my_result(class combat_result array result) {
     return result;
 }
 
-create() {
-    ::create();
+void setup() {
     set_adj("glowing");
     set_id("sword");
     set_proper_name("Sword of Mercy");

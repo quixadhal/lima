@@ -7,19 +7,9 @@
 
 inherit VERB_OB;
 
-mixed can_listen_to_obj(object ob)
-{
-    return 1;
-}
-
 mixed direct_listen_to_obj(object ob) 
 {
     return 1;
-}
-
-mixed can_listen ()
-{
-  return 1;
 }
 
 void do_listen_to_obj(object ob)

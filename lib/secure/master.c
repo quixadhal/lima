@@ -15,38 +15,25 @@ private mapping errors = ([]);
 
 object compile_object(string path)
 {
-    int idx;
-    string fname;
+    string pname;
     object ob;
 
     path = "/" + path;
-    idx = 0;
-    while ( 1 )
-    {
-	int size;
-
-	/* if we hit the end w/o finding the virtual server, then punt */
-	idx = member_array('/', path, idx + 1);
-	if ( idx == -1 )
+    pname = path;
+    
+    while (1) {
+	int idx = strsrch(pname, "/", -1);
+	
+	if (idx == -1)
 	    return 0;
+	
+	pname = pname[0..idx-1];
 
-	/* punt if we found a real file.  need dirs or non-exist. */
-	fname = path[0..idx-1];
-	size = file_size(fname);
-	if ( size >= 0 )
-	    return 0;
-	if ( size == -1 )
-	    break;
+	if (file_size(pname + ".c") >= 0) {
+	    if (ob = pname->virtual_create(path[idx+1..]))
+		return ob;
+	}
     }
-
-    /* we found a non-existent path. there should be a .c file here */
-    if ( file_size(fname + ".c") <= 0 )
-	return 0;
-
-    if ( catch(ob = load_object(fname)) )
-	return 0;
-
-    return ob->virtual_create(path[idx+1..]);
 }
 
 private void crash()
@@ -172,7 +159,7 @@ string error_handler(mapping mp, int caught)
     
     // Strip trailing \n, and indent nicely
     what = replace_string(what[0..<2], "\n", "\n         *");
-    NCHANNEL_D->deliver_string("wiz_errors",
+    NCHANNEL_D->deliver_string("errors",
 		       sprintf("[errors] Error logged to %s\n[errors] %s\n[errors] %s\n",
 			       logfile,
 			       what,

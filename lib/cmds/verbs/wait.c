@@ -4,11 +4,6 @@
 
 inherit VERB_OB;
 
-mixed can_wait()
-{
-    return 1;
-}
-
 void do_wait()
 {
     write("Do I have to do EVERYTHING for you?\n");

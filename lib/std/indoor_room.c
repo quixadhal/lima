@@ -2,15 +2,14 @@
 
 inherit BASE_ROOM;
 
-int is_indoors ()
+int is_indoors()
 {
-  return 1;
+    return 1;
 }
 
-void create ()
+void mudlib_setup()
 {
-  ::create ();
-  add_id_no_plural ("ground");
-  add_id ("room");
+    ::mudlib_setup();
+    add_id_no_plural("ground");
+    add_id("room");
 }
-

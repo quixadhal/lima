@@ -11,6 +11,10 @@ inherit CMD;
 private void main(string str)
 {
     int flag = 1;
+    if (!str) {
+        write("Parse what?\n");
+        return;
+    }
 
     if ( sizeof(str) > 3 && str[0..2] == "-v ")
     {

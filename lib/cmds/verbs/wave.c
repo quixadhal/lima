@@ -6,15 +6,6 @@
 inherit VERB_OB;
 inherit M_PARSING;
 
-mixed can_wave_obj(object ob)
-{
-    return 1;
-}
-
-mixed can_wave_obj_at_obj(object ob1, object ob2) {
-    return 1;
-}
-
 // Anything can be waved at/be waved.  Might not do anything, tho :)
 mixed direct_wave_obj(object ob) {
     return 1;

@@ -1,8 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-
-/* Do not remove the headers from this file! see /USAGE for more info. */
-
 /*
 ** give.c
 **
@@ -11,11 +8,6 @@
 #include <mudlib.h>
 
 inherit VERB_OB;
-
-mixed can_give_obj_to_liv(object ob, object liv)
-{
-    return 1;
-}
 
 void do_give_obj_to_liv(object ob, object liv) {
     if (!try_to_acquire(ob))
@@ -45,14 +37,6 @@ mixed * query_verb_info()
 /*   case 5 - give all                   */
 /*   case 6 - give OBJ to OBJ           */
 /****************************************/
-#include <mudlib.h>
-#include <setbit.h>
-#include <move.h>
-
-inherit M_PARSING;
-inherit "/std/verbs/interrogative.c";
-inherit M_OBJCALLS;
-
 
 //   do_give is the function called within the obnject that you want
 //     to give something to.

@@ -3,9 +3,9 @@
 #include "mudlib.h"
 
 inherit CONTAINER;
-inherit "/std/living/grammar";
-inherit "/std/living/messages";
-inherit "/std/living/state_of_mind";
+inherit __DIR__ "living/grammar";
+inherit __DIR__ "living/messages";
+inherit __DIR__ "living/state_of_mind";
 
 /* This is a pure 'living' object, not what is traditionally meant
  * by a living object on LPmuds.  Note that find_living() won't
@@ -16,13 +16,15 @@ inherit "/std/living/state_of_mind";
  * want it to be able to fight, inherit MONSTER instead.
  */
 
-create() {
-    container::create();
+private string name;
+
+
+void mudlib_setup()
+{
+    ::mudlib_setup();
     set_max_capacity(100);
     set_def_msgs("living-default");
 }
-
-string name;
 
 string query_name() { return name; }
 
@@ -37,7 +39,7 @@ string in_room_desc() {
 }
 
 string inventory_header() {
-    return capitalize(query_subjective()) + " is carrying:";
+    return capitalize(query_subjective()) + " is carrying:\n";
 }
 
 string invis_name() {
@@ -65,6 +67,7 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
 }
 
 mixed direct_get_obj(object ob) {
+    if (ob == this_body()) return "You find your presence uplifting.\n";
     return "I can't do everything.  If you want to pick up another player, try using your social skills.\n";
 }
 

@@ -36,15 +36,14 @@ void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
 
 mixed * query_verb_info()
 {
-    return ({ ({ "OBS WRD OBJ", "OBJ WRD OBJ" }),
-		  ({ "insert", "place", "stuff" }) });
+    return ({
+	({ "OBS WRD OBJ", "OBJ WRD OBJ" }), ({ "insert", "place", "stuff" })
+	  });
     
     /*
     ** "hide OBS next to OBJ" -> "put OBS next to OBJ"
     ** "hide OBS beside OBJ" -> "put OBS beside OBJ"
     ** "hide OBS with OBJ" -> "put OBS with OBJ"
-    ** "put on OBS" -> "wear OBS"
-    ** "put down OBS" -> "drop OBS"
     */
 }
 

@@ -1,0 +1,34 @@
+Every night, a daemon scans the mudlib for certain comments, and uses them
+to build help files in /help/autodoc.  Comments which start in the first
+column, and begin with //: are recognized as special (//### is an exception;
+it is recognized too).  The following explains what the various types of
+comments are, and what they do:
+
+(1) //### This needs to be fixed ...
+
+This adds a line to the file /help/autodoc/FIXME/module, where 'module' is
+the last component of the filename the comment was found it.
+
+(2) //:MODULE
+    //This modules does ...
+
+The comments after the first line will be put in the file
+/help/autodoc/modules/module, where 'module' is the same as above.
+
+(3) //:COMMAND
+    //This command does ...
+
+Same as //:MODULE, but /help/autodoc/command/ is used.
+
+(4) //:HOOK foo
+    //The "foo" hook ...
+
+These are put in /help/autodoc/hook/foo.  A line is added specifying which
+file calls this hook.  (E.g. "Called by /std/sword.c")
+
+(5) //:FUNCTION foo <or> //:FUNC foo
+
+These are put in /help/autodoc/functions/module/foo, where 'module' is the
+same as above, and 'foo' is the name of the function being documented.
+
+Misunderstood tags are writen to the log file specified as LOG_AUTODOC.

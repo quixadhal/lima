@@ -10,16 +10,6 @@
 
 inherit VERB_OB;
 
-mixed can_throw_obj(object ob)
-{
-    return 1;
-}
-
-mixed can_throw_obj_at_obj(object ob1, object ob2)
-{
-  return 1;
-}
-
 varargs private nomask void throw_one(object ob, object target)
 {
   mixed tmp;

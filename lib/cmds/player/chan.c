@@ -45,8 +45,8 @@ private void main(string arg)
     }
 
     /* COMPATIBILITY: if there is no '_' in the name, prepend plyr_ */
-    if ( member_array('_', channel_name) == -1 )
-	channel_name = "plyr_" + channel_name;
+//    if ( member_array('_', channel_name) == -1 )
+//	channel_name = "plyr_" + channel_name;
 
     chan_type = channel_name[0..4] == "imud_";
 

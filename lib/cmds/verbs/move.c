@@ -5,12 +5,6 @@
 inherit M_PARSING;
 inherit VERB_OB;
 
-mixed can_move_obj(object ob)
-{
-    return 1;
-}
-
-
 void do_move_obj(object ob)
 {
     ob->disturb();

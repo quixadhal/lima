@@ -11,14 +11,14 @@
 inherit VEHICLE;
 inherit M_MOUNTABLE;
 
-void create()
+void setup()
 {
-    ::create();
+set_relations("on");
     set_adj("ugly");
     set_id("horse");
     set_long("Damn, the horse is ugly!");
+set_preposition("on");
     set_max_capacity(VERY_LARGE*2);
-    set_preposition("on");
     // So people will see: Sitting on the horse you see Rust...
     set_primary_verb("sitting");
     set_in_room_desc("There is an ugly horse here.");

@@ -27,9 +27,8 @@ static private string * my_descriptions = ({
     "A small stream languidly flows along here.",
 });
 
-void create()
+void setup()
 {
-    ::create();
 
     use_data_file(DATA_FILE);
     set_brief("Plains");

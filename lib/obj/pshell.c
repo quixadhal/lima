@@ -15,7 +15,10 @@
 inherit SHELL;
 inherit M_COMPLETE;
 
-
+string array query_path() {
+    return ({ CMD_DIR_PLAYER "/" });
+}
+     
 string query_shellname()
 {
     return "Player Shell";
@@ -38,7 +41,7 @@ private nomask string expand_one_argument(string arg)
 static void execute_command(string * argv, string original_input)
 {
     mixed tmp;
-    object winner;
+    array winner;
     string argument;
     
     /* BEGINNING OF EXPANSION */
@@ -66,21 +69,42 @@ static void execute_command(string * argv, string original_input)
     /* END OF EXPANSION */
 
     winner = CMD_D->find_cmd_in_path(argv[0], ({ CMD_DIR_PLAYER "/" }));
-    if ( !winner )
+    if ( !arrayp(winner) )
     {
-	if (!this_body()->do_game_command(original_input))
-	  {
-//## This is a hack until the parser can tell me if a word is a verb.
-	    if(is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
-	      write(this_body()->nonsense());
-	    else
-	      printf("I don't know the word: %s.\n", argv[0]);
-	  }
+	string channel_name;
+
+	if ( this_body()->do_game_command(original_input) )
+	    return;
+
+	/* try a channel */
+	channel_name = NCHANNEL_D->is_valid_channel(argv[0], this_body()->query_channel_list());
+	if ( channel_name )
+	{
+	    /* ### strictly speaking, players can't use I3 channels */
+	    int chan_type = channel_name[0..4] == "imud_";
+
+	    NCHANNEL_D->cmd_channel(channel_name,
+				    implode(argv[1..], " "),
+				    chan_type);
+	    return;
+	}
+
+//### This is a hack until the parser can tell me if a word is a verb.
+	if(is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
+	    write(this_body()->nonsense());
+	else
+	    printf("I don't know the word: %s.\n", argv[0]);
+
 	return;
     }
 
     if ( sizeof(argv) > 1 )
 	argument = implode(argv[1..], " ");
 
-    winner->call_main(argument);
+    winner[0]->call_main(argument);
+}
+
+static nomask string query_save_path(string userid)
+{
+    return PSHELL_PATH(userid);
 }

@@ -5,16 +5,12 @@
 
 inherit VERB_OB;
 
-mixed can_eat_obj(object ob)
-{
-    return 1;
-}
-
 mixed do_eat_obj(object ob)
 {
     if (!try_to_acquire(ob))
 	return;
-    ob->eat_it();
+if(ob->eat_it()) return 1;
+  return 0;
 }
 
 mixed * query_verb_info()

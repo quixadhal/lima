@@ -45,16 +45,6 @@ void do_stand_up()
   do_stand();
 }
 
-int can_stand()
-{
-  return 1;
-}
-
-int can_stand_up()
-{
-  return 1;
-}
-
 mixed array query_verb_info()
 {
     return ({ ({ "", "up" }) });

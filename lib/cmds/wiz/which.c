@@ -10,7 +10,7 @@ private void main(string array argv)
 
 
   result = CMD_D->find_cmd_in_path(argv[0], 
-	   this_body()->query_shell_ob()->get_variable("path"), 1);
+	   this_body()->query_shell_ob()->query_path());
 
   if(result == -1)
     {
@@ -23,7 +23,7 @@ private void main(string array argv)
       printf("No such command found in your path.\n");
       return;
     }
-  printf("%s is found in: %s\n", argv[0], result);
+  printf("%s is found in: %s\n", argv[0], result[1]);
   return;
 }
 

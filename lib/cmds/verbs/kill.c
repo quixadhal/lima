@@ -5,15 +5,6 @@
 
 inherit VERB_OB;
 
-mixed can_kill_liv(object ob)
-{
-    return check_vision();
-}
-
-mixed can_kill() {
-    return check_vision();
-}
-
 void do_kill_liv(object ob)
 {
     if (ob == this_body())     

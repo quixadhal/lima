@@ -54,6 +54,16 @@ static nomask void rcv_finger_reply(string orig_mud, string orig_user,
     {
 	string s;
 
+	/* NOTE: we're munging the input packet... oh well :-) */
+	if ( message[1] == "" ) message[1] = 0;
+	if ( message[2] == "" ) message[2] = 0;
+	if ( message[3] == "" ) message[3] = 0;
+	if ( message[4] == "" ) message[4] = 0;
+	if ( message[5] == "" ) message[5] = 0;
+	if ( message[6] == "" ) message[6] = 0;
+	if ( message[7] == "" ) message[7] = 0;
+	if ( message[8] == "" ) message[8] = 0;
+
 	if ( message[2] )
 	    s = sprintf("Name:  %-35sIn real life: %s\n",
 			message[0], message[2]);
@@ -64,12 +74,47 @@ static nomask void rcv_finger_reply(string orig_mud, string orig_user,
 	s += sprintf("Level: %-35sTitle: %s\n",
 		     message[7] ? message[7] : "<unknown>",
 		     message[1] ? message[1] : "<unknown>");
-	if ( message[4] == -1 )
-	    s += "Not logged on.\n";
-	else if ( message[4] != "" && message[6] )
-	    s += sprintf("On since %s from %s\n", message[4], message[6]);
-	else if ( message[4] != "" )
-	    s += sprintf("On since %s\n", "<some time>", message[6]);
+	if ( message[5] == -1 )
+	{
+	    if ( message[4] && message[6] )
+	    {
+		s += sprintf("Left at %s from %s\n", message[4], message[6]);
+	    }
+	    else if ( message[4] )
+	    {
+		s += sprintf("Left at %s\n", message[4]);
+	    }
+	    else if ( message[6] )
+	    {
+		s += sprintf("Last login from %s\n", message[6]);
+	    }
+	    else
+	    {
+		s += "Not logged on.\n";
+	    }
+	}
+	else
+	{
+	    string idle;
+
+	    if ( message[5] > 3600 )
+		idle = (message[5]/3600) + "h";
+	    else if ( message[5] > 60 )
+		idle = (message[5]/60) + "m";
+	    else if ( message[5] )
+		idle = message[5] + "s";
+	    if ( idle )
+		idle = " (idle " + idle + ")";
+
+	    if ( message[4] && message[6] )
+		s += sprintf("On since %s%s from %s\n",
+			     message[4], idle, message[6]);
+	    else if ( message[4] )
+		s += sprintf("On since %s%s\n", message[4], idle);
+	    else if ( message[6] )
+		s += sprintf("On from %s%s\n", message[6], idle);
+	}
+
 	if ( message[8] )
 	    s += message[8];
 

@@ -17,6 +17,8 @@ private static object array other_targets = ({});
 
 object query_target() { return target; }
 
+object array query_targets() { return ({ target }) + other_targets; }
+
 /* Find someone to attack.  Return zero if we're dead or asleep or
  * have noone to attack.
  */

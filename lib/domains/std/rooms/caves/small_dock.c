@@ -9,14 +9,11 @@ private static int passage_open = 0;
 void close_passage();
 void open_passage();
 
-void create() 
+void setup() 
 { 
   string river = "#You would drown in the river.";
 
-  ::create(); 
-
-
-  set_area ("pirate");
+  set_area("pirate");
   set_brief("Small dock");
 
   set_long("The river cuts through the north wall of this cave, and wanders "

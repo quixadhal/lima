@@ -11,10 +11,8 @@
 inherit VEHICLE;
 inherit M_ENTERABLE;
 
-void create()
+void setup()
 {
-
-    ::create();
     set_adj("red");
     set_id("camaro", "car");
     set_preposition("in");

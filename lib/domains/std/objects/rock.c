@@ -3,9 +3,8 @@
 inherit WEAPON;
 inherit M_THROWABLE;
 
-create() 
+void setup() 
 {
-    ::create();
     set_adj("dull", "ordinary");
     set_id("rock");
     set_weapon_class(5);

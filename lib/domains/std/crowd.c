@@ -17,8 +17,7 @@ string long_func() {
     return "As you look at the crowd, you notice Beekjr standing off to one side.";
 }
 
-void create() {
-    ::create();
+void setup() {
     set_id("crowd");
     set_in_room_desc("A crowd of LPC coders mills around.");
     set_long( (: long_func :) );

@@ -5,9 +5,8 @@ inherit OBJ;
 inherit M_GETTABLE;
 inherit M_LOCKABLE;
 
-create()
+void setup()
 {
-    object::create();
     set_adj("small", "shiny");
     set_id("key");
     set_in_room_desc("A small shiny safe key");

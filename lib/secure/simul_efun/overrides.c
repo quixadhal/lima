@@ -168,6 +168,11 @@ varargs void tell_room(mixed o, string s, int m, object array x, mixed t)
   tell_object(o,s,m,x,t);
 }
 
+void shout(string s)
+{
+  map(users()-({this_user()}), (: tell_object($1, $(s), PRIVATE_MSG):));
+}
+
 //:FUNC say
 //The say() efun is not used by the LIMA mudlib, in favor of the extensive
 //messaging system in the body.  Consider using this_body()->other_action()

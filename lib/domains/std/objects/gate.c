@@ -18,8 +18,7 @@ void do_on_close()
 load_object("/domains/std/rooms/caves/north_tunnel.c")->clear_room_state("gate_open");
    env->clear_room_state( "gate_open");
 }
-void create(string dir) {
-    ::create();
+void setup(string dir) {
    add_hook("open", (:do_on_open:) );
    add_hook("close", (:do_on_close :) );
     set_id("gate");

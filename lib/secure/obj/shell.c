@@ -2,7 +2,9 @@
 
 #include <mudlib.h>
 #include <driver/origin.h>
+#include <security.h>
 
+inherit M_ACCESS;
 inherit M_INPUT;
 inherit M_HISTORY;
 inherit M_ALIAS;
@@ -14,16 +16,14 @@ private static object owner;
 
 void execute_command(string * argv, string original_input);
 string query_shellname();
+string query_save_path(string userid);
 
 static function arg_to_words_func = (: explode($1," ") :);
 
-void remove()
-{
-    if ( origin() != ORIGIN_LOCAL && owner && previous_object() != owner )
-	error("illegal attempt to remove shell object\n");
-
-    destruct();
-}
+//### goofy fucking hack cuz the shell doesn't save for shit. only M_SAVE,
+//### even though in the alias code it professes to "not require it to be
+//### bound to M_SAVE" ... this is bunk...
+private string save_info;
 
 void setup_for_save()
 {
@@ -33,6 +33,34 @@ void setup_for_save()
     */
     alias::setup_for_save();
     shellfuncs::setup_for_save();
+}
+
+void save_me()
+{
+    if ( !owner )	/* probably the blueprint */
+	return;
+
+    setup_for_save();
+    save_info = save_to_string();
+    unguarded(1, (: save_object, query_save_path(owner->query_userid()) :));
+}
+static void restore_me(string userid)
+{
+    unguarded(1, (: restore_object, query_save_path(userid) :));
+    if ( save_info )
+    {
+	load_from_string(save_info, 0);
+	save_info = 0;
+    }
+}
+
+void remove()
+{
+    if ( origin() != ORIGIN_LOCAL && owner && previous_object() != owner )
+	error("illegal attempt to remove shell object\n");
+
+    save_me();
+    destruct();
 }
 
 static void shell_input(mixed input)
@@ -115,10 +143,20 @@ private void cmd_exit()
     remove();
 }
 
-void create()
+private void create()
 {
     if ( !clonep() )
 	return;
+
+    owner = previous_object();
+    if ( owner != this_user() )
+    {
+	destruct();
+	error("illegal shell object creation\n");
+    }
+
+    if ( owner )
+	restore_me(owner->query_userid());
 
     alias::create();
     history::create();
@@ -145,10 +183,7 @@ static mixed what_prompt()
 
 void start_shell()
 {
-    if ( !owner )
-	owner = this_body();
-
-    if ( owner != this_body() || previous_object() != owner )
+    if ( owner != this_user() || previous_object() != owner )
 	error("illegal attempt to take over shell\n");
 
     modal_push((: shell_input :), what_prompt());

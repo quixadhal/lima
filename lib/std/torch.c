@@ -3,9 +3,10 @@
 inherit WEAPON;
 inherit M_LIGHTABLE;
 
-void create() {
-    ::create();
-    add_id("torch");
+void mudlib_setup()
+{
+    ::mudlib_setup();
+    set_id("torch");
     set_fuel(600);
     set_combat_messages("combat-torch");
     set_wield_type("fire");

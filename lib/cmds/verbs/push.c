@@ -5,18 +5,6 @@
 inherit VERB_OB;
 inherit M_PARSING;
 
-mixed can_push_obj(object ob) {
-    return 1;
-}
-
-mixed can_push_obj_str(object ob, string str) {
-    return 1;
-}
-
-mixed can_push_obj_with_obj(object ob, object ob2) {
-    return 1;
-}
-
 mixed direct_push_obj(object ob) {
     return 1;
 }

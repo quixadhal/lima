@@ -8,7 +8,7 @@ varargs void main(mixed arg1, mixed arg2);
 
 varargs nomask 
 void call_main(mixed arg1, mixed arg2) {
-    if (previous_object() != this_body()->query_shell_ob())
+    if (previous_object() != this_user()->query_shell_ob())
 	error("Illegal attempt to fake a command.\n");
     main(arg1, arg2);
 }

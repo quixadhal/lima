@@ -135,3 +135,8 @@ string query_in_room_desc()
 			get_riders_as_string()+"."));
     }
 }
+
+int is_vehicle()
+{
+  return 1;
+}

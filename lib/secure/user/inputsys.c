@@ -17,8 +17,7 @@
 #include <driver/function.h>
 
 string query_userid();
-object query_body();
-
+void start_shell();
 mixed query_privilege();
 
 
@@ -46,8 +45,7 @@ private nomask int create_handler()
     /*
     ** Attempt to create a handler (the user has none!)
     */
-    if ( query_body() )
-	query_body()->reset_input_handler();
+    start_shell();
 
     if ( !sizeof(modal_stack) )
     {

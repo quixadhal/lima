@@ -165,7 +165,6 @@ void create(int amount, string type)
     coins[type] = to_int(amount);
 
     set_id("coins");
-   add_id( type );
     add_adj(type);
     set_in_room_desc("A pile of coins");
     add_id(   "coin", "pile", "pile of coins" );

@@ -2,7 +2,7 @@
 #	Bash script to keep the mud up forever
 #	Rust July 7, 1994
 
-limadir=/home/mud/lima-0.9r10
+limadir=/home/mud/lima-0.9r11
 
 logdir=$limadir/lib/log
 logfile=$logdir/driver.log

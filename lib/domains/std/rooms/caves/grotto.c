@@ -2,9 +2,8 @@
 
 inherit ROOM;
 
-create()
+void setup()
 {
-  ::create();
   set_area ("pirate");
   set_brief("Painted grotto");
   set_long("Tumbling waves from the ocean creep into the entrance of this "
@@ -25,7 +24,7 @@ create()
 
   set_objects( ([
 		 "/domains/std/objects/dead_adventurer" : 1,
-		 "/domains/std/monsters/troll" : 1,
+              "/domains/std/monsters/troll" :1,
 		 ]) );
 
   add_item( "cave", "paint", "paintings", "grotto",

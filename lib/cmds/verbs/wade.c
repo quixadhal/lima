@@ -11,15 +11,6 @@
 
 inherit VERB_OB;
 
-mixed can_wade_in_obj(object ob) {
-    return 1;
-}
-
-mixed can_wade()
-{
-  return 1;
-}
-
 void do_wade()
 {
   mixed s = environment(this_body())->wade();

@@ -5,9 +5,9 @@ inherit M_GETTABLE;
 inherit M_SWITCHABLE;
 inherit M_LIGHTABLE;
 
-void create() {
-    switchable::create();
-    ::create();
+void setup() {
+    m_switchable::create();
+
     set_adj("brass");
     set_id("lantern");
     set_gettable(1);
@@ -21,3 +21,9 @@ void create() {
     add_hook("turn_on", (: light :));
     add_hook("turn_off", (: extinguish :));
  }
+
+void create()
+{
+    object::create();
+    m_switchable::create();
+}

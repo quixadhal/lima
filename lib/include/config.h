@@ -12,6 +12,8 @@
 #define __HOST__		"host.name"
 #define ADMIN_EMAIL		"user@host.name"
 
+#undef HANDLE_MANY_WIZARDS	/* if your mud has oodles of wizards... */
+
 #define START			"/domains/std/rooms/beach/sandy_beach"
 #define WIZARD_START		"/domains/std/wizroom"
 
@@ -20,6 +22,9 @@
 /* ! will give you problems since it's used as input escape. */
 #define HISTORY_CHAR		'%'
 #define AUTOMATIC_REHASH
+
+#define EVERYTHING_SAVES		/* Note: if you define this, you have to
+				   modify the lib to save the correct vars */
 
 #define OBVIOUS_EXITS		/* show obvious exits when looking (top) */
 #undef OBVIOUS_EXITS_BOTTOM	/* show obvious exits at bottom of long() */
@@ -67,6 +72,7 @@
 #define TYPO_NEWSGROUP "reporter.typos"
 #define IDEA_NEWSGROUP "reporter.ideas"
 #define TODO_NEWSGROUP "reporter.todo"
+#define QUESTION_NEWSGROUP "lima.help"
 
 
 #define BUG_MSG \
@@ -81,6 +87,14 @@
 // I'd recommend not changing anything below this point.
 #define LINK_PATH(x)		sprintf("/data/links/%c/%s",x[0],x)
 #define USER_PATH(x)		sprintf("/data/players/%c/%s",x[0],x)
+#define PSHELL_PATH(x)		sprintf("/data/pshells/%c/%s",x[0],x)
+
+#ifdef HANDLE_MANY_WIZARDS
+#define WSHELL_PATH(x)		sprintf("/data/wshells/%c/%s",x[0],x)
+#else
+#define WSHELL_PATH(x)		sprintf("/data/wshells/%s",x)
+#endif
+
 #define PRELOAD_FILE		"/data/config/preload"
 
 #define WIZ_DIR			"/wiz"

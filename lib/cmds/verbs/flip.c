@@ -4,38 +4,14 @@
 
 inherit VERB_OB;
 
-mixed can_flip_obj(object ob)
-{
-    return 1;
-}
-
 mixed can_flip_obj_wrd_obj(object ob1, string p, object ob2) {
-    if (p == "for" || p == "to") return 1;
+    if (p == "for" || p == "to") return default_checks();
     return 0;
 }
 
-mixed can_flip_off_obj(object ob) {
-    return 1;
-}
-
+//### huh?  This makes this useless.
 mixed can_flip_on_obj_with_obj(object ob) {
     return 0;
-}
-
-mixed can_flip_obj_off(object ob) {
-    return 1;
-}
-
-mixed can_flip_obj_with_obj(object ob1, object ob2) {
-    return 1;
-}
-
-mixed can_flip_obj_on(object ob) {
-    return 1;
-}
-
-mixed can_flip_on_obj(object ob) {
-    return 1;
 }
 
 void do_flip_obj_for_obj(object ob1, object ob2) {

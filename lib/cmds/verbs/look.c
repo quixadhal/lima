@@ -12,22 +12,17 @@
 
 inherit VERB_OB;
 
-mixed can_look_str_obj(string str)
-{
-   return 1;
+int need_to_be_alive() {
+    return 0;
 }
 
 mixed can_look_str(string str) {
 #if 0 // deprecated
     mixed value = environment(this_body())->query_exit_value(str);
     if (value && value[0] != '#')
-	return 1;
+	return default_checks();
 #endif
     return "That doesn't seem to be possible.\n";
-}
-
-mixed can_look_obj_with_obj(object ob1, object ob2) {
-    return 1;
 }
 
 void do_look() {
@@ -48,7 +43,7 @@ void do_look_at_obj(object ob, string name) {
 // if you're looking for what happened to that code, that's why I removed it.
 // -Beek
 void do_look_str_obj(string prep, object ob) {
-    write(ob->look_in(prep));
+    write(ob->look_in(prep)+"\n");
 }
 
 void do_look_obj(object ob, string name) {
@@ -107,7 +102,8 @@ mixed * query_verb_info()
 {
     return ({ ({ 0, "OBJ:v", "at OBJ:v", "for LIV:v", "for OBJ:v", "STR OBJ:v",
 	     "at OBS:v", "at OBS:v with OBJ", "at OBJ:v with OBJ",
-	     "STR", "OBJ:v with OBJ" }) });
+          "STR", "OBJ:v with OBJ" }), ({ "examine" }), 
+         ({"OBJ","OBS","OBS with OBJ" }) });
     
     /*
     ** "examine OBJ" -> "look OBJ"

@@ -3,9 +3,7 @@
 
 inherit CONTAINER;
 
-void
-create() {
-    ::create();
+void setup() {
     
     set_id("table");
     set_adj("coffee", "small", "wooden");

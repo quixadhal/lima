@@ -11,6 +11,20 @@ private object last_location;
 void call_hooks(string, int);
 int query_light();
 
+int contains(object o)
+{
+    return o->is_in(this_object());
+}
+int is_in(object o)
+{
+    object env = this_object();
+    while(env = environment(env))
+    {
+	if(env == o)
+	    return 1;
+    }
+}
+
 
 varargs mixed move(mixed dest, string where)
 {
@@ -32,6 +46,8 @@ varargs mixed move(mixed dest, string where)
 
     if (!objectp(dest)) return MOVE_NO_DEST;
 
+    if (dest->is_in(this_object()))
+       return "You can't move an object inside itself.\n";
     env=environment();
     if (env) {
         ret = env->release_object( this_object() );

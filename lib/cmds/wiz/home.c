@@ -32,7 +32,8 @@ private void main(string arg)
 	}
 	msgs = this_body()->get_player_message("home");
 	if (environment(this_body()))
-	    tell_room(environment(this_body()), msgs[1], 0, ({ this_body() }));
+            this_body()->my_action( "You go home.\n");
+            this_body()->other_action( msgs[1]);
 
 	home = this_body()->query_home();
 	if (home == "CLONE") {

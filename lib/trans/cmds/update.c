@@ -93,13 +93,13 @@ int do_update(string file, int deep)
 	    tmp = do_update(fn, (deep>1?deep:0));
 	    if (tmp > newest_inh) newest_inh = tmp;
 	}
-	// the file itself.
-	if (info[1] > newest_inh) newest_inh = info[1];
+	if (sizeof(info)) {
+	    if (info[1] > newest_inh) newest_inh = info[1];
 
-	// return if object isn't out of date.
-	if (info[2] >= newest_inh)
-	    return info[2];
-
+	    // return if object isn't out of date.
+	    if (info[2] >= newest_inh)
+	        return info[2];
+        }
 	destruct(ob, 1);      // pass 1: we're coming back soon
     } else {
 	ob = find_object(file);

@@ -14,12 +14,11 @@ void obj_arrived(object ob) {
     destruct(ob);
 }
 
-create()
+void setup()
 {
     string m = "#The mountains are too steep to climb.\n";
     string o = "#You would drown!\n";
 
-  ::create();
   set_brief("Outside cave");
   set_area ("pirate");
   set_long("You are wading knee-deep in the surf.  Except for what seems to be a tiny cave, the surf yields to the rather steep mountains fairly violently, and you have trouble keeping your balance.  The mountains retreat a bit, leaving some sand to walk on to the east and west.");

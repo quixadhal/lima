@@ -8,16 +8,16 @@
 #include <setbit.h>
 #include <move.h>
 
-inherit CONTAINER;
+inherit COMPLEX_CONTAINER;
 inherit M_ITEMS;
-inherit "/std/room/exits";
+inherit __DIR__ "room/exits";
 
 int this_look_is_forced;
 
 int stat_me() {
     printf("Location: %s [ %s ]\n\n",
       short(), implode(query_exit_directions(1), ", "));
-    container::stat_me();
+    complex_container::stat_me();
     return 1;
 }
 
@@ -32,18 +32,24 @@ int can_hold_water()
 
 void create()
 {
-    container::create();
+    complex_container::create();
     exits::create();
-	
+}
+
+void mudlib_setup()
+{
+    ::mudlib_setup();
     set_light(DEFAULT_LIGHT_LEVEL);
     set_max_capacity(VERY_LARGE+LARGE);
     add_id_no_plural("here");
     set_preposition("on");
+    if(!sizeof(get_relations()))
+    {
+	set_relations("on");
+    }
     set_default_exit((: "You're not going anywhere until you get out of the " 
 		      + short() + ".\n" :));
 }
-
-
 
 
 string get_location_description()

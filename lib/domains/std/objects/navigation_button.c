@@ -4,9 +4,7 @@
 
 inherit OBJ;
 
-void
-create() {
-    ::create();
+void setup() {
     
     set_id("button");
     set_long("The button probably opens up the passage you came through to get here.\n");

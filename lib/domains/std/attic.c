@@ -3,9 +3,7 @@
 #include <mudlib.h>
 inherit ROOM;
 
-create() {
-    ::create();
-
+void setup() {
     set_brief("Attic");
     set_long("This is the attic of the wizard hall.  Not much here yet :-)");
     set_exits( ([
@@ -16,5 +14,3 @@ create() {
 	   "/domains/std/magic_flame" : 1
     ]) );
 }
-
-

@@ -7,11 +7,6 @@
 
 inherit VERB_OB;
 
-mixed can_smell_obj(object ob)
-{
-    return 1;
-}
-
 mixed direct_smell_obj(object ob) {
     return 1;
 }

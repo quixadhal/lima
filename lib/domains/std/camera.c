@@ -10,8 +10,7 @@
 inherit OBJ;
 inherit M_GETTABLE;
 
-void create() {
-    ::create();
+void setup() {
     set_id("camera", "button");
     set_long("It's a polaroid camera!  There is a button on top.\n");
     set_gettable(1);

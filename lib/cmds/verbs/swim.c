@@ -11,15 +11,6 @@
 
 inherit VERB_OB;
 
-mixed can_swim_in_obj(object ob) {
-    return 1;
-}
-
-mixed can_swim()
-{
-  return 1;
-}
-
 void do_swim()
 {
   mixed s = environment(this_body())->swim();

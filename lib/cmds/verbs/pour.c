@@ -6,10 +6,6 @@
 inherit M_PARSING;
 inherit VERB_OB;
 
-mixed can_pour_obj_in_obj(object ob1, object ob2) {
-    return 1;
-}
-
 /* default */
 mixed indirect_pour_obj_in_obj(object ob1, object ob2) {
     return "You can't pour anything into " + ob2->the_short() + "\n";

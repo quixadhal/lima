@@ -19,10 +19,9 @@ void do_buy_str_from_liv(string str, object liv)
     {
 	if ( i == 2 )
 	{
-write(sentence[0]);
-	    if( sscanf(sentence[0], "%d", number) == 1)
+	    if( sscanf(sentence[1], "%d", number) == 1)
 	    {
-		liv->sell_stored_objects(sentence[1], number);
+		liv->sell_stored_objects(sentence[0], number);
 	    }
 	    else
 	    {
@@ -38,6 +37,6 @@ write(sentence[0]);
 
 
 
-    mixed *query_verb_info() {
-return ({ ({ "OBJ from LIV", "STR from LIV" }) });
-    }
+mixed *query_verb_info() {
+    return ({ ({ "OBJ from LIV", "STR from LIV" }) });
+}

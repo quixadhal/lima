@@ -1,10 +1,14 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit "/obj/corpse";
+inherit CORPSE;
 
 void create()
 {
     ::create("adventurer");
+}
+
+void setup()
+{
     set_proper_name(0);
     set_adj("adventurer's", "brave");
     set_objects(([ 

@@ -14,7 +14,7 @@ private void main(string * arg)
     string * paths;
     object shell_ob = this_body()->query_shell_ob();
 
-    paths = shell_ob->get_variable("path");
+    paths = shell_ob->query_path();
 
     if ( member_array(path, paths) == -1 )
     {

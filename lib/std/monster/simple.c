@@ -69,6 +69,8 @@ class combat_result array take_a_swing(object target) {
     class combat_result array result;
     int hp;
     string tmp;
+int them;
+int us;
     
     them=target->query_hp();
     hp = query_hp();
@@ -96,7 +98,7 @@ class combat_result array take_a_swing(object target) {
 	    stop_fight();
 	    /* falls through */
 	case 1:
-	    return;
+	    return 0;
 	}
     }
 

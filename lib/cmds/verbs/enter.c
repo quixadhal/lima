@@ -2,11 +2,6 @@
 
 inherit VERB_OB;
 
-mixed can_enter_obj(object ob)
-{
-    return 1;
-}
- 
 void do_enter_obj(object ob, string s)
 {
     ob->do_enter(s);

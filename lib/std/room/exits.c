@@ -127,3 +127,17 @@ void set_hidden_exits( string array exits_list ... )
   hidden_exits = exits_list;
 }
 
+//:FUNCTION add_hidden_exit
+//Make a given exit direction a hidden exit.  See set_hidden_exits
+void add_hidden_exit( string array exits_list ... )
+{
+  hidden_exits += exits_list;
+}
+
+//:FUNCTION remove_hidden_exit
+//Make a given exit direction no longer a hidden exit.  See set_hidden_exits
+void remove_hidden_exit( string array exits_list ... )
+{
+  hidden_exits -= exits_list;
+}
+

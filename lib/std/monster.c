@@ -64,7 +64,7 @@ nomask mixed adjust_result(mixed res)
 
     if (arrayp(res))
 	foreach (class combat_result result in res) {
-	    intrinsic_resistance(res);
+	    intrinsic_resistance(result);
 
 	    if (result->special & RES_DISARM) {
 		object weapon = query_weapon();

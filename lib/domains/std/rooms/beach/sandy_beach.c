@@ -2,11 +2,10 @@
 
 inherit OUTDOOR_ROOM;
 
-create()
+void setup()
 {
     string m = "#The mountains are too steep to climb.  You'd have to go around them...\n";
     string o = "#You would drown!\n";
-  ::create();
   set_brief("Sandy beach");
   set_area ("pirate");
   set_long("The waves lap happily onto this sandy beach, which ends here -- the mountains barely meet the water, leaving not even a grain of sand on which to walk."); 

@@ -33,6 +33,7 @@
 #define CMD_OB_EMOTEAPROPOS	CMD_DIR_PLAYER "/emoteapropos"
 #define CMD_OB_FINGER		CMD_DIR_PLAYER "/finger"
 #define CMD_OB_FEELINGS		CMD_DIR_PLAYER "/feelings"
+#define CMD_OB_SEMOTE		CMD_DIR_PLAYER "/semote"
 #define CMD_OB_ADVERBS		CMD_DIR_PLAYER "/adverbs"
 #define CMD_OB_PASSWD		CMD_DIR_PLAYER "/passwd"
 #define CMD_OB_DESCRIBE		CMD_DIR_PLAYER "/describe"

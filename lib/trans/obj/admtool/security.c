@@ -28,8 +28,8 @@ private nomask void write_security_menu()
 	  "    n [priv]      - define new privilege               [admin/owner]\n"
 	  "    u [priv]      - undefine privilege                 [admin/owner]\n"
 	  "\n"
-	  "    a [user priv] - add user to a privilege            [admin/owner]\n"
-	  "    d [user priv] - delete a user from privilege       [admin/owner]\n"
+          "    a [priv [priv]] - add a privilege to another       [admin/owner]\n"
+          "    d [priv [priv]] - delete a privilege from another  [admin/owner]\n"
 	  "\n"
 	  "    l [dir]       - list directory protections\n"
 	  "    w [dir priv]  - set a directory's write protection [parent priv]\n"
@@ -118,7 +118,6 @@ private nomask void receive_privilege_for_add(string user, string priv)
     if ( write_error(SECURE_D->extend_access(priv, user)) )
 	return;
 
-    printf("User '%s' has been added to '%s'.\n", user, priv);
 }
 
 private nomask void receive_privilege_for_remove(string user, string priv)
@@ -127,7 +126,7 @@ private nomask void receive_privilege_for_remove(string user, string priv)
     if ( write_error(SECURE_D->restrict_access(priv, user)) )
 	return;
 
-    printf("User '%s' has been removed from '%s'.\n", user, priv);
+    printf("Privilege '%s' has been removed from '%s'.\n", user, priv);
 }
 
 private nomask void remap_tree(mapping result, mapping tree, string path)

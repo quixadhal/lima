@@ -2,8 +2,7 @@
 
 inherit OBJ;
 
-void create() {
-    ::create();
+void setup() {
     set_adj("blue");
     set_id("flame", "fire");
     set_in_room_desc("A blue flame hovers in the air in the center of the room.\n");

@@ -51,8 +51,7 @@ void do_my_thing() {
     call_out( (: do_my_thing :), 5);
 }
 
-create() {
-    ::create();
+void setup() {
     set_name("Barney");
     set_gender(1);
     set_proper_name("Barney the Dinosaur");

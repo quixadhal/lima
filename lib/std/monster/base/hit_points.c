@@ -28,6 +28,10 @@ void set_hp(int x) {
     if (hp > max_hp)
         error("Attempt to set hp > max_hp.\n");
     hp = x;
+    if (hp <= 0) {
+        die();
+        hp = 0;
+    }
 }
 
 //:FUNCTION reduce_hp
@@ -40,9 +44,16 @@ static void reduce_hp(int x) {
    }
 }
 
+//:FUNCTION reincarnate
+//Makes us alive again
+void reincarnate() {
+    hp = 1;
+}
+
 //:FUNCTION heal_us
 //Heal us a specified amount, truncating at max_hp
 void heal_us(int amt) {
+    if (hp <= 0) return;
     hp += amt;
     if (hp>max_hp) hp = max_hp;
 }
@@ -56,7 +67,8 @@ int query_max_hp() {
 //:FUNCTION query_hp
 //Find the current number of hitpoints of a monster
 int query_hp() {
-    heal_us(fuzzy_divide(time()-hp_time,heal_rate));
+    if (hp)
+        heal_us(fuzzy_divide(time()-hp_time,heal_rate));
     hp_time = time();
 
     return hp;
@@ -67,4 +79,3 @@ int query_hp() {
 int query_ghost() {
     return (hp==0);
 }
-

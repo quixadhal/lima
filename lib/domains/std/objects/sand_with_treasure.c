@@ -9,9 +9,8 @@ inherit M_INPUT;  // Required for M_DIGGABLE.
 int number_times_dug = 0;
 object	my_hole;
 
-void create()
+void setup()
 {
-  ::create();
   set_adj("sandy");
   set_id("beach","sand");
   set_attached(1);
