@@ -4,14 +4,24 @@
 inherit ROOM;
 
 
+mixed can_go_down()
+{
+    return 1;
+}
+
+
+int do_go_down()
+{
+    this_body()->force_game_command( "climb down stairs");
+    return 1;
+}
+
+
 void setup() {
     set_brief("Attic");
     set_long("This is the attic of the wizard hall.  Not much here yet :-)");
-    set_exits( ([
-		 "down" : "/domains/std/wizroom.c"
-    ]) );
     set_objects( ([
-	   STAIRS : ({ 1, 0, "/domains/std/wizroom" }),
-	   "/domains/std/magic_flame" : 1
-    ]) );
+	STAIRS : ({ 1, 0, "/domains/std/wizroom" }),
+	"/domains/std/magic_flame" : 1
+      ]) );
 }

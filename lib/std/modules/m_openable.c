@@ -156,8 +156,8 @@ mixed direct_open_obj(object ob) {
 }
 
 mixed direct_close_obj(object ob) {
-   object where = environment(this_object());
-   if (where != this_body() && where!= environment(this_body()) )
+    object where = environment(this_object());
+    if (where != this_body() && where!= environment(this_body()) )
     return "#You do not have that.\n";
     if (query_closed())
         return "It is already closed.\n";

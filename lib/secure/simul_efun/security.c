@@ -12,6 +12,11 @@ nomask int check_privilege(mixed priv)
   return SECURE_D->check_privilege(priv,1);
 }
 
+nomask void require_privilege(mixed priv) {
+    if (!check_privilege(priv))
+	error("Permission denied: Do not have privilege " + priv + "\n");
+}
+
 nomask mixed get_protection(string file,string mode)
 {
   int rw;

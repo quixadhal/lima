@@ -2,14 +2,9 @@
 
 #include <driver/type.h>
 
-int is_directory(string);
 string evaluate_path(string);
 object find_body(string);
 object this_body();
-
-object *bodies() {
-    return users()->query_body();
-}
 
 //:FUNCTION call_trace
 //returns the stack of objects and functions
@@ -114,6 +109,8 @@ mixed insert( mixed 	to_insert,
 	mixed	into_array,
 	int	where )
 {
+//### (db) I don't see any particular need to program defensively...
+#if 0
   if( !arrayp( to_insert ) )
     return (void)error("Bad type arg 1 to simul efun insert()");
 
@@ -122,6 +119,7 @@ mixed insert( mixed 	to_insert,
 
   if( !intp( where ) )
     return (void)error("Bad type arg 3 to simul efun insert()");
+#endif
 
   return into_array[0..where-1] + to_insert + into_array[where..];
 }

@@ -183,7 +183,7 @@ nomask void create()
     if (!recent_changes) {
 	recent_changes = ([]);
 	foreach (string key in keys(data))
-	recent_changes[key] = ([]);
+	    recent_changes[key] = ([]);
     } else {
 	int changed = 0;
 
@@ -538,7 +538,10 @@ nomask void archive_posts()
 
 
 // Blame --OH. for this code :)
-
+//### the write()'s in this code are wrong; printing error messages is the
+//### newsreader's job, not the daemons.  This should return error messages
+//### if it needs to.
+	    
 nomask void move_post( string curr_group, int curr_id, string to_group )
 {
     class  news_msg msg;
@@ -555,7 +558,7 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
 	write( "Same group. Post not moved.\n");
 	return;
     }
-    if( query_write_to_group( to_group ))
+    if( !query_write_to_group( to_group ))
     {
 	write( "You don't have permission to move posts to " + to_group + "\n");
 	return;
@@ -592,5 +595,34 @@ nomask void change_header( string group, int id, string header )
     return;
 }
 
+array search_for(string what) {
+    array ret = ({});
+    
+    foreach (string group, mapping contents in data) {
+	foreach (mixed id, class news_msg post in contents) {
+	    if (id == "next_id" || !post->body)
+		continue;
 
+	    if (regexp(post->body, what) && query_write_to_group(group))
+		ret += ({ ({ group, id }) });
+	}
+    }
 
+    return ret;
+}
+
+array search_for_author(string who) {
+    array ret = ({});
+    
+    foreach (string group, mapping contents in data) {
+	foreach (mixed id, class news_msg post in contents) {
+	    if (id == "next_id" || !post->body)
+		continue;
+
+	    if (lower_case(post->poster) == lower_case(who) && query_write_to_group(group))
+		ret += ({ ({ group, id }) });
+	}
+    }
+
+    return ret;
+}

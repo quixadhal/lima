@@ -19,7 +19,7 @@ object query_mailer();			// in /std/body/mailbase.c
 string history_and_alias_processing( string arg );
 
 
-private static string * nonsense_msgs;
+private static string array nonsense_msgs;
 
 string nonsense()
 {

@@ -98,11 +98,15 @@ void resync() {
 }
 
 void add_default_colour(string key, string value) {
+    require_privilege("Mudlib:daemons");
+    
     defaults[upper_case(key)] = lower_case(value);
     resync();
 }
 
 void remove_default_colour(string key) {
+    require_privilege("Mudlib:daemons");
+
     map_delete(defaults, upper_case(key));
     resync();
 }

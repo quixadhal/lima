@@ -26,6 +26,20 @@ void do_on_close()
     environment( this_object())->clear_room_state( "oak_door");
 }
 
+void do_on_move()
+{
+    environment(this_object())->
+    clear_room_state( "oak_door_destroyed");
+}
+
+
+void remove()
+{
+    environment( this_object())->set_room_state( "oak_door_destroyed" );
+    ::remove();
+}
+
+
 void setup(string dir)
 {
     set_id("door");
@@ -35,4 +49,5 @@ void setup(string dir)
     add_hook( "close", (: do_on_close :));
     set_closed(1);
     setup_door("large oak door", dir);
+    add_hook( "move", (: do_on_move :));
 }

@@ -15,6 +15,14 @@
 static
 void create() {
     string badness = "";
+    string version = __VERSION__;
+
+    switch (version[0..8]) {
+    case "MudOS 0.9":
+    case "MudOS v20":
+    case "MudOS v21":
+        badness += "This MudOS driver is too old to run the Lima mudlib.  Using the driver packaged with the lib, or a more recent one, is suggested.\n";
+    }
 
     if ( mud_name() == "Your Mud's name here" )
 	badness += "You must change your mud's name in config.lima\n";

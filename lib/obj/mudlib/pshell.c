@@ -78,8 +78,9 @@ private nomask string expand_one_argument(string arg)
     return arg;
 }
 
-static void execute_command(string * argv, string original_input)
+static void execute_command(string original_input)
 {
+    string * argv = explode(original_input, " ");
     mixed tmp;
     array winner;
     string argument;

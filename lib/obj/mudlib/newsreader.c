@@ -56,6 +56,15 @@ varargs private nomask int get_current_id(string group_name)
     return this_body()->get_news_group_id(group_name) - 1;
 }
 
+private void receive_search(int flag, string str) {
+    array results = flag ? NEWS_D->search_for_author(str) : NEWS_D->search_for(str);
+    
+    if (!sizeof(results)) {
+	write("No matches.\n");
+	return;
+    }
+    more(({ sizeof(results) + " matches:", "" }) + map(results, (: $1[0] + ":" + $1[1] :)));
+}
 
 private int count_unread_messages(string group, int all_messages)
 {
@@ -665,6 +674,16 @@ private nomask void global_commands(string cmd)
     {
 	quit_news();
     }
+    else if ( cmd == "s" )
+    {
+	write("Search for: ");
+	modal_simple((: receive_search, 0 :));
+    }
+    else if ( cmd == "S" )
+    {
+	write("Search for author: ");
+	modal_simple((: receive_search, 1 :));
+    }
     else if ( cmd == "")
     {
 	if ( sizeof(filter_array(this_body()->subscribed_groups(),
@@ -840,6 +859,8 @@ private nomask void receive_top_cmd(mixed cmd)
 	  "  q   quit reading news\n"
 	  "  ?   this help\n"
 	  "  l   list newsgroups\n"
+	  "  s   search for post\n"
+	  "  S   search for author\n"
 	  "  g   go to a newsgroup\n"
 	  "\n"
 	  "Just type a command at the prompt and hit return.\n"
@@ -878,6 +899,8 @@ private nomask void receive_grp_cmd(mixed cmd)
 	  "  L   list all messages\n"
 	  "  m   main news menu\n"
 	  "  g   go to a newsgroup\n"
+	  "  s   search for a message\n"
+	  "  S   search for an author\n"
 	  "  p   post message\n"
 	  "  n   next newsgroup with new news\n"
 	  "  c   mark all messages as read (catch up)\n"
@@ -915,7 +938,9 @@ private nomask void receive_msg_cmd(mixed cmd)
 	  "  L   list all messages\n"
 	  "  m   main news menu\n"
 	  "  g   go to a newsgroup\n"
-           "  h   change subject of a post\n"
+          "  h   change subject of a post\n"
+          "  s   search for a message\n"
+	  "  S   search for an author\n"
 	  "  p   post message\n"
 	  "  r   reply to this message\n"
 	  "  R   reply to this message, quoting it\n"
@@ -950,6 +975,10 @@ private nomask void receive_msg_cmd(mixed cmd)
     else if ( cmd == "F" )
     {
 	followup_with_message();
+    }
+    else if ( cmd == "s" ) {
+	write("Search for: ");
+	modal_simple((: receive_search :));
     }
     else if ( cmd == "M" )
     {

@@ -16,14 +16,14 @@ void mudlib_setup()
     set_gettable(1);
 }
 
-//:FUNC set_is_on
-//set_is_on(1) causes this object to be worn by whatever is holding it.
-//set_is_on(0) takes it back off again.
+//:FUNC set_worn
+//set_worn(1) causes this object to be worn by whatever is holding it.
+//set_worn(0) takes it back off again.
 #ifndef USE_BODYSLOTS
-void set_is_on(int g) {
+void set_worn(int g) {
     if (g) environment()->add_armor(this_object());
     else environment()->remove_armor(this_object());
-    ::set_is_on(g);
+    ::set_worn(g);
 }
 #endif
 

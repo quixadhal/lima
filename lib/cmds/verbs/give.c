@@ -12,7 +12,7 @@ inherit VERB_OB;
 void do_give_obj_to_liv(object ob, object liv) {
     if (!try_to_acquire(ob))
 	return;
-    if( ob->ob_state())
+    if( ob->is_worn())
 	write( "You'll need to remove it first.\n");
     else
     {

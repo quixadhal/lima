@@ -46,12 +46,14 @@ varargs mixed move(mixed dest, string where)
     mixed err;
     int light;
 
-    //:HOOK prevent_drop
-    //A yes/no/error type hook that can be used to prevent the object from being
-    //moved out of it's environment.  The error value is discarded.    
-    err = call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
-    if (err == 0) err = MOVE_PREVENTED;
-    if (stringp(err)) return err;
+    if (environment()) {
+//:HOOK prevent_drop
+//A yes/no/error type hook that can be used to prevent the object from being
+//moved out of it's environment.  The error value is discarded.    
+        err = call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
+        if (err == 0) err = MOVE_PREVENTED;
+        if (stringp(err)) return err;
+    }
 
     if( stringp(dest) )
 	dest = load_object( dest );

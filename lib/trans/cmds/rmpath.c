@@ -10,7 +10,7 @@ inherit CMD;
 
 private void main(string * arg) 
 {
-    string path = arg[0] + "/";
+    string path = arg[0];
     string * paths;
     object shell_ob = this_user()->query_shell_ob();
 
@@ -26,6 +26,6 @@ private void main(string * arg)
     shell_ob->set_variable("path", paths);
 
     out(implode(paths,
-			(: $1 + $2[0..<2] + ", " :),
+			(: $1 + $2[0..<1] + ", " :),
 			"Your path is now: ")[0..<3] + "\n");
 }

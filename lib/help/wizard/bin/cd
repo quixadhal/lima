@@ -1,6 +1,6 @@
 $$ see: mkdir, ls, pwd, ed
 
-USAGE:  rmdir [directory]
+USAGE:  cd [directory]
 
 Most file commands assume you're talking about your current working
 directory, if you do not specify a full path.  This command sets your

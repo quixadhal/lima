@@ -204,8 +204,9 @@ add_alias(string name, string template, string* defaults, int xverb)
 
 //:FUNCTION expand_alias
 //Expand an argv with any aliases if applicable.
-mixed expand_alias(string* argv)
+mixed expand_alias(string input)
 {
+  string * argv = explode(input, " ");
   class alias this_alias;
   string* xverb_matches;
   string expanded_input;
@@ -214,8 +215,7 @@ mixed expand_alias(string* argv)
   string tmp;
   mixed tmp2;
 
-  if(!sizeof(argv))
-     return argv;
+
   xverb_matches = filter_array(xaliases, (: strsrch($2, $1) == 0 :), argv[0]);
   switch(sizeof(xverb_matches))
     {
@@ -234,10 +234,11 @@ mixed expand_alias(string* argv)
     default:
       printf("ERROR: Alias conflict: can't destinguish between: %s.\n", 
 	     implode(xverb_matches,", "));
-      return 0;
+      return "";
     }
   if(!(this_alias = aliases[argv[0]]))
-    return argv;
+    return trim_spaces(implode(argv, " "));
+
   expanded_input = replace_string(this_alias->template,"\\\\$",sprintf("%c",255));
   j = numargs;
 
@@ -258,8 +259,7 @@ mixed expand_alias(string* argv)
     expanded_input = replace_string(expanded_input, "$*", 
 				    this_alias->defaults[0]);
 
-  return replace_string(expanded_input,sprintf("%c",255), "$");
-	  
+  return trim_spaces(replace_string(expanded_input,sprintf("%c",255), "$"));
 }
 
 

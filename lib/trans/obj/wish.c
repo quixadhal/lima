@@ -138,8 +138,9 @@ string query_shellname()
     return "wish (Lima wizard shell) v. 0.9";
 }
 
-varargs static void execute_command(string array argv, string original_input) 
+varargs static void execute_command(string original_input) 
 {
+    string * argv = explode(original_input, " ");
     mixed	tmp;
     string	path = query_path();
     mixed 	cmd_info;

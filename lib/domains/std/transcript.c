@@ -16,7 +16,6 @@ void setup(string text)
     }
   
     set_id("transcript");
-    set_gettable(1);
     set_in_room_desc("A transcript of a recording lies here.");
     set_long("It's got a transcript of a conversation on it.\n");
     set_text(text);

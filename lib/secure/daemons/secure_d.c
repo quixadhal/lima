@@ -327,6 +327,7 @@ nomask string delete_wizard(string wizard)
     for (i=0; i<sizeof(d); i++)
       map_delete(domains[d[i]],wizard);
   }
+  map_delete(domainlists,wizard);
   save_data();
   syslog("Deleted wizard " + wizard);
   return 0;

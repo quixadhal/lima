@@ -159,7 +159,7 @@ void add_hidden_exit( string array exits_list ... )
     if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
         hidden_exits = standard_directions;
     else
-    hidden_exits += exits_list;
+	hidden_exits += exits_list;
 }
 
 //:FUNCTION remove_hidden_exit
@@ -167,9 +167,9 @@ void add_hidden_exit( string array exits_list ... )
 void remove_hidden_exit( string array exits_list ... )
 {
     if( sizeof( exits_list ) == 1 && exits_list[0] == "all" )
-        hidden_exits = standard_directions;
+        hidden_exits = 0;
     else
-    hidden_exits -= exits_list;
+	hidden_exits -= exits_list;
 }
 
 

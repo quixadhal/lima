@@ -15,7 +15,7 @@
 #
 # Modify these as necessary
 #
-limadir=/home/mud/lima-1.0a3
+limadir=/home/mud/lima-1.0a4
 port=7878
 
 #######

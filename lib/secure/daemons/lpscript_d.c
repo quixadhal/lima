@@ -342,6 +342,13 @@ mixed handle_infix(string arg) {
     switch (arg) {
     case "notequal":
 	return ({ (: $1 + " != " + $2 :), rest });
+    case "<":
+    case ">":
+    case "<=":
+    case ">=":
+    case "!=":
+    case "==":
+	return ({ (: $1 + " " + $(arg) + " " + $2 :), rest });
     }
     
     return 0;
@@ -439,6 +446,7 @@ string handle_expression(string arg) {
     tmp = handle_subexpression(trim_spaces(arg));
     if (tmp[1] != "")
 	add_error(cur, "junk found after valid expression");
+
     return tmp[0];
 }
 

@@ -1,0 +1,15 @@
+The Lima Mudlib doesn't support the notion of "hiding" that is found
+in many historical mudlibs.  Our view is simply that you can never
+plug all the holes (see wizzes_can_dest_admins).  Therefore, we
+haven't bunged up the whole mudlib trying to make hiding work.
+
+Second, we simply don't believe in the concept of hiding.  The whole
+notion of a wizard hiding from players or other wizards, or even worse
+admins hiding from people is anathema to the types of muds that the
+Lima team would like to see.  Our view is that a wizard should always
+be available to help a player and that an admin should always be there
+to help players and wizards.  Hiding is simply anti-social which we
+feel engenders the wrong types of attitudes that a successful mud
+should embody.
+
+-Deathblade

@@ -36,6 +36,7 @@ private nomask void got_message(string verb, string rule, string str)
 	return;
     }
 
+    str = replace_string(str, "\\n", "\n");
     parts = explode(str, " && ");
     SOUL_D->add_emote(verb, rule, parts);
 }

@@ -14,34 +14,34 @@
 
 inherit __DIR__ "internal/base";
 
-private string array admtool_dirs = map(get_dir(__DIR__) - ({ "internal" }), (: __DIR__ + $1 :));
-
 string module_name() {
     return "main";
 }
 
 class command_info array module_commands() {
     class command_info array ret = ({});
+    string dir = base_name();
+    string ourname;
+    int idx = strsrch(dir, "/", -1);
+
+    ourname = dir[idx+1..];
+    dir = dir[0..idx];
     
-    foreach (string dir in admtool_dirs) {
-	if (file_size(dir) != -2) continue;
+    foreach (string file in get_dir(dir + "*.c") - ({ ourname + ".c" })) {
+	string key, name, who;
+
+	file = dir + file;
+
+	key = file->module_key();
+	name = file->module_name();
+	who = file->module_user();
 	
-	foreach (string file in get_dir(dir + "/*.c")) {
-	    string key, name, who;
-
-	    file = dir + "/" + file;
-
-	    key = file->module_key();
-	    name = file->module_name();
-	    who = file->module_user();
-	    
-	    if (key)
+	if (key)
 	    ret += ({ 
 		new(class command_info, key : key, desc : name,
 		    action : (: clone_object, file :),
 		    who : who)
 	    });
-	}
     }
 
     return ret;

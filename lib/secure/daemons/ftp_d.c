@@ -16,6 +16,8 @@
 **  o Added the SYST command.
 **  o Added line checking to the read callback.
 **  o Fixed send so that larger files can be handled without difficulty.
+** Jan 21, 1997
+**  o Fixed the mkd command.
 **
 */
 
@@ -633,7 +635,7 @@ private void FTP_CMD_mkd(class ftp_session info, string arg)
 {
   NEEDS_ARG();
 
-  arg = evaluate_path(arg);
+  arg = evaluate_path(arg, info->pwd);
 
 #ifndef ANON_CAN_PUT
 #ifdef  ALLOW_ANON_FTP

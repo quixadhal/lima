@@ -13,7 +13,7 @@
 
 // this is the directory inside a wizard's home directory that will be
 // checked for homepages etc..
-#define HTTP_USER_HOME 		"/WWW"
+#define HTTP_USER_HOME 		"WWW"
 
 // this is the default page if the URL given is a directory
 #define DEFAULT_PAGE 		"index.html"

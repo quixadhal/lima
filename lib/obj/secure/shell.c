@@ -68,12 +68,16 @@ static void shell_input(mixed input)
     mixed argv;
     string original_input;
  
-    if(input == "") return;
-    if(input == -1)
+    if ( input == -1 )
     {
 	remove();
 	return;
     }
+
+    /* we can safely remove leading and trailing whitespace */
+    input = trim_spaces(input);
+    if ( input == "" )
+	return;
 
     /*
     ** ### WORK IN PROGRESS HERE
@@ -97,36 +101,22 @@ static void shell_input(mixed input)
     */
 
     // is this history manipulation?
-    if(input[0] == HISTORY_CHAR)
+    if ( input[0] == HISTORY_CHAR )
     {
 	input = history_command(input);
-	if(!input) return;
+	if ( !input )
+	    return;
     }
 
     add_history_item(input);
 
-    argv = explode(input, " ");
-
-    // alias expansion... a leading \ ignores alias expansion
-    if(sizeof(argv) && (strlen(argv[0]) > 1) && (argv[0][0] == '\\'))
-    {
-	argv[0] = argv[0][1..];
-    }
+    if ( input[0] == '\\' )
+	input = input[1..];
     else
-    {
-	mixed tmp = expand_alias(argv);
+	input = expand_alias(input);
 
-	argv = stringp(tmp) ? explode(tmp," ") : tmp;
-
-    }
-
-      original_input = implode(argv," ");
-
-
-    if (!sizeof(argv))
-	return;
-
-    execute_command(argv, original_input);
+    if ( input != "" )
+	execute_command(input);
 }
 
 private void cmd_exit()

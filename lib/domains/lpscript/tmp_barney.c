@@ -61,7 +61,8 @@ set_long("It's everyones favorite dinosaur!");
 {
 _emotes=SOUL_D->list_emotes();
 _adverbs=SOUL_D->get_adverbs();
-call_out( (:do_my_thing:), 5);;
+call_out( (:do_my_thing:), 5);
+;
 }
 ;
 }

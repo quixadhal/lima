@@ -30,6 +30,7 @@ private nomask void write_alias_menu()
 	  );
 }
 
+
 private nomask void add_alias(string name,
 			      string expansion,
 			      int dev,
@@ -66,14 +67,14 @@ varargs private nomask void get_expansion(string name,
 
 private nomask void receive_alias_input(string cmd)
 {
-    string	input;
-    mixed 	alias_info;
-    mapping aliases;
-    string* xaliases;
     string a;
+    mixed 	alias_info;
+    string* xaliases;
     class alias val;	
+    string input;
     string output;
     int i;
+    mapping aliases;
 
     sscanf(cmd, "%s %s", cmd, input);
 
@@ -95,7 +96,7 @@ private nomask void receive_alias_input(string cmd)
 	output = sprintf("Alias:%9sExpansion:%29sDefaults:\n","","");
     output += repeat_string("-", 77) + "\n";
 
-	foreach(a, val in aliases)
+	foreach (a, val in aliases)
 	{
 	    output += sprintf("%-14s %-38s ", a, val->template);
 	    if(sizeof(val->defaults) == 1 && val->defaults[0] == "")

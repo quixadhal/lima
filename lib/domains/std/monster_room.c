@@ -10,5 +10,5 @@ void setup(){
     set_exits( ([
 	"north" : "wizroom.c"
       ]) );
-    set_objects(([ "/domains/std/guild_guard" : ({ "stock-mage" }) ]));
+    set_objects(([ "/domains/std/guild_guard" : ({ "sorcery" }) ]));
 }

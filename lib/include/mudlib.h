@@ -197,6 +197,7 @@
 #define M_EDIBLE		"/std/modules/m_edible"
 #define M_DRINKABLE		"/std/modules/m_drinkable"
 #define M_DRINK_CONTAINER	"/std/modules/m_drink_container"
+#define M_CONVERSATION		"/std/modules/m_conversation"
 
 /* for area objects */
 #define M_ACTIONS               "/std/modules/m_actions"

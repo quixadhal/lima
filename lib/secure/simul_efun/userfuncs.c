@@ -6,6 +6,11 @@
 
 string base_name(mixed val);
 
+nomask object *bodies()
+{
+    return users()->query_body() - ({ 0 });
+}
+
 nomask object this_body()
 {
     object u = this_user();

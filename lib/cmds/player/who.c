@@ -22,69 +22,61 @@ inherit CMD;
 string get_who_string(string arg)
 {
     object *u;
-    int    bits, i;
+    int    i;
     string name, extra, retval;
     mixed  info;
 
     extra = retval = "\n";
-    if (this_user())
+    if ( this_user() )
     {
-        switch (arg)
+        switch ( arg )
         {
-            case "-p":
-            case "-z":
-                u = filter_array(users(), (: !wizardp($1) :));
-		extra = USER_DESC + "\n";
-                break;
-            case "-w":
-            case "-i":
-                u = filter_array(users(), (: wizardp :));
-                extra = "(IMPLEMENTORS ONLY)\n";
-                break;
-            case "-l":
-                if ( wizardp(this_user()) )
-                {
-                    u = users();
-                    extra = "(ALL LIVINGS)\n";
-                    break;
-                }
-            case "-m":
-                if ( wizardp(this_user()) )
-                {
-                    u = filter_array(children(USER_OB),
-				     (: !interactive($1) :));
-                    extra = "(NON-INTERACTIVES)\n";
-                    break;
-                }
-            default:
-                if(arg)
-                    retval += "Who: Unknown flag.\n";
-                u = users();
+	case "-p":
+	case "-z":
+	    u = filter_array(bodies(), (: !wizardp($1) :));
+	    extra = USER_DESC + "\n";
+	    break;
+	case "-w":
+	case "-i":
+	    u = filter_array(bodies(), (: wizardp :));
+	    extra = "(IMPLEMENTORS ONLY)\n";
+	    break;
+	case "-m":
+	    if ( wizardp() )
+	    {
+		u = filter_array(children(USER_OB),
+				 (: !interactive($1) :))->query_body();
+		extra = "(NON-INTERACTIVES)\n";
+		break;
+	    }
+	    /* FALLTHRU */
+	default:
+	    if ( arg )
+		retval += "Who: Unknown flag.\n";
+	    u = bodies();
+	    break;
         }
-        if(!wizardp(this_user()))
-	  u = filter_array(users(), (: $1->query_body()->is_visible() :));
+        if ( !wizardp() )
+	    u = filter_array(u, (: $1->is_visible() :));
     }
     else
-	  u = filter_array(users(), (: $1->query_body()->is_visible() :));
+	u = filter_array(bodies(), (: $1->is_visible() :));
 
-    retval += sprintf(WHO_FORMAT, mud_name(), ctime(time()), extra, 
-		      sizeof(u), DIVIDER);
+    u -= ({ 0 });
     i = sizeof(u);
-    if(!i)
+    retval += sprintf(WHO_FORMAT, mud_name(), ctime(time()), extra, 
+		      i, DIVIDER);
+    if ( !i )
         retval += sprintf("%|70s\n","Sorry, no one fits that bill.");
-    while(i--)
+    foreach ( object body in u )
     {
-	if (!u[i]->query_body())
-	    continue;
-        name = u[i]->query_body()->query_formatted_desc(78);
+        name = body->query_formatted_desc(78);
+        if ( !name )
+            name = capitalize(body->query_userid());
 
-        bits = u[i]->query_body()->get_flags(PLAYER_FLAGS);
-        if(!name)
-            name = capitalize(u[i]->query_userid());
-
-        if(!(u[i]->query_body()->is_visible()))
-            name = "("+name+")";
-        if(u[i]->query_body()->test_flag(F_IN_EDIT))
+        if ( !body->is_visible() )
+	    name = "("+name+")";
+        if ( body->test_flag(F_IN_EDIT) )
             name = "*"+ name;
         retval += sprintf("%-68s\n",name);
     }
@@ -93,7 +85,7 @@ string get_who_string(string arg)
 
 private void main(string arg)
 {
-    if( arg == "" )
+    if ( arg == "" )
 	arg = 0;
 
     out(get_who_string(arg));
@@ -101,7 +93,7 @@ private void main(string arg)
 
 void player_menu_entry()
 {
-  bare_init();
-  main(0);
-  done_outputing();
+    bare_init();
+    main(0);
+    done_outputing();
 }

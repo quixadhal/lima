@@ -16,14 +16,14 @@ void hook_state(string, string, int);
 
 //### Huh?  This appears to be unused.
 private static string	wearmsg;
-private static int	is_on;
+private static int	worn;
 #ifdef USE_BODYSLOTS
 private static string	slot;
 #endif
 
 
 mixed ob_state() {
-    if (!is_on) return 0;
+    if (!worn) return 0;
 #ifdef USE_BODYSLOTS
     return slot;
 #else
@@ -31,8 +31,7 @@ mixed ob_state() {
 #endif
 }
 
-void
-remove() {
+void remove() {
 #ifdef USE_BODYSLOTS
     if(!slot)
         return 0;
@@ -76,15 +75,25 @@ query_slot()
 
 #endif
 
-//:FUNCTION set_is_on
-//set_is_on(1) causes an object to become worn.  set_is_on(0) removes it.
+//:FUNCTION set_worn
+//set_worn(1) causes an object to become worn.  set_is_on(0) removes it.
 void
-set_is_on( int g )
+set_worn( int g )
 {
-  is_on = g;
-  hook_state("extra_short", "being worn", is_on);
-  hook_state("prevent_drop", "You'll have to take it off first.\n", is_on);
+  worn = g;
+  hook_state("extra_short", "being worn", worn);
+  hook_state("prevent_drop", "You'll have to take it off first.\n", worn);
 }
+
+
+//:FUNCTION is_worn
+//returns 1 if the object is worn, and 0 if it isn't.
+
+int is_worn( )
+{
+    return worn;
+}
+
 
 //:FUNCTION do_wear
 //Makes the object worn and prints an appropriate message.
@@ -100,7 +109,7 @@ do_wear()
     }
     
 #endif
-    set_is_on(1);
+    set_worn(1);
     this_body()->simple_action("$N $vwear a $o.\n", this_object());
 }
 
@@ -113,7 +122,7 @@ do_remove() {
         return 0;
     environment()->depopulate_body_slot(slot, this_object());
 #endif        
-    set_is_on(0);
+    set_worn(0);
     this_body()->simple_action("$N $vremove $p $o.\n", this_object());
 }
 
@@ -127,7 +136,7 @@ if (who != this_body())
    return 0;
     if(!this_body()->has_body_slot(slot))
         return "You can't seem to find anywhere to put it on!\n";
-    if( is_on )
+    if( worn )
 	return "But you're already wearing it!\n";
     return 1;
 }
@@ -139,7 +148,7 @@ mixed direct_remove_obj() {
 
   if(who != this_body())
     return 0;
-    if (environment() != this_body() || !is_on)
+    if (environment() != this_body() || !worn)
 	return "But you aren't wearing it!\n";
     return 1;
 }

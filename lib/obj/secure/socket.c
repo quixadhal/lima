@@ -321,15 +321,22 @@ SKTLOG("send: # elem",sizeof(write_queue));
     {
       while(sizeof(message)) {
 	err = socket_write(fdOwned, message);
-SKTLOG("send: err",err);
 
-//### note: test for EEALREADY for now... need newer driver
 	if ( err == EEALREADY )
 	{
+            // write_callback will get called automatically.
 	    blocked = 1;
 	    write_queue += ({ message });
 	    return;
 	}
+        if ( err == EEWOULDBLOCK )
+        {
+            // write_callback needs to get called manually.
+            blocked = 1;
+            write_queue += ({ message });
+            call_out("write_callback",1,fdOwned);
+            return;
+        }
 	if ( err == EECALLBACK )
 	{
 	    /*
@@ -373,7 +380,20 @@ SKTLOG("write_callback: # elem",sizeof(write_queue));
 	int err;
 
 	err = socket_write(fd, write_queue[0]);
-SKTLOG("write_callback: err",err);
+
+	if ( err == EEALREADY )
+	{
+            // write_callback will get called automatically.
+            blocked = 1;
+	    return;
+	}
+        if ( err == EEWOULDBLOCK )
+        {
+            // write_callback needs to get called manually.
+            blocked = 1;
+            call_out("write_callback",1,fd);
+            return;
+        }
 
 	/*
 	** Remove the item from the queue.  It has been written.

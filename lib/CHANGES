@@ -1,302 +1,68 @@
-Ohara changed the north exit of the wizroom into a portal
+Beek added the 'std' domain; the directory exists but for some reason the domain entry no longer did?
 
-Deathblade cleaned up DID_D somewhat and fixed the bug where a didlog with one entry would always print (it now checks the last didlog time).
+Beek converted the rest of the admtool modules
 
-Deathblade tweaked the arg processing in the news reader.
+Beek added a require_privilege() simul
 
-Deathblade moved /std/adt/heap.c to /contrib since it isn't used by the mud (never was)
+Rust installed another FTP_D fix from myth, this time for mkdir
 
-Deathblade moved the other /std/adt files to /contrib. They weren't used either. Nuke the /std/adt directory.
+Zakk fixed rmpath to actually WORK.
 
-Beek fixed 'update' to deal better with virtual objects/.scr files
+Zakk fixed rmpath to print out the new path correctly.
 
-Beek added cwd support to set_objects()
+Ohara notes: Minor COMPAT_BUSTER: /std/modules/m_wearable::set_is_on() is now set_worn() .. this only affected /std/armor.c
 
-Beek added /domains/lpscript, including a copy of the wizroom written in LPscript
+Ohara added is_worn() to m_wearable .. unlike ob_state() it's a boolean.
 
-Beek added a /cmds/create dir
+Rust added POST support to HTTP_D
 
-Beek added an interface to CMD_D to allow command inheritables to be in the /cmds dir without being seen as commands.  See /cmds/create/scr_command for details of the imp.
+Rust installed a few more SOCKET fixes that will hopefully fix Cyberleader's bugs
 
-Beek added 'newroom' and 'describeroom'
+Rust wrote a mud editor.  You use it via the web.  Try: http://lima.mudlib.org:7881/cgi/webed.c    Hopefully people will find it a bit easier to use than ed...
 
-Beek note: use 'addpath /cmds/create' and 'rehash' to use the new commands
+Ohara fixed admtool so it would load .. OLF :)
 
-Beek fixed 'setbrief' to allow multiple word descriptions
+Valentino added the cmd 'do' after idea from Rust.
 
-Beek added an 'addexit' command
+Tigran plan on returning to school to pursue a degree in Computer Science
 
-Ohara added "h" to news: it changes a post's header (subject)
+Beek added a "talk" verb
 
-Rust fixed CFILE to append .scr or .c if appropriate
+Beek added M_CONVERSATION, which supports Ultima/Monkey Island style conversations with NPCs.
 
-Beek moved cmd_d.c to cmd_d.c.old and put back a working copy
+Beek added /domains/std/greeter as an example use of M_CONVERSATION; it clones to the wizroom
 
-Beek added /domains/2.4.5 [no, this isn't a joke :-)]
+Beek made a number of changes to M_CONVERSATION, including adding some of Valentino's ideas.
 
-Rust moved cmd_d.c.old back to cmd_d.c, it *was* a working copy.
+Beek started another small example area; /domains/std/lima/entrance.c
 
-Zakk refuse to have gotten out my asbestos undies for nothing!
+Deathblade updated bodies() to filter 0's.
 
-Zakk want to see a decent flame!
+Deathblade updated the "who" command to be much more sane
 
-Zakk had a mouse fart. Rock on
+Beek added a MudOS version check for /secure/check_config.
 
-Beek cleaned up format_time(), fixed a bug involving zero seconds, and added a new format
+Deathblade fixed up GUILD_GUARD: no more inheriting of the body's guilds, fixed check for guild membership and ally status. Fixed bug in GUILD_D for guild allies. Tightened security check in /std/body/guilds.c.
 
-Beek made idle in the descs use convert_time
+Deathblade added /domains/std/map.c and put one into the wizroom.  It's an aid to figure out WTF is in the mud and where it is.
 
-Beek fixed die() not to recurse; side effect: you can't use set_hp() to reincarnate people anymore.  Use reincarnate() [that was always the correct way, but ...]
+Beek added a search option in news ('s'); no more complaining that you can't find the post on "foo" allowed!
 
-Ohara fixed query_posessive->query_possessive() in /std/object/description.
+Deathblade added relational operators to LPSCRIPT_D::handle_infix(). yard.scr generates code okay now, but the "real" load bombs on not knowing query_money().
 
-Ohara fixed admtool not to nuke unless the user exists.
+Deathblade updated WELCOME to point out that the IP address of this machine is changing this weekend!!
 
-Ohara fixed trans to autolook when you move
+Ohara notes that you can now suicide ... joy oh joy :) This is _untested_ code .. but it'll hopefully work :)
 
-Deathblade cleaned out some old crap in /secure/user.c
+Deathblade added two design_decision documents: wizzes_can_dest_admins and hiding.
 
-Deathblade allowed wizardp() and adminp() to take no args (implying current user)
+Beek added search for author to the newsreader ('S')
 
-Deathblade added get_user_variable(string varname) as a simul. no more need for talking to the shell object directly.
+Beek added a lima.undocumented group
 
-Deathblade updated a bunch of mudlib code to use get_user_variable()
+Rust installed a imud who fix from andrew
 
-Deathblade updated a lot of the help to use "$$ see: x, y, z" instead of SEE ALSO in the text. "$$ see" lets the help system auto-generate "see also" text. Also allows for creation of hyperlinks if we auto-build help web pages.
+Deathblade installed Burty's fix to SECURE_D to clean out domain info when a wizard is deleted.
 
-Deathblade fixed the mudlib to do query_shell_ob() off the user, not the body.
-
-Deathblade cleaned up global.h some. Also cleaned some old funcs out of body.c
-
-Deathblade removed the "catching_scrollback" stuff from the body (since it was a no-op). The right stuff needs to be added to the user ob for it to work.
-
-Rust misfired a lot.
-
-Rust looked like a fool in the face of the mighty wrath of Deathblade.
-
-Deathblade fixed the help_d to properly count pending items so it knew when it was done. the (new) directory-ignore stuff messed it up.
-
-Deathblade made the help system case-insensitive
-
-Deathblade cleaned up the flags, removing a lot of unneeded functionality.
-
-Deathblade fixed the "multiple message" bug in msg/review. Actually review displayed multiple messages due to a bug in M_MESSAGES returning duplicates from query_msg_types().
-
-Deathblade fixed the "ansi" command not to turn on "WHITE" after the RESET. Some people have white backgrounds :-)
-
-Deathblade tweaked the "ls" command also, in terms of WHITE, but it needs more work.
-
-Deathblade added prompts to modal_simple(). Allows people to escape while in a modal_simple() and return to a prompt.
-
-Deathblade simplified the "passwd" code to use modal_simple() rather than pushing an input context.
-
-Deathblade fixed the "stat" command and all the stat_me() functions to return a string rather than directly writing. You may need to wait for some modules/objects to update.
-
-Deathblade raided Dead Souls for the "qtip" emote.
-
-Deathblade whacked Valention's MONEY_D hard (kept area concept, but axed/rewrote the rest). Installed it as the current MONEY_D. Rewrote admtool's money handling.
-
-Deathblade revised a lot of admtool's input handling to be a bit more standardized. Created an empty guild administration area. Moved the help rebuild into a misc admin area. Adjusted much of the privs to be only Mudlib:daemons rather than 1 (since the daemons holding the data are in Mudlib:daemons anyhow). Misc admtool tweaks.
-
-Deathblade moved admtool's do_xxx_args() functions to M_INPUT as input_xxx_args().
-
-Deathblade fixed codesay to use NO_ANSI. Unfortunately, it can't use simple_action() any more for issuing the message...
-
-Deathblade revised /std/menu to use input_one_arg() where necessary. Also fixed it to use modal_simple() in some places rather than modal_func() all the time.
-
-Deathblade fixed query_shell_ob() references in plmenu and iftp_ob.
-
-Deathblade revised plmenu to use player command more often (rather than dup'ing code). Changed to use input_one_arg rather than get_input_then_call.
-
-Deathblade made LOG_D timestamp banishes
-
-Deathblade upgraded the BANISH_D to record the reason within the data file. Updated admtool's banish code to display reasons and to enforce needing a reason for a banish.
-
-Deathblade added type 3 to convert_time() to produce "6h 12m 56s"
-
-Deathblade updated the locate and who replies to format the time nicely.
-
-Rust changed do_looking() in rooms to take an optional argument which specifies who is doing the looking.  This makes body->force_look() work properly, instead of always making this_body() look.  (This was the problem w/ trans)
-
-Ohara fixed idfind to work ... It may have been broken for years :) (it used ' "arg" ')
-
-Ohara fixed apropos to display nicely.
-
-Ohara added query/set_plural to /std/object/names and ripped it from the stairs.
-
-Beek fixed 'scan' to not ALWAYS be deep after someone uses scan -d
-
-Ohara lowercased all logs with the exception of "QUESTS" which he couldn't find a ref. to.
-
-Zifnab added the points back into the quest_d, appear the data was gone.
-
-Ohara fixed a bug in goto: it assumed that only constants would be returned for a move (hence would fail if release_object() or receive_object() returned a string)
-
-Ohara "fixed" the release_object() bug in complex_container where receive_object in the environment would hose you. This fix should be fixed (See lima.todo)
-
-Ohara put back the code (well .. uncommented) in the car_wash - you now can't leave the car (actually trying to "goto" there will produce an incorrect message ... LWI - it's to be expected)
-
-Deathblade fixed a bug in the master's error_handler() where it queried a userid from a user ob where one hadn't been set yet.
-
-Beek fixed the 2.4.5 elevator
-
-Beek added 'dive' as a syn for 'swim'
-
-Ohara fixed exits to use format_list()
-
-Deathblade added a skill maintainance section to admtool.  Note that adding a skill adds its parents, too.  Removing a skill also removes its subskills.
-
-Deathblade improved the look of the "skills" command.
-
-Deathblade updated test_skill() to automatically learn based on success/failure and based on comparitive skill levels. Also updated training points to be awarded on a decreasing basis relative to current skill level.
-
-Beek moved /domains/2.4.5 to /domains/std/2.4.5 [mostly because secure_d barfs about a name starting with something numeric]
-
-Beek connected the 2.4.5 domain to the Grand Hall via the church elevator
-
-Ohara fixed the wizroom so that the quiet room is to the northeast (on the north, it clashes with the portal)
-
-Ohara changed news so that groups have a read and a write restriction. admin.* is admin only read/write, wiz.* is wiz only read/write, ..announcements.. is anyone read, admin only write. Along the way, the two posts in ..ann.. got hosed. life's like that.
-
-Ohara fixed a bug in /domains/std/pet. It now clones.
-
-Ohara fixed a bug in snoop() ... it ws bugging due to the adminp() change
-
-Deathblade updated skill advancement to follow a curve where it is initially difficult to gain skill, it is relatively easy during the middle, and difficult as you reach perfection. Also known as "Ohara's Bathtub Curve" :-)
-
-Deathblade cleaned up some naming in M_DAMAGE_SOURCE to reflect what they really mean.
-
-Deathblade whacked LOG_D and /trans/cmds/shutdown.c to have LOG_D timestamp the lines, rather than doing it all over (inconsistently) in the shutdown cmd.
-
-Deathblade added /std/body/skills::query_evaluation() to return the player's current (global) evaluation of their skills.  The comparison is their skill total relative to config.h::EVALUATION_SKILL_LEVEL.
-
-Deathblade updated the "stats" command to contain the real evaluation and to fix a number of problems based on the USE_xxx symbols.
-
-Deathblade shifted some combat functions from /std/race up to /std/body. Races can override if necessary, but body is more appropriate.
-
-Deathblade wanted to note the funcs were: to_hit_base, damage_bonus, and hit_skill
-
-Zac am bored.
-
-Beek cleaned up the front end of the login process a bit; routines in /secure/user now are prepended with the module name, making it easier to see where one is jumping to; also serieses of prompts are done continuation passing style so one can simply read down one routine to follow the process.  Also removed some duplicated code and unnecessary class to existing_user_enter_game in sw_body.c (superceded by sw_body_handle_existing_logon)
-
-Beek cleaned up and modified enter_game() a bit.  Major change: you now get moved to the start location and announced *before* reading the didlog stuff; this means if you use ! from the didlog prompt things are a bit more sane.  The forced look is now the only thing delayed till after the didlog prompt
-
-Deathblade added PLAYER_INFO_IS_PUBLIC to config.h and fixed up FINGER_D to filter out email, real name, home page, and connect-from for non-admins if PLAYER_INFO_IS_PUBLIC is not defined. Otherwise, the info is available to all users (subject to the '#' restrictions, which admins always bypass, regardless).
-
-Deathblade also fixed a bug with I3 fingering a non-existent user; it bugged rather than returning an error packet.
-
-Ohara tweaked the start room a touch, replacing 5 exits with 1 default exit :)
-
-Ohara changed hidden exits so that "all" will work with set/add/remove. Note: This will set _all_ exits (including up and down), and not just the exits that the room has (easier this way). add_he("all") is identical in effect to set, and rem will clear all
-
-Zifnab made open and close ignore objects in other peoples inventory
-
-Zifnab added a query_uwield_message to m_wieldable, also added a do_remove to m_wieldable to allow unwield (the verb) to work.
-
-Zifnab modified /std/base/monster/wield.c to print an unwield message
-
-Zifnab made eat foo not try and take an item from someone elses inventory.  also made a default message for eat_action.
-
-Beek added BIRTHDAY_D.  Flames to /dev/null :-)  Use BIRTHDAY_D->add_birthday(<your login>, "Jan 12").
-
-Deathblade rearranged the inherits in /std/monster to make them more straight-forward
-
-Beek fixed the wizroom desc.
-
-Beek changed M_MESSAGES::inform() to use MSG_INDENT for all messages, not just the 'others' part.  Fixes Drakor's soul indentation bug.  Also means that all multi-line messages going through the message module will have indented continution lines; not sure if this is desired.  Might need an flag to inform() to enable/disable it.
-
-Ohara fixed the dock wall to use a secret door ... navigation room side still needs to be fixed.
-
-Deathblade fixed the ports that HTTP_D and FTP_D (from ports.h). HTTP is now at PORT+3 (7881) and FTP is at PORT+4 (7882). Also shifted the files up from /include/net to just /include. deleted /include/net and its special priv. A couple other minor tweaks.
-
-Deathblade fixed up various references to HTTP_PORT throughout the lib (they're now PORT_HTTP)
-
-Ohara fixed up the navigation room/wall/button a little ...
-
-Beek installed Valentino's (fixed) mudlist cgi.
-
-Beek added a 'room_short' configurable colour (defaults to "none")
-
-Beek fixed MORE_OB not to error when you su
-
-Beek moved some code to ANSI_D; legacy use of i_use_ansi() and ansi() should be fixed
-
-Beek fixed the labyrinth.  Someone changed the virtual server's create() to a setup(), which is bad since it is a daemon ...
-
-Beek fixed base_room::create() to pass extra args (if any) to setup()
-
-Zifnab put Valentino's homepage_d into /contrib, creates a page with links to the wizards pages
-
-Ohara fixed up the dock wall/navigation wall code
-
-Deathblade started moving towards some simplification of the FINGER_D by introducing CLASS_FINGER and FINGER_D::get_finger_data().  The IMUD_D uses it now, but other functions will migrate to it (and push presentation scheme out of FINGER_D).
-
-Rust made a mudlib fix to a security hole that should really be fixed in the driver, but hey.  Thanks to Burty for pointing it out.  Grab a new /secure/master.c if you want the fix for your mud.
-
-Deathblade added canonical_path() to simul_efun/path.c, then changed master.c::valid_read/write to use it (and removing Rust's temp hack).
-
-Deathblade split FINGER_D::show_big_finger() into two funcs: one for in-mud and one for the web.
-
-Deathblade fixed the "finger" command and the "who" WWW gateway to use the new FINGER_D::get_finger_data() function. The two commands now do the formatting appropriate for their display mechanism.  get_finger() was rm'd from FINGER_D.
-
-Deathblade moved the vsupport inherit up to BASE_OBJ and removed from OBJ, SPARSE_OBJ, and LESS_SPARSE_OBJ
-
-Deathblade changed /std/non-room.c to /std/non_room.c
-
-Deathblade want to note that that is normally used as NON_ROOM anyhow, so it shouldn't be noticeable.
-
-Deathblade removed parsedsc.c from /std/room (wicked old obsolete bugger)
-
-Deathblade moved nntp.c and telet_ob.c to /contrib
-
-Deathblade moved LESS_SPARSE_OBJ to /obj/simple_ob.c (SIMPLE_OB) and SPARSE_OBJ to /obj/fake_item_mgr.c (FAKE_ITEM_MGR). These are never subclassed. They aren't even directly used (they're handled via M_ITEMS). The new names better reflect what they do. Comments have been added to the objects.
-
-Rust fixed grep to use glob style patterns instead of regexp patterns
-
-Ohara fixed stats so that they init in new chars
-
-Rust installed wraith's search command and M_SEARCHABLE.
-
-Beek overloaded set_light/adjust_light in base_room to inform people in the room about changes in visibility (e.g: "You put the torch in the backpack.  You close the backpack.  The room goes dark")
-
-Beek changed tell "foo ;bar" to use "bar LIV" if such a rule exists
-
-Beek added /help/wizard/design_decisions
-
-Beek added colour_table(), which works like sprintf() table mode
-
-Beek fixed save_to_string() to preserve inventory relationships; it used deep_inventory() instead of recursing, which flattened them.
-
-Beek changed a few things aboout ls: (1) colour depends on the "colour-ls" var.  Try 'set colour-ls'.  (2) The table formatting takes colour into account.  (3) It uses this_user()->query_screen_width() instead of being hardcoded to 79
-
-Beek fixed ls colours to be configurable (assuming CONFIGURABLE_COLOURS)
-
-Beek fixed colour_*() to work with configurable colours
-
-Beek made colours print in alphabetical order, and in a nice table form
-
-Beek added an admtool interface for ANSI_D (this is the correct way to add new %^ codes)
-
-Beek : The mad ANSI advocate has struck again: news colour now exists (and is configurable) [Hey, wasn't that the same guy who didn't want Lima to look like a Christmas tree?  What the heck is he doing??]
-
-Beek made it so that IMUD channels can be a different colour if you want (btw, this shows that one can define colours in terms of other colours; the default for channel_imud is "channel")
-
-Rust installed Myth's fixes to ftp_d and socket, which fix binary transfers and max buf size transfers. See file comments for more info
-
-Ohara put in a tempfix for a bug in give, where giving a worn object would give the give message but not move the item.
-
-Rust installed Myth's version of imud who that removes invisible people
-
-Beek cleaned up snoop() and the snoop command (they were hideous)
-
-Rust installed myth's HTTP_D fix, which should handle large files correctly now.
-
-Beek moved: /secure/obj -> /obj/secure; /obj -> /obj/mudlib
-
-Beek moved M_INPUT to /secure/modules
-
-Beek added a new cleaner admtool, which is started via admtool -n.  Currently only the security submenu exists.  Added as a separate option so the old one is there in case this one has problems (esp. with a release imminent)
-
-Beek added currency, quest, domain to the new admtool
+Beek fixed news search not to bug on removed articles
 

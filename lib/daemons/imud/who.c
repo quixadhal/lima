@@ -30,10 +30,9 @@ static nomask void rcv_who_req(string orig_mud, string orig_user,
 			     string visname = user->query_userid();
 			     string title = 0;
 
-                             if (!(body->is_visible())) return ([])[0];
-
 			     if ( body )
 			     {
+                                 if ( !body->is_visible() ) return 0;
 				 visname = body->query_name();
 				 title = body->query_title();
 			     }

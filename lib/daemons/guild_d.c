@@ -262,7 +262,7 @@ string array query_guild_prereq( string name )
 string array query_guild_allies( string name )
 {
     guild_check(name);
-    return DEFN(name)->guild_exclusive;
+    return DEFN(name)->guild_allies;
 }
 
 

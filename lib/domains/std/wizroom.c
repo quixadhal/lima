@@ -46,38 +46,41 @@ int do_go_north()
 }
 
 
-void setup(){
+void setup()
+{
     object door;
 
     set_area("wiz_area");
     set_brief("Grand Hall");
     set_long(
-"The Grand Hall, the meeting place for Lima Wizards, is a large room with polished wooden floorboards, and rough hewn beams overhead. A narrow flight of stairs lead upwards, their top splashed by flickering blue light, while an equally narrow flight leads downwards into the gloom. Two rocky passages leave the room. The northwest one is warm and sulfurous, while the south passage smells faintly malodorous, as though something had died in the recent past.  For some bizarre reason, there is an elevator door off to the west.
+	"The Grand Hall, the meeting place for Lima Wizards, is a large room with polished wooden floorboards, and rough hewn beams overhead. A narrow flight of stairs lead upwards, their top splashed by flickering blue light, while an equally narrow flight leads downwards into the gloom. Two rocky passages leave the room. The northwest one is warm and sulfurous, while the south passage smells faintly malodorous, as though something had died in the recent past.  For some bizarre reason, there is an elevator door off to the west.
 
 A low doorway in the east wall allows access to the example room, a glowing portal in the north wall leads to the mortal start area, and to the northeast is the quiet room.  "
-);
-    set_state_description( "oak_door_off", "The west door is currently closed.\n");
-    set_state_description( "oak_door_on", "The west door is currently open.\n");
+	);
+    set_state_description( "oak_door_off", "The northeast door is currently closed.\n");
+    set_state_description( "oak_door_on", "The northeast door is currently open.\n");
+/*
+  set_state_description( "oak_door_destroyed_on", "Some vandal has destroyed the door that used to block the northeast exit." );
+  */
     set_state_description( "lamp_on", "The lamp beside the elevator is lit.\n");
     set_exits( ([
-		 "east" : "example_room1.c",
-		 "south" : "monster_room.c",
-		 "west" : "2.4.5/elevator.scr",
-		 "northeast" : "quiet_room.c",
-		 "northwest" : "lava_room",
-    ]) );
+	"east" : "example_room1.c",
+	"south" : "monster_room.c",
+	"west" : "2.4.5/elevator.scr",
+	"northeast" : "quiet_room.c",
+	"northwest" : "lava_room",
+	]) );
     set_objects( ([
         STAIRS : ({ "/domains/std/attic", "/domains/std/shop", 1}),
-           "magic_torch" : 1,
-           "large_oak_door" : ({ "northeast" }),
-           "portal.c" : 1,
-           "2.4.5/obj/elevator_door.scr" : ({ "lima" }),
-           "2.4.5/obj/elevator_call_button.scr" : ({ "lima" }),
-    ]) );
-   set_default_exit( "Walking through walls is painful. Try a more pleasant direction.\n");
-    door = present( "door");
-   if( !door->query_closed())
-	door->do_on_open();
+	"magic_torch" : 1,
+	"large_oak_door" : ({ "northeast" }),
+	"portal" : 1,
+	"2.4.5/obj/elevator_door.scr" : ({ "lima" }),
+	"2.4.5/obj/elevator_call_button.scr" : ({ "lima" }),
+	"greeter" : 1,
+	"map" : 1,
+	]) );
+    set_default_exit( "Walking through walls is painful. Try a more pleasant direction.\n");
 }
 
 int sound ()

@@ -6,24 +6,34 @@
 
 inherit MONSTER;
 inherit M_BLOCKEXITS;
-inherit "/std/body/guilds.c";
+
+private static string guard_for = "<no guild assigned yet>";
 
 
-private mixed handle_blocks( string dir )
+private mixed handle_blocks(string dir)
 {
-    if( this_body()->query_member_guild( implode( this_object()->guilds_belong(), "")) || (this_body()->query_guilds () && GUILD_D->query_guild_allies( implode(this_object()->guilds_belong(), ""))))
+    string * allies;
+
+    /* is the player a member of our guild or a member of an ally? */
+    if ( this_body()->query_member_guild(guard_for) )
 	return 0;
-    else
-	return ::handle_blocks( dir );
+
+    allies = GUILD_D->query_guild_allies(guard_for);
+    if ( allies && sizeof(this_body()->guilds_belong() & allies) != 0 )
+	return 0;
+
+    return ::handle_blocks( dir );
 }
 
 
 void mudlib_setup( string guild )
 {
     ::mudlib_setup();
-    set_id( "guard" );
-    set_in_room_desc( "A guard is here." );
-    set_gender( 1 );     // default male.
-    add_guild( guild, 1 );
-    set_block_action( "The $n $vpush $t back. \"Guild members only\", $n $vgrowl.\n");
+
+    guard_for = guild;
+
+    set_id("guard");
+    set_in_room_desc("A guard is here.");
+    set_gender(1);     // default male.
+    set_block_action("The $n $vpush $t back. \"Guild members only\", $n $vgrowl.\n");
 }

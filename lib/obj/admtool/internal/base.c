@@ -27,6 +27,10 @@ string module_name();
 string module_key();
 class command_info array module_commands();
 
+mixed module_priv() {
+    return 0;
+}
+
 // our variables
 private string prompt;
 private class command_info array commands;
@@ -41,8 +45,8 @@ private nomask string parent_name() {
     // for now
     if (path == "/obj/admtool")
 	return 0;
-    else
-	return "/obj/admtool/admtool2";
+    else 
+	return path;
 }
 
 static void heading() {
@@ -109,7 +113,7 @@ void create() {
     set_privilege(1);
     
     // abstract class 
-    if (base_name() + ".c" == __FILE__) return;
+    if (strsrch(base_name(), "internal") != -1) return;
     
     commands = module_commands() + defaults();
     
@@ -117,8 +121,14 @@ void create() {
 	      (: ((class command_info)$2)->key ? 
 	       $1 + ((class command_info)$2)->key : $1 :), "") + "] > ";
 
-    if (clonep())
+    if (clonep()) {
+	if (module_priv() && !check_privilege(module_priv())) {
+	    write("Permission denied: need priv " + module_priv() + "\n");
+	    return;
+	}
+	
 	begin_menu();
+    }
 }
 
 private void handle_input(string str) {
@@ -168,6 +178,10 @@ private void handle_input(string str) {
     }
     
     write("** Unknown option (? for help)\n");
+}
+
+static nomask void do_modal_func() {
+    modal_func((: handle_input :), prompt);
 }
 
 void begin_menu() {

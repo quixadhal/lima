@@ -11,14 +11,19 @@
  *                save for a minor bug, convert_to_actual_path() works.
  * 01-07-96 Cowl: fixed convert_to_actual_path()
  *                added gateway security 
+ *
+ * Jan 20, 1997 Myth@Icon of Sin
+ *  o Added a write callback function for large files.
+ *
+ * Jan 26, 1997 Rust
+ *  o removed CGI security for a bit. Fixed up a bunch of stuff,
+ *    and added POST support.
+ *
  * TODO: 
  *      * Hit logging and related stats
  *      * Support for multiple arguments to cgis
- *      * Support for large (larger than max buffer size) files
  *      * Better Error handling (only 404 so far ;) )
- *
- * Jan 20, 1996 Myth@Icon of Sin
- *  o Added a write callback function for large files.
+
  *
  */
 
@@ -27,34 +32,145 @@
 #include <log.h>
 #include <ports.h>
 
+class client_request
+{
+  int     any_input_yet_p;
+  int     end_of_input;
+  int     keepalive;  
+  int     remaining_content_length;
+  int     reached_end_of_headers;
+  mapping headers;
+  string  content;
+  string  http_version;
+  string  method;
+  string  request;
+}
+
+
 private static mapping sending=([]);
 private static object http_sock;
 
-// figures out what is being requested, and how to get there
-private nomask string convert_to_actual_path(string path) {
-    string file;
-    if(path == "/")
-        return HTTP_ROOT+"/"+DEFAULT_PAGE;
-    if(path[<1] == '/')
-        path = path[0..<2];
-    if(path[<1] == 'c') /* this is ugly, but works for now */
-        file = SECURE_CGI_DIR+"/"+explode(path, "/")[<1];
-    else {
-        if(path[1] == '~') {
-            string user;
-            if(sscanf(path[2..], "%s/%s", user, file) == 2)
-                file = WIZ_DIR+"/"+user+HTTP_USER_HOME+"/"+file;
-            else
-                file = WIZ_DIR+"/"+path[2..]+HTTP_USER_HOME;
-        }
-        else 
-            file = HTTP_ROOT+path;
+
+// This only operates on the first 2 chars.
+int hex_str_to_int(string str)
+{
+  int result;
+
+  switch(str[0])
+    {
+    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+      result = (str[0] - 'a' + 10) * 16;
+      break;
+    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+      result = (str[0] - 'A' + 10) * 16;
+      break;
+    default:
+      result = (str[0] - '0') * 16;
     }
-    /* if its a dir, so we want the default page */
-    if(file_size(file) == -2) 
-        (file[<1] == '/') ? file += DEFAULT_PAGE : file += "/" + DEFAULT_PAGE;
-    return file;
+
+  switch(str[1])
+    {
+    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+      return result + (str[1] - 'a' + 10);
+      break;
+    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+      return result + (str[1] - 'A' + 10);
+      break;
+    default:
+      return result + (str[1] - '0');
+    }
 }
+
+string html_decode(string str)
+{
+  string outstr = "";
+  int i = 0;
+
+  for(i=0;i<strlen(str);i++)
+    {
+      switch(str[i])
+	{
+	case '+':
+	  outstr = outstr + " ";
+	  break;
+	case '%':
+	  outstr = sprintf("%s%c", outstr, hex_str_to_int(str[i+1..]));
+	  i+=2;
+	  break;
+	default:
+	  outstr = sprintf("%s%c", outstr, str[i]);
+	}
+    }
+  return outstr;
+}
+
+mapping form_parse(string s)
+{
+  mapping result = ([]);
+  string array entries = explode(s, "&");
+  string array halves;
+
+  foreach(string entry in entries)
+    {
+      halves = explode(entry, "=");
+      if(sizeof(halves) == 1)
+	{
+	  // Tmp hack, because explode() is currently not sane. "foo="
+          // is only returning ({"foo"})
+	  if(entry[<1] == '=')
+	    {
+	      result[html_decode(halves[0])] = 0;
+	      continue;
+	    }
+	  result[html_decode(entry)] = 0;
+	  continue;
+	}
+      result[html_decode(halves[0])] = html_decode(halves[1]);
+    }
+  return result;
+}
+private string expand_user(string path)
+{
+  string part;
+  int i = strsrch(path, '/');
+  if (i==-1)
+    {
+      part = "";
+      i = strlen(path);
+    }
+  else
+    {
+      part = path[i+1..];
+    }
+  return  join_path(join_path(WIZ_DIR, path[1..i]), join_path(HTTP_USER_HOME, 
+							      part));
+}
+
+// Rewritten by Rust.
+private string convert_to_actual_path(string path)
+{
+  if(path[0] == '/')
+    {
+      path = path[1..];
+    }
+  if(path[0] == '~')
+    {
+      path = expand_user(path);
+    }
+  else
+    {
+      path = join_path(HTTP_ROOT, path);
+    }
+  if (path[<1] == '/')
+    {
+      return join_path(path, DEFAULT_PAGE);
+    }
+  else
+    {
+      return path;
+    }
+}
+
 
 private buffer write_callback(object socket) {
  string file;
@@ -88,26 +204,58 @@ private buffer write_callback(object socket) {
  return read_buffer(file,i1,i2);
 }
 
-private nomask void http_read(object socket, buffer data) {
-    string ver, file, extention, args, request;
-    int i1;
+private void remove_connection(object s)
+{
+  if(s)
+    {
+      s->remove();
+    }
+}
 
-    if (!data) return;
-    // initial connect
-    request = read_buffer(data);
-    if ( !request )
-	return;
+private nomask void output_error(string header, string text, object socket)
+{
+  socket->send(sprintf("<html><title>%s</title><body><h1>%s</h1><p>%s\n</body></html>\n",
+		       header, header, text));
 
-    // We arent doing anything with the HTTP version  
-    if ( sscanf(request, "GET %s %s", file, ver) !=2 )
-        return;
-    sscanf(file, "%s?=%s", file, args);
-    file = convert_to_actual_path(file);
+  /* Hack to avoid connection reset by peer */
+  call_out((:remove_connection($(socket)):), 0);
+}
+
+private nomask void handle_post_request(class client_request req, object sock)
+{
+  mapping form_info = form_parse(req->content);
+  string file = convert_to_actual_path(req->request);
+  string result, err;
 
     if ( file_size(file) < 1 ) {
-        socket->send("<title>404 Not found</title><h1>404 Not found<h1>"+
-                     "<p>The requested URL was not found\n");
-        socket->remove();
+        output_error("404 Not found", "The requested URL was not found",
+		     sock);
+        return;
+    }
+    
+    err = catch(result = file->main(form_info, req->headers));
+    if(!result)
+      {
+	result = "<title>ERROR</title><h1>Error in gateway</h1>" + err;
+      }
+    sock->send(result + "\n");
+    sock->remove();
+}
+private nomask void handle_get_request(class client_request req, object socket)
+  {
+    string extention, args;
+    int i1;
+    string file;
+
+    sscanf(req->request, "%s?=%s", file, args);
+    if(!file)
+      {
+	file = req->request;
+      }
+    file = convert_to_actual_path(file);
+    if ( file_size(file) < 1 ) {
+        output_error("404 Not found", "The requested URL was not found",
+		     socket);
         return;
     }
     sscanf(file, "%s.%s", file, extention);
@@ -135,6 +283,189 @@ private nomask void http_read(object socket, buffer data) {
             break;
     }
 }
+
+
+mapping requests = ([]);
+
+
+class client_request alloc_request(object socket)
+{
+  class client_request req = new(class client_request);
+  req->keepalive = 0;
+  req->headers = ([]);
+  req->reached_end_of_headers = 0;
+  req->any_input_yet_p = 0;
+  req->end_of_input = 0;
+  req->remaining_content_length = 0;
+  req->content = "";
+  requests[socket] = req;
+  return req;
+}
+
+private nomask void handle_request(object socket)
+{ 
+    class client_request req;
+
+  req = requests[socket];
+  if(!req || req->end_of_input)
+    {
+      // A read sometimes gets called after we've groked everything...
+      return;
+    }
+  req->end_of_input = 1;
+  //  BBUG(req);
+  // uncommenting this will cause the req->method in the next line of
+  // code to bug.
+  //  map_delete(requests, socket);
+
+  switch (req->method)
+    {
+    case "GET":
+      handle_get_request(req, socket);
+      break;
+    case "POST":
+      handle_post_request(req, socket);
+      break;
+    default:
+      output_error("404 Method not implemented.", 
+		   "Right now only the GET method is implemented.",
+		   socket);
+    }
+}
+
+void add_text_to_request(string text, object socket)
+{
+  class client_request req;
+
+  req = requests[socket];
+
+  req->remaining_content_length-=strlen(text);
+  req->content+=text;
+
+  if(req->remaining_content_length < 0)
+    {
+      req->content = req->content[0..<(-(req->remaining_content_length))+1];
+    }
+  if(req->remaining_content_length <= 0)
+    {
+      handle_request(socket);
+    }
+}
+
+void look_for_useful_header_info(object socket)
+{
+  class client_request req;
+
+  req = requests[socket];
+
+  if(!req->keepalive)
+    {
+      string connection_type;
+
+      connection_type = req->headers["connection"];
+      if(connection_type && lower_case(connection_type) == "keep-alive")
+	{
+	  req->keepalive = -1;
+	}
+    }
+  if(req->keepalive)
+    {
+      string content_length_header;
+      content_length_header = req->headers["content-length"];
+      if(content_length_header)
+	{
+	  req->remaining_content_length = to_int(content_length_header);
+	}
+    }
+}
+
+string parse_headers(string text, object socket)
+{
+  class client_request req;
+  string header_name, header_value;
+  string array lines;
+  int i = 0;
+  
+  req = requests[socket];
+  lines = explode(text, "\n");
+
+  if(!req->any_input_yet_p)
+    {
+      string array request_line = explode(lines[0], " ");
+      req->method = request_line[0];
+      req->request = request_line[1];
+      req->http_version = request_line[2][0..<2];
+      i = 1;
+      req->any_input_yet_p = 1;
+    }
+  for(;i<sizeof(lines);i++)
+    {
+      string line = trim_spaces(lines[i]);
+      int colon_index; 
+
+      if(!strlen(line))
+	{
+	  look_for_useful_header_info(socket);
+	  req->reached_end_of_headers = 1;
+	  if(sizeof(lines) != i+1)
+	    {
+	      return implode(lines[i+1..], "\n");
+	    }
+	  else
+	    {
+	      return 0;
+	    }
+	}
+      colon_index = strsrch(lines[i], ':');
+      header_name = lower_case(trim_spaces(lines[i][0..(colon_index-1)]));
+      header_value = trim_spaces(lines[i][colon_index+1..]);
+      req->headers[header_name] = header_value;
+    }
+  look_for_useful_header_info(socket);
+  if (!req->keepalive)
+    {
+      req->reached_end_of_headers = 1;
+    }
+  return 0;
+}
+
+private nomask void add_to_request(object socket, string text)
+{
+  class client_request req;
+
+  req = requests[socket];
+  if(!req)
+    {
+      req = alloc_request(socket);
+    }
+  // We haven't gotten to the end of headers yet.
+  if(!(req->reached_end_of_headers))
+    {
+      text = parse_headers(text, socket);
+    }
+  if(text)
+    {
+      add_text_to_request(text, socket);
+    }
+  if(req->remaining_content_length <= 0 && req->reached_end_of_headers)
+    {
+      handle_request(socket);
+    }
+}
+
+
+private nomask void http_read(object socket, buffer data) {
+ string request;
+
+    if (!data) return;
+    // initial connect
+    request = read_buffer(data);
+    if ( !request )
+	return;
+
+    add_to_request(socket, request);
+}
+
 
 private nomask void http_close(object socket) {
     // add logging or something later 

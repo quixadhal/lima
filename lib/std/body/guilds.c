@@ -18,20 +18,9 @@ class guild_info
 private mapping guilds = ([ ]);
 
 
-int add_guild( string name, int level );
-int revoke_guild( string name );
-int suspend_guild( string name, int level );
-int unsuspend_guild( string name );
-int ban_guild( string name, int level );
-
-
-int query_member_guild( string name );
-int query_suspend_guild( string name );
-int query_banned_guild( string name );
-
 private nomask void check_guild_security()
 {
-if( !(this_object()->query_userid()) || this_object() == this_body() || check_previous_privilege(1))
+    if ( this_object() == this_body() || check_previous_privilege(1))
 	return;
     error( "Illegal attempt to set guild privilege" );
 }
