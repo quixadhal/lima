@@ -126,9 +126,12 @@ void load_from_string(mixed value, int recurse) {
 	** If the saved fname is not a "legal" old name, then raise an
 	** error.  There are certain files that have moved, so we must
 	** deal appropriately with errors.
+	**
+	** use throw() so we don't get a trace; this is a normal exception
+	** in some situations.
 	*/
 	if ( member_array(data["#base_name#"], old_fnames) == -1 )
-	    error("Invalid save string (ob)\n");
+	    throw("Invalid save string (ob)\n");
     }
 
     tmpsaved = decompose(map(saved, (: functionp($1) ? evaluate($1, "loading") : $1 :)));

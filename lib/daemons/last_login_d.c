@@ -16,22 +16,9 @@
 #include <security.h>
 #include <log.h>
 
-inherit M_ACCESS;
-
-#define SAVE_FILE		"/data/daemons/last_login_d"
+inherit M_DAEMON_DATA;
 
 private mapping lastdata = ([ ]);
-
-void create()
-{
-    set_privilege(1);
-    restore_object(SAVE_FILE);
-}
-
-nomask void save_me()
-{
-    unguarded(1, (: save_object, SAVE_FILE :));
-}
 
 nomask void register_last(string userid, string addr)
 {

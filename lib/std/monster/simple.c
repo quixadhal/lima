@@ -8,6 +8,12 @@
 
 inherit __DIR__ "base";
 
+string default_message(int dam, int them) {
+    if (dam <= 0) return "!none";
+    if (dam == 1) return "!light";
+    return "!serious";
+}
+
 private class combat_result make_result(int diff)
 {
     class combat_result ret = new(class combat_result);
@@ -47,8 +53,8 @@ private class combat_result make_result(int diff)
     return ret;
 }
 
-void create() {
-    ::create();
+void mudlib_setup() {
+    ::mudlib_setup();
     
     /* self is an M_DAMAGE_SOURCE. initialize it. */
     set_combat_messages("combat-unarmed");

@@ -26,6 +26,7 @@
 #include "../md.h"
 
 #define MAX_WORDS_PER_LINE 256
+#define MAX_WORD_LENGTH 1024
 #define MAX_MATCHES 10
 
 char *pluralize PROT((char *));
@@ -1024,7 +1025,8 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
     all_objects(&objects, parse_vn->handler->pinfo->flags & PI_REMOTE_LIVINGS);
 
     while (1) {
-	/* bound check? */
+	if (state->word_index == num_words)
+	    return;
 	str = words[state->word_index++].string;
 	DEBUG_PP(("Word is %s", str));
 	switch (check_special_word(str, &tmp)) {
@@ -1032,7 +1034,8 @@ static void parse_obj P3(int, tok, parse_state_t *, state,
 	    continue;
 	case SW_ALL:
 	    singular_legal = 0;
-	    if (check_special_word(words[state->word_index].string, &tmp) == SW_OF) {
+	    if (state->word_index < num_words &&
+		check_special_word(words[state->word_index].string, &tmp) == SW_OF) {
 		state->word_index++;
 		continue;
 	    }
@@ -1314,8 +1317,9 @@ static int parallel_process_answer P3(parse_state_t *, state, svalue_t *, sv,
 	DEBUG_P(("Return value was: %i", sv->u.number));
 	if (sv->u.number)
 	    return 1;
-
-	make_error_message(which, &parallel_error_info);
+	
+	if (state->num_errors == 0)
+	    make_error_message(which, &parallel_error_info);
 	return -1;
     }
     if (sv->type != T_STRING) {
@@ -1675,7 +1679,8 @@ static int parallel_check_functions P3(object_t *, obj,
 	    return 0;
     }
     if (!ret) {
-	make_error_message(0, &parallel_error_info);
+	if (state->num_errors == 0)
+	    make_error_message(0, &parallel_error_info);
 	return 0;
     }
     return ret == 1;
@@ -1965,7 +1970,7 @@ static void parse_rule P1(parse_state_t *, state) {
 	case ADD_MOD(LVS_TOKEN, VIS_ONLY_MODIFIER):
 	    local_state = *state;
 	    parse_obj(tok, &local_state, 0);
-	    if (!best_match && state->num_errors < best_num_errors) {
+	    if (!best_match && !best_error_match) {
 		start = state->word_index++;
 		while (state->word_index <= num_words) {
 		    local_state = *state;
@@ -2176,11 +2181,13 @@ static void parse_sentence P1(char *, input) {
     char *starts[MAX_WORDS_PER_LINE];
     char *orig_starts[MAX_WORDS_PER_LINE];
     char *orig_ends[MAX_WORDS_PER_LINE];
-    char c, buf[1024], *p, *start, *inp;
+    char c, buf[MAX_WORD_LENGTH], *p, *start, *inp;
+    char *end = EndOf(buf) - 1; /* space for zero */
     int n = 0;
     int i;
     int flag;
     
+    reset_error();
     free_words();
     p = start = buf;
     flag = 0;
@@ -2193,10 +2200,11 @@ static void parse_sentence P1(char *, input) {
 	if (isignore(c)) continue;
 	if (isupper(c))
 	    c = tolower(c);
-	if (iskeep(c)) {
+	if (iskeep(c) && p < end) {
 	    if (!flag)
 		flag = 1;
 	    *p++ = c;
+	    if (p == end) break; /* truncate */
 	} else {
 	    /* whitespace or punctuation */
 	    if (!isspace(c))
@@ -2216,6 +2224,8 @@ static void parse_sentence P1(char *, input) {
 		while (*inp && isspace(*inp))
 		    inp++;
 		orig_starts[n] = inp;
+		if (p == end)
+		    break; /* truncate */
 	    } else {
 		while (*inp && isspace(*inp))
 		    inp++;
@@ -2237,7 +2247,6 @@ static void parse_sentence P1(char *, input) {
     starts[n] = p;
     *p = 0;
 
-    reset_error();
     /* find an interpretation, first word must be shared (verb) */
     for (i = 1; i <= n; i++) {
 	char *vb = findstring(buf);
@@ -2461,6 +2470,7 @@ void f_parse_remove() {
 		} else vn = &((*vn)->next);
 	    }
 	}
+	verb_entry = verb_entry->next;
     }
     free_string_svalue(sp--);
 }

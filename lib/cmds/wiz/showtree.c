@@ -22,7 +22,6 @@ varargs string print_tree(string file, string func, int indent) {
     
     if (!ob) {
     return repeat_string("  ", indent) + "Couldn't find object: " + file + "\n";
-	return;
     }
     result = repeat_string("  ", indent) + file + ":\n";
     if (func && (function_exists(func, ob) + ".c") == file) {

@@ -7,9 +7,7 @@
 ** 951224, Deathblade: updated, installed, etc
 */
 
-#include <security.h>
-
-inherit M_ACCESS;
+inherit M_DAEMON_DATA;
 
 class guild_defn
 {
@@ -64,11 +62,6 @@ int query_guild_is_secret(string name);
 int query_guild_need_all(string name);
 
 
-void save_me()
-{
-    unguarded(1, (: save_object, SAVE_FILE :));
-}
-
 void guild_add( string name )
 {
     class guild_defn gi;
@@ -104,7 +97,7 @@ if(!check_previous_privilege( PRIV_NEEDED))
     write( "Guilds Wiped.\n");
 }
 
-private void guild_check(string name)
+void guild_check(string name)
 {
     if ( guilds[name] )
 	return;
@@ -487,12 +480,6 @@ void define_from_file(string fname)
 	    break;
 	}
     }
-}
-
-void create()
-{
-    set_privilege(1);
-    restore_object(SAVE_FILE);
 }
 
 string * query_guilds()

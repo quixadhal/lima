@@ -15,7 +15,7 @@ int paste = X1##X2;
 string x = @END
 xxx
 END;
-string array y = @@END
+string * y = @@END
 xxx
 yyy
 zzz

@@ -11,8 +11,10 @@ inherit M_ANSI;
 inherit CMD;
 
 mapping		info;
-mapping		is_dir;
-mapping		sizes;
+
+/* these used to be mappings too, but they duplicate info in 'info' */
+#define size(x) (info[x] ? info[x][0] : 0)
+#define is_dir(x) (size(x) == -2)
 
 // for those who like their screens looking like Christmas trees
 #undef XMAS
@@ -23,7 +25,7 @@ make_ansi_string(string file, string path)
 {
   string fname = path + file;
 
-  if(is_dir[fname])
+  if(is_dir(fname))
     return ansi("%^BOLD%^%^MAGENTA%^" + file + "%^RESET%^%^WHITE%^");
   if(info[fname] && sizeof(info[fname]) == 3 &&
      intp(info[fname][2]) && info[fname][2])
@@ -34,7 +36,7 @@ make_ansi_string(string file, string path)
 private string
 make_l_flag_line(string basename, string fullname)
 {
-  if (is_dir[fullname])
+  if (is_dir(fullname))
     return sprintf("           %-20s %s", "Directory", basename);
 		   
   if(!info[fullname])
@@ -88,15 +90,14 @@ private int do_ls(mixed argv, mapping flags)
 
   if(uses_ansi || flags["l"] || flags["s"] || !flags["p"])
     {
-      info = ([]); is_dir = ([]); sizes = ([]);
-      foreach(item in argv[0])
-	{
-//### This is cute, but it calls file_size() a number of times, when this
-//### info comes from stat().  [is_directory is a file_size call too]
+      info = ([]);
+      foreach(item in argv[0]) {
 	  info[item] = stat(item);
-	  is_dir[item] = is_directory(item);
-	  sizes[item] = file_size(item);
-	}
+	  if (sizeof(info[item]) == 1) {
+	      /* directory */
+	      info[item] = ({ -2, time(), 0 });
+	  }
+      }
     }
 
   argv[0] = map_paths(argv[0]);
@@ -120,11 +121,11 @@ private int do_ls(mixed argv, mapping flags)
 			       fullpatharr);
       else
 	if(flags["s"])
-	  outarr = map_ls_arrays((: (sizes[$2]+1024)/1024 + " " + $1 :),
+	  outarr = map_ls_arrays((: (size($2)+1024)/1024 + " " + $1 :),
 				 outarr, fullpatharr);
 
       if(!flags["p"])
-	outarr = map_ls_arrays((: is_dir[$1] ? $2+"/" :
+	outarr = map_ls_arrays((: is_dir($1) ? $2+"/" :
 				info[$1] ? info[$1][2] ? $2+"*" : $2 :
 				$2+"?":), fullpatharr,
 			       outarr);

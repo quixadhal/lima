@@ -10,11 +10,9 @@
 ** locations.
 */
 
-#include <security.h>
 #include <mudlib.h>
 
-inherit M_ACCESS;
-
+inherit M_DAEMON_DATA;
 
 /*
 ** This mapping contains all the topics in the system.  It
@@ -33,21 +31,15 @@ private mapping topics;
 */
 private mapping restrict;
 
-#define SAVE_FILE	"/data/daemons/help_d"
 #define BASE_DIR	"/help/"
 
 private static int	pending_count;
 private static object	initiator;
 
+private static array	ignore = ({ BASE_DIR "autodoc/FIXME/" });
+
 nomask void process_dir(string path);
 
-
-private void reload_data()
-{
-    if ( file_size(SAVE_FILE + ".o") <= 0 )
-	return;
-    unguarded(1, (: restore_object, SAVE_FILE, 1 :) );
-}
 
 private int f_restrict(string s)
 {
@@ -68,18 +60,22 @@ private void process_file(string path, string file)
     if ( file == "." || file == ".." )
 	return;
 
-    pathname = path + file;
-    if ( file_size(pathname) == -2 )
-    {
-	/* Ack. Avoid execution cost errors. */
-	call_out((: process_dir :), 0, pathname + "/");
-	++pending_count;
-
-	return;
-    }
-
     if ( file[0] == '_' )
 	return;
+
+    pathname = path + file;
+
+    if ( file_size(pathname) == 0 ) {
+        write("Warning: '" + pathname + "' contains nothing.\n");
+        return;
+    }
+    if ( file_size(pathname) == -2 )
+    {
+	pathname += "/";
+	/* Ack. Avoid execution cost errors. */
+	call_out((: process_dir :), 0, pathname);
+	++pending_count;
+    }
 
     if ( topics[file] )
 	topics[file] += ({ pathname });
@@ -89,10 +85,13 @@ private void process_file(string path, string file)
 
 nomask void process_dir(string path)
 {
+    if (member_array(path, ignore) != -1)
+	return;
+    
     map_array(get_dir(path + "*"), (: process_file, path :));
     if ( !--pending_count )
     {
-	unguarded(1, (: save_object, SAVE_FILE :));
+	save_me();
 
 	if ( initiator )
 	{
@@ -130,7 +129,7 @@ nomask void rebuild_data()
 
 nomask void create()
 {
-    reload_data();
+    ::create();
 
     if ( topics == 0 )
 	rebuild_data();

@@ -133,7 +133,7 @@ private void main(string arg)
     else
     {
 	mystring = sprintf("You tell %s: %s\n", who == this_body() ? "yourself" : who->query_name(), arg);
-	deststring = "%^BOLD%^" + this_body()->query_name() + " tells you: %^RESET%^" + arg + "\n";
+	deststring = "%^TELL%^" + this_body()->query_name() + " tells you: %^RESET%^" + arg + "\n";
     }
 
     out(mystring);

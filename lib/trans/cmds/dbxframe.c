@@ -33,6 +33,10 @@ string print_vars(mixed *vars) {
     return implode(result, ", ");
 }
 
+private mapping get_the_error(string str) {
+    return unguarded(1, (: call_other, master(), "query_error", str :));
+}
+
 private void
 main(string str) {
     mapping frame;
@@ -47,9 +51,9 @@ main(string str) {
 	return;
     }
     if (!who) {
-	frame = master()->query_error(this_user()->query_userid());
+        frame = get_the_error(this_user()->query_userid());
     } else {
-	frame = master()->query_error(who);
+        frame = get_the_error(who);
 	if (!frame && !find_body(who) && who != "last") {
 	    out("No such player.\n");
 	    return;

@@ -7,6 +7,7 @@
 #include "comm.h"
 #include "md.h"
 #include "file.h"
+#include "port.h"
 
 /*
  * Swap out programs from objects.

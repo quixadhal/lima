@@ -152,14 +152,6 @@ private nomask void send_mail_message(string subject,
     else if ( !pointerp(to_list) )
 	to_list = ({ });
 
-    if ( !sizeof(to_list) )
-    {
-	write("No destination names.\n");
-	if ( use_dead_letter )
-	    write_dead_letter(buf);
-	return;
-    }
-
     if ( stringp(cc_list) )
 	cc_list = map(explode(cc_list, ","), (:trim_spaces:));
     else if ( !pointerp(cc_list) )

@@ -36,7 +36,8 @@ private nomask int do_su(string old_userid, string new_userid, string new_body)
 
     write("\n");
 
-    old_name = query_body()->query_name();
+    if (query_body())
+	old_name = query_body()->query_name();
 
     /*
     ** The input stack needs to be cleared before we switch bodies so that
@@ -63,10 +64,11 @@ private nomask int do_su(string old_userid, string new_userid, string new_body)
     new_name = body->query_name();
     if ( old_userid != new_userid )
     {
-	tell_environment(body,
-			 sprintf("%s has polymorphed into %s.\n",
-				 old_name, new_name), 0,
-			 ({ body }) );
+	if (old_name)
+	    tell_environment(body,
+			     sprintf("%s has polymorphed into %s.\n",
+				     old_name, new_name), 0,
+			     ({ body }) );
     }
     receive(sprintf("Done. You are now %s.\n", new_name));
 }

@@ -1,26 +1,24 @@
 #define SUPRESS_COMPILER_INLINES
 #ifdef LATTICE
 #include "/lpc_incl.h"
-#include "/mapping.h"
 #include "/comm.h"
 #include "/file_incl.h"
 #include "/file.h"
-#include "/object.h"
-#include "/eoperators.h"
 #include "/backend.h"
 #include "/swap.h"
 #include "/compiler.h"
+#include "/main.h"
+#include "/eoperators.h"
 #else
 #include "../lpc_incl.h"
-#include "../mapping.h"
 #include "../comm.h"
 #include "../file_incl.h"
 #include "../file.h"
-#include "../object.h"
-#include "../eoperators.h"
 #include "../backend.h"
 #include "../swap.h"
 #include "../compiler.h"
+#include "../main.h"
+#include "../eoperators.h"
 #endif
 
 /* should be done in configure */
@@ -437,11 +435,23 @@ void f_heart_beats PROT((void)) {
 #define NSTRSEGS 32
 #define TC_FIRST_CHAR '%'
 #define TC_SECOND_CHAR '^'
+
+int at_end(int i, int imax, int z, int *lens) {
+    if (z + 1 != lens[i])
+	return 0;
+    for (i++; i < imax; i++) {
+	if (lens[i] > 0)
+	    return 0;
+    }
+    return 1;
+}
+
 void 
 f_terminal_colour P2( int, num_arg, int, instruction)
 {
     char *instr, *cp, *savestr, *deststr, **parts;
-    int num, i, j, k, col, space, *lens;
+    int num, i, j, k, col, space, *lens, maybe_at_end;
+    int space_garbage;
     mapping_node_t *elt, **mtab;
     int tmp;
     int wrap = 0;
@@ -525,6 +535,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
     /* Do the the pointer replacement and calculate the lengths */
     col = 0;
     space = 0;
+    maybe_at_end = 0;
     for (j = i = 0, k = sp->u.map->table_size; i < num; i++) {
 	int len;
 	    
@@ -547,6 +558,20 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 	}
 	lens[i] = len;
 	if (len > 0) {
+	    if (maybe_at_end) {
+		if (j + indent > max_string_length) {
+		    /* this string no longer counts, so we are still in
+		       a maybe_at_end condition.  This means we will end
+		       up truncating the rest of the fragments too, since
+		       the indent will never fit. */
+		    lens[i] = 0;
+		    len = 0;
+		} else {
+		    j += indent;
+		    col += indent;
+		    maybe_at_end = 0;
+		}
+	    }
 	    j += len;
 	    if (j > max_string_length) {
 		lens[i] -= j - max_string_length;
@@ -563,18 +588,24 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 			col++;
 			if (c == ' ')
 			    space = col;
-			if (col == wrap) {
+			if (col == wrap+1) {
 			    if (space) {
 				col -= space;
 				space = 0;
-			    } else
-				col = 0;
-			} else 
+			    } else {
+				j++;
+				col = 1;
+			    }
+			} else
 			    continue;
 		    }
 		    /* If we get here, we ended a line */
-		    j += indent + 1;
-		    col += indent;
+		    if (z + 1 != lens[i]) {
+			j += indent;
+			col += indent;
+		    } else
+			maybe_at_end = 1;
+
 		    if (j > max_string_length) {
 			lens[i] -= (j - max_string_length);
 			j = max_string_length;
@@ -595,7 +626,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 	    }
 	}
     }
-
+    
     /* now we have the final string in parts and length in j. 
        let's compose it, wrapping if necessary */
     cp = deststr = new_string(j, "f_terminal_colour: deststr");
@@ -607,38 +638,58 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 	col = 0;
 	space = 0;
 	for (i = 0; i < num; i++) {
+	    int kind;
+	    int len;
 	    int l = lens[i];
 	    char *p = parts[i];
 	    if (l < 0) {
 		memcpy(pt, p, -l);
 		pt += -l;
+		space_garbage += -l; /* Number of chars due to ignored junk
+					since last space */
 		continue;
 	    }
 	    for (k = 0; k < lens[i]; k++) {
+		int n;
 		char c = p[k];
 		*pt++ = c;
 		if (c == '\n') {
 		    col = 0;
+		    kind = 0;
 		} else {
-		    int n;
-		    
 		    col++;
-		    if (c == ' ')
+		    if (c == ' ') {
 			space = col;
-		    if (col == wrap) {
+			space_garbage = 0;
+		    }
+		    if (col == wrap+1) {
 			if (space) {
 			    col -= space;
 			    space = 0;
-			} else 
-			    col = 0;
+			    kind = 1;
+			} else {
+			    col = 1;
+			    kind = 2;
+			}
 		    } else
 			continue;
-		    n = (pt - tmp) - col;
-		    memcpy(cp, tmp, n);
-		    cp += n;
-		    memmove(tmp, tmp + n, col);
-		    pt = tmp + col;
+		}
+		/* If we get here, we ended a line */
+		len = (kind == 1 ? col + space_garbage : col);
+		n = (pt - tmp) - len;
+		memcpy(cp, tmp, n);
+		cp += n;
+		if (kind == 1) {
+		    /* replace the space */
+		    cp[-1] = '\n';
+		}
+		if (kind == 2) {
+		    /* need to insert a newline */
 		    *cp++ = '\n';
+		}
+		memmove(tmp, tmp + n, len);
+		pt = tmp + len;
+		if (!at_end(i, num, k, lens)) {
 		    memset(cp, ' ', indent);
 		    cp += indent;
 		    col += indent;
@@ -661,6 +712,11 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 	FREE_MSTR(savestr);
     /* now we have what we want */
     pop_stack();
+#ifdef DEBUG
+    if (cp - deststr != j) {
+	fatal("Length miscalculated in terminal_colour()\n    Expected: %i Was: %i\n    String: %s\n    Indent: %i Wrap: %i\n", j, cp - deststr, sp->u.string, indent, wrap);
+    }
+#endif
     free_string_svalue(sp);
     sp->type = T_STRING;
     sp->subtype = STRING_MALLOC;

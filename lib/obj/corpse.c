@@ -6,7 +6,7 @@ string the_name;
 object link;
 
 int is_living() {
-    return 1;
+    return 0;
 }
 
 string in_room_desc() {

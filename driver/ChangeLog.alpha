@@ -151,7 +151,7 @@ Tue May  7 14:23:45 EDT 1996 (tim@handel.princeton.edu (Beek))
 	  /std/bazz.c; using the definition in /std/foo.c
 	* Fixed the parsing package to not crash on reference to 'me' when
 	  'me' isn't within sight (admittedly, an odd situation :-) )
-	* Fixed the testsuite to realize call_catck(3) now returns strings
+	* Fixed the testsuite to realize call_stack(3) now returns strings
 	* Tables of defined functions are now sorted, so they can be binary
 	  searched; call_other time is now approximately O(m log n) instead
 	  of O(m n) when the cache is missed (m = # of inherits, n = # of 
@@ -184,7 +184,7 @@ Mon May  6 21:47:59 EDT 1996 (tim@handel.princeton.edu (Beek))
 Mon May  6 14:23:47 EDT 1996 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v22a31
 	* Added a FLUSH_OUTPUT_IMMEDIATELY option, which disables buffering
-	  of input.  Useful for debugging.
+	  of output.  Useful for debugging.
 	* Parsing package fixes:
 	  . Fixed a bug that caused OBS rules to silently do nothing if
 	    all the possible matches return errors beginning with '#'
@@ -268,10 +268,10 @@ Sun Mar 10 05:32:19 EST 1996 (tim@handel.princeton.edu (Beek))
 	* put a remove_interactive() call back in that accidentally got removed
 	  at one point, which caused the driver to busy loop until a message
 	  was sent to the object whose link had died
-	* two changes to call_stack(3): first, use strings instead of numbers
-	  to be consistent with origin(); second, a bug was fixed which was
-	  reporting the origin of the frame below the indicated frame, not
-	  the frame itself.
+	* COMPAT_BUSTER: two changes to call_stack(3): first, use strings
+	  instead of numbers to be consistent with origin(); second, a bug
+	  was fixed which was reporting the origin of the frame below the
+	  indicated frame, not the frame itself.
 	* fixed compilation on systems that use _SC_PAGE_SIZE, not _SC_PAGESIZE
 
 Mon Mar  4 20:36:27 EST 1996 (tim@handel.princeton.edu (Beek))

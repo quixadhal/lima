@@ -1,0 +1,158 @@
+
+Thal 11/23/96
+Portions of this have been taken from compendium_T.
+
+
+How to make and enjoy emotes.
+
+Emote making is pretty simple, except for the fact that there used to be
+absolutely no help file for it. Well now there is. Here is how you make
+an emote.
+
+First you type "addemote emote_name"
+
+Try and not make a real stupid emote, we do/will have split souls so it doesn't matter if the emote doesn't really belong in player life, tho, you probably don't want to be brandishing machine guns.
+
+You will be asked for the Rule:
+
+There are roughly four choices here, listed as follows:
+
+(none): If you don't enter a rule then this is the emote plain, no 
+        object.
+
+LIV   : This is the emote followed by a living object. Like "lick 
+        thalior".
+
+OBJ   : This is the emote followed by a non-living object. "Lick Torch"
+       
+STR   : Standing for "string" this means the emote followed by any text,
+        As in "lick thalior's body from head to toe".
+
+You can also mix and match these rules. Eg., a rule OBJ STR could
+easily allow for "You lick the torch and whack Thalior with it."
+
+An emote can have any or all of the above rules, and after you enter therule you are typing the message for, the message you type is what is 
+displayed when that emote is envoked under that rule.
+
+Now, if you type "semote emote_name" you can see your emote under the various rules.
+
+Let's type "semote point" it looks like this:
+
+point:
+     You'll see: You point at yourself, "Me?"
+Others will see: Thalior points at himself, "Me?"
+
+[this is with no rule]
+
+point somebody:
+     You'll see: You point at Somebody.
+Target will see: Thalior points at you.
+Others will see: Thalior points at Somebody.
+
+[this is with rule LIV]
+
+point slowly:
+     You'll see: You point at slowly.
+Others will see: Thalior points at slowly.
+
+[this is with rule STR]
+
+Etc...
+
+Now then, how do we do all the neat stuff like make it change from point
+to points and the like? Well the list of all the stuff is in help
+m_messages, but here's the concise list:
+
+Before you read these keep in mind the following. The ONLY difference 
+between a capital $? and a lowercase $? is that the uppercase one is 
+FORCED uppercase. This means, don't capitalize it unless it starts a 
+sentence, because it'll automatically capitalize proper names.
+
+     $N = Subjective. To the doer this is "You" to everyone else, this
+          "Thalior", or whoever. Simply, this is the subjective form of
+          the pronoun. The first time $N is used, it's the doer's name.
+          The second time it's used it's the pronoun (he/she/it), unless
+          arguments are used (see below).
+      
+     $T = Objective, target. This defaults to the target. That means
+          most of your actions will be set up like '$N verbs $t.'. You
+          almost never need to capitalize t, remember the first time you
+          use it, it uses the proper name. EXTRA NOTE: $T accepts two #
+          args. The first is the subejct of the sentence, the second is
+          the object. (discussed below)
+
+     $P = Possessive. This is the possessive pronoun, his/her/its. Like 
+          $R below, $P can also be used to make an apostrophe 
+          construction (like Thalior's). Of course, this only happens 
+          when it's in the proper name construction, either the first 
+          reference to that player/mob or forced proper name. (More on 
+          how to do that below).
+
+     $R = Reflexive. This is the reflexive pronoun. Himself, herself, 
+          itself. If Thalior's (an apostrophe construction) is needed, 
+          then this will do, as well, as long as you specify the 'p' 
+          argument (mentioned below) if it's not the first pronoun.
+          Remember: The first instance of the pronoun referring to 
+          'some_person' always uses the proper name. 
+  
+     $O = The object. Keep in mind that you should never prefix this 
+          with an 'a' or 'an' seeing as the object is variable. (Unless, 
+          for some reason, the object is set). It's personal taste, but 
+          I like to use either $p, or 'the'. Beware of using $p because 
+          it will read his/her even if the object is just sitting in the 
+          room.
+
+     $V = Verb, singular/plural. This changes the verb's prospective, 
+          depending on the argued subject (see below, default is 
+          this_body). Eg., If you have- $N $vget the $o. I see: 'You get 
+          the thing.' Everyone else sees- 'Thaliors gets the thing'.
+
+# Arguments: You can put a # after any $? To change which person it 
+refers to, the doer being 0, the next person (usually the target) 1, 
+etc... For example, if Thalior is doing something to Kadiya, then 
+Thalior is 0, and Kadiya is 1. So, if Thalior wanted a sentence that 
+would refer to Kadiya as "She" he could use $N1... or $N (subjective 
+pronoun) 1 (referring to person 1). This also works with verbs, making 
+the verb change for a different person ($v#verbname).
+
+     Example:  Thalior begins to lean on Kadiya. She quickly moves and 
+               he falls on his face.
+
+   This would be-> $N $vbegin to lean on $t. $N1 quickly $v1move and $n
+                   $vfall on $p face.
+
+Wherever you see the # 1 it's Kadiya or Kadiya doing the action. 
+Although it wouldn't DO anything, we could add a 0 wherever there's no 
+number, it's the equivalent.
+
+     Note: $T is odd, as it defaults to the target. This means, without
+           a #, $T is considered $T1. If you wanted to make $T refer to 
+           the doer, then you'd have to change it to $t10.. this means 
+           the subject of the sentence is '1' and the object is '0', or 
+           what $T refers to. If the subject and the object of the 
+           sentence were the same, you would have to use $t11.
+
+Letter Arguments: $?'s can also take letter arguments, to do different 
+things. Some of these arguments include the letters: p, s, and o. 'p' 
+forces the proper name. The proper name is automatically used the first 
+time the person has a pronoun referring to them, after that it defaults 
+to the plain pronoun. If you want to force the proper name, use this 
+argument. 's' forces it subjective (he/she/it). 'o' forces it objective 
+(him/her/it).
+
+     Example:  Thalior can't remember his name. "Ahh, it's Thalior", he  
+               says, after a moment's thought.
+
+This would be-> $N can't remember $p name. "Ahh, it's $np", $ns $vsay,
+                after a moment's thought.
+
+When you are writing for the rule STR you need to use a $O to indicate
+where the string is inserted.
+
+You can use "showemote" to show an emote's basic code... try various
+emotes to see how they work and then start crafting your own.
+
+One extra thing of note:
+
+See also: m_messages (choice 3)
+

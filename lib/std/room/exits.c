@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 private static string base;
-private static mixed def_exit;
+private static mixed def_exit = 0;
 private static mapping exits = ([]);
 private static string array hidden_exits = ({});
 private static mapping exit_msg = ([]);
@@ -12,11 +12,23 @@ void create() {
     base = base[0..strsrch(base, '/', -1)];
 }
 
-string array query_exit_directions(int show_hidden) {
+string array query_exit_directions(int show_hidden)
+{
+    string array standard_directions = ({ "north", "northeast", "northwest", "east", "west", "southwest", "southeast", "south", "up", "down" });
+    string array dirs = keys( exits );
+
+    foreach( string dir in standard_directions )
+    {
+	if( function_exists( "do_go_" + dir, environment( this_body())))
+	{
+	    if( member_array( dir, dirs ) == -1 ) { dirs += ({ dir }); }
+	}
+    }
+
     if (show_hidden)
-	return keys(exits);
+	return dirs;
     else
-	return keys(exits) - hidden_exits;
+	return dirs - hidden_exits;
 }
 
 //:FUNCTION set_default_exit
@@ -26,9 +38,10 @@ void set_default_exit(mixed value) {
     def_exit = value;
 }
 
+
 mixed query_exit_value(string direction, int handle_default) {
     mixed tmp = evaluate(exits[direction]);
-    
+
     if (!tmp && def_exit && handle_default) return "#" + evaluate(def_exit);
     if (objectp(tmp)) return file_name(tmp);
     if (!stringp(tmp)) return 0;
@@ -39,7 +52,7 @@ mixed query_exit_value(string direction, int handle_default) {
 	    //do this trick if the wierd string was returned by a function,
 	    //hence the above check.
 	    exits[direction] = evaluate_path(base + tmp);
-            return exits[direction];
+	    return exits[direction];
 	}
 	return evaluate_path(base + tmp);
     }
@@ -52,6 +65,13 @@ int has_default_exit() {
     return !!def_exit;
 }
 
+string get_default_exit()
+{
+    if( has_default_exit())
+    return def_exit;
+    return( "It doesn't appear possible to go that way.\n");
+}
+
 //:FUNCTION show_exits
 //Return a string giving the names of exits for the obvious exits line
 string show_exits()
@@ -59,13 +79,13 @@ string show_exits()
     string exit_str;
     string* exit_names;
 
-    exit_names = keys(exits) - hidden_exits;
+    exit_names = query_exit_directions(0);
     exit_str = ((sizeof(exit_names)) ? implode(exit_names,", ") : "none");
 
 #ifdef WIZARDS_SEE_HIDDEN_EXITS
     if ( wizardp(this_user()) && sizeof(hidden_exits) )
     {
-       exit_str += ", *" + implode(hidden_exits, ", *");
+	exit_str += ", *" + implode(hidden_exits, ", *");
     }
 #endif
 
@@ -85,12 +105,12 @@ string query_exit_msg(string arg)
 
 void set_enter_msg(string dir, string msg)
 {
-  enter_msg[dir] = msg;
+    enter_msg[dir] = msg;
 }
 
 void set_exit_msg(string dir, string msg)
 {
-  exit_msg[dir] = msg;
+    exit_msg[dir] = msg;
 }
 
 //:FUNCTION add_exit
@@ -124,25 +144,25 @@ void set_exits( mapping new_exits )
 //This is the list of exits to NOT be shown to the mortals in the room.
 void set_hidden_exits( string array exits_list ... )
 {
-  hidden_exits = exits_list;
+    hidden_exits = exits_list;
 }
 
 //:FUNCTION add_hidden_exit
 //Make a given exit direction a hidden exit.  See set_hidden_exits
 void add_hidden_exit( string array exits_list ... )
 {
-  hidden_exits += exits_list;
+    hidden_exits += exits_list;
 }
 
 //:FUNCTION remove_hidden_exit
 //Make a given exit direction no longer a hidden exit.  See set_hidden_exits
 void remove_hidden_exit( string array exits_list ... )
 {
-  hidden_exits -= exits_list;
+    hidden_exits -= exits_list;
 }
 
 
 mapping query_exits()
 {
-   return copy(exits);
+    return copy(exits);
 }

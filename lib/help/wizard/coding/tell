@@ -1,0 +1,55 @@
+Communications functions
+------------------------
+
+Most of the time, if you want to send a message to an object or group
+of objects, the correct function to use is tell().  tell(ob, str) is
+the correct way to send the message "str" to the object "ob" (and just
+that object; it isn't propagated to the objects inventory or
+environment or anything).  If a third argument is passed, it is used
+as the message type.  It is also possible to use an array of objects
+as the first argument.  The message is then sent to all the objects in
+the array.  For example, tell(users(), "Hi there!") sends the message
+to everyone who is logged in.
+
+[Note: messages can be sent either to user objects or body objects; body
+ objects simply forward the message to their user.  bodies() could be
+ used in the above, and the effect would be the same.]
+
+For convenience, there is also a tell_user(name, msg), which tells the
+user "name" (if any) the message.  tell_user("yourname", ...) can be
+handy for debugging.
+
+There also exist non-private messages, which in addition to sending
+the message to a particular object, also automatically propagate to
+other objects which are able to see the event.  The most useful of
+these is tell_environment(ob, msg), which also sends the message to
+everything in the environment of ob (if any).  The message will also
+propagate up and down through the object hierarchy, unless blocked by
+some non-transparent object.  tell_from_inside() and tell_from_outside()
+are lower level versions; tell_from_inside() sends the message to a
+particular object, propagating up and down, which tell_from_outside()
+propagates down only.
+
+tell_from_inside(), tell_from_outside(), and tell_environment() also
+support a fourth argument containing an array of objects which should
+not hear the message.
+
+[compatibility notes]
+
+For those used to the old efuns, the following may be helpful:
+
+tell_object() is for the most part replaced by tell().
+
+tell_room() usually becomes tell_from_outside() (with the exception that
+    the extremely common construct 'tell_room(environment(ob), ...)'
+    should use tell_environment(ob, ...))
+
+say() also becomes tell_environment(this_object(), ...) in most cases,
+    although when done from an non-living object it becomes
+    tell_environment(this_body(), ...)
+
+write() and printf() still work; though they are simul'ed to use
+    tell(this_user(), ...), which works exactly the way the old efuns
+    did, except that wrapping and color translation are done.
+
+-Beek

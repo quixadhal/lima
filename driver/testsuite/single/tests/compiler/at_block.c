@@ -1,10 +1,13 @@
 void do_tests() {
-    ASSERT( @END
+    mixed *a;
+    string s = @END
 xxx
 yyy
-END == "xxxyyy");
-    ASSERT( sizeof(@@END
+END;
+    ASSERT( s == "xxx\nyyy\n");
+    a = @@END
 xxx
 yyy
-END == 2));
+END;
+    ASSERT(sizeof(a) == 2);
 }

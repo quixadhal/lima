@@ -30,13 +30,8 @@ void do_kill() {
     }
 }
 
-void do_kill_str(string str)
-{
-   write("You don't see that here.\n");
-}
-
 array query_verb_info()
 {
-   return ({ ({ "", "LIV", "LIV with OBJ", "STR" }) });
+    return ({ ({ "", "LIV", "LIV with OBJ",  }) });
 }
 

@@ -98,7 +98,7 @@ void show_adverbs(string s)
 "kick rust energetically, but kick rust en* won't because it also\n"
 "matches endearingly and enthusiastically.\n");
 
-  CMD_OB_ADVERBS->player_menu_entry("^" + s);
+CMD_OB_ADVERBS->player_menu_entry(s);
 }
 
 
@@ -288,7 +288,7 @@ create()
   add_menu_item (toplevel, new_menu_item("Information on other muds",
 					 remotemenu, "o"));
   add_menu_item (toplevel, new_menu_item("Wizard stuff", wizmenu, "*", 0, 
-					 (: wizardp(this_player()) :)));
+					 (: wizardp(this_user()) :)));
   add_menu_item (toplevel, quit_item);
   add_menu_item (toplevel, new_menu_item("Help", (: simple_cmd :), "?"));
 

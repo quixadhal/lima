@@ -850,7 +850,8 @@ INLINE void make_selectmasks()
      */
     for (i = 0; i < max_lpc_socks; i++) {
 	if (lpc_socks[i].state != CLOSED) {
-	    if ((lpc_socks[i].flags & S_WACCEPT) == 0)
+	    if (lpc_socks[i].state != FLUSHING &&
+		(lpc_socks[i].flags & S_WACCEPT) == 0)
 		FD_SET(lpc_socks[i].fd, &readmask);
 	    if (lpc_socks[i].flags & S_BLOCKED)
 		FD_SET(lpc_socks[i].fd, &writemask);

@@ -43,7 +43,7 @@ nomask void process_timer(object owner)
         notice = sprintf("%d:%02d left on the timer",
 			 data->time_left / 60, data->time_left % 60);
     if ( data->channel_name )
-        NCHANNEL_D->deliver_notice(data->channel_name, notice);
+        CHANNEL_D->deliver_notice(data->channel_name, notice);
     else
         tell(owner, notice + ".\n");
 
@@ -58,7 +58,7 @@ nomask void process_timer(object owner)
         notice = sprintf("Timer rescheduled for %d:%02d",
                          data->delay / 60, data->delay % 60);
         if ( data->channel_name )
-            NCHANNEL_D->deliver_notice(data->channel_name, notice);
+            CHANNEL_D->deliver_notice(data->channel_name, notice);
         else
             tell(owner, notice + ".\n");
     }
@@ -118,7 +118,7 @@ varargs nomask string add_timer(int delay,		/* timer delay */
         string notice;
 
         notice = sprintf("timer set to %d:%02d", delay/60, delay%60);
-        NCHANNEL_D->deliver_notice(channel, notice);
+        CHANNEL_D->deliver_notice(channel, notice);
     }
     return "Done.\n";
 }

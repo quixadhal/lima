@@ -1,5 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+
+#ifdef USE_STATUS_LINE
+
 #include <mudlib.h>
 inherit CMD;
  
@@ -26,3 +29,5 @@ private void main( string arg )
             out( "Use \"sline on\", \"sline off\", or just \"sline\" to toggle.\n");
     }
 }
+
+#endif

@@ -149,8 +149,8 @@ mixed direct_kill_liv_with_obj(object ob)
     return 1;
 }
 
-void create()
+void mudlib_setup()
 {
-  ::create();
+  ::mudlib_setup();
   set_max_capacity(VERY_LARGE*3);
 }

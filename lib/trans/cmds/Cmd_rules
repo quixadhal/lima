@@ -8,7 +8,7 @@ cut -f:d:       [file*]
 dataedit	file
 dbxtracer	obj str
 du		[dir]
-ed		[file|fname]
+ed		[obfile|fname]
 find -in        str file*
 findfile -u	[str]
 force		user str*
@@ -17,7 +17,7 @@ in		obj str*
 loadall		dir
 ls -npsl	[file|dir*]
 mkdir		fname
-more		[file*]
+more		[obfile*]
 mv -rf		file* fname|dir|file
 replace	-qn	str str file*
 rm		file*
@@ -26,12 +26,13 @@ rmpath		dir
 shutdown -ct:	str*
 snoop		[user] [str*]
 spew		file str*
-stat		obj|user
+stat		obj
 tail -n:	[file*]
 head -n:	[file*]
 tsh		file
 times		num str*
-update	-rRz	[cfile*]
+update	-rRz	[obfile*]
+renew		obj
 xargs		str*
 dir -cFls	[dir|file*]
 

@@ -18,9 +18,14 @@ object compile_object(string path)
     string pname;
     object ob;
 
-    path = "/" + path;
+    /* LPscript support */
+    if (path[<4..] == ".scr")
+	return LPSCRIPT_D->compile(path);
+
     pname = path;
 
+    /* go back through the path, checking each dir; if the name is
+       "/foo/bar/baz.c" then "/foo/bar.c" and "/foo.c" are checked. */
     while (1) {
 	int idx = strsrch(pname, "/", -1);
 
@@ -135,32 +140,42 @@ varargs string standard_trace(mapping mp, int flag) {
     return ret;
 }
 
+/* ***WARNING***:
+ * We do NOT runtime errors in here, so program defensively.  I've already
+ * had to fix a few cases where people assumed this_user() couldn't be zero,
+ * etc.  BE CAREFUL.
+ *
+ * -Beek
+ */
 string error_handler(mapping mp, int caught)
 {
     string ret;
     string logfile = (caught ? LOG_FILE_CATCH : LOG_FILE_RUNTIME);
     string what = mp["error"];
-
+    string userid;
+    
     ret = "---\n" + standard_trace(mp);
     write_file(logfile, ret);
 
     /* If an object didn't load, they get compile errors.  Don't spam
        or confuse them */
     if (what[0..23] == "*Error in loading object")
-	return;
+	return 0;
 
     if ( this_user() )
     {
+	userid = this_user()->query_userid();
 	printf("%sTrace written to %s\n", what, logfile);
-	errors[this_user()->query_userid()] = mp;
-    }
+	errors[userid] = mp;
+    } else
+	userid = "(none)";
     errors["last"] = mp;
 
     // Strip trailing \n, and indent nicely
     what = replace_string(what[0..<2], "\n", "\n         *");
-    NCHANNEL_D->deliver_string("errors",
+    CHANNEL_D->deliver_string("errors",
       sprintf("[errors] (%s) Error logged to %s\n[errors] %s\n[errors] %s\n",
-	capitalize(this_user()->query_userid()),
+	capitalize(userid),
 	logfile,
 	what,
 	trace_line(mp["object"], mp["program"],
@@ -383,10 +398,7 @@ string parser_error_message(int kind, object ob, mixed arg, int flag) {
 
     switch (kind) {
     case ERR_IS_NOT:
-	if (flag)
-	    return ret + "There is no such " + arg + " here.\n";
-	else
-	    return ret + "There is no " + arg + " here.\n";
+	return ret + "There is no such " + arg + " here.\n";
 	break;
     case ERR_NOT_LIVING:
 	if (flag)

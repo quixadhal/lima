@@ -55,10 +55,10 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
     object where;
     object old_body;
 
-    if ( previous_object() != body && this_body() != body )
+    if (previous_object() != body && this_body() != body)
 	error("security violation: bad body switch attempt\n");
 
-    where = environment(body);
+    where = body ? environment(body) : (mixed)VOID_ROOM;
 
     if ( permanent && new_body_fname )
     {
@@ -72,11 +72,13 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
     old_body = body;
     body = new(new_body_fname, query_userid());
 
-    old_body->move(VOID_ROOM);
-    old_body->quit();
-    if ( old_body )
-	catch(old_body->remove());
-
+    if (old_body) {
+        old_body->move(VOID_ROOM);
+        old_body->quit();
+        if ( old_body )
+	    catch(old_body->remove());
+    }
+    
     report_login_failures();
 
     /* NOTE: we are keeping the same shell for now... */
@@ -93,9 +95,9 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
 private nomask void incarnate(int is_new, string bfn)
 {
     if (bfn) body_fname = bfn;
-    
+
     body = new(body_fname, query_userid());
-    
+
     LAST_LOGIN_D->register_last(query_userid(), query_ip_name(this_object()));
     if ( query_n_gen() != -1 )
 	body->set_gender(query_n_gen());
@@ -211,24 +213,26 @@ nomask void steal_body()
 static nomask void new_user_ready()
 {
     remove_call_out();	/* all call outs */
-    
+
 #ifdef AUTO_WIZ
     /* auto-wiz everybody as they are created */
     write(">>>>> You've been granted automatic guest wizard status. <<<<<\n");
     unguarded(1, (: SECURE_D->create_wizard($(query_userid())) :));
-    
+#endif
+
     /* auto-admin the first wizard if there are no admins */
     {
 	string * members = SECURE_D->query_domain_members("admin");
-	
+
 	if ( !sizeof(members) )
 	{
+	    if( !wizardp(query_userid())) unguarded( 1, (: SECURE_D->create_wizard($(query_userid())) :));
+	    write( ">>>>> You have been made admin. Remember to use admtool. <<<<<\n");
 	    unguarded(1, (: SECURE_D->add_domain_member("admin",
-							$(query_userid()),
-							1) :));
+		  $(query_userid()),
+		  1) :));
 	}
     }
-#endif
 
     /* adjust the privilege of the user ob */
     if ( adminp(query_userid()) )

@@ -3,13 +3,32 @@
 #include <mudlib.h>
 inherit ROOM;
 
-int can_go_up(){ return 1; }
-void do_go_up(){ this_body()->do_game_command( "climb up stairs"); }
+mixed can_go_up()
+{
+    if( environment( this_body())->is_vehicle()) return "Try walking.\n";
+    return 1;
+}
 
-int can_go_down(){ return 1; }
-void do_go_down(){ this_body()->do_game_command( "climb down stairs" ); }
+int do_go_up(){ 
+    this_body()->do_game_command( "climb up stairs");
+    return 1;
+}
+
+mixed can_go_down()
+{
+    if( environment( this_body())->is_vehicle()) return "Try walking.\n";
+    return 1;
+}
+
+int do_go_down()
+{
+    this_body()->do_game_command( "climb down stairs" );
+    return 1;
+}
+
 
 void setup(){
+    object door;
 
     set_area("wiz_area");
     set_brief("Grand Hall");
@@ -33,6 +52,10 @@ A low doorway in the east wall allows access to the example room, a glowing port
            "/domains/std/magic_torch" : 1,
     "/domains/std/large_oak_door" : ({ "west" }),
     ]) );
+   set_default_exit( "Walking through walls is painful. Try a more pleasant direction.\n");
+door = present( "door");
+    if( !door->query_closed())
+    door->do_on_open();
 }
 
 int sound ()

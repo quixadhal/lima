@@ -720,6 +720,13 @@ void check_all_blocks P1(int, flag) {
 #ifdef STRING_STATS
 	check_string_stats(&out);
 #endif
+	
+#ifdef PACKAGE_EXTERNAL
+	for (i = 0; i < 5; i++) {
+	    if (external_cmd[i])
+		DO_MARK(external_cmd[i], TAG_STRING);
+	}
+#endif
     
 	/* now do a mark and sweep check to see what should be alloc'd */
 	for (i = 0; i < max_users; i++)

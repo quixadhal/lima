@@ -285,12 +285,14 @@ switch_to_line P1(int, line) {
 
 static int
 try_to_push P2(int, kind, int, value) {
-    if (push_state) { 
+    if (push_state) {
 	if (value <= PUSH_MASK) {
 	    if (push_state == 1)
 		initialize_push();
 	    push_state++;
 	    ins_byte(kind | value);
+	    if (push_state == 255)
+		end_pushes();
 	    return 1;
 	} else end_pushes();
     } else if (value <= PUSH_MASK) {

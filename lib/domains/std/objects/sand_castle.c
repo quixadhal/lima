@@ -27,5 +27,5 @@ mixed direct_enter_obj()
 void dig(object o)
 {
   this_body()->simple_action("$N $vtry to dig up the sand castle, but $vfind "
-			      "that it is as hard as \na rock.");
+			      "that it is as hard as a rock.");
 }

@@ -60,6 +60,7 @@ nomask string query_email()
 
 nomask void set_email(string new_email)
 {
+//### not secure.
     if ( this_body() != query_body() )
 	error("illegal attempt to set email address\n");
 
@@ -69,6 +70,7 @@ nomask void set_email(string new_email)
 
 nomask void set_url(string new_url)
 {
+//### not secure.
     if ( this_body() != query_body() )
 	error("illegal attempt to set URL\n");
 

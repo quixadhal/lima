@@ -14,32 +14,30 @@ inherit CMD;
 
 private void main(mixed *arg, mapping flags, string stdin)
 {
-    if(!arg[0])
-      {
-	if(!stdin)
-	  {
+    array files = arg[0];
+    if (!files) {
+        if (!stdin) {
 	    out("Too few arguments.\n");
 	    out("Usage: more file(s)\n");
-	    return;
-	  }
-	else
-	  {
+	} else
 	    more(stdin, 0, 0, NO_ANSI);
-	    return;
-	  }
-      }
-    foreach (mixed file in arg[0]) {
-	if (objectp(file)) file = base_name(file) + ".c";
-	if (!stringp(file)) continue;
-	if (is_directory(file)) {
-	    out(file + ": Is a directory.\n");
-	    continue;
-	}
-	more_file(file, 0, 0, NO_ANSI);
+	return;
     }
+    
+    files = filter(files, 
+		   function(string file) {
+	               if (!stringp(file)) return 0;
+		       if (is_directory(file)) {
+			   out(file + ": Is a directory.\n");
+			   return 0;
+		       }
+		       return 1;
+                   }
+	);
+    more_file(files, 0, 0, NO_ANSI);
 }
 
-int help()
+void help()
 {
     write("Usage: more ( <filename>* | -c <chunksize> )\n"
 	"The more command prints a file on the screen in managable chunks. "

@@ -22,12 +22,7 @@
 #include <playerflags.h>
 #include <edit.h>
 
-/*
-** Inherit from DAEMON so that we clean up properly and we have some
-** privileges (we're in the call chain for some cases where the callback
-** needs privileged access).
-*/
-inherit DAEMON;
+inherit M_ACCESS;
 inherit M_INPUT;
 
 #define HEADER \
@@ -35,6 +30,8 @@ inherit M_INPUT;
 "-----------------------------------------------------------------\n"
 
 private string* buf;
+
+private int already_editing;
 
 private string client_fname;
 private function client_func;
@@ -91,7 +88,7 @@ private void end_edit(int aborted)
 
 	if ( !aborted )
 	{
-            write_file(client_fname, build_string(1));
+	    write_file(client_fname, build_string(1));
 	    arg = client_fname;
 	}
     }
@@ -102,7 +99,8 @@ private void end_edit(int aborted)
     ** Clear up this information before dispatching the callback.  The
     ** callback may want to push new modal handlers or something.
     */
-    this_body()->clear_flag(F_IN_EDIT);
+    if( !already_editing )
+	this_body()->clear_flag(F_IN_EDIT);
     modal_pop();
 
     evaluate(client_func, arg);
@@ -159,12 +157,12 @@ private void handle_escape(string str)
 	return;
 
     case 'p':
-        write(build_string() + "\n");
+	write(build_string() + "\n");
 	return;
 
     case 'e':
 	tmp_file = tmp_fname();
-        write_file(tmp_file, build_string());
+	write_file(tmp_file, build_string());
 	new(ED_SESSION)->begin_editing(tmp_file, 0, (: end_ed :));
 	return;
     }
@@ -173,7 +171,7 @@ private void handle_escape(string str)
 private nomask void parse_edit(mixed str)
 {
     if(str == -1)
-      destruct(this_object());
+	destruct(this_object());
     if ( str[0] == '~' )
     {
 	handle_escape(str);
@@ -192,8 +190,12 @@ private nomask void parse_edit(mixed str)
 private void begin_edit(string *text, function continuation)
 {
     if ( this_body()->test_flag(F_IN_EDIT) )
+    {
+	already_editing = 1;
 	write("Warning! You are already marked as editing.\n");
-    this_body()->set_flag(F_IN_EDIT);
+    }
+    else
+	this_body()->set_flag(F_IN_EDIT);
 
     buf = text ? text : ({ });
     client_func = continuation;
@@ -205,6 +207,8 @@ private void begin_edit(string *text, function continuation)
 
 void create(int kind, mixed text, function continuation)
 {
+    set_privilege(1);
+
     switch ( kind )
     {
     case 0:	// blueprint

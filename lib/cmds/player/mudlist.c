@@ -13,6 +13,10 @@ inherit M_REGEX;
 ** NOTE: at the moment, the first two elements must specify the "Up"
 **       state and the mud name
 */
+#define INFO_DRIVERTYPE ({ \
+    ({ 0, 2 }), ({ 11, 18 }), \
+    ({8,8}),({ 7, 20 }), ({ 5, 18 })})
+
 #define INFO_MUDTYPE	({ \
     ({ 0, 2 }), ({ 11, 18 }), \
     ({8,8}),({ 1, 15 }), ({ 2, 5 }), ({ 5, 18 })})
@@ -23,17 +27,17 @@ inherit M_REGEX;
 
 
 static private string * headers = ({
-    "Up",
-    "Address",
-    "",		/* port */
-    "",		/* TCP OOB port */
-    "",		/* UDP OOB port */
-    "Lib",
-    "Base Lib",
-    "Driver",
-    "Type",
-    "Open Status",
-    "Admin Email",
+    "Up",                                 // 0
+    "Address",                            // 1
+    "",		/* port */                // 2
+    "",		/* TCP OOB port */        // 3
+    "",		/* UDP OOB port */        // 4
+    "Lib",                                // 5
+    "Base Lib",                           // 6
+    "Driver",                             // 7
+    "Type",                               // 8
+    "Open Status",                        // 9
+    "Admin Email",                        // 10
 
     "Mud",	/* special... mudname. not part of the mud info */
 });
@@ -73,6 +77,8 @@ private void main(mixed *arg, mapping flags)
 
     if ( flags["t"] )
 	info = INFO_MUDTYPE;
+    else if ( flags["d"] )
+	info = INFO_DRIVERTYPE;
     else
 	info = INFO_DEFAULT;
 
@@ -132,8 +138,8 @@ private void main(mixed *arg, mapping flags)
 
     }
 
-    output = sprintf("%d matches out of %d muds. %d are UP.\n",
-		     matched, sizeof(mudlist), upcount) + output;
+    output = sprintf("%d matches out of %d muds. %d %s UP.\n",
+		     matched, sizeof(mudlist), upcount, (upcount == 1) ? "is" : "are") + output;
 
     out(output);
 }

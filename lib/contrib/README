@@ -1,0 +1,10 @@
+
+This directory holds files which are not part of the Lima Bean
+mudlib, but which have been written by others and are compatible
+with the lib.
+
+The incoming/ subdirectory is the correct place to put things
+which you would like to be considered for inclusion in the lib.
+It is probably a good idea to post to lima.discussion as well,
+so people know what is there.
+

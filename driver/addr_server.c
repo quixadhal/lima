@@ -8,6 +8,7 @@
 #include "socket_ctrl.h"
 #include "file_incl.h"
 #include "debug.h"
+#include "port.h"
 
 #ifdef DEBUG_MACRO
 int debug_level = 512;

@@ -1,3 +1,142 @@
+Sat Nov  2 17:41:50 EST 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b22
+	* fixed a bug in the parser that would prefer "There is no x ..."
+	  to a better error message in some situations
+
+Mon Oct 28 16:38:55 EST 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b21
+	* fixed crasher in 'ed_start()' [found by Beyond@LimaBean]
+	* fixed a bug in save_object that would insert lots of spaces into
+	  the temporary file name [reported by Aragorn]
+
+Mon Oct 21 17:40:33 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b20
+	* increased the save_object() temporary file name buffer from
+	  80 to 256 bytes, and made sure it can't overflow
+	  [reported by Avenger@CoreDump]
+	* fixed crasher in recieving a mud-mode packet which claimed to
+	  have a negative length
+	* fixed leak in errors during call_outs
+	* fixed CLOSING sockets with data pending for reading not to cause
+	  the driver to busywait
+	* tighter compile-time type checking for indexing. Disallow:
+	  . mapping[<anything]
+	  . function[anything]
+	* fixed crasher in parsing a string constant while the scratchpad is
+	  full (most commonly caused by unterminated strings; reported by
+	  Jihad)
+	* sending a SIGUSR2 to the mud will now cause it to eval out; temporary
+	  fix until eval_cost gets rewritten.
+	* fixed delayed crasher in errors during the loading of the master or
+	  simul_efun object
+	* fixed crasher in long @@blocks
+
+Fri Oct 11 14:08:45 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b19
+	* fixed miscalculation of result length in terminal_colour() when
+	  the string ended with a newline followed (only) by color codes
+	  [reported by Descartes, LordSutch]
+	* bugfix in the flushing of 'CLOSING' sockets [from Turrican@DW]
+	* fixed read_file() to return "" and not 0 for zero-length files
+	* fixed crasher in words longer than 1024 bytes in the parser
+	  [reported by Descartes]
+
+Mon Oct  7 16:28:04 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b18
+	* another bug fix in OLD_RANGE_BEHAVIOR
+	* cleaned up the disk full logic a bit; also added error checking
+	  on the fclose(), which apparently the call that usually errors.
+	* changed non-void functions using 'return;' to a warning instead
+	  of an error, since it doesn't actually affect generated code
+	* more debugging code to the terminal_colour() length check
+	* Get the left and right hand side in the right order in
+	  "Bad assignment" error messages [reported by Aragorn]
+	* fixed crasher in calling an undefined (and not prototyped) function
+	  from an inherited program [reported by Aragorn]
+	* fixed wrapping in terminal_colour() when there are colour codes
+	  between the last space and the end of the line
+	  [reported by Jihad]
+
+Thu Oct  3 18:12:42 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b17
+	* fixed socket_close() to not close sockets immediately when data
+	  is buffered internally; this adds a new socket state 'CLOSING'
+	  which will transparently change to 'CLOSED' when the data has
+	  been written.
+	* call reset_error() at the top of parse_sentence() so that everything
+	  is set up in the event of an early return if the number of words
+	  is greater than MAX_WORDS_PER_LINE; prevents a crash trying to
+	  make a call based on out of date match information. [reported
+	  by Ra@Deepest]
+	* fixed a bug in type checking that caused many type errors not
+	  to be caught at compile time.  Highlights:
+	  . Type errors in +=, relational operators, unary -, ~, array
+	    indexes now caught at compile time
+	  . 'return;' in a function with a non-array, non-class return value
+	    is now caught
+	  [based on a bug report from Avenger@CD]
+	* fixed bugs in various operations that would not clear the
+	  'undefinedness' of the result.  This would cause undefinedp()
+	  to return 1 if the value was zero, e.g. ((undefined) & 1)
+	  or (!!(undefined))
+	  [reported by both Avenger@CD and Ciao@Team-Aye]
+	* fixed a bug in OLD_RANGE_BEHAVIOR that would cause indexing off
+	  the start of the array with [..<x] to wrap around to the end
+	  [reported by Aragorn]
+	* fixed a crasher in ambiguous parses; thanks a bunch to
+	  Descartes for tracking down this one [reported by at least
+	  10 different people; this is the query_the_short() one]
+
+Tue Oct  1 19:07:42 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b16
+	* fixed crasher in ending a sentence with an article, adjective, etc
+	  in the parsing package [reported by Aragorn]
+	* small fix for compilation on machines which have MAXSHORT but not
+	  USHRT_MAX
+	* bug fixes in terminal_colour():
+	  . don't wrap 1 char early when breaking lines
+	  . don't add indentation after the last newline in a string if
+	    nothing follows it
+	  . get line breaks right inside words that are longer than the
+	    wrapping width
+
+Mon Sep 30 21:20:26 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b15
+	* fixed crasher in using something other than a string or object
+	  for an object name in efun callbacks, like:
+	  filter_array(({ 1 }), "func", ([ ]))
+	  [reported by Jihad]
+	* fixed crasher in map_delete() with COMPAT_32 defined
+	* fixed infinite loop in parse_remove() [reported by Aragorn]
+	
+Wed Jul 10 15:14:11 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b14
+	* Fixed a bug that would cause the length of the return value
+	  of terminal_colour() to be set incorrectly if the string
+	  contained a newline (reported by Sibbis@Suvangi)
+	* also fixed indentation for terminal_colour()
+	* fixed typo in ed.c that cause the exit_function to be used
+	  as the write function (or crash if a write function was
+	  specified with no exit function) [fix from Earendil]
+	* fixed compilation with sort_array(), map_array(), tell_room(),
+	  or sizeof() commented out in func_spec.c
+	* fixed a crasher in $(anything) outside of a function pointer
+	* fixed a typo that could cause errors to be ignored while writing
+	  save files
+
+Wed Jul  3 14:46:41 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b13
+	* Fixed several compilation errors involving the_null_array
+	* Fixed code generation for expressions involving 256 or more
+	  consecutive simple pushes
+	* Fixed sscanf() not to give a "Format string cannot end in %"
+	  error if it ends in (a legal) "%%"
+	* Fixed sscanf() to not give "Too few arguments to sscanf()"
+	  when the last argument is a "%%"
+	* Fixed a bad error message when the format string ends with an
+	  isolated "%"
+	* A couple of testsuite changes
+
 Sun Jun 30 13:52:01 EDT 1996 (tim@wfn-shop.princeton.edu (Beek))
 	* raised patchlevel to v22b12
 	* removed null_array() since the_null_array is now explicitly checked

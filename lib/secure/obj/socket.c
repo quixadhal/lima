@@ -14,6 +14,7 @@
 #include <mudlib.h>
 #include <socket.h>
 #include <driver/socket_err.h>
+#include <log.h>
 
 //#define SKTLOG(x,y)	write_file("/open/sktlog",sprintf("%s: %O\n",x,y))
 #define SKTLOG(x,y)
@@ -406,7 +407,8 @@ SKTLOG("remove: fdOwned",fdOwned);
 	err = socket_close(fdOwned);
 SKTLOG("remove: err",err);
 	if ( err < 0 )
-	    error("could not close: " + socket_error(err) + "\n");
+	    LOG_D->log(LOG_SOCKET,
+		       "could not close: " + socket_error(err) + "\n");
     }
 
     destruct();

@@ -21,7 +21,7 @@
 #include <classes.h>
 #include <log.h>
 
-inherit DAEMON;
+inherit M_ACCESS;
 inherit CLASS_MAILMSG;
 
 #define MAIL_PATH	"/data/M/"
@@ -35,6 +35,7 @@ private nomask void create()
 {
     object mailbox;
 
+    set_privilege(1);
     foreach ( mailbox in children(MAILBOX) )
     {
 	string owner;
@@ -136,6 +137,21 @@ private nomask mixed clean_addresses(string array list)
     return ({local_recips, recips});
 }
 
+string array ungroup( string array list )
+{
+    mixed to;
+
+    foreach( string addressee in list )
+    {
+	to = GROUP_D->get_group( addressee);
+	if( !arrayp( to )) to = ({ to });
+	list -= ({ addressee });
+	list += to;
+    }
+    return list;
+}
+
+
 varargs nomask string * send_mail(string 	Sender,
   string	Subject,
   mixed		Body,
@@ -178,6 +194,8 @@ varargs nomask string * send_mail(string 	Sender,
     */
 
     /* Convert groups to real names */
+    To_list = ungroup( To_list );
+    Cc_list = ungroup( Cc_list );
 
     // this is the mail pointer as well as within seconds of time()
     message_key = get_message_key();
@@ -188,7 +206,8 @@ varargs nomask string * send_mail(string 	Sender,
     }
 
     // A list of target recipients with no names duplicated
-    recip_lists = clean_addresses(msg->to_list + msg->cc_list);
+ Cc_list -= To_list;
+    recip_lists = clean_addresses( To_list + Cc_list);
     local_recip_list = recip_lists[0];
     recip_list       = recip_lists[1];
     local_recip_list = process_mail_list(local_recip_list);

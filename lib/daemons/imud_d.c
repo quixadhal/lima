@@ -17,7 +17,7 @@
 #include <log.h>
 #include <ports.h>
 
-inherit M_ACCESS;
+inherit M_DAEMON_DATA;
 inherit M_RECONNECT;
 
 inherit __DIR__ "imud/tell";
@@ -32,8 +32,6 @@ inherit __DIR__ "imud/ucache";
 inherit __DIR__ "imud/oob";
 inherit __DIR__ "imud/file";
 inherit __DIR__ "imud/mail";
-
-#define SAVE_FILE	"/data/daemons/imud_d"
 
 static private object	router_socket;
 
@@ -130,11 +128,6 @@ static void return_error(string mudname, string username,
     send_message("error", mudname, username, ({ errcode, errmsg, 0 }));
 }
 
-private nomask void save_me()
-{
-    unguarded(1, (: save_object, SAVE_FILE :));
-}
-
 /* handle reads from the router */
 private nomask void handle_router_read(object socket, mixed * message)
 {
@@ -205,7 +198,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 1.0a1",
+			      "Lima 1.0a2",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -248,9 +241,8 @@ void create()
 	return;
     }
 
-    set_privilege(1);
+    ::create();
 
-    restore_object(SAVE_FILE);
     mudlist_reset_entries();
 
     reconn_func = (: reconnect :);
@@ -290,7 +282,7 @@ static nomask void log_error_rcv(string mudname, mixed * message)
     LOG_D->log(LOG_I3_ERROR, sprintf("(<- %s) %s: %s\n%O\n", mudname,
 				     message[0], message[1], message[2]));
 
-    NCHANNEL_D->deliver_channel("errors",
+    CHANNEL_D->deliver_channel("errors",
 				sprintf("I3 (%s): %s",
 					message[0],
 					message[1]));

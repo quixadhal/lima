@@ -25,16 +25,19 @@ private void main(string arg)
 
     if (!arg)
     {
-        if(file_name(environment(this_body())) == this_body()->query_home())
+	object env = environment(this_body());
+	if( env )
 	{
-            this_body()->simple_action("$N $vtwitch briefly.");
-	    return;
-	}
-	msgs = this_body()->get_player_message("home");
-	if (environment(this_body()))
-            this_body()->my_action( "You go home.\n");
-            this_body()->other_action( msgs[1]);
+	    if( file_name(env) == this_body()->query_home())
+	    {
+		this_body()->simple_action("$N $vtwitch briefly.");
+		return;
+	    }
+	    msgs = this_body()->get_player_message("home");
+	    this_body()->my_action( "You go home.\n");
+	    this_body()->other_action( msgs[1]);
 
+	}
 	home = this_body()->query_home();
 	if (home == "CLONE") {
 	    ob = find_home(this_body()->query_name());
@@ -61,8 +64,8 @@ private void main(string arg)
 
     if( file_name( environment( this_body())) == home )
     {
-        this_body()->simple_action("$N $vtwitch briefly.");
-        return;
+	this_body()->simple_action("$N $vtwitch briefly.");
+	return;
     }
     this_body()->simple_action("$N $vleave to visit " + capitalize(arg) +
       "'s home.");

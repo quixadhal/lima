@@ -2,6 +2,7 @@
 
 #include <mudlib.h>
 #include <size.h>
+#include <bodyslots.h>
 
 inherit CONTAINER;
 inherit M_OPENABLE;
@@ -18,6 +19,13 @@ setup() {
 		   ]) );
     set_max_capacity(3*MEDIUM);
     set_size(SMALL);
+#ifdef USE_BODYSLOTS
+    set_slot( TORSO );
+#endif
 }
 
 	    
+void remove()  {
+    m_wearable::remove();
+    container::remove();
+}

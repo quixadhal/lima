@@ -11,3 +11,21 @@ string extra_long_stuff()
 	return "";
     return capitalize( the_short()) + " is open.\n";
 }
+
+
+private int block()
+{
+    string ret = environment( this_object())->get_default_exit();
+    if( query_closed())
+    {
+	write( ret );
+	return 0;
+    }
+    return 1;
+}
+
+
+void setup_door( string ident, string dir )
+{
+    ::setup_door( ident, dir );
+}

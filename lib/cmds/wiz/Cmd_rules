@@ -1,28 +1,28 @@
 asnoop 		user str*
 cd		[dir]
 clean		[obj]
-clone		cfile
-dest		obj|user
+clone           [cfile]
+dest		obj
 discuss		obj
 echoall		str*
 echoto		user str*
-findfunc	str obj|user
-flist -i	obj|user
-goto		obj|user
+findfunc	str obj
+flist -i	obj
+goto		obj
 last -sn:d:D:	[str*]
 locate		str
 lightme		num
 move		obj obj
 objcount	[num]
 review -cd	[user]
-scan -d		[obj|user]
-showtree	[str] cfile
+scan -d		[obj]
+showtree	[str] obfile
 start		[obj]
 timer -r        num [str] [num]
-trans		obj|user
+trans		obj
 wc -lw		[file*]
-where            [user*]
+where           [user*]
 which		str
 msg             str str*
-TODO       [str]
-null         [str]
+null		[str]
+uncd

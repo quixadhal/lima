@@ -25,6 +25,7 @@ private void main(mixed *arg, mapping flags) {
     string temp;
     int n,deep_up;
     string file;
+    object shell_ob = this_body()->query_shell_ob();
 
 // This is a quick hack to make update accept cfile*
     if(arg[0] && !stringp(arg[0]))
@@ -40,10 +41,10 @@ private void main(mixed *arg, mapping flags) {
     if (flags["R"]) deep_up = 2;
     if (flags["z"]) deep_up = 3;
     file = arg[0];
-    if (!file) file = this_body()->query_shell_ob()->get_variable("cwf");
+    if (!file && shell_ob) file = shell_ob->get_variable("cwf");
     if (!file || file == "here") file = "/"+file_name(environment(this_body()));
     file = evaluate_path(file);
-    this_body()->query_shell_ob()->set_cwf( file );
+    if (shell_ob) shell_ob->set_cwf( file );
     sscanf(file, "%s.c", file);
     if (file_size(file+".c")==-1) {
 	outf("update: no such file.\n");
@@ -54,7 +55,7 @@ private void main(mixed *arg, mapping flags) {
 	outf("update: file is a directory.\n");
 	return 0;
     }
-    if(file_size(file+".c"))  this_body()->query_shell_ob()->set_cwf(file+".c");
+    if(file_size(file+".c") && shell_ob)  shell_ob->set_cwf(file+".c");
     obs = 0;
     if (ob = find_object(file)) {
 	obs = all_inventory(ob);

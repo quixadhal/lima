@@ -53,12 +53,13 @@ private mixed evaluate_code(mixed code)
 
 private nomask string * expand_arguments(string* argv)
 {
-    int i;
+    int i, n;
 
     if ( this_user() != query_owner() )
 	error("get your own shell, asswipe!\n");
 
-    for(i=0;i<sizeof(argv);i++)
+    n = sizeof(argv);
+    for( i = 0; i < n; i++)
     {
 
 	if(strlen(argv[i])>2 && argv[i][0] == '`' && argv[i][<1] == '`')
@@ -168,7 +169,7 @@ varargs static void execute_command(string array argv, string original_input)
     // In some shells, this is the hook for doing username completion,
     // globbing, flag pre-parsing, etc...  In others, it's used to execute
     // code encased in ` `'s.
-    argv = expand_arguments(argv - ({ "" }));
+    argv = expand_arguments( argv - ({ "" }) - ({}));
 
     if(!argv)
 	return;
@@ -262,8 +263,11 @@ varargs static void execute_command(string array argv, string original_input)
 	  cmd_info = CMD_D->smart_arg_parsing(argv,path,implode_info);
 	  if(intp(cmd_info))
 	    {
-	      printf("error: pipe to %s failed.\n", argv[0]);
-	      return;
+		if (sizeof(argv))
+		    printf("error: pipe to %s failed.\n", argv[0]);
+		else
+		    write("error: pipe to nothing.\n");
+		return;
 	    }
 	}
     }
@@ -279,34 +283,48 @@ varargs static void execute_command(string array argv, string original_input)
 	return;
     }
 
-    /* use the parser to try the command */
-    if ( this_body()->do_game_command(original_input) )
-	return;
-
-    /* try a channel */
-    channel_name = NCHANNEL_D->is_valid_channel(orig_argv[0], this_body()->query_channel_list());
-    if ( channel_name )
-    {
-	int chan_type = channel_name[0..4] == "imud_";
-	NCHANNEL_D->cmd_channel(channel_name,
-				virgin_input,
-			    chan_type);
+    if (!sizeof(argv)) {
+	printf("Nothing before pipe.\n");
 	return;
     }
+    
+    if (this_body()) {
+	/* use the parser to try the command */
+	if ( this_body()->do_game_command(original_input) )
+	    return;
 
-    if(is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
-	write(this_body()->nonsense());
-    else
-	printf("I don't know the verb '%s'.\n", argv[0]);
+	/* try a channel */
+	channel_name = CHANNEL_D->is_valid_channel(orig_argv[0], this_body()->query_channel_list());
+	if ( channel_name ) {
+	    int chan_type = channel_name[0..4] == "imud_";
+	    CHANNEL_D->cmd_channel(channel_name,
+				   virgin_input,
+				   chan_type);
+	    return;
+	}
 
-    return;
+	if(is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
+	    write(this_body()->nonsense());
+	else
+	    printf("I don't know the verb '%s'.\n", argv[0]);
+    } else {
+	if (is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
+	    write("Can't use verb with no body.\n");
+	else
+	    printf("I don't know the verb '%s'.\n", argv[0]);
+    }
 }
 
 void set_pwd(string fname)
 {
+    set_variable("lastpwd", get_variable("pwd"));
     set_variable("pwd", fname);
 }
 
+void swap_pwd() {
+    set_pwd(get_variable("lastpwd"));
+}
+    
 void set_cwf(string fname)
 {
     set_variable("cwf", fname);

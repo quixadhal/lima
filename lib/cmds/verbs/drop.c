@@ -10,6 +10,14 @@
 
 inherit VERB_OB;
 
+mixed can_drop_obj() {
+    // give a better message for this case, since all the errors generated
+    // will be nonsense.
+    if (!first_inventory(this_body()))
+	return "You don't have anything.\n";
+    return default_checks();
+}
+
 private nomask void drop_one(object ob)
 {
     mixed tmp = ob->drop();
@@ -27,11 +35,6 @@ private nomask void drop_one(object ob)
   	this_body()->other_action("$N $vdrop a $o.\n", ob);
     } else
 	write(tmp);
-}
-
-mixed can_drop_str( string str )
-{
-    return "You don't have that.\n";
 }
 
 void do_drop_obj(object ob)
@@ -100,5 +103,5 @@ void do_drop_wrd_str(string amount, string str)
 
 array query_verb_info()
 {
-    return ({ ({ "STR", "OBS", "WRD STR" }), ({ "put down" }) });
+    return ({ ({ "OBS", "WRD STR" }), ({ "put down" }) });
 }

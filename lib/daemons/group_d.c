@@ -12,7 +12,7 @@
 #include <mudlib.h>
 #include <security.h>
 
-inherit DAEMON;
+inherit M_DAEMON_DATA;
 
 /*
 ** The priv needed to alter the groups.  Technically, somebody with
@@ -21,20 +21,7 @@ inherit DAEMON;
 */
 #define PRIV_NEEDED	"Mudlib:"
 
-#define SAVE_FILE	"/data/daemons/group"
-
 private mapping group_map = ([ ]);
-
-void create()
-{
-    ::create();
-    restore_object(SAVE_FILE);
-}
-
-private nomask void save_me()
-{
-    unguarded(1, (: save_object, SAVE_FILE :));
-}
 
 nomask void add_group(string group)
 {

@@ -1032,6 +1032,7 @@ map_string P2(svalue_t *, arg, int, num_arg)
 }
 #endif
 
+#ifdef F_SORT_ARRAY
 static function_to_call_t *sort_array_ftc;
 
 #define COMPARE_NUMS(x,y) (x < y ? -1 : (x > y ? 1 : 0))
@@ -1166,7 +1167,6 @@ int sort_array_cmp P2(svalue_t *, p1, svalue_t *, p2) {
     }
 }
 
-#ifdef F_SORT_ARRAY
 void
 f_sort_array PROT((void))
 {

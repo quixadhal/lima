@@ -22,7 +22,7 @@
 #define WARNING_INTERVAL	ONE_DAY
 #include <driver/origin.h>
 
-inherit DAEMON;
+inherit M_DAEMON_DATA;
 inherit CLASS_MAILMSG;
 inherit M_COMPLETE;
 
@@ -45,16 +45,6 @@ private mapping outgoing_queue = ([]);
 
 // This one maps msgId : mail_msg.  
 private mapping internal_queue = ([]);
-
-private void save_me()
-{
-  unguarded(1, (: save_object, SAVE_FILE :));
-}
-
-private void restore_me()
-{
-  unguarded(1, (: restore_object, SAVE_FILE :));
-}
 
 private int is_currently_up(string name)
 {
@@ -79,10 +69,9 @@ nomask mixed get_complete_mudname(string name)
 
 void create()
 {
-  set_privilege(1);
-  restore_me();
-  process_queue();
-  call_out("check_queue", ONE_HOUR);
+    ::create();
+    process_queue();
+    call_out("check_queue", ONE_HOUR);
 }
 
 private void check_queue()

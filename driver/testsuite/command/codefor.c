@@ -18,8 +18,8 @@ main(string a)
     rm("/CODE_TMP_FILE");
     rm("/tmp_eval_file.c");
 
-    code = explode(code, ";;; *** Disassembly ***\n");
+    code = explode(code, ";;;  *** Disassembly ***\n");
     code = code[1];
-    write(code[0..strlen(code)-29]);
+    write(code[0..strlen(code)-1]);
     return 1;
 }

@@ -62,15 +62,15 @@ int query_unique()
 }
 
 string calculate_extra() {
-//:HOOK extra_short
-//The non-zero return values are added on to the end of the short descriptions
-//when inv_list() is used (surrounded by parenthesis)
+    //:HOOK extra_short
+    //The non-zero return values are added on to the end of the short descriptions
+    //when inv_list() is used (surrounded by parenthesis)
     return  call_hooks("extra_short", 
-		       function(string sofar, mixed this) {
-			   if (!this) return sofar;
-			   return sofar + " (" + this + ")";
-		       }
-		       , "");
+      function(string sofar, mixed this) {
+	  if (!this) return sofar;
+	  return sofar + " (" + this + ")";
+      }
+      , "");
 }
 
 private void resync() {
@@ -133,23 +133,23 @@ string the_short() {
 //:FUNCTION a_short
 //return the short descriptions, with the word 'a' in front if appropriate
 string a_short() {
-  if(!is_visible())
-      return invis_name();
+    if(!is_visible())
+	return invis_name();
 
-  if (unique) return the_short();
-  if (!proper_name) return add_article(short());
-  return evaluate(proper_name);
+    if (unique) return the_short();
+    if (!proper_name) return add_article(short());
+    return evaluate(proper_name);
 }
 
 /****** the id() functions ******/
-int
-id(string arg) {
-    string	my_name;
-
+int id(string arg)
+{
+    if(!arrayp( ids)) return 0;
     return member_array(arg,ids) != -1;
 }
 
 int plural_id( mixed arg ) {
+    if( !arrayp( plurals)) return 0;
     return member_array(arg, plurals) != -1;
 }
 
@@ -164,9 +164,9 @@ void
 add_adj(string array adj... )
 {
     if(!arrayp(adjs))
-      adjs = adj;
+	adjs = adj;
     else
-      adjs += adj;
+	adjs += adj;
     resync();
 }
 
@@ -175,9 +175,9 @@ add_adj(string array adj... )
 void add_plural( string array plural... )
 {
     if(!arrayp(plurals))
-      plurals = plural;
+	plurals = plural;
     else 
-      plurals += plural;
+	plurals += plural;
     resync();
 }
 
@@ -186,9 +186,9 @@ void add_plural( string array plural... )
 void add_id_no_plural( string array id... ) {
     // set new primary
     if(!arrayp(ids))
-      ids = id;
+	ids = id;
     else
-      ids += id;
+	ids += id;
     resync();
 }
 
@@ -197,9 +197,9 @@ void add_id_no_plural( string array id... ) {
 void add_id( string array id... )
 {
     if(!arrayp(ids))
-      ids = id;
+	ids = id;
     else
-      ids += id;
+	ids += id;
     plurals += map(id, (: pluralize :));
     resync();
 }
@@ -215,9 +215,9 @@ void set_id( string array id... ) {
 
 void set_adj( string array adj... ) {
     if(!arrayp(adjs))
-      adjs = adj;
+	adjs = adj;
     else
-      adjs += adj;
+	adjs += adj;
     primary_adj = adj[0];
     resync();
 }
@@ -229,7 +229,7 @@ static
 void remove_id( string array id... )
 {
     if(!arrayp(ids))
-      return;
+	return;
     ids -= id;
     plurals -= map(id, (: pluralize :));
     resync();
@@ -237,7 +237,7 @@ void remove_id( string array id... )
 
 void remove_adj( string array adj ... ) {
     if(!arrayp(ids))
-      return;
+	return;
     adjs -= adj;
     resync();
 }
@@ -266,7 +266,7 @@ void clear_adj()
 //Returns an array containing the ids of an object
 string array query_id() {
     string array fake = this_object()->fake_item_id_list();
-    
+
     if (fake) return fake + ids;
     else return ids;
 }
@@ -301,8 +301,8 @@ string array query_adj()
 string array parse_command_id_list()
 {
     if (test_flag(INVIS)) return ({ });
-//### should strip non-alphanumerics here; might need an efun to do it
-//### efficiently
+    //### should strip non-alphanumerics here; might need an efun to do it
+    //### efficiently
     return query_id();
 }
 

@@ -18,7 +18,7 @@ string get_who_string(string arg)
 {
     string retval="";
     int debug;
-    object array b = bodies();
+object array b = bodies() - ({ 0 });
     string *args=({});
     string tmp;
 
@@ -108,13 +108,13 @@ string get_who_string(string arg)
 		break;	
 	    case "w":
 		if (!wizardp(this_user())) break;
-		retval+=sprintf("%-25.25s ", environment(body)->get_brief() ?
+		retval+=sprintf("%-25.25s ", environment(body) ?
 		  environment(body)->get_brief() : 
 		  "(Nowhere)");
 		break;
 	    case "f":
 		if (!wizardp(this_user())) break;
-		retval+=sprintf("%-20s ", file_name(environment(body)) ?
+		retval+=sprintf("%-20s ", environment(body) ?
 		  file_name(environment(body)) : "(lost?)");
 		break;
 	    case "t":

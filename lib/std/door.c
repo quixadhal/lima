@@ -27,6 +27,7 @@ inherit M_LOCKABLE;
 inherit M_OPENABLE;
 inherit M_BLOCKEXITS;
 inherit M_KNOCKABLE;
+inherit M_MESSAGES;
 
 string our_ident;
 string our_dir;

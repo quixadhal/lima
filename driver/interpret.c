@@ -444,13 +444,14 @@ void process_efun_callback P3(int, narg, function_to_call_t *, ftc, int, f) {
 	} else {
 	    if ((arg+1)->type == T_OBJECT) {
 		ftc->ob = (arg+1)->u.ob;
-	    } else {
-		if ((arg+1)->type == T_STRING) {
-		    if ((ftc->ob = find_object((arg+1)->u.string)) &&
-			!object_visible(ftc->ob)) ftc->ob = 0;
-		}
-		if (!ftc->ob) bad_argument(arg+1, T_STRING | T_OBJECT, 3, f);
-	    }
+	    } else
+	    if ((arg+1)->type == T_STRING) {
+		if ((ftc->ob = find_object((arg+1)->u.string)) &&
+		    !object_visible(ftc->ob))
+		    bad_argument(arg+1, T_STRING | T_OBJECT, 3, f);
+	    } else
+		bad_argument(arg+1, T_STRING | T_OBJECT, 3, f);
+
 	    ftc->narg = st_num_arg - narg - 2;
 	    ftc->args = arg + 2;
 
@@ -4678,15 +4679,14 @@ int inter_sscanf P4(svalue_t *, arg, svalue_t *, s0, svalue_t *, s1, int, num_ar
 		    fmt++;
 		    continue;
 		}
+		if (!*fmt)
+		    error("Format string cannot end in '%%' in sscanf()\n");
 		break;
 	    }
 	    if (*fmt++ != *in_string++) return number_of_matches;
 	}
 	
 	if (!*fmt) {
-	    if (*s1->u.string && (fmt[-1] == '%'))
-		error("Format string cannot end in '%%' in sscanf()\n");
-	    
 	    /*
 	     * We have reached the end of the format string.  If there are
 	     * any chars left in the in_string, then we put them in the
@@ -4701,7 +4701,7 @@ int inter_sscanf P4(svalue_t *, arg, svalue_t *, s0, svalue_t *, s1, int, num_ar
 	DEBUG_CHECK(fmt[-1] != '%', "In sscanf, should be a %% now!\n");
 	
 	if ((skipme = (*fmt == '*'))) fmt++;
-	else if (num_arg < 1) {
+	else if (num_arg < 1 && *fmt != '%') {
 	    /*
 	     * Hmm ... maybe we should return number_of_matches here instead
 	     * of an error
@@ -4820,7 +4820,8 @@ int inter_sscanf P4(svalue_t *, arg, svalue_t *, s0, svalue_t *, s1, int, num_ar
 	    
 	    tmp = in_string;
 	    if ((skipme2 = (*fmt == '*'))) fmt++;
-	    else if (num_arg < 2) error("Too few arguments to sscanf().\n");
+	    else if (num_arg < 2 && *fmt != '%')
+		error("Too few arguments to sscanf().\n");
 	    
 	    number_of_matches++;
 	    
@@ -4912,7 +4913,9 @@ int inter_sscanf P4(svalue_t *, arg, svalue_t *, s0, svalue_t *, s1, int, num_ar
 		    }
 		    continue;
 		}
-		
+
+	    case 0:
+		error("Format string can't end in '%%'.\n");
 	    default:
 		error("Bad type : '%%%c' in sscanf() format string\n", fmt[-1]);
 	    }

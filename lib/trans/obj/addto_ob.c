@@ -2,8 +2,12 @@
 
 #include <mudlib.h>
 
-inherit DAEMON;
+inherit M_ACCESS;
 inherit M_INPUT;
+
+private void create() {
+    set_privilege(1);
+}
 
 private nomask void finish()
 {

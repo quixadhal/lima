@@ -96,7 +96,7 @@ static int incnum;
 
 static function_context_t function_context_stack[MAX_FUNCTION_DEPTH];
 static int last_function_context;
-function_context_t *current_function_context;
+function_context_t *current_function_context = 0;
 
 /*
  * The number of arguments stated below, are used by the compiler.
@@ -494,12 +494,10 @@ get_array_block P1(char *, term)
     int c, i;			/* a char; an index counter */
     register char *yyp = outp;
 
-    if (!(termlen = strlen(term))) {
-	return 0;
-    }
     /*
      * initialize
      */
+    termlen = strlen(term);
     array_line[0] = (char *) DXALLOC(MAXCHUNK, TAG_COMPILER, "array_block");
     array_line[0][0] = '(';
     array_line[0][1] = '{';
@@ -620,7 +618,7 @@ get_array_block P1(char *, term)
      * free chunks
      */
     for (i = curchunk; i >= 0; i--)
-	FREE(array_line[curchunk]);
+	FREE(array_line[i]);
 
     return res;
 }
@@ -636,12 +634,10 @@ get_text_block P1(char *, term)
     int c, i;			/* a char; an index counter */
     register char *yyp = outp;
 
-    if (!(termlen = strlen(term))) {
-	return 0;
-    }
     /*
      * initialize
      */
+    termlen = strlen(term);
     text_line[0] = (char *) DXALLOC(MAXCHUNK, TAG_COMPILER, "text_block");
     text_line[0][0] = '"';
     text_line[0][1] = '\0';
@@ -1575,7 +1571,8 @@ int yylex()
 		    outp--;
 		}
 		if (!get_terminator(terminator)) {
-		    yyerror("Illegal terminator");
+		    lexerror("Illegal terminator");
+		    break;
 		}
 		if (tmp == '@') {
 		    rc = get_array_block(terminator);
@@ -1620,8 +1617,8 @@ int yylex()
                 register unsigned char *to = scr_tail + 1;
 
                 if ((l = scratch_end - 1 - to) > 255) l = 255;
-                while (l--) {
-                    switch(c = *outp++) {
+		while (l-- > 0) {
+		    switch(c = *outp++) {
 		    case LEX_EOF:
 			lexerror("End of file in string");
 			return LEX_EOF;
@@ -1698,7 +1695,7 @@ int yylex()
 		    default:
 			*to++ = c;
 		    }
-                }
+		}
 
                 /* Not enough space, we now copy the rest into yytext */
                 l = MAXLINE - (to - scr_tail);

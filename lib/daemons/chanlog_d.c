@@ -17,16 +17,16 @@ nomask void log_channel(string channel_name)
 {
     object * listeners;
 
-    listeners = NCHANNEL_D->query_listeners(channel_name);
+    listeners = CHANNEL_D->query_listeners(channel_name);
     if ( listeners &&
          member_array(this_object(), listeners) != -1 )
         return;
 
-    NCHANNEL_D->register_channels( ({ channel_name }) );
+    CHANNEL_D->register_channels( ({ channel_name }) );
 }
 nomask void stop_logging()
 {
-    NCHANNEL_D->unregister_channels();
+    CHANNEL_D->unregister_channels();
 }
 
 nomask void channel_rcv_string(string channel_name, string s)

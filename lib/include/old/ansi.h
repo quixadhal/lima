@@ -77,6 +77,6 @@
 #define HIREV ESC+"[1,7m"       /* Hi intensity reverse video  */
  
 #include <playerflags.h>
-#define I_HAVE_ANSI this_player()->test_flag(F_ANSI)
+#define I_HAVE_ANSI this_user()->test_flag(F_ANSI)
 
 

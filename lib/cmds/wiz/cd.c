@@ -1,20 +1,21 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 inherit CMD;
 
 private void main(mixed *arg)
 {
-    if ( !arg[0] )
+    string fname = arg[0];
+    
+    if ( !fname )
     {
-	arg = ({ wiz_dir(this_user()) });
-	if(!is_directory(arg[0]))
-	    arg = ({"/help"});
+	fname = wiz_dir(this_user());
+	if(!is_directory(fname))
+	    fname = "/help";
     }
     
-    this_body()->query_shell_ob()->set_pwd(arg[0]);
+    this_body()->query_shell_ob()->set_pwd(fname);
 
-    outf("new cwd: %s\n", arg[0]);
+    outf("new cwd: %s\n", fname);
 }
 
 int help()

@@ -8,11 +8,20 @@ inherit CMD;
 
 private void main( mixed *arg ) {
     object o;
+    int size = sizeof( arg[0]);
 
+    if( !size )
+	arg[0] = this_body()->query_shell_ob()->get_variable( "cwf" );
     o = new(arg[0]);
     if( !o )
     {
 	out("Failed to load file.\n");
+	return;
+    }
+    if( !size && !inherits( "/std/object.c", o))
+    {
+	destruct(o);
+	out( "clone [filename]\n");
 	return;
     }
     this_body()->do_player_message("clone", o);
@@ -29,10 +38,10 @@ private void main( mixed *arg ) {
 int help()
 {
     write(
-	"This command creates a copy of the object whose file name is "
-	"passed to this command.  If the object is cloned to the room "
-	"you're in, it can't be carried, otherwise it'll end up in "
-	"your inventory.\n"
-	);
+      "This command creates a copy of the object whose file name is "
+      "passed to this command.  If the object is cloned to the room "
+      "you're in, it can't be carried, otherwise it'll end up in "
+      "your inventory.\n"
+    );
     return 1;
 }

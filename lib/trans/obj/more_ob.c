@@ -17,9 +17,8 @@
 #include <mudlib.h>
 #include <more.h>
 
-inherit DAEMON;
 inherit M_INPUT;
-inherit M_ANSI;
+inherit M_ACCESS;
 
 private string current_search;
 private string last_search;
@@ -49,7 +48,7 @@ private nomask string query_prompt()
 	prompt = "\"" + file_list[file_index] + "\" ";
     prompt += sprintf("(%i-%i %i%%) [h]:", line_index + 1, last, percent);
 
-    return ansi("%^BOLD%^" + prompt + "%^RESET%^");
+    return "%^MORE%^" + prompt + "%^RESET%^";
 }
 
 /* returns 1 if no more files are available */
@@ -245,8 +244,7 @@ private nomask void do_more(mixed arg) {
 		if (regexp(lines[line_index], current_search))
 		    break;
 	    if (line_index < 0 || line_index >= sizeof(lines)) {
-		write("more: \"" + current_search + "\" not found in \"" +
-		  file_list[file_index] + "\"\n");
+		write("more: \"" + current_search + "\" not found" + (file_list ? " in \"" + file_list[file_index] + "\"\n" : "\n"));
                 if ( next_file() )
                 {
                     /* oops. not found. back up and get some input. */
@@ -276,7 +274,7 @@ private nomask void do_more(mixed arg) {
 
 void create(int kind, mixed arg, int c, function continuation,
 	    int of) {
-    ::create();
+    set_privilege(1);
 
     switch (kind) {
     case 0: // blueprint

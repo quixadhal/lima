@@ -61,13 +61,3 @@ private void main( string arg )
     return;
 }
 
-int help()
-{
-
-    write(
-	"Usage: wizz [message]\n"
-	"Takes you to the wizard lounge from anywhere on the mud, and optionally "
-	"allows you to specify what you arrive on.\n" );
-
-    return 1;
-}

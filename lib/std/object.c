@@ -10,6 +10,7 @@
 // Rust moved everything into modules.
 
 #include <flags.h>
+#include <clean_up.h>
 
 inherit BASE_OBJ;
 
@@ -115,7 +116,35 @@ void set_light(int x)
     light::set_light(x);
 }
 
+//### defeats the purpose, doesn't it?  I think this should default to 
+//### failing.  That was what was intended; otherwise it would be named
+//### disallow() ...
 int allow(string what)
 {
   return 1;
+}
+
+// by default, if we appear to be useless, we are!
+int destruct_if_useless() {
+    destruct(this_object());
+}
+
+// Be *very* careful about calling functions in other objects from here,
+// since that may cause that object to not clean_up() [since this function
+// is called in objects that haven't had a function call in a while].
+//
+// e.g. environment()->anything, like many libs do, is remarkably stupid.
+int clean_up(int instances) {
+    // If we have an environment, we will be destructed when our environment
+    // cleans up.  So no need to worry about it ourself.  Note that once
+    // we have an environment, we can never lose it, so the driver need not
+    // worry about us any more.
+    if (environment()) return NEVER_AGAIN;
+    // if we are inherited, or have clones around, we don't want to clean up
+    // as that would cause this program to need to be recompiled later.
+    // (note: instances is only ever nonzero for blueprints)
+    // This may change later, though.
+    if (instances) return ASK_AGAIN;
+    // We don't have an environment.  We appear to be useless!
+    return destruct_if_useless();
 }

@@ -1,11 +1,17 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+#include <clean_up.h>
 
-inherit DAEMON;
 inherit __DIR__ "cmd/stdio";
+//### necessary?
+inherit M_ACCESS;
 
 varargs void main(mixed arg1, mixed arg2);
+
+private void create() {
+    set_privilege(1);
+}
 
 varargs nomask 
 mixed call_main(mixed arg1, mixed arg2, mixed arg3, mixed arg4,
@@ -58,8 +64,8 @@ void do_resend(mixed arg1, mixed arg2) {
     main(arg1, arg2);
 }
 
-
-
-
-
-
+int clean_up(int instances) {
+    if (instances)
+        return ASK_AGAIN;
+    destruct(this_object());
+}

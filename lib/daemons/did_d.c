@@ -7,19 +7,10 @@
 #include <security.h>
 #include <net/http_d.h>
 
-inherit M_ACCESS;
+inherit M_DAEMON_DATA;
 inherit M_GLOB;
 
-
-
-#define SAVE_FILE "/data/daemons/did_d"
-
 mixed *did = ({ });
-
-void
-create() {
-    restore_object(SAVE_FILE, 1);
-}
 
 int someone_did(string str) {
     object *who;
@@ -33,7 +24,7 @@ int someone_did(string str) {
     }
     str = capitalize( this_body()->query_userid()) + " " + str;
     did += ({ ({ time(), str }) });
-    unguarded(1, (: save_object, SAVE_FILE :));
+    save_me();
 
     who = filter_array( users(), (: wizardp( $1 ):)) - ({ this_user() });
     who = who->query_body() - ({ 0 });

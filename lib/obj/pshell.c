@@ -18,7 +18,7 @@ inherit M_COMPLETE;
 string array query_path() {
     return ({ CMD_DIR_PLAYER "/" });
 }
-     
+
 string query_shellname()
 {
     return "Player Shell";
@@ -28,38 +28,40 @@ private mapping shell_vars = ([]);
 
 void set_variable(string name, mixed value)
 {
-  if(!shell_vars)
-    shell_vars = ([]);
-  switch(name)
+    if(!shell_vars)
+	shell_vars = ([]);
+    switch(name)
     {
     case "ansi":
-      shell_vars[name] = value;
-      return;
+    case "status":
+	shell_vars[name] = value;
+	return;
     default:
-      error("Bad player shell variable.");
+	error("Bad player shell variable.");
     }
 }
 
 void unset_variable(string name, mixed value)
 {
-  if(!shell_vars)
-    shell_vars = ([]);
-  switch(name)
+    if(!shell_vars)
+	shell_vars = ([]);
+    switch(name)
     {
     case "ansi":
-      map_delete(shell_vars,name);
-      return;
+    case "status":
+	map_delete(shell_vars,name);
+	return;
     default:
-      error("Bad player shell variable.");
+	error("Bad player shell variable.");
 
     }
 }
 
 mixed get_variable(string name)
 {
-  if(!shell_vars)
-    shell_vars = ([]);
-  return shell_vars[name];
+    if(!shell_vars)
+	shell_vars = ([]);
+    return shell_vars[name];
 }
 
 private nomask string expand_one_argument(string arg)
@@ -81,7 +83,7 @@ static void execute_command(string * argv, string original_input)
     mixed tmp;
     array winner;
     string argument;
-    
+
     /* BEGINNING OF EXPANSION */
 
     // In some shells, this is the hook for doing username completion,
@@ -115,19 +117,19 @@ static void execute_command(string * argv, string original_input)
 	    return;
 
 	/* try a channel */
-	channel_name = NCHANNEL_D->is_valid_channel(argv[0], this_body()->query_channel_list());
+	channel_name = CHANNEL_D->is_valid_channel(argv[0], this_body()->query_channel_list());
 	if ( channel_name )
 	{
 	    /* ### strictly speaking, players can't use I3 channels */
 	    int chan_type = channel_name[0..4] == "imud_";
 
-	    NCHANNEL_D->cmd_channel(channel_name,
-				    implode(argv[1..], " "),
-				    chan_type);
+	    CHANNEL_D->cmd_channel(channel_name,
+	      implode(argv[1..], " "),
+	      chan_type);
 	    return;
 	}
 
-//### This is a hack until the parser can tell me if a word is a verb.
+	//### This is a hack until the parser can tell me if a word is a verb.
 	if(is_file(CMD_DIR_VERBS "/" + argv[0] + ".c"))
 	    write(this_body()->nonsense());
 	else

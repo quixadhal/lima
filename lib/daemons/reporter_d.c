@@ -14,10 +14,10 @@
 #include <edit.h>
 #include <log.h>
 
-inherit DAEMON;
-
 #define DIVIDER "\
 \n***********************************************************************\n"
+
+inherit M_ACCESS;
 
 /*
 ** For security reasons (since we write these using unguarded()), the
@@ -44,6 +44,11 @@ private static mapping news_groups = ([
                                      "Question" : QUESTION_NEWSGROUP,
                                        "Feedback" : FEEDBACK_NEWSGROUP,
 				       ]);
+int busy = 0;
+
+void create() {
+    set_privilege(1);
+}
 
 private nomask void issue_report(string type, string subject, string text)
 {
@@ -79,6 +84,8 @@ private nomask void issue_report(string type, string subject, string text)
 /* handle the completion of the report */
 private nomask void done_ed(string type, string subject, string *lines)
 {
+    busy--;
+    
     if ( !lines )
     {
 	printf("%s entry aborted.\n", type);
@@ -100,6 +107,7 @@ varargs void begin_report(string type, string subject)
 	error("Illegal report type.\n");
 
     printf("** %s report **\n", type);
+    busy++;
     new(EDIT_OB, EDIT_TEXT, 0, (: done_ed, type, subject :));
 }
 
@@ -145,4 +153,8 @@ void report_something(string type, string input)
         short_report(type, type + this_place, input);
 
 #endif
+}
+
+void clean_up() {
+    if (!busy) destruct(this_object());
 }

@@ -30,8 +30,8 @@ string default_message(int dam, int them) {
     }
 }
 
-void create() {
-    ::create();
+void mudlib_setup() {
+    ::mudlib_setup();
 
     /* self is an M_DAMAGE_SOURCE. initialize it. */
     set_combat_messages("combat-unarmed");

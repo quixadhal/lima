@@ -18,6 +18,9 @@ double drand48 PROT((void));
 #ifdef WIN32
 char *crypt(char *, char *);
 #endif
+#ifndef HAS_STRERROR
+char *port_strerror PROT((int));
+#endif
 #endif
 
 #endif

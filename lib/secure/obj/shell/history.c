@@ -185,7 +185,7 @@ create()
 //returns the most recently added history item that matches
 //the regexp.  An implicit ^ is added to the beginning of the regexp.
 
-static string
+static int
 pattern_history_match(string rgx)
 {
     mixed matches;

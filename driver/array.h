@@ -13,6 +13,8 @@ typedef struct array_s {
     svalue_t item[1];
 } array_t;
 
+extern array_t the_null_array;
+
 /*
  * array.c
  */
@@ -20,8 +22,6 @@ typedef struct array_s {
 extern int num_arrays;
 extern int total_array_size;
 #endif
-
-extern array_t the_null_array;
 
 int sameval PROT((svalue_t *, svalue_t *));
 array_t *allocate_array PROT((int));

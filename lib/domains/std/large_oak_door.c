@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit SECRET_DOOR;
+inherit HIDDEN_DOOR;
 
 void update_sibling()
 {

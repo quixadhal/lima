@@ -15,8 +15,9 @@
 #include <assert.h>
 #include <log.h>
 #include <net/ftp_d.h>
+#include <clean_up.h>
 
-inherit DAEMON;
+inherit M_ACCESS;
 
 private static mapping sessions = ([]);
 private static mapping dataports = ([]);
@@ -190,8 +191,9 @@ private void FTP_close(object socket)
 
 private void create()
 {
-  sock = new(SOCKET, SKT_STYLE_LISTEN, FTP_PORT, (: FTP_read :),
-	     (: FTP_close :));
+    set_privilege(1);
+    sock = new(SOCKET, SKT_STYLE_LISTEN, FTP_PORT, (: FTP_read :),
+	       (: FTP_close :));
 }
 
 private void FTP_DATA_read(object socket, mixed text)
@@ -722,4 +724,10 @@ string array list_users()
 {
    return map(values(sessions), (: ((class ftp_session)$1)->connected ? 
 				((class ftp_session)$1)->user : "(login)" :));
+}
+
+
+int clean_up()
+{
+  return ASK_AGAIN;
 }

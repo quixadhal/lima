@@ -86,6 +86,15 @@ void do_look_for_obj(object ob) {
     object env = environment(ob);
     string relation;
     
+    if (!env) {
+	// the room
+	write("You're on it!\n");
+	return;
+    }
+    if (ob == this_body()) {
+	write("Trying to find yourself?\n");
+	return;
+    }
     if (environment(this_body()) == env) {
 //### we need a way to conjugate this
 	this_body()->my_action("The $o0 is right here!\n", ob);
@@ -100,7 +109,7 @@ void do_look_for_obj(object ob) {
 
 string look_for_phrase(object ob) {
     object env = environment(ob);
-    
+
     if (env == environment(this_body()))
 	return "on the ground";
     return env->query_prep(ob) + " " + env->the_short();

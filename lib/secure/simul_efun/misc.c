@@ -595,3 +595,11 @@ string convert_time(int sec, int type) {
     }
     return ret;
 }
+
+//:FUNCTION sort_by_value
+//sort_by_value(arr, f) returns the array arr sorted in such
+//a way that the elements are in increasing order, as defined by the
+//value of the function f
+array sort_by_value(array arr, function value_func) {
+    return sort_array(arr, (: evaluate($(value_func), $1) - evaluate($(value_func), $2) :));
+}

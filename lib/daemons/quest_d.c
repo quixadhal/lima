@@ -3,14 +3,10 @@
 #include <mudlib.h>
 #include <log.h>
 
-inherit DAEMON;
-
+inherit M_DAEMON_DATA;
 
 mapping quests = ([]);
 static int total_points;
-
-#define QUEST_FILE	"/data/daemons/quests"
-
 
 private
 void
@@ -47,7 +43,7 @@ add_quest( string quest, int value, string base, string major_milestone )
     }
     quests[quest] = ({ base , value , 0, major_milestone });
     calculate_total_points();
-    unguarded(1,(:save_object(QUEST_FILE):));
+    save_me();
     return 1;
 }
 
@@ -58,7 +54,7 @@ delete_quest( string quest )
 	return 0;
 
     map_delete( quests, quest );
-    unguarded(1,(:save_object(QUEST_FILE):));
+    save_me();
     calculate_total_points();
     return 1;
 }
@@ -79,7 +75,7 @@ grant_points( object solver, string quest )
     quests[quest][2]++;
     tell( solver, sprintf("Your score has gone up by %d points.\n",
 	quests[quest][1]) );
-    unguarded(1, (: save_object, QUEST_FILE :));
+    save_me();
 
 #ifdef USE_STATUS_LINE
     if( this_body()->has_status_line()) this_body()->update_status_line();
@@ -165,7 +161,6 @@ show_quest( string quest )
 create()
 { 
     ::create();
-    restore_object(QUEST_FILE, 1);
     if (!quests)
 	quests = ([]);
     calculate_total_points();

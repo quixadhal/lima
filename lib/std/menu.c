@@ -92,6 +92,8 @@ new_prompt(string prompt, function callback, string* completions)
   new_menu->prompt = prompt;
   new_menu->no_match_function = callback;
   new_menu->items = completions ? completions : ({});
+
+  return new_menu;
 }
 
 

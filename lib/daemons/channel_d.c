@@ -33,12 +33,14 @@
 ** 05-Nov-94. Created. Deathblade.
 */
 
+#define CHANNEL_FORMAT "%%^CHANNEL%%^[%s]%%^RESET%%^ %s\n"
+
 #include <mudlib.h>
 #include <security.h>
 #include <classes.h>
 #include <channel.h>
 
-inherit M_ACCESS;
+inherit M_DAEMON_DATA;
 inherit M_GRAMMAR;
 
 //inherit CLASS_CHANNEL_INFO;   picked up from channel/cmd
@@ -46,11 +48,6 @@ inherit M_GRAMMAR;
 inherit __DIR__ "channel/cmd";
 //inherit __DIR__ "channel/moderation";
 #include "/daemons/channel/moderation.c"
-
-/*
-** Store some permanent listeners and the permanency list here
-*/
-#define SAVE_FILE	"/data/daemons/channel_d"
 
 /*
 ** This channel information.  It specifies channel_name -> channel_info.
@@ -78,11 +75,6 @@ class listener_pair
 private class listener_pair *	saved_listeners;
 private class listener_pair *	saved_hooks;
 
-
-nomask void save_me()
-{
-    unguarded(1, (: save_object, SAVE_FILE :));
-}
 
 private nomask string extract_channel_name(string channel_name)
 {
@@ -306,7 +298,7 @@ nomask void deliver_string(string channel_name, string str)
 nomask void deliver_channel(string channel_name, string str)
 {
     deliver_string(channel_name,
-		   sprintf("[%s] %s\n",
+		   sprintf(CHANNEL_FORMAT,
 			   user_channel_name(channel_name),
 			   str));
 }
@@ -361,10 +353,9 @@ nomask void deliver_tell(string channel_name,
 
     deliver_data(channel_name, sender_name, "tell", message);
     deliver_string(channel_name,
-		   sprintf("[%s] %s: %s\n",
+		   sprintf(CHANNEL_FORMAT,
 			   user_channel_name(channel_name),
-			   sender_name,
-			   punctuate(message)));
+			   sender_name + ": " + punctuate(message)));
 }
 
 /*
@@ -385,10 +376,9 @@ nomask void deliver_emote(string channel_name,
 
     deliver_data(channel_name, sender_name, "emote", message);
     deliver_string(channel_name,
-		   sprintf("[%s] %s %s\n",
+		   sprintf(CHANNEL_FORMAT, 
 			   user_channel_name(channel_name),
-			   sender_name,
-			   punctuate(message)));
+			   sender_name + " " + punctuate(message)));
 }
 
 /*
@@ -405,7 +395,7 @@ nomask void deliver_soul(string channel_name, mixed * soul)
     user_channel_name = user_channel_name(channel_name);
     soul = ({ soul[0] }) +
 	({ map_array(soul[1],
-		     (: sprintf($("["+user_channel_name+"] %s"), $1) :))
+		     (: sprintf(CHANNEL_FORMAT, $(user_channel_name), $1[0..<2]) :))
        });
 
     deliver_raw_soul(channel_name, soul);
@@ -420,22 +410,21 @@ nomask void deliver_notice(string channel_name,
 			   string message)
 {
     deliver_string(channel_name,
-		   sprintf("[%s] (%s)\n",
+		   sprintf(CHANNEL_FORMAT, 
 			   user_channel_name(channel_name),
-			   message));
+			   "(" + message + ")"));
 }
 
 void create()
 {
     class listener_pair pair;
 
-    set_privilege(1);
-
     info = ([ ]);
 
     map_array(bodies(), (: register_body :));
 
-    restore_object(SAVE_FILE, 1);
+    ::create();
+
     if ( saved_listeners )
     {
 	foreach ( pair in saved_listeners )

@@ -1249,7 +1249,10 @@ static int save_object_recurse P5(program_t *, prog, svalue_t **,
 	save_svalue((*svp)++, &p);
 	/* FIXME: shouldn't use fprintf() */
 	if (save_zeros || new_str[0] != '0' || new_str[1] != 0) /* Armidale */
-	    if (fprintf(f, "%s %s\n", prog->variable_table[i], new_str) == EOF) return 0;
+	    if (fprintf(f, "%s %s\n", prog->variable_table[i], new_str) < 0) {
+		debug_perror("save_object: fprintf", 0);
+		return 0;
+	    }
 	FREE(new_str);
     }
     return 1;
@@ -1259,10 +1262,10 @@ int
 save_object P3(object_t *, ob, char *, file, int, save_zeros)
 {
     char *name;
-    static char tmp_name[80];
+    static char tmp_name[256];
     int len;
     FILE *f;
-    int failed = 0;
+    int success;
     char *use_name;
     int free_use_name = 0;
     svalue_t *v;
@@ -1300,45 +1303,48 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
      * Write the save-files to different directories, just in case
      * they are on different file systems.
      */
-    sprintf(tmp_name, "%s.tmp", name);
+    sprintf(tmp_name, "%.250s.tmp", name);
 
-    if (!(f = fopen(tmp_name, "w"))) {
+    if (!(f = fopen(tmp_name, "w")) || fprintf(f, "#/%s\n", ob->prog->name) < 0) {
 	FREE(name);
         error("Could not open /%s for a save.\n", tmp_name);
     }
-    fprintf(f, "#/%s\n", ob->prog->name);
 
     v = ob->variables;
-    if (!save_object_recurse(ob->prog, &v, 0, save_zeros, f))
+    success = save_object_recurse(ob->prog, &v, 0, save_zeros, f);
+
+    if (fclose(f) < 0) {
+	debug_perror("save_object", name);
+	success = 0;
+    }
+
+    if (!success) {
 	debug_message("Failed to completely save file. Disk could be full.\n");
-    else {
-	(void) fclose(f);
+	unlink(tmp_name);
+    } else {
 #ifdef WIN32
         /* Need to erase it to write over it. */
         unlink(name);
 #endif
-	if (rename(tmp_name, name) < 0)
-	{
+	if (rename(tmp_name, name) < 0)	{
 #ifdef LATTICE
-                /* AmigaDOS won't overwrite when renaming */
-                if (errno == EEXIST) {
-                    unlink(name);
-                    if (rename(tmp_name, name) >= 0) {
-                        FREE(name);
-                        return 1;
-                    }
-                }
+	    /* AmigaDOS won't overwrite when renaming */
+	    if (errno == EEXIST) {
+		unlink(name);
+		if (rename(tmp_name, name) >= 0) {
+		    FREE(name);
+		    return 1;
+		}
+	    }
 #endif
-		debug_perror("save_object", name);
-		debug_message("Failed to rename /%s to /%s\n", tmp_name, name);
-		debug_message("Failed to save object!\n");
+	    debug_perror("save_object", name);
+	    debug_message("Failed to rename /%s to /%s\n", tmp_name, name);
+	    debug_message("Failed to save object!\n");
+	    unlink(tmp_name);
 	}
     }
     FREE(name);
-    if (failed) {   
-	debug_message("Failed to save to file. Disk could be full.\n");
-	return 0;
-    }
+
     return 1;
 }
 

@@ -9,8 +9,9 @@
 #include <mudlib.h>
 #include <classes.h>
 
-inherit DAEMON;
 inherit M_INPUT;
+//### necessary?
+inherit M_ACCESS;
 
 inherit CLASS_ALIAS;
 
@@ -447,4 +448,8 @@ private void input_from_main_menu(string arg)
 	write("Invalid command.\n");
 	return;
     }
+}
+
+private void create() {
+    set_privilege(1);
 }

@@ -8,5 +8,5 @@ void do_remove_obj(object ob)
 }
 
 array query_verb_info() {
-    return ({ ({ "OBJ" }), ({ "take off" }) });
+    return ({ ({ "OBJ" }), ({ "take off", "unwield" }) });
 }

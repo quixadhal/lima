@@ -876,6 +876,14 @@ void init_master P1(char *, file) {
     set_master(new_ob);
 }
 
+static char *saved_master_name;
+static char *saved_simul_name;
+
+static void fix_object_names() {
+    master_ob->name = saved_master_name;
+    simul_efun_ob->name = saved_simul_name;
+}
+
 /*
  * Remove an object. It is first moved into the destruct list, and
  * not really destructed until later. (see destruct2()).
@@ -1034,6 +1042,11 @@ void destruct_object P1(object_t *, ob)
 	lpc_object_t *compiled_version;
 #endif
 
+	(++sp)->type = T_ERROR_HANDLER;
+	sp->u.error_handler = fix_object_names;
+	saved_master_name = master_ob->name;
+	saved_simul_name = simul_efun_ob->name;
+	
 	/* hack to make sure we don't find ourselves at several points
 	   in the following process */
 	ob->name = "";
@@ -1046,6 +1059,7 @@ void destruct_object P1(object_t *, ob)
 	new_ob = load_object(tmp, compiled_version);
 	if (!new_ob) {
 	    ob->name = tmp;
+	    sp--;
 	    error("Destruct on vital object failed: new copy failed to reload.");
 	}
 
@@ -1058,6 +1072,7 @@ void destruct_object P1(object_t *, ob)
 	/* Set the name back so we can remove it from the hash table.
 	   Also be careful not to remove the new object, which has
 	   the same name. */
+	sp--; /* error handler */
 	ob->name = tmp;
 	tmp = new_ob->name;
 	new_ob->name = "";
@@ -1215,7 +1230,7 @@ void say P2(svalue_t *, v, array_t *, avoid)
  * Sends a string to all objects inside of a specific object.
  * Revised, bobf@metronet.com 9/6/93
  */
-
+#ifdef F_TELL_ROOM
 void tell_room P3(object_t *, room, svalue_t *, v, array_t *, avoid)
 {
     object_t *ob;
@@ -1272,6 +1287,7 @@ void tell_room P3(object_t *, room, svalue_t *, v, array_t *, avoid)
 	}
     }
 }
+#endif
 #endif
 
 void shout_string P1(char *, str)

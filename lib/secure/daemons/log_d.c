@@ -9,7 +9,7 @@
 #include <log.h>
 #include <dirs.h>
 
-inherit DAEMON;
+inherit M_ACCESS;
 
 /*
 ** Map the symbolic log names to their respective log files.  Note that
@@ -31,16 +31,21 @@ private static mapping legal_logs = ([
     LOG_QUEST		: DIR_LOG "/quests",
     LOG_QUIT            : DIR_LOG "/logins",
     LOG_SHUTDOWN	: DIR_LOG "/SHUTDOWN",
+    LOG_SNOOP		: DIR_SECURE_LOG "/snoops",
+    LOG_SOCKET		: DIR_LOG "/socket",
     LOG_TODO		: DIR_LOG "/TODOS",
     LOG_TYPO		: DIR_LOG "/TYPOS",
     LOG_WALL		: DIR_LOG "/walls",
     LOG_FTP		: DIR_LOG "/ftp",
-    LOG_SNOOP		: DIR_SECURE_LOG "/snoops",
 ]);
 
 private static string * timestamps = ({
     LOG_CHANNEL,
 });
+
+void create() {
+    set_privilege(1);
+}
 
 void log(string which, string what)
 {

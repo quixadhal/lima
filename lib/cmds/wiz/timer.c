@@ -18,7 +18,7 @@ private void main(mixed * args, mapping flags)
     channel_name = args[1];
     if ( channel_name )
     {
-	string user_name = NCHANNEL_D->user_channel_name(channel_name);
+	string user_name = CHANNEL_D->user_channel_name(channel_name);
 	if ( channel_name == user_name )
 	    channel_name = "plyr_" + channel_name;
     }

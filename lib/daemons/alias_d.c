@@ -10,12 +10,10 @@
 
 #include <classes.h>
 #include <commands.h>	/* for CMD_OB_ADMTOOL */
+#include <security.h>
 
-inherit DAEMON;
+inherit M_DAEMON_DATA;
 inherit CLASS_ALIAS;
-
-#define ALIAS_SAVE_FILE "/data/daemons/alias"
-
 
 private mapping  defaults = ([ ]);
 private string * xdefaults = ({ });
@@ -63,7 +61,7 @@ varargs void add_default_alias(string name,
 	if(xalias)
 	    xdefaults = clean_array(xdefaults + ({ name }));
     }
-    unguarded(1, (: save_object, ALIAS_SAVE_FILE :));
+    save_me();
 }
 
 varargs void remove_default_alias(string name, int devalias)
@@ -81,11 +79,9 @@ varargs void remove_default_alias(string name, int devalias)
 	map_delete(defaults,name);
 	xdefaults -= ({ name });
     }
-    unguarded(1, (: save_object, ALIAS_SAVE_FILE :));
+    save_me();
 }
 
-void create()
-{
-    ::create();
-    restore_object(ALIAS_SAVE_FILE);
+void clean_up() {
+    destruct(this_object());
 }

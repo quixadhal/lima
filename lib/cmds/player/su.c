@@ -25,11 +25,13 @@ private void main(string arg)
 
     if (race) {
 	string array dirs = ({ DIR_RACES });
+	dirs = map(dirs, (: $1[<1] == '/' ? $1 : $1 + "/" :));
 	while (sizeof(dirs)) {
 	    foreach (string file in get_dir(dirs[0])) {
-		if (race + ".c" == file) race = dirs[0] + file;
 		if (file_size(dirs[0] + file) == -2)
 		    dirs += ({ dirs[0] + file + "/" });
+		else
+		if (race + ".c" == file) race = dirs[0] + file;
 	    }
 	    dirs = dirs[1..];
 	}

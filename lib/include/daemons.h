@@ -27,7 +27,7 @@
 #define TIMER_D		"/daemons/timer_d"
 #define VERB_D		"/daemons/verb_d"
 #define WEATHER_D	"/daemons/weather_d"
-#define SKILL_D        "/daemons/skill_d"
+#define SKILL_D		"/daemons/skill_d"
 #define SHUTDOWN_D	"/daemons/shutdown_d"
 
 #define CMD_D		"/secure/daemons/cmd_d"
@@ -39,12 +39,12 @@
 #define NEW_USER_D	"/secure/daemons/new_user_d"
 #define SECURE_D        "/secure/daemons/secure_d"
 #define USER_D		"/secure/daemons/user_d"
+#define LPSCRIPT_D	"/secure/daemons/lpscript_d"
 
 // Define these only if you want intermud services.
 #define REMOTE_D        "/secure/daemons/remote"
 #define CHANGW_D	"/daemons/changw"
 
 // ### obsolete
-#define NCHANNEL_D CHANNEL_D
 
 #endif // __DAEMONS_H__

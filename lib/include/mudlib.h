@@ -166,6 +166,7 @@
 #define SECRET_DOOR              "/std/secret_door"
 #define HIDDEN_DOOR      "/std/hidden_door"
 #define FURNITURE		"/std/furniture"
+#define GUILD_GUARD          "/std/guild_guard.c"
 #define LESS_SPARSE_OBJ		"/std/less_sparse_obj"
 #define LIVING			"/std/living"
 #define	MENUS			"/std/menu"
@@ -173,6 +174,7 @@
 #define MOUNT			"/std/mount"
 #define OBJ 			"/std/object"
 #define RACE			"/std/race"
+#define SIGN                    "/std/sign"
 #define SPARSE_OBJ		"/std/sparse_obj"
 #define SPELL			"/std/spell"
 #define STOCK_MASTER            "/std/stock_master"
@@ -251,9 +253,9 @@
 
 #define M_ACCESS		"/secure/modules/m_access"
 #define M_FILE			"/secure/modules/m_file"
+#define M_DAEMON_DATA           "/secure/modules/m_daemon_data"
 
 #define CMD			"/secure/obj/cmd"
-#define DAEMON			"/secure/obj/daemon"
 #define MAILBOX			"/secure/obj/mailbox"
 #define MAILER			"/secure/obj/mailers/mailer"
 #define SOCKET			"/secure/obj/socket"

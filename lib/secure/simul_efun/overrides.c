@@ -27,7 +27,8 @@ nomask int exec(object target, object src)
 //:FUNC input_to
 //input_to should not be used; the stackable input system should be used
 //instead.  See the modal_push() and modal_func() routines.
-nomask varargs int input_to() {
+nomask varargs int input_to()
+{
     error("input_to() should not be used.  Use modal_push()/modal_func()\n");
 }
 
@@ -39,12 +40,12 @@ nomask object find_player(string str)
     error("find_player() is obsolete.  Use find_body() instead.\n");
 }
 
-//### obsolete?
-nomask int notify_fail(string msg)
+//:FUNC this_player
+//this_body() and this_user() are used to find the body and connection objects,
+//respectively.
+nomask object this_player(string str)
 {
-    if ( this_body() )
-	this_body()->set_notify_fail(msg);
-    return 0;
+    error("this_player() is obsolete.  Use this_body() or this_user() instead.\n");
 }
 
 //:FUNC destruct
@@ -74,6 +75,8 @@ nomask void shutdown()
 {
     if ( check_privilege(1) )
 	efun::shutdown();
+    else
+        error("Insufficient privilege to shut down.\n");
 }
 
 //:FUNC query_snoop
@@ -134,8 +137,7 @@ varargs nomask mixed snoop(mixed snoopee)
     return result;
 }
 
-varargs void
-tell_object()
+varargs void tell_object()
 {
     error("Use tell() instead.\n");
 }
@@ -145,8 +147,8 @@ varargs void tell_room()
     error("Use tell_environment() or tell_from_inside() instead.\n");
 }
 
-varargs void
-shout() {
+varargs void shout()
+{
     error("Use tell(users() - ({ this_user() }), msg) instead.\n");
 }
 

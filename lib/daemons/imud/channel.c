@@ -79,12 +79,12 @@ static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 	if ( !channel_data )
 	{
 	    map_delete(chanlist, channel_name);
-	    NCHANNEL_D->unregister_channels(({ int_name }));
+	    CHANNEL_D->unregister_channels(({ int_name }));
 	}
 	else
 	{
 	    chanlist[channel_name] = channel_data;
-	    NCHANNEL_D->register_channels(({ int_name }));
+	    CHANNEL_D->register_channels(({ int_name }));
 	}
     }
 }
@@ -92,7 +92,7 @@ static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 static nomask void rcv_chan_who_req(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
-    object * listeners = NCHANNEL_D->query_listeners(message[0]);
+    object * listeners = CHANNEL_D->query_listeners(message[0]);
 
     if ( !listeners )
     {
@@ -133,7 +133,7 @@ static nomask void rcv_channel_m(string orig_mud, string orig_user,
 	return;
 
     filter_msg = 1;
-    NCHANNEL_D->deliver_tell("imud_" + message[0],
+    CHANNEL_D->deliver_tell("imud_" + message[0],
 			     sprintf("%s@%s", message[1], orig_mud),
 			     message[2]);
 }
@@ -158,7 +158,7 @@ static nomask void rcv_channel_e(string orig_mud, string orig_user,
     ** message will not pass these back to us.  Only the tell/emote/soul
     ** will pass the data through to us.
     */
-    NCHANNEL_D->deliver_channel("imud_" + message[0],
+    CHANNEL_D->deliver_channel("imud_" + message[0],
 				replace_string(message[2], "$N",
 					       sprintf("%s@%s",
 						       message[1],
@@ -181,11 +181,11 @@ static nomask void rcv_channel_t(string orig_mud, string orig_user,
 	mixed * soul;
 
 	soul = ({ ({ 0, p }), ({ 0, message[4], message[3] }) });
-	NCHANNEL_D->deliver_soul("imud_" + message[0], soul);
+	CHANNEL_D->deliver_soul("imud_" + message[0], soul);
     }
     else
     {
-	NCHANNEL_D->deliver_channel("imud_" + message[0], message[3]);
+	CHANNEL_D->deliver_channel("imud_" + message[0], message[3]);
     }
 #endif
 }
@@ -226,12 +226,12 @@ static nomask void rcv_chan_user_reply(string orig_mud, string orig_user,
 
 static nomask void chan_startup()
 {
-    NCHANNEL_D->register_channels(map_array(keys(chanlist),
+    CHANNEL_D->register_channels(map_array(keys(chanlist),
 					    (: "imud_" + $1 :)));
 }
 static nomask void chan_shutdown()
 {
-    NCHANNEL_D->unregister_channels();
+    CHANNEL_D->unregister_channels();
 }
 
 nomask mapping query_chanlist()

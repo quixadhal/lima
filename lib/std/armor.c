@@ -26,3 +26,8 @@ void set_is_on(int g) {
     ::set_is_on(g);
 }
 #endif
+
+void remove() {
+    m_wearable::remove();
+    object::remove();
+}

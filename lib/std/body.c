@@ -20,6 +20,7 @@
 #include <hooks.h>
 #include <size.h>
 #include <combat.h>
+#include <clean_up.h>
 
 // Files we need to inherit --
 inherit MONSTER;
@@ -107,7 +108,12 @@ nomask void set_plan(string new_plan)
 
 #endif /* EVERYONE_HAS_A_PLAN */
 
+static void update_for_new_body(mapping tmp) {
+    /* nothing for now; can be overloaded for races that need it */
+}
+
 /* initialize various internal things */
+//### needs a new name
 private nomask void init_cmd_hook()
 {
     object mailbox;
@@ -140,7 +146,18 @@ write( "\n" );
     set_max_capacity(VERY_LARGE);
 
     if (saved_items) {
-	load_from_string(saved_items, 1);
+	string e;
+	
+	if (e = catch(load_from_string(saved_items, 1))) {
+	    mapping tmp = restore_variable(saved_items);
+	    
+	    if (tmp["#base_name#"] != base_name(this_object())) {
+		update_for_new_body(tmp);
+		tmp["#base_name#"] = base_name(this_object());
+		load_from_string(save_variable(tmp), 1);
+	    } else
+		error("Rethrown: " + e);
+	}
 	saved_items = 0;
     }
 }
@@ -148,7 +165,7 @@ write( "\n" );
 private nomask void finish_enter_game()
 {
 
-    NCHANNEL_D->deliver_emote("announce", query_name(),
+    CHANNEL_D->deliver_emote("announce", query_name(),
       sprintf("enters %s.", mud_name()));
 
     /* move the body.  make sure this comes before the simple_action */
@@ -164,7 +181,7 @@ private nomask void finish_enter_game()
 	simple_action("$N $venter "+mud_name()+".");
     write("\n");
 
-    NCHANNEL_D->register_channels(channel_list);
+    CHANNEL_D->register_channels(channel_list);
 
     do_game_command("look");
 }
@@ -174,13 +191,13 @@ nomask void su_enter_game(object where)
     init_cmd_hook();
 
     //### this should go away once we torch the corresponding leave msg for 'su'
-    NCHANNEL_D->deliver_emote("announce", query_name(),
+    CHANNEL_D->deliver_emote("announce", query_name(),
       sprintf("enters %s.", mud_name()));
 
     if ( is_visible() )
 	simple_action("$N $venter "+mud_name()+".");
 
-    NCHANNEL_D->register_channels(channel_list);
+    CHANNEL_D->register_channels(channel_list);
 
     move(where);
 }
@@ -289,9 +306,9 @@ void quit()
     if (is_visible())
 	simple_action("$N $vhave left "+mud_name()+".");
 
-    NCHANNEL_D->deliver_emote("announce", query_name(),
+    CHANNEL_D->deliver_emote("announce", query_name(),
       sprintf("has left %s.", mud_name()));
-    NCHANNEL_D->unregister_channels();
+    CHANNEL_D->unregister_channels();
 
 #ifdef PLAYERS_START_WHERE_THEY_QUIT
     if (environment() && !wizardp(link))
@@ -329,7 +346,7 @@ void net_dead()
     if(is_visible())
 	simple_action("$N $vhave gone link-dead.");
 
-    NCHANNEL_D->deliver_emote("announce", query_name(),
+    CHANNEL_D->deliver_emote("announce", query_name(),
       sprintf("has gone link-dead.", mud_name()));
 
     if ( link && link->query_shell_ob()->get_variable("save_scrollback") )
@@ -346,7 +363,7 @@ void reconnect(object new_link)
     if(is_visible())
 	simple_action("$N $vhave reconnected.");
 
-    NCHANNEL_D->deliver_emote("announce", query_name(),
+    CHANNEL_D->deliver_emote("announce", query_name(),
       sprintf("has reconnected.", mud_name()));
 
     catching_scrollback = 0;
@@ -384,18 +401,13 @@ void die()
 	//     (MESSAGES_D->get_messages("player_death"))[query_level()/5])[1];
 	string msg = action(({this_object()}), 
 	  MESSAGES_D->get_messages("player-death"))[1];
-	shout(msg);
+    tell( bodies() - ({ this_body() }), msg );
     }
 #endif
 }
 
-//### Should this be here?
-void clean_up()
-{
-    if ( link )
-	link->quit();
-    else
-	quit();
+int clean_up() {
+    return NEVER_AGAIN;
 }
 
 //:FUNCTION id
@@ -455,9 +467,6 @@ private void create(string userid)
 
     unguarded(1, (: restore_object, USER_PATH(userid), 1 :));
 
-#ifdef USE_GUILDS
-    fix_guild_data();
-#endif
 
     // up to the player
     set_attack_speed(0);
@@ -503,12 +512,12 @@ void channel_rcv_soul(string channel_name, array data)
 void channel_add(string which_channel)
 {
     channel_list += ({ which_channel });
-    NCHANNEL_D->register_channels(({ which_channel }));
+    CHANNEL_D->register_channels(({ which_channel }));
 }
 void channel_remove(string which_channel)
 {
     channel_list -= ({ which_channel });
-    NCHANNEL_D->unregister_channels(({ which_channel }));
+    CHANNEL_D->unregister_channels(({ which_channel }));
 }
 string * query_channel_list()
 {
@@ -543,11 +552,11 @@ mixed indirect_give_obj_to_liv(object ob, object liv) {
 
 int go_somewhere(string arg)
 {
-    object env;
+    object env = environment( this_object());
     int    ret;
 
-    if(!(ret=::go_somewhere(arg)) && (env = environment(this_object())))
-	return env->go_somewhere(arg);
+    if(!(ret=::go_somewhere(arg)) && (env))
+	return env->do_go_somewhere(arg);
 
     return ret;
 }

@@ -114,6 +114,7 @@ void prompt_change_short(){
 void make_long(string *long){
     write("Long description has been set .\n");
     lng = implode(long, "\n");
+    lng = replace_string(lng, "\"", "\\\"");
 }
 
 void change_long(){
@@ -124,6 +125,7 @@ void change_long(){
 void idesc(string key, string *item){
     write("Item description has been set .\n");
     tems[key] = implode(item, "\n");
+    tems[key] = replace_string(tems[key], "\"", "\\\"");
     write("Item "+key+" set to "+tems[key]+"\n\n");
 }
 
@@ -195,6 +197,7 @@ void prompt_del_exit(){
 void xdesc(string key, string *item){
     write("Exit has been set .\n");
     xits[key] = implode(item, "\n");
+    xits[key] = replace_string(xits[key], "\"", "\\\"");
     write("Item "+key+" set to "+xits[key]+"\n\n");
 }
 

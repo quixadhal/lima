@@ -109,9 +109,9 @@ extern int var_defined;
 #define CLASS_IDX(t) (t & ~(NAME_TYPE_MOD | TYPE_MOD_CLASS))
 
 #define COMP_TYPE(e, t) (!(e & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) \
-			 || (compatible[(unsigned char)e] & (1 << (t))))
+			 && (compatible[(unsigned char)e] & (1 << (t))))
 #define IS_TYPE(e, t) (!(e & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) \
-		       || (is_type[(unsigned char)e] & (1 << (t))))
+		       && (is_type[(unsigned char)e] & (1 << (t))))
 
 #define FUNCTION_TEMP(n) ((compiler_temp_t *)mem_block[A_FUNCTION_DEFS].block + (n))
 /* compiler_function_t from A_COMPILER_FUNCTIONS index */

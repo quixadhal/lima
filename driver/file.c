@@ -11,6 +11,7 @@
 #include "file.h"
 #include "lex.h"
 #include "md.h"
+#include "port.h"
 
 /* Removed due to hideousness: if you want to add it back, not that
  * we don't want redefinitions, and that some systems define major() in
@@ -548,7 +549,12 @@ char *read_file P3(char *, file, int, start, int, len)
 	len = READ_FILE_MAX_SIZE;
     str = new_string(size, "read_file: str");
     str[size] = '\0';
-
+    if (!size) {
+	/* zero length file */
+	fclose(f);
+	return str;
+    }
+    
 #ifndef WIN32
     do {
 	if ((fread(str, size, 1, f) != 1) || !size) {
@@ -568,7 +574,7 @@ char *read_file P3(char *, file, int, start, int, len)
 	}
     } while (start > 1);
     
-    if (len != READ_FILE_MAX_SIZE || st.st_size){
+    if (len != READ_FILE_MAX_SIZE || st.st_size) {
         for (p2 = str; p != end;) {
 	    if ((*p2++ = *p++) == '\n')
 	        if (!--len)

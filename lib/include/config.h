@@ -69,6 +69,11 @@
 // of posting news
 #undef LOG_DONT_POST
 
+// If this is defined, then each player can set their own colours individually.
+// There is some disk space/memory overhead for keeping track of all this,
+// though.
+#define CONFIGURABLE_COLOUR
+
 #define BUG_NEWSGROUP "reporter.bugs"
 #define TYPO_NEWSGROUP "reporter.typos"
 #define IDEA_NEWSGROUP "reporter.ideas"

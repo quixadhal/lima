@@ -6,10 +6,8 @@
 
 #include <log.h>
 
-inherit DAEMON;
+inherit M_DAEMON_DATA;
 inherit M_GLOB;
-
-#define SAVE_PATH "/data/daemons/banish"
 
 string* bad_names =({});
 mixed* bad_sites = ({});
@@ -28,7 +26,7 @@ void banish_name(string name, string reason)
 		     ctime(time()), reason));
 
   bad_names += ({name});
-  unguarded(1, (: save_object,SAVE_PATH :));
+  save_me();
 }
 
 void unbanish_name(string name)
@@ -37,7 +35,7 @@ void unbanish_name(string name)
     return;
 
   bad_names -= ({name});
-  unguarded(1, (: save_object,SAVE_PATH :));
+  save_me();
 }
 
 void banish_site(string site, string reason)
@@ -54,7 +52,7 @@ void banish_site(string site, string reason)
 		     ctime(time()), reason));
 
   bad_sites += ({ site });
-  unguarded(1, (: save_object ,SAVE_PATH :));
+  save_me();
 }
 
 void unbanish_site(string site)
@@ -63,7 +61,7 @@ void unbanish_site(string site)
     return;
 
   bad_sites -= ({ site });
-  unguarded(1, (: save_object,SAVE_PATH :));
+  save_me();
 }
 
 int check_name(string name)
@@ -83,13 +81,6 @@ int check_site()
   return sizeof(filter
 		(bad_sites, (: sizeof(regexp($(check), translate($1))) :)));
 }
-
-create()
-{
-  daemon::create();
-  restore_object(SAVE_PATH, 1);
-}
-
 
 mixed *show_banishes()
 {

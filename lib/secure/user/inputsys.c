@@ -356,7 +356,7 @@ nomask void force_me(string str)
 
 int stat_me()
 {
-    if ( check_privilege(1) )
+    if ( check_previous_privilege(1) )
     {
 	printf("INPUT STACK:\n%O\n", modal_stack);
 	return 1;

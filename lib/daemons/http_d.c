@@ -113,3 +113,9 @@ nomask void create() {
         error(ret);
     }
 }
+//**  added to stop the daemon from cleaning itself up
+
+void clean_up()
+{
+   return 0;
+}

@@ -41,7 +41,7 @@ private void FTP_CMD_noop(class ftp_session, string);
 private void FTP_CMD_dele(class ftp_session, string);
 
 #ifdef ALLOW_ANON_FTP
-#define ANON_PREFIX	FTP_DIR "/pub"
+#define ANON_PREFIX	FTP_DIR "pub"
 #define ANON_USER()	(member_array(info->user, anon_logins) != -1)
 #define ANON_CHECK(x)    if(ANON_USER() && x[0..(strlen(ANON_PREFIX)-1)] != \
 			    ANON_PREFIX) {\

@@ -43,13 +43,9 @@
 ** Administered sets
 */
 #define STD_FLAGS	0	/* standard flags (setbit.h) */
-#define OBJECT_FLAGS	1	/* object.c flags (obbits.h) */
 #define PLAYER_FLAGS	2	/* player.c flags (playerflags.h) */
 #define PLAYER_NP_FLAGS	3	/* player.c non-persist (playerflags.h) */
-#define ROOM_FLAGS	4	/* room.c flags (roombits.h) */
 #define MAILBASE_FLAGS	5	/* mailbase.c flags */
-#define MONSTER_FLAGS	6	/* monster.c flags (monsterbits.h) */
-#define WEAPON_FLAGS	7	/* weapon.c flags (wbits.h) */
 
 
 /*
@@ -57,8 +53,5 @@
 */
 #define F_BIFF		MakeFlag(MAILBASE_FLAGS, 0)
 
-
-#define ZORKER_FLAGS	PLAYER_FLAGS
-#define ZORKER_NP_FLAGS	PLAYER_NP_FLAGS
 
 #endif /* __FLAGS_H__ */

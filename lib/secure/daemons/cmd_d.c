@@ -13,15 +13,30 @@
 #include <mudlib.h>
 #include <security.h>
 
-#define PLURAL	1
-#define	STR	2
-#define	FILE	4
-#define DIR	8
-#define	OBJECT	16
-#define	USER	32
-#define	FNAME	64
-#define	NUM	128
-#define CFILE	256
+#define PLURAL		1
+#define	STR		2
+#define	NUM		4
+
+#define IS_PATH		8
+#define IS_FILE 	16
+#define IS_DIR		32
+#define	IS_FNAME	64
+#define IS_CFILE	128
+#define IS_OBFILE	256
+
+#define	FILE		(IS_PATH | IS_FILE)
+#define DIR		(IS_PATH | IS_DIR)
+#define CFILE		(IS_PATH | IS_FILE | IS_CFILE)
+#define OBFILE		(IS_PATH | IS_FILE | IS_CFILE | IS_OBFILE)
+#define FNAME		(IS_PATH | IS_FNAME)
+
+#define	IS_OBJECT	512
+#define	ONLY_USER	1024
+
+#define OBJECT		(IS_OBJECT)
+#define USER		(IS_OBJECT | ONLY_USER)
+
+#define FILE_FLAGS (IS_PATH | IS_FILE | IS_DIR | IS_OBFILE | IS_FNAME)
 
 inherit M_GLOB;
 inherit M_REGEX;
@@ -114,6 +129,7 @@ private void parse_verb_defs(string dir, string filecontents)
 		{
 		case "str":  flags |= STR; break;
 		case "file": flags |= FILE; break;
+		case "obfile": flags |= OBFILE; break;
 		case "dir": flags |= DIR; break;
 		case "obj": flags |= OBJECT; break;
 		case "user": flags |= USER; break;
@@ -234,6 +250,9 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
     mixed		this_arg;
     int			plural;
 
+    if (sizeof(argv) == 0)
+	return -1;
+    
     cmd_name = trim_spaces(argv[0]);
     if (member_array('/', cmd_name) != -1) {
 	array matches = filter_array(glob(cmd_name + ".c"), (: is_file :));
@@ -258,18 +277,19 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 	info = find_cmd(cmd_name, path);
 	if (intp(info))
 	    return info;
-	this_path = info[1];
 	cmd_obj = info[0];
+	this_path = info[1];
 	cmd_name = info[2];
     }
 
     if(undefinedp(proto_info[this_path]) || undefinedp(pstuff=proto_info[this_path][cmd_name]))
     {
-	// no prototypes, so don't do no globbing or nothin'.  In fact, just send back the raw string.
+	// no prototypes, so don't do no globbing or nothin'.
+	// In fact, just send back the raw string.
 	if(sizeof(argv) > 1)
 	{
-	    // make it so that all non-strings are converted to strings, since whatever command
-	    // is going to be expecting a string.
+	    // make it so that all non-strings are converted to strings, 
+	    // since whatever command is going to be expecting a string.
 	    argv = map(argv, (: stringp($1) ? $1 : sprintf("%O",$1) :));
 	    return ({cmd_obj, ([]), implode_by_arr(argv[1..], implode_info) });
 	}
@@ -288,7 +308,7 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 	if((opstr = pstuff->options))
 	{
 	    info = getopt(argv, opstr);
-	    if(!pointerp(info))
+	    if(!arrayp(info))
 	    {
 		return -2;
 	    }
@@ -301,9 +321,10 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 	argv = ({});
     }
     if(!ops) ops = ([]);
+
     argcounter = 0;
     resv = allocate(sizeof(pstuff->prototype));
-    for(i=0;i<sizeof(pstuff->prototype);i++)
+    for(i=0; i<sizeof(pstuff->prototype); i++)
     {
 	if(argcounter == sizeof(argv))
 	{
@@ -313,19 +334,21 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 	    return 1;
 	}
 	expanded_arg = parse_arg(pstuff->prototype[i],argv[argcounter++]);
-	if(expanded_arg == -1)
-	{
-	    printf("Invalid argument: %O\nUsage: %s\n",argv[argcounter-1], USAGE);
-	    return 1;
-	}
-	if(expanded_arg == -2)
-	{
-	    printf("Vague argument: %O\nUsage: %s\n", argv[argcounter-1], USAGE);
-	    return 1;
-	}
-	if(expanded_arg == -3)
-	{
-	    printf("%s: No such file or directory.\n", argv[argcounter-1]);
+	if (intp(expanded_arg)) {
+	    // error
+	    switch (expanded_arg) {
+	    case -1:
+		printf("Invalid argument: %O\nUsage: %s\n",
+		       argv[argcounter-1], USAGE);
+		break;
+	    case -2:
+		printf("Vague argument: %O\nUsage: %s\n",
+		       argv[argcounter-1], USAGE);
+		break;
+	    case -3:
+		printf("%s: No such file or directory.\n", argv[argcounter-1]);
+		break;
+	    }
 	    return 1;
 	}
 	plural = pstuff->prototype[i] & PLURAL;
@@ -341,12 +364,12 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 	    resv[i] = resv[i][0];
 	    continue;
 	}
-	while(1)
+	while (1)
 	{
 	    if(argcounter == sizeof(argv))
 		break;	
 	    expanded_arg = parse_arg(this_arg, argv[argcounter]);
-	    if(!pointerp(expanded_arg))
+	    if(!arrayp(expanded_arg))
 		break;
 	    if(sizeof(expanded_arg[1]) == 1 &&
 	       i+1 != sizeof(pstuff->prototype) &&
@@ -372,118 +395,108 @@ mixed smart_arg_parsing(mixed argv, string* path, string *implode_info)
 
 private mixed parse_arg(int this_arg, mixed argv)
 {
-    mixed 	glob_result, obj_result, num_result, str_result;
-    mixed	cfile_result;
     int		hits;
-    mixed	tmp;
     mixed	untrimmed_argv;
-
+    array	result, string_result;
+    
     untrimmed_argv = argv;
-    if(stringp(argv)) 
+
+    if(stringp(argv)) {
 	argv = trim_spaces(argv);
 
+	if (this_arg & IS_PATH) {
+	    string path = evaluate_path(argv);
 
-    if(stringp(argv) && (this_arg & CFILE))
-    {
-	cfile_result = (strlen(argv) > 2 && argv[<2..] == ".c") ?
-	    glob(evaluate_path(argv)) : glob(evaluate_path(argv)+".c");
-	if(!sizeof(cfile_result) && argv == "here")
-	{
-	    cfile_result = ({ base_name(environment(this_body())) + ".c" });
+	    result = glob(path);
+
+	    if (!sizeof(result) && (this_arg & IS_OBFILE)) {
+		object ob = get_object(argv);
+		if (ob)
+		    result = ({ base_name(ob) + ".c" });
+	    }
+
+	    if (!sizeof(result) && (this_arg & IS_CFILE) &&
+		(strlen(path) <= 2 || path[<2..] != ".c"))
+		result = glob(path + ".c");
+
+	    if ((this_arg & IS_FILE) && !(this_arg & IS_DIR))
+		result = filter(result, (: is_file :));
+
+	    if ((this_arg & IS_DIR) && !(this_arg & IS_FILE))
+		result = filter(result, (: is_directory :));
+
+	    if (!sizeof(result) && (this_arg & IS_FNAME)) {
+		if (is_directory(base_path(path)))
+		    result = ({ path });
+	    }
+	    
+	    if (!sizeof(result))
+		result = 0;
+	    else {
+		result = ({ this_arg & FILE_FLAGS, result });
+		hits++;
+	    }
 	}
-	cfile_result = filter_array(cfile_result, 
-				    (: is_file :));
-	if(!sizeof(cfile_result))
-	    cfile_result = 0;
-	else
+
+	if (this_arg & STR) {
+	    string_result = ({ STR, ({ untrimmed_argv }) });
 	    hits++;
+	}
     }
-    if((this_arg & (FILE|DIR|FNAME)) && stringp(argv))
-    {
-	glob_result = glob(evaluate_path(argv));
-	if(!sizeof(glob_result) && argv == "here")
-	{
-	    glob_result = ({base_name(environment(this_body())) + ".c"});
-	}
-	if(!sizeof(glob_result) && (this_arg&FNAME))
-	{
-	    if(is_directory(base_path(evaluate_path(argv))))
-		glob_result = ({ evaluate_path(argv) });
-	}
 
-	if(!(this_arg & FILE))
-	{
-	    glob_result = filter_array(glob_result, (: !is_file($1) :));
-	}
-	if(!(this_arg & DIR))
-	{
-	    glob_result = filter_array(glob_result, (: !is_directory($1) :));
-	}
-	if(!sizeof(glob_result))
-	    glob_result = 0;
-	else hits++;
-    }
-    if(this_arg & (OBJECT|USER))
+    if (this_arg & IS_OBJECT)
     {
+	object ob;
+
 	if(stringp(argv))
-	    obj_result = get_object(argv);
+	    ob = get_object(argv);
 	else if (objectp(argv))
-	    obj_result = argv;
-	if(!(this_arg & OBJECT) && objectp(obj_result) &&
-	   !(obj_result->query_link()))
-	{	
-	    obj_result = 0;
-	}
-	else if((!this_arg & USER) && objectp(obj_result) &&
-		obj_result->query_link())
-	{
-	    obj_result = 0;
-	}
-	if(obj_result)
-	{
-	    obj_result = ({ obj_result });
+	    ob = argv;
+	else
+	    ob = 0;
+
+	if((this_arg & ONLY_USER) && ob && !ob->query_link())
+	    ob = 0;
+
+	if(ob) {
+	    result = ({ this_arg & (IS_OBJECT | ONLY_USER), ({ ob }) });
 	    hits++;
 	}
     }
-    if(this_arg & NUM)
+
+    if (this_arg & NUM)
     {
-	if(intp(argv))
+	int tmp;
+	
+	if (intp(argv))
 	{
-	    num_result = ({ argv });
+	    result = ({ NUM, ({ argv }) });
 	    hits++;
 	}
-	else if(sscanf(argv,"%d",tmp))
+	else if (sscanf(argv,"%d",tmp))
 	{
-	    num_result = ({ tmp });
+	    result = ({ NUM, ({ tmp }) });
 	    hits++;
 	}
     }
-    if((this_arg & STR) && stringp(untrimmed_argv))
-    {
-	str_result = ({ untrimmed_argv });
-	hits++;
-    }
+
     if(!hits)
     { 
-	if(this_arg & (CFILE|FILE|DIR))
-	{
+	if (this_arg & IS_PATH)
 	    return -3;
-	}
-	return -1;
+	else
+	    return -1;
     }
+
+    if (this_arg & STR) {
+	if (hits == 1)
+	    result = string_result; // use string hit
+	else
+	    hits--; // discard string hit
+    }
+
     if(hits > 1)
-    {
-	if(this_arg & STR) hits--;
-	if(hits > 1)
-	    return -2;
-    }
-    if(cfile_result)
-	return ({ CFILE, cfile_result });
-    if(glob_result)
-	return ({ this_arg&(FILE|DIR|FNAME), glob_result });
-    if(obj_result)
-	return ({ this_arg&(OBJECT|USER), obj_result });
-    if(num_result)
-	return ({ NUM, num_result });
-    return ({ STR, str_result });
+	return -2;
+
+    return result;
 }

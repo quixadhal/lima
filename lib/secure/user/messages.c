@@ -2,8 +2,13 @@
 
 /* %^RESET%^ gets used early in the login sequence by tell() */
 private static mapping translations = (["RESET" : ""]);
+#ifdef CONFIGURABLE_COLOUR
+private mapping colours;
+#endif
 
+void save_me();
 object query_shell_ob();
+
 int screen_width;
 
 void set_screen_width( int width )
@@ -18,11 +23,63 @@ int query_screen_width()
 }
 
 void update_translations() {
+#ifdef CONFIGURABLE_COLOUR
+    /* handle new people, old save files, or save files for which this
+     * option was disabled */
+    if (!colours) colours = ([]);
+    /* defaults; we take advantage of the fact that mapping addition
+     * chooses the second when there is an overlap.
+     */
+    colours = ([
+	"ROOM_EXIT" : "magenta",
+	"TELL" : "bold",
+	"CHANNEL" : "green",
+	"MORE" : "bold",
+	]) + colours;
+#endif
     if (query_shell_ob()->get_variable("ansi"))
 	translations = M_ANSI->query_translations()[0];
     else
 	translations = M_ANSI->query_translations()[1];
+#ifdef CONFIGURABLE_COLOUR
+    translations = copy(translations);
+    foreach (string code, string value in colours) {
+	string array parts = map(explode(value, ","), (: upper_case :));
+	string val = "";
+	
+	foreach (string item in parts) {
+	    if (translations[item])
+		val += translations[item];
+	}
+	translations[code] = val;
+    }
+#endif
 }
+
+#ifdef CONFIGURABLE_COLOUR
+void set_colour(string which, string what) {
+    colours[upper_case(which)] = what;
+    update_translations();
+    save_me();
+}
+
+void query_colour(string which) {
+    return colours[which];
+}
+
+array query_colours() {
+    return keys(colours);
+}
+
+void remove_colour(string which) {
+    map_delete(colours, upper_case(which));
+    /* just in case */
+    map_delete(colours, lower_case(which));
+    map_delete(colours, which);
+    update_translations();
+    save_me();
+}
+#endif
 
 void do_receive(string msg, int msg_type) {
     if (msg_type & NO_ANSI) {

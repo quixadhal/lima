@@ -2,7 +2,8 @@
 #include <mudlib.h>
 #include <move.h>
 
-inherit M_SAVE;
+void load_from_string( mixed value, int recurse );
+varargs string save_to_string(int recursep);
 
 string short();
 string query_subjective();

@@ -14,7 +14,7 @@ enum socket_mode {
     MUD, STREAM, DATAGRAM, STREAM_BINARY, DATAGRAM_BINARY
 };
 enum socket_state {
-    CLOSED, UNBOUND, BOUND, LISTEN, DATA_XFER
+    CLOSED, FLUSHING, UNBOUND, BOUND, LISTEN, DATA_XFER
 };
 
 #define	BUF_SIZE	2048	/* max reliable packet size	   */

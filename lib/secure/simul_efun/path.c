@@ -2,24 +2,40 @@
 
 object this_body();
 
+//:FUNCTION cannonical_form
+//Change object path names to standard form, stripping the trailing .c, if
+//any, the clone number, if any, and making sure the leading / exists.
+//
+//This function is useful for making sure that alternate forms of the
+//pathname match correctly, since:
+//cannonical_form("foo/bar") == cannonical_form("/foo/bar.c")
+string
+cannonical_form(mixed fname) {
+    if (objectp(fname)) fname = file_name(fname);
+    sscanf(fname, "%s#%*d", fname);
+    sscanf(fname, "%s.c", fname);
+    if (fname[0] != '/') fname = "/" + fname;
+    return fname;
+}
+
 int 
-path_exists( string x ){
+path_exists( string x ) {
     return file_size(x) != -1; 
 }
 
 int 
-is_directory( string x ){
+is_directory( string x ) {
     return x != "" && file_size( x ) == -2; 
 }
 
 int 
-is_file( string x ){
+is_file( string x ) {
     return file_size(x) > -1;
 }
 
 
 string* 
-split_path( string p ){
+split_path( string p ) {
     int pos;
     while(p[<1] == '/' && strlen(p) > 1) p = p[0..<2];
     pos = strsrch(p, '/', -1); /* find the last '/' */
@@ -27,7 +43,7 @@ split_path( string p ){
 }
 
 string 
-base_path( string p ){
+base_path( string p ) {
     return split_path(p)[0];   
 }
 

@@ -105,6 +105,7 @@ static nomask void rcv_finger_reply(string orig_mud, string orig_user,
 		idle = message[5] + "s";
 	    if ( idle )
 		idle = " (idle " + idle + ")";
+    else idle = "";
 
 	    if ( message[4] && message[6] )
 		s += sprintf("On since %s%s from %s\n",

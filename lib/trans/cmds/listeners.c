@@ -50,7 +50,7 @@ private void main()
 	int flags = permanent[channel_name];
 	string flagstr = ":\n";
 
-	listeners = NCHANNEL_D->query_listeners(channel_name) - ({ 0 });
+	listeners = CHANNEL_D->query_listeners(channel_name) - ({ 0 });
 
 	if ( !undefinedp(flags) )
 	{

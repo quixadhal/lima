@@ -4,11 +4,7 @@
 #include <daemons.h>
 #include <commands.h>
 
-void add_hook(string, function);
-
 private object		script;
-private function	my_hook;
-private string *	response_queue = ({});
 
 class parse_info {
     int cur;
@@ -16,61 +12,6 @@ class parse_info {
     string array vars;
     int trigger_num;
     int term;
-}
-
-//:FUNCTION do_game_command
-//Emulates handling of emotes and player commands for NPCs that inherit this
-//module.  E.g. do_game_command("wield sword").  do_game_command("smile hap*").
- static void do_game_command(string str) {
-    object save_tp;
-    array winner;
-    string verb, argument;
-
-    save_tp = this_player();
-    set_this_player(this_object());
-
-    verb = str;
-    sscanf(verb, "%s %s", verb, argument);
-
-    winner = CMD_D->find_cmd_in_path(verb, ({ CMD_DIR_PLAYER "/" }));
-    if (arrayp(winner)) {
-        winner[0]->call_main(0, 0, 0, 0, 0, 0, argument);
-    }
-    else if (environment()) {
-
-   mixed result = parse_sentence(str);
-
-	if (stringp(result))
-	    write(result);
-    }
-
-    set_this_player(save_tp);
-}
-
-private void do_respond() {
-    mixed cmd = response_queue[0];
-    if (stringp(cmd))
-	do_game_command(cmd);
-    else
-	evaluate(cmd);
-    response_queue = response_queue[1..];
-}
-
-//:FUNCTION respond
-//Does a command [using do_game_command] after a small delay.  This is the
-//best way to have NPCs react to events, as a slight delay makes it a bit
-//more believable, and also if you do things immediately, the action may
-//PRECEDE the thing you are responding to.  Example: Troll which attacks
-//anyone who says 'foo'.  I say 'foo', you and the troll are in the room.
-//If the message is delivered to the troll before you, the troll will attack
-//me BEFORE the message gets to you.
-void respond(mixed str) {
-    response_queue += ({ str });
-    call_out( (: do_respond :), random(3));
-    if (!my_hook) {
-	my_hook = (: remove_call_out :);
-	add_hook("remove", my_hook);
-    }
 }
 
 private array
@@ -168,14 +109,6 @@ parse_file(class parse_info pi, string array term) {
     return program;
 }
 
-object query_body() {
-    return this_object();
-}
-
-object query_shell_ob() {
-    return this_object();
-}
-
 string handle_prefix1(string token, string expr) {
     switch (token) {
     case "new":
@@ -238,7 +171,7 @@ string parse_expr1(array parts) {
  *        prefix2 expr1 expr1
  *
  * expr: expr1 |
- *       expr1 infix expr1
+ *       expr1 infix expr
  */
 string parse_expr(array parts) {
     string expr1, expr2;
@@ -330,7 +263,7 @@ void compile_func(mapping funcs, string sname, array prog) {
 		    }
 		    break;
 		case "doevery":
-		    xxx;
+                    /* Not implemented */
 		default:
 		    error("Unknown opcode " + item[0] + "\n");
 		}

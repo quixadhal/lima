@@ -14,22 +14,13 @@ private void main( mixed *arg )
 
     ob = arg[0];
 
-    msg_ob = (ob->short() ? ob : this_object());
-    this_body()->do_player_message("destruct", msg_ob);
+    if (ob->short()) {
+	this_body()->do_player_message("destruct", ob);
+    } else {
+	write("Destructing: " + file_name(ob) + "\n");
+    }
     if(member_array(ob,bodies()) != -1)
       ob = ob->query_link();
     destruct(ob);
     return;
-}
-
-string the_short() {
-    return "something";
-}
-
-string a_short() {
-    return "something";
-}
-
-string short() {
-    return "something";
 }

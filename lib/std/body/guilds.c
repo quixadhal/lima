@@ -29,13 +29,20 @@ int query_member_guild( string name );
 int query_suspend_guild( string name );
 int query_banned_guild( string name );
 
+private nomask void check_guild_security()
+{
+if( !(this_object()->query_userid()) || this_object() == this_body() || check_previous_privilege(1))
+	return;
+    error( "Illegal attempt to set guild privilege" );
+}
+
 
 int add_guild( string name, int level )
 {
     class guild_info gi;
 
-//### we need to add security here to ensure that Joe Wiz doesn't muck
-//### arround with John Player's guild info
+    check_guild_security();
+    GUILD_D->guild_check( name );
 
     if( (gi = guilds[name]) )
     {
@@ -59,16 +66,16 @@ int revoke_guild( string name )
 {
     class guild_info gi = guilds[ name ];
 
-//### we need to add security here to ensure that Joe Wiz doesn't muck
-//### arround with John Player's guild info
+    check_guild_security();
+    GUILD_D->guild_check( name );
 
     if( !gi )
     {
-        return -1;
+	return -1;
     }
     if( !(gi->member_level))
     {
-        return 0;
+	return 0;
     }
     gi->member_level = 0;
     if ( !gi->suspend_level && !gi->banned_level )
@@ -81,16 +88,16 @@ int suspend_guild( string name, int level )
 {
     class guild_info gi = guilds[ name ];
 
-//### we need to add security here to ensure that Joe Wiz doesn't muck
-//### arround with John Player's guild info
+    check_guild_security();
+    GUILD_D->guild_check( name );
 
     if( !gi )
     {
-        return -1;
+	return -1;
     }
     if( gi->suspend_level )
     {
-        return 0;
+	return 0;
     }
     gi->suspend_level = level;
     return 1;
@@ -101,16 +108,16 @@ int unsuspend_guild( string name )
 {
     class guild_info gi = guilds[ name ];
 
-//### we need to add security here to ensure that Joe Wiz doesn't muck
-//### arround with John Player's guild info
+    check_guild_security();
+    GUILD_D->guild_check( name );
 
     if( !gi )
     {
-        return -1;
+	return -1;
     }
     if( !gi->suspend_level )
     {
-        return 0;
+	return 0;
     }
     gi->suspend_level = 0;
     return 1;
@@ -121,16 +128,16 @@ int ban_guild( string name, int level )
 {
     class guild_info gi = guilds[ name ];
 
-//### we need to add security here to ensure that Joe Wiz doesn't muck
-//### arround with John Player's guild info
+    check_guild_security();
+    GUILD_D->guild_check( name );
 
     if( !gi )
     {
-        return -1;
+	return -1;
     }
     if( gi->banned_level )
     {
-        return 0;
+	return 0;
     }
     gi->banned_level = level;
     return 1;
@@ -143,7 +150,7 @@ int query_member_guild( string name )
 
     if( !gi )
     {
-        return 0;
+	return 0;
     }
     return gi->member_level;
 }
@@ -155,7 +162,7 @@ int query_suspend_guild( string name )
 
     if( !gi )
     {
-        return 0;
+	return 0;
     }
     return gi->suspend_level;
 }
@@ -167,7 +174,7 @@ int query_banned_guild( string name )
 
     if( !gi )
     {
-        return 0;
+	return 0;
     }
     return gi->banned_level;
 }
@@ -176,19 +183,11 @@ int query_banned_guild( string name )
 string array guilds_belong()
 {
     return keys(filter_mapping(guilds,
-			       (: ((class guild_info)$2)->member_level :)));
+	(: ((class guild_info)$2)->member_level :)));
 }
 
 void clear_guilds()
 {
     guilds = ([ ]);
     return;
-}
-
-
-/* when restoring old player files */
-static nomask void fix_guild_data()
-{
-    if ( !guilds )
-	guilds = ([ ]);
 }

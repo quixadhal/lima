@@ -1,256 +1,306 @@
 <DL>
-<DT><em>Mon Jul 15 03:37:56 1996</em>: <strong>Rust</strong>
-<DD> released Lima Alpha.  See help release and the news post.<p>
-<DT><em>Mon Jul 15 03:57:09 1996</em>: <strong>Rust</strong>
-<DD> installed Valentino's fix for snoopable stuff.<p>
-<DT><em>Mon Jul 15 04:17:42 1996</em>: <strong>Rust</strong>
-<DD> fixed ftpd to idle out properly (it was closing the connection but still thought you were connected).<p>
-<DT><em>Mon Jul 15 05:52:00 1996</em>: <strong>Rust</strong>
-<DD> fixed the did_d so that if there's no did information, you get something sensible, and not a 0<p>
-<DT><em>Mon Jul 15 07:24:33 1996</em>: <strong>Rust</strong>
-<DD> made wizards w/o dirs start off in /ftp not in a non-existant dir in FTPD.<p>
-<DT><em>Mon Jul 15 15:03:43 1996</em>: <strong>Rust</strong>
-<DD> added # of users to who and people cause he got sick of manually counting.<p>
-<DT><em>Mon Jul 15 18:18:46 1996</em>: <strong>Rust</strong>
-<DD> fixed the more object not to retain your input if there is an error in initializing (eg, string too large)<p>
-<DT><em>Mon Jul 15 18:26:57 1996</em>: <strong>Rust</strong>
-<DD> updated secure_d to fix the quota mapping when you rm a domain or wizard.<p>
-<DT><em>Mon Jul 15 19:19:00 1996</em>: <strong>Rust</strong>
-<DD> fixed player things that more in the player menu to actually more instead of dying after 1 screen.<p>
-<DT><em>Mon Jul 15 19:50:55 1996</em>: <strong>Rust</strong>
-<DD> fixed ansi so it works for players.<p>
-<DT><em>Mon Jul 15 20:42:57 1996</em>: <strong>Rust</strong>
-<DD> made complex container load by making the overloaded query_prep varargs... didn't look deep enough to make sure this was the right fix<p>
-<DT><em>Thu Jul 18 22:07:19 1996</em>: <strong>Rust</strong>
-<DD> added per-group archivability to NEWS_D.  Admins should be able to do @NEWS_D->set_archive_time("wiz.chat", 90)    To make wiz.chat archive posts over 90 days old.  Posts get archived whenever the NEWS_D loads, so mainly at reboot.<p>
-<DT><em>Fri Jul 19 02:05:10 1996</em>: <strong>Deathblade</strong>
-<DD> fixed the channel daemon to allow both ";" and ":" for souls/emotes.<p>
-<DT><em>Fri Jul 19 03:26:09 1996</em>: <strong>Rust</strong>
-<DD> added a user_exists simul_efun<p>
-<DT><em>Fri Jul 19 13:17:40 1996</em>: <strong>Rust</strong>
-<DD> installed cowl's convert_time() function as a simul_efun.  The first arg is the # of seconds, the optional second arg will make the return be 5m instead of 5 minutes<p>
-<DT><em>Fri Jul 19 22:09:18 1996</em>: <strong>Rust</strong>
-<DD> fixed mail_d to do a check_previous_privilege(1) in send_mail(), not a check_privilege()<p>
-<DT><em>Sat Jul 20 03:36:35 1996</em>: <strong>Rust</strong>
-<DD> made I3 mail work =)<p>
-<DT><em>Sat Jul 20 03:37:03 1996</em>: <strong>Rust</strong>
-<DD> noted that you should see news if you want to upgrade an older lib to use I3 mail.<p>
-<DT><em>Sat Jul 20 04:27:06 1996</em>: <strong>Rust</strong>
-<DD> made it so to and cc lists are comma seperated, not space seperated.  You need to get /secure/obj/mailers/mailer.c for that.<p>
-<DT><em>Sun Jul 21 18:10:35 1996</em>: <strong>Ohara</strong>
-<DD> fixed a small bug in SOUL_D's parse_imud_soul()<p>
-<DT><em>Sun Jul 21 18:11:07 1996</em>: <strong>Ohara</strong>
-<DD> changed tells to sync with channels' usage of ;/:<p>
-<DT><em>Sun Jul 21 18:48:04 1996</em>: <strong>Ohara</strong>
-<DD> added clear_guilds() function .. it's all of one line, but handy for testiers :)<p>
-<DT><em>Thu Jul 25 06:28:15 1996</em>: <strong>Ohara</strong>
-<DD> wrote M_SECRET_DOOR ... the door to the quiet room uses it.<p>
-<DT><em>Thu Jul 25 06:32:18 1996</em>: <strong>Ohara</strong>
-<DD> ntes that that is, of course, SECRET_DOOR<p>
-<DT><em>Thu Jul 25 16:40:39 1996</em>: <strong>Rust</strong>
-<DD> don't see what's so secret about this secret door<p>
-<DT><em>Fri Jul 26 04:27:23 1996</em>: <strong>Ohara</strong>
-<DD> notes that SECRET_DOORs are not visible via "exits" or the exits display. (It's quite possible that some muds will want to use them for all doors <shrug>) As of now, they are automatically attached.<p>
-<DT><em>Fri Jul 26 04:27:47 1996</em>: <strong>Rust</strong>
-<DD> notes that a good secret door is invisible until "found"<p>
-<DT><em>Fri Jul 26 04:28:37 1996</em>: <strong>Ohara</strong>
-<DD> notes that if Rust wants to feature extend it, he should feel more than free <smiles sweetly><p>
-<DT><em>Fri Jul 26 04:49:52 1996</em>: <strong>Ohara</strong>
-<DD> moved SECRET_DOOR to HIDDEN_DOOR complaints to Rust or /dev/null ...<p>
-<DT><em>Fri Jul 26 05:53:51 1996</em>: <strong>Ohara</strong>
-<DD> added SECRET_DOOR ... it only displays "The door is open" and not "The door is closed" ... in the process ..<p>
-<DT><em>Fri Jul 26 05:55:29 1996</em>: <strong>Ohara</strong>
-<DD> changed the add_hook("extra_long" ..) in M_OPENABLE .. the spam was folded out into the extra_long_stuff function ... This was done to make secret doors  much neater :)<p>
-<DT><em>Fri Jul 26 09:40:44 1996</em>: <strong>Ohara</strong>
-<DD> updated and enchromed exits. People may note that it works best with cardinal directions/up/down/in/out.<p>
-<DT><em>Fri Jul 26 10:35:03 1996</em>: <strong>Ohara</strong>
-<DD> wrote beep.c .... the bloody beep emote is now deprecated<p>
-<DT><em>Sat Jul 27 02:01:43 1996</em>: <strong>Deathblade</strong>
-<DD> changed /secure/user/failures.c to use M_GRAMMAR-> rather than inheriting it (major security hole :-).<p>
-<DT><em>Sat Jul 27 03:33:30 1996</em>: <strong>Deathblade</strong>
-<DD> changed all uses of simple_action() to remove the trailing \n. Note that I didn't reload most of them yet...<p>
-<DT><em>Sat Jul 27 03:34:38 1996</em>: <strong>Deathblade</strong>
-<DD> modifed simple_action() to add the \n only if it isn't present. Note: xxx_action() should be similarly updated (much fewer though :-).<p>
-<DT><em>Sat Jul 27 17:15:45 1996</em>: <strong>Zakk</strong>
-<DD> tried to call move::create() from within object's create() and<p>
-<DT><em>Sun Jul 28 20:51:39 1996</em>: <strong>Zifnab</strong>
-<DD> 'foo<p>
-<DT><em>Mon Jul 29 01:12:38 1996</em>: <strong>Ohara</strong>
-<DD> changed all FUNC doc tags to FUNCTION<p>
-<DT><em>Mon Jul 29 01:16:09 1996</em>: <strong>Ohara</strong>
-<DD> COMPAT_BUSTER: //:FUNC is no longer recognised by the doc_d .. it was only used in 3 files, so it shouldn't be too major a shock :)<p>
-<DT><em>Mon Jul 29 02:14:39 1996</em>: <strong>Ohara</strong>
-<DD> Enchromed trans.<p>
-<DT><em>Mon Jul 29 05:15:33 1996</em>: <strong>Ohara</strong>
-<DD> removed the message from /data/config/welcome since it's no longer needed really :)<p>
-<DT><em>Mon Jul 29 18:25:02 1996</em>: <strong>Zakk</strong>
-<DD> never play quake in linux<p>
-<DT><em>Tue Jul 30 04:03:46 1996</em>: <strong>Ohara</strong>
-<DD> fixed the bug where wizzes would die ... some doof called heal_us() which would NOT increase hit points when hp <= 0 ...<p>
-<DT><em>Tue Jul 30 05:48:25 1996</em>: <strong>Ohara</strong>
-<DD> fixed all cases of immediatly_acessible in the lib.<p>
-<DT><em>Wed Jul 31 04:34:53 1996</em>: <strong>Ohara</strong>
-<DD> added handling for drop notanobject<p>
-<DT><em>Wed Jul 31 05:40:24 1996</em>: <strong>Ohara</strong>
-<DD> chaged news so that it no longer prints Invis peoples' name as "Someone"<p>
-<DT><em>Wed Jul 31 05:42:53 1996</em>: <strong>Ohara</strong>
-<DD> changed DID_D to not use "Someone" when you're invisible (Note: If this fails, it could be embarrrrrassing :)<p>
-<DT><em>Wed Jul 31 07:48:43 1996</em>: <strong>Beek</strong>
-<DD> changed /cmds/players/i.c to inventory.c, and added 'i' as an alias.<p>
-<DT><em>Thu Aug  1 03:09:25 1996</em>: <strong>Ohara</strong>
-<DD> fixed I and DID_D to only allow full wizzes to use them.<p>
-<DT><em>Thu Aug  1 05:08:11 1996</em>: <strong>Ohara</strong>
-<DD> changed flist to return alphabetically.<p>
-<DT><em>Fri Aug  2 09:59:58 1996</em>: <strong>Ohara</strong>
-<DD> added screen widths ... currently you need to use @this_user()->set_screen_width( whatever ) ... I strongly urge figures greater than 10 ( even 40 is pushing the useability) .. the "width" command will work as soon as I figure out why inp(1) returns 0 :P<p>
-<DT><em>Fri Aug  2 10:19:41 1996</em>: <strong>Ohara</strong>
-<DD> finished width<p>
-<DT><em>Fri Aug  2 10:29:48 1996</em>: <strong>Ohara</strong>
-<DD> moved the status line to /std/body<p>
-<DT><em>Fri Aug  2 10:30:04 1996</em>: <strong>Ohara</strong>
-<DD> changed the status line to use screen widths.]<p>
-<DT><em>Mon Aug  5 04:40:37 1996</em>: <strong>Ohara</strong>
-<DD> fixed two bugs in lava room..<p>
-<DT><em>Mon Aug  5 22:11:38 1996</em>: <strong>Valentino</strong>
-<DD> installed a brand new MONEY_D. Nifty one. :)<p>
-<DT><em>Mon Aug  5 22:23:13 1996</em>: <strong>Valentino</strong>
-<DD> installed /trans/obj/admtool/money.c as interface to the money_d. ('admtool' 'c')<p>
-<DT><em>Mon Aug  5 22:48:08 1996</em>: <strong>Valentino</strong>
-<DD> added a cmd 'date'. (optional flag -s for "easy-snap-line-deluxe").<p>
-<DT><em>Mon Aug  5 23:59:06 1996</em>: <strong>Valentino</strong>
-<DD> put in a new 'people' cmd + manpage. (Read the man page).<p>
-<DT><em>Tue Aug  6 10:28:09 1996</em>: <strong>Zifnab</strong>
-<DD> test<p>
-<DT><em>Tue Aug  6 11:22:40 1996</em>: <strong>Zifnab</strong>
-<DD> fixed the problem with can_go_foo, and do_go_foo for special case exits.  however see news for more info<p>
-<DT><em>Tue Aug  6 21:46:50 1996</em>: <strong>Valentino</strong>
-<DD> added a (query_userid()) to the errors channel.<p>
-<DT><em>Wed Aug  7 05:49:45 1996</em>: <strong>Ohara</strong>
-<DD> added a /clear option to channels ... you need to be admin or channel moderator to use it.<p>
-<DT><em>Thu Aug  8 07:17:55 1996</em>: <strong>Beek</strong>
-<DD> fixed converse to show it's output again<p>
-<DT><em>Sun Aug 11 19:13:17 1996</em>: <strong>Rust</strong>
-<DD> added a default allow() to /std/body<p>
-<DT><em>Sun Aug 11 19:26:40 1996</em>: <strong>Rust</strong>
-<DD> fixed it so adding quests from admtool saves once again<p>
-<DT><em>Sun Aug 11 19:48:20 1996</em>: <strong>Rust</strong>
-<DD> made die() not bug w/ a too deep recursion error if you don't use corpses<p>
-<DT><em>Sun Aug 11 23:07:34 1996</em>: <strong>Zakk</strong>
-<DD> finally acknowledges that armorslot stuff is in, see news.<p>
-<DT><em>Mon Aug 12 05:29:01 1996</em>: <strong>Ohara</strong>
-<DD> updated version :)<p>
-<DT><em>Mon Aug 12 17:32:56 1996</em>: <strong>Zifnab</strong>
-<DD> fixed the /std/sword, messages problem.  The /daemons/messages_d.c has a #if COMBAT_SIMPLE in it that was excluding the message type for t combat-sword.  I commented this out and everythign seems to be ok.  One other note is that this is the way it was in the alpha release, kind of curious wh yit just cropped up.<p>
-<DT><em>Tue Aug 13 03:16:55 1996</em>: <strong>Ohara</strong>
-<DD> notes the linkdead reconnection problem is fixed. Don't Ask.<p>
-<DT><em>Thu Aug 15 17:48:28 1996</em>: <strong>Ohara</strong>
-<DD> need to find somene who got the one lie bug ... I know of three ... haven't seen any in a while :)<p>
-<DT><em>Thu Aug 15 18:00:42 1996</em>: <strong>Ohara</strong>
-<DD> may have fixed the oe-line status line bug thanks to Efindel .. if anyone had the problem before can you please check and let me know (IE: Rust, Efindel, Fathom <and any others>) Thanks .. ReTodo: Nice way to rip didlogs.<p>
-<DT><em>Fri Aug 16 05:11:32 1996</em>: <strong>Ohara</strong>
-<DD> fixed mail reply. Obviously it's real used here since noone's bugged it here and it's been broke for a while (er news reply that is)<p>
-<DT><em>Fri Aug 16 21:45:42 1996</em>: <strong>Rust</strong>
-<DD> modified BLOCKEXITS so that if the object doing the blocking doesn't have an environment, it assumes that you want to block in this_object()<p>
-<DT><em>Sat Aug 17 08:49:14 1996</em>: <strong>Zifnab</strong>
-<DD> reinstalled the old money_d, the new one is cool and all but it didnt work with existing stuff.<p>
-<DT><em>Sat Aug 17 08:50:13 1996</em>: <strong>Zifnab</strong>
-<DD> will look into reinstalling the new one<p>
-<DT><em>Thu Aug 22 02:06:10 1996</em>: <strong>Deathblade</strong>
-<DD> did something. Really. I removed the old quota crap from SECURE_D.<p>
-<DT><em>Fri Aug 23 08:31:58 1996</em>: <strong>Rust</strong>
-<DD> installed Wraith's pull verb<p>
-<DT><em>Sat Aug 24 03:15:36 1996</em>: <strong>Ohara</strong>
-<DD> fixed Move Post in news ..<p>
-<DT><em>Sat Aug 24 06:03:31 1996</em>: <strong>Ohara</strong>
-<DD> fixed who in login to be nice for only one person on, and streamlined a bit.<p>
-<DT><em>Sat Aug 24 06:03:59 1996</em>: <strong>Ohara</strong>
-<DD> fixed a bug where guet doing !whatever would dump back to login ... modal_pop() was missing,<p>
-<DT><em>Sat Aug 24 11:17:07 1996</em>: <strong>Beek</strong>
-<DD> fixed a bug in putting together 'x, y, or z' lists in parser error messages<p>
-<DT><em>Sat Aug 24 18:35:17 1996</em>: <strong>Ohara</strong>
-<DD> changed news so that catching up (c) a group will send you to the next group with unread news.<p>
-<DT><em>Mon Aug 26 01:18:19 1996</em>: <strong>Ohara</strong>
-<DD> fixed MOVE_NOT_RECIEVED to MOVE_NOT_RECEIVED (ta Servo)<p>
-<DT><em>Tue Aug 27 05:50:26 1996</em>: <strong>Ohara</strong>
-<DD> removed the spare door from wizroom. Beek fixed the bug that it demonstrated :)<p>
-<DT><em>Wed Aug 28 02:51:50 1996</em>: <strong>Ohara</strong>
-<DD> changed news so that you can now do news <group> from shell.<p>
-<DT><em>Fri Aug 30 02:14:10 1996</em>: <strong>Deathblade</strong>
-<DD> fixed IMAIL_D to send a string for the mail contents, not an array of strings. Tweaked MAIL_D->send_mail() to accept a string for the body (and explode it).<p>
-<DT><em>Sat Aug 31 00:36:30 1996</em>: <strong>Ohara</strong>
-<DD> merged the logins and quits -> logins ... gosh it was simple :)<p>
-<DT><em>Sat Aug 31 00:59:04 1996</em>: <strong>Ohara</strong>
-<DD> did help for question, and updated idea/bug/typo<p>
-<DT><em>Sat Aug 31 01:17:52 1996</em>: <strong>Ohara</strong>
-<DD> did the mods to soul_d /cmds/wiz ->CMD_*<p>
-<DT><em>Sat Aug 31 19:07:51 1996</em>: <strong>Zifnab</strong>
-<DD> fixed m_actions so that say foo works again<p>
-<DT><em>Mon Sep  2 04:06:58 1996</em>: <strong>Ohara</strong>
-<DD> fixed the "do you mean one of the sword or the blah" error.<p>
-<DT><em>Mon Sep  2 05:08:16 1996</em>: <strong>Ohara</strong>
-<DD> fixed news so that newsgroups with deadd news past the high water mark are not marked as unread. There's probably a better way, but this was fairly efficient as far as new code goes (more efficient would be to replace the call. FFF :)<p>
-<DT><em>Tue Sep  3 02:35:54 1996</em>: <strong>Ohara</strong>
-<DD> fixed  LOT of typos in the message daemon.<p>
-<DT><em>Tue Sep  3 03:39:30 1996</em>: <strong>Ohara</strong>
-<DD> slashed reporter.typos, but will refrain from slashing behemoth.leaks<p>
-<DT><em>Tue Sep  3 05:46:57 1996</em>: <strong>Ohara</strong>
-<DD> fixed doors not to be autotaken.<p>
-<DT><em>Tue Sep  3 05:54:22 1996</em>: <strong>Ohara</strong>
-<DD> tweaked the sword of mercy's names.<p>
-<DT><em>Thu Sep  5 05:59:00 1996</em>: <strong>Ohara</strong>
-<DD> added "feedback", which posts to lima.discussion ...<p>
-<DT><em>Thu Sep  5 06:19:45 1996</em>: <strong>Ohara</strong>
-<DD> alphabetised flist -i <obj> .. ufortunately this required the reversal of file and function. LWI or FFF :)<p>
-<DT><em>Thu Sep  5 20:41:41 1996</em>: <strong>Zifnab</strong>
-<DD> installed valentino's people command, making the deafult look like the old people<p>
-<DT><em>Fri Sep  6 01:30:32 1996</em>: <strong>Deathblade</strong>
-<DD> installed Barnes' updates to admtool's banish code. Much more "admtool-ish". New option, too: Nuke and Pave.<p>
-<DT><em>Fri Sep  6 01:33:05 1996</em>: <strong>Deathblade</strong>
-<DD> also tweaked admtool.c's check for admin status for banish and moved that into the banish.c file like all the others.<p>
-<DT><em>Fri Sep  6 17:21:28 1996</em>: <strong>Zifnab</strong>
-<DD> made it so taht ghosts cannot be attacked<p>
-<DT><em>Fri Sep  6 17:24:58 1996</em>: <strong>Zifnab</strong>
-<DD> rephrases that last didlog, attacking a ghost gives a meaningful message now<p>
-<DT><em>Sat Sep  7 08:55:13 1996</em>: <strong>Zifnab</strong>
-<DD> made it sot hat ghosts cannot cast spells<p>
-<DT><em>Sat Sep  7 09:39:23 1996</em>: <strong>Ohara</strong>
-<DD> converted all the mixed * in /cmds/verbs/ to mixed array<p>
-<DT><em>Sat Sep  7 11:01:45 1996</em>: <strong>Beek</strong>
-<DD> fixed /std/body so IT LOADS; Ohara be more careful when converting things<p>
-<DT><em>Sat Sep  7 17:07:35 1996</em>: <strong>Zifnab</strong>
-<DD> made it so that players don't see I3 channels in chanlist<p>
-<DT><em>Sat Sep  7 20:50:37 1996</em>: <strong>Ohara</strong>
-<DD> changed the mixed array in the verbs/verb_ob to array. AFAIK this entirely failed to hose anything .. this time :)<p>
-<DT><em>Mon Sep  9 17:25:48 1996</em>: <strong>Zakk</strong>
-<DD> would like to know on why when a person uses /.rhosts within a DNS network,<p>
-<DT><em>Mon Sep  9 17:25:48 1996</em>: <strong>Zakk</strong>
-<DD> am unable to find the RFC that discusses this. Yes I do know that this<p>
-<DT><em>Mon Sep  9 17:26:20 1996</em>: <strong>Zakk</strong>
-<DD> hates mouse misfires with weird stuff in the buffer.<p>
-<DT><em>Tue Sep 10 06:48:53 1996</em>: <strong>Ohara</strong>
-<DD> changed admtool's security dir listing to check for directory existance.<p>
-<DT><em>Tue Sep 10 10:10:37 1996</em>: <strong>Beek</strong>
-<DD> removed the check_vision() call from diagnose<p>
-<DT><em>Wed Sep 11 02:39:45 1996</em>: <strong>Deathblade</strong>
-<DD> fixed OOB error handling. the packet was malformed. Thanx to Tim@Dysfunctional Mud for finding this.<p>
-<DT><em>Thu Sep 12 05:07:31 1996</em>: <strong>Ohara</strong>
-<DD> shortened idle format somewhat.<p>
-<DT><em>Thu Sep 12 17:54:52 1996</em>: <strong>Zifnab</strong>
-<DD> fixed the log in problem.  it was a "" in the banished names list<p>
-<DT><em>Thu Sep 19 02:21:12 1996</em>: <strong>Deathblade</strong>
-<DD> fixed sparse_obj to not insert its master into a room (or whatever) when it got loaded<p>
-<DT><em>Fri Sep 20 06:57:54 1996</em>: <strong>Ohara</strong>
-<DD> fixed two mail bugs: 1/ Decapsed the To-list to ensure that To: OHaRa would work, and 2/ removing non-existant people it was sent to.<p>
-<DT><em>Fri Sep 20 07:36:55 1996</em>: <strong>Ohara</strong>
-<DD> fixed wall <noarg><p>
-<DT><em>Fri Sep 20 08:22:53 1996</em>: <strong>Ohara</strong>
-<DD> ripped the #ifdef CONF_IN_PROGRESS lines (3!) since the CONF_D has vanished and probably won't be back.<p>
-<DT><em>Fri Sep 20 08:35:02 1996</em>: <strong>Ohara</strong>
-<DD> fixed people to space correctly on players.<p>
-<DT><em>Fri Sep 20 08:43:17 1996</em>: <strong>Ohara</strong>
-<DD> changed the channel_d so that you can't do an empy emote<p>
-<DT><em>Fri Sep 20 09:14:48 1996</em>: <strong>Ohara</strong>
-<DD> fixed get obj to include a (From whoever) when appropriate ... (it will eventually filter up :)<p>
-<DT><em>Fri Sep 20 09:19:41 1996</em>: <strong>Ohara</strong>
-<DD> removed the fix .. it added a nasty problem.<p>
+<DT><em>Sun Sep 29 17:11:21 1996</em>: <strong>Zifnab</strong>
+<DD> fixed people to not barf on people logging in<p>
+<DT><em>Tue Oct  1 03:31:08 1996</em>: <strong>Ohara</strong>
+<DD> fixed clone so clone with no args clones cwf _provided_ it inherits from /std/object (Not a foolproof check .. but generally saneish)<p>
+<DT><em>Tue Oct  1 09:28:19 1996</em>: <strong>Beek</strong>
+<DD> fixed clone not to leave the object lying in limbo if it doesn't inherit /std/object.<p>
+<DT><em>Tue Oct  1 15:33:39 1996</em>: <strong>Beek</strong>
+<DD> added a new simul_efun: sort_by_value(array, function), which sorts the array based on the value of evaluate(function, element); e.g: sort_by_value(bodies(), (: $1->query_score() :))<p>
+<DT><em>Wed Oct  2 08:04:39 1996</em>: <strong>Zifnab</strong>
+<DD> made /opj/corpse.c return 0 for is_living, this solves the get foo from corpse problem, not sure what else it causes tho :)<p>
+<DT><em>Wed Oct  2 08:12:10 1996</em>: <strong>Zifnab</strong>
+<DD> removed the "STR" rule from query_verb_info for kill.c<p>
+<DT><em>Wed Oct  9 07:20:46 1996</em>: <strong>Ohara</strong>
+<DD> added a security check for /std/body/guilds .. currently it errors .. it should log.... suggestions on a postcard to ..<p>
+<DT><em>Wed Oct  9 07:38:19 1996</em>: <strong>Ohara</strong>
+<DD> removed fix_guild_data() .... if people's files brk, the7y haven't been on in a looooong time<p>
+<DT><em>Wed Oct  9 08:24:04 1996</em>: <strong>Ohara</strong>
+<DD> put a check to make sure that .me->add_guild( "foo" ) fails on non existant guilds.<p>
+<DT><em>Wed Oct  9 10:24:40 1996</em>: <strong>Beek</strong>
+<DD> fixed HELP_D to ignore /help/autodoc/FIXME (and any other dirs you want; see the ignore array at the top of HELP_D)<p>
+<DT><em>Wed Oct  9 11:01:01 1996</em>: <strong>Beek</strong>
+<DD> added /help/wizard/coding/tell<p>
+<DT><em>Wed Oct  9 11:15:08 1996</em>: <strong>Beek</strong>
+<DD> fixed help to actually PRINT the "that file doesn't exist message" when a file is removed<p>
+<DT><em>Wed Oct  9 11:24:56 1996</em>: <strong>Beek</strong>
+<DD> made it so that directories in the help structure also have entries; e.g. help wizard, help coding, help mudos_doc now work.<p>
+<DT><em>Wed Oct  9 12:26:07 1996</em>: <strong>Beek</strong>
+<DD> removed a (debugging?) write("<p>
+<DT><em>Wed Oct  9 12:26:17 1996</em>: <strong>Beek</strong>
+<DD> ... "XXXXXX") from the soul_d<p>
+<DT><em>Wed Oct  9 12:29:56 1996</em>: <strong>Beek</strong>
+<DD> fixed certain soul_d security checks to error() instead of failing silently<p>
+<DT><em>Wed Oct  9 20:11:51 1996</em>: <strong>Ohara</strong>
+<DD> fixed a bug in the ftp_d: Anon users can now use it (pwd was being set to /ftp//pub rather than /ftp/pub)<p>
+<DT><em>Sun Oct 13 17:56:41 1996</em>: <strong>Zifnab</strong>
+<DD> added a clean_up(){return 0;} to the ftp_d, and the http_d<p>
+<DT><em>Mon Oct 14 05:34:59 1996</em>: <strong>Ohara</strong>
+<DD> fixed sline for players<p>
+<DT><em>Mon Oct 14 05:35:25 1996</em>: <strong>Ohara</strong>
+<DD> ifdeffed the code in sline.c<p>
+<DT><em>Tue Oct 15 09:12:36 1996</em>: <strong>Beek</strong>
+<DD> fixed HELP_D to ignore zero length help files<p>
+<DT><em>Tue Oct 15 09:19:31 1996</em>: <strong>Beek</strong>
+<DD> fixed DOC_D not to make 0 length help files in the first place<p>
+<DT><em>Tue Oct 15 14:05:13 1996</em>: <strong>Zifnab</strong>
+<DD> installed kinison's fixed m_wander.c<p>
+<DT><em>Thu Oct 17 05:16:18 1996</em>: <strong>Ohara</strong>
+<DD> changed can_go_str and do_go_str: COMPAT_BUSTER (Sorry! :) - See news for mor details.<p>
+<DT><em>Sat Oct 19 07:18:45 1996</em>: <strong>Ohara</strong>
+<DD> updated  example_room1 with the new can_go_ functionality and in the process:<p>
+<DT><em>Sat Oct 19 07:19:23 1996</em>: <strong>Ohara</strong>
+<DD> fixed cangodogo for vehicles.<p>
+<DT><em>Sat Oct 19 08:27:40 1996</em>: <strong>Ohara</strong>
+<DD> fixed "exits" for do_go_wherever()<p>
+<DT><em>Sat Oct 19 08:33:56 1996</em>: <strong>Ohara</strong>
+<DD> fixed exits in the room header for do_go<p>
+<DT><em>Sat Oct 19 10:54:12 1996</em>: <strong>Ohara</strong>
+<DD> fixed a large bug in cangodogo <ugh> It should be bugfree now. ("Famous last words")<p>
+<DT><em>Sun Oct 20 16:24:46 1996</em>: <strong>Beek</strong>
+<DD> added default clean_up() behavior to /std/object.c<p>
+<DT><em>Sun Oct 20 16:25:18 1996</em>: <strong>Beek</strong>
+<DD> fixed users to never clean up.<p>
+<DT><em>Sun Oct 20 16:27:55 1996</em>: <strong>Beek</strong>
+<DD> made commands (but not verbs) clean up<p>
+<DT><em>Mon Oct 21 10:04:58 1996</em>: <strong>Beek</strong>
+<DD> ripped DAEMON; put correct functionality in all objects that used to inherit it<p>
+<DT><em>Mon Oct 21 10:21:44 1996</em>: <strong>Beek</strong>
+<DD> added M_DAEMON_DATA, which handles the saving and loading of most daemon data files now<p>
+<DT><em>Mon Oct 21 12:45:04 1996</em>: <strong>Rust</strong>
+<DD> fixed two bugs in mailbox_d's new clean_up ;-)  Sorry if you lost aliases over this...<p>
+<DT><em>Tue Oct 22 07:16:18 1996</em>: <strong>Zifnab</strong>
+<DD> fixed cmd.c (I think!!!!! inherited M_DAEMON_DATA rather than DAEMON)<p>
+<DT><em>Tue Oct 22 07:24:41 1996</em>: <strong>Zifnab</strong>
+<DD> did the same to ed_session.c aliasmenu.c more_ob.c<p>
+<DT><em>Tue Oct 22 09:22:14 1996</em>: <strong>Beek</strong>
+<DD> fixed up the remaining objects that used to inherit DAEMON<p>
+<DT><em>Tue Oct 22 09:37:10 1996</em>: <strong>Beek</strong>
+<DD> also made imail_d use M_DAEMON_DATA.  Associated changes: save file is now "/data/secure/daemons/imail.o" and not "/data/mail/imud_queue.o" for filename consistency; /data/secure/daemons was created and given @secure read permissions so that the queue file has the same protection as before (namely, write=@secure,read=@secure)<p>
+<DT><em>Tue Oct 22 10:01:04 1996</em>: <strong>Beek</strong>
+<DD> tweaked clean_up() behavior a bit; it is now easier to override the behavior of individual rooms without having to rewrite all of clean_up().<p>
+<DT><em>Tue Oct 22 10:29:37 1996</em>: <strong>Beek</strong>
+<DD> : the following daemons were converted to use M_DAEMON_DATA: HELP_D, DID_D, DOC_D, GUILD_D, IMUD_D, LAST_LOGIN_D, SKILL_D, SPELL_D<p>
+<DT><em>Tue Oct 22 10:34:45 1996</em>: <strong>Beek</strong>
+<DD> added help for M_DAEMON_DATA<p>
+<DT><em>Thu Oct 24 01:02:27 1996</em>: <strong>Ohara</strong>
+<DD> fixed "who" at login.<p>
+<DT><em>Thu Oct 24 02:47:33 1996</em>: <strong>Ohara</strong>
+<DD> added an M_ACTIONS to DOOR in order to make the targetted_action in M_BLOCKEXITS work correctly.<p>
+<DT><em>Thu Oct 24 03:26:27 1996</em>: <strong>Ohara</strong>
+<DD> meant M_MESSAGES not M_ACTIONS :)<p>
+<DT><em>Thu Oct 24 09:19:25 1996</em>: <strong>Beek</strong>
+<DD> fixed dbx* to do an unguarded when querying the error mapping.<p>
+<DT><em>Thu Oct 24 14:39:50 1996</em>: <strong>Beek</strong>
+<DD> fixed sort_by_value (it was sorting in reverse order)<p>
+<DT><em>Thu Oct 24 16:50:21 1996</em>: <strong>Beek</strong>
+<DD> fixed su (race)<p>
+<DT><em>Thu Oct 24 16:56:37 1996</em>: <strong>Beek</strong>
+<DD> fixed the review cmd<p>
+<DT><em>Fri Oct 25 04:51:39 1996</em>: <strong>Ohara</strong>
+<DD> fixed a bug in the wizroom<p>
+<DT><em>Fri Oct 25 04:55:21 1996</em>: <strong>Ohara</strong>
+<DD> notes that the bug that he fixed was to do with the state being incorrect if funkyness occured with the door before update ("closed" when actually open.) [A<p>
+<DT><em>Fri Oct 25 06:17:17 1996</em>: <strong>Beek</strong>
+<DD> made some changes to memcheck_d and permissions on system_post/remove_post<p>
+<DT><em>Fri Oct 25 06:22:56 1996</em>: <strong>Beek</strong>
+<DD> added some code to deal with a new body when loading from a save file.  update_for_new_body() is called (currently does nothing)<p>
+<DT><em>Fri Oct 25 06:42:21 1996</em>: <strong>Beek</strong>
+<DD> fixed 'people' to work when someone is '(Nowhere)'<p>
+<DT><em>Fri Oct 25 16:03:30 1996</em>: <strong>Beek</strong>
+<DD> added a couple unguarded()'s to the dbx* commands so that non-admins can use them<p>
+<DT><em>Fri Oct 25 17:33:40 1996</em>: <strong>Beek</strong>
+<DD> changed NEWS_D to only save the changes since the last time it loaded each time a change is made; this is a HUGE efficiency gain.  The full save file is updated either (1) when remove() is called or (2) when the object loads and notices it didn't get removed<p>
+<DT><em>Fri Oct 25 17:44:03 1996</em>: <strong>Beek</strong>
+<DD> made NEWS_D rip all information about deleted posts when it loads.  Blame Ohara if this is a bad idea and we end up having to restore from a backup :-)<p>
+<DT><em>Fri Oct 25 18:04:36 1996</em>: <strong>Beek</strong>
+<DD> fixed the newsreader to deal with the above changes<p>
+<DT><em>Fri Oct 25 18:39:01 1996</em>: <strong>Ohara</strong>
+<DD> made autoadmin NOT require you to have AUTO_WIZ defined.<p>
+<DT><em>Sun Oct 27 10:13:37 1996</em>: <strong>Beek</strong>
+<DD> added a default_message() function to /std/monster/simple.c<p>
+<DT><em>Sun Oct 27 10:26:10 1996</em>: <strong>Beek</strong>
+<DD> fixed parse_imud_soul() to deal correctly with error messages from the parser<p>
+<DT><em>Sun Oct 27 10:30:32 1996</em>: <strong>Beek</strong>
+<DD> added a remove() function to M_WEARABLE to take care of clearing body slots<p>
+<DT><em>Sun Oct 27 10:37:57 1996</em>: <strong>Beek</strong>
+<DD> fixed the scarf to only set it's body slot if they are in use<p>
+<DT><em>Sun Oct 27 10:44:20 1996</em>: <strong>Beek</strong>
+<DD> fixed more not to error when a search fails<p>
+<DT><em>Sun Oct 27 11:19:40 1996</em>: <strong>Beek</strong>
+<DD> made pictures save their images<p>
+<DT><em>Sun Oct 27 11:21:54 1996</em>: <strong>Beek</strong>
+<DD> added a 'renew' command. (basically, it takes an object, saves it to a string, does an update -z on the file, clones a new one, restores it from the string, and puts it back where it was)<p>
+<DT><em>Mon Oct 28 00:49:53 1996</em>: <strong>Deathblade</strong>
+<DD> tweaked the stat_me() in /secure/user/inputsys.c to check previous priv for 1 to allow admins to debug any user, not just other admins.<p>
+<DT><em>Mon Oct 28 02:24:42 1996</em>: <strong>Deathblade</strong>
+<DD> cleaned out a lot of the obsolete flags and obsolete header files.<p>
+<DT><em>Mon Oct 28 22:43:14 1996</em>: <strong>Ohara</strong>
+<DD> moved update.c to update.bak (It was broken!) and replaced it with a fresh copy from alpha (Ta Kinison)<p>
+<DT><em>Mon Oct 28 23:29:59 1996</em>: <strong>Ohara</strong>
+<DD> fixed secret doors to return standard exit error/ default message when you attempt to walk through them.<p>
+<DT><em>Tue Oct 29 14:30:14 1996</em>: <strong>Beek</strong>
+<DD> fixed new_prompt() in /std/menu.c to return it's result (thx Tigran)<p>
+<DT><em>Wed Oct 30 08:06:45 1996</em>: <strong>Beek</strong>
+<DD> fixed it so you don't get errors if you don't have a body.<p>
+<DT><em>Wed Oct 30 08:12:03 1996</em>: <strong>Beek</strong>
+<DD> fixed it so you can 'su' when you don't have a body (and get a new one)<p>
+<DT><em>Wed Oct 30 10:25:02 1996</em>: <strong>Beek</strong>
+<DD> fixed the 'nothing before pipe' bug<p>
+<DT><em>Thu Oct 31 15:35:01 1996</em>: <strong>Ohara</strong>
+<DD> removed the M_SAVE inherit from M_VENDOR.<p>
+<DT><em>Thu Oct 31 18:40:59 1996</em>: <strong>Ohara</strong>
+<DD> made the oak door hidden again rather than secret - I needed a suitable testsubject and it was it :)<p>
+<DT><em>Thu Oct 31 19:26:03 1996</em>: <strong>Ohara</strong>
+<DD> fixed a typo in mudlist when only 1 mud of a type was up.<p>
+<DT><em>Sat Nov  2 05:24:09 1996</em>: <strong>Ohara</strong>
+<DD> fixed a very small bug in finger @ if the person wasn't idle.<p>
+<DT><em>Sat Nov  2 06:01:56 1996</em>: <strong>Ohara</strong>
+<DD> fixed the /close bug in telnet (with the exception if you use /tog )<p>
+<DT><em>Sat Nov  2 06:41:08 1996</em>: <strong>Ohara</strong>
+<DD> fixed the multiple edits clearing the edit flag problem. Who needs elegant anyway.<p>
+<DT><em>Sat Nov  2 06:46:40 1996</em>: <strong>Ohara</strong>
+<DD> fixed the marking of people in editing in who.<p>
+<DT><em>Sat Nov  2 20:36:57 1996</em>: <strong>Beek</strong>
+<DD> added 'uncd'.  Returns you to the last dir you were in before you cd'ed.  Twice brings you back.<p>
+<DT><em>Sat Nov  2 20:41:27 1996</em>: <strong>Ohara</strong>
+<DD> fixed a bug in /std/body - it was still using shout(). Note that the fix uses bodies rather than users - this stops people loggin in from getting deth messages.<p>
+<DT><em>Sat Nov  2 20:52:17 1996</em>: <strong>Beek</strong>
+<DD> changed FNAME to only be parsed if FILE, CFILE, or OBFILE have all failed<p>
+<DT><em>Sat Nov  2 20:52:35 1996</em>: <strong>Beek</strong>
+<DD> added OBFILE which is CFILE + get_object()<p>
+<DT><em>Sat Nov  2 20:53:44 1996</em>: <strong>Beek</strong>
+<DD> made ed and more use OBFILE<p>
+<DT><em>Sat Nov  2 20:54:16 1996</em>: <strong>Beek</strong>
+<DD> : showtree too<p>
+<DT><em>Sat Nov  2 22:05:11 1996</em>: <strong>Beek</strong>
+<DD> fixed OBFILE to recognize 'plain' filenames<p>
+<DT><em>Wed Nov  6 01:48:08 1996</em>: <strong>Ohara</strong>
+<DD> fixed ... another bug in cangodo<p>
+<DT><em>Wed Nov  6 01:50:46 1996</em>: <strong>Ohara</strong>
+<DD> stopped people from exiting the car while in the carwash.<p>
+<DT><em>Fri Nov  8 01:38:02 1996</em>: <strong>Beek</strong>
+<DD> made channels stand out a bit more; also moved the format to the top of the file (after tracking down 238943 instances ...)<p>
+<DT><em>Fri Nov  8 10:12:41 1996</em>: <strong>Ohara</strong>
+<DD> notes that 12 to 22 is a big leap. This upgrade has been brought to you by the letters S and Z, and the number 10<p>
+<DT><em>Fri Nov  8 10:22:27 1996</em>: <strong>Ohara</strong>
+<DD> notes that not only AREN'T we on the new driver, but Christmas has also been cancelled.<p>
+<DT><em>Fri Nov  8 11:08:54 1996</em>: <strong>Zifnab</strong>
+<DD> notes we are now on v22b22 tho not completely yet (no soul_d)<p>
+<DT><em>Fri Nov  8 11:09:41 1996</em>: <strong>Ohara</strong>
+<DD> notes that Beek said it would only break one hard to find thing .... ;)<p>
+<DT><em>Fri Nov  8 13:37:36 1996</em>: <strong>Ohara</strong>
+<DD> and Zifnab agree: DON'T ask what happened to souls. READ THE DID LOG READ THE DID LOG CAN IT BE ANY PLAINER THAN THIS<p>
+<DT><em>Sat Nov  9 02:50:00 1996</em>: <strong>Ohara</strong>
+<DD> fixed /std/object/names::id() and ::plural_id() to check for the existance of arrays before checking them ... fixes the objects( (: id( "sword" ) :)) bug hopefully ...<p>
+<DT><em>Sat Nov  9 02:54:26 1996</em>: <strong>Ohara</strong>
+<DD> er: @objects( (: $1->id( "sword" ) :)) (yes it does work)<p>
+<DT><em>Sat Nov  9 07:06:42 1996</em>: <strong>Ohara</strong>
+<DD> put val's temp fix for the soul_d in, and ripped the half-done current code ... To be returned to <1 in a future driver.<p>
+<DT><em>Sat Nov  9 08:53:24 1996</em>: <strong>Beek</strong>
+<DD> changed update to work on obfiles instead of cfiles<p>
+<DT><em>Sat Nov  9 09:09:04 1996</em>: <strong>Beek</strong>
+<DD> fixed the more command to call more() with an array (we want them in more once with n files, not n times with 1 file)<p>
+<DT><em>Sun Nov 10 00:52:45 1996</em>: <strong>Zakk</strong>
+<DD> fixed semote. *yawn*<p>
+<DT><em>Sun Nov 10 03:24:47 1996</em>: <strong>Ohara</strong>
+<DD> fixed mail to (admin)<p>
+<DT><em>Sun Nov 10 03:29:35 1996</em>: <strong>Ohara</strong>
+<DD> fixed mail not to include people on the Cclist that are on the To list.<p>
+<DT><em>Sun Nov 10 23:30:24 1996</em>: <strong>Ohara</strong>
+<DD> ripped moreob since it's now redundant<p>
+<DT><em>Mon Nov 11 20:11:40 1996</em>: <strong>Zifnab</strong>
+<DD> fixed the player menu to show adverbs correctly<p>
+<DT><em>Tue Nov 12 05:09:50 1996</em>: <strong>Beek</strong>
+<DD> changed dest not to mention objects w/o names to the room<p>
+<DT><em>Tue Nov 12 05:14:52 1996</em>: <strong>Beek</strong>
+<DD> fixed makeroom to protect quotes<p>
+<DT><em>Tue Nov 12 06:45:32 1996</em>: <strong>Zifnab</strong>
+<DD> installed the ne driver docs<p>
+<DT><em>Tue Nov 12 11:00:41 1996</em>: <strong>Beek</strong>
+<DD> added colour_strlen() and colour_truncate() to M_ANSI<p>
+<DT><em>Tue Nov 12 11:10:32 1996</em>: <strong>Beek</strong>
+<DD> fixed who to truncate correctly<p>
+<DT><em>Tue Nov 12 19:10:37 1996</em>: <strong>Zifnab</strong>
+<DD> made inheriting m_edible make objects gettable by default.<p>
+<DT><em>Wed Nov 13 04:03:54 1996</em>: <strong>Zifnab</strong>
+<DD> doh looks at his didlog, he meant to say inheritng m_gettable<p>
+<DT><em>Wed Nov 13 10:07:15 1996</em>: <strong>Beek</strong>
+<DD> fixed who to take the length of idle_string into account only once<p>
+<DT><em>Thu Nov 14 21:55:43 1996</em>: <strong>Zifnab</strong>
+<DD> fixed the grid_server, /secure/master.c compile_object() was prependign a / onto the path.<p>
+<DT><em>Sat Nov 16 07:24:30 1996</em>: <strong>Zifnab</strong>
+<DD> recompiled v22b22 with debuggin on<p>
+<DT><em>Sat Nov 16 10:15:03 1996</em>: <strong>Beek</strong>
+<DD> added a /contrib directory; see /contrib/README for details<p>
+<DT><em>Sat Nov 16 10:17:26 1996</em>: <strong>Beek</strong>
+<DD> moved /obj/http_connection.c to /contrib/http_connection.c, since /daemons/http_d.c is used by default.<p>
+<DT><em>Sat Nov 16 11:30:05 1996</em>: <strong>Beek</strong>
+<DD> added a CONFIGURABLE_COLOURS option (which is currently on here).  Try 'colours', 'colours channel red', etc<p>
+<DT><em>Sat Nov 16 20:12:32 1996</em>: <strong>Deathblade</strong>
+<DD> fixed M_DAEMON_DATA to use unguarded() for the file_size() call. it was spamming a log.<p>
+<DT><em>Sat Nov 16 21:44:59 1996</em>: <strong>Ohara</strong>
+<DD> added SIGN to mudlib.h, and made the sign in the example area use it.<p>
+<DT><em>Sat Nov 16 22:19:06 1996</em>: <strong>Ohara</strong>
+<DD> made the backpack wearable.<p>
+<DT><em>Sat Nov 16 23:42:14 1996</em>: <strong>Ohara</strong>
+<DD> fixed guilds so that NPCs could inherit /std/body/guilds and not get tripped up on security.<p>
+<DT><em>Sat Nov 16 23:42:48 1996</em>: <strong>Ohara</strong>
+<DD> random elements or are they defined as evil somehow?<p>
+<DT><em>Sat Nov 16 23:42:54 1996</em>: <strong>Ohara</strong>
+<DD> oops :)<p>
+<DT><em>Sun Nov 17 01:08:35 1996</em>: <strong>Deathblade</strong>
+<DD> removed the extra CR from channel souls.<p>
+<DT><em>Sun Nov 17 01:40:37 1996</em>: <strong>Deathblade</strong>
+<DD> made monster not override create(). That prevented monster subclasses from using args in create() and/or mudlib_setup(). Recall that all mudlib objects should use mudlib_setup().<p>
+<DT><em>Mon Nov 18 00:35:11 1996</em>: <strong>Ohara</strong>
+<DD> added GUILD_GUARD (/std/guild_guard) / (/domains/std/guild_guard uses it)<p>
+<DT><em>Mon Nov 18 01:16:08 1996</em>: <strong>Ohara</strong>
+<DD> changed M_OPENABLE::set_closed() to have an extra short of closed as well as open ... This means that the backpack will now display "a backpack (closed)" when in your inventory.<p>
+<DT><em>Mon Nov 18 01:43:19 1996</em>: <strong>Ohara</strong>
+<DD> added a lima.priority group for things that are  arbritrarily chosen by whoever (Read: _admins_ :) ... expect things to pop bac and forth between there and normal groups <shudder> ;)<p>
+<DT><em>Mon Nov 18 14:13:40 1996</em>: <strong>Beek</strong>
+<DD> fixed more_ob not to use ansi()<p>
+<DT><em>Tue Nov 19 08:48:19 1996</em>: <strong>Beek</strong>
+<DD> added a 'cannonical_form' sefun, which converts alternate forms of object names to a standard form<p>
+<DT><em>Tue Nov 19 08:50:59 1996</em>: <strong>Beek</strong>
+<DD> fixed make_objects_if_needed() to use cannonical_form() to do the comparisons<p>
+<DT><em>Tue Nov 19 17:59:18 1996</em>: <strong>Beek</strong>
+<DD> made the shutdown() sefun error if the security check fails, instead of just silently failing<p>
+<DT><em>Tue Nov 19 18:22:55 1996</em>: <strong>Beek</strong>
+<DD> merged SHUTDOWN_D back into the shutdown command, removing about half a dozen calls between the two in the process (this also means timed shutdowns should work now)<p>
+<DT><em>Tue Nov 19 18:25:19 1996</em>: <strong>Beek</strong>
+<DD> fixed the cmd_rule for shutdown (thx kinison)<p>
+<DT><em>Tue Nov 19 18:36:03 1996</em>: <strong>Beek</strong>
+<DD> fixed SHUTDOWN_D not to say '1 minutes'<p>
+<DT><em>Wed Nov 20 01:45:30 1996</em>: <strong>Ohara</strong>
+<DD> fixed the Invalid privilege message to add some spaces in there :)<p>
+<DT><em>Wed Nov 20 10:44:05 1996</em>: <strong>Beek</strong>
+<DD> fixed 'drop all' when you have nothing, and removed the 'drop STR' rule (next person to use STR for error handling gets shot)<p>
+<DT><em>Wed Nov 20 20:20:27 1996</em>: <strong>Deathblade</strong>
+<DD> changed the SOCKET object to log an error at remove() time, rather than refuse to be removed.<p>
+<DT><em>Thu Nov 21 02:21:43 1996</em>: <strong>Deathblade</strong>
+<DD> tweaked a couple the Deleting prompt in the newsreader<p>
+<DT><em>Thu Nov 21 07:09:37 1996</em>: <strong>Beek</strong>
+<DD> fixed 'look for beek', 'look for ground'<p>
+<DT><em>Fri Nov 22 07:05:14 1996</em>: <strong>Zifnab</strong>
+<DD> removed about 300 FTP bug reports, and supplied one in summary<p>
+<DT><em>Mon Nov 25 07:17:47 1996</em>: <strong>Beek</strong>
+<DD> cleaned up CMD_D::parse_arg() [also fixes update]<p>
+<DT><em>Mon Nov 25 09:10:46 1996</em>: <strong>Beek</strong>
+<DD> fixed 'set foo bar' to set $foo to "bar" and not " bar"<p>
+<DT><em>Mon Nov 25 09:11:16 1996</em>: <strong>Beek</strong>
+<DD> notes he meant: 'set foo bar bazz' to set $foo to "bar bazz" and not " bar bazz"<p>
+<DT><em>Mon Nov 25 09:15:17 1996</em>: <strong>Beek</strong>
+<DD> fixed 'unset'<p>
+<DT><em>Mon Nov 25 09:18:00 1996</em>: <strong>Beek</strong>
+<DD> fixed 'unset' to print an error if no such var exists, instead of just saying 'Ok.'<p>
+<DT><em>Mon Nov 25 16:48:57 1996</em>: <strong>Beek</strong>
+<DD> fixed a bug in DIR handling in the CMD_D<p>
+<DT><em>Tue Nov 26 01:32:44 1996</em>: <strong>Rust</strong>
+<DD> gave FTP_D a clean_up()<p>
+<DT><em>Wed Nov 27 13:01:42 1996</em>: <strong>Beek</strong>
+<DD> added LPSCRIPT_D; more functionality and examples forthcoming<p>
+<DT><em>Fri Nov 29 13:35:59 1996</em>: <strong>Deathblade</strong>
+<DD> cleaned out the last this_player() and added an override. Removed a notify_fail() override and some related crap code in M_PARSING.<p>
 </DL>

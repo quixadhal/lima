@@ -3,7 +3,7 @@ void do_tests() {
     int n = sizeof(call_stack(0));
     
     stack = call_stack(0);
-    ASSERT("/" + stack[0] == __FILE__);
+    ASSERT(stack[0] == __FILE__);
     ASSERT(sizeof(filter(stack, (: stringp :))) == n);
     stack = call_stack(1);
     ASSERT(stack[0] == this_object());

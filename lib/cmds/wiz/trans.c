@@ -50,8 +50,3 @@ private void main( mixed *arg)
     return;
 }
 
-int help()
-{
-    write("trans <object> :  moves the object specified to your environment\n" );
-    return 1;
-}

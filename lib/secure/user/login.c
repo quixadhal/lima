@@ -141,7 +141,6 @@ private nomask int valid_name(string str)
     ** Note that this regex matches the restriction imposed by the
     ** SECURE_D.  Also note the name is in lower case right now.
     */
-ZBUG( !regexp(str, "^[a-z]+$") );
     if ( !regexp(str, "^[a-z]+$") )
     {
 	write("Sorry, that name is forbidden by the implementors.  Please\n"
@@ -162,12 +161,15 @@ private nomask int check_special_commands(string arg)
     case "who":
 	b = bodies()->query_name();
 	b -= ({ "Someone" });
+    b-= ({ });
 	switch( sizeof(b))
 	{
 	case 0:
 	    write("No one appears to be logged on.\n");
+    break;
 	case 1:
 	    printf( "Only %s is currently on.\n", b);
+break;
 	default:
 	    printf("The following people are logged on:\n%s\n",
 	      implode(b,", "));
@@ -389,7 +391,7 @@ private nomask void logon()
      * extensively modified/rewritten more than half of the base mudlib first
      * (intend to modify ... doesn't cut it)
      */
-    printf("%s is running Lima 1.0a1 on %s\n\n",
+    printf("%s is running Lima 1.0a2 on %s\n\n",
       mud_name(), driver_version());
 
 #ifdef ZORKMUD

@@ -27,9 +27,10 @@ static private string * my_descriptions = ({
     "A small stream languidly flows along here.",
 });
 
-void setup()
+void create()
 {
 
+ZBUG("in_set_up");
     use_data_file(DATA_FILE);
     set_brief("Plains");
     set_descriptions(my_descriptions);

@@ -20,11 +20,19 @@
 
 /* most frequently used functions */
 
-object clone_object(string, ...);
+/* These next few efuns are used internally; do not remove them */
+/* used by X->f() */
 unknown call_other(object | string | object *, string | mixed *,...);
+/* used by (*f)(...) */
 mixed evaluate(mixed, ...);
-function bind(function, object);
+/* default argument for some efuns */
 object this_object();
+/* used for implicit float/int conversions */
+int to_int(string | float | int | buffer);
+float to_float(string | float | int);
+
+object clone_object(string, ...);
+function bind(function, object);
 object this_player(int default: 0);
 object this_interactive this_player( int default: 1);
 object this_user this_player( int default: 0);
@@ -151,13 +159,6 @@ void message(mixed, mixed, string | string * | object | object *,
     mixed regexp(string | string *, string, void | int);
     mixed *reg_assoc(string, string *, mixed *, mixed | void);
     mixed *allocate(int);
-
-/* do not remove to_int(), to_float() because they are also used by
-   the compiler (compiler.pre)
-*/
-    int to_int(string | float | int | buffer);
-    float to_float(string | float | int);
-
     mixed *call_out_info();
 
 /* 32-bit cyclic redundancy code - see crc32.c and crctab.h */

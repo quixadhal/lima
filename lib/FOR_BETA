@@ -11,8 +11,6 @@ Misc things that should be done soon or the idea discarded:
 - ambiguity on drop, throw, etc...
 - organize all files properly
 - modularize stats, skills, and races fully
-- conversion of SECURE_D to array of paths, not a tree
-- RCP
 - newsreader changes, mailer changes
 - widespread nickname usage
 - more ANSI usage
@@ -28,3 +26,5 @@ Future versions (Post 1.0):
 - mail unsend
 - Tk interface
 - AMCP
+- conversion of SECURE_D to array of paths, not a tree
+- RCP

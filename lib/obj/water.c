@@ -5,13 +5,12 @@
 
 inherit OBJ;
 inherit M_GETTABLE;
+inherit M_DRINKABLE;
 
 create() {
   ::create();
   set_proper_name("some water");
   set_in_room_desc("There is a puddle of water here.");
-  set_flag(NO_AUTO_TAKE);
-  set_flag(DRINKABLE);
   set_weight(4);
   set_adj( "quantity of", "pool of", "puddle of" );
   set_id( "water", "liquid", "h2o" );

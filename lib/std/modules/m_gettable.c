@@ -5,7 +5,7 @@
 // John
 // Sep 7 94
 
-private static mixed	get_response;
+private static mixed	get_response = 1;
 private static mixed	drop_response = 1;
 private static function	my_drop_hook, my_get_hook;
 
@@ -156,3 +156,8 @@ int direct_pick_up_obj()
 {
   return 1;
 }
+
+//To answer your question, in order to set error messages for
+//get/drop, though I agree with your first point.
+
+// -Beek

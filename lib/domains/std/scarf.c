@@ -1,6 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
+#include <bodyslots.h>
 
 inherit OBJ;
 inherit M_GETTABLE;
@@ -11,5 +12,8 @@ void setup() {
     set_adj("red");
     set_id("scarf");
     set_gettable(1);
-set_value(10);
+#ifdef USE_BODY_SLOTS
+    set_slot(TORSO);
+#endif
+    set_value(10);
 }

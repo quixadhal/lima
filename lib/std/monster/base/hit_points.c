@@ -45,7 +45,7 @@ private void reduce_hp(int x) {
 private void increase_hp(int x) {
    if (hp <= 0) return;
    hp += x;
-   if (hp > max_hp)
+if (max_hp <= hp )
        hp = max_hp;
 }
 
@@ -59,7 +59,8 @@ void reincarnate() {
 //:FUNCTION query_hp
 //Find the current number of hitpoints of a monster
 int query_hp() {
-    if (hp > 0 && time() - hp_time) {
+     if( (hp > 0) && (time() - hp_time))
+{
         increase_hp(fuzzy_divide(time()-hp_time,heal_rate));
         hp_time = time();
     }

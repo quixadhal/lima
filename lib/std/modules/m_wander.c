@@ -88,6 +88,8 @@ mixed move_this_monster(int cloned)
 #ifdef DEBUG
 write(my_exit); write(monster_exit);
 #endif
+if(load_object(monster_exit))
+ {
 	new_area = load_object(monster_exit)->get_area();
 	if(new_area == wander_area)
 	{
@@ -95,6 +97,7 @@ write(my_exit); write(monster_exit);
 	    this_object()->move(monster_exit);
 	    this_object()->other_action(enter_msg);
 	}
+}
 call_out("move_this_monster", movement_time);
 
 	return;

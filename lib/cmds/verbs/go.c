@@ -30,43 +30,51 @@ mixed can_go_str(string str) {
     mixed value;
     object env = environment(this_body());
 
-// Be careful what errors you return here since "go " + str is tried for
-// all input
-    
-    value = env->query_exit_value(str, is_normal);
-    if (stringp(value) && value[0] == '#')
-      {
-	string other_value;
-        if(environment(env) && env->can_travel() && (other_value = 
-	   env->query_final_exit_value(str,is_normal)))
-	  {
-	    if(stringp(other_value) && other_value[0] != '#')
-	      {
-		return default_checks();
-	      }
-	    else
-	      {
-		if(stringp(other_value))
-		  return other_value[1..];
-		else
-		  return default_checks();
-	      }
-	  }
-	return value[1..];
-      }
-    if (value)
-	return default_checks();
+    if( env->is_vehicle()) env = environment( env );
+    // Be careful what errors you return here since "go " + str is tried for
+    // all input
 
     if (is_normal) {
-	mixed ret = call_other(environment(this_body()), "can_go_" + str);
-	if (!ret) ret = "It doesn't seem possible to go that direction.\n";
-	return ret;
+	mixed ret = 0;
+	if( function_exists( "can_go_" + str, env ))
+	{
+	    ret = call_other( env, "can_go_" + str );
+    if( ret == 1 ) return 1;
+    return ret;
+	}
     }
+
+    value = env->query_exit_value(str, is_normal);
+    if (stringp(value) && value[0] == '#')
+    {
+	string other_value;
+	if(environment(env) && env->can_travel() && (other_value = 
+	    env->query_final_exit_value(str,is_normal)))
+	{
+	    if(stringp(other_value) && other_value[0] != '#')
+	    {
+		return default_checks();
+	    }
+	    else
+	    {
+		if(stringp(other_value))
+		    return other_value[1..];
+		else
+		    return default_checks();
+	    }
+	}
+	return value[1..];
+    }
+    if (value)
+	return default_checks();
+    if( is_normal )
+	return "It doesn't appear possible to go that way.\n";
 }
+
 
 void do_go_str(string str) {
 
-    this_body()->go_somewhere(str);
+    this_body()->do_go_somewhere(str);
 }
 
 array query_verb_info()

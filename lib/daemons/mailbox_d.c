@@ -15,10 +15,9 @@
 ** 960119, Deathblade: created from code in MAIL_D.
 */
 
-inherit DAEMON;
+#include <clean_up.h>
 
 private static mapping mailboxes = ([ ]);
-
 
 private nomask void create()
 {
@@ -71,4 +70,10 @@ nomask void close_mailboxes()
 
 	map_delete(mailboxes, name);
     }
+}
+
+// We don't want to disappear, but do some cleaning anyway.
+int clean_up() {
+    close_mailboxes();
+    return ASK_AGAIN;
 }

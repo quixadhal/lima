@@ -54,7 +54,7 @@ void clear_state()
     reset_machine(0);		/* Pop down the stack. */
 }				/* clear_state() */
 
-#ifdef DEBUG
+#if 0
 static void report_holes() {
     if (current_object && current_object->name)
 	debug_message("current_object is /%s\n", current_object->name);

@@ -48,9 +48,7 @@ Data is updated nightly and dumped to the /help/autodoc directory
 #include <log.h>
 
 inherit M_REGEX;
-inherit M_ACCESS;
-
-#define SAVE_FILE     "/data/daemons/doc_d"
+inherit M_DAEMON_DATA;
 
 //:MODULE
 //The doc daemon handles finding source files which have been modified and
@@ -92,10 +90,6 @@ static private string * filtered_dirs = ({
   "/log/", "/open/", "/tmp/", "/user/"
 });
 
-void save_me() {
-    unguarded(1, (: save_object, SAVE_FILE :));
-}
-
 string mod_name(string foo) {
     sscanf(foo, "%s.c", foo);
     return foo[strsrch(foo, "/", -1) + 1..];
@@ -107,6 +101,7 @@ void process_file(string fname)
     string line;
     array lines;
     string outfile = 0;
+    int empty;
     int last_line = -20;
     int idx = 0;
 
@@ -123,31 +118,42 @@ void process_file(string fname)
             lines[idx][2] == ':') {
 	    line = lines[idx][3..];
 	    if (line == "MODULE") {
+                if (empty) write_file(outfile, "\n[No description available]\n");
+                empty = 1;
 		outfile = "/help/autodoc/modules/" + mod_name(fname);
                 rm(outfile);
 	    } else
 	    if (line == "COMMAND") {
+                if (empty) write_file(outfile, "\n[No description available]\n");
+                empty = 1;
 		outfile = "/help/autodoc/command/" + mod_name(fname);
                 rm(outfile);
 	    } else
             if (sscanf(line, "HOOK %s", line) == 1) {
+                if (empty) write_file(outfile, "\n[No description available]\n");
+                empty = 0;
                 outfile = "/help/autodoc/hook/" + line;
                 rm(outfile);
                 write_file(outfile, "Called by: " + fname + "\n\n");
             } else
 	    if (sscanf(line, "FUNCTION %s", line) == 1) {
                 mkdir("/help/autodoc/functions/" + mod_name(fname));
+                if (empty) write_file(outfile, "\n[No description available]\n");
+                empty = 0;
 		outfile = "/help/autodoc/functions/" + mod_name(fname) + 
 		"/" + line;
                 rm(outfile);
                 write_file(outfile, "Found in: " + fname + "\n\n");
             } else
             if (sscanf(line, "EXAMPLE %s", line) == 1) {
+                if (empty) write_file(outfile, "\n[No description available]\n");
+                empty = 0;
 		outfile = "/help/autodoc/examples/" + line;
                 rm(outfile);
                 write_file(outfile, "Found in: " + fname + "\n\n");
-                write_file(outfile, "Found in: " + fname + "\n\n");
 	    } else {
+                if (empty) write_file(outfile, "\n[No description available]\n");
+                empty = 0;
 		outfile = 0;
 		LOG_D->log(LOG_AUTODOC, "Bad header tag: " + line + "\n");
 	    }
@@ -155,6 +161,7 @@ void process_file(string fname)
 	} else {
 	    if (last_line == lines[idx+1] - 1) {
 		if (outfile) write_file(outfile, lines[idx][2..] + "\n");
+                empty = 0;
 	    } else
 		outfile = 0;
 	}
@@ -218,8 +225,7 @@ create()
 	destruct(this_object());
 	return;
     }	    
-    set_privilege(1);
-    restore_object(SAVE_FILE);
+    ::create();
     if ( !last_time )
 	do_sweep();
     else

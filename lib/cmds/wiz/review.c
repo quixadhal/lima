@@ -56,7 +56,7 @@ private void main(mixed *arg, mapping flags)
 		msgs = action( ({ ob }), ob_msgs[j]);
 	    }
 	    out(msg[i] + ": [" + ob_msgs[j][0..<2] + "] ");
-	    if (ob == this_body()) write(msgs[0]);
+	    if (ob == this_body()) out(msgs[0]);
 	    else out(msgs[<1]);
 	    flag = 1;
 	}

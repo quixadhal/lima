@@ -15,7 +15,7 @@
 #include <daemons.h>
 #include <log.h>
 
-inherit DAEMON;
+inherit M_ACCESS;
 inherit M_INPUT;
 
 
@@ -77,17 +77,27 @@ private nomask int f_parse(string s)
     return 0;
 }
 
+private nomask string last_component(string fname) {
+    return (explode(fname, "/") - ({ "" }))[<1];
+}
+
+private nomask void parse_directory(string fname) 
+{
+    string array files = get_dir(fname + "*") - ({ ".", ".." });
+    string topic = last_component(fname);
+    
+    cur_line = 0;
+    directives = ([]);
+
+    lines = ({"Help topics available under the general topic '" + topic + "':"}) +
+	map_array(files, (: "\t" + last_component($1) :));
+}
+
 private nomask void parse_file(string fname)
 {
     cur_line = 0;
     directives = ([ ]);
 
-    if( file_size( fname ) == -1 )
-    {
-	lines = ({ "This helpfile no longer exists.", "Its reference will vanish next time help_d is updated" });
-
-	return;
-    }
     lines = explode(read_file(fname), "\n");
     lines = filter_array(lines, (: f_parse :));
 
@@ -122,10 +132,22 @@ private nomask void print_lines()
 */
 private nomask void present_topic(string fname)
 {
-    parse_file(fname);
+    switch (file_size(fname)) {
+    case -1:
+	lines = ({ "This helpfile no longer exists.", "Its reference will vanish next time help_d is updated" });
+	break;
+    case -2:
+	parse_directory(fname);
 
-    write("\n");
-    print_lines();
+	write("\n");
+	print_lines();
+	break;
+    default:
+	parse_file(fname);
+
+	write("\n");
+	print_lines();
+    }
 
     /*
     ** The current receive function is unknown on entry to this function.
@@ -284,7 +306,7 @@ nomask void begin_help(string topic)
 {
     if( !topic || topic == "")
 	topic = "topics";
-	modal_push((: receive_topic :), (: query_prompt :));
+    modal_push((: receive_topic :), (: query_prompt :));
     lookup_topic(topic);
 }
 
@@ -321,4 +343,8 @@ nomask void display_topics(string *arr)
     new_stuff = arr - old_stuff;
     if (sizeof(new_stuff)) display_topic_columns(new_stuff, "Unread topics:");
     if (sizeof(old_stuff)) display_topic_columns(old_stuff, "Topics already read:");
+}
+
+private void create() {
+    set_privilege(1);
 }

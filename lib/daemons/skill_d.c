@@ -3,9 +3,7 @@
 #include <security.h>
 #include <classes.h>
 
-#define SKILL_SAVE_FILE "/data/daemons/skill_d"
-
-inherit M_ACCESS;
+inherit M_DAEMON_DATA;
 
 /*
 ** Keep the list of the available skills.
@@ -15,18 +13,6 @@ inherit M_ACCESS;
 private mapping skills = ([]);
 
 #define PRIV_REQUIRED	"Mudlib:daemons"
-
-
-private void save_me()
-{
-    unguarded(1, (: save_object, SKILL_SAVE_FILE :));
-}
-
-private void create()
-{
-    set_privilege(1);
-    restore_object(SKILL_SAVE_FILE);
-}
 
 void register_skill(string skill)
 {

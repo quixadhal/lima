@@ -1,252 +1,302 @@
-Rust installed Valentino's fix for snoopable stuff.
+Ohara fixed clone so clone with no args clones cwf _provided_ it inherits from /std/object (Not a foolproof check .. but generally saneish)
 
-Rust fixed ftpd to idle out properly (it was closing the connection but still thought you were connected).
+Beek fixed clone not to leave the object lying in limbo if it doesn't inherit /std/object.
 
-Rust fixed the did_d so that if there's no did information, you get something sensible, and not a 0
+Beek added a new simul_efun: sort_by_value(array, function), which sorts the array based on the value of evaluate(function, element); e.g: sort_by_value(bodies(), (: $1->query_score() :))
 
-Rust made wizards w/o dirs start off in /ftp not in a non-existant dir in FTPD.
+Zifnab made /opj/corpse.c return 0 for is_living, this solves the get foo from corpse problem, not sure what else it causes tho :)
 
-Rust added # of users to who and people cause he got sick of manually counting.
+Zifnab removed the "STR" rule from query_verb_info for kill.c
 
-Rust fixed the more object not to retain your input if there is an error in initializing (eg, string too large)
+Ohara added a security check for /std/body/guilds .. currently it errors .. it should log.... suggestions on a postcard to ..
 
-Rust updated secure_d to fix the quota mapping when you rm a domain or wizard.
+Ohara removed fix_guild_data() .... if people's files brk, the7y haven't been on in a looooong time
 
-Rust fixed player things that more in the player menu to actually more instead of dying after 1 screen.
+Ohara put a check to make sure that .me->add_guild( "foo" ) fails on non existant guilds.
 
-Rust fixed ansi so it works for players.
+Beek fixed HELP_D to ignore /help/autodoc/FIXME (and any other dirs you want; see the ignore array at the top of HELP_D)
 
-Rust made complex container load by making the overloaded query_prep varargs... didn't look deep enough to make sure this was the right fix
+Beek added /help/wizard/coding/tell
 
-Rust added per-group archivability to NEWS_D.  Admins should be able to do @NEWS_D->set_archive_time("wiz.chat", 90)    To make wiz.chat archive posts over 90 days old.  Posts get archived whenever the NEWS_D loads, so mainly at reboot.
+Beek fixed help to actually PRINT the "that file doesn't exist message" when a file is removed
 
-Deathblade fixed the channel daemon to allow both ";" and ":" for souls/emotes.
+Beek made it so that directories in the help structure also have entries; e.g. help wizard, help coding, help mudos_doc now work.
 
-Rust added a user_exists simul_efun
+Beek removed a (debugging?) write("
 
-Rust installed cowl's convert_time() function as a simul_efun.  The first arg is the # of seconds, the optional second arg will make the return be 5m instead of 5 minutes
+Beek ... "XXXXXX") from the soul_d
 
-Rust fixed mail_d to do a check_previous_privilege(1) in send_mail(), not a check_privilege()
+Beek fixed certain soul_d security checks to error() instead of failing silently
 
-Rust made I3 mail work =)
+Ohara fixed a bug in the ftp_d: Anon users can now use it (pwd was being set to /ftp//pub rather than /ftp/pub)
 
-Rust noted that you should see news if you want to upgrade an older lib to use I3 mail.
+Zifnab added a clean_up(){return 0;} to the ftp_d, and the http_d
 
-Rust made it so to and cc lists are comma seperated, not space seperated.  You need to get /secure/obj/mailers/mailer.c for that.
+Ohara fixed sline for players
 
-Ohara fixed a small bug in SOUL_D's parse_imud_soul()
+Ohara ifdeffed the code in sline.c
 
-Ohara changed tells to sync with channels' usage of ;/:
+Beek fixed HELP_D to ignore zero length help files
 
-Ohara added clear_guilds() function .. it's all of one line, but handy for testiers :)
+Beek fixed DOC_D not to make 0 length help files in the first place
 
-Ohara wrote M_SECRET_DOOR ... the door to the quiet room uses it.
+Zifnab installed kinison's fixed m_wander.c
 
-Ohara ntes that that is, of course, SECRET_DOOR
+Ohara changed can_go_str and do_go_str: COMPAT_BUSTER (Sorry! :) - See news for mor details.
 
-Rust don't see what's so secret about this secret door
+Ohara updated  example_room1 with the new can_go_ functionality and in the process:
 
-Ohara notes that SECRET_DOORs are not visible via "exits" or the exits display. (It's quite possible that some muds will want to use them for all doors <shrug>) As of now, they are automatically attached.
+Ohara fixed cangodogo for vehicles.
 
-Rust notes that a good secret door is invisible until "found"
+Ohara fixed "exits" for do_go_wherever()
 
-Ohara notes that if Rust wants to feature extend it, he should feel more than free <smiles sweetly>
+Ohara fixed exits in the room header for do_go
 
-Ohara moved SECRET_DOOR to HIDDEN_DOOR complaints to Rust or /dev/null ...
+Ohara fixed a large bug in cangodogo <ugh> It should be bugfree now. ("Famous last words")
 
-Ohara added SECRET_DOOR ... it only displays "The door is open" and not "The door is closed" ... in the process ..
+Beek added default clean_up() behavior to /std/object.c
 
-Ohara changed the add_hook("extra_long" ..) in M_OPENABLE .. the spam was folded out into the extra_long_stuff function ... This was done to make secret doors  much neater :)
+Beek fixed users to never clean up.
 
-Ohara updated and enchromed exits. People may note that it works best with cardinal directions/up/down/in/out.
+Beek made commands (but not verbs) clean up
 
-Ohara wrote beep.c .... the bloody beep emote is now deprecated
+Beek ripped DAEMON; put correct functionality in all objects that used to inherit it
 
-Deathblade changed /secure/user/failures.c to use M_GRAMMAR-> rather than inheriting it (major security hole :-).
+Beek added M_DAEMON_DATA, which handles the saving and loading of most daemon data files now
 
-Deathblade changed all uses of simple_action() to remove the trailing \n. Note that I didn't reload most of them yet...
+Rust fixed two bugs in mailbox_d's new clean_up ;-)  Sorry if you lost aliases over this...
 
-Deathblade modifed simple_action() to add the \n only if it isn't present. Note: xxx_action() should be similarly updated (much fewer though :-).
+Zifnab fixed cmd.c (I think!!!!! inherited M_DAEMON_DATA rather than DAEMON)
 
-Zakk tried to call move::create() from within object's create() and
+Zifnab did the same to ed_session.c aliasmenu.c more_ob.c
 
-Zifnab 'foo
+Beek fixed up the remaining objects that used to inherit DAEMON
 
-Ohara changed all FUNC doc tags to FUNCTION
+Beek also made imail_d use M_DAEMON_DATA.  Associated changes: save file is now "/data/secure/daemons/imail.o" and not "/data/mail/imud_queue.o" for filename consistency; /data/secure/daemons was created and given @secure read permissions so that the queue file has the same protection as before (namely, write=@secure,read=@secure)
 
-Ohara COMPAT_BUSTER: //:FUNC is no longer recognised by the doc_d .. it was only used in 3 files, so it shouldn't be too major a shock :)
+Beek tweaked clean_up() behavior a bit; it is now easier to override the behavior of individual rooms without having to rewrite all of clean_up().
 
-Ohara Enchromed trans.
+Beek : the following daemons were converted to use M_DAEMON_DATA: HELP_D, DID_D, DOC_D, GUILD_D, IMUD_D, LAST_LOGIN_D, SKILL_D, SPELL_D
 
-Ohara removed the message from /data/config/welcome since it's no longer needed really :)
+Beek added help for M_DAEMON_DATA
 
-Zakk never play quake in linux
+Ohara fixed "who" at login.
 
-Ohara fixed the bug where wizzes would die ... some doof called heal_us() which would NOT increase hit points when hp <= 0 ...
+Ohara added an M_ACTIONS to DOOR in order to make the targetted_action in M_BLOCKEXITS work correctly.
 
-Ohara fixed all cases of immediatly_acessible in the lib.
+Ohara meant M_MESSAGES not M_ACTIONS :)
 
-Ohara added handling for drop notanobject
+Beek fixed dbx* to do an unguarded when querying the error mapping.
 
-Ohara chaged news so that it no longer prints Invis peoples' name as "Someone"
+Beek fixed sort_by_value (it was sorting in reverse order)
 
-Ohara changed DID_D to not use "Someone" when you're invisible (Note: If this fails, it could be embarrrrrassing :)
+Beek fixed su (race)
 
-Beek changed /cmds/players/i.c to inventory.c, and added 'i' as an alias.
+Beek fixed the review cmd
 
-Ohara fixed I and DID_D to only allow full wizzes to use them.
+Ohara fixed a bug in the wizroom
 
-Ohara changed flist to return alphabetically.
+Ohara notes that the bug that he fixed was to do with the state being incorrect if funkyness occured with the door before update ("closed" when actually open.) [A
 
-Ohara added screen widths ... currently you need to use @this_user()->set_screen_width( whatever ) ... I strongly urge figures greater than 10 ( even 40 is pushing the useability) .. the "width" command will work as soon as I figure out why inp(1) returns 0 :P
+Beek made some changes to memcheck_d and permissions on system_post/remove_post
 
-Ohara finished width
+Beek added some code to deal with a new body when loading from a save file.  update_for_new_body() is called (currently does nothing)
 
-Ohara moved the status line to /std/body
+Beek fixed 'people' to work when someone is '(Nowhere)'
 
-Ohara changed the status line to use screen widths.]
+Beek added a couple unguarded()'s to the dbx* commands so that non-admins can use them
 
-Ohara fixed two bugs in lava room..
+Beek changed NEWS_D to only save the changes since the last time it loaded each time a change is made; this is a HUGE efficiency gain.  The full save file is updated either (1) when remove() is called or (2) when the object loads and notices it didn't get removed
 
-Valentino installed a brand new MONEY_D. Nifty one. :)
+Beek made NEWS_D rip all information about deleted posts when it loads.  Blame Ohara if this is a bad idea and we end up having to restore from a backup :-)
 
-Valentino installed /trans/obj/admtool/money.c as interface to the money_d. ('admtool' 'c')
+Beek fixed the newsreader to deal with the above changes
 
-Valentino added a cmd 'date'. (optional flag -s for "easy-snap-line-deluxe").
+Ohara made autoadmin NOT require you to have AUTO_WIZ defined.
 
-Valentino put in a new 'people' cmd + manpage. (Read the man page).
+Beek added a default_message() function to /std/monster/simple.c
 
-Zifnab test
+Beek fixed parse_imud_soul() to deal correctly with error messages from the parser
 
-Zifnab fixed the problem with can_go_foo, and do_go_foo for special case exits.  however see news for more info
+Beek added a remove() function to M_WEARABLE to take care of clearing body slots
 
-Valentino added a (query_userid()) to the errors channel.
+Beek fixed the scarf to only set it's body slot if they are in use
 
-Ohara added a /clear option to channels ... you need to be admin or channel moderator to use it.
+Beek fixed more not to error when a search fails
 
-Beek fixed converse to show it's output again
+Beek made pictures save their images
 
-Rust added a default allow() to /std/body
+Beek added a 'renew' command. (basically, it takes an object, saves it to a string, does an update -z on the file, clones a new one, restores it from the string, and puts it back where it was)
 
-Rust fixed it so adding quests from admtool saves once again
+Deathblade tweaked the stat_me() in /secure/user/inputsys.c to check previous priv for 1 to allow admins to debug any user, not just other admins.
 
-Rust made die() not bug w/ a too deep recursion error if you don't use corpses
+Deathblade cleaned out a lot of the obsolete flags and obsolete header files.
 
-Zakk finally acknowledges that armorslot stuff is in, see news.
+Ohara moved update.c to update.bak (It was broken!) and replaced it with a fresh copy from alpha (Ta Kinison)
 
-Ohara updated version :)
+Ohara fixed secret doors to return standard exit error/ default message when you attempt to walk through them.
 
-Zifnab fixed the /std/sword, messages problem.  The /daemons/messages_d.c has a #if COMBAT_SIMPLE in it that was excluding the message type for t combat-sword.  I commented this out and everythign seems to be ok.  One other note is that this is the way it was in the alpha release, kind of curious wh yit just cropped up.
+Beek fixed new_prompt() in /std/menu.c to return it's result (thx Tigran)
 
-Ohara notes the linkdead reconnection problem is fixed. Don't Ask.
+Beek fixed it so you don't get errors if you don't have a body.
 
-Ohara need to find somene who got the one lie bug ... I know of three ... haven't seen any in a while :)
+Beek fixed it so you can 'su' when you don't have a body (and get a new one)
 
-Ohara may have fixed the oe-line status line bug thanks to Efindel .. if anyone had the problem before can you please check and let me know (IE: Rust, Efindel, Fathom <and any others>) Thanks .. ReTodo: Nice way to rip didlogs.
+Beek fixed the 'nothing before pipe' bug
 
-Ohara fixed mail reply. Obviously it's real used here since noone's bugged it here and it's been broke for a while (er news reply that is)
+Ohara removed the M_SAVE inherit from M_VENDOR.
 
-Rust modified BLOCKEXITS so that if the object doing the blocking doesn't have an environment, it assumes that you want to block in this_object()
+Ohara made the oak door hidden again rather than secret - I needed a suitable testsubject and it was it :)
 
-Zifnab reinstalled the old money_d, the new one is cool and all but it didnt work with existing stuff.
+Ohara fixed a typo in mudlist when only 1 mud of a type was up.
 
-Zifnab will look into reinstalling the new one
+Ohara fixed a very small bug in finger @ if the person wasn't idle.
 
-Deathblade did something. Really. I removed the old quota crap from SECURE_D.
+Ohara fixed the /close bug in telnet (with the exception if you use /tog )
 
-Rust installed Wraith's pull verb
+Ohara fixed the multiple edits clearing the edit flag problem. Who needs elegant anyway.
 
-Ohara fixed Move Post in news ..
+Ohara fixed the marking of people in editing in who.
 
-Ohara fixed who in login to be nice for only one person on, and streamlined a bit.
+Beek added 'uncd'.  Returns you to the last dir you were in before you cd'ed.  Twice brings you back.
 
-Ohara fixed a bug where guet doing !whatever would dump back to login ... modal_pop() was missing,
+Ohara fixed a bug in /std/body - it was still using shout(). Note that the fix uses bodies rather than users - this stops people loggin in from getting deth messages.
 
-Beek fixed a bug in putting together 'x, y, or z' lists in parser error messages
+Beek changed FNAME to only be parsed if FILE, CFILE, or OBFILE have all failed
 
-Ohara changed news so that catching up (c) a group will send you to the next group with unread news.
+Beek added OBFILE which is CFILE + get_object()
 
-Ohara fixed MOVE_NOT_RECIEVED to MOVE_NOT_RECEIVED (ta Servo)
+Beek made ed and more use OBFILE
 
-Ohara removed the spare door from wizroom. Beek fixed the bug that it demonstrated :)
+Beek : showtree too
 
-Ohara changed news so that you can now do news <group> from shell.
+Beek fixed OBFILE to recognize 'plain' filenames
 
-Deathblade fixed IMAIL_D to send a string for the mail contents, not an array of strings. Tweaked MAIL_D->send_mail() to accept a string for the body (and explode it).
+Ohara fixed ... another bug in cangodo
 
-Ohara merged the logins and quits -> logins ... gosh it was simple :)
+Ohara stopped people from exiting the car while in the carwash.
 
-Ohara did help for question, and updated idea/bug/typo
+Beek made channels stand out a bit more; also moved the format to the top of the file (after tracking down 238943 instances ...)
 
-Ohara did the mods to soul_d /cmds/wiz ->CMD_*
+Ohara notes that 12 to 22 is a big leap. This upgrade has been brought to you by the letters S and Z, and the number 10
 
-Zifnab fixed m_actions so that say foo works again
+Ohara notes that not only AREN'T we on the new driver, but Christmas has also been cancelled.
 
-Ohara fixed the "do you mean one of the sword or the blah" error.
+Zifnab notes we are now on v22b22 tho not completely yet (no soul_d)
 
-Ohara fixed news so that newsgroups with deadd news past the high water mark are not marked as unread. There's probably a better way, but this was fairly efficient as far as new code goes (more efficient would be to replace the call. FFF :)
+Ohara notes that Beek said it would only break one hard to find thing .... ;)
 
-Ohara fixed  LOT of typos in the message daemon.
+Ohara and Zifnab agree: DON'T ask what happened to souls. READ THE DID LOG READ THE DID LOG CAN IT BE ANY PLAINER THAN THIS
 
-Ohara slashed reporter.typos, but will refrain from slashing behemoth.leaks
+Ohara fixed /std/object/names::id() and ::plural_id() to check for the existance of arrays before checking them ... fixes the objects( (: id( "sword" ) :)) bug hopefully ...
 
-Ohara fixed doors not to be autotaken.
+Ohara er: @objects( (: $1->id( "sword" ) :)) (yes it does work)
 
-Ohara tweaked the sword of mercy's names.
+Ohara put val's temp fix for the soul_d in, and ripped the half-done current code ... To be returned to <1 in a future driver.
 
-Ohara added "feedback", which posts to lima.discussion ...
+Beek changed update to work on obfiles instead of cfiles
 
-Ohara alphabetised flist -i <obj> .. ufortunately this required the reversal of file and function. LWI or FFF :)
+Beek fixed the more command to call more() with an array (we want them in more once with n files, not n times with 1 file)
 
-Zifnab installed valentino's people command, making the deafult look like the old people
+Zakk fixed semote. *yawn*
 
-Deathblade installed Barnes' updates to admtool's banish code. Much more "admtool-ish". New option, too: Nuke and Pave.
+Ohara fixed mail to (admin)
 
-Deathblade also tweaked admtool.c's check for admin status for banish and moved that into the banish.c file like all the others.
+Ohara fixed mail not to include people on the Cclist that are on the To list.
 
-Zifnab made it so taht ghosts cannot be attacked
+Ohara ripped moreob since it's now redundant
 
-Zifnab rephrases that last didlog, attacking a ghost gives a meaningful message now
+Zifnab fixed the player menu to show adverbs correctly
 
-Zifnab made it sot hat ghosts cannot cast spells
+Beek changed dest not to mention objects w/o names to the room
 
-Ohara converted all the mixed * in /cmds/verbs/ to mixed array
+Beek fixed makeroom to protect quotes
 
-Beek fixed /std/body so IT LOADS; Ohara be more careful when converting things
+Zifnab installed the ne driver docs
 
-Zifnab made it so that players don't see I3 channels in chanlist
+Beek added colour_strlen() and colour_truncate() to M_ANSI
 
-Ohara changed the mixed array in the verbs/verb_ob to array. AFAIK this entirely failed to hose anything .. this time :)
+Beek fixed who to truncate correctly
 
-Zakk would like to know on why when a person uses /.rhosts within a DNS network,
+Zifnab made inheriting m_edible make objects gettable by default.
 
-Zakk am unable to find the RFC that discusses this. Yes I do know that this
+Zifnab doh looks at his didlog, he meant to say inheritng m_gettable
 
-Zakk hates mouse misfires with weird stuff in the buffer.
+Beek fixed who to take the length of idle_string into account only once
 
-Ohara changed admtool's security dir listing to check for directory existance.
+Zifnab fixed the grid_server, /secure/master.c compile_object() was prependign a / onto the path.
 
-Beek removed the check_vision() call from diagnose
+Zifnab recompiled v22b22 with debuggin on
 
-Deathblade fixed OOB error handling. the packet was malformed. Thanx to Tim@Dysfunctional Mud for finding this.
+Beek added a /contrib directory; see /contrib/README for details
 
-Ohara shortened idle format somewhat.
+Beek moved /obj/http_connection.c to /contrib/http_connection.c, since /daemons/http_d.c is used by default.
 
-Zifnab fixed the log in problem.  it was a "" in the banished names list
+Beek added a CONFIGURABLE_COLOURS option (which is currently on here).  Try 'colours', 'colours channel red', etc
 
-Deathblade fixed sparse_obj to not insert its master into a room (or whatever) when it got loaded
+Deathblade fixed M_DAEMON_DATA to use unguarded() for the file_size() call. it was spamming a log.
 
-Ohara fixed two mail bugs: 1/ Decapsed the To-list to ensure that To: OHaRa would work, and 2/ removing non-existant people it was sent to.
+Ohara added SIGN to mudlib.h, and made the sign in the example area use it.
 
-Ohara fixed wall <noarg>
+Ohara made the backpack wearable.
 
-Ohara ripped the #ifdef CONF_IN_PROGRESS lines (3!) since the CONF_D has vanished and probably won't be back.
+Ohara fixed guilds so that NPCs could inherit /std/body/guilds and not get tripped up on security.
 
-Ohara fixed people to space correctly on players.
+Ohara random elements or are they defined as evil somehow?
 
-Ohara changed the channel_d so that you can't do an empy emote
+Ohara oops :)
 
-Ohara fixed get obj to include a (From whoever) when appropriate ... (it will eventually filter up :)
+Deathblade removed the extra CR from channel souls.
 
-Ohara removed the fix .. it added a nasty problem.
+Deathblade made monster not override create(). That prevented monster subclasses from using args in create() and/or mudlib_setup(). Recall that all mudlib objects should use mudlib_setup().
+
+Ohara added GUILD_GUARD (/std/guild_guard) / (/domains/std/guild_guard uses it)
+
+Ohara changed M_OPENABLE::set_closed() to have an extra short of closed as well as open ... This means that the backpack will now display "a backpack (closed)" when in your inventory.
+
+Ohara added a lima.priority group for things that are  arbritrarily chosen by whoever (Read: _admins_ :) ... expect things to pop bac and forth between there and normal groups <shudder> ;)
+
+Beek fixed more_ob not to use ansi()
+
+Beek added a 'cannonical_form' sefun, which converts alternate forms of object names to a standard form
+
+Beek fixed make_objects_if_needed() to use cannonical_form() to do the comparisons
+
+Beek made the shutdown() sefun error if the security check fails, instead of just silently failing
+
+Beek merged SHUTDOWN_D back into the shutdown command, removing about half a dozen calls between the two in the process (this also means timed shutdowns should work now)
+
+Beek fixed the cmd_rule for shutdown (thx kinison)
+
+Beek fixed SHUTDOWN_D not to say '1 minutes'
+
+Ohara fixed the Invalid privilege message to add some spaces in there :)
+
+Beek fixed 'drop all' when you have nothing, and removed the 'drop STR' rule (next person to use STR for error handling gets shot)
+
+Deathblade changed the SOCKET object to log an error at remove() time, rather than refuse to be removed.
+
+Deathblade tweaked a couple the Deleting prompt in the newsreader
+
+Beek fixed 'look for beek', 'look for ground'
+
+Zifnab removed about 300 FTP bug reports, and supplied one in summary
+
+Beek cleaned up CMD_D::parse_arg() [also fixes update]
+
+Beek fixed 'set foo bar' to set $foo to "bar" and not " bar"
+
+Beek notes he meant: 'set foo bar bazz' to set $foo to "bar bazz" and not " bar bazz"
+
+Beek fixed 'unset'
+
+Beek fixed 'unset' to print an error if no such var exists, instead of just saying 'Ok.'
+
+Beek fixed a bug in DIR handling in the CMD_D
+
+Rust gave FTP_D a clean_up()
+
+Beek added LPSCRIPT_D; more functionality and examples forthcoming
+
+Deathblade cleaned out the last this_player() and added an override. Removed a notify_fail() override and some related crap code in M_PARSING.
 

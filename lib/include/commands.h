@@ -44,6 +44,7 @@
 #define CMD_OB_LS		CMD_DIR_NO_RESTRICT "/ls"
 #define CMD_OB_ADMTOOL		CMD_DIR_NO_RESTRICT "/admtool"
 #define CMD_OB_FINGER_REAL	CMD_DIR_NO_RESTRICT "/finger"
+#define CMD_OB_UPDATE		CMD_DIR_NO_RESTRICT "/update"
 
 /*
 ** Verb objects

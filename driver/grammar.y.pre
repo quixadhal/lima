@@ -1222,15 +1222,15 @@ comma_expr:
 expr0:
 	lvalue L_ASSIGN expr0
 	    {
-	        parse_node_t *r = $1, *l = $3;
+	        parse_node_t *l = $1, *r = $3;
 		/* set this up here so we can change it below */
 		
-		CREATE_BINARY_OP($$, $2, l->type, l, r);
+		CREATE_BINARY_OP($$, $2, r->type, r, l);
 
 		if (exact_types && !compatible_types(r->type, l->type) &&
 		    !($2 == F_ADD_EQ
-		      && l->type == TYPE_STRING && 
-		      COMP_TYPE(r->type, TYPE_NUMBER))) {
+		      && r->type == TYPE_STRING && 
+		      COMP_TYPE(l->type, TYPE_NUMBER))) {
 		    char buf[256];
 		    char *end = EndOf(buf);
 		    char *p;
@@ -1241,7 +1241,7 @@ expr0:
 		    yyerror(buf);
 		}
 
-		$$->l.expr = do_promotions(l, r->type);
+		$$->l.expr = do_promotions(r, l->type);
 	    }
     |   error L_ASSIGN expr0
 	    {
@@ -2029,7 +2029,7 @@ return:
 	L_RETURN ';'
 	    {
 		if (exact_types && !IS_TYPE(exact_types, TYPE_VOID))
-		    yyerror("Non-void functions must return a value.");
+		    yywarn("Non-void functions must return a value.");
 		CREATE_RETURN($$, 0);
 	    }
     |   L_RETURN comma_expr ';'
@@ -2318,7 +2318,9 @@ expr4:
     |   '$' '(' 
             {
 		$<contextp>$ = current_function_context;
-		current_function_context = current_function_context->parent;
+		/* already flagged as an error */
+		if (current_function_context)
+		    current_function_context = current_function_context->parent;
             }
         comma_expr ')'
             {
@@ -2407,35 +2409,43 @@ expr4:
                     }
                 }
 		CREATE_BINARY_OP($$, F_RINDEX, 0, $4, $1);
-                if (exact_types){
-                    if ($1->type == TYPE_MAPPING || $1->type == TYPE_ANY) {
-                        $$->type = TYPE_ANY;
-                    } else {
-                        switch($1->type){
-                            case TYPE_FUNCTION:
-                                $$->type = TYPE_ANY;
-                                break;
-
-			    case TYPE_STRING:
-			    case TYPE_BUFFER:
-                                $$->type = TYPE_NUMBER;
-                                break;
-
-			    default:
-                                if ($1->type & TYPE_MOD_ARRAY)
-                                    $$->type = $1->type & ~TYPE_MOD_ARRAY;
-                                else{
-                                    type_error("Value indexed has a bad type ", $1->type);
-                                    $$->type = TYPE_ANY;
-                                }
-			    }
-                        if (!IS_TYPE($4->type,TYPE_NUMBER))
-                            type_error("Bad type of index", $4->type);
-                    }
-                } else $$->type = TYPE_ANY;
+                if (exact_types) {
+		    switch($1->type) {
+		    case TYPE_MAPPING:
+			yyerror("Illegal index for mapping.");
+		    case TYPE_ANY:
+			$$->type = TYPE_ANY;
+		    case TYPE_STRING:
+		    case TYPE_BUFFER:
+			$$->type = TYPE_NUMBER;
+			if (!IS_TYPE($4->type,TYPE_NUMBER))
+			    type_error("Bad type of index", $4->type);
+			break;
+			
+		    default:
+			if ($1->type & TYPE_MOD_ARRAY) {
+			    $$->type = $1->type & ~TYPE_MOD_ARRAY;
+			    if (!IS_TYPE($4->type,TYPE_NUMBER))
+				type_error("Bad type of index", $4->type);
+			} else {
+			    type_error("Value indexed has a bad type ", $1->type);
+			    $$->type = TYPE_ANY;
+			}
+		    }
+		} else $$->type = TYPE_ANY;
             }
     |   expr4 '[' comma_expr ']'
             {
+		/* Something stupid like ({ 1, 2, 3 })[1]; we take the
+		 * time to optimize this because people who don't understand
+		 * the preprocessor often write things like:
+		 *
+		 * #define MY_ARRAY ({ "foo", "bar", "bazz" })
+		 * ...
+		 * ... MY_ARRAY[1] ...
+		 *
+		 * which of course expands to the above.
+		 */
                 if (IS_NODE($1, NODE_CALL, F_AGGREGATE) && $3->kind == NODE_NUMBER) {
                     int i = $3->v.number;
                     if (i < 0 || i >= $1->l.number)
@@ -2454,29 +2464,27 @@ expr4:
 %endif		
                 CREATE_BINARY_OP($$, F_INDEX, 0, $3, $1);
                 if (exact_types) {
-                    if ($1->type == TYPE_MAPPING || $1->type == TYPE_ANY) {
-                        $$->type = TYPE_ANY;
-                    } else {
-                        switch($1->type) {
-                            case TYPE_FUNCTION:
-                                $$->type = TYPE_ANY;
-                                break;
-
-			    case TYPE_STRING:
-			    case TYPE_BUFFER:
-                                $$->type = TYPE_NUMBER;
-                                break;
-
-			    default:
-                                if ($1->type & TYPE_MOD_ARRAY)
-                                    $$->type = $1->type & ~TYPE_MOD_ARRAY;
-                                else{
-                                    type_error("Value indexed has a bad type ", $1->type);
-                                    $$->type = TYPE_ANY;
-                                }
+		    switch($1->type) {
+		    case TYPE_MAPPING:
+		    case TYPE_ANY:
+			$$->type = TYPE_ANY;
+			break;
+		    case TYPE_STRING:
+		    case TYPE_BUFFER:
+			$$->type = TYPE_NUMBER;
+			if (!IS_TYPE($3->type,TYPE_NUMBER))
+			    type_error("Bad type of index", $3->type);
+			break;
+			
+		    default:
+			if ($1->type & TYPE_MOD_ARRAY) {
+			    $$->type = $1->type & ~TYPE_MOD_ARRAY;
+			    if (!IS_TYPE($3->type,TYPE_NUMBER))
+				type_error("Bad type of index", $3->type);
+			} else {
+			    type_error("Value indexed has a bad type ", $1->type);
+			    $$->type = TYPE_ANY;
 			}
-                        if (!IS_TYPE($3->type,TYPE_NUMBER))
-                            type_error("Bad type of index", $3->type);
                     }
                 } else $$->type = TYPE_ANY;
             }
@@ -2934,7 +2942,8 @@ function_call:
 		if (current_function_context)
 		    current_function_context->bindable = FP_NOT_BINDABLE;
 		
-		cf = define_new_function($1->name, 0, 0, NAME_UNDEFINED, 0);
+		cf = define_new_function($1->name, 0, 0, 
+					 NAME_UNDEFINED | NAME_PROTOTYPE, 0);
 		f = COMPILER_FUNC(cf)->runtime_index;
 		$$->kind = NODE_CALL_1;
 		$$->v.number = F_CALL_FUNCTION_BY_ADDRESS;
@@ -2985,7 +2994,7 @@ function_call:
 		      $$->type = validate_function_call(f, $3->r.expr);
 		  } else {
 		      f = define_new_function(name, 0, 0, 
-					      NAME_UNDEFINED, 0);
+					      NAME_UNDEFINED | NAME_PROTOTYPE, 0);
 		      f = COMPILER_FUNC(f)->runtime_index;
 		  }
 		  $$->l.number = f;

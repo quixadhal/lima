@@ -12,9 +12,8 @@
 #include <security.h>
 #include <commands.h>
 
-inherit M_ACCESS;
+inherit M_DAEMON_DATA;
 
-#define SAVE_FILE	"/data/daemons/spell_d"
 #define PRIV_REQUIRED	"Mudlib:daemons"
 
 // Save this....
@@ -24,11 +23,6 @@ private string array  spell_dirs = ({});
 // We build this each create.
 private static mapping spell_table = ([ ]);
 
-
-private void save_me()
-{
-    unguarded(1, (: save_object, SAVE_FILE :));
-}
 
 void add_spell_dir(string dir)
 {
@@ -117,8 +111,7 @@ string get_spell_obname(string spell_name)
 
 void create()
 {
-    set_privilege(1);
-    restore_object(SAVE_FILE);
+    ::create();
     build_spell_table();
 }
 

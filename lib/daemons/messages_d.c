@@ -18,7 +18,7 @@ mapping messages =
      "serious" :
     ({ "$N $vunleashes a series of stunning blows to $p1 head!  $N1 $v1are hurt badly!\n",
        "$N1 $v1are caught off guard, and $n $vtake advantage and pummel $t soundly.\n" }),
-     "fatal" : "$N $vdrive $t back with a series punches of kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
+     "fatal" : "$N $vdrive $t back with a series of punches and kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
     
     "disarm" : "$N $vgrab $p1 arm, and $vslam it down on $p knee, causing $n1 to drop $p1 $o1.\n",
     "knockdown" : "$N $vstep behind $t, and $vtrip $t, sending $t flying.\n",
@@ -35,7 +35,7 @@ mapping messages =
     ({ "$N $vhit $t in the midsection with $p $o.\n" }),
     "serious" :
     ({ "$N $vconnect with quick blows from $p $o!  $N1 $v1are hurt badly.\n" }),
-     "fatal" : "$N $vdrive $t back with a series punches of kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
+     "fatal" : "$N $vdrive $t back with a series of punches and kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
     "disarm" : "$N $vgrab $p1 arm, and $vslam it down on $p knee, causing $n1 to drop $p1 $o1.\n",
     "knockdown" : "$N $vstep behind $t, and trips $t, sending $t flying.\n",
     "knockout" : "$N $vdeliver a quick jab to the head; $N1 $v1are knocked cold.\n",
@@ -52,7 +52,7 @@ mapping messages =
     "disarm" : "$N $vgrab $p1 arm, and $vslam it down on $p knee, causing $n1 to drop $p1 $o1.\n",
     "knockdown" : "$N $vstep behind $t, and trips $t, sending $t flying.\n",
     "knockout" : "$N $vfeint past $p1 guard and $vknock $t senseless.\n",
-    "fatal" : "$N $vdrive $t back with a series punches of kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
+    "fatal" : "$N $vdrive $t back with a series of punches and kicks, and $vend with a stunning kick to the head.  $N1 $v1slump to the ground, motionless.\n",
     "dam1" : "$N $vland a weak punch to $p1 midsection.\n",
     "dam2" : "$N $vcatch $t square in the face with a quick jab.\n",
     "dam3" : "$N $vconnect with a kick to $p1 midsection.\n",

@@ -17,7 +17,9 @@
 ** Deathblade, 960101: created
 */
 
-inherit DAEMON;
+#include <security.h>
+
+inherit M_ACCESS;
 
 static private string * descriptions;
 static private string * grid_desc_id;
@@ -35,6 +37,9 @@ static private string	brief_desc;
 #define SOUTH_EDGE(x)	edge_rooms[(x)+GRID_WIDTH+GRID_HEIGHT]
 #define WEST_EDGE(y)	edge_rooms[(y)+2*GRID_WIDTH+GRID_HEIGHT]
 
+void create() {
+    set_privilege(1);
+}
 
 void set_descriptions(string * new_desc)
 {
@@ -45,6 +50,7 @@ string query_brief()
 {
     return brief_desc;
 }
+
 void set_brief(string new_brief)
 {
     brief_desc = new_brief;
@@ -69,6 +75,7 @@ void use_data_file(string fname)
 void setup()
 {
 }
+
 object virtual_create(string arg)
 {
     int idx = member_array('/', arg);
@@ -79,8 +86,8 @@ object virtual_create(string arg)
     string exit_s;
     string exit_w;
     object room;
+   setup();
 
-setup();
     if ( idx == -1 )
 	return 0;
 
@@ -117,5 +124,10 @@ setup();
 
 
     return room;
+}
+
+// Disappear if no longer needed
+static void clean_up() {
+    destruct(this_object());
 }
 

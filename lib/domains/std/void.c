@@ -2,7 +2,7 @@
 
 #include <mudlib.h>
 
-inherit ROOM;
+inherit INDOOR_ROOM;
 
 void setup(){
 

@@ -727,6 +727,7 @@ void f_ed_start PROT((void))
     res = object_ed_start(current_object, fname, restr);
 
     if (fname) free_string_svalue(sp);
+    else ++sp;
     
     if (res) {
 	sp->subtype = STRING_MALLOC;
@@ -1427,8 +1428,8 @@ void
 f_map_delete PROT((void))
 {
     mapping_delete((sp - 1)->u.map, sp);
-#ifndef COMPAT_32
     pop_stack();
+#ifndef COMPAT_32
     free_mapping((sp--)->u.map);
 #endif
 }

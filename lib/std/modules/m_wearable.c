@@ -21,6 +21,25 @@ private static int	is_on;
 private static string	slot;
 #endif
 
+
+mixed ob_state() {
+    if (!is_on) return 0;
+#ifdef USE_BODYSLOTS
+    return slot;
+#else
+    return 1;
+#endif
+}
+
+void
+remove() {
+#ifdef USE_BODYSLOTS
+    if(!slot)
+        return 0;
+    environment()->depopulate_body_slot(slot, this_object());
+#endif        
+}
+
 //:FUNCTION set_wearmsg
 //Set the message used when an object is worn.
 void
@@ -102,6 +121,10 @@ do_remove() {
 //Handle parser checks for "wear OBJ"
 mixed  direct_wear_obj() {
 
+object who = owner(this_object());
+
+if (who != this_body())
+   return 0;
     if(!this_body()->has_body_slot(slot))
         return "You can't seem to find anywhere to put it on!\n";
     if( is_on )
@@ -112,6 +135,10 @@ mixed  direct_wear_obj() {
 //:FUNCTION direct_remove_obj
 //Handle parser checks for "remove OBJ"
 mixed direct_remove_obj() {
+  object who= owner(this_object());
+
+  if(who != this_body())
+    return 0;
     if (environment() != this_body() || !is_on)
 	return "But you aren't wearing it!\n";
     return 1;

@@ -36,7 +36,7 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
 	    write("You remain where you are.\n");
 	    return 0;
 	}
-	      
+
 	switch(r) {
 	case MOVE_NO_DEST:
 	    write("Construction blocks your path.\n");
@@ -46,13 +46,13 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
 	    if(d->query_max_capacity()-d->query_capacity()-VERY_LARGE < 0) {
 		if(sizeof(filter(all_inventory(d),(:$1->is_living():)))) {
 		    write("You might be able to fit if there weren't "
-			       "something moving around there already.\n");
+		      "something moving around there already.\n");
 		} else {
 		    write("You're unable to fit.\n");
 		}
 	    } else {
 		write("You aren't able to fit with the load you're "
-		      "carrying.\n");
+		  "carrying.\n");
 	    }
 	    return 0;
 	default:
@@ -61,8 +61,8 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
 	}
     }
 
-//### bogus place to show the path... probably should be handled in
-//### another way
+    //### bogus place to show the path... probably should be handled in
+    //### another way
     if ( test_flag(F_DISPLAY_PATH) )
     {
 	printf("[ %s ]\n", file_name(environment(this_body())));
@@ -78,7 +78,7 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     // This should be done better when smartmove gets cleaned up.  Right now
     // Furniture uses it, and anything else inheriting NON_ROOM probably does.
     if(!txt)
-      txt = environment()->handle_exit_msgs(last_loc);
+	txt = environment()->handle_exit_msgs(last_loc);
     if ( !txt )
     {
 	msgs = get_player_message("leave", arg);
@@ -86,13 +86,13 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     }
     else
     {
-      msgs = action(({this_object()}), txt);
-      tell_from_outside(this_object(), msgs[0]);
-      tell_from_inside(last_loc, msgs[1], 0, ({ env }));
+	msgs = action(({this_object()}), txt);
+	tell_from_outside(this_object(), msgs[0]);
+	tell_from_inside(last_loc, msgs[1], 0, ({ env }));
     }
 
 
-//###there is a note in room.c about this being bogus
+    //###there is a note in room.c about this being bogus
     txt = env->query_enter_msg(arg);
     if ( !txt )
     {
@@ -101,7 +101,7 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     }
     else
     {
-      simple_action(txt);
+	simple_action(txt);
     }
 
     return r == MOVE_OK;
@@ -134,15 +134,15 @@ int move_to(string dest, mixed dir)
 
     dest = evaluate(dest);
     if (move_me_there(dest, dir, where)) {
-      where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
+	where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
 
     }
 
     if ( where != environment() )
-      {
+    {
 	this_object()->notify_move();
 	return 1;
-      }
+    }
     return 0;
 }
 
@@ -150,24 +150,35 @@ varargs mixed call_hooks();
 
 int go_somewhere(string arg)
 {
-    object env = environment();
+    object env = environment( this_object());
     string value = env->query_exit_value(arg);
-    string ex;
 
-    // allowed by the room itself; some sort of 'special' exit
-    if (!value) {
-	return call_other(env, "do_go_" + arg);
-    }
+
     // This should have been trapped already, but just in case:
+    if( !value )
+	return call_other( env, "do_go_" + arg );
     if (value[0] == '#') {
 	write(value[1..]);
 	return 0;
     }
 
     if (env->call_hooks("block_" + arg, HOOK_LOR, 0, arg)
-	|| env->call_hooks("block_all", HOOK_LOR, 0, arg))
+      || env->call_hooks("block_all", HOOK_LOR, 0, arg))
 	return 0;
 
     return move_to(value, arg);
+}
+
+void do_go_somewhere( string arg )
+{
+    int ret = 0;
+object env = environment( this_object());
+
+    // allowed by the room itself; some sort of 'special' exit
+    if( function_exists( "do_go_" + arg, env ))
+	ret = call_other(env, "do_go_" + arg);
+    if(!ret)
+	go_somewhere( arg );
+    return;
 }
 

@@ -7,7 +7,7 @@ inherit M_GRAMMAR;
 
 private void main(string which)
 {
-    mixed * data;
+    mapping data;
     mixed * info;
 
     if ( !which )

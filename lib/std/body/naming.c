@@ -6,7 +6,6 @@
 ** 960603, Deathblade: created.
 */
 
-#include <playerflags.h>	/* for F_DEAD */
 #include <commands.h>		/* for CMD_OB_xxx */
 
 private string name = "guest";
@@ -36,7 +35,6 @@ string query_name()
 {
     if ( invis_name == cap_name || !invis_name ) invis_name = "Someone";
     if ( !is_visible() ) return invis_name;
-    if ( test_flag(F_DEAD) ) return "A ghost";
     return cap_name;
 }
 
@@ -121,7 +119,7 @@ string query_formatted_desc(int num_chars)
 	num_chars -= (i + 1);
 	idle_string = " " + idle_string;
     }
-    return truncate(base_in_room_desc(), num_chars) +  idle_string;
+    return M_ANSI->colour_truncate(base_in_room_desc(), num_chars) + idle_string;
 }
 
 void set_description(string str)

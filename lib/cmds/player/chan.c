@@ -36,7 +36,7 @@ private void main(string arg)
 	{
 	    if ( arg != "-d" )
 		channel_list = map(channel_list,
-				   (: NCHANNEL_D->user_channel_name($1) :));
+				   (: CHANNEL_D->user_channel_name($1) :));
 
 	    out("You are listening to: " +
 		  implode(channel_list, ", ") + ".\n");
@@ -57,5 +57,5 @@ private void main(string arg)
 
     chan_type = channel_name[0..4] == "imud_";
 
-    NCHANNEL_D->cmd_channel(channel_name, arg, chan_type);
+    CHANNEL_D->cmd_channel(channel_name, arg, chan_type);
 }

@@ -60,6 +60,7 @@ INLINE void f_and()
     CHECK_TYPES(sp, T_NUMBER, 2, F_AND);
     sp--;
     sp->u.number &= (sp + 1)->u.number;
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -72,6 +73,7 @@ f_and_eq()
     if ((--sp)->type != T_NUMBER)
 	error("Bad right type to &=\n");
     sp->u.number = argp->u.number &= sp->u.number;
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -85,6 +87,7 @@ f_div_eq()
 	{
 	    if (!sp->u.number) error("Division by 0nn\n");
 	    sp->u.number = argp->u.number /= sp->u.number;
+	    sp->subtype = 0;
 	    break;
 	}
 
@@ -126,6 +129,7 @@ f_eq()
 	{
 	    --sp;
 	    sp->u.number = sp->u.number == (sp+1)->u.number;
+	    sp->subtype = 0;
 	    return;
 	}
 	
@@ -134,6 +138,7 @@ f_eq()
 	    --sp;
 	    sp->type = T_NUMBER;
 	    sp->u.number = sp->u.real == (sp+1)->u.real;
+	    sp->subtype = 0;
 	    return;
 	}
 	
@@ -146,6 +151,7 @@ f_eq()
 		sp->u.number = sp->u.real == (sp+1)->u.number;
 		sp->type = T_NUMBER;
 	    }
+	    sp->subtype = 0;
 	    return;
 	}
 	
@@ -204,9 +210,7 @@ f_eq()
 	i = 0;
     }
     /* args are freed, stack pointer points to spot for return value */
-    sp->type = T_NUMBER;
-    sp->subtype = 0;
-    sp->u.number = i;
+    put_number(i);
 }
 
 INLINE void
@@ -216,23 +220,26 @@ f_ge()
     switch ((--sp)->type | i) {
     case T_NUMBER:
 	sp->u.number = sp->u.number >= (sp+1)->u.number;
+	sp->subtype = 0;
 	break;
     case T_REAL:
-	sp->u.number = sp->u.real >= (sp+1)->u.real;
-	sp->type = T_NUMBER;
+	i = sp->u.real >= (sp+1)->u.real;
+	put_number(i);
 	break;
     case T_NUMBER | T_REAL:
 	if (i == T_NUMBER) {
 	    sp->type = T_NUMBER;
 	    sp->u.number = sp->u.real >= (sp+1)->u.number;
-	} else sp->u.number = sp->u.number >= (sp+1)->u.real;
+	} else {
+	    sp->u.number = sp->u.number >= (sp+1)->u.real;
+	}
+	sp->subtype = 0;
 	break;
     case T_STRING:
 	i = strcmp(sp->u.string, (sp+1)->u.string) >= 0;
 	free_string_svalue(sp + 1);
 	free_string_svalue(sp);
-	sp->type = T_NUMBER;
-	sp->u.number = i;
+	put_number(i);
 	break;
     default:
 	{
@@ -255,23 +262,25 @@ f_gt() {
     switch ((--sp)->type | i) {
     case T_NUMBER:
 	sp->u.number = sp->u.number > (sp+1)->u.number;
+	sp->subtype = 0;
 	break;
     case T_REAL:
 	sp->u.number = sp->u.real > (sp+1)->u.real;
 	sp->type = T_NUMBER;
+	sp->subtype = 0;
 	break;
     case T_NUMBER | T_REAL:
 	if (i == T_NUMBER) {
 	    sp->type = T_NUMBER;
 	    sp->u.number = sp->u.real > (sp+1)->u.number;
 	} else sp->u.number = sp->u.number > (sp+1)->u.real;
+	sp->subtype = 0;
 	break;
     case T_STRING:
 	i = strcmp(sp->u.string, (sp+1)->u.string) > 0;
 	free_string_svalue(sp+1);
 	free_string_svalue(sp);
-	sp->type = T_NUMBER;
-	sp->u.number = i;
+	put_number(i);
 	break;
     default:
 	{
@@ -332,6 +341,7 @@ f_le()
 	    }
 	}
     }
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -369,6 +379,7 @@ f_lt() {
 	    bad_argument(sp-1, T_NUMBER | T_STRING | T_REAL, 1, F_LT);
 	}
     }
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -391,6 +402,7 @@ f_lsh_eq()
     if ((--sp)->type != T_NUMBER)
 	error("Bad right type to <<=\n");
     sp->u.number = argp->u.number <<= sp->u.number;
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -405,6 +417,7 @@ f_mod_eq()
     if (sp->u.number == 0)
 	error("Modulo by 0\n");
     sp->u.number = argp->u.number %= sp->u.number;
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -416,6 +429,7 @@ f_mult_eq()
 	case T_NUMBER:
 	{
 	    sp->u.number = argp->u.number *= sp->u.number;
+	    sp->subtype = 0;
 	    break;
 	}
 
@@ -465,6 +479,7 @@ f_ne()
         {
             --sp;
             sp->u.number = sp->u.number != (sp+1)->u.number;
+	    sp->subtype = 0;
             return;
 	}
 
@@ -473,6 +488,7 @@ f_ne()
             --sp;
             sp->type = T_NUMBER;
             sp->u.number = sp->u.real != (sp+1)->u.real;
+	    sp->subtype = 0;
             return;
 	}
 
@@ -485,6 +501,7 @@ f_ne()
                 sp->u.number = sp->u.real != (sp+1)->u.number;
                 sp->type = T_NUMBER;
 	    }
+	    sp->subtype = 0;
             return;
 	}
 
@@ -568,6 +585,7 @@ f_or_eq()
     if ((--sp)->type != T_NUMBER)
 	error("Bad right type to |=\n");
     sp->u.number = argp->u.number |= sp->u.number;
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -625,6 +643,7 @@ f_parse_command()
      * save return value on stack
      */
     fp->u.number = i;
+    fp->subtype = 0;
 }
 
 INLINE void
@@ -646,17 +665,17 @@ f_range P1(int, code)
             to = (--sp)->u.number;
             if (code & 0x01) to = len - to;
 #ifdef OLD_RANGE_BEHAVIOR
-            if (to < 0) to += len;
+            else if (to < 0)
+		to += len;
 #endif
             from = (--sp)->u.number;
             if (code & 0x10) from = len - from;
 #ifdef OLD_RANGE_BEHAVIOR
-            if (from < 0){
-                if ((from += len) < 0) from = 0;
-            }
-#else
-            if (from < 0) from = 0;
+            else if (from < 0)
+                from += len;
 #endif
+            if (from < 0) from = 0;
+
             if (to < from || from >= len) {
                 free_string_svalue(sp+2);
 		sp->type = T_STRING;
@@ -816,6 +835,7 @@ f_rsh_eq()
     if ((--sp)->type != T_NUMBER)
 	error("Bad right type to >>=\n");
     sp->u.number = argp->u.number >>= sp->u.number;
+    sp->subtype = 0;
 }
 
 INLINE void
@@ -827,6 +847,7 @@ f_sub_eq()
 	case T_NUMBER:
 	{
 	    sp->u.number = argp->u.number -= sp->u.number;
+	    sp->subtype = 0;
 	    break;
 	}
 
@@ -1138,6 +1159,7 @@ f_xor_eq()
     if ((--sp)->type != T_NUMBER)
 	error("Bad right type to ^=\n");
     sp->u.number = argp->u.number ^= sp->u.number;
+    sp->subtype = 0;
 }
 
 INLINE funptr_t *
@@ -1383,4 +1405,5 @@ f_sscanf()
      * save number of matches on stack
      */
     fp->u.number = i;
+    fp->subtype = 0;
 }

@@ -9,6 +9,7 @@
 #include <setbit.h>
 #include <driver/origin.h>
 #include <hooks.h>
+#include <clean_up.h>
 
 inherit OBJ;
 
@@ -240,6 +241,8 @@ void make_objects_if_needed()
 
     inv = all_inventory();
     foreach (file, value in objects) {
+	file = cannonical_form(file);
+
 	if (intp(value)) {
 	    num = value;
 	    rest = ({ });
@@ -248,7 +251,7 @@ void make_objects_if_needed()
 	    if(intp(value[0]))
 	    {
 		num = value[0];
-		rest = value - ({ value[0] });
+		rest = value[1..];
 	    }
 	    else
 	    {
@@ -268,11 +271,8 @@ void make_objects_if_needed()
 	    name = "";
 	tally = sizeof(filter_array(inv, (: $1->id($(name)) :) ));
 #endif
-	{
-	    if ( file[<2..] == ".c" )
-		file = file[0..<3];
-	    tally = sizeof(filter(inv, (: base_name($1) == $(file) :)));
-	}
+	tally = sizeof(filter(inv, (: cannonical_form($1) == $(file) :)));
+
 	num -= tally;
 	for (int j = 0; j < num; j++)
 	{
@@ -576,4 +576,16 @@ int stat_me()
     write("main_prep: " + main_prep + "\n");
     write("It contains:\n"+ show_contents() + "\n");
     return ::stat_me();
+}
+
+// If this is called, clean_up in /std/object has decided we might be
+// useless.  Make sure we don't have any 'people' inside us, though.
+int destruct_if_useless() {
+    foreach (object ob in deep_inventory(this_object())) {
+        object link = ob->query_link();
+
+        if (link && userp(link))
+            return ASK_AGAIN;
+    }
+    return ::destruct_if_useless();
 }

@@ -40,8 +40,3 @@ private void main(){
     }
 }
 
-int help(){
-    write("Usage:\n"
-      "The exits command shows what it says.\n");
-    return 1;
-}

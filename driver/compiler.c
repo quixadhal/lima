@@ -144,7 +144,7 @@ void clean_up_locals()
     int offset;
 
     offset = locals_ptr + current_number_of_locals - locals;
-    while (offset--){
+    while (offset--) {
 	locals[offset]->sem_value--;
 	locals[offset]->dn.local_num = -1;
     }
@@ -1384,6 +1384,7 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
     if (f != -1) {
 	/* should this move out of here? */
 	switch (predefs[f].token) {
+#ifdef F_SIZEOF
 	case F_SIZEOF:
 	    /* Obscene crap like: sizeof( ({ 1, i++, x + 1, foo() }) )
 	     *                    -> i++, foo(), 4
@@ -1400,6 +1401,7 @@ validate_efun_call P2(int, f, parse_node_t *, args) {
 		} else
 		    return node;
 	    }
+#endif
 	}
 
 	min_arg = predefs[f].min_args;

@@ -62,6 +62,7 @@ static void CDECL sig_cld SIGPROT;
 
 #ifdef TRAP_CRASHES
 static void CDECL sig_usr1 SIGPROT;
+static void CDECL sig_usr2 SIGPROT;
 static void CDECL sig_term SIGPROT;
 static void CDECL sig_int SIGPROT;
 
@@ -411,6 +412,9 @@ int main P2(int, argc, char **, argv)
 #ifdef SIGUSR1
     signal(SIGUSR1, sig_usr1);
 #endif
+#ifdef SIGUSR2
+    signal(SIGUSR2, sig_usr2);
+#endif
     signal(SIGTERM, sig_term);
     signal(SIGINT, sig_int);
 #ifndef DEBUG
@@ -621,6 +625,12 @@ static void CDECL PSIG(sig_usr1)
     apply_master_ob(APPLY_CRASH, 3);
     debug_message("Received SIGUSR1, calling exit(-1)\n");
     exit(-1);
+}
+
+/* Abort evaluation */
+static void CDECL PSIG(sig_usr2)
+{
+    eval_cost = 1;
 }
 
 /*

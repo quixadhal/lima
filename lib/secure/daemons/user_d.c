@@ -35,7 +35,7 @@
 #include <mudlib.h>
 #include <security.h>
 
-inherit DAEMON;
+inherit M_ACCESS;
 
 static private string *	legal_user_query =
 ({
@@ -69,6 +69,10 @@ class var_info
     object	ob;
     string	fname;
     string *	lines;
+}
+
+void create() {
+    set_privilege(1);
 }
 
 private nomask mixed query_online_object(object ob, string varname)

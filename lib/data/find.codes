@@ -10,15 +10,10 @@
 /include/combat.h
 /include/global.h
 /include/hooks.h
-/include/levels.h
-/include/monsterbits.h
 /include/move.h
 /include/ports.h
-/include/sample.h
 /include/security.h
 /include/setbit.h
-/include/timeout.h
-/include/wbits.h
 /include/weapon.h
 /include/edit.h
 /include/flags.h
@@ -52,6 +47,7 @@
 /include/damage_types.h
 /include/colour_conf.h
 /include/bodyslots.h
+/include/clean_up.h
 /std
 /std/body.c
 /std/object.c
@@ -218,6 +214,7 @@
 /std/outdoor_room.c
 /std/hidden_door.c
 /std/secret_door.c
+/std/guild_guard.c
 /data
 /data/M
 /data/players
@@ -250,12 +247,12 @@
 /data/players/README
 /data/daemons
 /data/daemons/alias.o
+/data/daemons/skill.o
+/data/daemons/spell.o
+/data/daemons/guild.o
 /data/daemons/soul.o
-/data/daemons/guild_d.o
-/data/daemons/spell_d.o
 /data/daemons/group.o
 /data/daemons/money.o
-/data/daemons/skill_d.o
 /data/links
 /data/links/r
 /data/links/a
@@ -286,6 +283,7 @@
 /data/links/z
 /data/news
 /data/news/archive
+/data/news/recent
 /data/mail
 /data/mail/mbox
 /data/mail/mbox/a
@@ -315,12 +313,12 @@
 /data/mail/mbox/y
 /data/mail/mbox/z
 /data/mail/mesg
-/data/mail/imud_queue.o
 /data/config
 /data/config/stock-guilds
 /data/config/guild-spec
 /data/config/FTPWELCOME
 /data/secure
+/data/secure/daemons
 /data/README
 /data/wshells
 /data/pshells
@@ -421,8 +419,8 @@
 /cmds/wiz/idfind.c
 /cmds/wiz/mvemote.c
 /cmds/wiz/null.c
-/cmds/wiz/where.bak
 /cmds/wiz/flist.bak
+/cmds/wiz/uncd.c
 /cmds/README
 /cmds/player
 /cmds/player/help.c
@@ -481,6 +479,7 @@
 /cmds/player/inventory.c
 /cmds/player/stell.c
 /cmds/player/feedback.c
+/cmds/player/colours.c
 /cmds/verbs
 /cmds/verbs/xyzzy.c
 /cmds/verbs/smell.c
@@ -781,6 +780,7 @@
 /help/wizard/coding/guilds/guild_d
 /help/wizard/coding/virtual
 /help/wizard/coding/classes
+/help/wizard/coding/tell
 /help/wizard/coding/function_pointers
 /help/wizard/coding/input_handling
 /help/wizard/coding/quests
@@ -857,8 +857,6 @@
 /daemons/timer_d.c
 /daemons/weather_d.c
 /daemons/memcheck_d.c
-/daemons/memcheck.c
-/daemons/shutdown_d.c
 /daemons/money_d.bak
 /daemons/money_d.bak.bak
 /daemons/money_d_valentino.c
@@ -973,6 +971,7 @@
 /domains/std/magic_box.c
 /domains/std/stone.c
 /domains/std/sword_in_stone.c
+/domains/std/guild_guard.c
 /domains/README
 /domains/testing
 /USAGE
@@ -982,6 +981,7 @@
 /secure/daemons
 /secure/daemons/log_d.c
 /secure/daemons/cmd_d.c
+/secure/daemons/lpscript_d.c
 /secure/daemons/mail_d.c
 /secure/daemons/new_user_d.c
 /secure/daemons/secure_d.c
@@ -1001,15 +1001,14 @@
 /secure/simul_efun/security.c
 /secure/simul_efun/more.c
 /secure/simul_efun/tell.c
-/secure/master.bak
 /secure/modules
 /secure/modules/m_file.c
 /secure/modules/m_access.c
+/secure/modules/m_daemon_data.c
 /secure/check_config.c
 /secure/obj
 /secure/obj/socket.c
 /secure/obj/cmd.c
-/secure/obj/daemon.c
 /secure/obj/mailbox.c
 /secure/obj/shell.c
 /secure/obj/shell
@@ -1059,7 +1058,6 @@
 /trans/cmds/du.c
 /trans/cmds/finger.c
 /trans/cmds/addto.c
-/trans/cmds/moreob.c
 /trans/cmds/grep.c
 /trans/cmds/dataedit.c
 /trans/cmds/cat.c
@@ -1083,7 +1081,6 @@
 /trans/cmds/telnet.c
 /trans/cmds/dbxwhere.c
 /trans/cmds/dbxframe.c
-/trans/cmds/suicide.bak
 /trans/cmds/cut.c
 /trans/cmds/head.c
 /trans/cmds/dbxfuncs.c
@@ -1106,6 +1103,7 @@
 /trans/cmds/times.c
 /trans/cmds/at.c
 /trans/cmds/in.c
+/trans/cmds/renew.c
 /trans/cmds/checkpriv.c
 /trans/cmds/addpath.c
 /trans/cmds/showpath.c
@@ -1129,6 +1127,7 @@
 /trans/obj/admtool/user.c
 /trans/obj/admtool/group.c
 /trans/obj/admtool/money.c
+/trans/obj/admtool/bug
 /trans/obj/admtool.c
 /trans/obj/dataedit.c
 /trans/tmp
@@ -1156,4 +1155,10 @@
 /WWW/mudlist.html
 /WWW/mudinfo.html
 /CHANGES.html
+/contrib
+/contrib/incoming
+/contrib/README
+/contrib/http_connection.c
+/contrib/emotehelp.txt
 /FOR_BETA
+/temp

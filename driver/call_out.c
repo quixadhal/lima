@@ -76,7 +76,8 @@ int
 #else
 void
 #endif
-new_call_out P5(object_t *, ob, svalue_t *, fun, int, delay, int, num_args, svalue_t *, arg)
+new_call_out P5(object_t *, ob, svalue_t *, fun, int, delay, 
+		int, num_args, svalue_t *, arg)
 {
     pending_call_t *cop, **copp;
     int tm;
@@ -158,13 +159,18 @@ new_call_out P5(object_t *, ob, svalue_t *, fun, int, delay, int, num_args, sval
 void call_out()
 {
     int extra;
-    pending_call_t *cop;
+    static pending_call_t *cop = 0;
     object_t *save_command_giver = command_giver;
     error_context_t econ;
     int tm;
     
     current_interactive = 0;
-    
+
+    /* could be still allocated if an error occured during a call_out */
+    if (cop) {
+	free_called_call(cop);
+	cop = 0;
+    }
     if (!call_out_time)
 	call_out_time = current_time;
     save_context(&econ);
@@ -181,6 +187,7 @@ void call_out()
 		call_list[tm] = call_list[tm]->next;
 		if (cop->ob && (cop->ob->flags & O_DESTRUCTED)) {
 		    free_call(cop);
+		    cop = 0;
 		} else {
 		    if (SETJMP(econ.context)) {
 			restore_context(&econ);
@@ -233,6 +240,7 @@ void call_out()
 			}
 		    }
 		    free_called_call(cop);
+		    cop = 0;
 		}
 	    } while (call_list[tm] && call_list[tm]->delta == 0);
 	call_out_time++;

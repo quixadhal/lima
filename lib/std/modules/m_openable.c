@@ -41,6 +41,7 @@ void set_closed(int x) {
   
   closed = x; 
   hook_state("extra_short", "open", !closed);
+hook_state( "extra_short", "closed", closed);
 
   remove_adj("closed", "open");
   if (closed)

@@ -7,6 +7,10 @@
 
 inherit CMD;
 
+private mapping get_the_error(string str) {
+    return unguarded(1, (: call_other, master(), "query_error", str :));
+}
+
 private void
 main(string str) {
     mapping error;
@@ -14,9 +18,9 @@ main(string str) {
     int i;
 
     if (!str || str == "") {
-	error = master()->query_error(this_user()->query_userid());
+        error = get_the_error(this_user()->query_userid());
     } else {
-	error = master()->query_error(str);
+        error = get_the_error(str);
 	if (!error && !find_body(str) && str != "last") {
             out("No such player.\n");
             return;

@@ -563,7 +563,7 @@ nomask int higher_privilege(mixed a,mixed b)
   // It determines the security hierarchy.
   int m,n;
   if (!valid_privilege(a) || !valid_privilege(b))
-    error("Invalid privilege"+a+","+b+"\n");
+    error("Invalid privilege: "+a+", "+b+"\n");
   if (a==b)
     return 1;
   if (intp(a))
@@ -646,7 +646,7 @@ nomask varargs int check_privilege(mixed prot,int ignore)
     if (!ob)
       {
 	syslog("Secvio: object destructed in call stack\n" + 
-	       implode(map_array(stack, (: file_name :)), ", "));
+	       implode(map_array(stack, (: $1 ? file_name($1) : "0" :)), ", "));
 	return 0;
       }
 

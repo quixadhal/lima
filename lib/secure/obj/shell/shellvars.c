@@ -98,18 +98,30 @@ mixed* substitute_variables(mixed* argv)
 ** This is the implementation of the command interface to
 ** this module from a shell command line.
 */
+private string implode_rest(int start, string array argv, string array implode_info) {
+    // we don't want to use the first separator
+    return implode_by_arr(argv[start..], ({ "" }) + implode_info[start+1..]);
+}
 
 int cmd_unset(string array argv, string array implode_info)
 {
-  if(sizeof(argv) != 2)
-    {
-      printf("Usage: unset variable\n");
-      return 1;
+    string name;
+    
+    if(sizeof(argv) < 2) {
+	printf("Usage: unset variable\n");
+	return 1;
     }
-  map_delete(variables, implode_by_arr(argv[1..], implode_info[1..]));
-  printf("Ok.\n");
-  this_object()->save();
-  return 1;
+    // Variable names usually can't have spaces in them, but this allows
+    // ones with spaces to be removed if they do exist somehow.
+    // Safety feature.
+    name = implode_rest(1, argv, implode_info);
+    if (variables[name]) {
+	unset_variable(name);
+	printf("Ok.\n");
+    } else {
+	printf("No such variable '%s' set.\n", name);
+    }
+    return 1;
 }
 
 
@@ -144,7 +156,7 @@ int cmd_set(string array argv, string array implode_info)
       printf("Variable %s set to %O.\n",argv[1],argv[2]);
       return 1;
     default:
-      set_variable(argv[1], implode_by_arr(argv[2..],implode_info[2..]));
+      set_variable(argv[1], implode_rest(2, argv, implode_info));
       printf("Variable %s set to %s.\n", 
 	     argv[1], get_variable(argv[1]));
       return 1;

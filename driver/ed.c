@@ -2196,7 +2196,7 @@ void ed_start P5(char *, file_arg, char *, write_fn, char *, exit_fn, int, restr
 	P_RESTRICT = 1;
     }
     if (write_fn) {
-        ED_BUFFER->write_fn = alloc_cstring(exit_fn, "ed_start");
+        ED_BUFFER->write_fn = alloc_cstring(write_fn, "ed_start");
         exit_ob->ref++;
     } else {
         ED_BUFFER->write_fn = 0;

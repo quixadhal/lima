@@ -16,23 +16,19 @@
 ** AREA_WITH_CURRENCY:({ General exchange rate, ([ MATERIAL1: Name for curr.,
 **                       MATERIALN: Name for curr ]) }).
 */
-inherit DAEMON;
+inherit M_DAEMON_DATA;
 
 mapping money;
 
 #define CAP capitalize
-#define MONEY_FILE "/data/daemons/money"
 #define DEBUG
 #define DELIM printf(repeat_string("-",73)+"\n")
 #define THE_DOLLAR "Tharanian silvercrown"
 #define DOLLAR_AREA "Tharanian"
 #define DOLLAR_TYPE "silver"
 
-private void
-create()
-{ 
+private void create() {
   ::create();
-  restore_object(MONEY_FILE, 1);
   if (!money)
     money = ([DOLLAR_AREA:
 	     ({ 100,
@@ -40,12 +36,6 @@ create()
 		"silver":"silvercrown",
 		"steel":"steelbeek",
 		"copper":"copperbeek",])})]);
-}
-
-private nomask void
-save_daemon()
-{
-  save_object(MONEY_FILE,1);
 }
 
 // Amount of a material you get for 1000 coins.
@@ -136,7 +126,7 @@ adjust_exchange_rate(string area,int amount)
     error("Money_D: Illegal try to change exchange rate on "
 	  +DOLLAR_AREA+" currency.\n");
   money[area][0]+=amount;
-  save_daemon();
+  save_me();
   return 1;
 }
 
@@ -148,7 +138,7 @@ add_currency(string area, string material,string nickname)
   if (!money[area])
     money[area]=({100,([])});
   money[area][1][material]=nickname;
-  save_daemon();
+  save_me();
 }
 
 nomask void
@@ -161,7 +151,7 @@ remove_currency(string area,string material)
   if (!money[area])
     return;
   map_delete(money[area][1],material);
-  save_daemon();
+  save_me();
 }
 
 varargs nomask int
@@ -199,3 +189,6 @@ stat_me(string areain,int amount)
   DELIM;
   return 1;
 }
+
+void clean_up() {
+    destruct(this_object());}

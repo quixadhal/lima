@@ -983,6 +983,7 @@ add_mapping P2(mapping_t *,m1, mapping_t *,m2)
    filter_array(), should also work on mappings.
 */
 
+#ifdef F_MAP
 void
 map_mapping P2(svalue_t *, arg, int, num_arg)
 {
@@ -1015,6 +1016,7 @@ map_mapping P2(svalue_t *, arg, int, num_arg)
     (++sp)->type = T_MAPPING;	
     sp->u.map = m;
 }
+#endif
 
 #ifdef F_FILTER
 void
