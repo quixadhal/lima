@@ -42,7 +42,6 @@ private string email;
 private string real_name;
 private int level;
 private string title;
-private int newwiz;
 
 //temporary new user vars
 static private int n_gen = -1;
@@ -81,11 +80,12 @@ private nomask void setup(int is_new)
 #else
     set_body_fname(DEV);
     enable_wizard();
+    if ( !level )
+	level = 1;
 #endif
 
     if ( !is_new )
 	write("\n"+read_file(MOTD_FILE));
-    else level = 1;
 
     o = clone_object(query_body_fname());
 
@@ -97,10 +97,7 @@ if ( n_gen != -1 )
     save_me();
 
     set_body(o);
-    if(newwiz)
-      o->enter_game(newwiz); 
-    else
-      o->enter_game(is_new);
+    o->enter_game(is_new);
 }
 
 private nomask void test_interactives()
@@ -272,10 +269,6 @@ nomask void set(string key, mixed value)
 {
     switch ( key )
     {
-    case "newwiz":
-      if(previous_object() == query_body())
-	newwiz = 1;
-      break;
     case "title":
 	if(previous_object() == query_body())
 	    title = value;

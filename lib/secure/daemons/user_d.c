@@ -17,9 +17,12 @@ private static mapping	info =([]);
 ** These variables are restored from the link files when we build the
 ** "info" mapping
 */
-//private string		name;
-private int		level;
-private string		email;
+private int	level;
+private string	email;
+
+/* this is used for retrieving a password for /secure/modules/sw_user.c */
+private string	password;
+
 
 nomask int fill_info(string);
 
@@ -50,6 +53,8 @@ nomask int fill_info( string x )
 	return 0;
     last = LAST_LOGIN_D->query_last(x);
     info[x] = ({ last ? last[0] : 0, level, email });
+
+    level = email = password = 0;
 }
 
 nomask int sort_by_level( string x, string y )
@@ -179,4 +184,22 @@ nomask int nuke_users( string user )
     // ### deal with mail somehow...
 //    rm( "/data/mail/"+user+".o" );
     printf("Nuking %s.\n",user);
+}
+
+nomask string query_password(string user)
+{
+    string * programs = call_stack(0);
+    string pwd;
+
+    if ( programs[1] != "secure/modules/sw_user.c" )
+	error("* illegal attempt to fetch password\n");
+
+    if( !unguarded(1, (: restore_object, LINK_PATH(user) :)) )
+	return 0;
+
+    pwd = password;
+
+    level = email = password = 0;
+
+    return pwd;
 }
