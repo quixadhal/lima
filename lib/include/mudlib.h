@@ -7,6 +7,7 @@
 #include <dirs.h>
 #include <size.h>
 #include <setbit.h>
+#include <msgtypes.h>
 
 /*
 ** PLAYER	main player object (body)
@@ -17,6 +18,7 @@
 ** SIMUL_OB	the simul efun object
 **
 ** ROOM		standard room
+** NON_ROOM	base class for things like furniture
 ** ENTERABLE	enterable objects that behave like a room (e.g. a boat)
 ** WATER_ROOM	rooms full of water (e.g. a lake)
 **
@@ -25,6 +27,7 @@
 **
 ** OBJ		generic objects
 ** SPARSE_OBJ	simple do-nothing objects.
+** FURNITURE	
 ** WEAPON	weapons
 ** ARMOR	armor
 ** MONSTER	monsters -- living objects that fight
@@ -63,9 +66,9 @@
 ** M_TRIGGERS
 ** M_WRITING_SURFACE
 ** M_VENDOR
-** M_OUTSIDE	outside of an object that also has an inside
 ** M_DIGGER	items that can dig.
 ** M_DIGGABLE   items that you can dig in.
+** M_VALUABLE	items that are valuable (have value)
 **
 ** M_GETOPT	functions for command processing
 ** M_HISTORY 	module for handling command history
@@ -118,7 +121,7 @@
 #define SIMUL_OB		"/secure/simul_efun"
 
 #define ROOM			"/std/room"
-#define INSIDE			"/std/inside"
+#define NON_ROOM		"/std/non-room"
 #define WATER_ROOM		"/std/water_room"
 
 #define VOID_ROOM		"/domains/std/void"
@@ -126,6 +129,7 @@
 
 #define OBJ 			"/std/object"
 #define SPARSE_OBJ		"/std/sparse_obj"
+#define FURNITURE		"/std/furniture"
 #define WEAPON			"/std/weapon"
 #define ARMOR			"/std/armor"
 #define MONSTER			"/std/monster"
@@ -166,9 +170,11 @@
 #define M_TRIGGERS		"/std/modules/triggers"
 #define M_WRITING_SURFACE	"/std/modules/writing_surface"
 #define M_VENDOR		"/std/modules/vendor"
-#define M_OUTSIDE		"/std/modules/outside"
 #define M_DIGGER		"/std/modules/digger"
 #define M_DIGGABLE		"/std/modules/diggable"
+#define M_BLOCKEXITS		"/std/modules/blockexits"
+#define M_KNOCKABLE		"/std/modules/knockable"
+#define M_VALUABLE		"/std/modules/valuable"
 
 #define M_GETOPT		"/std/shell/getopt"
 #define M_HISTORY	   	"/std/shell/history"
@@ -183,7 +189,6 @@
 #define M_LIB_LOCKABLE		"/domains/std/lockable"
 #define M_LIB_OPENABLE		"/domains/std/openable"
 
-#define EDIT_OB			"/trans/obj/edit_ob"
 #define ED_SESSION		"/trans/obj/ed_session"
 #define ADDTO_OB		"/trans/obj/addto_ob"
 #define WIZ_SHELL		"/trans/obj/wish"

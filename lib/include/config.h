@@ -17,17 +17,19 @@
 
 #define LOGIN_PROMPT		"Your name? "
 
-#define HISTORY_CHAR	'%' /* ! will give you problems since it's used as input escape. */
+/* ! will give you problems since it's used as input escape. */
+#define HISTORY_CHAR		'%'
 #define AUTOMATIC_REHASH
 
 #define OBVIOUS_EXITS
+#define DEFAULT_LIGHT_LEVEL	1	/* a room's default light */
 
 #define EVERYONE_HAS_A_PLAN
 
+#define USE_WIZ_POSITION	/* use the "position" scheme for wizzes */
+#define USE_GAME_FEATURES	/* use a lot of features related to gaming */
 
-#define USE_GAME_FEATURES
-
-#ifdef USE_GAME_FEATURES
+#ifdef USE_GAME_FEATURES	/* pull in a set for gaming features */
 # define USE_STATS
 # define USE_GUILDS
 # define USE_SKILLS
@@ -63,6 +65,8 @@
 // Define this next one to limit how many aliases a person can have.
 #undef MAX_NUMBER_OF_ALIASES	30
 
+#define USE_HIDE
+
 
 // I'd recommend not changing anything below this point.
 #define LINK_PATH(x)		sprintf("/data/links/%c/%s",x[0],x)
@@ -71,9 +75,12 @@
 
 #define WIZ_DIR			"/wiz"
 #define LOG_DIR			"/log"
+#define SECURE_LOG_DIR		"/data/secure"
 
 
 #define BANISH_LOG		LOG_DIR "/banishes"
+#define SNOOP_LOG		SECURE_LOG_DIR "/snoops"
+
 #define WELCOME_FILE		"/data/config/WELCOME"
 #define NEW_PLAYER		"/data/config/NEW_PLAYER"
 #define MOTD_FILE		"/data/config/MOTD"

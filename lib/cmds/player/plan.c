@@ -5,10 +5,11 @@
 //  Don't remove this header.  See /USAGE for more info.
 
 #include <mudlib.h>
+#include <edit.h>
 
 inherit CMD;
 
-private nomask void set_plan(mixed nothing, string * plan)
+private nomask void set_plan(string * plan)
 {
     write("Your plan is set, man.\n");
     this_body()->set_plan(implode(plan,"\n"));
@@ -19,7 +20,7 @@ private void main()
 #ifdef EVERYONE_HAS_A_PLAN
 
     write("Enter your plan, Stan.\n");
-    new(EDIT_OB)->edit_text("", (: set_plan :));
+    new(EDIT_OB, EDIT_TEXT, 0, (: set_plan :));
 
 #else
     write("Sorry, plans are not available.\n");

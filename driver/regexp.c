@@ -690,7 +690,7 @@ static char *regatom P1(int *, flagp)
 	    for (len = 0; regparse[len] &&
 	     !(regparse[len] & SPECIAL) && regparse[len] != RSQBRAC; len++);
 	    if (len <= 0) {
-		FAIL("internal disaster\n");
+		FAIL("unexpected ]\n");
 	    }
 	    ender = *(regparse + len);
 	    if (len > 1 && ISMULT(ender))

@@ -23,7 +23,7 @@ private void main( string who )
 	switch ( sizeof(matches) )
 	{
 	case 0:
-	    printf("No matching mud currently up.");
+	    printf("No matching mud currently up.\n");
 	    return;
 
 	case 1:

@@ -3,6 +3,7 @@ cd		[dir]
 clean		[obj]
 clone		cfile
 dest		obj|user
+discuss		obj
 echoall		str*
 echoto		user str*
 findfunc	str obj|user

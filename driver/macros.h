@@ -103,11 +103,11 @@
    Please refer to options.h for selecting malloc package and wrapper.
 */
 #if (defined(SYSMALLOC) + defined(SMALLOC) + defined(BSDMALLOC)) > 1
-Only one malloc package should be defined
+!Only one malloc package should be defined
 #endif
 
 #if (defined(WRAPPEDMALLOC) + defined(DEBUGMALLOC)) > 1
-Only one wrapper (at most) should be defined
+!Only one wrapper (at most) should be defined
 #endif
 
 #if defined (WRAPPEDMALLOC) && !defined(IN_MALLOC_WRAPPER)
@@ -144,7 +144,7 @@ Only one wrapper (at most) should be defined
 #endif
 
 #if !defined(MALLOC) && !defined(EDIT_SOURCE)
-You need to specify a malloc package in local_options/options.h
+!You need to specify a malloc package in local_options/options.h
 #endif
 
 #define ALLOCATE(type, tag, desc) ((type *)DXALLOC(sizeof(type), tag, desc))
@@ -214,7 +214,7 @@ You need to specify a malloc package in local_options/options.h
 #define LOAD_SHORT(x, y) LOAD2(x,y)
 #define STORE_SHORT(x, y) STORE2(x,y)
 #else
-shorts of size other than 2 not implemented
+!shorts of size other than 2 not implemented
 #endif
 
 #if SIZEOF_INT == 4
@@ -223,7 +223,7 @@ shorts of size other than 2 not implemented
 #define STORE_INT(x, y) STORE4(x,y)
 #define INT_32 int
 #else
-ints of size other than 4 not implemented
+!ints of size other than 4 not implemented
 #endif
 
 #if SIZEOF_FLOAT == 4
@@ -231,7 +231,7 @@ ints of size other than 4 not implemented
 #define LOAD_FLOAT(x, y) LOAD4(x,y)
 #define STORE_FLOAT(x, y) STORE4(x,y)
 #else
-floats of size other than 4 not implemented
+!floats of size other than 4 not implemented
 #endif
 
 #if SIZEOF_PTR == 4
@@ -250,7 +250,7 @@ floats of size other than 4 not implemented
 #    define POINTER_INT long
 #    define INS_POINTER ins_long
 #  else
-pointers of size other than 4 or 8 not implemented
+!pointers of size other than 4 or 8 not implemented
 #  endif
 #endif
 #endif

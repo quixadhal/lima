@@ -78,7 +78,8 @@ private void main(string arg)
 
   if (who->query_invis() && !adminp(this_user()) )
   {
-    printf("No such player.\n");
+
+    printf("Couldn't find %s.\n", user);
     return;
   }
   if (!who->query_link() || !interactive(who->query_link()))

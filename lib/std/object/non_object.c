@@ -8,6 +8,7 @@ mixed call_hooks(string, int);
 void set_flag(string);
 int test_flag(string);
 void clear_flag(string);
+void set_light(int);
 
 int
 remove()
@@ -15,13 +16,18 @@ remove()
     if (environment())
         environment()->release_object(this_object(), 1);
 
-//:HOOK remove
-//Called when an object is removed.  The return value is ignored
-
     // Abstract class fix
     if (file_name() != "/std/object/non_object")
+    {
+//:HOOK remove
+//Called when an object is removed.  The return value is ignored
 	call_hooks("remove", HOOK_IGNORE);
-    destruct(this_object());
+
+	/* turn off any light we might be providing. bad to leave it on :-) */
+	set_light(0);
+    }
+
+    destruct();
 }
 
 mixed receive_object( object target, string relation )

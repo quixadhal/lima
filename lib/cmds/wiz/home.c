@@ -27,7 +27,7 @@ private void main(string arg)
     {
         msgs = this_body()->get_player_message("home");
         if (environment(this_body()))
-            tell_room(environment(this_body()), msgs[1], ({ this_body() }));
+            tell_room(environment(this_body()), msgs[1], 0, ({ this_body() }));
 
         home = this_body()->query_home();
         if (home == "CLONE") {
@@ -39,7 +39,7 @@ private void main(string arg)
 
 	msgs = this_body()->get_player_message("menter");
 	if (environment(this_body()))
-	    tell_room(environment(this_body()), msgs[1], ({ this_body() }));
+	    tell_room(environment(this_body()), msgs[1], 0, ({ this_body() }));
 
 	if ( !(this_body()->test_flag(F_BRIEF)) )
 	    this_body()->do_game_command("look");
@@ -53,17 +53,15 @@ private void main(string arg)
 	write(capitalize(arg) + " does not have a home.\n");
 	return;
     }
-    
-    write("You give " + capitalize(arg) + " a visit.\n");
 
-    say( this_body()->query_name() + " leaves to search for " +
-	capitalize(arg) + ".\n");
+    this_body()->simple_action("$N $vleave to visit " + capitalize(arg) +
+			       "'s home.\n");
 
     this_body()->move(home);
 
     tell_room(environment(this_body()), this_body()->query_name() +
 	      " dropped by to check on " + capitalize(arg) + ".\n",
-	      ({ this_body() }));
+	      0, ({ this_body() }));
 
     if(!(this_body()->test_flag(F_BRIEF)))
 	this_body()->do_game_command("look");

@@ -272,7 +272,7 @@ void do_verb_rule(string verb, string rule, mixed args...)
     soul = get_soul(verb, rule, args);
     if (!soul) return;
     if ( sizeof(soul[0]) == 2 &&
-	environment(soul[0][1]) != environment(this_body()) )
+	!immediatly_accessible(soul[0][1]))
     {
 	soul[1][0] = "*" + soul[1][0];
 	soul[1][1] = "*" + soul[1][1];

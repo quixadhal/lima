@@ -1397,7 +1397,7 @@ f_map PROT((void))
 void
 f_master PROT((void))
 {
-    if (master_ob == (object_t *)-1)
+    if (!master_ob)
 	push_number(0);
     else
 	push_object(master_ob);

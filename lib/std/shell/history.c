@@ -16,6 +16,7 @@
 
 
 object query_owner();
+mixed unguarded(mixed priv, function func);
 
 private static string* history = ({});
 private static int buffer_size = DEFAULT_HISTORY_BUFFER_SIZE;
@@ -260,9 +261,18 @@ query_history()
     {
 	object ob = query_owner();
 
-	if ( ob && (ob = ob->query_link()) && adminp(ob) )
-	    tell_object(ob, sprintf("%s has just read your history!\n",
-				    this_body()->query_name()));
+	if ( ob && (ob = ob->query_link()) )
+	{
+	    string msg = sprintf("%s read the history of %s\n",
+				 this_user()->query_userid(),
+				 ob->query_userid());
+
+	    unguarded(1, (: write_file, SNOOP_LOG, msg :));
+
+	    if ( adminp(ob) )
+		tell_object(ob, sprintf("%s has just read your history!\n",
+					this_body()->query_name()));
+	}
 
 	return get_ordered_history();
     }

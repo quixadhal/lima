@@ -439,7 +439,7 @@ nomask string * query_channels()
 */
 nomask object * query_listeners(string channel_name)
 {
-    if ( check_previous_privilege(1) )
+    if ( check_previous_privilege(1) || previous_object() == find_object(IMUD_D))
     {
 	class channel_info ci = info[channel_name];
 

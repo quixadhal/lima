@@ -276,3 +276,21 @@ The handling of || and && is still suboptimal; it tests twice, and does
 a uneccessary pop for expressions like: (x && y); it completely blows it
 on expressions like 1 || 1 || 1;
 
+---
+
+Profiling shows that a significant amount of CPU is wasted copying stack
+values around in the parser due to the large size of %union.  In most
+cases, only 4 (assuming 32 bit) bytes is needed:
+
+4: pointer_int, number, real, address, string, type, argument, ihe, parse_node,
+5: decl
+10: function_context_t, func_block
+
+so this is a huge waste.  The larger ones could be managed from temporary
+pools (they might even have FIFO ordering, but be careful about parse errors)
+decl seems unavoidable, but 6 should be possible, cutting the size of
+the compile stack and mem that needs to be copied almost in half.
+Both of the large ones are only used by function pointers anyway, so aren't
+that common.
+
+-Beek

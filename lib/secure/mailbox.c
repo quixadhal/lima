@@ -62,7 +62,7 @@ private nomask void save_me()
 }
 nomask void remove()
 {
-    destruct(this_object());
+    destruct();
 }
 
 nomask string query_owner()

@@ -24,9 +24,14 @@ function my_open_hook = (: capitalize(the_short() + " is locked.\n") :);
 
 string query_locked() { return locked; }
 
-void set_locked(string x) {
+string query_key_type() { return key_type; }
+
+varargs void set_locked(string x, string y) {
     locked = x;
-    key_type = x;
+    if (nullp(y)) 
+	key_type = x;
+    else
+	key_type = y;
     hook_state("prevent_open", my_open_hook, locked);
 }
 
@@ -44,7 +49,7 @@ void unlock_with(object ob)
     if (ob->key_type() == key_type)
     {
 	this_body()->simple_action(unlock_msg, this_object(), ob);
-	locked = 0;
+	set_locked(0, key_type);
 	hook_state("prevent_open", my_open_hook, locked);
     }
     else

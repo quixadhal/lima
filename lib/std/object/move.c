@@ -5,11 +5,12 @@
 #include <move.h>
 #include <hooks.h>
 
-inherit "/std/object/light";
 
-private object	last_location;
+private object last_location;
 
 void call_hooks(string, int);
+int query_light();
+
 
 varargs mixed move(mixed dest, string where)
 {
@@ -17,6 +18,7 @@ varargs mixed move(mixed dest, string where)
     object tmp;
     mixed ret;
     mixed err;
+    int light;
 
 //:HOOK prevent_drop
 //A yes/no/error type hook that can be used to prevent the object from being
@@ -46,18 +48,18 @@ varargs mixed move(mixed dest, string where)
 
     last_location=env;
 
-    if (query_light() && (tmp = our_room())) {
-        tmp->adjust_light(-(int)query_light());
-    }
+    if ( (light = query_light()) && env )
+	env->containee_light_changed(-light);
 
     move_object(dest);
 //:HOOK move
 //Called when an object moves.  The return value is ignored.
     call_hooks("move", HOOK_IGNORE);
-    
-    if (query_light() && (tmp = our_room())) {
-        tmp->adjust_light(query_light());
-    }
+
+    /* requery light just in case a hook changed it (e.g. a sword stopped
+       glowing when released) */
+    if ( (light = query_light()) && dest )
+	dest->containee_light_changed(light);
 
     /* doing things (like desting the object) above in
      * in receive_object would be bad.  Give the destination

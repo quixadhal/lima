@@ -91,7 +91,7 @@ static nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 static nomask void rcv_chan_who_req(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
-    object * listeners = NCHANNEL_D->query_listeners("imud_" + message[0]);
+  object * listeners = NCHANNEL_D->query_listeners( message [0] );
 
     if ( !listeners )
     {

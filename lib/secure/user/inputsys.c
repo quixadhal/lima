@@ -172,6 +172,9 @@ nomask void modal_pop()
     /*
     ** Erase/pop the handler at the top level
     */
+//### work around driver bug with [0..<2] on alphas. it doesn't
+//### work for the last element
+if (sizeof(modal_stack)==1) modal_stack=({ }); else
     modal_stack = modal_stack[0..<2];
 
     /*

@@ -15,7 +15,7 @@ private void main( string str) {
     return;
   }
 
-    tell_room(environment(this_body()), str + "\n", ({ this_body() }));
+    tell_room(environment(this_body()), str + "\n", 0, ({ this_body() }));
     write("You echo: "+str+"\n");
 
     return;

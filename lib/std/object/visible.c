@@ -9,7 +9,6 @@ int test_flag(mixed);
 void set_flag(mixed);
 void clear_flag(mixed);
 void set_id(string);
-void remove_id(string);
 
 int
 is_visible()
@@ -20,7 +19,7 @@ is_visible()
 	return 0;
 
     if( ( ob = environment( this_object() ) ) && 
-      ( ob == environment( this_body() ) ) )
+      ( this_body() && ob == environment( this_body() ) ) )
 	return 1;
 
     if(ob)
@@ -42,6 +41,4 @@ void set_visibility(int x)
 int get_visibility()
 {
   return !test_flag(INVIS);
-  remove_id("something");
-  remove_id("someone");
 }

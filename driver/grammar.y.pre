@@ -112,21 +112,19 @@ int yyparse PROT((void));
     POINTER_INT pointer_int;
     int number;
     float real;
-    unsigned int address;       /* Address of an instruction */
     char *string;
     int type;
     struct { short num_arg; char flags; } argument;
     ident_hash_elem_t *ihe;
-    function_t funp;
     function_context_t context;
     parse_node_t *node;
     struct {
-        char num;
 	parse_node_t *node;
+        char num;
     } decl;
     /* same size as function_context_t; any more and we need to expand */
     struct { 
-	char num_local; 
+	char num_local;
 	char max_num_locals; 
 	short last_fc_num_params;
 	short context; 
@@ -181,17 +179,18 @@ int yyparse PROT((void));
 %type <node> number real string expr0 comma_expr for_expr sscanf catch
 %type <node> parse_command time_expression expr_list expr_list2 expr_list3
 %type <node> expr_list4 assoc_pair expr4 lvalue function_call lvalue_list
-%type <node> new_local_def statement while cond do for switch case
-%type <node> return optional_else_part block_or_semi foreach
-%type <node> case_label first_for_expr statements switch_block
-%type <node> foreach_var foreach_vars expr_list_node expr_or_block
+%type <node> new_local_def statement while cond do switch case
+%type <node> return optional_else_part block_or_semi
+%type <node> case_label statements switch_block
+%type <node> expr_list_node expr_or_block
 %type <node> single_new_local_def_with_init
 %ifdef DEBUG
 %type <node> tree
 %endif
 
 /* The following hold information about blocks and local vars */
-%type <decl> local_declarations local_name_list block
+%type <decl> local_declarations local_name_list block decl_block
+%type <decl> foreach_var foreach_vars first_for_expr foreach for
 
 /* This holds a flag */
 %type <number> new_arg
@@ -247,7 +246,7 @@ inheritance:
 		copy_variables(ob->prog, $1);
 		copy_structures(ob->prog);
 		initializer = copy_functions(ob->prog, $1);
-		if (initializer > 0) {
+		if (initializer >= 0) {
 		    /* initializer is an index into the object we're
 		       inheriting's function table; this finds the
 		       appropriate entry in our table and generates
@@ -639,6 +638,8 @@ block:
             }
     ;
 
+decl_block: block | for | foreach ;
+
  local_declarations:
         /* empty */
             {
@@ -775,11 +776,9 @@ statement:
     |   cond
     |   while
     |   do
-    |   for
-    |   foreach
     |   switch
     |   return
-    |   block
+    |   decl_block
            {
                 $$ = $1.node;
                 pop_n_locals($1.num);
@@ -848,7 +847,9 @@ for:
 	    }
         statement
             {
-		$3 = insert_pop_value($3);
+		$$.num = $3.num; /* number of declarations (0/1) */
+		
+		$3.node = insert_pop_value($3.node);
 		$7 = insert_pop_value($7);
 		if ($7 && IS_NODE($7, NODE_UNARY_OP, F_INC)
 		    && IS_NODE($7->r.expr, NODE_OPCODE_1, F_LOCAL_LVALUE)) {
@@ -856,8 +857,8 @@ for:
 		    CREATE_OPCODE_1($7, F_LOOP_INCR, 0, lvar);
 		}
 
-		CREATE_STATEMENTS($$, $3, 0);
-		CREATE_LOOP($$->r.expr, 1, $10, $7, optimize_loop_test($5));
+		CREATE_STATEMENTS($$.node, $3.node, 0);
+		CREATE_LOOP($$.node->r.expr, 1, $10, $7, optimize_loop_test($5));
 
 		context = $<number>1;
 	      }
@@ -866,21 +867,23 @@ for:
 foreach_var: L_DEFINED_NAME
             {
 		if ($1->dn.local_num != -1) {
-		    CREATE_OPCODE_1($$, F_LOCAL_LVALUE, 0, $1->dn.local_num);
+		    CREATE_OPCODE_1($$.node, F_LOCAL_LVALUE, 0, $1->dn.local_num);
 		} else
 	        if ($1->dn.global_num != -1) {
-		    CREATE_OPCODE_1($$, F_GLOBAL_LVALUE, 0, $1->dn.global_num);
+		    CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, $1->dn.global_num);
 		} else {
 		    char buf[256];
 		    sprintf(buf, "'%s' is not a local or a global variable.",
 			    $1->name);
 		    yyerror(buf);
-		    CREATE_OPCODE_1($$, F_GLOBAL_LVALUE, 0, 0);
+		    CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, 0);
 		}
+		$$.num = 0;
             }
           | single_new_local_def
             {
-                CREATE_OPCODE_1($$, F_LOCAL_LVALUE, 0, $1);
+                CREATE_OPCODE_1($$.node, F_LOCAL_LVALUE, 0, $1);
+		$$.num = 1;
             }
           | L_IDENTIFIER
             {
@@ -888,34 +891,39 @@ foreach_var: L_DEFINED_NAME
 		sprintf(buf, "'%s' is not a local or a global variable.",
 			$1);
 		yyerror(buf);
-		CREATE_OPCODE_1($$, F_GLOBAL_LVALUE, 0, 0);
+		CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, 0);
 		scratch_free($1);
+		$$.num = 0;
 	    }
      ;
 
 foreach_vars:
         foreach_var
             {
-		CREATE_FOREACH($$, $1, 0);
+		CREATE_FOREACH($$.node, $1.node, 0);
+		$$.num = $1.num;
             }
      |  foreach_var ',' foreach_var
             {
-		CREATE_FOREACH($$, $1, $3);
+		CREATE_FOREACH($$.node, $1.node, $3.node);
+		$$.num = $1.num + $3.num;
             }
      ;
 
 foreach:
         L_FOREACH '(' foreach_vars L_IN expr0 ')'
             {
-		$3->v.expr = $5;
+		$3.node->v.expr = $5;
 		$<number>1 = context;
 		context = LOOP_CONTEXT | LOOP_FOREACH;
             }
         statement
             {
-		CREATE_STATEMENTS($$, $3, 0);
-		CREATE_LOOP($$->r.expr, 2, $8, 0, 0);
-		CREATE_OPCODE($$->r.expr->r.expr, F_NEXT_FOREACH, 0);
+		$$.num = $3.num;
+
+		CREATE_STATEMENTS($$.node, $3.node, 0);
+		CREATE_LOOP($$.node->r.expr, 2, $8, 0, 0);
+		CREATE_OPCODE($$.node->r.expr->r.expr, F_NEXT_FOREACH, 0);
 		
 		context = $<number>1;
 	    }
@@ -930,8 +938,16 @@ for_expr:
     ;
 
 first_for_expr:
-        for_expr
-    |   single_new_local_def_with_init
+        for_expr 
+	    {
+	 	$$.node = $1;
+		$$.num = 0;
+	    }
+    |   single_new_local_def_with_init 
+	    {
+		$$.node = $1;
+		$$.num = 1;
+	    }
     ;
 
  switch:
@@ -2197,13 +2213,13 @@ expr4:
 		class_member_entry_t *cme;
 		int i;
 
-		if (!($1->type & TYPE_MOD_CLASS)) {
+		if (!IS_CLASS($1->type)) {
 		    yyerror("Left argument of -> is not a class");
 		    CREATE_ERROR($$);
 		} else {
 		    CREATE_UNARY_OP_1($$, F_MEMBER, 0, $1, 0);
 		    cd = ((class_def_t *)mem_block[A_CLASS_DEF].block)
-			+ ($1->type & (TYPE_MOD_MASK & ~TYPE_MOD_CLASS));
+			+ CLASS_IDX($1->type);
 		    cme = ((class_member_entry_t *)mem_block[A_CLASS_MEMBER].block) + cd->index;
 		    for (i=0; i < cd->size; i++) {
 			if (strcmp(PROG_STRING(cme[i].name), $3) == 0)
@@ -2431,11 +2447,11 @@ expr4:
 		case FP_G_VAR:
 		    CREATE_OPCODE_1($$->l.expr, F_GLOBAL, 0, $1 >> 8);
 		    $$->v.number = FP_FUNCTIONAL | FP_NOT_BINDABLE;
-		    if (VARIABLE($$->l.expr->v.number)->type & TYPE_MOD_HIDDEN) {
+		    if (VARIABLE($$->l.expr->l.number)->type & TYPE_MOD_HIDDEN) {
 		      char buf[MAXLINE + 30];
 		
 		      strcpy(buf, "Illegal to use private variable '");
-		      strcat(buf, VARIABLE($$->l.expr->v.number)->name);
+		      strcat(buf, VARIABLE($$->l.expr->l.number)->name);
 		      strcat(buf, "'");
 		      yyerror(buf);
 		    }

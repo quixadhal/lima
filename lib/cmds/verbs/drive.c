@@ -16,7 +16,8 @@ string *normal_dirs = ({ "north", "south", "east", "west", "northwest", "northea
 mixed can_drive_str(string str)
 {
     object ob = environment(this_body())->get_outside();
-    mixed dest;
+    mixed value;
+    int is_normal;
 
     /*
     ** if there is no outside object (or the env isn't an inside), then
@@ -25,20 +26,19 @@ mixed can_drive_str(string str)
     if ( !ob || !ob->is_vehicle() )
 	return 0;
 
-    dest = environment(ob)->get_exits()[str];
-    if ( undefinedp(dest) )
-    {
-	int is_normal = (member_array(str, normal_dirs) != -1);
-	
-	if ( environment(ob)->is_default_exit(str, is_normal) )
-	    return 1;
-	if ( is_normal )
-	    return "It doesn't seem possible to go that direction.\n";
-	return 0;
-    }
-
+    is_normal = (member_array(str, normal_dirs) != -1);
+    value = environment(ob)->query_exit_value(str, is_normal);
+    if (stringp(value) && value[0] == '#')
+	return value[1..];
+    
     /* let's just assume they can drive anywhere */
-    return 1;
+    if (value)
+	return 1;
+
+    if (is_normal)
+	return "It doesn't seem possible to go that direction.\n";
+
+    return 0;
 }
 
 void do_drive_str(string str)

@@ -7,7 +7,7 @@ SRC=interface.c
 
 all: $(OBJ)
 	ar rcu mudlib.a $(OBJ)
-	ranlib mudlib.a
+	-ranlib mudlib.a
 
 clean:
 	-rm -f *.o

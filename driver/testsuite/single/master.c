@@ -5,6 +5,29 @@
 // /inherit/master/valid.c contains all the valid_* functions
 inherit "/inherit/master/valid";
 
+void flag(string str) {
+    switch (str) {
+    case "test":
+	"/command/tests"->main();
+	break;
+    case "sprintf":
+	{
+	    string foo = "This is a test.\n";
+	    string bar = "Of the sprintf benchmark system.\n";
+	    string bazz = "This is only a test.\n";
+	    
+	    for (int i = 0; i < 10000; i++) {
+		sprintf("Let's see if %20|s this is any %-100s faster than the %20i old way.%s", foo, bar, 42, bazz);
+	    }
+	    shutdown();
+	    break;
+	}
+    default:
+	write("Unknown flag.\n");
+    }
+    shutdown();
+}
+
 object
 connect()
 {

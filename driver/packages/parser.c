@@ -209,29 +209,31 @@ INLINE static match_t *add_match P4(parse_state_t *, state, int, token,
     return ret;
 }
 
-static void parse_copy_array P2(array_t *, arr, char ***, sarrp) {
+static int parse_copy_array P2(array_t *, arr, char ***, sarrp) {
     char **table;
     int j;
-
+    int n = 0;
+    
     if (!arr->size) {
 	*sarrp = 0;
-	return;
+	return 0;
     }
     
-    table = *sarrp = CALLOCATE(arr->size,char *, 
+    table = *sarrp = CALLOCATE(arr->size, char *, 
 			       TAG_PARSER, "parse_copy_array");
     for (j = 0; j < arr->size; j++) {
 	if (arr->item[j].type == T_STRING) {
-	    DEBUG_PP(("Got: %s", "arr->item[j].u.string"));
+	    DEBUG_PP(("Got: %s", arr->item[j].u.string));
 	    if (arr->item[j].subtype == STRING_SHARED) {
-		table[j] = ref_string(arr->item[j].u.string);
+		table[n++] = ref_string(arr->item[j].u.string);
 	    } else {
-		table[j] = make_shared_string(arr->item[j].u.string);
+		table[n++] = make_shared_string(arr->item[j].u.string);
 	    }
-	} else {
-	    table[j] = 0;
 	}
     }
+    if (n != arr->size)
+	*sarrp = RESIZE(table, n, char *, TAG_PARSER, "parse_copy_array");
+    return n;
 }
 
 static void add_special_word P3(char *, wrd, int, kind, int, arg) {
@@ -265,10 +267,8 @@ static void interrogate_master PROT((void)) {
 
     DEBUG_PP(("[master::parse_command_prepos_list]"));
     ret = apply_master_ob("parse_command_prepos_list", 0);
-    if (ret && ret->type == T_ARRAY) {
-	num_literals = ret->u.arr->size;
-	parse_copy_array(ret->u.arr, &literals);
-    }
+    if (ret && ret->type == T_ARRAY)
+	num_literals = parse_copy_array(ret->u.arr, &literals);
 
     add_special_word("the", SW_ARTICLE, 0);
     add_special_word("a", SW_ARTICLE, 0);
@@ -560,10 +560,10 @@ static void interrogate_object P1(object_t *, ob) {
     
     DEBUG_PP(("[parse_command_id_list]"));
     ret = apply("parse_command_id_list", ob, 0, ORIGIN_DRIVER);
-    if (ret && ret->type == T_ARRAY) {
-	ob->pinfo->num_ids = ret->u.arr->size;
-	parse_copy_array(ret->u.arr, &ob->pinfo->ids);
-    } else ob->pinfo->num_ids = 0;
+    if (ret && ret->type == T_ARRAY)
+	ob->pinfo->num_ids = parse_copy_array(ret->u.arr, &ob->pinfo->ids);
+    else
+	ob->pinfo->num_ids = 0;
     if (ob->flags & O_DESTRUCTED) return;
     /* in case of an error */
     ob->pinfo->flags |= PI_SETUP;
@@ -573,18 +573,18 @@ static void interrogate_object P1(object_t *, ob) {
 
     DEBUG_PP(("[parse_command_plural_id_list]"));
     ret = apply("parse_command_plural_id_list", ob, 0, ORIGIN_DRIVER);
-    if (ret && ret->type == T_ARRAY) {
-	ob->pinfo->num_plurals = ret->u.arr->size;
-	parse_copy_array(ret->u.arr, &ob->pinfo->plurals);
-    } else ob->pinfo->num_plurals = 0;
+    if (ret && ret->type == T_ARRAY)
+	ob->pinfo->num_plurals = parse_copy_array(ret->u.arr, &ob->pinfo->plurals);
+    else
+	ob->pinfo->num_plurals = 0;
     if (ob->flags & O_DESTRUCTED) return;
 
     DEBUG_PP(("[parse_command_adjectiv_id_list]"));
     ret = apply("parse_command_adjectiv_id_list", ob, 0, ORIGIN_DRIVER);
-    if (ret && ret->type == T_ARRAY) {
-	ob->pinfo->num_adjs = ret->u.arr->size;
-	parse_copy_array(ret->u.arr, &ob->pinfo->adjs);
-    } else ob->pinfo->num_adjs = 0;
+    if (ret && ret->type == T_ARRAY)
+	ob->pinfo->num_adjs = parse_copy_array(ret->u.arr, &ob->pinfo->adjs);
+    else
+	ob->pinfo->num_adjs = 0;
     if (ob->flags & O_DESTRUCTED) return;
 
     DEBUG_PP(("[is_living]"));
@@ -710,7 +710,7 @@ static void init_users() {
     int i;
     object_t *ob;
     
-    /* this should be cached */
+    /* FIXME: this should be cached */
     DEBUG_PP(("[master::parse_command_users]"));
     ret = apply_master_ob("parse_command_users", 0);
     if (!ret || ret->type != T_ARRAY) return;
@@ -757,7 +757,7 @@ static void load_objects PROT((void)) {
     num_objects = 0;
     
     rec_add_object(parse_user->super, 1);
-    /* this should be cached */
+    /* FIXME: this should be cached */
     DEBUG_PP(("[master::parse_command_users]"));
     ret = apply_master_ob("parse_command_users", 0);
     num_people = 0;
@@ -892,7 +892,7 @@ static void error_is_not P4(char *, buf, hash_entry_t *, adj,
     }
     /* check if there is more than one of that noun.  In this case, we've
        only been called with zero or one adjectives */
-    if (get_single(objects) == -1) {
+    if ((ob = get_single(objects)) == -1) {
 	/* 'the red sword' with many swords, none of
 	   which are red */
 	char *pl = pluralize(noun->name);
@@ -2085,6 +2085,7 @@ void f_parse_add_rule() {
 	verb_entry = ALLOCATE(verb_t, TAG_PARSER, "parse_add_rule");
 	verb_entry->name = verb;
 	verb_entry->node = 0;
+	verb_entry->flags = 0;
 	verb_entry->next = verbs[h];
 	verbs[h] = verb_entry;
     }

@@ -14,5 +14,5 @@ private void main()
 
     write(iwrap(implode(paths,
 			(: $1 + $2[0..<2] + ", " :),
-			"Your current path is: ")[0..<3]) + "\n");
+			"Your current path is: ")[0..<2]) + "\n");
 }

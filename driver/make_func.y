@@ -332,6 +332,13 @@ int yylex() {
 	case '\n':
 	    current_line++;
 	    continue;
+	case '!':
+	{
+	    char buff[2048];
+	    fgets(buff, 2047, yyin);
+	    fprintf(stderr, "Configuration problem: %s\n", buff);
+	    exit(-1);
+	}
 	case '#':
 	{
 	    int line;

@@ -7,6 +7,7 @@
 #include <playerflags.h>
 #include <commands.h>
 #include <security.h>   /* ### for now */
+#include <edit.h>
 
 inherit MENUS;
 inherit M_ACCESS;       /* ### for now */
@@ -106,17 +107,17 @@ void prompt_change_short(){
     get_input_then_call((: change_short :),"Change short desc to what?  ");
 }
 
-void make_long(mixed *nothing, string *long){
+void make_long(string *long){
     write("Long description has been set .\n");
     lng = implode(long, "\n");
 }
 
 void change_long(){
     write("** Enter long description now **\n");
-    new(EDIT_OB)->edit_text("",(:make_long:));
+    new(EDIT_OB, EDIT_TEXT, 0, (: make_long :));
 }
 
-void idesc(string key, mixed *nothing, string *item){
+void idesc(string key, string *item){
     write("Item description has been set .\n");
     tems[key] = implode(item, "\n");
     write("Item "+key+" set to "+tems[key]+"\n\n");
@@ -124,7 +125,7 @@ void idesc(string key, mixed *nothing, string *item){
 
 void change_idesc(string key){
     write("** Enter item description now **\n");
-    new(EDIT_OB)->edit_text(tems[key],(:idesc, key:));
+    new(EDIT_OB, EDIT_TEXT, tems[key], (: idesc, key :));
 }
 
 int is_in_ikey(string check, string key){
@@ -187,7 +188,7 @@ void prompt_del_exit(){
     get_input_then_call((:del_exit:),"What is the direction of the exit you would like to delete? ");
 }
 
-void xdesc(string key, mixed *nothing, string *item){
+void xdesc(string key, string *item){
     write("Exit has been set .\n");
     xits[key] = implode(item, "\n");
     write("Item "+key+" set to "+xits[key]+"\n\n");
@@ -195,8 +196,7 @@ void xdesc(string key, mixed *nothing, string *item){
 
 void change_exit(string key){
     write("** Edit path to room now **\n");
-    new(EDIT_OB)->edit_text(xits[key],(:xdesc, key:));
-
+    new(EDIT_OB, EDIT_TEXT, xits[key], (: xdesc, key :));
 } 
 
 void prompt_change_exit(){

@@ -682,6 +682,11 @@ char *pluralize P1(char *, str) {
 	break;
     case 'T':
     case 't':
+	if (!strcasecmp(rel + 1, "heif")) {
+	    found = PLURAL_CHOP + 1;
+	    suffix = "ves";
+	    break;
+	}
 	if (!strcasecmp(rel + 1, "ooth")) {
 	    found = PLURAL_CHOP + 4;
 	    suffix = "eeth";
@@ -796,8 +801,10 @@ char *pluralize P1(char *, str) {
 	    break;
 	case 'Y': case 'y':
 	    if (end[-2] != 'a' && end[-2] != 'e' && end[-2] != 'i'
-	    && end[-2] != 'o' && end[-2] != 'u')
+		&& end[-2] != 'o' && end[-2] != 'u') {
+		found = PLURAL_CHOP + 1;    
 		suffix = "ies";
+	    }
 	    break;
 	case 'Z': case 'z':
 	    if (end[-2] == 'a' || end[-2] == 'e' || end[-2] == 'o'
@@ -861,8 +868,9 @@ int file_length P1(char *, file)
   struct stat st;
   FILE *f;
   int ret = 0;
+  int num;
   char buf[2049];
-  char *p, *end;
+  char *p;
 
   file = check_valid_path(file, current_object, "file_size", 0);
   
@@ -875,10 +883,9 @@ int file_length P1(char *, file)
       return -1;
   
   do {
-      end = buf + fread(buf, 2048, 1, f);
-      *end = 0;
+      num = fread(buf, 2048, 1, f);
       p = buf - 1;
-      while ((p = strchr(p + 1, '\n')) && p < end)
+      while ((p = memchr(p + 1, '\n', num)))
 	  ret++;
   } while (!feof(f));
 

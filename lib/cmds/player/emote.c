@@ -25,6 +25,6 @@ private void main( string message )
 
     write(iwrap("You emote: " + message));
     tell_room(environment(this_body()),
-	      iwrap(message),
+	      iwrap(message), 0,
 	      ({ this_body() }) );
 }

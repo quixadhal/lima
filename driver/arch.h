@@ -63,7 +63,11 @@
 #define ARCH "A/UX"
 #endif
 #ifdef linux
-#define ARCH "Linux"
+#  ifdef __mc68000
+#    define ARCH "Linux/m68k"
+#  else
+#    define ARCH "Linux"
+#  endif
 #endif
 #ifdef hp68k
 #define ARCH "HP/68k"

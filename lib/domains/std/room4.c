@@ -11,12 +11,11 @@ create(){
                
     room::create();
     set_brief("Environmental room");
-    set_light(1);
     set_long("The weather seems to change here a lot. Harry hates this \
 place.");
     set_weather(1);
     
     set_exits( ([
-    "west": "/domains/std/room2",
+    "west": "room2",
     ]) );
 }   

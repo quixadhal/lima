@@ -11,6 +11,7 @@
 
 #include <config.h>
 #include <mudlib.h>
+#include <edit.h>
 
 inherit DAEMON;
 
@@ -73,6 +74,18 @@ private nomask void issue_report(string type, string subject, string text)
   write("Thanks for the report!\n");
 }
 
+/* handle the completion of the report */
+private nomask void done_ed(string type, string subject, string *lines)
+{
+    if ( !lines )
+    {
+	printf("%s entry aborted.\n", type);
+	return;
+    }
+
+    issue_report(type, subject, implode(lines, "\n") + "\n");
+}
+
 /*
 ** begin_report()
 **
@@ -81,23 +94,11 @@ private nomask void issue_report(string type, string subject, string text)
 */
 varargs void begin_report(string type, string subject)
 {
-  if ( !log_files[type] )
-    error("Illegal report type.\n");
+    if ( !log_files[type] )
+	error("Illegal report type.\n");
 
-  printf("** %s report **\n", type);
-  clone_object(EDIT_OB)->edit_text(0, "done_ed", ({ type, subject }));
-}
-
-/* handle the completion of the report */
-void done_ed(mixed *ctx, string *lines)
-{
-  if ( !lines )
-    {
-      printf("%s entry aborted.\n", ctx[1]);
-      return;
-    }
-
-  issue_report(ctx[0], ctx[1], implode(lines, "\n") + "\n");
+    printf("** %s report **\n", type);
+    new(EDIT_OB, EDIT_TEXT, 0, (: done_ed, type, subject :));
 }
 
 /*
@@ -108,8 +109,8 @@ void done_ed(mixed *ctx, string *lines)
 */
 varargs void short_report(string type, string subject, string text)
 {
-  if ( !log_files[type] )
-    error("Illegal report type.\n");
+    if ( !log_files[type] )
+	error("Illegal report type.\n");
 
-  issue_report(type, subject, text);
+    issue_report(type, subject, text);
 }

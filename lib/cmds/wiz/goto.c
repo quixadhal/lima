@@ -29,7 +29,7 @@ private void main( mixed *arg)
 	msgs = this_body()->get_player_message("mleave");
 	tell_room(prev, msgs[1]);
 	msgs = this_body()->get_player_message("menter");
-	tell_room(env, msgs[1], ({ this_body() }));
+	tell_room(env, msgs[1], 0, ({ this_body() }));
 	force_look();
     }
     else           // failure messages

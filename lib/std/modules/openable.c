@@ -9,7 +9,6 @@
 //### doc forthcoming...
 */
 
-//### this probably shouldn't be here... but for now (simul conversion)...
 #include <mudlib.h>
 #include <hooks.h>
 
@@ -21,7 +20,7 @@ mixed call_hooks(string, int);
 void set_in_room_desc(string arg);
 string the_short();
 varargs void add_adj();
-varargs void remove_id();
+varargs void remove_adj();
 
 private int closed;
 private string open_msg =  "$N $vopen a $o.\n";
@@ -42,19 +41,28 @@ void set_closed(int x) {
   closed = x; 
   hook_state("extra_short", "open", !closed);
 
-  remove_id("closed", "open");
-  if (closed) add_adj("closed"); else add_adj("open");
+  remove_adj("closed", "open");
+  if (closed)
+      add_adj("closed");
+  else
+      add_adj("open");
+
+  /* our inventory visibility probably just changed. if we're a container,
+     then we need to adjust our light */
+  this_object()->inventory_visibility_change();
 }
 
 
 void set_open_desc( string desc )
 {
   open_desc = desc;
+  if (!query_closed()) set_in_room_desc(desc);
 }
 
 void set_closed_desc( string desc )
 {
   closed_desc = desc;
+  if (query_closed()) set_in_room_desc(desc);
 }
 
 string query_closed_desc() { return closed_desc; }
@@ -92,6 +100,7 @@ int open_with(object with)
     }
     
     this_body()->simple_action(open_msg, this_object());
+    set_closed(0);
     if (ex = inv_list(this_object(), 0, 1)) {
 	write("Inside, you find:\n"+ex);
     }
@@ -100,7 +109,6 @@ int open_with(object with)
     call_hooks("open", HOOK_IGNORE);
     if( open_desc )
 	set_in_room_desc( open_desc );
-    set_closed(0);
     return 1;
 }
 

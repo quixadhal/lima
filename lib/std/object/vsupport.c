@@ -64,8 +64,10 @@ mixed direct_get_obj_with_obj(object ob1, object ob2) {
 }
 
 mixed direct_sell_obj_to_liv(object ob, object liv) {
+    if (!ob) return 1;
     if (owner(ob) != this_body())
 	return "You don't have it!\n";
+    if(!ob->query_value()) return "That item has no value!\n";
     return 1;
 }
  

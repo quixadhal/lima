@@ -12,6 +12,7 @@
 
 #include <mudlib.h>
 #include <classes.h>
+#include <edit.h>
 
 inherit M_INPUT;
 inherit M_COMPLETE;
@@ -283,6 +284,20 @@ private nomask void display_messages(int display_all)
     more(lines);
 }
 
+private nomask void receive_post_text(string subject, string * text)
+{
+    int id;
+
+    if ( !text )
+    {
+	write("Post aborted.\n");
+	return;
+    }
+    
+    id = NEWS_D->post(current_group, subject, implode(text, "\n") + "\n");
+    write("Posted:  " + format_message_line(1, id) + "\n");
+}
+
 private nomask void receive_post_subject(mixed subject)
 {
     if ( subject == -1 )
@@ -294,22 +309,7 @@ private nomask void receive_post_subject(mixed subject)
 	return;
     }
     
-    clone_object(EDIT_OB)->edit_text(0, "receive_post_text", subject);
-}
-
-//### callback from EDIT_OB... can't be private/static
-nomask void receive_post_text(mixed ctx, string * text)
-{
-    int id;
-
-    if ( !text )
-    {
-	write("Post aborted.\n");
-	return;
-    }
-    
-    id = NEWS_D->post(current_group, ctx, implode(text, "\n") + "\n");
-    write("Posted:  " + format_message_line(1, id) + "\n");
+    new(EDIT_OB, EDIT_TEXT, 0, (: receive_post_text, subject :));
 }
 
 private nomask void post_message()
@@ -330,6 +330,26 @@ private nomask class news_msg get_current_message()
     return msg;
 }
 
+nomask void receive_followup_text(string * text)
+{
+    int id;
+
+    if ( !text )
+    {
+	write("Post aborted.\n");
+	return;
+    }
+    
+    /*
+    ** -1 to get the "current" message.  The player records the _next_
+    ** message to read.
+    */
+    id = NEWS_D->followup(current_group,
+			  get_current_id(),
+			  implode(text, "\n") + "\n");
+    write("Posted:  " + format_message_line(1, id) + "\n");
+}
+
 private nomask void followup_to_message()
 {
     class news_msg msg = get_current_message();
@@ -340,7 +360,7 @@ private nomask void followup_to_message()
 	return;
     }
 
-    clone_object(EDIT_OB)->edit_text(0, "receive_followup_text", 0);
+    new(EDIT_OB, EDIT_TEXT, 0, (: receive_followup_text :));
 }
 
 private nomask void followup_with_message()
@@ -360,7 +380,7 @@ private nomask void followup_with_message()
 
     lines += map_array(explode(msg->body, "\n"), (: "> " + $1 :) );
 
-    clone_object(EDIT_OB)->edit_text(lines, "receive_followup_text", 0);
+    new(EDIT_OB, EDIT_TEXT, lines, (: receive_followup_text :));
 }
 
 private nomask int read_next_message(int skip_allowed)
@@ -528,27 +548,6 @@ private nomask void group_commands(string cmd)
     }
 }
 
-//### callback from EDIT_OB... can't be private/static
-nomask void receive_followup_text(mixed ctx, string * text)
-{
-    int id;
-
-    if ( !text )
-    {
-	write("Post aborted.\n");
-	return;
-    }
-    
-    /*
-    ** -1 to get the "current" message.  The player records the _next_
-    ** message to read.
-    */
-    id = NEWS_D->followup(current_group,
-			  get_current_id(),
-			  implode(text, "\n") + "\n");
-    write("Posted:  " + format_message_line(1, id) + "\n");
-}
-
 private nomask void receive_remove_verify(string str)
 {
     if ( str[0] != 'y' && str[0] != 'Y' )
@@ -707,6 +706,12 @@ private nomask void receive_msg_cmd(mixed cmd)
 
 nomask void begin_reading(string arg)
 {
+    if(!sizeof(NEWS_D->get_groups()))
+      {
+	printf("%s has no newsgroups right now.\n");
+	destruct();
+	return;
+      }
     this_body()->validate_groups();
     
     add_new_groups();

@@ -4,7 +4,7 @@ inherit WEAPON;
 
 create() {
     ::create();
-    add_id("sword");
+    set_id("sword");
     set_combat_messages("combat-sword");
     set_wield_type("blade");
 }

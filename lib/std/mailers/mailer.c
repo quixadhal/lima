@@ -13,6 +13,7 @@
 #include <playerflags.h>
 #include <mudlib.h>
 #include <classes.h>
+#include <edit.h>
 
 inherit M_ACCESS;
 inherit M_INPUT;
@@ -278,13 +279,42 @@ static nomask void cmd_headers(string rangestr)
 }
 
 
+
+/* to_list is a string * or a string */
+private nomask void mailer_get_cc_list(mixed to_list,
+				       string subject,
+				       string cc_list)
+{
+    string * buf;
+    string file;
+
+    file = tmp_fname();
+    buf = explode(read_file(file), "\n");
+    send_mail_message(subject, buf, to_list, cc_list, 1);
+
+    rm(file);
+}
+
+private nomask void mailer_done_edit(string to_list,
+				     string subject,
+				     string fname)
+{
+    /*
+    ** Just return if they cancelled the edit
+    */
+    if ( !fname )
+	return;
+
+    write("Cc: ");
+    modal_simple((: mailer_get_cc_list, to_list, subject :));
+}
+
 private nomask void mailer_get_subject(string to_list, string arg)
 {
     string subject = arg ? arg : "<none>";
 
-    clone_object(EDIT_OB)->edit_file(tmp_fname(),
-				     "mailer_done_edit",
-				     ({ to_list, subject }));
+    new(EDIT_OB, EDIT_FILE, tmp_fname(),
+	(: mailer_done_edit, to_list, subject :));
 }
 
 static nomask void cmd_mail(string to_list)
@@ -300,33 +330,6 @@ static nomask void cmd_mail(string to_list)
     write("Subject: ");
     modal_simple((: mailer_get_subject, to_list :));
 }
-
-
-/* to_list is a string * or a string */
-nomask void mailer_get_cc_list(mixed to_list, string subject, string cc_list)
-{
-    string * buf;
-    string file;
-
-    file = tmp_fname();
-    buf = explode(read_file(file), "\n");
-    send_mail_message(subject, buf, to_list, cc_list, 1);
-
-    rm(file);
-}
-
-nomask void mailer_done_edit(mixed ctx, string fname)
-{
-    /*
-    ** Just return if they cancelled the edit
-    */
-    if ( !fname )
-	return;
-
-    write("Cc: ");
-    modal_simple((: mailer_get_cc_list, ctx[0], ctx[1] :));
-}
-
 
 static nomask void cmd_reply(int user_num, int reply_all)
 {
@@ -358,9 +361,9 @@ static nomask void cmd_reply(int user_num, int reply_all)
 
     file = tmp_fname();
     write_file(file, body);
-    clone_object(EDIT_OB)->edit_file(file,
-				     "mailer_done_edit",
-				     ({ to_list, subject }));
+
+    new(EDIT_OB, EDIT_FILE, tmp_fname(),
+	(: mailer_done_edit, to_list, subject :));
 }
 
 
@@ -444,5 +447,5 @@ void create()
 
 void remove()
 {
-    destruct(this_object());
+    destruct();
 }

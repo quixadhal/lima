@@ -5,12 +5,11 @@ inherit ROOM;
 
 create()
 {
-  function array m =({(: write("The mountains are too steep to climb.  You'd have to go around them...\n"):)});
-  function array o =({ (: write("You would drown!\n") :) });
+    string m = "#The mountains are too steep to climb.  You'd have to go around them...\n";
+    string o = "#You would drown!\n";
   room::create();
   set_brief("Sandy beach");
   set_long("The waves lap happily onto this sandy beach, which ends here -- the mountains barely meet the water, leaving not even a grain of sand on which to walk."); 
-  set_light(1);
   set_exits( ([
 	       "northeast" :  m,
 	       "northwest" :  m,
@@ -22,26 +21,9 @@ create()
 	       "southwest" : o,
 	       ]) );
 
-  add_item( "surf", "water", "waves", 
-	 ([ 
-	   "adjs" : ({ "strong", "fierce" }),
-	   "look" : "The waves look fierce.",
-	   "swim" : "As the tide is particularly strong, you'd prefer to "
-	            "keep standing.",
-	   ]));
 
   add_item( "tide", "You can't look at it, but if you were to wade in the "
 	    "water, you sure would feel it." );
-
-  add_item("ocean", 
-	   ([ 
-	     "look" :  "You strain to see the other side of the "
-	   "ocean, but fail.  You do notice something, however you can't "
-	   "quite make out what.  Perhaps a ship?",
-	   "swim" : "As the tide is particularly strong, you'd prefer to "
-	            "keep standing.", 
-	     ]));
-
 
   add_item("mountains", 
 	   ([
@@ -58,6 +40,7 @@ create()
 		 "/domains/std/objects/sand_castle" : 1,
 		 "/domains/std/objects/sand_with_treasure" : 1,
 		 "/domains/std/objects/welcome_sign" : 1,
+		 "/domains/std/objects/ocean" : 1,
 
   ]) );
 }

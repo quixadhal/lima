@@ -17,5 +17,4 @@ void create(object the_outside)
 
     set_brief("Camaro");
     set_long("You're sitting inside the Camaro Z28.");
-    set_light(1);
 }

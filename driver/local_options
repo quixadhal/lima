@@ -611,7 +611,7 @@
 
 #define EVALUATOR_STACK_SIZE 1000	/* get_config_int(4)  */
 #define COMPILER_STACK_SIZE 200	/* get_config_int(5)  */
-#define MAX_TRACE 30		/* get_config_int(6)  */
+#define MAX_TRACE 100		/* get_config_int(6)  */
 #define LIVING_HASH_SIZE 256	/* get_config_int(20) */
 #define RUNTIME_SWITCH_STACK_SIZE 200
 

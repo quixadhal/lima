@@ -5,17 +5,18 @@ inherit M_CLIMBABLE;
 
 void create(mixed up_dest, mixed down_dest) {
     ::create();
-    add_id("stairs");
+    set_id("stairs");
+    set_unique(1); // plural
     set_up_destination(up_dest);
     set_down_destination(down_dest);
     // Just a default.
     if (up_dest) {
 	if (down_dest) {
 	    set_long("The stairs lead up and down.\n");
-	    set_in_room_desc("There are stairs here, leading up and down.\n");
+	    set_in_room_desc("There are stairs here, leading up and down.");
 	} else {
 	    set_long("The stairs lead upwards.\n");
-	    set_in_room_desc("There are stairs here, leading upwards.\n");
+	    set_in_room_desc("There are stairs here, leading upwards.");
 	}
     } else {
 	set_long("The stairs lead downwards.\n");

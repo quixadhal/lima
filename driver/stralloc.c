@@ -169,7 +169,7 @@ INLINE static block_t *
     STRING(b)[len] = '\0';	/* strncpy doesn't put on \0 if 'from' too
 				 * long */
     SIZE(b) = (len > USHRT_MAX ? USHRT_MAX : len);
-    REFS(b) = 0;
+    REFS(b) = 1;
     NEXT(b) = base_table[h];
     base_table[h] = b;
     ADD_NEW_STRING(SIZE(b), sizeof(block_t));
@@ -186,13 +186,9 @@ char *
     b = hfindblock(str, h);	/* hfindblock macro sets h = StrHash(s) */
     if (!b) {
 	b = alloc_new_string(str, h);
-    }
-    /*
-     * stop keeping track of ref counts at the point where overflow would
-     * occur.
-     */
-    if (REFS(b) < USHRT_MAX) {
-	REFS(b)++;
+    } else {
+	if (REFS(b))
+	    REFS(b)++;
     }
     NDBG(b);
     ADD_STRING(SIZE(b));
@@ -214,9 +210,8 @@ ref_string P1(char *, str)
 	fatal("stralloc.c: called ref_string on non-shared string: %s.\n", str);
     }
 #endif				/* defined(DEBUG) */
-    if (REFS(b) < USHRT_MAX) {
+    if (REFS(b))
 	REFS(b)++;
-    }
     NDBG(b);
     ADD_STRING(SIZE(b));
     return str;
@@ -254,7 +249,7 @@ free_string P1(char *, str)
      * if a string has been ref'd USHRT_MAX times then we assume that its used
      * often enough to justify never freeing it.
      */
-    if (REFS(b) == USHRT_MAX)
+    if (!REFS(b))
 	return;
 
     REFS(b)--;

@@ -583,7 +583,7 @@ INLINE void push_indexed_lvalue P1(int, code)
 
 	ind = sp->u.number;
 
-	switch(lv->type){
+	switch(lv->type) {
 	case T_STRING:
 	     {
 		 int len = SVALUE_STRLEN(lv);
@@ -620,7 +620,9 @@ INLINE void push_indexed_lvalue P1(int, code)
 	     }
 	     
 	 default:
-	     error("Indexing on illegal type.\n");
+	     if (lv->type == T_NUMBER && !lv->u.number) 
+		 error("Value being indexed is zero.\n");
+	     error("Cannot index value of type '%s'.\n", type_name(lv->type));
 	 }
     } else {
 	/* It is now coming from (x <assign_type> y)[index]... = rhs */
@@ -673,7 +675,9 @@ INLINE void push_indexed_lvalue P1(int, code)
 	    }
 	    
 	default:
-	    error("Indexing on illegal type.\n");
+	    if (sp->type == T_NUMBER && !sp->u.number) 
+		error("Value being indexed is zero.\n");
+	    error("Cannot index value of type '%s'.\n", type_name(sp->type));
 	}
     }
 }
@@ -2764,6 +2768,17 @@ eval_instruction P1(char *, p)
 		if (i >= arr->size) error("Class has no corresponding member.\n");
 		assign_svalue_no_free(sp, &arr->item[i]);
 		free_array(arr);
+
+		/*
+		 * Fetch value of a variable. It is possible that it is a
+		 * variable that points to a destructed object. In that case,
+		 * it has to be replaced by 0.
+		 */
+		if (sp->type == T_OBJECT && (sp->u.ob->flags & O_DESTRUCTED)) {
+		    free_object(sp->u.ob, "F_INDEX");
+		    sp->type = T_NUMBER;
+		    sp->u.number = 0;
+		}
 		break;
 	    }
 	case F_MEMBER_LVALUE:
@@ -2796,7 +2811,7 @@ eval_instruction P1(char *, p)
 	    case T_BUFFER:
 		{
 		    if ((sp-1)->type != T_NUMBER)
-			error("Indexing a buffer with an illegal type.\n");
+			error("Buffer indexes must be integers.\n");
 
 		    i = (sp - 1)->u.number;
 		    if ((i > sp->u.buf->size) || (i < 0))
@@ -2809,7 +2824,7 @@ eval_instruction P1(char *, p)
 	    case T_STRING:
 		{
 		    if ((sp-1)->type != T_NUMBER) {
-			error("Indexing a string with an illegal type.\n");
+			error("String indexes must be integers.\n");
 		    }
 		    i = (sp - 1)->u.number;
 		    if ((i > SVALUE_STRLEN(sp)) || (i < 0))
@@ -2824,9 +2839,9 @@ eval_instruction P1(char *, p)
 		    array_t *arr;
 
 		    if ((sp-1)->type != T_NUMBER)
-			error("Indexing an array with an illegal type\n");
+			error("Array indexes must be integers.\n");
 		    i = (sp - 1)->u.number;
-		    if (i<0) error("Negative index passed to array.\n");
+		    if (i<0) error("Array index must be positive or zero.\n");
 		    arr = sp->u.arr;
 		    if (i >= arr->size) error("Array index out of bounds.\n");
 		    assign_svalue_no_free(--sp, &arr->item[i]);
@@ -2834,7 +2849,9 @@ eval_instruction P1(char *, p)
 		    break;
 		}
 	    default:
-		error("Indexing on illegal type.\n");
+		if (sp->type == T_NUMBER && !sp->u.number) 
+		    error("Value being indexed is zero.\n");
+		error("Cannot index value of type '%s'.\n", type_name(sp->type));
 	    }
 
 	    /*
@@ -2891,7 +2908,9 @@ eval_instruction P1(char *, p)
 		    break;
 		}
 	    default:
-		error("Indexing from the right on illegal type.\n");
+		if (sp->type == T_NUMBER && !sp->u.number) 
+		    error("Value being indexed is zero.\n");
+		error("Cannot index value of type '%s'.\n", type_name(sp->type));
 	    }
 
 	    /*
@@ -4993,7 +5012,7 @@ svalue_t *apply_master_ob P2(char *, fun, int, num_arg)
 {
     IF_DEBUG(svalue_t *expected_sp);
 
-    if (master_ob == (object_t *)-1) {
+    if (!master_ob) {
 	pop_n_elems(num_arg);
 	return (svalue_t *)-1;
     }
@@ -5017,7 +5036,7 @@ svalue_t *apply_master_ob P2(char *, fun, int, num_arg)
 
 svalue_t *safe_apply_master_ob P2(char *, fun, int, num_arg)
 {
-    if (master_ob == (object_t *)-1) {
+    if (!master_ob) {
 	pop_n_elems(num_arg);
 	return (svalue_t *)-1;
     }

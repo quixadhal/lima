@@ -11,7 +11,6 @@ string *query_channel_list() {
 }
 
 create() {
-    int *handle;
     
     ::create();
     set_name("Harry");

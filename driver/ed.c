@@ -1275,9 +1275,7 @@ static int subst P4(regexp *, pat, char *, sub, int, gflg, int, pflag)
  * Indent code from DGD editor (v0.1), adapted.  No attempt has been made to
  * optimize for this editor.   Dworkin 920510
  */
-#ifdef OLD_ED
 #define error(s)               { ED_OUTPUTV(ED_DEST, s, lineno); errs++; return; }
-#endif
 #define bool char
 static int lineno, errs;
 static int shi;			/* the current shift (negative for left
@@ -2592,7 +2590,7 @@ static void print_help2()
     ED_OUTPUT(ED_DEST, "o\tsame as 'a'\n");
     ED_OUTPUT(ED_DEST, "p\tprint line(s) in range\n");
     ED_OUTPUT(ED_DEST, "q\tquit editor\n");
-    ED_OUTPUT(ED_DEST, "Q\tquit editor even if file modified and not saved");
+    ED_OUTPUT(ED_DEST, "Q\tquit editor even if file modified and not saved\n");
     ED_OUTPUT(ED_DEST, "r\tread file into editor at end of file or behind the given line\n");
     ED_OUTPUT(ED_DEST, "s\tsearch and replace\n");
     ED_OUTPUT(ED_DEST, "set\tquery, change or save option settings\n");

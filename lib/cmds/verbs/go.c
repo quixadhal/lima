@@ -21,19 +21,24 @@ void do_go_wrd_obj(string prep, object ob) {
 }
 
 mixed can_go_str(string str) {
-    mapping m = environment(this_body())->get_exits();
+    int is_normal = (member_array(str, normal_dirs) != -1);
+    mixed value;
 // Be careful what errors you return here since "go " + str is tried for
 // all input
-    if (undefinedp(m[str])) {
-	int is_normal = (member_array(str, normal_dirs) != -1);
-	
-	if (environment(this_body())->is_default_exit(str, is_normal))
-	    return 1;
-	if (is_normal)
-	    return "It doesn't seem possible to go that direction.\n";
-	return 0;
+    
+    value = environment(this_body())->query_exit_value(str, is_normal);
+    if (stringp(value) && value[0] == '#')
+	return value[1..];
+    if (value)
+	return 1;
+
+    if (is_normal) {
+	mixed ret = call_other(environment(this_body()), "can_go_" + str);
+	if (!ret) ret = "It doesn't seem possible to go that direction.\n";
+	return ret;
     }
-    return 1;
+
+    return 0;
 }
 
 void do_go_str(string str) {

@@ -33,12 +33,10 @@ nomask void set_long(mixed str)
     if ( long == "" || long[<1] != '\n' ) long += "\n";
 }
 
-//:FUNCTION long
-//Return the verbose description of an object that you see when you look
-//at it.
-string long()
+//:FUNCTION get_base_long
+// Get the variable long, not the full description...
+string get_base_long()
 {
-    string extra;
     string res;
 
     if(!is_visible())
@@ -48,9 +46,22 @@ string long()
     if (!res)
 	return "You see nothing special about " + the_short() + "\n";
 
+    return wrap(res);
+}
+
+string get_extra_long()
+{
 //:HOOK extra_long
 //The returned strings are added on to the end of the long description.
-    return res + (call_hooks("extra_long", (: $1 + $2 :), "") || "");
+    return call_hooks("extra_long", (: $1 + $2 :), "") || "";
+}
+
+//:FUNCTION long
+//Return the verbose description of an object that you see when you look
+//at it.
+string long()
+{
+  return get_base_long() + get_extra_long();
 }
 
 static string array discarded_message, plural_discarded_message;

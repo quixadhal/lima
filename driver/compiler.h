@@ -41,7 +41,7 @@ typedef struct {
 #define A_CLASS_MEMBER          8
 #define A_ARGUMENT_TYPES	9	/* */
 #define A_ARGUMENT_INDEX	10	/* */
-#define NUMPAREAS		10
+#define NUMPAREAS		11
 #define A_CASES                 11      /* keep track of cases */
 #define A_STRING_NEXT		12	/* next prog string in hash chain */
 #define A_STRING_REFS		13	/* reference count of prog string */
@@ -84,10 +84,10 @@ extern char *compiler_type_names[];
 #define LOOP_FOREACH            0x40
 
 typedef struct {
+    parse_node_t *values_list;
     short bindable;
     short num_parameters;
     short num_locals;
-    parse_node_t *values_list;
 } function_context_t;
 
 extern function_context_t function_context;
@@ -95,6 +95,9 @@ extern function_context_t function_context;
 /*
  * Some good macros to have.
  */
+
+#define IS_CLASS(t) ((t & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) == TYPE_MOD_CLASS)
+#define CLASS_IDX(t) (t & (TYPE_MOD_MASK & ~TYPE_MOD_CLASS))
 
 #define COMP_TYPE(e, t) (!(e & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) \
 			 || (compatible[(unsigned char)e] & (1 << (t))))

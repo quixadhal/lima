@@ -1,3 +1,81 @@
+Mon Dec  4 15:52:24 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b11
+	* fixed a misplaced parenthesis in the file_length() contrib efun
+
+Mon Nov 27 22:45:28 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b10
+	* fixed a optimizer bug that would clobber parse_command() calls
+	* Two fixes from Raistin@IE:
+	  . chop off y before adding ies in pluralize()
+	  . initialize verb_entry->flags to zero so that the parsing packages'
+	    hash tables aren't unnecessarily set up.
+	* Fix from Aragorn: pass args in correct order to fread(), and use
+	  memchr() instead of strchr() to handle binary files correctly in
+	  the contrib efun file_length()
+	* fixed the ranlib check to work correctly
+
+Wed Nov 22 12:47:40 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b9
+	* fixed a crasher in x->y->foo() when x->y was a destructed object.
+	* fixed a crasher in the parser error message "The foo isn't bar."
+
+Tue Nov 21 15:07:27 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b8
+	* fixed a // comment in generate.c [gcc 2.7.1 allows it *roll*]
+	* Following patches from Quango's DW version of v21.7b7:
+	  . added Linux/m68k to arch.h
+	  . "thief" -> "thieves" in pluralize()
+
+Wed Nov 15 14:30:44 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b7
+	* #include "file_incl.h" in addr_server.c so that <sys/filio.h>
+	  is included and SVR4 systems are happy.
+	* check for the existence of ranlib on build.MudOS, so systems
+	  that don't have it (Solaris) don't complain
+	* Added a missing newline to the end of the 'Q' help in ed.
+	* Fixed a crasher when a trailing slash was included in the first
+	  argument to rename(), and valid_read() didn't strip it off
+	* Fixed a misoptimization of code where local variables died
+	  inside arguments to a function pointer.
+	* Fixed the initialization chain to be made even if the object
+	  being inherited defines no functions, just initialized variables.
+	* Fixed a bug that would cause (: private_inherited_var :) to
+	  either go unnoticed, or print a garbage variable name in the
+	  error
+	* Changed the 'internal disaster' regexp error message to
+	  'unexpected ]' which I think is right.  Let me know if it
+	  shows up in other cases.
+
+Tue Nov 14 12:47:48 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b6
+	* Don't crash when buggy telnet clients send an IAC SE (end suboption)
+	  without ever having send a IAC SB (begin suboption)
+	  [as a side note, there is a windows 95 client that sends:
+	   IAC WILL TELOPT_TTYPE "vt100\0" IAC SE
+	       (1)             (2)     (3)
+	   1. should be SB, which differs by 1 from WILL
+	   2. missing TELQUAL_IS
+	   3. terminating null isn't part of terminal types
+	   more high quality PC software, I guess ...]
+	* fixed #pragma optimize to not kill variables that only die along
+	  one branch of an if/switch
+
+Tue Nov  7 17:46:21 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b5
+	* fixed a crasher with #pragma save_types
+	* fixed indentation errors in ed when OLD_ED was off to report correct
+	  line numbers and send errors to the correct place
+	* fixed a crasher in using an expression of type (class foo *)
+	  as the left side of ->
+	* fixed a crasher if a socket had a file descriptor greater than 32.
+	  Also, function pointers as callbacks should get called/not crash now.
+
+Fri Nov  3 16:24:49 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v21.7b4
+	* check for overflow of suboption buffer when recieving quoted IAC's
+	* fixed crasher in __TREE__ on blocks containing (opcode_2) nodes
+	* fixed a bug in (int constant)/(real constant)
+
 Sun Oct  8 19:52:11 EDT 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v21.7b3
 	* added Kalinash's fixes for FreeBSD compilation

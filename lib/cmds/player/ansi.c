@@ -10,7 +10,7 @@ object forwho;
 if(!arg){
     if(i_use_ansi())  write("Ansi is "+
         ansi("%^BOLD%^%^MAGENTA%^on.%^RESET%^%^WHITE%^")+"\n");
-    else write("Ansi if off.\n");
+    else write("Ansi is off.\n");
     return;
         }     
     if(!forwho)

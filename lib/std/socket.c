@@ -321,7 +321,7 @@ SKTLOG("remove: err",err);
 	    error("could not close: " + socket_error(err) + "\n");
     }
 
-    destruct(this_object());
+    destruct();
 }
 
 nomask mixed *address()

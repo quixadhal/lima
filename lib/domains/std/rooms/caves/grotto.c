@@ -3,16 +3,6 @@
 #include <mudlib.h>
 inherit ROOM;
 
-private int check_for_passage()
-{
-  if(present("troll", this_object()))
-    {
-      write("The troll blocks your path.\n");
-      return 0;
-    }
-  return 1;
-}
-
 create()
 {
   room::create();
@@ -25,12 +15,10 @@ create()
 	   " enough that you can't tell if it is sunlight, or moonlight.  You "
 	   "can make out what appears to be a low crawl, back in the darker "
 	   "recesses on the north side of the cave.");
-  set_light(1);
   set_exits( ([
-	       "south" : "/domains/std/rooms/beach/outside_cave.c",
-	       "out" : "/domains/std/rooms/beach/outside_cave.c",
-	       "north" : ({ (: check_for_passage :), 
-			      "/domains/std/rooms/caves/low_crawl.c" }),
+	       "south" : "../beach/outside_cave.c",
+	       "out" : "../beach/outside_cave.c",
+	       "north" : "low_crawl.c"
 	       ]) );
   set_hidden_exits("south");
   set_default_exit( "There are tales of mighty wizards who walk through walls, but unfortunately\nthese are but tales without foundation.\n");

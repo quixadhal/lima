@@ -287,7 +287,7 @@ void add_message P2(object_t *, who, char *, data)
 	(who->interactive->iflags & (NET_DEAD | CLOSING))) {
 #ifdef NONINTERACTIVE_STDERR_WRITE
 	putc(']', stderr);
-	fprintf(stderr, data);
+	fputs(data, stderr);
 #endif
 #ifdef LATTICE
 	fflush(stderr);
@@ -608,8 +608,45 @@ static int copy_chars P4(unsigned char *, from, unsigned char *, to, int, n, int
 		ip->state = TS_SB;
 		break;
 	    }
+	    /* SE counts as going back into data mode */
+	    if (from[i] == SE) {
+		/*
+		 * Ok...  need to call a function on the interactive object,
+		 * passing the buffer as a paramater.
+		 */
+		ip->sb_buf[ip->sb_pos] = 0;
+		if (ip->sb_buf[0]==TELOPT_TTYPE && ip->sb_buf[1]=='I') {
+		    /* TELOPT_TTYPE TELQUAL_IS means it's telling us it's
+		       terminal type */
+		    push_constant_string(ip->sb_buf + 2);
+		    apply(APPLY_TERMINAL_TYPE, ip->ob, 1, ORIGIN_DRIVER);
+		    ip->iflags |= USING_TELNET;
+		} else
+		if (ip->sb_buf[0]==TELOPT_NAWS) {
+		    int w, h, i, c[4];
+		    
+		    /* (char)0 is stored as 'I'; convert back */
+		    for (i = 0; i < 4; i++)
+			c[i] = (ip->sb_buf[i+1] == 'I' ? 0 : ip->sb_buf[i+1]);
+		    
+		    w = ((unsigned char)c[0]) * 256
+			+ ((unsigned char)c[1]);
+		    h = ((unsigned char)c[2]) * 256
+			+ ((unsigned char)c[3]);
+		    push_number(w);
+		    push_number(h);
+		    apply(APPLY_WINDOW_SIZE, ip->ob, 2, ORIGIN_DRIVER);
+		} else {
+		    push_constant_string(ip->sb_buf);
+		    apply(APPLY_TELNET_SUBOPTION, ip->ob, 1, ORIGIN_DRIVER);
+		}
+		ip->state = TS_DATA;
+		break;
+	    }
 	    /* old MudOS treated IAC during IAC SB ... IAC SE as return
-	       to data mode.  That's probably wrong, but ... fallthrough */
+	     * to data mode.  This is another protocol violation, I think...
+	     * Fall through and handle it as if we were in data mode.
+	     */
 	case TS_IAC:
 	    switch (from[i]) {
 	    case IAC:
@@ -652,40 +689,9 @@ static int copy_chars P4(unsigned char *, from, unsigned char *, to, int, n, int
 		ip->state = TS_SB;
 		ip->sb_pos = 0;
 		break;
-/* SE counts as going back into data mode */
 	    case SE:
-/*
- * Ok...  need to call a function on the interactive object, passing the
- * buffer as a paramater.
- */
-		ip->sb_buf[ip->sb_pos] = 0;
-		if (ip->sb_buf[0]==TELOPT_TTYPE && ip->sb_buf[1]=='I') {
-		    /* TELOPT_TTYPE TELQUAL_IS means it's telling us it's
-		       terminal type */
-		    push_constant_string(ip->sb_buf + 2);
-		    apply(APPLY_TERMINAL_TYPE, ip->ob, 1, ORIGIN_DRIVER);
-		    ip->iflags |= USING_TELNET;
-		} else
-		if (ip->sb_buf[0]==TELOPT_NAWS) {
-		    int w, h, i, c[4];
-
-		    /* (char)0 is stored as 'I'; convert back */
-		    for (i = 0; i < 4; i++)
-			c[i] = (ip->sb_buf[i+1] == 'I' ? 0 : ip->sb_buf[i+1]);
-		    
-		    w = ((unsigned char)c[0]) * 256
-			+ ((unsigned char)c[1]);
-		    h = ((unsigned char)c[2]) * 256
-			+ ((unsigned char)c[3]);
-		    push_number(w);
-		    push_number(h);
-		    apply(APPLY_WINDOW_SIZE, ip->ob, 2, ORIGIN_DRIVER);
-		} else {
-		    push_constant_string(ip->sb_buf);
-		    apply(APPLY_TELNET_SUBOPTION, ip->ob, 1, ORIGIN_DRIVER);
-		}
-		ip->state = TS_DATA;
-		break;
+		/* IAC SE with no matching IAC SB; protocol violation, ignore
+		   it */
 	    case DM:
 	    default:
 		ip->state = TS_DATA;
@@ -2299,6 +2305,8 @@ void outbuf_zero P1(outbuffer_t *, outbuf) {
 int outbuf_extend P2(outbuffer_t *, outbuf, int, l)
 {
     int limit;
+
+    DEBUG_CHECK(l < 0, "Negative length passed to outbuf_extend.\n");
     
     if (outbuf->buffer) {
 	limit = MSTR_SIZE(outbuf->buffer);

@@ -1,224 +1,213 @@
-Beek added a dirs.h file, and put DIR_RACES in it. 
+Rust installed Yaynu's fix for his simple_level 
 
-Beek fixed some nasty bugs in su; basically: sw_user() -> sw_body() -> 
-    body::quit() -> body::remove() -> link::remove() -> destruct link, 
-    causing the rest of sw_body to fail [in the case where you were using 
-    args with su] 
+Rust added an exits command for players. 
 
-Beek added su (race), which switches you to a body of the given race. E.g: 
-    su (troll), su (coder), su (/wiz/beek/foo.c) <- note .c 
+Rust fixed a bug causing put not to load 
 
-Beek renamed the 'light' command to the 'lightme' command, as 'light' is 
-    now a verb. 
+Rust fixed a bug in calling more from admtool's newsgroup menu 
 
-Beek added light and extinguish verbs, /domains/std/magic_torch, 
-    /domains/std/magic_flame, /std/torch.c 
+Rust redid the wade support on the beaches in the sample area because it 
+    wasn't updated due to the new add_item() interface 
 
-Beek fixed gettable objects to be droppable by default (the old behavior) 
+Rust added an object annotation system. You can annotate or view the 
+    annotations for an object by the command: discuss obj. Try: discuss 
+    torch. 
 
-Rust added an s flag to mudlist, which is a search flag... Try: mudlist -as 
-    Lima 
+Beek fixed a typo in M_OPENABLE; remove_id -> remove_adj 
 
-Rust made it so you can do a who or type "^D" before you enter your name in 
-    the login sequence. 
+Beek added parse_refresh() to resync() in /std/object/names; should solve 
+    the get problem. 
 
-Rust added a new interface function to mudlist.c query_up_muds() 
+Beek doc'd overrides.c 
 
-Rust updated finger to ignore down muds 
+Beek made some changes to destruct(); destruct(this_object()) DOES call 
+    remove now, to prevent consistency problems when mudlib objects dest 
+    themselves. To avoid infinite loops, destruct( /* NO ARGS */ ) dests 
+    this_object() without calling remove(), and is the correct way to 
+    remove yourself from a remove() routine. Changes propagated through the 
+    lib. 
 
-Rust fixed tell in the same way. 
+Beek fixed M_OPENABLE to call set_closed(0) before trying to print the 
+    contents, since the object isn't transparent until it is open 
 
-Rust added simple file locking to ed to prevent 2 people from using ed on 
-    the same file at once 
+Beek moved all handling of exits, and expansion of pathnames, to 
+    /std/room/exits, from the zillion places it was across the mudlib 
 
-Rust added a define to room.c I don't want wizards seeing hidden exits, 
-    since they can see them via the exits command... 
+Beek removed all 'hacks' which accessed the internal representation of 
+    exits, and made a consistent interface instead 
 
-Rust changed set_hidden_exits to be varargs, not to take an array. *COMPAT 
-    BUSTER for some muds* 
+Beek removed the old array style exits; ({ fail(...) }) is now done by 
+    starting the string with a #, e.g. "north" : "#Only idiots want to go 
+    north." 
 
-Rust added a hack to look.c so that if you've got an item named water, and 
-    you try: look at the water, look doesn't choke on the article. 
+Beek added M_BLOCKEXITS, which gives objects/monsters the ability to 
+    prevent movement in certain directions with simple syntax: add_block( 
+    "west" , "east 
 
-Rust added support for silently failing a move, so I can switch objects 
-    behind someone's back when they get something (a rock from a pile of 
-    rocks) 
+Beek woops ... set_block_action( "$N $vwon't let $t go $o." ); 
+    set_block_action( "#You don't think you can slip past the troll." ); 
+    set_block_action( "#The huge boulder is in the way." ) etc 
 
-Rust made it so that if you make an in_room_desc "" , the room doesn't add 
-    a newline to the description. 
+Beek added the block_dir and block_all hooks, which the above is based on 
 
-Rust added a throw verb 
+Beek made a new door inheritable, built on CLOSABLE, LOCKABLE, and 
+    BLOCKEXITS; should be more robust than previous attempts 
 
-Rust added a throwable inheritable 
+Beek removed the 'num' arg from the array in set_objects() values; you 
+    probably don't want more than 1 if you're passing args to create, and 
+    it makes the arrays more readable 
 
-Rust added a wade verb 
+Rust added a knock verb and a knockable inheritable. Door.c does an 
+    override to handle the knock getting echoed in the remote room 
 
-Rust added a swim verb 
+Rust added a system for handling room state, and redid room description 
+    stuff 
 
-Deathblade fixed a typo in the default "leave" message 
+Rust changed room longs so that you don't use \n's any more. 
 
-Deathblade moved the group of functions that did "move player" into the 
-    player from the (bog) room. 
+Rust added a brief command 
 
-Deathblade changed room::long from private to nomask. it was impossible to 
-    get a room's long :-( 
+Rust added a verbose command 
 
-Deathblade added M_SMARTMOVE for (high-level) movement between rooms 
+Rust wanted to clarify... room longs don't have a \n at the end, neither do 
+    itemin room descriptions 
 
-Deathblade added: enter and drive verbs, M_OUTSIDE, INSIDE, VEHICLE. Added 
-    /domains/std/camaro. See news post for more info. 
+Beek made set_open_desc() set_closed_desc() take effect immediately 
 
-Deathblade wanted to note: the movement functions now reside in 
-    M_SMARTMOVE, not the player (yah.. I moved them twice :-) 
+Azy made a rare appearence. 
 
-Rust fixed zif's vendor bug. 
+Ohara would suggest that her appearence was closer to overcooked <flees>. 
 
-Rust added a size system, which replaces mass/bulk/weight/whatever. Use 
-    set_size(x) where x is: "very small" (piece of paper) "small" (an 
-    apple) "medium" (a laptop) "large" (a TV) "very large" (a person) 
+Deathblade patched modal_pop() to deal with an array bug on Alphas 
 
-Rust added a "too large" size. Default size is "medium" 
+Zakk fixed /std/modules/messages.c to handle ({}) better for set_msgs(). 
+    Now it wont bug out if you go and clear a message class. 
 
-Ohara fixed dest somewhat, to ensure that when you dest your environment, 
-    you don't end up without an environment .. will upgrade as soon as i 
-    figure out foreach and users so that users in a dested room get saved 
-    too. 
+Fathom did nothing at all. Hope you don't mind. 
 
-Rust fixed a few bugs in smartmove.c. 1) check for a / at the start of the 
-    pathname before you prepend the base dir. 2) print appropriate messages 
-    when you can't move someplace. 
+Deathblade removed /domains/std/objects/ocean's recursive use of an ocean 
+    object. Not sure that this was "right" but the object loads now! 
 
-Rust made it so when you try to enter a room that doesn't exist or doesn't 
-    load, but has a string exit defined, you get: "Construction blocks your 
-    path." 
+Deathblade installed Zifnab's VALID_MONEY as /daemons/money_d.c. It keeps 
+    track of the valid currencies and their exchange rates. Will eventually 
+    need an admtool interface 
 
-Rust merged in some changes to login.c from Satan: quit, exit, leave as 
-    well as ^D. LOGIN_PROMPT define from config.h instead of a hardcoded 
-    string. 
+Deathblade installed Zifnab's mods to M_VENDOR to work with currency types. 
+    Minor cleanups; fixed bug in sell where exchange rate wasn't being 
+    used. Following Zifnab's lead: updated /domains/std/shopkeeper.c to 
+    buy/sell using gold. 
 
-Deathblade just turned more() and more_file() into simuls. updated the 
-    mudlib and whacked the "more" stuff out of the user and body objects. 
+Deathblade renamed Zifnab's module from valueable (sic) to valuable. Add 
+    M_VALUABLE to mudlib.h 
 
-Deathblade fixed the privs of more_ob to allow moreing in read-protected 
-    dirs 
+Deathblade added a set_value(1000) to /domains/std/objects/sword.c (again 
+    following Zif's lead :-) 
 
-Deathblade added continuation functions to 
-    more()/more_file()/MORE_OB/did_d. Cleaned up /secure/user/userinfo to 
-    use them. Moved didlog reporting to _before_ entering the mud (you're 
-    welcome, Beek :-). 
+Deathblade installed Zifnab's money command into /cmds/player 
 
-Rust added a temporary push.c since syns are broken 
+Deathblade updated EDIT_OB to use continuations like MORE_OB. All uses (but 
+    those in wiz dirs) changed. /include/edit.h is needed now. Example 
+    usage in comments of /trans/obj/edit_ob.c 
 
-Rust added a DIGGER module for objects like shovels that are meant for 
-    digging. It's interesting in the fact that it will try to complete your 
-    request if you just try to dig w/ the item. If not, it prompts you, and 
-    you can answer the question and it's good 
+Deathblade added USE_WIZ_POSITION and /std/player/wiz_position. No admtool 
+    support yet (it would go into the "user" menu) 
 
-Rust added M_DIGGABLE for objects like sand you can dig in 
+Beek added a feature to make Rust/Ohara's lives easier: If you want to make 
+    an exit that doesn't behave like a normal one (e.g. one that does more 
+    than have a destination which may/may not be blocked) see news. 
 
-Rust wrote the dig verb. It handles lots of rules, and completes if you 
-    have a single object missing. 
+Rust commented out the vsupport inherit in less_sparse_obj. This should fix 
+    not being able to do a get in an add_item 
 
-Deathblade fixed a bug in reset() that wouldn't print the clone error to 
-    say why the clone failed 
+Deathblade fixed the snoop logging so it actually worked; fleshed it out to 
+    always log; also added history snoop logging. new define SNOOP_LOG, 
+    located in /data/secure (it should probably be in a read-protected area 
+    tho') 
 
-Rust changed the size system to use defined ints instead of strings 
+Deathblade brought over old Quendor mail, so you may have some whacky mail. 
+    I shut it down for good, too :-( 
 
-Rust tweaked the QUEST_D some, since it hadn't been touched in a long time. 
+Deathblade move the inherit of /std/object/light (from move) so people can 
+    actually find it :-) 
 
-Rust hooked quest administration up to the admtool. 
+Rust moved /cmds/wiz/move.c to Move.c because move conflicts w/ a game 
+    verb, and in our infinite wisdom, we made system commands mask game 
+    commands 
 
-Rust hooked up 40 sample points in the pirate quest. 
+Rust changed soul_d so it doesn't test for same environment, it tests to 
+    see if your target is immediatly_accessible(). So if your target is on 
+    furniture.... 
 
-Rust added a quests command to show players what quests are available. 
+Rust removed the inactive command, it didn't work anyway 
 
-Rust added a wizard help on quests 
+Rust reconsidered and put it back 
 
-Rust fixed the super fucking obnoxious history bug where you could only do: 
-    %% once 
+Rust added sit and stand verbs, /std/non-room, and /std/furniture. They're 
+    going to act a bit funny until we simul_efun the messaging efuns, which 
+    should happen very soon. 
 
-Rust added a WIZARD_START variable. START is now just where players start 
+Rust added simul_efuns for tell_room, tell_object and say, and added 
+    support in /std/object, /std/container and /std/player 
 
-Rust wrote a big bad sample area, BTW. 
+Rust added /domains/std/bed.c as an example piece of furniture 
 
-Rust added a banish menu to admtool. 
+Yaynu ~yaynu/madiall.c command will convert all rooms in a DIR using 
+    'exits' to 'set_exits' .. feel free to add to r8 
 
-Deathblade fixed the query_roll_mods() in human.c. the adjustments did not 
-    total 0 (they must for balance) 
+Rust commented out the door from the object list in the grand hall, because 
+    somehow it's causing too deep recursion the first time you try to load 
+    it, which happens to be the first time someone tries to log on 
 
-Deathblade removed the table from room2. A similar table is now located in 
-    the TI area. 
+Rust fixed zifnab's long bug... 
 
-Rust wrote a first draft of a hint command. 
+Deathblade added receive_xxx_msg() to /secure/user/messages.c so that the 
+    user object would continue to work with tell_object() 
 
-Deathblade made "guest" obey the site banishment so that banishes sites 
-    cannot enter the mud as guest. 
+Rust fixed someone's undocumented changes that kept people from loggin in 
 
-Deathblade worked around a potential MudOS bug(?) where it wouldn't flush 
-    the user's socket before closing; sometimes they wouldn't receive all 
-    the messages written to them. Added get_lost() into login.c to boot the 
-    user appropriately and then used it everywhere necessary. 
+Winddle fixed NCHANNEL_D so that chan-who-req works 
 
-Deathblade added the "semote" player command (needs new name). It will show 
-    you an emote in a nice, player-friendly way. 
+Winddle added emoteto support to IMUD_D 
 
-Rust added a kludge to appease some pushy people. If your verb isn't 
-    recognized, the game says so, instead of giving you a nonsense() 
-    message, which is now just for bad syntax w/ a known verb (like on 
-    zork). See bug report. 
+Deathblade wanted to point out the Rust was referring to some mods in 
+    player.c for the messages that apparently got a bit tweaked, and he 
+    fixed them. Gamedriver intones, "Changes are now [fully documented]." 
 
-Beek fixed the infamous 'backpack' error message, and made look <relation> 
-    <object> get handled correctly if object is not a container. 
+Deathblade removed the use of say() from the 'home' and 'inactive' 
+    commands. Wiz dirs are unaffected. The say() efun has been overridden 
+    to generate an error() now. 
 
-Yaynu added a command for cpu usage, cpu.c 
+Deathblade removed the tell() lfun from user.c and player.c 
 
-Rust modified the enter verb to pass the string naming the object to the 
-    object. 
+Rust made it so that object's long()s will wrap. 
 
-Beek moved quit_if_cr() to MENUS to reduce code duplication 
+Rust made a hack so that if you have state descriptions for a room, they 
+    don't get a newline before them. 
 
-Beek added a 'dataedit' command, which allows variables in .o files to be 
-    added, deleted, or modified easily. 
+Rust added a module for drawing boxes around text. It's in 
+    /std/modules/contrib/box.c 
 
-Beek added help for the dataedit command 
+Rust fixed a bug in immediately_accessible 
 
-Beek added set_preposition( "on" ) to corpse.c 
+Deathblade added DEFAULT_LIGHT_LEVEL to config.h and removed all 
+    set_light(1) uses from the /domains/std demo rooms 
 
-Beek made a bunch of changes to id handling; see news for info 
+Deathblade fixed the light system. Light now propagates from an object up 
+    to the room. Movement properly adjusts all light. In short, you can 
+    carry a torch around now and it will light the room. NOTE: the light 
+    system does not yet watch for visiblity _changes_ (e.g. opening a box 
+    that has a torch); the light will propogate correctly at first, but 
+    you'll probably muss things bad if you open/close something afterwards. 
+    To be fixed soon. 
 
-Rust installed Onyx @ Red Dragon's Room Maker with one or two small 
-    modifications. 
+Rust fixed the newsreader so that if you have no groups, news won't start 
+    up. 
 
-Rust installed the room maker command as: buildroom. A small help file is 
-    needed for room maker I think... 
+Rust removed INSIDE and OUTSIDE, they'll be redone differently for a9 with 
+    our new spiffyness 
 
-Rust went, "D'oh! Did I say buildroom?  I meant makeroom" 
-
-Rust added a set_attached() and get_attached() to non_object 
-
-Rust rewrote "fake items" . *BIG COMPAT BUSTER* All your set_items() calls 
-    are going to break. In fact, the whole of /domains/std needs to be 
-    updated 
-
-Rust updated the sample area to use the new items interface 
-
-Rust removed the fake-objects stuff from scan. 
-
-Rust also changed items so that the \n at the end of the desc is not 
-    necessary 
-
-Rust added enter/exit messages. See /domains/std/rooms/caves/small_doc.c 
-    for an example. (look for set_exit_msg...) 
-
-Rust updated the pirate sample area to use the new add_item() interface, 
-    which has simple hooks for verbs 
-
-Rust added functionality to add_item() so that you can add an adjs field to 
-    define adjectives for simple items 
-
-Rust fixed invisibility. 
-
-Rust made it so the shutdown command saves players before it calls shutdown 
-
-Rust made it so new users get prompted for a URL 
+Deathblade fixed open/close changes to deal correctly with light. vis/invis 
+    changes will still break it, but that will be a bit more involved. an 
+    objects light level is also set to 0 at remove() time to properly clean 
+    up light values. 
 

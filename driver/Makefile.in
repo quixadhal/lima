@@ -77,6 +77,22 @@ OBJ=grammar.tab.o lex.o main.o rc.o interpret.o simulate.o file.o object.o \
 .c.o:
 	$(CC) $(CFLAGS) $(OPTIMIZE) -c $*.c
 
+# Some OS's can't deal with these being created during the make process?
+malloc.o: malloc.c
+
+mallocwrapper.o: mallocwrapper.c
+
+
+# Some OS's can't deal with these being created during the make process?
+malloc.o: malloc.c
+
+mallocwrapper.o: mallocwrapper.c
+
+# Some OS's can't deal with these being created during the make process?
+malloc.o: malloc.c
+
+mallocwrapper.o: mallocwrapper.c
+
 lex.o: lex.c preprocess.c cc.h grammar.tab.c
 
 grammar.tab.o: grammar.tab.c opcodes.h
@@ -199,9 +215,13 @@ neat:
 clean: neat
 	-rm -f Makefile.MudOS GNUmakefile.MudOS
 	-rm -f cc.h edit_source
-	-rm -f core y.output
-	-rm -f *.orig *.rej
-	-rm -f */*.orig */*.rej
-	-rm -f *.ln tags */*~ *~ TAGS
+	-rm -f core y.output testsuite/core testsuite/tmp/*
+	-rm -f testsuite/OBJ_DUMP* testsuite/test_file testsuite/testfile
+	-rm -f testsuite/tmp_eval_file.c testsuite/sf.o testsuite/ed_test
+	-rm -f testsuite/log/log testsuite/log/debug.log
+	-find . -name "*~" -print | xargs rm
+	-find . -name "*.orig" -print | xargs rm
+	-find . -name "*.rej" -print | xargs rm
+	-rm -f *.ln tags TAGS
 	-rm -f $(DRIVER_BIN) $(DRIVER_BIN).old addr_server
 # DO NOT DELETE THIS LINE -- make depend depends on it.

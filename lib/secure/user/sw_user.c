@@ -65,7 +65,7 @@ private nomask int do_su(string old_userid, string new_userid, string new_body)
     {
 	tell_room(environment(body),
 		  sprintf("%s has polymorphed into %s.\n",
-			  old_name, new_name),
+			  old_name, new_name), 0,
 		  ({ body }) );
     }
     tell_object(this_object(), sprintf("Done. You are now %s.\n", new_name));

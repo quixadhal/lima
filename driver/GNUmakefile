@@ -1,16 +1,17 @@
 MAKE=gmake
 SHELL=/bin/sh
 OBJDIR=obj
-DRIVER_BIN=driver
+DRIVER_BIN=driver.v22a13
 PROOF=
 STRFUNCS=
 INSTALL=install -c
-INSTALL_DIR=../bin
-OPTIMIZE=-O
+INSTALL_DIR=/usr/local/driver
+OPTIMIZE=
 CPP=gcc -E
-CFLAGS=-g -DDEBUG
+CFLAGS= -g -DDEBUG -pipe
 CC=gcc
 YACC=bison -d -y
+RANLIB=ranlib
 
 # YOU DO NOT NEED TO CONFIGURE ANYTHING IN THIS FILE.
 #
@@ -98,8 +99,8 @@ grammar.tab.c: grammar.y
 	-mv y.tab.h grammar.tab.h
 
 $(DRIVER_BIN): $(OBJ)
-	$(MAKE) -C packages 'CC=$(CC)' 'CFLAGS=$(CFLAGS) $(OPTIMIZE)' 'OBJDIR=../$(OBJDIR)'
-	$(MAKE) -C mudlib 'CC=$(CC)' 'CFLAGS=$(CFLAGS) $(OPTIMIZE)' 'OBJDIR=../$(OBJDIR)'
+	$(MAKE) -C packages 'CC=$(CC)' 'CFLAGS=$(CFLAGS) $(OPTIMIZE)' 'OBJDIR=../$(OBJDIR)' 'RANLIB=$(RANLIB)'
+	$(MAKE) -C mudlib 'CC=$(CC)' 'CFLAGS=$(CFLAGS) $(OPTIMIZE)' 'OBJDIR=../$(OBJDIR)' 'RANLIB=$(RANLIB)'
 	-mv -f $(DRIVER_BIN) $(DRIVER_BIN).old
 	$(PROOF) $(CC) $(CFLAGS) $(OPTIMIZE) $(OBJ) -o $(DRIVER_BIN) $(OURLIBS) `cat system_libs`
 
@@ -206,10 +207,14 @@ neat:
 clean: neat
 	-rm -f Makefile.MudOS GNUmakefile.MudOS
 	-rm -f cc.h edit_source
-	-rm -f core y.output
-	-rm -f *.orig *.rej
-	-rm -f */*.orig */*.rej
-	-rm -f *.ln tags */*~ *~ TAGS
+	-rm -f core y.output testsuite/core testsuite/tmp/*
+	-rm -f testsuite/OBJ_DUMP* testsuite/test_file testsuite/testfile
+	-rm -f testsuite/tmp_eval_file.c testsuite/sf.o testsuite/ed_test
+	-rm -f testsuite/log/log testsuite/log/debug.log
+	-find . -name "*~" -print | xargs rm
+	-find . -name "*.orig" -print | xargs rm
+	-find . -name "*.rej" -print | xargs rm
+	-rm -f *.ln tags TAGS
 	-rm -f $(DRIVER_BIN) $(DRIVER_BIN).old addr_server
 	-rm -f Dependencies tmpdepend
 	-touch Dependencies

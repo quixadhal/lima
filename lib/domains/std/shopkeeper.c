@@ -13,4 +13,5 @@ void create() {
     set_long("Biff looks like a shrewd haggler.\n");
     set_for_sale(1);
     set_will_buy(1);
+    set_currency_type("gold");
 }

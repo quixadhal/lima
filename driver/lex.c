@@ -1363,13 +1363,16 @@ int yylex()
 
 		    if (c == '"')
 			quote ^= 1;
-		    else if (!quote && c == '/') {	
-			/* gc - handle comments
-			 * cpp-like! 1.6.91 */
-			switch(*outp++){
-			    case '*': skip_comment(); c = *outp++; break;
-			    case '/': skip_line(); c = *outp++; break;
-			    default: outp--; break;
+		    else if (c == '/' && !quote) {	
+			if (*outp == '*') {
+			    outp++;
+			    skip_comment();
+			    c = *outp++;
+			} else
+			if (*outp == '/') {
+			    outp++;
+			    skip_line();
+			    c = *outp++;
 			}
 		    }
 		    if (!sp && isspace(c))

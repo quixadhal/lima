@@ -15,7 +15,7 @@
 #
 # Modify these as necessary
 #
-limadir=/home/mud/lima-0.9r7
+limadir=/home/mud/lima-0.9r8
 searchfor=config.lima
 
 #######

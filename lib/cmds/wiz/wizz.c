@@ -51,7 +51,8 @@ private void main( string arg )
 
   tell_room( start_room, sprintf( "%s is whisked away on %s!\n",
 	name, arg ) );
-  say( sprintf( "%s arrives on %s!\n", name, arg ) );
+  tell_room( environment(this_body()),
+	    sprintf( "%s arrives on %s!\n", name, arg ), 0, ({this_body()}) );
   return;
 }
 

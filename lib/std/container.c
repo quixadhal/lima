@@ -13,24 +13,15 @@ inherit OBJ;
 private int max_capacity = 10;
 private static int capacity;
 private mapping objects;
-string main_prep = "in";
+private string main_prep = "in";
 
-void reset();
+private int contained_light;
+private int contained_light_added;
+
 
 //:FUNCTION container
 //Returns 1 if an object is a container
-int
-container()  { return 1; }
-
-int query_capacity();
-
-int stat_me() {
-    write("Container capacity: "+query_capacity()+"/"+max_capacity+"\n");
-    write("main_prep: " + main_prep + "\n");
-    write("It contains:\n"+
-      inv_list(this_object(), 0, 1)+"\n");
-    return ::stat_me();
-}
+int container()  { return 1; }
 
 //:FUNCTION ob_state
 //Determine whether an object should be grouped with other objects of the
@@ -178,19 +169,21 @@ void create() {
     ::create();
 }
 
-//:FUNCTION set_objects
-//Provide a list of objects to be loaded now and at every reset.  The key
-//should be the filename of the object, and the value should be the number
-//of objects to clone.  The value can also be an array, in which case the
-//first element is the number of objects to clone, and the remaining elements
-//are arguments that should be passed to create() when the objects are cloned.
-//
-//Note:  the number already present is determined by counting the number of
-//objects with the same first id, and objects are only cloned to bring the
-//count up to that number.
-void set_objects(mapping m) {
-    objects = m;
-    reset();
+//:FUNCTION inventory_visible
+//Return 1 if the contents of this object can be seen, zero otherwise
+int inventory_visible() {
+  if (!is_visible()) return 0;
+  if (!short()) return 0;
+  if (test_flag(TRANSPARENT)) return 1;
+  return !this_object()->query_closed();
+}
+
+//:FUNCTION inventory_accessible
+//Return 1 if the contents of this object can be touched, manipulated, etc
+int inventory_accessible() {
+  if (!is_visible()) return 0;
+  if (!short()) return 0;
+  return !this_object()->query_closed();
 }
 
 //:FUNCTION inventory_header
@@ -199,17 +192,15 @@ string inventory_header() {
     return "It contains:";
 }
 
-int inventory_visible();
-int inventory_accessible();
-
-string long() {
+string long()
+{
     string res;
     string contents;
 
     res = ::long();
     contents = inv_list(this_object(), 1, 1);
-  if (inventory_visible() && contents)
-    res += inventory_header() + "\n" + contents;
+    if (inventory_visible() && contents)
+	res += inventory_header() + "\n" + contents;
     return res;
 }
 
@@ -237,9 +228,9 @@ void reset(){
 	    num = value;
 	    rest = ({ });
 	} else
-	if (arrayp(value) && sizeof(value)) {
-	    num = value[0];
-	    rest = value[1..];
+	if (arrayp(value)) {
+	    num = 1;
+	    rest = value;
 	} else
 	    continue;
 
@@ -261,21 +252,19 @@ void reset(){
     }
 }
 
-//:FUNCTION inventory_visible
-//Return 1 if the contents of this object can be seen, zero otherwise
-int inventory_visible() {
-  if (!is_visible()) return 0;
-  if (!short()) return 0;
-  if (test_flag(TRANSPARENT)) return 1;
-  return !this_object()->query_closed();
-}
-
-//:FUNCTION inventory_accessible
-//Return 1 if the contents of this object can be touched, manipulated, etc
-int inventory_accessible() {
-  if (!is_visible()) return 0;
-  if (!short()) return 0;
-  return !this_object()->query_closed();
+//:FUNCTION set_objects
+//Provide a list of objects to be loaded now and at every reset.  The key
+//should be the filename of the object, and the value should be the number
+//of objects to clone.  The value can also be an array, in which case the
+//first element is the number of objects to clone, and the remaining elements
+//are arguments that should be passed to create() when the objects are cloned.
+//
+//Note:  the number already present is determined by counting the number of
+//objects with the same first id, and objects are only cloned to bring the
+//count up to that number.
+void set_objects(mapping m) {
+    objects = m;
+    reset();
 }
 
 //:FUNCTION can_take_from
@@ -308,7 +297,7 @@ introduce_contents() {
     }
 }
 
-string inventory_recurse(int depth) {
+varargs string inventory_recurse(int depth, object avoid) {
     string res;
     object *obs;
     int i;
@@ -316,17 +305,17 @@ string inventory_recurse(int depth) {
     string tmp;
 
     str = "";
-    obs = all_inventory(this_object());
+    obs = all_inventory(this_object()) - ({avoid});
     for (i=0; i<sizeof(obs); i++) {
         if (!(obs[i]->is_visible())) continue;
         if (!obs[i]->test_flag(TOUCHED) && obs[i]->untouched_long()) {
 	    str += obs[i]->untouched_long()+"\n";
              if (obs[i]->inventory_visible())
-                 str += obs[i]->inventory_recurse(depth+1);
+                 str += obs[i]->inventory_recurse(depth+1, avoid);
         }
     }
     res = introduce_contents();
-    if (tmp = inv_list(this_object(), 1, depth + 1)) {
+    if (tmp = inv_list(this_object(), 1, depth + 1, avoid)) {
       for (i=0; i<depth-1; i++) str += "  ";
       str += res + tmp;
     }
@@ -396,4 +385,112 @@ mixed direct_look_str_obj(string prep, object ob) {
     if (prep == main_prep)
 	return 1;
     return "There is nothing " + prep + " " + the_short() + ".\n";
+}
+
+int contents_can_hear()
+{
+  return 1;
+}
+
+int internal_sounds_carry()
+{
+  return 1;
+}
+
+int environment_can_hear()
+{
+  object env = environment();
+  return (internal_sounds_carry() && env && (!env->cant_hear_contents()));
+}
+
+// Inside messages propogate upward and downward...
+void receive_inside_msg(string msg, object * exclude, int message_type, 
+			mixed other)
+{
+  object env;
+  object array contents;
+
+  receive(msg);
+
+  if(contents_can_hear())
+    {
+      contents = all_inventory(this_object());
+      if(arrayp(exclude))
+	contents -= exclude;
+      contents->receive_outside_msg(msg, exclude, message_type, other);
+    }
+  if(environment_can_hear() && (env = environment()) && (!arrayp(exclude) || 
+				   member_array(env, exclude) == -1))
+    {
+      env->receive_inside_msg(msg, arrayp(exclude) ? exclude + 
+			      ({this_object()}) : ({this_object()}), 
+			      message_type, other);
+    }
+}
+
+// Outside messages propogate downward
+void receive_outside_msg(string msg, object * exclude, int message_type,
+			 mixed other)
+{
+  object array contents;
+
+  receive(msg);
+
+  if(contents_can_hear())
+    {
+      contents = all_inventory(this_object());
+      if(arrayp(exclude))
+	contents -= exclude;
+      contents->receive_outside_msg(msg, exclude, message_type, other);
+    }
+}
+
+//Remote messages propogate just like an inside message by defauly
+void receive_remote_msg(string msg, object array exclude, int message_type,
+			mixed other)
+{
+  receive_inside_msg(msg, exclude, message_type, other);
+}
+
+void receive_private_msg(string msg, int message_type, mixed other)
+{
+  receive(msg);
+}
+
+/* INTERNAL MUDLIB USAGE!!! NEVER CALL THIS!!! */
+void containee_light_changed(int adjustment)
+{
+    contained_light += adjustment;
+
+    /*
+    ** if the containee is visible, then tweak our own light; this will
+    ** propagate on up to the room
+    */
+    if ( inventory_visible() )
+	adjust_light(adjustment);
+}
+
+void inventory_visibility_change()
+{
+    int new_state = inventory_visible();
+
+    /* if it didn't change, jump ship */
+    if ( new_state == contained_light_added )
+	return;
+
+    contained_light_added = new_state;
+
+    if ( new_state )
+	adjust_light(contained_light);
+    else
+	adjust_light(-contained_light);
+}
+
+int stat_me()
+{
+    write("Container capacity: "+query_capacity()+"/"+max_capacity+"\n");
+    write("main_prep: " + main_prep + "\n");
+    write("It contains:\n"+
+      inv_list(this_object(), 0, 1)+"\n");
+    return ::stat_me();
 }

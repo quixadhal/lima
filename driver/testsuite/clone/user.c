@@ -65,9 +65,9 @@ process_input(string arg) {
     object cobj = load_object(cmd_path);
 
     if (cobj) {
-		return (int)cobj->main(rest);
+	cobj->main(rest);
     } else {
-		// maybe call an emote/soul daemon here
+	// maybe call an emote/soul daemon here
     }
 }
 #else

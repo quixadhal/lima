@@ -2,22 +2,30 @@
 
 // specification is: snoop [user] [str*]
 // we will recieve: ({ user, ({ words }) })
+
 #include <mudlib.h>
-#define  ASNOOP_LOG  "/log/snoops"
+
 inherit CMD;
 
-private void main(mixed *arg) {
-    if(!arg[0])
+private void main(mixed *arg)
+{
+    if ( !arg[0] )
 	snoop();
-    else {
-	if (!arg[1])
-	    snoop(arg[0]->query_link());
-	else {
-	  write_file(ASNOOP_LOG, sprintf("%s snooped %s because: %s\n",
-					 this_user()->query_userid(),
-					 arg[0]->query_link()->query_userid(),
-					 implode(arg[1]," ")));
-	  unguarded(1, (: snoop($(arg[0])->query_link()) :));
-	}
+    else
+    {
+	string msg;
+
+	if ( arg[1] )
+	    msg = implode(arg[1], " ");
+	else
+	    msg = "no reason given";
+
+	msg = sprintf("%s snooped %s because: %s\n",
+		      this_user()->query_userid(),
+		      arg[0]->query_link()->query_userid(),
+		      msg);
+	unguarded(1, (: write_file, SNOOP_LOG, msg :));
+
+	snoop(arg[0]->query_link());
     }
 }

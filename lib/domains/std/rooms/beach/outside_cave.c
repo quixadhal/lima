@@ -5,6 +5,7 @@ inherit ROOM;
 void obj_arrived(object ob) {
     if (ob->get_size() >= VERY_LARGE) 
       {
+     if(!ob->is_living())
 	tell_room(this_object(), capitalize(ob->the_short()) + " makes a "
 		  "large splash as it hits the water.\n");
 	return;
@@ -15,17 +16,17 @@ void obj_arrived(object ob) {
 
 create()
 {
-  function array m =({(: write("The mountains are too steep to climb.\n"):)});
-  function array o =({ (: write("You would drown!\n") :) });
+    string m = "#The mountains are too steep to climb.\n";
+    string o = "#You would drown!\n";
+
   room::create();
   set_brief("Outside cave");
   set_long("You are wading knee-deep in the surf.  Except for what seems to be a tiny cave, the surf yields to the rather steep mountains fairly violently, and you have trouble keeping your balance.  The mountains retreat a bit, leaving some sand to walk on to the east and west.");
-  set_light(1);
   set_exits( ([
-	       "in" : "/domains/std/rooms/caves/grotto.c",
-	       "north" : "/domains/std/rooms/caves/grotto.c",
-	       "east" : "/domains/std/rooms/beach/rocky_beach.c",
-	       "west" : "/domains/std/rooms/beach/sandy_beach.c",
+	       "in" : "../caves/grotto.c",
+	       "north" : "../caves/grotto.c",
+	       "east" : "rocky_beach.c",
+	       "west" : "sandy_beach.c",
 	       "northeast" :  m,
 	       "northwest" :  m,
 	       "south" : o,

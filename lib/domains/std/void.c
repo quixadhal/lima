@@ -6,8 +6,11 @@ inherit ROOM;
 
 void create(){
     room::create();
-    set_brief("Grue's Lair");
+
+    /* ensure this place is lit, regardless of DEFAULT_LIGHT_LEVEL */
     set_light(1);
+
+    set_brief("Grue's Lair");
     set_long("Normally anyone who stumbles into a Grue's nest isn't lucky\n"
 	     "enough to tell the tale, but I guess you're just special.\n");
 }

@@ -1299,7 +1299,7 @@ static void handle_configure() {
 
     /* sys/dir.h is BSD, dirent is sys V.  Try to do it the BSD way first. */
     /* If that fails, fall back to sys V */
-    if (check_prog("BSD_READDIR", "#include <sys/dir.h>", "struct direct *d; d->d_namlen;", 0)) {
+    if (check_prog("BSD_READDIR", "#include \"configure.h\"\n#include \"std_incl.h\"\n#include <sys/dir.h>", "struct direct *d; d->d_namlen;", 0)) {
 	check_include("INCL_SYS_DIR_H", "sys/dir.h");
     } else {
 	/* could be either of these */

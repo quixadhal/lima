@@ -29,6 +29,7 @@ private void resync();
 
 void create() 
 {
+    parse_init();
     ids = ({});
     plurals = ({});
     adjs = ({});
@@ -84,6 +85,7 @@ private void resync() {
 	    internal_short = primary_id;
     } else
 	internal_short = proper_name;
+    parse_refresh();
 }
 
 //:FUNCTION short
@@ -161,7 +163,10 @@ int plural_id( mixed arg ) {
 void
 add_adj(string array adj... )
 {
-    adjs += adj;
+    if(!arrayp(adjs))
+      adjs = (string *)adj;
+    else
+      adjs += (string *)adj;
     resync();
 }
 
@@ -169,7 +174,10 @@ add_adj(string array adj... )
 //Add a plural id
 void add_plural( string array plural... )
 {
-    plurals += plural;
+    if(!arrayp(plurals))
+      plurals = (string *)plural;
+    else 
+      plurals += (string *)plural;
     resync();
 }
 
@@ -177,7 +185,10 @@ void add_plural( string array plural... )
 //Add an id without adding the corresponding plural
 void add_id_no_plural( string array id... ) {
     // set new primary
-    ids += id;
+    if(!arrayp(ids))
+      ids = (string *)id;
+    else
+      ids += (string *)id;
     resync();
 }
 
@@ -185,7 +196,10 @@ void add_id_no_plural( string array id... ) {
 //Add an id and it's corresponding plural
 void add_id( string array id... )
 {
-    ids += id;
+    if(!arrayp(ids))
+      ids = (string *)id;
+    else
+      ids += (string *)id;
     plurals += map(id, (: pluralize :));
     resync();
 }
@@ -200,7 +214,10 @@ void set_id( string array id... ) {
 }
 
 void set_adj( string array adj... ) {
-    adjs += adj;
+    if(!arrayp(adjs))
+      adjs = adj;
+    else
+      adjs += adj;
     primary_adj = adj[0];
     resync();
 }
@@ -211,12 +228,16 @@ void set_adj( string array adj... ) {
 static
 void remove_id( string array id... )
 {
+    if(!arrayp(ids))
+      return;
     ids -= id;
     plurals -= map(id, (: pluralize :));
     resync();
 }
 
 void remove_adj( string array adj ... ) {
+    if(!arrayp(ids))
+      return;
     adjs -= adj;
     resync();
 }

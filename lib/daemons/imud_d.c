@@ -16,6 +16,7 @@ inherit M_ACCESS;
 inherit M_RECONNECT;
 
 inherit "/daemons/imud/tell";
+inherit "/daemons/imud/emoteto";
 inherit "/daemons/imud/who";
 inherit "/daemons/imud/finger";
 inherit "/daemons/imud/locate";
@@ -41,6 +42,7 @@ void rcv_error(string orig_mud, string orig_user,
 static private mapping	dispatch =
 ([
   "tell" : (: rcv_tell :),
+  "emoteto" : (: rcv_emoteto :),
 
   "who-req" : (: rcv_who_req :),
   "who-reply" : (: rcv_who_reply :),
@@ -172,7 +174,7 @@ private nomask void reconnect()
 			      OOB_PORT,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 0.9r7 (pre-alpha)",
+			      "Lima 0.9r8 (pre-alpha)",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -180,6 +182,7 @@ private nomask void reconnect()
 			      ADMIN_EMAIL,
 			      ([
 				  "tell" : 1,
+				   "emoteto" : 1,
 				  "who" : 1,
 				  "finger" : 1,
 				  "locate" : 1,
@@ -256,7 +259,7 @@ void remove(int coming_back_soon)
 	router_socket->remove();
 
     free_channels();
-    destruct(this_object());
+    destruct();
 }
 
 

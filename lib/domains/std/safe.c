@@ -8,6 +8,8 @@
 //*********************************************************************
 
 #include <mudlib.h>
+#include <size.h>
+
 inherit M_OPENABLE;
 inherit M_GETTABLE;
 inherit M_LOCKABLE;
@@ -27,6 +29,7 @@ create()
     set_locked("skeleton");
     set_closed(1);
     set_long("This is a very large safe");
+    set_max_capacity(LARGE);
 
     set_objects (( [ "/domains/std/example_scroll.c" : 1 ] ));
 }

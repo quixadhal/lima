@@ -32,7 +32,7 @@ inherit __DIR__ "player/cmd";
 inherit __DIR__ "player/help";
 inherit __DIR__ "player/bodyshell";
 inherit __DIR__ "player/wizfuncs";
-inherit "/std/money";
+inherit __DIR__ "player/money";
 
 #ifdef USE_SKILLS
 inherit __DIR__  "player/skills";
@@ -42,6 +42,9 @@ inherit __DIR__ "player/title";
 #endif
 #ifdef USE_SIMPLE_LEVEL
 inherit __DIR__ "player/simple_level";
+#endif
+#ifdef USE_WIZ_POSITION
+inherit __DIR__ "player/wiz_position";
 #endif
 
 // Global variables --
@@ -256,6 +259,7 @@ nomask void su_enter_game()
 {
     init_cmd_hook();
 
+//### this should go away once we torch the corresponding leave msg for 'su'
     NCHANNEL_D->deliver_emote("wiz_announce", 0,
 			      sprintf("enters %s.", mud_name()));
 
@@ -505,7 +509,7 @@ void die()
 	//     (MESSAGES_D->get_messages("player_death"))[query_level()/5])[1];
 	string msg = action(({this_object()}), 
 			    MESSAGES_D->get_messages("player-death"))[1];
-	(users() - ({ query_link() }))->tell(msg);
+	(users() - ({ query_link() }))->receive_message(msg);
     }
 #endif
 }
@@ -637,21 +641,6 @@ string * query_channel_list()
     return channel_list;
 }
 
-/*
-** We need to catch stuff told to the body and relay it to the user ob
-*/
-private nomask void catch_tell(string message)
-{
-    if ( link )
-        tell_object(link, message);
-    if ( catching_scrollback && query_shell_ob())
-      query_shell_ob()->add_scrollback(message);
-}
-
-void tell(string message) {
-    tell_object(link, message);
-}
-
 //### temp hack. be both user and body
 nomask object query_body()
 {
@@ -671,4 +660,42 @@ nomask void clear_failures()
 /* verb interaction */
 mixed indirect_give_obj_to_liv(object ob, object liv) {
     return 1;
+}
+
+/* helper function to forward a message to the user object */
+private nomask void forward_to_user(string msg)
+{
+    if ( link )
+	link->receive_message(msg);
+}
+
+// Inside messages propogate upward and downward...
+void receive_inside_msg(string msg, object array exclude, int message_type, 
+			mixed other)
+{
+    forward_to_user(msg);
+
+    ::receive_inside_msg(msg, exclude, message_type, other);
+}
+
+// Outside messages propogate downward
+void receive_outside_msg(string msg, object array exclude, int message_type,
+			 mixed other)
+{
+    forward_to_user(msg);
+
+    ::receive_outside_msg(msg, exclude, message_type, other);
+}
+
+//Remote messages propogate just like an inside message by default
+void receive_remote_msg(string msg, object array exclude, int message_type,
+			mixed other)
+{
+    receive_inside_msg(msg, exclude, message_type, other);
+}
+
+// Private messages just go to the user object
+void receive_private_msg(string msg, int message_type, mixed other)
+{
+    forward_to_user(msg);
 }

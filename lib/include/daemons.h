@@ -19,6 +19,8 @@
 #define TIMER_D		"/daemons/timer_d"
 #define WEATHER_D	"/daemons/weather_d"
 #define MESSAGES_D	"/daemons/messages"
+#define ANNOTATION_D    "/daemons/annotation"
+#define MONEY_D		"/daemons/money_d"
 
 #define MAIL_D		"/secure/daemons/mail_d"
 #define GROUP_D		"/secure/daemons/group_d"

@@ -5,6 +5,9 @@
 **
 */
 
+//### peer should be a synonym for some, but not all, of these rules.
+//### E.g. not "" or it will interfere with the emote
+
 #include <mudlib.h>
 
 inherit VERB_OB;
@@ -15,13 +18,9 @@ mixed can_look_str_obj(string str)
 }
 
 mixed can_look_str(string str) {
-    mapping exits;
-
-//###FIXME
-
 #if 0 // deprecated
-    exits = environment(this_body())->get_exits();
-    if (stringp(exits[str]))
+    mixed value = environment(this_body())->query_exit_value(str);
+    if (value && value[0] != '#')
 	return 1;
 #endif
     return "That doesn't seem to be possible.\n";
@@ -32,26 +31,11 @@ mixed can_look_obj_with_obj(object ob1, object ob2) {
 }
 
 void do_look() {
-    environment(this_body())->do_looking();
+    environment(this_body())->do_looking(1);
 }
 
 void do_look_at_obj(object ob, string name) {
     string str;
-    switch(strsrch(name,' '))
-      {
-      case 1:
-	if(name[0] == 'a' && strlen(name) > 2)
-	  {
-	    name = name[2..];
-	    break;
-	  }
-      case 3:
-	if(name[0..2] == "the" && strlen(name) > 4)
-	  {
-	    name = name[4..];
-	    break;
-	  }
-      }
 
     if (!(str = ob->get_item_desc(name)))
 	str = ob->long();
@@ -99,13 +83,8 @@ void do_look_for_obj(object ob) {
 }
 
 void do_look_str(string str) {
-    mapping exits = environment(this_body())->get_exits();
-    string fn;
-    object ob;
-
-    fn = exits[str];
-    if (!stringp(fn)) return;
-    ob = load_object(fn);
+    mixed value = environment(this_body())->query_exit_value(str);
+    object ob = load_object(value);
 
     ob->remote_look(environment(this_body()));
 }

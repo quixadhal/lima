@@ -5,8 +5,8 @@
 inherit M_ACCESS;
 
 void clean_up() {
-  if (!environment() && !first_inventory(this_object()))
-     destruct(this_object());
+    if (!environment() && !first_inventory(this_object()))
+	destruct(this_object());
 }
 
 create() {

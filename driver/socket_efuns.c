@@ -693,7 +693,7 @@ call_callback P3(int, fd, int, what, int, num_arg) {
     case S_CLOSE_FP: callback = lpc_socks[fd].close_callback; break;
     }
 
-    if (fd & what) {
+    if (lpc_socks[fd].flags & what) {
 	safe_call_function_pointer(callback.f, num_arg);
     } else if (callback.s) {
 	safe_apply(callback.s, lpc_socks[fd].owner_ob, num_arg, ORIGIN_DRIVER);

@@ -1,0 +1,159 @@
+#include <playerflags.h>
+
+private static string remote_desc;
+private static string array room_state = ({});
+private static mapping room_state_extra_longs = ([]);
+
+int query_lit();
+string short();
+string show_exits();
+string get_base_long();
+string get_extra_long();
+
+
+string get_state_specific_long()
+{
+  string retval = "";
+
+  map (room_state, (: $(retval) += (room_state_extra_longs[$1] ?
+				    evaluate(room_state_extra_longs[$1]): "")
+				  :));
+  return retval;
+}
+
+void set_state(string state)
+{
+  room_state += ({state+"_on"});
+  room_state -= ({state+"_off"});
+}
+
+void clear_state(string state)
+{
+  room_state += ({state+"_off"});
+  room_state -= ({state+"_on"});
+}
+
+void set_extra_state_description(string state, mixed desc)
+{
+  room_state_extra_longs[state] = desc;
+}
+
+//:FUNCTION show_objects
+//Return a string describing the objects in the room
+string show_objects()
+{
+    object *obs;
+    string user_show;
+    string obj_show;
+    string str;
+    int n;
+
+    obs = filter(all_inventory() - ({ this_body() }), 
+		 (: $1->is_visible() :));
+    n = sizeof(obs);
+    user_show = "";
+    obj_show = "";
+
+    while (n--) {
+	if (obs[n]->is_living()) {
+	    str = obs[n]->in_room_desc();
+	    if(strlen(str)) 
+	      {
+		obj_show += str + "\n";
+	      }
+	} else {
+	    if (!duplicatep(obs[n])) {
+		if ((str = obs[n]->show_in_room()) && strlen(str)) {
+		    obj_show += str + "\n";
+		}
+		if (obs[n]->inventory_visible())
+		    obj_show += obs[n]->inventory_recurse();
+	    }
+	}
+    }
+
+    if (user_show != "") obj_show += "\n"+user_show;
+    return wrap(obj_show);
+}
+
+
+string long()
+{
+  //	if (!this_body()->test_flag(F_BRIEF)) 
+#ifdef OBVIOUS_EXITS_BOTTOM
+    return sprintf("%s\n%s\nObvious Exits: %s\n%s\n",
+                   (this_body()->test_flag(F_BRIEF) ? "" : get_base_long()),
+		   get_state_specific_long(),
+		   get_extra_long(),
+                   show_exits(),
+                   show_objects());
+#else
+    return sprintf("%s\n%s\n%s\n%s\n",
+                   (this_body()->test_flag(F_BRIEF) ? "" : get_base_long()),
+		   get_state_specific_long(),
+		   get_extra_long(),
+		   show_objects());
+#endif
+}
+
+//:FUNCTION do_looking
+//print out the description of the current room
+void do_looking()
+{
+    if ( wizardp(this_body()) &&
+      this_body()->query_shell_ob()->get_variable("show_loc") )
+    {
+	printf("[%s]\n", file_name(this_object()));
+    }
+
+    if ( query_lit() < 1 )
+    {
+	write("Someplace dark\nIt is dark here.\n");
+#ifdef ZORKMUD
+	write("You might get eaten by a grue.\n");
+#endif
+    }
+    else
+    {
+#ifdef OBVIOUS_EXITS
+	printf("%s [exits: %s]\n", short(), show_exits());
+#else
+	printf("%s\n", short());
+#endif
+
+	write(wrap(long()));
+    }
+}
+
+
+
+
+//### I think this should be torched :-)
+// I don't.
+// This should be overloaded if you want to be able to give different
+// descs from different rooms
+// Hmm, I know who made each of these comments.  Who else does? :-)
+// I do =)
+void remote_look(object o)
+{
+    if ( remote_desc )
+    {
+	printf("%s\n", remote_desc);
+    }
+    else
+    {
+	printf("You can't seem to make out anything.\n");
+    }
+}
+
+void set_remote_desc(string s)
+{
+    remote_desc = s;
+}
+
+
+
+
+
+
+

@@ -6,6 +6,7 @@
 #include "std.h"
 #include "addr_server.h"
 #include "socket_ctrl.h"
+#include "file_incl.h"
 #include "debug.h"
 #include "file_incl.h"
 

@@ -17,7 +17,6 @@
 #define driver_version()	__VERSION__
 
 #define wiz_dir(x)		sprintf(WIZ_DIR"/%s",(x)->query_userid())
-#define fail(x)			(: notify_fail, (x) :)
 #define un_article(x)		(stringp(x) ?\
 			implode(explode(x," ")-({"a","an","the"})," ") : x)
 #define force_look()		(environment(this_body())->do_looking())

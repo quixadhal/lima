@@ -24,7 +24,7 @@ void remove()
     if ( origin() != ORIGIN_LOCAL && owner && previous_object() != owner )
 	error("illegal attempt to remove shell object\n");
 
-    destruct(this_object());
+    destruct();
 }
 
 void setup_for_save()

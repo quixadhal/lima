@@ -46,7 +46,6 @@ int legal_path PROT((char *));
 
 static int match_string PROT((char *, char *));
 static int isdir PROT((char *path));
-static void strip_trailing_slashes PROT((char *path));
 static int copy PROT((char *from, char *to));
 static int do_move PROT((char *from, char *to, int flag));
 static int pstrcmp PROT((svalue_t *, svalue_t *));
@@ -858,15 +857,6 @@ static int isdir P1(char *, path)
     return stat(path, &stats) == 0 && S_ISDIR(stats.st_mode);
 }
 
-static void strip_trailing_slashes P1(char *, path)
-{
-    int last;
-
-    last = strlen(path) - 1;
-    while (last > 0 && path[last] == '/')
-	path[last--] = '\0';
-}
-
 static struct stat to_stats, from_stats;
 
 static int copy P2(char *, from, char *, to)
@@ -1035,7 +1025,9 @@ void debug_perror P2(char *, what, char *, file) {
 int do_rename P3(char *, fr, char *, t, int, flag)
 {
     char *from, *to, tbuf[3];
-
+    char newfrom[MAX_FNAME_SIZE + MAX_PATH_LEN + 2];
+    int flen;
+    
     /*
      * important that the same write access checks are done for link() as are
      * done for rename().  Otherwise all kinds of security problems would
@@ -1054,7 +1046,21 @@ int do_rename P3(char *, fr, char *, t, int, flag)
 	to = tbuf;
 	sprintf(to, "./");
     }
-    strip_trailing_slashes(from);
+
+    /* Strip trailing slashes */
+    flen = strlen(from);
+    if (flen > 1 && from[flen - 1] == '/') {
+	char *p = from + flen - 2;
+	int n;
+	
+	while (*p == '/' && (p > from))
+	    p--;
+	n = p - from + 1;
+	memcpy(newfrom, from, n);
+	newfrom[n] = 0;
+	from = newfrom;
+    }
+
     if (isdir(to)) {
 	/* Target is a directory; build full target filename. */
 	char *cp;

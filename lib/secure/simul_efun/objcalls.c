@@ -110,16 +110,34 @@ object get_object(string arg)
     return ob;
 }
 
-static int immediatly_accessable( object o )
+object root_environment(object o)
+{
+  object env, env2;
+
+  env = environment(o);
+  if(!env)
+    return 0;
+  while(env2 = environment(env))
+    {
+      env = env2;
+    }
+  return env;
+}
+
+int immediatly_accessible( object o )
 {
     object	env;
 
+    if(!objectp(o))
+      return 0;
     env = environment( o );
-
-    if( env == this_body() || env == environment( this_body() ) )
+    if((env == this_body()) || (env == environment(this_body())) )
 	return 1;
 
-    return (int)env->inventory_accessable();
+    if(!objectp(env))
+      return 0;
+    return ((int)env->inventory_accessible() && 
+      (member_array(o, deep_inventory(root_environment(this_body())))!= -1));
 }
 
 int
@@ -135,14 +153,14 @@ usable( object o, int flag )
 
     if (environment(o) == this_body()) return 1;
 
-    if( immediatly_accessable( o ) )
+    if( immediatly_accessible( o ) )
     {
 	if( flag )
 	{
 	    write( "(Taking the "+o->the_short()+" first)\n" );
 	    VERB_OB_GET->do_get("OBJ", o, 0);
 
-	    return immediatly_accessable(o);
+	    return immediatly_accessible(o);
 	}
 	return 1;
     }
@@ -150,14 +168,15 @@ usable( object o, int flag )
     write( "(Taking the "+o->the_short()+" first)\n" );
     VERB_OB_GET->do_get("OBJ", o, 0);
 
-    return immediatly_accessable(o);
+    return immediatly_accessible(o);
 }
 
 
 /* returns a nice listing of the objects in a given object */
 /* if (flag) then don't print untouched obs */
 /* depth is for internal use only */
-varargs string inv_list(object o, int flag, int depth) {
+/* So is avoid... */
+varargs string inv_list(object o, int flag, int depth, object avoid) {
     object *obs;
     string res;
     string ex;
@@ -165,7 +184,7 @@ varargs string inv_list(object o, int flag, int depth) {
     int n;
 
     if (!o) o = this_object();
-    obs = all_inventory(o);
+    obs = all_inventory(o) - ({avoid});
     if (!(n=sizeof(obs))) {
 	return 0;
     }

@@ -6,6 +6,7 @@ string query_subjective();
 
 private mixed for_sale;
 private mixed will_buy;
+private mixed currency_type = "gold";
 
 //:FUNCTION set_for_sale
 //Set the array of object names which this living object is willing to sell.
@@ -23,9 +24,23 @@ void set_will_buy(mixed f) {
     will_buy = f;
 }
 
+//:FUNCTION set_currency_type
+//Sets the type of currency the vendor will buy/sell in
+mixed set_currency_type(string type)
+{
+    if(!member_array(type, MONEY_D->query_valid_currencies() ))
+	error("Not a valid currency");
+    currency_type = type;
+}
+
+mixed query_currency_type()
+{
+    return currency_type;
+}
+
 mixed indirect_buy_obj_from_liv(object ob, object liv) {
     mixed tmp = evaluate(for_sale);
-    
+
     if (intp(tmp)) return tmp;
     if (!pointerp(tmp)) return 0;
 
@@ -37,7 +52,7 @@ mixed indirect_buy_obj_from_liv(object ob, object liv) {
 
 mixed indirect_sell_obj_to_liv(object ob, object liv) {
     mixed tmp = evaluate(will_buy);
-    
+
     if (intp(tmp)) return tmp;
     if (!pointerp(tmp)) return 0;
 
@@ -51,17 +66,34 @@ void buy_object(object ob) {
     if (ob->move(this_object()) != MOVE_OK)
 	write("You can't seem to give " + ob->the_short() + " to " + short() + ".\n");
     else {
-//:FIXME we need to pay them ...
-        this_body()->targetted_action("$N $vsell a $o to $t.\n", this_object(), ob);
+	int exchange_rate = MONEY_D->query_exchange_rate(currency_type);
+	int object_value;
+
+	object_value = ob->query_value() * exchange_rate;
+	this_body()->add_money(currency_type, object_value);
+	this_body()->my_action("$N $vsell a $o for "+ object_value +" "+ currency_type +".\n", ob);
+	this_body()->other_action("$N $vsell a $o.\n", ob);
 
     }
 }
 
 void sell_object(object ob) {
+    int exchange_rate = MONEY_D->query_exchange_rate(currency_type);
+    int object_cost;
+
+    /* the vendor sells things for 1.5 times their value */
+    object_cost = ((ob->query_value() * exchange_rate) * 3) / 2;
+    if(object_cost > this_body()->query_amt_money(currency_type))
+    {
+	write( short() +" laughs in your face saying, that costs  "+ object_cost +" "+ currency_type +", which you don't have!\n");
+	return 0;
+    }
     if (ob->move(this_body()) != MOVE_OK)
 	write(capitalize(query_subjective()) + " can't seem to give " + ob->the_short() + " to you.\n");
     else {
-//:FIXME we need to charge them ...
-        this_body()->targetted_action("$N $vbuy a $o from $t.\n", this_object(), ob);
+	this_body()->subtract_money(currency_type, object_cost);
+	this_body()->my_action("$N $vbuy a $o for "+ object_cost +" "+ currency_type +".\n",ob);
+
+	this_body()->other_action("$N $vbuy a $o.\n",ob);
     }
 }

@@ -1,7 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 /*	
-**	For the Lima mudlib.
+**	Hint menu For the Lima mudlib.
+**      Rust @ Lima Bean Nov, 1995.
 **
 */
 

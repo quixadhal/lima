@@ -232,7 +232,7 @@ nomask void remove() {
       if(!con) continue;
       catch(con->socket->remove());
     }
-  destruct(this_object());
+  destruct();
 }
 
 

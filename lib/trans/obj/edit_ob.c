@@ -8,21 +8,19 @@
 ** new input system facilities.
 **
 ** Usage:
-**     clone_object(EDIT_OB)->edit_file(fname, func, ctx)
-** or  clone_object(EDIT_OB)->edit_text(text, func, ctx)
+**     new(EDIT_OB, EDIT_FILE, fname, func)
+** or  new(EDIT_OB, EDIT_TEXT, text, func)
 **
-** The calling object will then have "func" called on it when
-** the text entry is complete.  The arguments are as follows:
-**
-**     void my_func(mixed ctx, string fname|string *text)
-**
-** The second parameter will contain the file name or the lines
-** of text.  If the editing was aborted, the second param will
-** be zero.
+** "func" will be evaluated when the editing is complete.  One
+** parameter will be passed, which will be zero if the editing
+** was aborted for some reason.  Otherwise, it will be a single
+** string specifying the file name, or an array of strings
+** holding the lines of text.
 */
 
 #include <mudlib.h>
 #include <playerflags.h>
+#include <edit.h>
 
 /*
 ** Inherit from DAEMON so that we clean up properly and we have some
@@ -39,10 +37,7 @@ inherit M_INPUT;
 private string* buf;
 
 private string client_fname;
-private object client_ob;
-private string client_func;
-private mixed client_ctx;
-
+private function client_func;
 
 
 private string tmp_fname()
@@ -76,19 +71,19 @@ varargs private string build_string(int flag)
 {
     switch (sizeof(buf)) {
     case 0:
-      return (flag & 1) ? "**No text!\n" : "";
-  default:
-      if (flag & 2)
-	  return "[" + (sizeof(buf)-15) + " lines not displayed, please trim (~e)]\n" + implode(buf[<15..], "\n") + "\n";
-      /* WARNING - falls through */
-  case 1..15:
-      return implode(buf, "\n") + "\n";
-  }
+	return (flag & 1) ? "**No text!\n" : "";
+    default:
+	if (flag & 2)
+	    return "[" + (sizeof(buf)-15) + " lines not displayed, please trim (~e)]\n" + implode(buf[<15..], "\n") + "\n";
+	/* WARNING - falls through */
+    case 1..15:
+	return implode(buf, "\n") + "\n";
+    }
 }
 
 private void end_edit(int aborted)
 {
-    mixed arg2;
+    mixed arg;
 
     if ( client_fname )
     {
@@ -97,11 +92,11 @@ private void end_edit(int aborted)
 	if ( !aborted )
 	{
             write_file(client_fname, build_string(1));
-	    arg2 = client_fname;
+	    arg = client_fname;
 	}
     }
     else if ( !aborted )
-	arg2 = buf;
+	arg = buf;
 
     /*
     ** Clear up this information before dispatching the callback.  The
@@ -110,12 +105,9 @@ private void end_edit(int aborted)
     this_body()->clear_flag(F_IN_EDIT);
     modal_pop();
 
-    if(functionp(client_func))
-	evaluate(client_func, client_ctx, arg2);
-    else
-    	call_other(client_ob, client_func, client_ctx, arg2);
+    evaluate(client_func, arg);
 
-    destruct(this_object());
+    destruct();
 }
 
 private nomask void end_ed()
@@ -192,39 +184,40 @@ private nomask void parse_edit(mixed str)
     buf += ({ str });
 }
 
-private nomask string query_prompt()
-{
-    return "";    // could be "]" to look like some others
-}
-
-private void begin_edit(string *text, string func, mixed ctx)
+private void begin_edit(string *text, function continuation)
 {
     if ( this_body()->test_flag(F_IN_EDIT) )
 	write("Warning! You are already marked as editing.\n");
     this_body()->set_flag(F_IN_EDIT);
 
     buf = text ? text : ({ });
-    client_ob = previous_object();
-    client_func = func;
-    client_ctx = ctx;
+    client_func = continuation;
 
     write(HEADER + build_string(2));
-    modal_push((: parse_edit :), (: query_prompt :));
+    modal_push((: parse_edit :), "");	/* empty prompt */
 }
 
-nomask void edit_file(string file, string func, mixed ctx)
+
+void create(int kind, mixed text, function continuation)
 {
-    string *text;
+    switch ( kind )
+    {
+    case 0:	// blueprint
+	return;
 
-    client_fname = file;
-    text = read_strings(file, 0);
+    case EDIT_TEXT:
+	if ( stringp(text) )
+	    text = explode(text, "\n");
+	break;
 
-    begin_edit(text, func, ctx);
-}
+    case EDIT_FILE:
+	client_fname = text;
+	text = read_strings(text, 0);
+	break;
 
-nomask void edit_text(mixed text, string func, mixed ctx)
-{
-    if ( stringp(text) )
-	text = explode(text, "\n");
-    begin_edit(text, func, ctx);
+    default:
+	error("Bad argument 2 to new(EDIT_OB, ...)\n");
+    }
+
+    begin_edit(text, continuation);
 }

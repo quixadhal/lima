@@ -20,6 +20,7 @@ inherit __DIR__ "user/sw_user";
 inherit __DIR__ "user/loginfail";
 inherit __DIR__ "user/inputsys";
 inherit __DIR__ "user/userinfo";
+inherit __DIR__ "user/messages";
 
 /*
 ** This users's userid (login id).
@@ -66,7 +67,7 @@ void remove()
 
     if ( !body || previous_object() == body )
     {
-	destruct(this_object());
+	destruct();
     }
 }
 
@@ -113,8 +114,4 @@ private nomask void net_dead()
 	body->net_dead();
     else
 	destruct(this_object());
-}
-
-void tell(string message) {
-    receive(message);
 }

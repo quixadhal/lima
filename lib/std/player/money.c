@@ -13,12 +13,13 @@
 //
 
 #include <mudlib.h>
+#include <money.h>
 
 
-private static mapping money;
+private  mapping money;
 
 private *query_currencies;
-
+mixed subtract_money(string, int);
 
 //  This is the functin to call to query the amount of a certain type
 //  of currency you have.
@@ -49,14 +50,23 @@ mixed add_money(string type, int amount)
 	map_delete(money, type);
 }
 
+mixed subtract_money(string type, int amount)
+{
+money[type] -= amount;
+
+    if(!money[type] || money[type] < amount) return 0;
+    else money[type] -= amount;
+
+if(money[type] < 1)
+   map_delete(money,type);
+
+       map_delete( money, type);
+}
 
 
 //   This function will return the current "types" of money you have
 //
 
-//  This needs to check for non existance of money as it currently
-//  returns in error if no mney is there
-//
 
 int *query_currencies()
 {

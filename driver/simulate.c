@@ -78,11 +78,11 @@ init_privs_for_object P1(object_t *, ob)
     object_t *tmp_ob;
     svalue_t *value;
 
-    if (master_ob == (object_t *)-1) {
+    if (!master_ob)
 	tmp_ob = ob;
-    } else {
+    else
 	tmp_ob = master_ob;
-    }
+
     if (!current_object
 #ifdef PACKAGE_UIDS
 	|| !current_object->uid
@@ -113,7 +113,7 @@ static int give_uid_to_object P1(object_t *, ob)
     svalue_t *ret;
     char *creator_name;
 
-    if (master_ob == (object_t *)-1) {
+    if (!master_ob) {
 	ob->uid = add_uid("NONAME");
 #ifdef AUTO_SETEUID
 	ob->euid = ob->uid;
@@ -214,7 +214,7 @@ static svalue_t *
 {
     svalue_t *v;
 
-    if (master_ob == (object_t *)-1) return 0;
+    if (!master_ob) return 0;
     push_string(name, STRING_MALLOC);
     v = apply_master_ob(APPLY_COMPILE_OBJECT, 1);
     if (!v || (v->type != T_OBJECT))
@@ -224,7 +224,7 @@ static svalue_t *
 
 void set_master P1(object_t *, ob) {
 #if defined(PACKAGE_UIDS) || defined(PACKAGE_MUDLIB_STATS)
-    int first_load = (master_ob == (object_t *)-1);
+    int first_load = (!master_ob);
 #endif
 #ifdef PACKAGE_UIDS
     svalue_t *ret;

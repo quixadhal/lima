@@ -1,0 +1,48 @@
+int contents_can_hear();
+int environment_can_hear();
+
+// Inside messages propogate upward and downward...
+void receive_inside_msg(string msg, object array exclude, int message_type, 
+			mixed other)
+{
+  object env;
+  object array contents;
+
+  receive(msg);
+
+  if(contents_can_hear())
+    {
+      contents = all_inventory(this_object()) - exclude;
+      contents->receive_outside_msg(msg, exclude, message_type, other);
+    }
+  if(environment_can_hear() && (env = environment()) && (member_array(env,
+		     exclude) == -1))
+    {
+      env->receive_inside_msg(msg, exclude + ({this_object()}), message_type,
+      other);
+    }
+
+}
+
+// Outside messages propogate downward
+void receive_outside_msg(string msg, object array exclude, int message_type,
+			 mixed other)
+{
+  if(contents_can_hear())
+    {
+      contents = all_inventory(this_object()) - exclude;
+      contents->receive_outside_msg(msg, exclude, message_type, other);
+    }
+}
+
+//Remote messages propogate just like an inside message by defauly
+void receive_remote_msg(string msg, object array exclude, int message_type,
+			mixed other)
+{
+  receive_inside_msg(msg, exclude, message_type, other);
+}
+
+void receive_private_msg(string msg, int message_type, mixed other)
+{
+  receive(msg);
+}

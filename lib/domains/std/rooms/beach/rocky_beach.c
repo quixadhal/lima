@@ -1,16 +1,16 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 inherit ROOM;
 
+
+void
 create()
 {
-  function array m =({(: write("The mountains are too steep to climb.\n"):)});
-  function array o =({ (: write("You would drown!\n") :) });
+    string m = "#The mountains are too steep to climb.\n";
+    string o = "#You would drown!\n";
   room::create();
   set_brief("Rocky beach");
   set_long("There isn't much beach here to speak of; instead, there is a lot of rubble and debris.  The mountains and ocean surround you, although you can squeak back out through the surf.");
-  set_light(1);
   set_exits( ([
 	       "west" : m,
 	       "northeast" :  m,
@@ -21,24 +21,6 @@ create()
 	       "southeast" : o,
 	       "southwest" : o,
 	       ]) );
-
-  add_item( "surf", "water", "waves", 
-	 ([ 
-	   "adjs" : ({ "fierce", "strong" }),
-	   "look" : "The waves look fierce.",
-	   "swim" : "As the tide is particularly strong, you'd prefer to "
-	            "keep standing.",
-	   ]));
-
-  add_item("ocean", 
-	   ([ 
-	     "look" :  "You strain to see the other side of the "
-	   "ocean, but fail.  You do notice something, however you can't "
-	   "quite make out what.  Perhaps a ship?",
-	   "swim" : "As the tide is particularly strong, you'd prefer to "
-	            "keep standing.", 
-	     ]));
-
 
   add_item("mountains", "steep mountains", 
 	   ([
@@ -54,7 +36,9 @@ create()
   set_hidden_exits("northeast","northwest","south","southeast","southwest", 
 		   "north", "east", "west");
   set_objects( ([
-		 "/domains/std/objects/debris" : 1 ]) );
+		 "/domains/std/objects/ocean" : 1,
+		 "/domains/std/objects/debris" : 1,
+		 ]));
 }
 
 

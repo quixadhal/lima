@@ -120,6 +120,23 @@ static int scan_config_line P3(char *, fmt, void *, dest, int, required)
     return 1;
 }
 
+char *process_config_string(char *str) {
+    char *p = str;
+    char *q;
+    int n;
+    
+    while (*p && isspace(*p))
+	p++;
+    n = strlen(p);
+    if (!n) return alloc_cstring("", "config_file: blank string");
+
+    q = p + n - 1;
+    while (q > p && isspace(*q))
+	q--;
+    q[1] = 0;
+    return alloc_cstring(p, "process_config_string()");
+}
+
 void set_defaults P1(char *, filename)
 {
     FILE *def;

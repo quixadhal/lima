@@ -656,7 +656,7 @@ f_range P1(int, code)
 #else
             if (from < 0) from = 0;
 #endif
-            if (to < from || from >= len){
+            if (to < from || from >= len) {
                 free_string_svalue(sp+2);
 		sp->type = T_STRING;
 		sp->subtype = STRING_CONSTANT;

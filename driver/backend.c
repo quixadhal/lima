@@ -153,6 +153,7 @@ void backend()
         /* Well, let's do it and see what happens - Sym */
 #ifdef DEBUG
 	report_holes();
+	current_interactive = 0;
 #else
 	clear_state();
 #endif

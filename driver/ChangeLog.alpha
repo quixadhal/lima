@@ -1,3 +1,119 @@
+Wed Dec  6 18:00:15 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a12
+	* fixed a crasher in passing a negative number as the field width
+	  via the '*' specifier
+	* fixed a crasher in strings which were too long to fit into tables
+	  in table mode
+
+Tue Dec  5 19:30:12 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a11
+	* fixed two crashers in the table generation logic of sprintf(),
+	  also fixed a bug that would cause the second and following
+	  lines to be indented wrong
+	* fixed tables to fully fill the space allocated to them in
+	  the format description
+	* The fill pattern for tables and columns always fills out the
+	  entire 'box' now; e.g.
+	  printf("%#|30'.'s\n", "apple\nbannana\ncherry\ndonut\nelf\nfruit\n")
+	  gives:
+	    ...apple....cherry......elf...
+            ..bannana....donut.....fruit..
+	  and not:
+	    ...apple....cherry......elf
+            ..bannana....donut.....fruit
+
+Mon Dec  4 16:13:59 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a10
+	* updated with respect to v21.7b11
+	* moved values_list in function_context_t and node in decl to
+	  align slightly better
+	* fixed the direct/dirent check to include std_incl.h in case it
+	  has some defines needed by those files
+	* removed some really old and unused files of the compiler %union
+	  (address and funp; the second of which predates me ...)
+	* small optimization to the lexer's handling of comments in
+	  preprocessor lines
+	* major changes to sprintf.c:
+	  . COMPAT_BUSTER: error messages are never returned any more, but
+	    are thrown as errors instead.
+	  . 'clean' is no longer used, so cannot be leaked
+	  . COMPAT_BUSTER: "%^" is no longer special (for efficiency reasons,
+	    as well as disagreements on the exact algorithm)
+	  . The format string is never written into, eliminating the need
+	    for savechars and related hacks; fixes a crasher in extremely
+	    long strings in tables (>2k)
+	  . The setjmp()/longjmp() is gone, since the cleanup can be done
+	    on the next call to sprintf() now
+	  . sprintf() is now officially not reentrant, and you will get
+	    an error if you try.  It probably crashed before if you tried
+	    it.  The only LPC code called by sprintf() is object_name(),
+	    so this shouldn't be a problem
+	  . on the whole, things should be significantly faster (slightly
+	    more than 3 times faster on the small example I used),
+	    mostly due to collecting sets of characters instead of adding
+	    characters individually, and removing redundant length calculations
+	  . large portions of the file are now actually readable
+
+Mon Nov 27 22:51:35 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a9
+	* updated with respect to v21.7b10
+	* COMPAT_BUSTER: The scope of for and foreach loop variables is now
+	  only the inside of the loop.  This also fixes a bug demonstrated
+	  by the following:
+	   { int i; for (int j;;) ; } { int i; }
+	* Some error message changes:
+	  . Indexing on illegal type
+	    -> Value being indexed is zero/Cannot index value of type 'foo'.
+	  . Indexing a (string/array) with an illegal type
+	    -> (String/Array) indexes must be integers
+	  . Negative index passed to array
+	    -> Array index must be positive or zero
+
+Wed Nov 22 12:52:13 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a8
+	* updated with respect to v21.7b9
+	* fixed a typo in ./build.MudOS (CC -> $CC)
+	* fixed a crasher in copying parse_command_* arrays which are empty
+
+Tue Nov 21 17:16:10 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a7
+	* updated with respect to v21.7b8
+	* fixed the ar test to make sure comptest.o exists in ./build.MudOS
+	* Leading and trailing whitespace in the values in the config file
+	  is now ignored
+
+Wed Nov 15 14:41:20 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a6
+	* updated with respect to v21.7b7
+	* Better system for reporting bad malloc configurations (two malloc
+	  packages, etc) and system configuration errors
+	* Report a redefinition error if classes with the same name are
+	  inherited from different files
+	* Fixed the "Return type doesn't match prototype' error message
+	  to only be printed once per occurance, not twice
+
+Tue Nov 14 12:53:51 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a5
+	* updated with respect to v21.7b6
+	* A few small tweaks to the testsuite cleanup
+	* fixed crasher in printing a string containing a '%' when
+	  NONINTERACTIVE_STDERR_WRITE was defined
+	* some small cleanups to includes in socket_ctrl.c
+
+Tue Nov  7 17:50:22 EST 1995 (tim@handel.princeton.edu (Beek))
+	* raised patchlevel to v22a4
+	* updated with respect to v21.7b5
+	* updated all the Makefiles with respect to Makefile.master
+	* minor change: use 0 instead of -1 for master_ob not loaded yet since
+	  we no longer have to distinguish between unloaded/not loaded yet
+	* added MDmemcheck() which can be inserted into the source to do
+	  internal memory consistency checks and abort if corruption is found
+	* added back some parser fixes that were missing due to reversed
+	  patches
+	* Two new options to ./build.MudOS:
+	  - ./build.MudOS develop -> turn on warnings and debugging code
+	  - ./build.MudOS debug -> turn on debugging symbols and code
+
 Fri Nov  3 16:41:11 EST 1995 (tim@handel.princeton.edu (Beek))
 	* raised patchlevel to v22a3
 	* updated with respect to v21.7b4

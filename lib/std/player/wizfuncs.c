@@ -24,7 +24,7 @@ static void set_ilog_time(int t)
 // caller verification here
 void ilog_hook(string str)
 {
-    tell_object(query_link(), "*** " + str + "\n");
+    query_link()->receive_message("*** " + str + "\n");
     set_ilog_time(time());
 }
 

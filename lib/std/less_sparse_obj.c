@@ -7,7 +7,7 @@
 inherit "/std/object/description";
 inherit "/std/object/flags";
 inherit "/std/object/non_object";
-inherit "/std/object/vsupport";
+//inherit "/std/object/vsupport";
 
 //:FUNCTION stat_me
 //write() some debugging info about the state of the object
@@ -78,3 +78,19 @@ mixed direct_verb_rule(string verb, string rule, mixed args)
   if(s)
     return s[<1] == '\n' ? s : s+"\n";
 }
+
+/*
+mixed get()
+{
+  string s;
+
+  s = msgs["get"];
+  if(s)
+    return s + "\n";
+}
+
+int direct_get_obj()
+{
+  return 1;
+}
+*/

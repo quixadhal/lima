@@ -256,8 +256,8 @@ string power_str( string s, int t )
   string res;
 
   res = "";
-
-  if(!intp(t) || t<1) 
+  
+  if(!intp(t) || t<0) 
 	error("Bad range arg 2 to power_str");
 
   while(t--)

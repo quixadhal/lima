@@ -7,45 +7,37 @@ inherit CMD;
 
 private void main(){
 
-    mapping exits;
-    string* files;
+    object room = environment(this_body());
     string* directions;
-    string Short;
-    int i;
-    object o;
     string base;
 
-    exits = environment(this_body())->get_exits();
-    base = environment(this_body())->query_base();
-    if(!exits){
+    directions = room->query_exit_directions(1);
+    if(!sizeof(directions)) {
 	write("There are no exits to this room.\n");
-	return;
-    }
-
-    files = values( exits );
-    directions = keys( exits );
-
-    if( !sizeof( files ) ){
-	write("There are no exits in this room.\n");
 	return;
     }
 
     write("Current exits:\n");
 
-    i = sizeof(files);
-    while(i--){
-	if(stringp(files[i]))
-	{
-            if (!(o = load_object(files[i])) && !(o = load_object(evaluate_path(base + files[i]))))
+    foreach (string dir in directions) {
+	mixed dest;
+	object o;
+	string Short;
+	
+	dest = room->query_exit_value(dir);
+	if (dest) {
+	    if (dest[0] == '#') {
+		printf("%s:  %s", dir, dest);
+		continue;
+	    } else
+	    if (o = load_object(dest))
+		Short = o->short() || "";
+	    else
 		Short = "Under construction";
-	    else    Short = o->short();
-	    if(!Short) Short = "";
-	    printf("%s:  %s (%s)\n",
-	      directions[i], Short, files[i]);
-	}
-	else printf("%s:  Unknown\n",directions[i]);
+	} else
+	    Short = "None";
+	printf("%s:  %s (%s)\n", dir, Short, dest);
     }
-    return;
 }
 
 int help(){

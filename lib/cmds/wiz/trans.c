@@ -1,7 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-
 inherit CMD;
 
 // Rust/Belboz
@@ -35,7 +33,7 @@ private void main( mixed *arg)
 	   target_name == "Someone" ) )
     {
 	tell_room( environment( target ), sprintf("%s arrives in a puff of smoke.\n",
-	    target_name ), ({ target, this_body() }) );
+	    target_name ), 0, ({ target, this_body() }) );
     }
 
     return;

@@ -76,7 +76,7 @@ mixed try_to_acquire(object ob) {
 }     
 
 mixed check_vision() {
-    if (environment(this_body())->query_lit())
+    if (environment(this_body())->query_light())
         return 1;
     return "You can't see a thing!\n";
 }

@@ -64,7 +64,7 @@ int 	need_refreshing;
 
 static void remove()
 {
-  destruct(this_object());
+    destruct();
 }
 
 varargs static MENU 
@@ -420,8 +420,8 @@ init_menu_application(MENU toplevel)
 static void 
 quit_menu_application()
 {
-  modal_pop();
-  destruct(this_object());
+    modal_pop();
+    destruct(this_object());
 }
   
 static void
@@ -430,6 +430,13 @@ goto_menu(MENU m)
   previous_menu = current_menu;
   current_menu = m;
   display_current_menu();
+}
+
+static void 
+goto_menu_silently(MENU m)
+{
+  previous_menu = current_menu;
+  current_menu = m;
 }
 
 static void

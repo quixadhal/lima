@@ -410,7 +410,7 @@ int valid_socket(object ob, string what, mixed * info)
 
 void remove()
 {
-    destruct(this_object());
+    destruct();
 }
 
 private nomask void preload( string file )

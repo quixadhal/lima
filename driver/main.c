@@ -43,7 +43,7 @@ double consts[NUM_CONSTS];
 
 /* -1 indicates that we have never had a master object.  This is so the
  * simul_efun object can load before the master. */
-object_t *master_ob = (object_t *) -1;
+object_t *master_ob = 0;
 
 #ifndef NO_IP_DEMON
 void init_addr_server();
@@ -365,7 +365,7 @@ int main P2(int, argc, char **, argv)
 	    case 'f':
 		save_context(&econ);
 		if (SETJMP(econ.context)) {
-		    debug_message("Error while calling master::flag(\"%s\"), aborting ...", argv[i] + 2);
+		    debug_message("Error while calling master::flag(\"%s\"), aborting ...\n", argv[i] + 2);
 		    exit(-1);
 		}
 		push_constant_string(argv[i] + 2);

@@ -2,7 +2,8 @@
 
  // Yaynu@Lima Bean 950923
 
-#include <mudlib.h>
+
+void save_me();
 
 
 private int level = 0;

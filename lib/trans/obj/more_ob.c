@@ -98,7 +98,7 @@ private void finish()
     destruct(this_object());
 }
 
-nomask void do_more(mixed arg) {
+private nomask void do_more(mixed arg) {
     int x;
     string tmp;
 

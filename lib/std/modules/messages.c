@@ -41,6 +41,10 @@ string query_msg(string which) { return messages[which] || def_messages[which]; 
 
 void set_msgs(string cls, string *msgs) {
     if (!messages) messages = ([]);
+    if(!msgs || !sizeof(msgs))  {
+         map_delete(messages, cls);
+        return;
+    }
     messages[cls] = msgs;
 }
 
@@ -224,7 +228,7 @@ void inform(object *who, string *msgs, mixed others) {
     }
     else if (others)
     {
-	tell_room(others, iwrap(msgs[sizeof(who)]), who);
+	tell_room(others, iwrap(msgs[sizeof(who)]), 0, who);
     }
 }
 
@@ -245,7 +249,7 @@ varargs void simple_action(mixed msg, array obs...) {
 
     tell_object(this_object(), iwrap(us));
     if (environment())
-	tell_room(environment(), iwrap(others), who);
+	tell_room(environment(), iwrap(others), 0, who);
 }
 
 //:FUNCTION my_action
@@ -271,7 +275,7 @@ varargs void other_action(mixed msg, array obs...) {
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
     others = compose_message(0, msg, who, obs...);
-    tell_room(environment(), iwrap(others), who);
+    tell_room(environment(), iwrap(others), 0, who);
 }
 
 //:FUNCTION targetted_action
@@ -289,5 +293,5 @@ varargs void targetted_action(mixed msg, object target, array obs...) {
     others = compose_message(0, msg, who, obs...);
     tell_object(this_object(), iwrap(us));
     tell_object(target, iwrap(them));
-    tell_room(environment(), iwrap(others), who);
+    tell_room(environment(), iwrap(others), 0, who);
 }

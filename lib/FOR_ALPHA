@@ -5,22 +5,20 @@ Lima Mudlib.
 
 - skills: examples, combat skills, spell skills, advancement
 - spells
-- money
-- invis /  (hide?)
+- hide
 - guilds
 - I3: emoteto, OOB services, better channels, ucache, auth
 - /std must be Mudlib:xxxx, /obj must be Mudlib:objects
-- wiz positions
+- wiz positions (into admtool, finger, etc)
 - channels: restrictions, last, auto-"aliases"
-- revise EDIT_OB API (use continuations)
 - damage types
 - smell, listen support
 - : and ; w/ tells
 - mail unsend
 - mail group administration
 - multiple guest logins
-- finish new fake items
-
+- time zone support
+- simple virtual objects/servers
 
 
 Non-features that won't define alpha:
@@ -45,4 +43,4 @@ Undecided features:
 - >, <, |
 
 These have been requested for sooner, rather than later:
-skills, money, channels, admtool
+skills, channels, admtool

@@ -19,6 +19,7 @@ inherit "/std/object/mass";
 #endif
 #endif  //USE_SIZE
 
+inherit "/std/object/light";		/* before non_object */
 inherit "/std/object/properties";
 inherit "/std/object/description";
 inherit "/std/object/move";
@@ -27,6 +28,7 @@ inherit "/std/object/visible";
 inherit "/std/object/flags";
 inherit "/std/object/vsupport";
 inherit "/std/object/hooks";
+inherit "/std/object/msg_recipient";
 
 //:FUNCTION stat_me
 //write() some debugging info about the state of the object
@@ -54,7 +56,6 @@ int stat_me()
 
 
 create(){
-    parse_init();
     properties::create();
     description::create();
     flags::create();

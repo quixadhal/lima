@@ -17,11 +17,9 @@ create(){
  
 set_long("This is an example room for the lima mudlib.  It is fairly non-desscript however there are a few objects laying about that may warrant looking at. Propped up in the southwest corner is an old discarded suit of armor.  On the west side of the room is an arched doorway leading bask to the wizard lounge.");
  
-    set_light(1);
- 
     set_exits( ([
-    "west" : "/domains/std/wizroom",
-    "south" : "/domains/std/room2"
+    "west" : "wizroom",
+    "south" : "room2"
     ]) );
  
     add_item( "suit" , "armor" , "suit of armor" , "The armor is very old and well worn.  While examining the armor you imagine you hear the sounds of combat coming from behind you.");

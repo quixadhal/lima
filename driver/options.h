@@ -419,9 +419,6 @@
  *   this returns a non-zero value, the binary is allowed to be
  *   saved.  Allowing any file by any wizard to be saved as a
  *   binary is convenient, but may take up a lot of disk space.
- *
- * WARNING: Currently, this doesn't work on 64 bit machines (ie DEC Alpha).
- *          Might not work on Linux or IRIX/
  */
 #define BINARIES
 
@@ -562,6 +559,10 @@
 
 /* RUNTIME_LOADING: On systems which support it, it allows LPC->C compilation
  * 'on the fly' without having to recompile the driver.
+ *
+ * Note: This currently only works on machines that have the dlopen() system
+ * call.  SunOS and IRIX do, as do a number of others.  AIX and Ultrix don't.
+ * Linux does if you are using ELF.
  */
 #define RUNTIME_LOADING
 

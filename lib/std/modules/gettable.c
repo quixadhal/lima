@@ -12,11 +12,11 @@ private static function	my_drop_hook, my_get_hook;
 void add_hook(string, function);
 
 private mixed prevent_drop() {
-    return drop_response;
+    return evaluate(drop_response);
 }
 
 private mixed prevent_get() {
-    return get_response;
+    return evaluate(get_response);
 }
 
 void
@@ -38,22 +38,15 @@ query_getmsg()
 void
 set_gettable( mixed g )
 {
-    if (g == -1 || !g || !intp(g))
+    if (g == -1 || !g)
 	get_response = 0;
     else
 	get_response = 1;
 
-    if(functionp(g))
-      {
-	my_get_hook = g;
-	add_hook("prevent_get", my_get_hook);
-      }
-    else if(stringp(g))
-      {
-	my_get_hook = (: write($(g)) :);
-	add_hook("prevent_get", my_get_hook);
-      }
-    else if (!my_get_hook) {
+    if(functionp(g) || stringp(g))
+	get_response = g;
+
+    if (!my_get_hook) {
 	my_get_hook = (: prevent_get :);
 	add_hook("prevent_get", my_get_hook);
     }
@@ -101,6 +94,9 @@ set_dropable( int g )
     else
 	drop_response = 1;
 
+    if (functionp(g) || stringp(g))
+	drop_response = g;
+    
     if (!my_drop_hook) {
 	my_drop_hook = (: prevent_drop :);
 	add_hook("prevent_drop", my_drop_hook);

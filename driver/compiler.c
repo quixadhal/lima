@@ -300,6 +300,13 @@ void copy_structures P1(program_t *, prog) {
 	ihe = find_or_add_ident(str, FOA_GLOBAL_SCOPE);
 	if (ihe->dn.class_num == -1)
 	    ihe->sem_value++;
+	else {
+	    /* Possibly, this should check if the definitions are
+	       consistent */
+	    char buf[1024];
+	    sprintf(buf, "Illegal to redefine class %s", str);
+	    yyerror(buf);
+	}
 	ihe->dn.class_num = i + sd_off;
     }
 
@@ -678,7 +685,7 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
     num = (ihe = lookup_ident(name)) ? ihe->dn.function_num : -1;
     if (num >= 0) {
 	function_t *funp;
-
+	
 	/*
 	 * The function was already defined. It may be one of several
 	 * reasons:
@@ -723,17 +730,19 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
 	    int i;
 
 	    /* This should be changed to catch two prototypes which disagree */
-	    if (funp->num_arg != num_arg && !(funp->type & TYPE_MOD_VARARGS)
-		&& !(flags & NAME_PROTOTYPE))
-		yyerror("Number of arguments disagrees with previous definition.");
-	    else if (!(funp->flags & NAME_STRICT_TYPES) && !(flags & NAME_PROTOTYPE))
-		yyerror("Called function not compiled with type testing.");
-	    else {
+	    if (!(flags & NAME_PROTOTYPE)) {
+		if (funp->num_arg != num_arg 
+		    && !(funp->type & TYPE_MOD_VARARGS))
+		    yyerror("Number of arguments disagrees with previous definition.");
+		if (!(funp->flags & NAME_STRICT_TYPES))
+		    yyerror("Called function not compiled with type testing.");
+
 		/* Now check that argument types wasn't changed. */
 		if ((type & TYPE_MOD_MASK) != (funp->type & TYPE_MOD_MASK)) {
 		    char buff[200];
 		    sprintf(buff, "Return type doesn't match prototype %s",
-			    get_two_types(type, funp->type));
+			    get_two_types(type & TYPE_MOD_MASK,
+					  funp->type & TYPE_MOD_MASK));
 		    yywarn(buff);
 		}
 		
@@ -742,6 +751,7 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
 		}
 	    }
 	}
+	
 	/* If it was yet another prototype, then simply return. */
 	if (flags & NAME_PROTOTYPE) {
 	    return num;
