@@ -2,7 +2,6 @@
 
 /* Megaboz's attempt at a home cmd  4-23-94 */
 
-#include <mudlib.h>
 #include <playerflags.h>
 
 inherit CMD;
@@ -34,7 +33,7 @@ private void main(string arg)
 		return;
 	    }
 	    msgs = this_body()->get_player_message("home");
-	    this_body()->my_action( "You go home.\n");
+	    this_body()->my_action( "You go home.");
 	    this_body()->other_action( msgs[1]);
 
 	}

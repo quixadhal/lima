@@ -16,18 +16,20 @@ private void main( mixed *arg)
 
     prev = environment(this_body());
 
-    if (environment(arg[0])) arg[0]= environment(arg[0]);
+    if ( environment(arg[0]) )
+	arg[0] = environment(arg[0]);
     rt = this_body()->move(arg[0]);
     env = environment(this_body());
 
-    if( stringp( rt))
+    if ( stringp(rt) )
 	out(rt);
     else
     {
 	if (rt == MOVE_OK)
 	{ 
 	    if (prev==env)
-	    { out("You twitch briefly.\n");
+	    {
+		out("You twitch briefly.\n");
 		return;
 	    }
 	    msgs = this_body()->get_player_message("mleave");
@@ -38,20 +40,18 @@ private void main( mixed *arg)
 	}
 	else           // failure messages
 	    switch(rt)
-	{
-	case MOVE_NO_DEST: out("Goto: Invalid destination.\n"); break;
-	case MOVE_NOT_RELEASED: out(
-	      "Goto: Your surroundings will not let you leave!\n"); break;
-	case MOVE_NOT_ALLOWED: out(
-	      "Goto: Your destination will not accept you.\n"); 
-	}
-    }
-}
+	    {
+	    case MOVE_NO_DEST:
+		out("Goto: Invalid destination.\n");
+		break;
 
-int help()
-{
-    write("Usage: goto <living|filename>\n"
-      "Goto isn't a very hard concept to understand.  If you're reading this "
-      "help, you must really be bored.\n");
-    return 1;
+	    case MOVE_NOT_RELEASED:
+		out("Goto: Your surroundings will not let you leave!\n");
+		break;
+
+	    case MOVE_NOT_ALLOWED:
+		out("Goto: Your destination will not accept you.\n");
+		break;
+	    }
+    }
 }

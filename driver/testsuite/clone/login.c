@@ -27,7 +27,6 @@ logon()
     exec(user, this_object());
     user->setup();
 #ifndef __NO_ENVIRONMENT__
-    tell_room(VOID_OB, (string)user->query_name() + " enters this reality\n");
     user->move(VOID_OB);
 #endif
     destruct(this_object());

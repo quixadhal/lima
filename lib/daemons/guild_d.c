@@ -408,6 +408,8 @@ void define_from_file(string fname)
     string * lines;
     string which_guild;
 
+    if( file_size( fname ) < 1 )
+        error( fname + " is not a file." );
     lines = filter(explode(read_file(fname), "\n"),
 		   (: $1[0] != '#' :));
 

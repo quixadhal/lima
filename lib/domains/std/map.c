@@ -6,8 +6,9 @@ inherit M_READABLE;
 
 void setup() {
     set_id("map");
-    set_in_room_desc("A map of Lima Bean is pinned to the wall.");
-    set_long("It has a crude map of Lima Bean written on it.\n");
+    set_untouched_desc("A map of Lima Bean is pinned to the wall.");
+    set_in_room_desc( "A map of Lima Bean has been discarded here.");
+    set_long("It has a crude map of Lima Bean written on it.");
     set_text(@FOO
              MORTAL AREA   ATTIC
                   |       /
@@ -19,7 +20,9 @@ void setup() {
              /D   |                  |
             /     |                  |
 GENERAL STORE     |          RELATIONS & TOYS  -- ENVIRONMENTAL ROOM
-               MONSTER ROOM
+               MONSTER ROOM          |
+                                     |
+                               CULT OF LIMA
 FOO);
 }
 

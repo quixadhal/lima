@@ -1,7 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-
 inherit LIVING;
 inherit M_ACTIONS;
 inherit M_TRIGGERS;

@@ -27,7 +27,7 @@ void set_max_hp(int x) {
 void set_hp(int x) {
     if (hp > max_hp)
         error("Attempt to set hp > max_hp.\n");
-    if (hp == 0)
+    if (hp == 0 && x == 0)
         return;
     hp = x;
     if (hp <= 0) {

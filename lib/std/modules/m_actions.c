@@ -20,7 +20,7 @@ object query_shell_ob() {
 //:FUNCTION do_game_command
 //Emulates handling of emotes and player commands for NPCs that inherit this
 //module.  E.g. do_game_command("wield sword").  do_game_command("smile hap*").
- static void do_game_command(string str) {
+ void do_game_command(string str) {
     object save_tu;
     array winner;
     string verb, argument;

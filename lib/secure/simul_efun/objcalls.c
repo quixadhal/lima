@@ -185,8 +185,7 @@ usable( object o, int flag )
 varargs string inv_list(object array obs, int flag, int depth) {
     string res;
     string ex;
-    int i,j;
-    int n;
+    int j;
 
     depth++;
     res = "";
@@ -195,7 +194,7 @@ varargs string inv_list(object array obs, int flag, int depth) {
 	if (!ob->short()) continue;
 	if (flag && !ob->test_flag(TOUCHED) && ob->untouched_long()) continue;
         if (ob->is_attached()) {
-            if (ob->inventory_visible())
+            if (ob->inventory_visible() && !ob->query_hide_contents())
                 res += ob->inventory_recurse(depth);
             continue;
         }
@@ -211,7 +210,7 @@ varargs string inv_list(object array obs, int flag, int depth) {
 		    res += ex;
 	    }
 	    res += "\n";
-	    if (ob->inventory_visible())
+    if( ob->inventory_visible() && !ob->query_hide_contents())
 		res += ob->inventory_recurse(depth);
 	}
     }

@@ -14,8 +14,8 @@
 
 #undef HANDLE_MANY_WIZARDS	/* if your mud has oodles of wizards... */
 
-#define START			"/domains/std/rooms/beach/sandy_beach"
-#define WIZARD_START		"/domains/std/wizroom"
+#define START			"/domains/std/rooms/beach/Sandy_Beach"
+#define WIZARD_START		"/domains/std/Wizroom"
 
 #define LOGIN_PROMPT		"Your name? "
 

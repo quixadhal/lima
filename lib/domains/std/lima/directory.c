@@ -18,3 +18,9 @@ mixed receive_object(object target, string relation) {
 	return "You think about putting that in your home directory, but decide against it.\n";
     return ::receive_object(target, relation);
 }
+
+
+mapping lpscript_attributes()
+{
+    return container::lpscript_attributes() + m_gettable::lpscript_attributes();
+}

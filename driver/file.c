@@ -4,16 +4,16 @@
  */
 
 #include "std.h"
-#include "lpc_incl.h"
+#include "file.h"
 #include "file_incl.h"
 #include "comm.h"
 #include "strstr.h"
-#include "file.h"
 #include "lex.h"
 #include "md.h"
 #include "port.h"
+#include "master.h"
 
-/* Removed due to hideousness: if you want to add it back, not that
+/* Removed due to hideousness: if you want to add it back, note that
  * we don't want redefinitions, and that some systems define major() in
  * one place, some in both, etc ...
  */
@@ -33,19 +33,11 @@
 #endif
 #endif
 
-/* see binaries.c.  We don't want no $@$(*)@# system dependent mess of
-   includes */
-#ifdef WIN32
-#include <direct.h>
-#include <io.h>
-#endif
-
 extern int sys_nerr;
 
 int legal_path PROT((char *));
 
 static int match_string PROT((char *, char *));
-static int isdir PROT((char *path));
 static int copy PROT((char *from, char *to));
 static int do_move PROT((char *from, char *to, int flag));
 static int CDECL pstrcmp PROT((CONST void *, CONST void *));
@@ -170,15 +162,9 @@ array_t *get_dir P2(char *, path, int, flags)
 	/*
 	 * If path ends with '/' or "/." remove it
 	 */
-#if 0 /* was WIN32 */
-	if ((p = strrchr(temppath, '\\')) == 0)
-	    p = temppath;
-	if (p[0] == '\\' && ((p[1] == '.' && p[2] == '\0') || p[1] == '\0'))
-#else
 	if ((p = strrchr(temppath, '/')) == 0)
 	    p = temppath;
 	if (p[0] == '/' && ((p[1] == '.' && p[2] == '\0') || p[1] == '\0'))
-#endif
 	    *p = '\0';
     }
 
@@ -197,13 +183,8 @@ array_t *get_dir P2(char *, path, int, flags)
 #endif
 	}
 	do_match = 1;
-#if 0 /* def WIN32 */
-    } else if (*p != '\0' && strcmp(temppath, ".")) {
-	if (*p == '\\' && *(p + 1) != '\0')
-#else
     } else if (*p != '\0' && strcmp(temppath, ".")) {
 	if (*p == '/' && *(p + 1) != '\0')
-#endif
 	    p++;
 	v = allocate_empty_array(1);
 	encode_stat(&v->item[0], flags, p, &st);
@@ -331,43 +312,6 @@ array_t *get_dir P2(char *, path, int, flags)
     return v;
 }
 
-int tail P1(char *, path)
-{
-    char buff[1000];
-    FILE *f;
-    struct stat st;
-    int offset;
-
-    path = check_valid_path(path, current_object, "tail", 0);
-
-    if (path == 0)
-	return 0;
-#ifdef LATTICE
-    if (stat(path, &st) == -1)
-	return 0;
-#endif
-    f = fopen(path, "r");
-    if (f == 0)
-	return 0;
-#ifndef LATTICE
-    if (fstat(fileno(f), &st) == -1)
-	fatal("Could not stat an open file.\n");
-#endif
-    offset = st.st_size - 54 * 20;
-    if (offset < 0)
-	offset = 0;
-    if (fseek(f, offset, 0) == -1)
-	fatal("Could not seek.\n");
-    /* Throw away the first incomplete line. */
-    if (offset > 0)
-	(void) fgets(buff, sizeof buff, f);
-    while (fgets(buff, sizeof buff, f)) {
-	tell_object(command_giver, buff);
-    }
-    fclose(f);
-    return 1;
-}
-
 int remove_file P1(char *, path)
 {
     path = check_valid_path(path, current_object, "remove_file", 1);
@@ -442,9 +386,9 @@ void smart_log P4(char *, error_file, int, line, char *, what, int, flag)
 		((pragmas & PRAGMA_ERROR_CONTEXT) ? 100 : 40), TAG_TEMPORARY, "smart_log: 1");
 
     if (flag)
-	sprintf(buff, "%s line %d: Warning: %s", error_file, line, what);
+	sprintf(buff, "/%s line %d: Warning: %s", error_file, line, what);
     else
-	sprintf(buff, "%s line %d: %s", error_file, line, what);
+	sprintf(buff, "/%s line %d: %s", error_file, line, what);
 
     if (pragmas & PRAGMA_ERROR_CONTEXT){
         char *ls = strrchr(buff, '\n');
@@ -458,10 +402,10 @@ void smart_log P4(char *, error_file, int, line, char *, what, int, flag)
     } else strcat(buff, "\n");
 
     if (flag) 
-	sprintf(buff, "%s line %d: Warning: %s%s", error_file, line, what,
+	sprintf(buff, "/%s line %d: Warning: %s%s", error_file, line, what,
 		(pragmas & PRAGMA_ERROR_CONTEXT) ? show_error_context() : "\n");
     else
-	sprintf(buff, "%s line %d: %s%s", error_file, line, what,
+	sprintf(buff, "/%s line %d: %s%s", error_file, line, what,
 		(pragmas & PRAGMA_ERROR_CONTEXT) ? show_error_context() : "\n");
     
     share_and_push_string(error_file);
@@ -563,10 +507,6 @@ char *read_file P3(char *, file, int, start, int, len)
 	    return 0;
 	}
 
-	if (size > st.st_size) {
-	    size = st.st_size;
-	}		
-
 	st.st_size -= size;
 	end = str + size;
 	for (p = str; --start && (p2 = (char *) memchr(p, '\n', end - p));) {
@@ -576,9 +516,18 @@ char *read_file P3(char *, file, int, start, int, len)
     
     if (len != READ_FILE_MAX_SIZE || st.st_size) {
         for (p2 = str; p != end;) {
-	    if ((*p2++ = *p++) == '\n')
+	    char c;
+	    
+	    c = *p++;
+	    *p2++ = c;
+	    if (c == '\n') {
 	        if (!--len)
 		    break;
+	    } else if (c == '\0') {
+		fclose(f);
+		FREE_MSTR(str);
+		error("Attempted to read '\\0' into string!\n");
+	    }
 	}
 	if (len && st.st_size) {
 	    size -= (p2 - str);
@@ -592,8 +541,13 @@ char *read_file P3(char *, file, int, start, int, len)
 		return 0;
 	    }
 	    st.st_size -= size;
-	    end = p2 + size;
+	    /* end is same */
 	    for (; p2 != end;) {
+		if (*p2 == '\0') {
+		    fclose(f);
+		    FREE_MSTR(str);
+		    error("Attempted to read '\\0' into a string!\n");
+		}
 		if (*p2++ == '\n')
 		    if (!--len)
 			break;
@@ -806,15 +760,40 @@ int write_bytes P4(char *, file, int, start, char *, str, int, theLength)
 int file_size P1(char *, file)
 {
     struct stat st;
+    int ret;
+#ifdef WIN32
+    int needs_free = 0, len;
+    char *p;
+#endif
 
     file = check_valid_path(file, current_object, "file_size", 0);
     if (!file)
 	return -1;
+
+#ifdef WIN32
+    len = strlen(file);
+    p = file + len - 1;
+    if (*p == '/') {
+	needs_free = 1;
+	p = file;
+	file = new_string(len - 1, "file_size");
+	memcpy(file, p, len - 1);
+	file[len] = 0;
+    }
+#endif
+
     if (stat(file, &st) == -1)
-	return -1;
-    if (S_IFDIR & st.st_mode)
-	return -2;
-    return st.st_size;
+	ret = -1;
+    else if (S_IFDIR & st.st_mode)
+	ret = -2;
+    else 
+	ret = st.st_size;
+
+#ifdef WIN32
+    if (needs_free) FREE_MSTR(file);
+#endif
+    
+    return ret;
 }
 
 
@@ -824,8 +803,6 @@ int file_size P1(char *, file)
  * The path is always treated as an absolute path, and is returned without
  * a leading '/'.
  * If the path was '/', then '.' is returned.
- * The returned string may or may not be residing inside the argument 'path',
- * so don't deallocate arg 'path' until the returned result is used no longer.
  * Otherwise, the returned path is temporarily allocated by apply(), which
  * means it will be deallocated at next apply().
  */
@@ -835,6 +812,7 @@ char *check_valid_path P4(char *, path, object_t *, call_object, char *, call_fu
 
     if (call_object == 0 || call_object->flags & O_DESTRUCTED)
 	return 0;
+
 #ifdef WIN32
     {
 	char *p;
@@ -851,34 +829,32 @@ char *check_valid_path P4(char *, path, object_t *, call_object, char *, call_fu
     else
 	v = apply_master_ob(APPLY_VALID_READ, 3);
 
-    if (v && v != (svalue_t *)-1 && v->type == T_NUMBER && v->u.number == 0)
-	return 0;
+    if (v == (svalue_t *)-1)
+	v = 0;
+    
+    if (v) {
+	if (v->type == T_NUMBER && v->u.number == 0) return 0;
+	if (v->type == T_STRING) {
+	    path = v->u.string;
+	} else {
+	    extern svalue_t apply_ret_value;
+	    
+	    free_svalue(&apply_ret_value, "check_valid_path");
+	    apply_ret_value.type = T_STRING;
+	    apply_ret_value.subtype = STRING_MALLOC;
+	    path = apply_ret_value.u.string = string_copy(path, "check_valid_path");
+	}
+    }
+    
     if (path[0] == '/')
 	path++;
 #ifndef LATTICE
     if (path[0] == '\0')
 	path = ".";
 #endif
-    if (legal_path(path)) {
-#if 0 /* def WIN32 */
-	static char paths[10][100];
-	char *fluff;
-	static int bing = 0;
-	int old_bing;
-
-	/* Mangle the path for writing to the disk. */
-	strcpy(paths[bing], path);
-	fluff = paths[bing];
-	while (fluff = strchr(fluff, '/')) {
-	    *fluff = '\\';
-	}			/* endwhile */
-	old_bing = bing;
-	bing = (bing + 1) % 10;
-	return paths[old_bing];
-#else
+    if (legal_path(path))
 	return path;
-#endif
-    }
+
     return 0;
 }
 
@@ -941,13 +917,6 @@ static int match_string P2(char *, match, char *, str)
 #ifndef S_ISBLK
 #define	S_ISBLK(m)	(((m)&S_IFMT) == S_IFBLK)
 #endif
-
-static int isdir P1(char *, path)
-{
-    struct stat stats;
-
-    return stat(path, &stats) == 0 && S_ISDIR(stats.st_mode);
-}
 
 static struct stat to_stats, from_stats;
 
@@ -1054,7 +1023,7 @@ static int do_move P3(char *, from, char *, to, int, flag)
 	return 1;
     }
 #ifdef SYSV
-    if ((flag == F_RENAME) && isdir(from)) {
+    if ((flag == F_RENAME) && file_size(from) == -2) {
 	char cmd_buf[100];
 
 	sprintf(cmd_buf, "/usr/lib/mv_dir %s %s", from, to);
@@ -1119,7 +1088,10 @@ int do_rename P3(char *, fr, char *, t, int, flag)
     char *from, *to, tbuf[3];
     char newfrom[MAX_FNAME_SIZE + MAX_PATH_LEN + 2];
     int flen;
-    
+    static svalue_t from_sv = { T_NUMBER };
+    static svalue_t to_sv = { T_NUMBER };
+    extern svalue_t apply_ret_value;
+
     /*
      * important that the same write access checks are done for link() as are
      * done for rename().  Otherwise all kinds of security problems would
@@ -1131,9 +1103,14 @@ int do_rename P3(char *, fr, char *, t, int, flag)
     from = check_valid_path(fr, current_object, "rename", 1);
     if (!from)
 	return 1;
+
+    assign_svalue(&from_sv, &apply_ret_value);
+    
     to = check_valid_path(t, current_object, "rename", 1);
     if (!to)
 	return 1;
+
+    assign_svalue(&to_sv, &apply_ret_value);
     if (!strlen(to) && !strcmp(t, "/")) {
 	to = tbuf;
 	sprintf(to, "./");
@@ -1153,7 +1130,7 @@ int do_rename P3(char *, fr, char *, t, int, flag)
 	from = newfrom;
     }
 
-    if (isdir(to)) {
+    if (file_size(to) == -2) {
 	/* Target is a directory; build full target filename. */
 	char *cp;
 	char newto[MAX_FNAME_SIZE + MAX_PATH_LEN + 2];
@@ -1177,19 +1154,27 @@ int copy_file P2(char *, from, char *, to)
     int from_fd, to_fd;
     int num_read, num_written;
     char *write_ptr;
+    static svalue_t from_sv = { T_NUMBER };
+    static svalue_t to_sv = { T_NUMBER };
+    extern svalue_t apply_ret_value;
 
     from = check_valid_path(from, current_object, "move_file", 0);
+
+    assign_svalue(&from_sv, &apply_ret_value);
+
     to = check_valid_path(to, current_object, "move_file", 1);
     if (from == 0)
 	return -1;
     if (to == 0)
 	return -2;
 
+    assign_svalue(&to_sv, &apply_ret_value);
+
     from_fd = open(from, OPEN_READ);
     if (from_fd < 0)
 	return (-1);
 
-    if (isdir(to)) {
+    if (file_size(to) == -2) {
 	/* Target is a directory; build full target filename. */
 	char *cp;
 	char newto[MAX_FNAME_SIZE + MAX_PATH_LEN + 2];

@@ -7,16 +7,15 @@ inherit OBJ;
 inherit M_GETTABLE;
 inherit M_DRINKABLE;
 
-create() {
-  ::create();
+void mudlib_setup()
+{
   set_proper_name("some water");
   set_in_room_desc("There is a puddle of water here.");
-  set_weight(4);
   set_adj( "quantity of", "pool of", "puddle of" );
   set_id( "water", "liquid", "h2o" );
-  set_long("You see nothing special about the water.\n");
+  set_long("You see nothing special about the water.");
   set_gettable("Try putting it in something.\n");
-  set_dropable("Try pouring it into or on something.\n");
+  set_droppable("Try pouring it into or on something.\n");
 }
 
 int move_water(object target) {

@@ -19,46 +19,46 @@ private string which_guild;
 */
 void guildmsg_new_conflict(object who, string why)
 {
-    targetted_action("$N $vlook sternly at $t and $vsay, \"As a member of $o, I cannot allow you to use our facilities anymore.  When you leave them, I'm sure that you'll be more than welcome back.\"\n",
+    targetted_action("$N $vlook sternly at $t and $vsay, \"As a member of $o, I cannot allow you to use our facilities anymore.  When you leave them, I'm sure that you'll be more than welcome back.\"",
 		     who, why);
 }
 void guildmsg_welcome_back(object who)
 {
-    targetted_action("$N $vwelcome $t back to the $o.\n",
+    targetted_action("$N $vwelcome $t back to the $o.",
 		     who, GUILD_D->query_guild_title(which_guild));
 }
 void guildmsg_not_member(object who)
 {
-    targetted_action("$N $vpoint out to $t, \"You aren't a member of the $o.\"\n",
+    targetted_action("$N $vpoint out to $t, \"You aren't a member of the $o.\"",
 		     who, GUILD_D->query_guild_title(which_guild));
 }
 void guildmsg_already_member(object who)
 {
-    targetted_action("$N $vpeer quizzically at $t and $vsay, \"You already belong to our guild.\"\n",
+    targetted_action("$N $vpeer quizzically at $t and $vsay, \"You already belong to our guild.\"",
 		     who);
 }
 void guildmsg_refuse_entry(object who, string why)
 {
-    targetted_action("$N $vstare unpleasantly at $t and $vgrowl, \"Not while you belong to $o.\"\n",
+    targetted_action("$N $vstare unpleasantly at $t and $vgrowl, \"Not while you belong to $o.\"",
 		     who, why);
 }
 void guildmsg_welcome(object who)
 {
-    targetted_action("$N $vwelcome $t to the $o.\n",
+    targetted_action("$N $vwelcome $t to the $o.",
 		     who, GUILD_D->query_guild_title(which_guild));
 }
 void guildmsg_leave_nicely(object who)
 {
-    targetted_action("$N $vbid $t farewell.\n", who);
+    targetted_action("$N $vbid $t farewell.", who);
 }
 void guildmsg_leave_badly(object who)
 {
-    targetted_action("$N $vsay, \"So be it, $tp. Leave this place.\"\n",
+    targetted_action("$N $vsay, \"So be it, $tp. Leave this place.\"",
 		     who);
 }
 void guildmsg_leave_as_enemy(object who)
 {
-    targetted_action("$N $vsnarl, \"So be it, $tp. You have chosen your doom.\"\n",
+    targetted_action("$N $vsnarl, \"So be it, $tp. You have chosen your doom.\"",
 		     who);
 }
 

@@ -28,6 +28,7 @@
 #include "md.h"
 #include "hash.h"
 #include "file.h"
+#include "main.h"
 
 #define NELEM(a) (sizeof (a) / sizeof((a)[0]))
 #define LEX_EOF ((char) EOF)
@@ -60,10 +61,10 @@ int pragmas;
 
 int num_parse_error;		/* Number of errors in the parser. */
 
-struct lpc_predef_s *lpc_predefs = NULL;
+lpc_predef_t *lpc_predefs = NULL;
 
 static int yyin_desc;
-static int lex_fatal;
+int lex_fatal;
 static char **inc_list;
 static int inc_list_size;
 static int defines_need_freed = 0;
@@ -98,6 +99,9 @@ static function_context_t function_context_stack[MAX_FUNCTION_DEPTH];
 static int last_function_context;
 function_context_t *current_function_context = 0;
 
+int arrow_efun, evaluate_efun, this_efun, to_float_efun, to_int_efun, new_efun;
+
+
 /*
  * The number of arguments stated below, are used by the compiler.
  * If min == max, then no information has to be coded about the
@@ -127,7 +131,7 @@ static keyword_t reswords[] =
 #endif
     {"asm", 0, 0},
     {"break", L_BREAK, 0},
-#ifndef DISALLOW_BUFFER_TYPE
+#ifndef NO_BUFFER_TYPE
     {"buffer", L_BASIC_TYPE, TYPE_BUFFER},
 #endif
     {"case", L_CASE, 0},
@@ -149,22 +153,37 @@ static keyword_t reswords[] =
     {"mapping", L_BASIC_TYPE, TYPE_MAPPING},
     {"mixed", L_BASIC_TYPE, TYPE_ANY},
     {"new", L_NEW, 0},
-    {"nomask", L_TYPE_MODIFIER, NAME_NO_MASK},
+    {"nomask", L_TYPE_MODIFIER, DECL_NOMASK},
+#ifdef SENSIBLE_MODIFIERS
+    {"nosave", L_TYPE_MODIFIER, DECL_NOSAVE},
+#endif
     {"object", L_BASIC_TYPE, TYPE_OBJECT},
     {"parse_command", L_PARSE_COMMAND, 0},
-    {"private", L_TYPE_MODIFIER, NAME_PRIVATE},
-    {"protected", L_TYPE_MODIFIER, NAME_PROTECTED},
-    {"public", L_TYPE_MODIFIER, NAME_PUBLIC},
+    {"private", L_TYPE_MODIFIER, DECL_PRIVATE},
+    {"protected", L_TYPE_MODIFIER, DECL_PROTECTED},
+#ifdef SENSIBLE_MODIFIERS
+    {"public", L_TYPE_MODIFIER, DECL_PUBLIC},
+#else
+    {"public", L_TYPE_MODIFIER, DECL_VISIBLE},
+#endif
+#ifdef REF_RESERVED_WORD
+    {"ref", L_REF, 0 },
+#endif
     {"return", L_RETURN, 0},
     {"sscanf", L_SSCANF, 0},
-    {"static", L_TYPE_MODIFIER, NAME_STATIC},
+#ifndef SENSIBLE_MODIFIERS
+    {"static", L_TYPE_MODIFIER, DECL_NOSAVE | DECL_PROTECTED },
+#endif
 #ifdef HAS_STATUS_TYPE
     {"status", L_BASIC_TYPE, TYPE_NUMBER},
 #endif
     {"string", L_BASIC_TYPE, TYPE_STRING},
     {"switch", L_SWITCH, 0},
     {"time_expression", L_TIME_EXPRESSION, 0},
-    {"varargs", L_TYPE_MODIFIER, NAME_VARARGS },
+    {"varargs", L_TYPE_MODIFIER, FUNC_VARARGS },
+#ifdef VIRTUAL_RESERVED_WORD
+    {"virtual", L_TYPE_MODIFIER, 0 },
+#endif
     {"void", L_BASIC_TYPE, TYPE_VOID},
     {"while", L_WHILE, 0},
 };
@@ -176,7 +195,6 @@ static ident_hash_elem_t **ident_hash_tail;
 static ident_hash_elem_t *ident_dirty_list = 0;
 
 instr_t instrs[MAX_INSTRS];
-static char num_buf[20];
 
 #define TERM_ADD_INPUT 1
 #define TERM_INCLUDE 2
@@ -206,7 +224,7 @@ static void add_quoted_predefine PROT((char *, char *));
 static void lexerror PROT((char *));
 static int skip_to PROT((char *, char *));
 static void handle_cond PROT((int));
-static int inc_open PROT((char *, char *));
+static int inc_open PROT((char *, char *, int));
 static void handle_include PROT((char *));
 static int get_terminator PROT((char *));
 static int get_array_block PROT((char *));
@@ -350,14 +368,15 @@ skip_to P2(char *, token, char *, atoken)
 }
 
 static int
-inc_open P2(char *, buf, char *, name)
+inc_open P3(char *, buf, char *, name, int, check_local)
 {
     int i, f;
     char *p;
 
-    merge(name, buf);
-    if ((f = open(buf, O_RDONLY)) != -1) {
-	return f;
+    if (check_local) {
+	merge(name, buf);
+	if ((f = open(buf, O_RDONLY)) != -1)
+	    return f;
     }
     /*
      * Search all include dirs specified.
@@ -417,7 +436,7 @@ handle_include P1(char *, name)
     *p = 0;
     if (++incnum == MAX_INCLUDE_DEPTH) {
 	include_error("Maximum include depth exceeded.");
-    } else if ((f = inc_open(buf, name)) != -1) {
+    } else if ((f = inc_open(buf, name, delim == '"')) != -1) {
 	is = ALLOCATE(incstate_t, TAG_COMPILER, "handle_include: 1");
 	is->yyin_desc = yyin_desc;
 	is->line = current_line;
@@ -873,7 +892,7 @@ static pragma_t our_pragmas[] = {
     { "save_binary", PRAGMA_SAVE_BINARY },
 #endif
     { "warnings", PRAGMA_WARNINGS },
-    { "optimize", PRAGMA_OPTIMIZE },
+    { "optimize", 0 },
     { "show_error_context", PRAGMA_ERROR_CONTEXT },
     { 0, 0 }
 };
@@ -902,13 +921,18 @@ static void handle_pragma P1(char *, str)
     yywarn("Unknown #pragma, ignored.");
 }
 
-char *show_error_context(){
+char *show_error_context() {
     static char buf[60];
     extern int yychar;
     char sub_context[25];
     register char *yyp, *yyp2;
     int len;
 
+    if (outp[-1] == LEX_EOF) {
+	strcpy(buf, " at the end of the file\n");
+	return buf;
+    }
+    
     if (yychar == -1) strcpy(buf, " around ");
     else strcpy(buf, " before ");
     yyp = outp;
@@ -1410,7 +1434,7 @@ int yylex()
 	    outp--;
 	    goto badlex;
 	case '#':
-	    if (*(outp - 2) == '\n'){
+	    if (*(outp - 2) == '\n') {
 		char *sp = 0;
 		int quote;
 
@@ -1504,8 +1528,15 @@ int yylex()
 		    *--outp = '\n';
 		    break;
 		}
-	    } else
+	    } else {
+#ifdef COMPAT_32
+		if (*outp == '\'') {
+		    outp++;
+		    return L_LAMBDA;
+		}
+#endif
 		goto badlex;
+	    }
 	case '\'':
 
 	    if (*outp++ == '\\'){
@@ -1517,6 +1548,7 @@ int yylex()
 		case 'a': yylval.number = '\x07'; break;
 		case 'e': yylval.number = '\x1b'; break;
 		case '\'': yylval.number = '\''; break;
+		case '"': yylval.number = '"'; break;
 		case '\\': yylval.number = '\\'; break;
 		case '0': case '1': case '2': case '3': case '4': 
 		case '5': case '6': case '7': case '8': case '9':
@@ -2004,7 +2036,7 @@ void add_predefines()
 {
     char save_buf[80];
     int i;
-    struct lpc_predef_s *tmpf;
+    lpc_predef_t *tmpf;
 
     add_predefine("MUDOS", -1, "");
     get_version(save_buf);
@@ -2102,12 +2134,15 @@ void start_new_file P1(int, f)
 char *query_instr_name P1(int, instr)
 {
     char *name;
-
+    static char num_buf[20];
+    
     name = instrs[instr].name;
+    if (name[0] == '_') name++;
+    
     if (name) {
 	return name;
     } else {
-	sprintf(num_buf, "%d", instr);
+	sprintf(num_buf, "efun%d", instr);
 	return num_buf;
     }
 }
@@ -2131,7 +2166,7 @@ static void int_add_instr_name P3(char *, name, int, n, short, t)
 }
 #endif
 
-void init_num_args()
+void init_instrs()
 {
     int i, n;
 
@@ -2162,6 +2197,12 @@ void init_num_args()
      * eoperators have a return type now.  T_* is used instead of TYPE_*
      * since operators can return multiple types.
      */
+#ifdef NO_BUFFER_TYPE
+#define OR_BUFFER
+#else
+#define OR_BUFFER | T_BUFFER
+#endif
+
     add_instr_name("<", "c_lt();\n", F_LT, T_NUMBER);
     add_instr_name(">", "c_gt();\n", F_GT, T_NUMBER);
     add_instr_name("<=", "c_le();\n", F_LE, T_NUMBER);
@@ -2198,19 +2239,23 @@ void init_num_args()
     add_instr_name("rn_range_lvalue", "push_lvalue_range(0x10);\n",
 		   F_RN_RANGE_LVALUE, T_LVALUE_RANGE);
     add_instr_name("nn_range", "f_range(0x00);\n",
-		   F_NN_RANGE, T_BUFFER|T_ARRAY|T_STRING);
+		   F_NN_RANGE, T_ARRAY|T_STRING OR_BUFFER);
     add_instr_name("rr_range", "f_range(0x11);\n", 
-		   F_RR_RANGE, T_BUFFER|T_ARRAY|T_STRING);
+		   F_RR_RANGE, T_ARRAY|T_STRING OR_BUFFER);
     add_instr_name("nr_range", "f_range(0x01);\n",
-		   F_NR_RANGE, T_BUFFER|T_ARRAY|T_STRING);
+		   F_NR_RANGE, T_ARRAY|T_STRING OR_BUFFER);
     add_instr_name("rn_range", "f_range(0x10);\n",
-		   F_RN_RANGE, T_BUFFER|T_ARRAY|T_STRING);
+		   F_RN_RANGE, T_ARRAY|T_STRING OR_BUFFER);
     add_instr_name("re_range", "f_extract_range(1);\n",
-		   F_RE_RANGE, T_BUFFER|T_ARRAY|T_STRING);
+		   F_RE_RANGE, T_ARRAY|T_STRING OR_BUFFER);
     add_instr_name("ne_range", "f_extract_range(0);\n",
-		   F_NE_RANGE, T_BUFFER|T_ARRAY|T_STRING);
+		   F_NE_RANGE, T_ARRAY|T_STRING OR_BUFFER);
     add_instr_name("global", "C_GLOBAL(%i);\n", F_GLOBAL, T_ANY);
     add_instr_name("local", "C_LOCAL(%i);\n", F_LOCAL, T_ANY);
+    add_instr_name("make_ref", "c_make_ref();\n", F_MAKE_REF, T_REF);
+    add_instr_name("kill_refs", "c_kill_refs();\n", F_KILL_REFS, T_ANY);
+    add_instr_name("ref", "C_REF(%i);\n", F_REF, T_ANY);
+    add_instr_name("ref_lvalue", "C_REF_LVALUE(%i);\n", F_REF_LVALUE, T_LVALUE);
     add_instr_name("transfer_local", "c_transfer_local(%i);\n", F_TRANSFER_LOCAL, T_ANY);
     add_instr_name("number", 0, F_NUMBER, T_NUMBER);
     add_instr_name("real", 0, F_REAL, T_REAL);
@@ -2267,7 +2312,7 @@ void init_num_args()
 		   "call_simul_efun(%i, (lpc_int = %i + num_varargs, num_varargs = 0, lpc_int));\n", 
 		   F_SIMUL_EFUN, T_ANY);
     add_instr_name("global_lvalue", "C_LVALUE(&current_object->variables[variable_index_offset + %i]);\n", F_GLOBAL_LVALUE, T_LVALUE);
-    add_instr_name("|", "f_or();\n", F_OR, T_NUMBER);
+    add_instr_name("|", "f_or();\n", F_OR, T_ARRAY | T_NUMBER);
     add_instr_name("<<", "f_lsh();\n", F_LSH, T_NUMBER);
     add_instr_name(">>", "f_rsh();\n", F_RSH, T_NUMBER);
     add_instr_name(">>=", "f_rsh_eq();\n", F_RSH_EQ, T_NUMBER);
@@ -2296,18 +2341,6 @@ void init_num_args()
     add_instr_name("switch", 0, F_SWITCH, -1);
     add_instr_name("time_expression", 0, F_TIME_EXPRESSION, -1);
     add_instr_name("end_time_expression", 0, F_END_TIME_EXPRESSION, T_NUMBER);
-}
-
-char *get_f_name P1(int, n)
-{
-    if (instrs[n].name)
-	return instrs[n].name;
-    else {
-	static char buf[30];
-
-	sprintf(buf, "<OTHER %d>", n);
-	return buf;
-    }
 }
 
 #define get_next_char(c) if ((c = *outp++) == '\n' && outp == last_nl + 1) refill_buffer()
@@ -2389,6 +2422,7 @@ static void handle_define P1(char *, yyt)
     q = namebuf;
     GETALPHA(p, q, namebuf + NSIZE - 1);
     if (*p == '(') {		/* if "function macro" */
+	int squote, dquote;
 	int arg;
 	int inid;
 	char *ids = (char *) NULL;
@@ -2419,6 +2453,7 @@ static void handle_define P1(char *, yyt)
 	p++;			/* skip ')' */
 	q = mtext;
 	*q++ = ' ';
+	squote = dquote = 0;
 	for (inid = 0; *p;) {
 	    if (isalunum(*p)) {
 		if (!inid) {
@@ -2426,7 +2461,7 @@ static void handle_define P1(char *, yyt)
 		    ids = p;
 		}
 	    } else {
-		if (inid) {
+		if (!squote && !dquote && inid) {
 		    int idlen = p - ids;
 		    int n, l;
 
@@ -2443,6 +2478,10 @@ static void handle_define P1(char *, yyt)
 		}
 	    }
 	    *q = *p;
+	    if (*q == '"' && *(q-1) != '\\')
+		dquote ^= !squote;
+	    if (*q == '\'')
+		squote ^= !dquote;
 	    if (*p++ == MARKS)
 		*++q = MARKS;
 	    if (q < mtext + MLEN - 2)
@@ -2692,9 +2731,13 @@ static int expand_define()
 		    break;
 		}
 		if (c == ',' && !parcnt && !dquote && !squote) {
+		    while (q > expbuf && isspace(*(q-1)))
+			q--;
 		    *q++ = 0;
 		    args[++n] = q;
 		} else if (parcnt < 0) {
+		    while (q > expbuf && isspace(*(q-1)))
+			q--;
 		    *q++ = 0;
 		    n++;
 		    break;
@@ -2707,12 +2750,17 @@ static int expand_define()
 			lexerror("Macro argument overflow");
 			return 0;
 		    } else {
-			*q++ = c;
+			if (isspace(c)) {
+			    if (*args[n])
+				*q++ = c;
+			}
+			else
+			    *q++ = c;
 		    }
 		}
-		if (!squote && !dquote)
-		    c = cmygetc();
-		else {
+		if (!squote && !dquote) {
+		    SKIPW;
+		} else {
 		    get_next_char(c);
 		}
 	    }
@@ -2728,14 +2776,77 @@ static int expand_define()
 	/* Do expansion */
 	b = buf;
 	e = p->exps;
+	squote = dquote = 0;
 	while (*e) {
-	    if (*e == '#' && *(e + 1) == '#')
-		e += 2;
-	    if (*e == MARKS) {
+	    switch (*e) {
+	    case '"':
+		*b++ = *e++;
+		dquote ^= !squote;
+		break;
+	    case '\'':
+		*b++ = *e++;
+		squote ^= !dquote;
+		break;
+	    case '#':
+		if (squote || dquote) {
+		    *b++ = *e++;
+		    break;
+		}
+		if (*(e+1) == '#') {
+		    for (; *(b-1) == ' '; b--)
+			;
+		    e += 2;
+		    for (; *e == ' '; e++)
+			;
+		    break;
+		}
+		if (*++e == MARKS && *++e != MARKS) {
+		    *b++ = '"';
+		    for (q = args[*e++ - MARKS - 1]; *q == ' '; q++)
+			;
+		    while (*q) {
+			switch (*q) {
+			case '"':
+			    *b++ = '\\';
+			    *b++ = *q++;
+			    dquote ^= !squote;
+			    break;
+			case '\'':
+			    *b++ = *q++;
+			    squote ^= !dquote;
+			    break;
+			case '\\':
+			    if (dquote || squote) {
+				*b++ = '\\';
+			    }
+			    *b++ = *q++;
+			    if (*q == '"') {
+				*b++ = '\\';
+				*b++ = *q++;
+			    }
+			    break;
+			default:
+			    *b++ = *q++;
+			}
+			if (b >= buf + DEFMAX) {
+			    lexerror("Macro expansion overflow");
+			    return 0;
+			}
+		    }
+		    *b++ = '"';
+		    squote = dquote = 0;
+		} else {
+		    lexerror("'#' operator is not followed by a macro argument name");
+		    return 0;
+		}
+		break;
+	    case MARKS:
 		if (*++e == MARKS)
 		    *b++ = *e++;
 		else {
-		    for (q = args[*e++ - MARKS - 1]; *q;) {
+		    for (q = args[*e++ - MARKS - 1]; *q == ' '; q++)
+			;
+		    while (*q) {
 			*b++ = *q++;
 			if (b >= buf + DEFMAX) {
 			    lexerror("Macro expansion overflow");
@@ -2743,9 +2854,10 @@ static int expand_define()
 			}
 		    }
 		}
-	    } else {
+		break;
+	    default:
 		*b++ = *e++;
-		if (b >= buf + DEFMAX) {
+		if (b > buf + DEFMAX) {
 		    lexerror("Macro expansion overflow");
 		    return 0;
 		}
@@ -2775,7 +2887,11 @@ static int exgetc()
 	} while (isalunum(c));
 	outp--;
 	*yyp = '\0';
-	if (strcmp(yytext, "defined") == 0) {
+	if (strcmp(yytext, "defined") == 0 ||
+	    strcmp(yytext, "efun_defined") == 0) {
+	    int efund = (yytext[0] == 'e');
+	    int flag;
+	    
 	    /* handle the defined "function" in #if */
 	    do
 		c = *outp++;
@@ -2800,7 +2916,13 @@ static int exgetc()
 		continue;
 	    }
 	    SKPW;
-	    if (lookup_define(yytext))
+	    if (efund) {
+		ident_hash_elem_t *ihe = lookup_ident(yytext);
+		flag = (ihe && ihe->dn.efun_num != -1);
+	    } else {
+		flag = (lookup_define(yytext) != 0);
+	    }
+	    if (flag)
 		add_input(" 1 ");
 	    else
 		add_input(" 0 ");
@@ -3185,6 +3307,8 @@ static void add_keyword_t P2(char *, name, keyword_t *, entry) {
 void init_identifiers() {
     int i;
     ident_hash_elem_t *ihe;
+
+    init_instrs();
     
     /* allocate all three tables together */
     ident_hash_table = CALLOCATE(IDENT_HASH_SIZE * 3, ident_hash_elem_t *,
@@ -3202,6 +3326,23 @@ void init_identifiers() {
     }
     /* add the efuns */
     for (i=0; i<NELEM(predefs); i++) {
+	if (predefs[i].word[0] == '_') {
+	    predefs[i].word++;
+	    if (strcmp(predefs[i].word, "call_other") == 0)
+		arrow_efun = i;
+	    if (strcmp(predefs[i].word, "evaluate") == 0)
+		evaluate_efun = i;
+	    if (strcmp(predefs[i].word, "this_object") == 0)
+		this_efun = i;
+	    if (strcmp(predefs[i].word, "to_int") == 0)
+		to_int_efun = i;
+	    if (strcmp(predefs[i].word, "to_float") == 0)
+		to_float_efun = i;
+	    if (strcmp(predefs[i].word, "new") == 0)
+		new_efun = i;
+	    continue;
+	}
+	
 	ihe = find_or_add_perm_ident(predefs[i].word);
 	ihe->token |= IHE_EFUN;
 	ihe->sem_value++;

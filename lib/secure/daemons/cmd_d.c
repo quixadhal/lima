@@ -192,7 +192,7 @@ int is_command(object o) {
 // This one won't match commands not in your path.  For players, mainly...
 varargs mixed find_cmd_in_path(string cmd, string* path)
 {
-    string dir, s;
+    string dir;
     object o;
 
     foreach(dir in path)
@@ -223,7 +223,6 @@ varargs mixed find_cmd(string cmd, string* path)
 {
     object	o;
     string	dir, s;
-    mixed 	ret;
     
     if (member_array('/', cmd) != -1) {
 	s = evaluate_path(cmd);

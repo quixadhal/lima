@@ -15,17 +15,20 @@
 varargs mixed move(mixed dest, string where);
 string *get_player_message(string message, mixed arg);
 int test_flag(int which);
-string array action(object array x, string s);
 void simple_action(string s);
+varargs string compose_message(object forwhom, string msg, object *who, 
+			       array obs...);
 
 
-private nomask int move_me_there(string dest, string arg, object last_loc)
+private nomask int move_me_there(string dest, string arg)
 {
+    object last_loc = environment();
     object env;
     object d;
     mixed  r;
-    string txt;
+    mixed txt;
     string *msgs;
+    string m;
 
     if ( (r = move(dest)) != MOVE_OK)
     {
@@ -61,13 +64,6 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
 	}
     }
 
-    //### bogus place to show the path... probably should be handled in
-    //### another way
-    if ( test_flag(F_DISPLAY_PATH) )
-    {
-	printf("[ %s ]\n", file_name(environment(this_body())));
-    }
-
     if ( !arg )
 	arg = "somewhere";
 
@@ -82,22 +78,52 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
     if ( !txt )
     {
 	msgs = get_player_message("leave", arg);
+
+	// filter the object where you're going
 	tell_from_inside(last_loc, msgs[1], 0, ({ env }));
+    }
+    else if ( arrayp(txt) )
+    {
+	if ( txt[0] )
+	{
+	    m = compose_message(this_object(), txt[0], ({ this_object() }));
+	    tell(this_object(), m);
+	}
+	if ( txt[1] )
+	{
+	    m = compose_message(0, txt[1], ({ this_object() }));
+
+	    // filter the object where you're going
+	    tell_from_inside(last_loc, m, 0, ({ env }));
+	}
     }
     else
     {
-	msgs = action(({this_object()}), txt);
-	tell_from_outside(this_object(), msgs[0]);
-	tell_from_inside(last_loc, msgs[1], 0, ({ env }));
+	simple_action(txt);
     }
 
+    //### should we be adding this extra line? I think so...
+    write("\n");
 
     //###there is a note in room.c about this being bogus
     txt = env->query_enter_msg(arg);
     if ( !txt )
     {
 	msgs = get_player_message("enter", arg);
-	tell_from_outside(env, msgs[1], 0, ({ this_object() }));
+	tell_from_inside(env, msgs[1], 0, ({ this_object() }));
+    }
+    else if ( arrayp(txt) )
+    {
+	if ( txt[0] )
+	{
+	    m = compose_message(this_object(), txt[0], ({ this_object() }));
+	    tell(this_object(), m);
+	}
+	if ( txt[1] )
+	{
+	    m = compose_message(0, txt[1], ({ this_object() }));
+	    tell_from_inside(env, m, 0, ({ this_object() }));
+	}
     }
     else
     {
@@ -114,7 +140,7 @@ private nomask int move_me_there(string dest, string arg, object last_loc)
 
 void notify_move()
 {
-    this_body()->force_look();
+    this_body()->force_look(0);
 }
 
 
@@ -129,11 +155,10 @@ void notify_move()
 //is given by this_body().  The direction is passed as an argument.
 int move_to(string dest, mixed dir)
 {
-    mixed ret;
     object where = environment();
 
     dest = evaluate(dest);
-    if (move_me_there(dest, dir, where)) {
+    if (move_me_there(dest, dir)) {
 	where->call_hooks("person_left", HOOK_IGNORE, 0, dir);
 
     }
@@ -145,8 +170,6 @@ int move_to(string dest, mixed dir)
     }
     return 0;
 }
-
-varargs mixed call_hooks();
 
 int go_somewhere(string arg)
 {
@@ -181,4 +204,3 @@ object env = environment( this_object());
 	go_somewhere( arg );
     return;
 }
-

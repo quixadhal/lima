@@ -74,12 +74,11 @@ mixed indirect_sell_obj_to_liv(object ob, object liv) {
 }
 
 void buy_object(object ob) {
-
     int object_cost;
     string item_state;
     string item_name;
-    string name_of_file;
     string *object_ids;
+
     if (ob->move(this_object()) != MOVE_OK)
 	write("You can't seem to give " + ob->the_short() + " to " + short() +
 	  ".\n");
@@ -96,8 +95,8 @@ void buy_object(object ob) {
   object_ids += ({ ob->plural_short() });
 	stored_items += ({ ({ item_state }) + ({ item_name }) + ({ object_cost }) + ({object_ids }) });
 	this_body()->my_action("$N $vsell a $o for "+ object_value +" "+
-	  currency_type +".\n", ob);
-	this_body()->other_action("$N $vsell a $o.\n", ob);
+	  currency_type +".", ob);
+	this_body()->other_action("$N $vsell a $o.", ob);
 	ob->remove();
 
     }
@@ -115,12 +114,12 @@ void sell_object(object ob) {
 	return 0;
     }
     if (ob->move(this_body()) != MOVE_OK)
-	write(capitalize(query_subjective()) + " can't seem to give " + ob->the_short() + " to you.\n");
+	write(capitalize(query_subjective()) + " can't seem to give " + ob->the_short() + " to you.");
     else {
 	this_body()->subtract_money(currency_type, object_cost);
-	this_body()->my_action("$N $vbuy a $o for "+ object_cost +" "+ currency_type +".\n",ob);
+	this_body()->my_action("$N $vbuy a $o for "+ object_cost +" "+ currency_type +".",ob);
 
-	this_body()->other_action("$N $vbuy a $o.\n",ob);
+	this_body()->other_action("$N $vbuy a $o.",ob);
     }
 }
 
@@ -139,7 +138,7 @@ void query_items(string item)
     i = sizeof(stored_items);
 if(!i)
 {
-   this_body()->my_action("The shopkeeper says, \"I currently have no items in inventory.\"\n");
+   this_body()->my_action("The shopkeeper says, \"I currently have no items in inventory.\"");
 }
 else
 {
@@ -161,7 +160,7 @@ else
     j = sizeof(items_available);
     if (j)
     {
-	this_body()->my_action("The shopkeeper says, \"I have the following items that match your request.\"\n");
+	this_body()->my_action("The shopkeeper says, \"I have the following items that match your request.\"");
 	for( m=0; m < j; m++)
 	{
 	    printf("%10d%20s %30d\n", m + 1 ,items_available[m][0],items_available[m][1]);
@@ -169,7 +168,7 @@ else
     }
     else
     {
-	this_body()->my_action("The shopkeeper says, \"I have no items that match your request.\"\n");
+	this_body()->my_action("The shopkeeper says, \"I have no items that match your request.\"");
     }
 }
 }
@@ -181,8 +180,7 @@ else
 void sell_stored_objects(string item, int number)
 {
     int i;
-int j = 0;
-    int m = 0;
+    int j = 0;
     string *for_sale_ids;
     object ob;
 

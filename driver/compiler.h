@@ -1,7 +1,6 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#include "std.h"
 #include "trees.h"
 #include "lex.h"
 #include "program.h"
@@ -78,6 +77,11 @@ typedef struct {
 #define TYPE_REAL       9
 #define TYPE_BUFFER     10
 
+typedef struct {
+    int runtime_index;
+    ident_hash_elem_t *ihe;
+} local_info_t;
+
 extern mem_block_t mem_block[NUMAREAS];
 extern char *compiler_type_names[];
 
@@ -89,6 +93,7 @@ extern char *compiler_type_names[];
 #define SWITCH_RANGES           0x20
 #define LOOP_FOREACH            0x40
 #define SPECIAL_CONTEXT		0x80
+#define ARG_LIST		0x100
 
 typedef struct function_context_s {
     parse_node_t *values_list;
@@ -106,12 +111,12 @@ extern int var_defined;
  */
 
 #define IS_CLASS(t) ((t & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) == TYPE_MOD_CLASS)
-#define CLASS_IDX(t) (t & ~(NAME_TYPE_MOD | TYPE_MOD_CLASS))
+#define CLASS_IDX(t) (t & ~(DECL_MODS | TYPE_MOD_CLASS))
 
 #define COMP_TYPE(e, t) (!(e & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) \
-			 && (compatible[(unsigned char)e] & (1 << (t))))
+			 && (compatible[(unsigned char)(e & ~DECL_MODS)] & (1 << (t))))
 #define IS_TYPE(e, t) (!(e & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) \
-		       && (is_type[(unsigned char)e] & (1 << (t))))
+		       && (is_type[(unsigned char)(e & ~DECL_MODS)] & (1 << (t))))
 
 #define FUNCTION_TEMP(n) ((compiler_temp_t *)mem_block[A_FUNCTION_DEFS].block + (n))
 /* compiler_function_t from A_COMPILER_FUNCTIONS index */
@@ -161,21 +166,15 @@ extern char *prog_code_max;
 extern program_t NULL_program;
 extern unsigned char string_tags[0x20];
 extern short freed_string;
-extern ident_hash_elem_t **locals;
-extern unsigned short *type_of_locals;
-extern char *runtime_locals;
+extern local_info_t *locals, *locals_ptr;
+extern unsigned short *type_of_locals, *type_of_locals_ptr;
 extern int current_number_of_locals;
 extern int max_num_locals;
-extern unsigned short *type_of_locals_ptr;
-extern ident_hash_elem_t **locals_ptr;
-extern char *runtime_locals_ptr;
 
 extern int type_of_locals_size;
 extern int locals_size;
 extern int current_number_of_locals;
 extern int max_num_locals;
-extern unsigned short a_functions_root;
-extern mem_block_t type_of_arguments;
 extern short compatible[11];
 extern short is_type[11];
 
@@ -209,7 +208,7 @@ int compatible_types2 PROT((int, int));
 void arrange_call_inherited PROT((char *, parse_node_t *));
 void add_arg_type PROT((unsigned short));
 int define_new_function PROT((char *, int, int, int, int));
-int define_variable PROT((char *, int, int));
+int define_variable PROT((char *, int));
 int define_new_variable PROT((char *, int));
 short store_prog_string PROT((char *));
 void free_prog_string PROT((short));
@@ -219,7 +218,10 @@ int dump_function_table PROT((void));
 void prepare_cases PROT((parse_node_t *, int));
 void push_func_block PROT((void));
 void pop_func_block PROT((void));
+int decl_fix PROT((int));
+parse_node_t *check_refs PROT((int, parse_node_t *, parse_node_t *));
 
+int lookup_any_class_member PROT((char *, char *));
 int lookup_class_member PROT((int, char *, char *));
 parse_node_t *reorder_class_values PROT((int, parse_node_t *));
 
@@ -231,12 +233,12 @@ parse_node_t *throw_away_mapping PROT((parse_node_t *));
 
 #ifndef SUPPRESS_COMPILER_INLINES
 /* inlines - if we're lucky, they'll get honored. */
-INLINE static void realloc_mem_block PROT((mem_block_t *, int));
-INLINE static void add_to_mem_block PROT((int, char *, int));
-INLINE static void insert_in_mem_block PROT((int, int, int));
-INLINE static char *allocate_in_mem_block PROT((int, int));
+INLINE_STATIC void realloc_mem_block PROT((mem_block_t *, int));
+INLINE_STATIC void add_to_mem_block PROT((int, char *, int));
+INLINE_STATIC void insert_in_mem_block PROT((int, int, int));
+INLINE_STATIC char *allocate_in_mem_block PROT((int, int));
 
-INLINE static
+INLINE_STATIC
 void realloc_mem_block P2(mem_block_t *, m, int, size)
 {
     while (size > m->max_size) {
@@ -246,7 +248,7 @@ void realloc_mem_block P2(mem_block_t *, m, int, size)
     }
 }
 
-INLINE static
+INLINE_STATIC
 void add_to_mem_block P3(int, n, char *, data, int, size)
 {
     mem_block_t *mbp = &mem_block[n];
@@ -258,7 +260,7 @@ void add_to_mem_block P3(int, n, char *, data, int, size)
     mbp->current_size += size;
 }
 
-INLINE static
+INLINE_STATIC
 char *allocate_in_mem_block P2(int, n, int, size)
 {
     mem_block_t *mbp = &mem_block[n];
@@ -271,8 +273,9 @@ char *allocate_in_mem_block P2(int, n, int, size)
     return ret;
 }
 
-INLINE static
-void insert_in_mem_block P3(int, n, int, where, int, size)
+INLINE_STATIC
+void
+insert_in_mem_block P3(int, n, int, where, int, size)
 {
     mem_block_t *mbp = &mem_block[n];
     char *p;

@@ -63,16 +63,16 @@ static void top_ten() {
 #endif
 
 private void main(string str) {
+#ifndef __PROFILE_FUNCTIONS__
+    out("Function profiling not enabled.\n");
+    return;
+#else
     mapping *prof;
     mapping item;
     string obname;
     object ob;
     function compare;
 
-#ifndef __PROFILE_FUNCTIONS__
-    out("Function profiling not enabled.\n");
-    return;
-#else
     if (!str) {
 	top_ten();
         return;

@@ -6,6 +6,12 @@ private mixed last_drink_action;
 
 string the_short();
 
+int query_drinks()
+{
+    return num_drinks;
+}
+
+
 //:FUNCTION set_drink_action
 //set_drink_action(string) causes 'string' to be printed when someone
 //drinks this object.  set_drink_action(function) causes the function
@@ -29,23 +35,27 @@ void set_num_drinks(int num) {
 
 mixed direct_drink_obj() {
     if (!num_drinks)
+    {
+	if( inherits( M_DRINK_CONTAINER, this_object() ))
+	    return capitalize( the_short()) + " is empty.\n";
 	return capitalize(the_short()) + " is gone.\n";
+    }
 
     return 1;
 }
 
 void drink_it() {
     mixed action;
-    
+
     if (num_drinks == 1 && last_drink_action)
 	action = last_drink_action;
     else
 	action = drink_action;
 
     if (stringp(action))
-	write(action);
+	this_body()->simple_action( action, this_object());
     else
 	evaluate(action);
-	
+
     num_drinks--;
 }

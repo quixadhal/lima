@@ -57,3 +57,12 @@ mapping lpscript_attributes() {
 	"look_in_desc" : ({ LPSCRIPT_STRING, "setup", "set_look_in_desc" })
     ]);
 }
+
+
+varargs void mudlib_setup( string destination)
+{
+    ::mudlib_setup();
+    set_id( "portal" );
+    set_flag( ATTACHED );
+    if( destination ) set_destination( destination );
+}

@@ -8,7 +8,6 @@ void setup() {
     set_id("rock", "rocks", "debris", "rubble");
     set_attached(1);
     set_long("The rocks aren't very interesting.");
-    set_gettable(1);
     set_size(TOO_LARGE);
 }
 
@@ -24,4 +23,10 @@ mixed get()
 	return MOVE_NO_ERROR;
     }
     return r;
+}
+
+
+mapping lpscript_attributes()
+{
+    return object::lpscript_attributes() + m_gettable::lpscript_attributes();
 }

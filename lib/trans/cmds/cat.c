@@ -7,44 +7,44 @@ inherit CMD;
 // Rust
 
 private void main(mixed *arg, mapping flags, string stdin) {
-  string file;
-  int i;
-  string chunk;
+    string file;
+    int i;
+    string chunk;
 
-  if(end_of_pipeline())
+    if(end_of_pipeline())
     {
-      if(arg[0])
-	foreach(file in arg[0])
-	  {
+	if(arg[0])
+	    foreach(file in arg[0])
+	{
 	    i = 0;
 	    if(!is_file(file))
-	      printf("Warning: %s failed.\n", file);
+		printf("Warning: %s failed.\n", file);
 	    else
-	      chunk = read_file(file);
+		chunk = read_file(file);
 	    write(chunk);
-	  }
+	}
 	else
-	  {
+	{
 	    write(stdin);
-	  }
+	}
 	return;
     }
-  else
+    else
     {
-      if(arg[0])
-	foreach(file in arg[0])
-	  {
+	if(arg[0])
+	    foreach(file in arg[0])
+	{
 	    i = 0;
 	    if(!is_file(file))
-	      printf("Warning: cat of %s failed.\n", file);
+		printf("Warning: cat of %s failed.\n", file);
 	    else
-	      chunk = read_file(file);
+		chunk = read_file(file);
 	    out(chunk);
-	  }
+	}
 	else
-	  {
+	{
 	    out(stdin);
-	  }
+	}
     }
 }
 
@@ -52,7 +52,7 @@ private void main(mixed *arg, mapping flags, string stdin) {
 int help()
 {
     write(
-	"Usage:  cat <filename>\n"
-	"Displays the entire contents of the specified file to your screen "
-	"all at once.  See also more.\n" );
+      "Usage:  cat <filename>\n"
+      "Displays the entire contents of the specified file to your screen "
+      "all at once.  See also more.\n" );
 }

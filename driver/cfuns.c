@@ -1,10 +1,9 @@
 #include "std.h"
 
 #ifdef LPC_TO_C
-#include "lpc_incl.h"
+#include "cfuns.h"
 #include "backend.h"
 #include "lpc_to_c.h"
-#include "stralloc.h"
 #include "eoperators.h"
 #include "parse.h"
 #include "qsort.h"
@@ -226,7 +225,7 @@ void c_call P2(int, func, int, num_arg) {
     DEBUG_CHECK(func >= current_object->prog->num_functions_total,
 		"Illegal function index\n");
     
-    if (current_object->prog->function_flags[func] & NAME_UNDEFINED)
+    if (current_object->prog->function_flags[func] & FUNC_UNDEFINED)
 	error("Undefined function: %s\n", function_name(current_object->prog, func));
     /* Save all important global stack machine registers */
     push_control_stack(FRAME_FUNCTION);
@@ -424,6 +423,7 @@ void c_index() {
 	    free_mapping(m);
 	    break;
 	}
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	{
 	    if ((sp-1)->type != T_NUMBER)
@@ -437,6 +437,7 @@ void c_index() {
 	    (--sp)->u.number = i;
 	    break;
 	}
+#endif
     case T_STRING:
 	{
 	    if ((sp-1)->type != T_NUMBER) {
@@ -484,6 +485,7 @@ void c_rindex() {
     int i;
 
     switch (sp->type) {
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	{
 	    if ((sp-1)->type != T_NUMBER)
@@ -498,6 +500,7 @@ void c_rindex() {
 	    (--sp)->u.number = i;
 	    break;
 	}
+#endif
     case T_STRING:
 	{
 	    int len = SVALUE_STRLEN(sp);
@@ -692,6 +695,7 @@ void c_add_eq P1(int, is_void) {
 	    error("Left hand side of += is a number (or zero); right side is not a number.\n");
 	}
 	break;
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	if (sp->type != T_BUFFER) {
 	    bad_argument(sp, T_BUFFER, 2, (is_void ? F_VOID_ADD_EQ : F_ADD_EQ));
@@ -707,6 +711,7 @@ void c_add_eq P1(int, is_void) {
 	    lval->u.buf = b;
 	}
 	break;
+#endif
     case T_ARRAY:
 	if (sp->type != T_ARRAY)
 	    bad_argument(sp, T_ARRAY, 2, (is_void ? F_VOID_ADD_EQ : F_ADD_EQ));
@@ -1083,6 +1088,7 @@ void c_compl() {
 
 void c_add() {
     switch (sp->type) {
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	{
 	    if (!((sp-1)->type == T_BUFFER)) {
@@ -1101,6 +1107,7 @@ void c_add() {
 	    }
 	    break;
 	} /* end of x + T_BUFFER */
+#endif
     case T_NUMBER:
 	{
 	    switch ((--sp)->type) {

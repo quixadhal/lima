@@ -25,6 +25,7 @@ inherit M_ITEMS;
 inherit M_GETTABLE;
 inherit __DIR__ "room/exits";
 inherit __DIR__ "room/roomdesc";
+inherit __DIR__ "room/state";
 
 private static string area_name;
 
@@ -34,8 +35,8 @@ private static string area_name;
 string stat_me()
 {
     return sprintf("Room: %s [ %s ]\n\n",
-		   short(), implode(query_exit_directions(1), ", ")) +
-	container::stat_me();
+      short(), implode(query_exit_directions(1), ", ")) +
+    container::stat_me();
 }
 
 //:FUNCTION set_brief
@@ -61,14 +62,14 @@ void create(array args...)
     // because setup() is the way people configure mudlib objects.
     // Almost always, except in the case of rooms, game objects are clones.
 
-//### Small problem here; some rooms are clones, and this bails for them.
-//### We really need a better way to test if we should call setup().
-//###
-//### Virtual grids, for example, usually depend on cloned rooms working
-//### properly.
-//###
-//### BTW, contrary to the above, it appears this is *NOT* already done for cloned rooms
-  
+    //### Small problem here; some rooms are clones, and this bails for them.
+    //### We really need a better way to test if we should call setup().
+    //###
+    //### Virtual grids, for example, usually depend on cloned rooms working
+    //### properly.
+    //###
+    //### BTW, contrary to the above, it appears this is *NOT* already done for cloned rooms
+
 #if 0
     if( !clonep() )
     {
@@ -101,22 +102,16 @@ void set_area(string name)
     area_name = name;
 }
 
-//:FUNCTION set_area
+//:FUNCTION get_area
 //Find out what 'area' the room belongs to.  See set_area.
 string get_area()
 {
     return area_name;
 }
 
-string query_name ()
+string query_name()
 {
     return "the ground";
-}
-
-// Conflict resolution
-string long()
-{
-    return roomdesc::long();
 }
 
 string get_brief()
@@ -143,7 +138,7 @@ void set_light(int x) {
 
 void adjust_light(int x) {
     int old = query_light();
-    
+
     ::adjust_light(x);
 
     possible_light_change(old, query_light());
@@ -152,17 +147,58 @@ void adjust_light(int x) {
 mixed direct_get_obj( object ob, string name )
 {
     if( this_object() == environment( this_body()))
-        return "#A surreal idea.\n";
+	return "#A surreal idea.\n";
     return ::direct_get_obj( ob, name );
 }
 
 mapping lpscript_attributes() {
     return ([
-	"area" : ({ LPSCRIPT_STRING, "setup", "set_area" }),
-	"brief" : ({ LPSCRIPT_STRING, "setup", "set_brief" }),
-	"default_exit" : ({ LPSCRIPT_STRING, "setup", "set_default_exit" }),
-	"exits" : ({ LPSCRIPT_MAPPING, "setup", "set_exits" }),
-        "state" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_state_description(\"" + $1 + "\", \"" + $2[0] + "\")" }) :) }),
-        "item" : ({ LPSCRIPT_SPECIAL, (: ({ "setup", "add_item(\"" + $1[0] + "\", \"" + implode($1[1..], " ") + "\")" }) :) })
+      "area" : ({ LPSCRIPT_STRING, "setup", "set_area" }),
+      "brief" : ({ LPSCRIPT_STRING, "setup", "set_brief" }),
+      "default_exit" : ({ LPSCRIPT_STRING, "setup", "set_default_exit" }),
+      "exits" : ({ LPSCRIPT_MAPPING, "setup", "set_exits" }),
+      "state" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_state_description(\"" + $1 + "\", \"" + $2[0] + "\")" }) :) }),
+      "item" : ({ LPSCRIPT_SPECIAL, (: ({ "setup", "add_item(\"" + $1[0] + "\", \"" + implode($1[1..], " ") + "\")" }) :) })
     ]);
+}
+
+/* tweak the base long description to add the state stuff */
+string get_base_long()
+{
+    return ::get_base_long()[0..<2] + get_state_specific_long();
+}
+
+
+string long()
+{
+#ifdef OBVIOUS_EXITS_BOTTOM
+    string objtally = show_objects();
+    if( sizeof(objtally))
+	objtally = "You also see:\n" + objtally;
+    return sprintf("%sObvious Exits: %%^ROOM_EXIT%%^%s%%^RESET%%^\n%s",
+      (dont_show_long() ? "" : simple_long()),
+      show_exits(),
+      objtally);
+#else
+    return sprintf("%s%s",
+      (dont_show_long() ? "" : simple_long()),
+      show_objects());
+#endif
+}
+
+//:FUNCTION long_without_object
+//This is used by things like furniture, so the furniture can use the
+//same long as the room, but not see itself in the description.
+string long_without_object(object o)
+{
+#ifdef OBVIOUS_EXITS_BOTTOM
+    return sprintf("%sObvious Exits: %%^ROOM_EXIT%%^%s%%^RESET%%^\n%s",
+      simple_long(),
+      show_exits(),
+      show_objects(o));
+#else
+    return sprintf("%s%s",
+      simple_long(),
+      show_objects(o));
+#endif
 }

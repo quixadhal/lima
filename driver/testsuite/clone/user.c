@@ -155,6 +155,11 @@ setup()
 // net_dead: called by the gamedriver when an interactive player loses
 // hir network connection to the mud.
 
+void tell_room(object ob, string msg) {
+    foreach (ob in all_inventory(ob) - ({ this_object() }))
+        tell_object(ob, msg);
+}
+
 void
 net_dead()
 {

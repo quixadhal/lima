@@ -7,8 +7,12 @@
 #include <playerflags.h>
 
 inherit CMD;
+inherit M_ANSI;
 
-#define DELIM sprintf(repeat_string("-",73)+"\n")
+#define WIDTH this_user()->query_screen_width()
+
+#define DELIM (repeat_string("-", WIDTH - 7) + "\n")
+
 #define WHO_FORMAT	"%s:  (Local Time is: %s) %28s\n%s"
 #define DEBUG(arg) if (debug && member_array(arg,msgs)==-1) msgs+=({arg})
 
@@ -18,7 +22,7 @@ string get_who_string(string arg)
 {
     string retval="";
     int debug;
-object array b = bodies() - ({ 0 });
+    object array b = bodies() - ({ 0 });
     string *args=({});
     string tmp;
 
@@ -78,10 +82,7 @@ object array b = bodies() - ({ 0 });
     {
 	args-=({"h"});
 	DEBUG("Header");
-	retval+=sprintf("%|70s\n%|70s\n%|70s\n"+DELIM,
-	  implode(explode(mud_name(),"")," "),
-	  "(PST is: "+ctime(time())+")",
-	  "There are "+ sizeof(b) +" users connected.");
+	retval += colour_center(implode(explode(mud_name(), ""), " ")) + "\n" + colour_center("(PST is: " + ctime(time()) + ")") + "\n" + colour_center("There are " + sizeof(b) + " users connected.") + "\n" + DELIM;
     }
     else
     if (member_array("H",args)!=-1)

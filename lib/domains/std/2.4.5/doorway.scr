@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 #define EXTRA_MOVE /* nothing */
 
 string name,short_desc,long_desc,dir1,dir2,dest;

@@ -64,7 +64,6 @@ nomask int populate_body_slot(string sname, object what)
 nomask int depopulate_body_slot(string sname, object what)
 {
     object *athere;
-    int num;
     
     if(!slots[sname])
         return 0;

@@ -20,6 +20,8 @@ string pluralize(string str)
     switch (str)
     {
     case "were": return "was";
+    case "don't": return "doesn't";
+    case "possum": return "possums";
     case "staff": return "staves";
     case "die": return "dies";
     case "laf": return "lafs";

@@ -1,3 +1,9 @@
+Information can be lost if you do a socket_close() on a socket in the S_BLOCKED
+state (i.e. one that just returned EECALLBACK).  Code should be added to
+wait to finish writing before closing.
+
+-----
+
 The internal message passing functions should be cleaned up.  Currently, a lot
 of stuff calls add_message() directly, while other stuff uses tell_object()
 and friends.  One consequence of this is that even with INTERACTIVE_CATCH_TELL

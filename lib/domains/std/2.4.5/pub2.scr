@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 /* FIXME */
 /* #define MUST_STAY_WITH_DRINKS */
 object top_list;

@@ -24,6 +24,8 @@
 #define NOISY3(w,x,y,z) 
 #endif
 
+void fatal PROT1V(char *);
+
 typedef struct stats_s {
     unsigned int free_calls, alloc_calls, realloc_calls;
 }       stats_t;
@@ -105,7 +107,7 @@ void dump_malloc_data P1(outbuffer_t *, ob)
     outbuf_addv(ob, "total malloc'd:   %10lu\n", total_malloced);
     outbuf_addv(ob, "high water mark:  %10lu\n", hiwater);
     outbuf_addv(ob, "overhead:         %10lu\n",
-		(TABLESIZE * sizeof(md_node_t *)) + (net * MD_OVERHEAD));
+		(MD_TABLE_SIZE * sizeof(md_node_t *)) + (net * MD_OVERHEAD));
     outbuf_addv(ob, "#alloc calls:     %10lu\n", stats.alloc_calls);
     outbuf_addv(ob, "#free calls:      %10lu\n", stats.free_calls);
     outbuf_addv(ob, "#alloc - #free:   %10lu\n", net);

@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 is=room
 light=0
 exits=south:tunnel12.scr

@@ -54,8 +54,9 @@ void archive_posts();
 nomask string * get_groups();
 
 private mapping data = ([]);
+private mapping removed = ([]);
 private static mapping recent_changes = ([]);
-private int new_format;
+private int new_format = 1;
 
 // No info on a group means never archive.
 private mapping archive_info = ([ ]);
@@ -89,28 +90,28 @@ nomask void set_archive_time(string group, int numDays)
 {
     if (!check_previous_privilege(1))
     {
-	error("Insufficient privs");
+        error("Insufficient privs");
     }
     if (!is_group(group))
     {
-	error("First arg not a valid newsgroup");
+        error("First arg not a valid newsgroup");
     }
     if(!intp(numDays))
     {
-	error("Number of days not an integer.");
+        error("Number of days not an integer.");
     }
     if(numDays < 0)
     {
-	error("Number of days must be greater than or equal to 0.");
+        error("Number of days must be greater than or equal to 0.");
     }
     if(!numDays) 
     {
-	/* Never expire */
-	map_delete(archive_info, group);
+        /* Never expire */
+        map_delete(archive_info, group);
     }
     else
     {
-	archive_info[group] = numDays;
+        archive_info[group] = numDays;
     }
     save_me();
 }
@@ -129,32 +130,32 @@ private nomask void convert_news()
 
     foreach ( group, contents in data )
     {
-	mixed id;
-	mapping post;
+        mixed id;
+        mapping post;
 
-	foreach ( id, post in contents )
-	{
-	    class news_msg msg;
+        foreach ( id, post in contents )
+        {
+            class news_msg msg;
 
-	    if ( id == "next_id" )
-		continue;
+            if ( id == "next_id" )
+                continue;
 
-#define MSG_TIME	1
-#define MSG_THREAD	2
-#define MSG_SUBJECT	3
-#define MSG_MESSAGE	4
-#define MSG_POSTER	5
+#define MSG_TIME        1
+#define MSG_THREAD      2
+#define MSG_SUBJECT     3
+#define MSG_MESSAGE     4
+#define MSG_POSTER      5
 
-	    msg = new(class news_msg,
-	      time : post[MSG_TIME],
-	      thread_id : post[MSG_THREAD],
-	      subject : post[MSG_SUBJECT],
-	      poster : post[MSG_POSTER],
-	      body : post[MSG_MESSAGE]);
-	    msg->userid		= lower_case(msg->poster);
+            msg = new(class news_msg,
+              time : post[MSG_TIME],
+              thread_id : post[MSG_THREAD],
+              subject : post[MSG_SUBJECT],
+              poster : post[MSG_POSTER],
+              body : post[MSG_MESSAGE]);
+            msg->userid         = lower_case(msg->poster);
 
-	    contents[id] = msg;
-	}
+            contents[id] = msg;
+        }
     }
 
     new_format = 1;
@@ -168,47 +169,52 @@ nomask void create()
     set_privilege(1);
     if ( clonep(this_object()) )
     {
-	destruct(this_object());
-	return;
+        destruct(this_object());
+        return;
     }
 
     restore_object(SAVE_FILE, 1);
     if (rec = read_file(RECENT_FILE))
-	recent_changes = restore_variable(rec);
+        recent_changes = restore_variable(rec);
     else
-	recent_changes = 0;
+        recent_changes = 0;
 
     if ( !new_format )
-	convert_news();
+        convert_news();
     if (!recent_changes) {
-	recent_changes = ([]);
-	foreach (string key in keys(data))
+        recent_changes = ([]);
+        foreach (string key in keys(data))
 	    recent_changes[key] = ([]);
     } else {
-	int changed = 0;
+        foreach (string key, mixed value in recent_changes) {
+            if (value == "#removed#") {
+                map_delete(data, key);
+                map_delete(recent_changes, key);
+		map_delete(removed, key);
+            } else {
+                /* possible for new groups */
+                if (!data[key])
+		    data[key] = ([]);
+		if (!removed[key])
+		    removed[key] = ({});
 
-	foreach (string key, mixed value in recent_changes) {
-	    if (value == "#removed#") {
-		map_delete(data, key);
-		changed = 1;
-	    } else {
-		/* possible for new groups */
-		if (!data[key]) data[key] = ([]);
-		foreach (string key2 in keys(value)) {
-		    data[key][key2] = value[key2];
-		    changed = 1;
+		recent_changes[key] = ([]);
+                foreach (string key2 in keys(value)) {
+                    data[key][key2] = value[key2];
+		    if (classp(value[key2]) &&
+			((class news_msg)value[key2])->body == 0)
+			removed[key] += ({ key2 });
 		}
-	    }
-	    recent_changes[key] = ([]);
-	}
+            }
+        }
     }
     foreach (string key, mixed value in data) {
-	if (mapp(value)) {
-	    foreach (string key2, class news_msg msg in value) {
-		if (classp(msg) && !msg->body)
-		    map_delete(value, key2);
-	    }
-	}
+        if (mapp(value)) {
+            foreach (string key2, class news_msg msg in value) {
+                if (classp(msg) && !msg->body)
+                    map_delete(value, key2);
+            }
+        }
     }
     save_me();
     archive_posts();
@@ -227,9 +233,9 @@ private nomask void notify_users(string group, class news_msg msg)
 {
     CHANNEL_D->deliver_channel("news",
       sprintf("%s: %s [%s]",
-	group,
-	msg->subject[0..39],
-	msg->poster));
+        group,
+        msg->subject[0..39],
+        msg->poster));
 }
 
 nomask int post(string group, string subject, string message)
@@ -240,11 +246,11 @@ nomask int post(string group, string subject, string message)
     if (!data[group]) return 0;
     post_id = get_new_id(group);
     msg = new(class news_msg,
-      time : time(),
-      thread_id : post_id,
-      subject : subject,
-      userid : this_user()->query_userid(),
-      body : message);
+	      time : 		time(),
+	      thread_id : 	post_id,
+	      subject : 	subject,
+	      userid : 		this_user()->query_userid(),
+	      body : 		message);
     msg->poster          = capitalize( msg->userid );
 
     data[group][post_id] = msg;
@@ -264,13 +270,15 @@ varargs nomask int system_post(string group,
     int post_id;
     class news_msg msg;
 
-    //### need to think on this. I don't think we want to require priv 1
-    //### ... especially since even *this* object doesn't have that.  And
-    //### just checking the previous object is a no-no.
-    //    if ( get_privilege(previous_object()) != 1 )
-    //	return 0;
+//### need to think on this. I don't think we want to require priv 1
+//### ... especially since even *this* object doesn't have that.  And
+//### just checking the previous object is a no-no.
+//### 
+//### check for Mudlib:daemons maybe?
+//    if ( get_privilege(previous_object()) != 1 )
+//  return 0;
     if ( !data[group] )
-	return 0;
+        return 0;
     post_id = get_new_id(group);
     msg = new(class news_msg,
       time : time(),
@@ -278,24 +286,24 @@ varargs nomask int system_post(string group,
       subject : subject);
     if ( poster )
     {
-	msg->poster = poster;
-	msg->userid = base_name(previous_object());
+        msg->poster = poster;
+        msg->userid = base_name(previous_object());
     }
     else if ( this_body() )
     {
-	msg->userid = this_user()->query_userid();
-	msg->poster = capitalize( msg->userid );
+        msg->userid = this_user()->query_userid();
+        msg->poster = capitalize( msg->userid );
     }
     else if ( this_user() )
     {
-	msg->userid = this_user()->query_userid();
-	msg->poster = capitalize( msg->userid);
+        msg->userid = this_user()->query_userid();
+        msg->poster = capitalize( msg->userid);
     }
     else
     {
-	msg->poster = msg->userid = mud_name();
+        msg->poster = msg->userid = mud_name();
     }
-    msg->body		= message;
+    msg->body           = message;
 
     data[group][post_id] = msg;
     recent_changes[group][post_id] = msg;
@@ -308,10 +316,7 @@ varargs nomask int system_post(string group,
 
 varargs nomask void add_group(string group)
 {
-    string fn;
-
-    fn = base_name(previous_object());
-    if (fn != ADMTOOL) return;
+    if (!check_privilege("Mudlib:daemons")) error("Permission denied.\n");
 
     data[group] = (["next_id":1]);
     recent_changes[group] = (["next_id":1]);
@@ -320,11 +325,7 @@ varargs nomask void add_group(string group)
 
 nomask void remove_group(string group)
 {
-    string fn;
-
-    fn = base_name(previous_object());
-    if (fn != ADMTOOL) return;
-
+    if (!check_privilege("Mudlib:daemons")) error("Permission denied.\n");
     map_delete(data, group);
     recent_changes[group] = "#removed#";
     save_recent();
@@ -365,15 +366,15 @@ nomask class news_msg get_message(string group, int id)
     class news_msg msg;
 
     if ( !data[group] )
-	return 0;
+        return 0;
 
     msg = data[group][id];
     if ( !msg )
-	return 0;
+        return 0;
 
     /* sigh */
-    //### oops... can't do this yet... leave this unsafe for now
-    //    return copy(msg);
+//### oops... can't do this yet... leave this unsafe for now
+//    return copy(msg);
     return msg;
 }
 
@@ -382,16 +383,16 @@ nomask void remove_post(string group, int id)
     class news_msg msg;
 
     if ( !data[group] )
-	return;
+        return;
 
     msg = data[group][id];
     if ( !msg || !msg->body )
-	return;
+        return;
 
     if ((this_user() && !adminp(this_user()) && msg->userid != this_user()->query_userid()) &&
       (msg->userid != base_name(previous_object())))
     {
-	error("* illegal attempt to remove post\n");
+        error("* illegal attempt to remove post\n");
     }
 
     msg->body = 0;
@@ -399,17 +400,22 @@ nomask void remove_post(string group, int id)
     save_recent();
 }
 
-nomask int * get_messages(string group)
+nomask int * get_messages(string group, int no_removed)
 {
-    return keys(data[group]) - ({ "next_id" });
+    array ret = keys(data[group]) - ({ "next_id" });
+
+    if (no_removed)
+	ret -= removed[group];
+    
+    return ret;
 }
 
 nomask int * get_thread(string group, int thread)
 {
     return filter_array(keys(data[group]),
       (: $1 != "next_id" &&
-	((class news_msg)data[$(group)][$1])->thread_id
-	== $(thread) :) );
+        ((class news_msg)data[$(group)][$1])->thread_id
+        == $(thread) :) );
 }
 
 nomask string * get_groups()
@@ -421,19 +427,19 @@ nomask string * get_groups()
     // expensive
     ret = filter(keys(data), function(string group)
       {
-	  array a;
-	  string prefix;
-	  function f;
-	  int i = member_array('.', group, 1) - 1;
-	  if( i == -2) i = sizeof(group);
+          array a;
+          string prefix;
+          function f;
+          int i = member_array('.', group, 1) - 1;
+          if( i == -2) i = sizeof(group);
 
-	  prefix = group[0..i];
-	  a = restrictions[prefix];
+          prefix = group[0..i];
+          a = restrictions[prefix];
 
-	  if( !sizeof(a)) return 1;
-	  f = a[0];
+          if( !sizeof(a)) return 1;
+          f = a[0];
     if(!f) return 1;
-	  return evaluate(f, this_user());
+          return evaluate(f, this_user());
       }
     );
     return sort_array(ret, 1);
@@ -470,16 +476,16 @@ nomask void dump_to_file(string group, string fname)
 
     foreach ( id in sort_array(keys(contents) - ({ "next_id" }), 1) )
     {
-	class news_msg msg = contents[id];
+        class news_msg msg = contents[id];
 
-	if ( !msg->body )
-	    continue;
+        if ( !msg->body )
+            continue;
 
-	write_file(fname,
-	  sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n\n%s\n",
-	    msg->poster, msg->subject,
-	    intp(msg->time) ? ctime(msg->time) : msg->time,
-	    msg->body));
+        write_file(fname,
+          sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n\n%s\n",
+            msg->poster, msg->subject,
+            intp(msg->time) ? ctime(msg->time) : msg->time,
+            msg->body));
     }
 }
 
@@ -488,11 +494,11 @@ private nomask void archive_post(string group, int id)
     class news_msg msg = data[group][id];
 
     unguarded(1, (: write_file, 
-	sprintf("%s/%s", ARCHIVE_DIR, group),
-	sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
-	  msg->poster, msg->subject,
-	  intp(msg->time) ? ctime(msg->time) : msg->time,
-	  msg->body)
+        sprintf("%s/%s", ARCHIVE_DIR, group),
+        sprintf("---\nposter: %s\nsubject: %s\ndate: %s\n%s\n\n",
+          msg->poster, msg->subject,
+          intp(msg->time) ? ctime(msg->time) : msg->time,
+          msg->body)
       :) );
 
     /* This doesn't give w/ the newsreader. */
@@ -515,33 +521,28 @@ nomask void archive_posts()
 
     foreach ( group, contents in data )
     {
-	mixed id;
-	class news_msg msg;
+        mixed id;
+        class news_msg msg;
 
-	archive_days = archive_info[group];
-	if(!archive_days)
-	{
-	    continue;
-	}
-	archive_time = time() - archive_days * 24 * 60 * 60;
-	foreach ( id, msg in contents )
-	{
-	    if ( id == "next_id" )
-		continue;
-	    //### how to archive posts with strings as times?
-	    //There don't seem to be any.
-	    if ( intp(msg->time) && msg->time < archive_time ) 
-		archive_post(group, id);
-	}
+        archive_days = archive_info[group];
+        if(!archive_days)
+        {
+            continue;
+        }
+        archive_time = time() - archive_days * 24 * 60 * 60;
+        foreach ( id, msg in contents )
+        {
+            if ( id == "next_id" )
+                continue;
+            if ( intp(msg->time) && msg->time < archive_time ) 
+                archive_post(group, id);
+        }
     }
 }
 
 
 // Blame --OH. for this code :)
-//### the write()'s in this code are wrong; printing error messages is the
-//### newsreader's job, not the daemons.  This should return error messages
-//### if it needs to.
-	    
+
 nomask void move_post( string curr_group, int curr_id, string to_group )
 {
     class  news_msg msg;
@@ -550,18 +551,18 @@ nomask void move_post( string curr_group, int curr_id, string to_group )
     msg = copy( data[curr_group][curr_id]);
     if( !adminp(this_user()) && msg->userid != this_user()->query_userid())
     {
-	write( "You cannot move posts which don't belong to you.\n");
-	return;
+        write( "You cannot move posts which don't belong to you.\n");
+        return;
     }
     if( curr_group == to_group )
     {
-	write( "Same group. Post not moved.\n");
-	return;
+        write( "Same group. Post not moved.\n");
+        return;
     }
     if( !query_write_to_group( to_group ))
     {
-	write( "You don't have permission to move posts to " + to_group + "\n");
-	return;
+        write( "You don't have permission to move posts to " + to_group + "\n");
+        return;
     }
     new_id = get_new_id(to_group);
     msg->body = "(Originally in " + curr_group + ")\n" + msg->body;
@@ -585,14 +586,31 @@ nomask void change_header( string group, int id, string header )
     msg = data[group][id];
     if( !adminp( tu) && tu->query_userid() != msg->userid)
     {
-	write( "You cannot change the subjects of posts that don't belong to you\n");
+        write( "You cannot change the subjects of posts that don't belong to you\n");
     }
     else if( sizeof( header ))
-	((class news_msg)data[group][id])->subject = header;
+        ((class news_msg)data[group][id])->subject = header;
     else
-	write( "Subject not changed.\n");
+        write( "Subject not changed.\n");
     save_recent();
     return;
+}
+
+void dump(string path) {
+    string ret = "";
+    
+    foreach (string group in get_groups()) {
+	foreach (int id in get_messages(group, 1)) {
+	    class news_msg post = get_message(group, id);
+
+	    ret += "Group: " + group + "\n" +
+		   "Subject: " + post->subject + "\n" +
+		   "Date: " + ctime(post->time) + "\n" +
+		   "Poster: " + post->poster + "\n\n" +
+		   post->body + "\n---------------------------------------------------------------------------\n\n";
+	}
+    }
+    write_file(path, ret);
 }
 
 array search_for(string what) {

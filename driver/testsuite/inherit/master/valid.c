@@ -20,7 +20,7 @@ valid_shadow(object ob)
 }
 
 int
-valid_author(string name)
+valid_author(string)
 {
 	return 1;
 }
@@ -47,7 +47,7 @@ valid_override(string file, string name)
 // returns: 1 if seteuid() may succeed, 0 if not.
 
 int
-valid_seteuid(object ob, string str)
+valid_seteuid(object, string)
 {
     return 1;
 }
@@ -56,7 +56,7 @@ valid_seteuid(object ob, string str)
 // returns: 1 if domain may be created, 0 if not.
 
 int
-valid_domain(string domain)
+valid_domain(string)
 {
 	return 1;
 } 
@@ -65,7 +65,7 @@ valid_domain(string domain)
 // return: 1 if access allowed, 0 if not.
 
 int
-valid_socket(object eff_user, string fun, mixed *info)
+valid_socket(object, string, mixed *)
 {
 	return 1;
 }
@@ -77,7 +77,7 @@ valid_socket(object eff_user, string fun, mixed *info)
 // return: 1 if access allowed, 0 if access not allowed.
 
 int
-valid_write(string file, mixed user, string func)
+valid_write(string, mixed, string)
 {
     return 1;
 }
@@ -85,7 +85,7 @@ valid_write(string file, mixed user, string func)
 // valid_read:  called exactly the same as valid_write()
 
 int
-valid_read(string file, mixed user, string func)
+valid_read(string, mixed, string)
 {
     return 1;
 }

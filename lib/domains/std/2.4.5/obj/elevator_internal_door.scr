@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 is=object
 primary_id=door
 primary_adj=elevator
@@ -6,7 +8,7 @@ flag=attached
 direct_open_obj:
   check
     (call container "query_door_open") : "It is already open!\n"
-    (call container "query_moving") : "The door is stuck.\n"
+    (call container "query_in_motion") : "The door is stuck.\n"
   end
 
 open_with:

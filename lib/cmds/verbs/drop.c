@@ -32,7 +32,7 @@ private nomask void drop_one(object ob)
     if (tmp == MOVE_OK) {
 	write("Done.\n");
         if(ob)
-  	this_body()->other_action("$N $vdrop a $o.\n", ob);
+  	this_body()->other_action("$N $vdrop a $o.", ob);
     } else
 	write(tmp);
 }

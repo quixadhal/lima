@@ -59,7 +59,6 @@ void set_source(mixed f) {
 mixed extinguish() {
     string tmp;
     
-    if (!is_lit) return 0;
 //:HOOK prevent_extinguish
 //A yes/no/error hook that can prevent an object from being extinguished
     tmp = call_hooks("prevent_extinguish", HOOK_YES_NO_ERROR);
@@ -92,7 +91,6 @@ mixed check_fuel() {
 varargs mixed light(object with) {
     string tmp;
 
-    if (is_lit) return 0;
 
     if (!fuel) return object_event_message(burned_out_msg);
     
@@ -136,6 +134,7 @@ void burn_out() {
 mixed direct_light_obj() {
     if (source_filter)
 	return "You need to light it with something.\n";
+    if ( is_lit ) return "It is already lit.\n";
     return 1;
 }
 

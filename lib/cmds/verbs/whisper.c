@@ -12,10 +12,10 @@ void whisper_it(object liv, string str) {
 
     str = punctuate(str);
 
-    msgs = action(who, "$N $vwhisper to $t: $o\n", str);
+    msgs = action(who, "$N $vwhisper to $t: $o", str);
     // change other message
     msgs[2] = this_body()->query_name() + " whispers something to " 
-	      + liv->query_name() + ".\n";
+	      + liv->query_name() + ".";
     inform(who, msgs, environment(this_body()));
 }
     
@@ -35,7 +35,3 @@ array query_verb_info()
 {
     return ({ ({ "LIV STR", "STR to LIV", "to LIV STR" }) });
 }
-
-       
-	
-	

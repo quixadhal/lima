@@ -32,8 +32,8 @@ void mudlib_setup( string guild )
 
     guard_for = guild;
 
-    set_id("guard");
+    set_name("guard");
     set_in_room_desc("A guard is here.");
     set_gender(1);     // default male.
-    set_block_action("The $n $vpush $t back. \"Guild members only\", $n $vgrowl.\n");
+    set_block_action("The $n $vpush $t back. \"Guild members only\", $n $vgrowl.");
 }

@@ -317,7 +317,6 @@ new_parse_menu_input(string input)
 static void
 parse_menu_input(mixed input)
 {
-  string* 	choices;
   int		counter;
   MENU_ITEM	item;
   mixed		action;
@@ -543,7 +542,7 @@ private void finish_completion(
     )
 {
     int i;
-
+    
     if(input == "")
 	return;
 
@@ -576,14 +575,16 @@ complete_choice(string input, string* choices, function f)
 					      M_GLOB->translate(input, 1));
     else
 	matches = choices;
-
-    switch(sizeof(matches))
+     ZBUG(sizeof(matches));
+     switch(sizeof(matches))
     {
-    case 0:
+
+     case 0:
 	write("Invalid selection.\n");
 	break;
 
     case 1:
+
 	evaluate(f, matches[0]);
 	break;
 

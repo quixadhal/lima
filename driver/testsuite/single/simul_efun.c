@@ -7,8 +7,6 @@
 
 int
 same(mixed x, mixed y) {
-    mixed r,s;
-
     if (typeof(x) != typeof(y)) return 0;
     switch (typeof(x)) {
     case INT:
@@ -188,7 +186,7 @@ string resolve_path(string curr, string newer) {
 // domain_file should return the domain associated with a given file.
 
 string
-domain_file(string file)
+domain_file(string)
 {
 	return ROOT_UID;
 }
@@ -196,7 +194,7 @@ domain_file(string file)
 // creator_file should return the name of the creator of a specific file.
 
 string
-creator_file(string file)
+creator_file(string)
 {
 	return ROOT_UID;
 }
@@ -204,7 +202,7 @@ creator_file(string file)
 // author_file should return the name of the author of a specific file.
 
 string
-author_file(string file)
+author_file(string)
 {
 	return ROOT_UID;
 }

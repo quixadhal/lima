@@ -2,6 +2,7 @@
 
 inherit MONSTER;
 inherit M_BLOCKEXITS;
+inherit M_ACTIONS;
 
 void setup() {
     object sword;
@@ -19,5 +20,5 @@ void setup() {
 
     sword = new("/domains/std/objects/sword");
     sword->move(this_object());
-    do_wield(sword);
+do_wield(sword);
 }

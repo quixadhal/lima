@@ -89,7 +89,6 @@ string array get_relations()
 mixed receive_object( object target, string relation )
 {
     int x, m;
-    object ob;
 
     if (!relation || relation == "#CLONE#")
 	relation = query_prep();
@@ -167,7 +166,6 @@ void reinsert_object( object target, string relation )
 //a different relation) of the object
 string look_in( string relation )
 {
-    object* obs;
     string inv;
     mixed ex;
 
@@ -178,6 +176,8 @@ string look_in( string relation )
     //The actual hook is prevent_look_<relation>, so to prevent looking
     //in something use prevent_look_in.
     ex = call_hooks("prevent_look_" + relation, HOOK_YES_NO_ERROR);
+    if(!ex)
+    ex = call_hooks("prevent_look_all", HOOK_YES_NO_ERROR);
     if (!ex) ex = "That doesn't seem possible.";
     if (stringp(ex))
 	return ex;

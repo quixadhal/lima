@@ -102,7 +102,6 @@ private int dump(mixed *value, int indent, int flag) {
 void main(string str)
 {
     string tmp_file;
-    string error;
     string initial_write_to_file;
     mixed ret;
     object o;

@@ -160,6 +160,7 @@ private nomask int check_special_commands(string arg)
 	b = bodies()->query_name();
 	b -= ({ "Someone" });
 	b-= ({ });
+b-= ({ 0 });
 	switch ( sizeof(b) )
 	{
 	case 0:
@@ -167,7 +168,7 @@ private nomask int check_special_commands(string arg)
 	    break;
 
 	case 1:
-	    printf( "Only %s is currently on.\n", b);
+	    printf( "Only %s is currently on.\n", b[0]);
 	    break;
 
 	default:
@@ -246,7 +247,7 @@ void login_handle_logon(int state, mixed extra, string arg) {
 	 * extensively modified/rewritten more than half of the base mudlib first
 	 * (intend to modify ... doesn't cut it)
 	 */
-	printf("%s is running Lima 1.0a4 on %s\n\n",
+	printf("%s is running Lima 1.0a5 on %s\n\n",
 	       mud_name(), driver_version());
 	
 #ifdef ZORKMUD

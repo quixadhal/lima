@@ -18,11 +18,9 @@
 // this is the default page if the URL given is a directory
 #define DEFAULT_PAGE 		"index.html"
 
-// this is where the server will look for all gateways, regardless of where
-// thier URL claims they are located.
-// this needs to stay the way it is if you want to use the scripts that
-// come w/ lima as-is.
-#define SECURE_CGI_DIR 	HTTP_ROOT + "/cgi"
+// this is where the server will look for secure gateways (eg, webed)
+// The URL for these is http://machine:port/scgi/blah.c
+#define SECURE_CGI_DIR 	"/secure/cgi"
 
 // This is the how much info is passed to the socket object at a time.
 #define HTTP_BLOCK_SIZE 1024

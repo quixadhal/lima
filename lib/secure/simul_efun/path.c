@@ -87,6 +87,8 @@ string canonical_path(string path)
     string *parts = explode(path, "/") - ({ "", "." });
     int idx;
 
+    if (!sizeof(parts)) return "/";
+
     while ( (idx = member_array("..", parts)) != -1 )
     {
 	if ( idx > 1 )
@@ -97,7 +99,7 @@ string canonical_path(string path)
 	    parts = parts[2..];
     }
 
-    return "/" + implode(parts, "/");
+    return "/" + implode(parts, "/") + (path[<1] == '/' ? "/" : "");
 }
 
 

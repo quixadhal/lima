@@ -73,7 +73,7 @@ varargs private string build_string(int flag)
 	if (flag & 2)
 	    return "[" + (sizeof(buf)-15) + " lines not displayed, please trim (~e)]\n" + implode(buf[<15..], "\n") + "\n";
 	/* WARNING - falls through */
-    case 1..15:
+    case 1..20:
 	return implode(buf, "\n") + "\n";
     }
 }

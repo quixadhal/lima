@@ -21,7 +21,7 @@ void cast_spell(object ob, object reagent)
     else
     {
 	targets = ({ ob });
-	this_body()->targetted_action("$N $vcast a fireball spell at $t1.\n", ob);
+	this_body()->targetted_action("$N $vcast a fireball spell at $t1.", ob);
     }
 
     foreach ( object item in targets )

@@ -1,5 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#ifdef USE_BODYSLOTS
+#include <bodyslots.h>
+#endif
+
 inherit OBJ;
 inherit M_WEARABLE;
 inherit M_GETTABLE;
@@ -30,4 +34,9 @@ void set_worn(int g) {
 void remove() {
     m_wearable::remove();
     object::remove();
+}
+
+mapping lpscript_attributes()
+{
+    return object::lpscript_attributes() + m_damage_sink::lpscript_attributes() + m_gettable::lpscript_attributes();
 }

@@ -13,6 +13,12 @@ void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
     mixed tmp;
     string prep;
 
+    if( ob2->is_living())
+    {
+       write( "Try giving it.\n");
+	return;
+    }
+
     if (!try_to_acquire(ob1))
 	return;
 
@@ -27,7 +33,7 @@ void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
 	    break;
 	}
 	write("Done.\n");
-	this_body()->other_action("$N $vput a $o " + prep + " the $o1.\n", ob1, ob2);
+	this_body()->other_action("$N $vput a $o " + prep + " the $o1.", ob1, ob2);
 	return;
     }
     if (!tmp) tmp = "That doesn't seem possible.\n";
@@ -42,9 +48,9 @@ void do_put_obs_wrd_obj(array info, string p, object ob2) {
 array query_verb_info()
 {
     return ({
-	({ "OBS WRD OBJ" }), ({ "insert", "place", "stuff", "hide" })
-	  });
-    
+      ({ "OBS WRD OBJ" }), ({ "insert", "place", "stuff", "hide" })
+    });
+
     /*
     ** "hide OBS next to OBJ" -> "put OBS next to OBJ"
     ** "hide OBS beside OBJ" -> "put OBS beside OBJ"

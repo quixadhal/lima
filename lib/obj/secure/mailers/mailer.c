@@ -223,7 +223,7 @@ static nomask void cmd_read(int user_num,
 
 static nomask void cmd_headers(string rangestr)
 {
-    int   i,j;
+    int   i;
     string* output;
     int * mail_keys;
     mapping nums;

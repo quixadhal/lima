@@ -216,7 +216,6 @@ history_command(mixed input)
 {
   int cmdnumber;
   int lastcmdnum = command_number;
-  string rest;
 
   if(arrayp(input))
     {

@@ -1,0 +1,88 @@
+For a little while, it was popular for mudlibs to use "properties" all
+over the mudlib.  I.e., if you want to set some property "foo" in a
+player, you would call set("foo", value) instead of set_foo("value").
+All the mudlibs that did that either changed their ways, or made no
+qualms that time proved that design decision to be a poor one.
+
+Lima provides set_perm() and set() functions.  However, their use in
+mudlib code is strictly prohibited.  We are wholeheartedly against
+mudlib coders using these functions for reasons outlined below.  The
+only time we find their use acceptable is when an area coder finds it
+an essential hack to make up for his lack of mudlib access.
+
+Here's an outline of the problems with properties:
+
+1) efficiency
+2) irregularity
+3) design
+
+1) Efficiency: properties aren't ever going to be faster than using
+separate accessor functions, because you have to access a variable and
+then index into a mapping in properties.  You always have at *least*
+the overhead of mapping lookup (which is always a factor of 7 slower
+than not using mappings).  However, if you want to add some sort of
+general purpose security to properties, then you're going to add
+probably *tons* of overhead to every call to set (a la TMI... your
+security has to be general enough to be useful, which is likely to
+make it very slow).  So there is always something faster than
+properties.
+
+We've never seen a well-designed security system for properties.  Even
+if you could make something secure, the extra overhead would hardly be
+worth it.  It's far better to provide as little security as is
+necessary, on a case by case basis.
+
+Also, properties are not memory efficient.  Big mappings are
+usually wasteful, as they always have more memory allocated than they
+are actually using, proportional to the size of the mapping.
+
+2) Irregularity
+If you have want to avoid paying the large cost of using properties
+for some functions, and have some set_xxx() functions in addition to
+your set() function, you're making it incredibly hard on your area
+coders.  It was very confusing for novice TMI coders to figure out
+which one to use where.
+
+Whereas most function calls do some sort of type checking or bounds
+checking on their input, set() can not do so.  It can't know if
+set("gerrable",1); is an error, or if it is correct.
+
+3) Design
+One argument We've seem people make in favor of properties, is that it
+is nice to be able to write something as concise as:
+set_props(([P_INDOORS:1,P_LIGHT:2,P_NLIGHT:-1])
+
+We have several criticisms of this, beyond those already mentioned:
+
+1) This is not good design.  A good object oriented design would
+export an interface to each unit of functionality.  You *should* need
+to call set_indoors() and set_light() separately.  
+
+2) A good OO design would also tend to be more descriptive and
+readable.  What does P_NLIGHT mean?  If all the code related to it
+were all in one module, it would be easy to go to the code to figure
+out what's going on, if the name of the function weren't enough.  With
+properties, who knows WHERE in the lib P_NLIGHT gets used?
+
+3) properties encourage poor implementations.  For example, INDOOR
+ROOMS should not be implemented by a flag. It is far easier to
+use and extend if it is implemented by subclassing a generic room.  
+light:
+
+-- What if you want to make a generic STONE CHAMBER?  Are you going to
+do this with more flags?  You'd make things easier on everyone if you
+just inherited from INDOOR ROOM.
+
+-- It's a lot easier to customize behaviors when you have them separated
+out into modules.  That way, the rooms define their own behavior, instead
+of relying on the things acting on rooms to remember to test flags.
+
+Another example:
+You can make an object that subclasses your base sword, let's say, and
+does special stuff when set_xxx() is called by overriding that
+function.  You'd need an expensive hook system to do anything close to
+that with set(), and it'd be ghastly to boot.
+
+
+
+-- Rust

@@ -5,9 +5,6 @@ inherit M_REGEX;
 
 private string count(string s, int flags)
 {
- int	words;
- int	lines;
-
  switch(flags)
    {
    case 1:

@@ -1,8 +1,10 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 is=monster
 proper_name=octopus
 max_hp=100
 weapon_class=12
 in_room_desc=An octopus
 long=A very big octopus with long arms, reaching for you.
-capacity=50
+capacity=500
 objects=obj/chest.scr(random(500))

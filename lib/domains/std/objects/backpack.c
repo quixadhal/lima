@@ -1,8 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <mudlib.h>
-#include <size.h>
+#ifdef USE_BODYSLOTS
 #include <bodyslots.h>
+#endif
 
 inherit CONTAINER;
 inherit M_OPENABLE;
@@ -14,7 +15,6 @@ setup() {
     
     set_id("backpack", "pack");
     set_long("It's a simple leather backpack, with a flap and strap allowing you to close it.");
-    set_gettable(1);
     set_objects( ([
 		   ]) );
     set_max_capacity(3*MEDIUM);
@@ -28,4 +28,10 @@ setup() {
 void remove()  {
     m_wearable::remove();
     container::remove();
+}
+
+
+mapping lpscript_attributes()
+{
+    return container::lpscript_attributes() + m_gettable::lpscript_attributes() + m_openable::lpscript_attributes();
 }

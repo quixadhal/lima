@@ -34,7 +34,7 @@ mixed ob_state() {
 void remove() {
 #ifdef USE_BODYSLOTS
     if(!slot)
-        return 0;
+	return 0;
     environment()->depopulate_body_slot(slot, this_object());
 #endif        
 }
@@ -44,7 +44,7 @@ void remove() {
 void
 set_wearmsg( string s )
 {
-  wearmsg = s;
+    wearmsg = s;
 }
 
 //:FUNCTION query_wearmsg
@@ -52,7 +52,7 @@ set_wearmsg( string s )
 string
 query_wearmsg()
 {
-  return wearmsg;
+    return wearmsg;
 }
 
 
@@ -72,17 +72,16 @@ query_slot()
 {
     return slot;
 }
-
 #endif
 
+
 //:FUNCTION set_worn
-//set_worn(1) causes an object to become worn.  set_is_on(0) removes it.
-void
-set_worn( int g )
+//set_worn(1) causes an object to become worn.  set_worn(0) removes it.
+void set_worn( int g )
 {
-  worn = g;
-  hook_state("extra_short", "being worn", worn);
-  hook_state("prevent_drop", "You'll have to take it off first.\n", worn);
+    worn = g;
+    hook_state("extra_short", "being worn", worn);
+    hook_state("prevent_drop", "You'll have to take it off first.\n", worn);
 }
 
 
@@ -97,20 +96,19 @@ int is_worn( )
 
 //:FUNCTION do_wear
 //Makes the object worn and prints an appropriate message.
-void
-do_wear()
+void do_wear()
 {
 #ifdef USE_BODYSLOTS
     if(!slot)
-        return;
+	return;
     if(!environment()->populate_body_slot(slot, this_object()))  {
-        this_body()->simple_action("$N $vdiscover $ns cannot wear $o.\n", this_object());
-        return;
+	this_body()->simple_action("$N $vdiscover $ns cannot wear $o.", this_object());
+	return;
     }
-    
+
 #endif
     set_worn(1);
-    this_body()->simple_action("$N $vwear a $o.\n", this_object());
+    this_body()->simple_action("$N $vwear a $o.", this_object());
 }
 
 //:FUNCTION do_remove
@@ -119,23 +117,25 @@ void
 do_remove() {
 #ifdef USE_BODYSLOTS
     if(!slot)
-        return 0;
+	return 0;
     environment()->depopulate_body_slot(slot, this_object());
 #endif        
     set_worn(0);
-    this_body()->simple_action("$N $vremove $p $o.\n", this_object());
+    this_body()->simple_action("$N $vremove $p $o.", this_object());
 }
 
 //:FUNCTION direct_wear_obj
 //Handle parser checks for "wear OBJ"
 mixed  direct_wear_obj() {
 
-object who = owner(this_object());
+    object who = owner(this_object());
 
-if (who != this_body())
-   return 0;
+    if (who != this_body())
+	return 0;
+#ifdef USE_BODYSLOTS
     if(!this_body()->has_body_slot(slot))
-        return "You can't seem to find anywhere to put it on!\n";
+	return "You can't seem to find anywhere to put it on!\n";
+#endif
     if( worn )
 	return "But you're already wearing it!\n";
     return 1;
@@ -144,10 +144,10 @@ if (who != this_body())
 //:FUNCTION direct_remove_obj
 //Handle parser checks for "remove OBJ"
 mixed direct_remove_obj() {
-  object who= owner(this_object());
+    object who= owner(this_object());
 
-  if(who != this_body())
-    return 0;
+    if(who != this_body())
+	return 0;
     if (environment() != this_body() || !worn)
 	return "But you aren't wearing it!\n";
     return 1;

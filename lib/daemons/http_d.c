@@ -241,10 +241,10 @@ private nomask void handle_post_request(class client_request req, object sock)
     sock->send(result + "\n");
     sock->remove();
 }
+
 private nomask void handle_get_request(class client_request req, object socket)
-  {
+{
     string extention, args;
-    int i1;
     string file;
 
     sscanf(req->request, "%s?=%s", file, args);

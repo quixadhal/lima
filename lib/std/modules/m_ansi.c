@@ -22,6 +22,12 @@ int colour_strlen(string str) {
     return strlen(terminal_colour(str, ANSI_D->query_translations()[1]));
 }
 
+string colour_center(string str) {
+    int len = colour_strlen(str);
+    
+    return repeat_string(" ", (this_user()->query_screen_width() - len)/2) + str;
+}
+
 //:FUNCTION colour_truncate
 //colour_truncate(str, len) returns a string which consists of len or
 //fewer visible characters, not counting colour codes.

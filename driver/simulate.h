@@ -1,6 +1,9 @@
 #ifndef SIMULATE_H
 #define SIMULATE_H
 
+/* It is usually better to include "lpc_incl.h" instead of including this
+   directly */
+
 #define V_SHORT         1
 #define V_NOSPACE       2
 #define V_FUNCTION      4

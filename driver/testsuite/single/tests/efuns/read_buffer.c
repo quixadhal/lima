@@ -6,15 +6,15 @@
 
 #define TEST_STRING "ABC"
 
+#ifndef __NO_BUFFER_TYPE__
 buffer b;
+#endif
 int i;
 
 void do_tests() {
     string s;
 
-    s = read_buffer(b);
-    ASSERT(s == TEST_STRING);
-
+#ifndef __NO_BUFFER_TYPE__
     s = read_buffer(b);
     ASSERT(s == TEST_STRING);
 
@@ -35,6 +35,7 @@ void do_tests() {
 
     s = read_buffer(b, 1, sizeof(b));
     ASSERT(s == TEST_STRING[1..i]);
+#endif
 
     /* add cases here to handle reading from files */
 }
@@ -46,8 +47,10 @@ create()
 
 	i = strlen(TEST_STRING) - 1;
 	limit = strlen(TEST_STRING);
+#ifndef __NO_BUFFER_TYPE__
 	b = allocate_buffer(limit);
 	for (j = 0; j < limit; j++) {
 	    b[j] = TEST_STRING[j];
 	}
+#endif
 }

@@ -68,6 +68,7 @@ static nomask void rcv_finger_reply(string orig_mud, string orig_user,
 	string s;
 
 	/* NOTE: we're munging the input packet... oh well :-) */
+        if (sizeof(message) < 9) message += allocate(9 - sizeof(message));
 	if ( message[1] == "" ) message[1] = 0;
 	if ( message[2] == "" ) message[2] = 0;
 	if ( message[3] == "" ) message[3] = 0;

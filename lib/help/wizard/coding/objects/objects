@@ -6,10 +6,10 @@ do anything nor can you do anything with it but look at it.
 
 inherit OBJ;
 
-create() 
-}
-    set_id( ({ "terminal", "computer" }) );
-    set_adjectives( ({ "dumb" }) );
+setup() 
+{
+    set_id(  "terminal", "computer"  );
+    set_adj(  "dumb"  );
     set_long( "It looks like it has an IQ of about 30." );
 }
 
@@ -31,10 +31,10 @@ include <mudlib.h>
 
 inherit OBJ;
 
-create
+setup()
 {
-     set_id( ({"sword", "Excalibur" }) );
-     set_adjectives( ({ "King Arthur's" }) );
+     set_id( "sword", "Excalibur"  );
+     set_adj(  "King Arthur's"  );
      set_long( "This is a hideously sharp blade" );
 
 }
@@ -98,6 +98,22 @@ work is in progress on these so they may not be entirely complete.
  
 
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

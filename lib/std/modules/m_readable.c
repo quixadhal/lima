@@ -56,11 +56,18 @@ has_entries()
 
 /* Parser interaction */
 mixed direct_read_obj(object ob) {
+    object o;
+    
     if (!read_text) {
 	if (entries)
 	    return "It has a number of entries about various topics.\n";
 	return "It appears to be blank.\n";
     }
+
+    o = owner(this_object());
+    if (o && o != this_body())
+	return "#Try asking " + o->query_name() + " nicely if you can read " + o->query_possessive() + " " + this_object()->short() + ".\n";
+
     return 1;
 }
 

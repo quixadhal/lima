@@ -1,7 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 //### probably shouldn't be here (simul conversion)
-#include <mudlib.h>
 #include <move.h>
 #include <hooks.h>
 
@@ -47,12 +46,12 @@ varargs mixed move(mixed dest, string where)
     int light;
 
     if (environment()) {
-//:HOOK prevent_drop
-//A yes/no/error type hook that can be used to prevent the object from being
-//moved out of it's environment.  The error value is discarded.    
-        err = call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
-        if (err == 0) err = MOVE_PREVENTED;
-        if (stringp(err)) return err;
+	//:HOOK prevent_drop
+	//A yes/no/error type hook that can be used to prevent the object from being
+	//moved out of it's environment.  The error value is discarded.    
+	err = call_hooks("prevent_drop", HOOK_YES_NO_ERROR);
+	if (err == 0) err = MOVE_PREVENTED;
+	if (stringp(err)) return err;
     }
 
     if( stringp(dest) )
@@ -72,10 +71,10 @@ varargs mixed move(mixed dest, string where)
     if (ret == 0) ret = MOVE_NOT_RECEIVED;
     if (stringp(ret)) {
 	if( env )
-    {
-        env->reinsert_object(this_object(), where);
+	{
+	    env->reinsert_object(this_object(), where);
 	    env->update_capacity();
-    }
+	}
 	return ret;
     }
 
@@ -131,4 +130,21 @@ varargs mixed move(mixed dest, string where)
 object query_last_location()
 {
     return last_location;
+}
+
+
+void give_new_obj( object target, string obj, int recurse )
+{
+    object ob = new( obj );
+
+    if( !target )
+	error( "give_new_obj() failed: Invalid target.");
+
+    while(1)
+    {
+	if( ob->move( target ))
+	    return;
+	if( recurse && target = environment( target )) continue;
+	error( "give_new_obj() failed: No room for object anywhere (recursed).");
+    }
 }

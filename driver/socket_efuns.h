@@ -7,7 +7,7 @@
 #ifndef _SOCKET_EFUNS_H_
 #define _SOCKET_EFUNS_H_
 
-#include "std.h"
+#include "lpc_incl.h"
 #include "network_incl.h"
 
 enum socket_mode {
@@ -72,5 +72,9 @@ int socket_close PROT((int, int));
 int socket_release PROT((int, object_t *, svalue_t *));
 int socket_acquire PROT((int, svalue_t *, svalue_t *, svalue_t *));
 char *socket_error PROT((int));
+int find_new_socket PROT((void));
+void set_read_callback PROT((int, svalue_t *));
+void set_write_callback PROT((int, svalue_t *));
+void set_close_callback PROT((int, svalue_t *));
 
 #endif				/* _SOCKET_EFUNS_H_ */

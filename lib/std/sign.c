@@ -13,3 +13,8 @@ void mudlib_setup()
 
 }
 
+
+mapping lpscript_attributes()
+{
+    return object::lpscript_attributes() + m_readable::lpscript_attributes() + m_gettable::lpscript_attributes();
+}

@@ -4,36 +4,36 @@
 #include <mudlib.h>
 inherit CMD;
 inherit M_ANSI;
- 
+
 private void main(string arg)
 {
     if ( !arg )
     {
+	string ansistate;
 	if ( i_use_ansi() )
-	    out("Ansi is "+
-		ansi("%^BOLD%^%^MAGENTA%^on.%^RESET%^")+"\n");
+	    ansistate = ansi( "on");
 	else
-	    out("Ansi is off.\n");
-	return;
-    }
+	    ansistate = "off";
 
-    if ( arg != "on" && arg != "off" )
-    {
-        out("Usage: ansi <on/off>.\n");
-        return;
+	out ("Ansi is " + ansistate + ".\n");
+	return;
     }
 
     if ( arg == "on" )
     {
-        this_user()->query_shell_ob()->set_variable("ansi", 1);
-        out("Turning ansi on.\n");
+	this_user()->query_shell_ob()->set_variable("ansi", 1);
+	out("Turning ansi on.\n");
     }
-    else
+    else if (arg = "off")
     {
 	this_user()->query_shell_ob()->unset_variable("ansi");
 	out("Turning ansi off.\n");
     }
-
+    else
+    {
+	out("Usage: ansi <on/off>.\n");
+	return;
+    }
     this_user()->update_translations();
 }                                    
 

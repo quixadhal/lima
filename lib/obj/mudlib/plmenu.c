@@ -66,7 +66,7 @@ start_mail()
 }
 
 void handle_finger(string person)
-{
+{   ZBUG(person);
     CMD_OB_FINGER->player_menu_entry(person);
     prompt_then_return();
 }
@@ -238,8 +238,8 @@ void create()
 					    (: simple_cmd :), "w"));
   add_menu_item (toplevel, new_menu_item("Get info about a person (finger)", 
 					 (: input_one_arg, 
-					  "Finger who? ",
-					  (: handle_finger :) :), "f"));
+					 "Finger who? ",
+                                          (: handle_finger :) :), "f"));
   add_menu_item (toplevel, new_menu_item("Soul/emote Menu", soulmenu, "s"));
   add_menu_item (toplevel, new_menu_item("Report a bug, typo or idea", 
 					 reportmenu, "r"));
@@ -274,8 +274,7 @@ void create()
   add_menu_item (soulmenu, 
   		 new_menu_item("Test a soul", (: input_one_arg,
 					       "Soul to test: ",
-					       (: test_soul :) :),
-  		       "t"));
+					       (: test_soul :) :),  "t"));
 
   add_menu_item (soulmenu, quit_item);
   

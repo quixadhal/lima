@@ -14,7 +14,7 @@
 #define GROUP_D		"/daemons/group_d"
 #define GUILD_D		"/daemons/guild_d"
 #define HELP_D		"/daemons/help_d"
-#define HTTP_D		"/daemons/http_d"
+#define HTTP_D		"/secure/daemons/http_d"
 #define IMUD_D		"/daemons/imud_d"
 #define LAST_LOGIN_D	"/daemons/last_login_d"
 #define MAILBOX_D	"/daemons/mailbox_d"

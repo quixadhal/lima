@@ -9,7 +9,7 @@
 #include <commands.h>
 
 object query_link();			// in /std/body.c
-void force_look();			// in /std/body.c
+void force_look(int force_long_desc);	// in /std/body.c
 string move(object location);		// in /std/object/move.c
 mixed expand_if_alias(string input);	// in /std/body/alias.c
 object query_mailer();			// in /std/body/mailbase.c
@@ -25,14 +25,13 @@ string nonsense()
 {
     if (!nonsense_msgs)
 	nonsense_msgs = MESSAGES_D->get_messages("nonsense");
-    return choice(nonsense_msgs);
+    return choice(nonsense_msgs) + "\n";
 }
 
 varargs nomask int do_game_command(string str, int debug)
 {
     mixed result;
     mixed go_result;
-    string tmp;
 
     /*
     ** We can't try parsing the user has no environment.  We should
@@ -42,22 +41,13 @@ varargs nomask int do_game_command(string str, int debug)
     {
 	write("Oops!  You're lost.  Moving to the void...\n");
 	move(load_object(VOID_ROOM));
-	force_look();
+	force_look(0);
     }
-
-//###Tmp hack, load the verb if not already loaded.
-#if 0
-    if(sscanf(str,"%s %s", result, tmp) > 0)
-	load_object(CMD_DIR_VERBS+"/"+result);
-    else
-	load_object(CMD_DIR_VERBS+"/"+str);
-#endif
 
     /*
     ** Parse the player's input
     */
     result = parse_sentence(str, debug);
-
     
     /*
     ** If a string was returned, then the parser figured something out.
@@ -66,19 +56,18 @@ varargs nomask int do_game_command(string str, int debug)
 
     if ( stringp(result) )
     {
-     if(debug)
-	return result;
+	if(debug)
+	    return result;
 	write(result);
 	return 1;
     }
 
     /*
     ** If the result is 0, the parser didn't know the verb so we keep looking.
-    *  If a 1 was returned, then nothing more needs to be done.
+    ** If a 1 was returned, then nothing more needs to be done.
     ** If the result is -1 or -2, the parser figured something was wrong.
     **
     */
-
     switch(result)
       {
       case 0:
@@ -130,4 +119,3 @@ nomask void force_game_command(string str)
 	write(nonsense());
     set_this_player(save_this_user);
 }
-

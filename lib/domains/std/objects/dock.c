@@ -6,8 +6,8 @@ void setup()
 {
   set_adj("rotting", "rotten", "wooden");
   set_id("dock");
-  set_attached(1);
-  set_long("The dock has become so rotten that it's really pretty useless.\n");
+  set_attached();
+  set_long("The dock has become so rotten that it's really pretty useless.");
   set_size(VERY_LARGE);
 }
 

@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 is=room
 light=1
 exits=
@@ -27,7 +29,7 @@ objects=
     end
   end
   book=
-    is=book,gettable
+    is=book
     flag=attached
     id=book
     getmsg=The book is attached to the chain.

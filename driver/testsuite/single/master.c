@@ -60,11 +60,12 @@ compile_object(string file)
 // etc.  As it's static it can't be called by anything but the driver (and
 // master).
 
-static void
-crash(string error, object command_giver, object current_object)
+staticf void
+crash(string, object, object)
 {
-	shout("Master object shouts: Damn!\n");
-	shout("Master object tells you: The game is crashing.\n");
+    error("foo\n");
+	foreach (object ob in users())
+	    tell_object(ob, "Master object shouts: Damn!\nMaster object tells you: The game is crashing.\n");
 #if 0
 	log_file("crashes", MUD_NAME + " crashed on: " + ctime(time()) +
 		", error: " + error + "\n");
@@ -83,7 +84,7 @@ crash(string error, object command_giver, object current_object)
 // Return:          Array of nonblank lines that don't begin with '#'
 // Note:            must be declared static (else a security hole)
 
-static string *
+staticf string *
 update_file(string file)
 {
 	string *arr;
@@ -107,7 +108,7 @@ update_file(string file)
 // Return:              List of files to preload
 
 string *
-epilog(int load_empty)
+epilog(int)
 {
 	string *items;
 
@@ -141,7 +142,7 @@ preload(string file)
 // 'file', giving the error message 'message'.
 
 void
-log_error(string file, string message)
+log_error(string, string message)
 {
     write_file(LOG_DIR + "/compile", message);
 }
@@ -158,7 +159,7 @@ save_ed_setup(object who, int code)
     if (!intp(code)) {
         return 0;
     }
-#ifdef __PACKAGE_UIDS
+#ifdef __PACKAGE_UIDS__
     file = user_path(getuid(who)) + ".edrc";
 #else
    file = "/.edrc";
@@ -244,7 +245,7 @@ string privs_file(string f) {
     return f;
 }
 
-static void error_handler(mapping map, int flag) {
+staticf void error_handler(mapping map, int flag) {
   object ob;
   string str;
 
@@ -274,5 +275,9 @@ int valid_hide() {
 
 int valid_shadow() {
     // same here
+    return 1;
+}
+
+int valid_compile_to_c() {
     return 1;
 }

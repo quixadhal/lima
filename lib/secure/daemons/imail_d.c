@@ -484,7 +484,6 @@ string array incoming_mail(string mudname, mixed array mail_packet)
   string array	errors = ({});
   int	 	i;
 
-  BBUG(mail_packet[3]);
   if(previous_object() != find_object(IMUD_D))
     {
       error("illegal call to incoming_mail");

@@ -1,5 +1,5 @@
 #include "std.h"
-#include "lpc_incl.h"
+#include "dumpstat.h"
 #include "comm.h"
 #include "file.h"
 
@@ -69,9 +69,11 @@ static int svalue_size P1(svalue_t *, v)
 	    }
 	    return total;
 	}
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	/* first byte is stored inside the buffer struct */
 	return (int) (sizeof(buffer_t) + v->u.buf->size - 1);
+#endif
     case T_ANY:
 	break;
     default:
@@ -98,11 +100,13 @@ void dumpstat P1(char *, tfn)
     FILE *f;
     object_t *ob;
     char *fn;
+#ifdef F_SET_HIDE
     int display_hidden;
+#endif
 
     fn = check_valid_path(tfn, current_object, "dumpallobj", 1);
     if (!fn) {
-	error("Invalid path '%s' for writing.\n", tfn);
+	error("Invalid path '/%s' for writing.\n", fn);
 	return;
     }
     f = fopen(fn, "w");
@@ -111,16 +115,20 @@ void dumpstat P1(char *, tfn)
 	return;
     }
 
+#ifdef F_SET_HIDE
     display_hidden = -1;
+#endif
     for (ob = obj_list; ob; ob = ob->next_all) {
 	int tmp;
 
+#ifdef F_SET_HIDE
 	if (ob->flags & O_HIDDEN) {
 	    if (display_hidden == -1)
 		display_hidden = valid_hide(current_object);
 	    if (!display_hidden)
 		continue;
 	}
+#endif
 	if (ob->prog && (ob->prog->ref == 1 || !(ob->flags & O_CLONE)))
 	    tmp = ob->prog->total_size;
 	else

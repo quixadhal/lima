@@ -2,6 +2,8 @@
 
 #include <daemons.h>
 
+int has_status_line();
+void update_status_line();
 
 string* quests;
 int	points;
@@ -48,7 +50,8 @@ rack_up_a_death()
     save_me();
 
 #ifdef USE_STATUS_LINE
-    if( this_body()->has_status_line())  this_body()->update_status_line();
+    if(has_status_line())
+	update_status_line();
 #endif
 }
 

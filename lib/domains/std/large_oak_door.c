@@ -26,28 +26,20 @@ void do_on_close()
     environment( this_object())->clear_room_state( "oak_door");
 }
 
-void do_on_move()
+void on_clone()
 {
-    environment(this_object())->
-    clear_room_state( "oak_door_destroyed");
+    ::on_clone();
+    if( is_open() ) do_on_open();
+    else do_on_close();
 }
-
-
-void remove()
-{
-    environment( this_object())->set_room_state( "oak_door_destroyed" );
-    ::remove();
-}
-
 
 void setup(string dir)
 {
     set_id("door");
     set_adj("large oak", "large", "oak");
-    set_long("It is about 10 feet tall, and very beautiful.\n");
+    set_long("It is about 10 feet tall, and very beautiful.");
     add_hook( "open", (: do_on_open :));
     add_hook( "close", (: do_on_close :));
     set_closed(1);
     setup_door("large oak door", dir);
-    add_hook( "move", (: do_on_move :));
 }

@@ -1,5 +1,13 @@
 // file: globals.h
 
+#ifdef __SENSIBLE_MODIFIERS__
+#define staticf protected
+#define staticv nosave
+#else
+#define staticf static
+#define staticv static
+#endif
+
 #include "tests.h"
 
 #define SINGLE_DIR "/single"

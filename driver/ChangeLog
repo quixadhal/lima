@@ -2,6 +2,74 @@ This file is the *brief* version of what has been changed; see
 ChangeLog.alpha, ChangeLog.beta, and ChangeLog.old/ for all the gory
 details.
 
+(pre-v22.1 changes)
+      * new options:
+	. NO_SNOOP
+      * features:
+	. support for token quoting in the preprocessor (#x)
+	. 'array' is used in error messages with ARRAY_RESERVED_WORD is on
+	. added array |
+	  Works analogously to &:
+	  ({ 1, 2, 3 }) & ({ 2, 4 }) = ({ 2 })
+	  ({ 1, 2, 3 }) | ({ 2, 4 }) = ({ 1, 2, 3, 4 })
+	. both &= and |= now work with arrays
+	. The requirement that a snooper must be interactive has been lifted
+	  (though this isn't particularly useful unless RECIEVE_SNOOP)
+	  objects may now snoop other users (logging output to logs,
+	  output redirection, etc)
+	. #'foo is now the same as (: foo :) when COMPAT_32 is defined
+	. added a 'portbind' program; see v22.1a7 for details
+	. MudOS now checks if file descriptor #6 is a valid socket when
+	  it starts up; if it is, it is used as a login port.
+	. support for binding a specific IP number for machines with more
+	  than one
+	. It is now legal to use a class member of something of type mixed,
+	  as long as it is unambigous (e.g. foo->x is ok as long as only
+	  one class in scope has a member named 'x', or if 'x' is in the
+	  same position in all classes in scope)
+	. Unused local variables now generate warnings
+	. function arguments no longer need to have names (and not naming
+	  them inhibits 'unused' warnings)
+	. more than one access specifier (e.g. 'public private protected')
+	  generates a warning
+	. If SENSIBLE_MODIFIERS is defined, then:
+	  (1) 'static' no longer exists, and is replaced by 'nosave' and
+	      'protected'
+	  (2) 'public' no longer means what it used to; it now means the
+	      default visibility
+	. if REF_RESERVED_WORD is defined, the 'ref' can be used to declare
+	  arguments to functions to be by reference instead of by value.
+	  example:
+	  int foo(int ref i) {
+	    i++;
+    	  }
+	  void create() {
+	    int y = 1; foo(ref y); write(y);
+	  }
+	  prints '2'.  Note that ref is required both in the declaration
+	  and the call.
+	. added an 'efun_defined' pseudo function to the preprocessor.  It
+	  works just like 'defined', except that it looks up efuns.  Example:
+	  #if !efun_defined(snoop)
+	     write("snoop efun not available.\n");
+	  #endif
+      * bug fixes:
+	. hidden object fixes for present() and environment()
+	. token pasting and preprocessor macro expansion
+      * COMPAT_BUSTERs:
+	. log_error() filenames have a leading /
+	. tail() efun was removed; compat simul in compat/simuls
+	. #include <...> now no longer searches based on
+	  relative paths; #include "..." still does.
+	. ORIGIN_CALL_OUT is now ORIGIN_INTERNAL; in addition
+	  most driver callbacks which do not use hard coded function names
+	  also use ORIGIN_INTERNAL (add_action, socket callbacks, etc).
+	  The practical fallout of this is that such routines may be static,
+	  but *not* private.
+	. COMPAT_BUSTER: modifiers from a '<modifier>:' declaration only
+	  affect declarations which have no modifiers of their own.  I.e.
+	  'private: nomask x;' no longer declares x to be private
+	
 (pre-v22 changes)
       * new options:
 	. NO_RESETS
@@ -58,6 +126,7 @@ details.
 	. characters in user input with the 8th bit set are no longer ignored
 	. function_exists(string, object, flag); if flag is nonzero, private
 	  and static functions are checked too.
+	. SIGUSR2 will now cause the driver to eval out immediately
       * optimizations:
 	. sprintf() is about 3 times faster than it used to be
 	. optimized present(), terminal_colour()
@@ -102,6 +171,7 @@ details.
 	. fixed read_file() to return "" and not 0 for zero-length files
 	. sending a SIGUSR2 to the mud will now cause it to eval out; temporary
 	  fix until eval_cost gets rewritten.
+	. sscanf() no longer errors on some legal uses of %%
       * crasher fixes:
 	. removing heart_beats during a heart_beat()
 	. lots in the parsing package

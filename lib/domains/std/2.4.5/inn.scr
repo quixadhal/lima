@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 /* FIXME*/
 #include "room.h"
 /* this constant should be 1 for virgin Mud's */

@@ -24,7 +24,6 @@ string get_who_string(string arg)
     object *u;
     int    i;
     string name, extra, retval;
-    mixed  info;
 
     extra = retval = "\n";
     if ( this_user() )

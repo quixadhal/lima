@@ -10,14 +10,11 @@ inherit MONSTER;
 inherit M_GUILD_MASTER;
 inherit M_REGEX;
 
-void create( string guildname )
+void setup( string guildname )
 {
     object sword;
 
-    if ( !clonep() )
-	return;
 
-    ::create();
     set_name("Guildmaster");
     set_proper_name("The Guildmaster");
     add_id("master");
@@ -55,5 +52,5 @@ void receive_outside_msg(string str)
 
 void guildmsg_refuse_entry(object who, string why)
 {
-    targetted_action("The Guildmaster says to $t, \"You already belong to a guild\"\n", who, why);
+    targetted_action("The Guildmaster says to $t, \"You already belong to a guild\"", who, why);
 }

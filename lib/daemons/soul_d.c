@@ -6,6 +6,7 @@
 inherit M_MESSAGES;
 inherit M_COMPLETE;
 inherit M_ACCESS;
+inherit M_GRAMMAR;
 
 private mapping emotes;
 private string* adverbs;
@@ -53,8 +54,10 @@ string stat_me()
 int
 add_emote(string verb, mixed rule, string array parts)
 {
+/*
     if( base_name( previous_object()) != CMD_ADD_EMOTE )
 	error("Illegal call to add_emote()\n");
+*/
     // try this first b/c it will error if rule is illegal
     parse_add_rule(verb, rule);
 
@@ -119,7 +122,7 @@ mixed * internal_get_soul(string verb, string rule,
     mapping rules;
     mixed soul;
     string soul_alt;
-    int i, idx, num;
+    int i, num;
     object *targets;
     object *who;
     string token;
@@ -146,7 +149,6 @@ mixed * internal_get_soul(string verb, string rule,
 
     if (soul[0] == '=') soul = rules[soul[1..]];
     if (stringp(soul)) {
-	if (soul[<1] != '\n') soul += "\n";
 	soul_alt = soul;
     } else {
 	soul = map_array(soul, (: $1[<1] == '\n' ? $1 : $1 + "\n" :));

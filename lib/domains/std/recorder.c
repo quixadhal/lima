@@ -1,113 +1,138 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+// Original by Rust
+// Complete redesign by Ohara
+// Future: Make recorder have real playback rather than transcript
+// Future: Make recorder partially eraseable by a magnet
+// Future: Allow stopping partway through a play
+// Future: Make rewinds and fast forwards take time.
 
-#include <mudlib.h>
-
-inherit OBJ;
+inherit CONTAINER;
 inherit M_GETTABLE;
 
-#define INACTIVE  0
-#define RECORDING 1
-
-private static int state;
 private static int at_beginning = 1;
 private static string transcript = "";
+private string current_button = "stop";
 
-void setup() {
-  set_adj( "fast forward", "rewind", "stop", "play", "record");
-  set_id("recorder", "player", "button", "buttons", "rewind", "fast forward", "stop", "play", "record");
-  set_long("It seems to be a tape recorder, and has the standard pannel of buttons.\nHowever, there seems to be no place to put a tape.");
-  set_gettable(1);
+
+void setup()
+{
+    set_in_room_desc( "A recording device sits on the ground.");
+    set_long( "It looks like a tape recorder, and it has the usual panel of buttons, but there's no place to put a tape in it.");
+    set_id( "recorder", "player" );
+    set_objects( ([
+	"recorder/button/play" : 1,
+	"recorder/button/record" : 1,
+	"recorder/button/rewind" : 1,
+	"recorder/button/fast forward" : 1,
+	"recorder/button/stop" : 1,
+	"recorder/panel" : 1,
+      ]) );
+    set_max_capacity( LARGE );
+    set_hide_contents( 1 );
 }
 
-string get_item_desc(string str)
+
+string get_current_button()
 {
-  switch(str)
+    return current_button;
+}
+
+
+string pop_up(string button)
+{
+    if( button == "stop" )
+	return ".";
+    else
+	return ", and the " +button+ " button pops up with a small *click*.";
+}
+
+
+// Not really needed, but makes the design more obvious.
+string push_down( string button )
+{
+    return "$N $vpush the " +button+ " button";
+}
+
+
+void pop_up_and_replace( string button )
+{
+    if( current_button == button && button != "stop" )
     {
-    case "button":
-      return "Which button do you mean?";
-    case "record":
-    case "record button":
-      return sprintf("It's red and says, 'record'.%s",state == RECORDING ?
-		     "  It's currently pressed down." : "");
-    case "play":
-    case "play button":
-      return "It's a black button that says, 'play'.";
-    case "stop":
-    case "stop button":
-      return "It's a black button that says, 'stop'.";
-    case "fast forward":
-    case "fast forward button":
-      return "It's a black button that says, 'fast forward'.";
-    case "rewind":
-    case "rewind button":
-      return "It's a black button that says, 'rewind'.";
-    case "buttons":
-      return "The front of the recorder consists of a pannel of buttons.\n"
-	"There are buttons labeled: 'record', 'play', 'stop', 'fast forward', 'rewind'.\n";
+	this_body()->simple_action( "$N $vstab at the " +button+ " button, only to find that it's already pressed down." );
+	return;
     }
+    this_body()->simple_action( push_down( button ) + pop_up( current_button ));
+    current_button = button;
+    call_other( this_object(), replace_string( button, " ", "_"));
 }
 
-int press(string name)
+
+void play()
 {
-  switch(name){
-  case "buttons":
-  case "button":
-    write("Perhaps you could be a bit more specific than that.\n");
-    return 1;
-  case "record":
-  case "record button":
-    if(environment(this_object()) != environment(this_body()))
-      {
-	write("It won't pick up anything while you're holding it, you know,\n"
-	      "except maybe the sound of your skin.\n");
-      }
-    if(at_beginning)
-      transcript = "";
-    state = RECORDING;
-    this_body()->simple_action("$N $vstart recording on $p recorder.");
+    if( !(at_beginning && sizeof( transcript )))
+    {
+	this_body()->simple_action( "$N $vfind that the recorder appears to be at the end.");
+	current_button = "stop";
+	return;
+    }
+    this_body()->simple_action("The recorder spits out a transcript, in lieu of an actual playback" + pop_up( "play" ));
+    new(__DIR__ "recorder/transcript", transcript)->move(this_body());
     at_beginning = 0;
-    return 1;
-  case "play":
-  case "play button":
-    if(!at_beginning)
-      {
-	write("You'll have to rewind the recorder, first.\n");
-	return 1;
-      }
-    state = INACTIVE;
-    this_body()->simple_action("$N $vpush the play button on $p recorder, and a transcript magically appears before $n, in lieu of an actual playback.");
-    new(__DIR__ "transcript", transcript)->move(this_body());
-    at_beginning = 0;
-    return 1;
-  case "rewind":
-  case "rewind button":
-    at_beginning = 1;
-    state = 0;
-    this_body()->simple_action("$N $vrewind $p recorder.");
-    return 1;
-  case "fast forward":
-  case "fast forward button":
-    at_beginning = 0;
-    state = 0;
-    this_body()->simple_action("$N fast $vforward $p recorder.");
-    return 1;
-  case "stop":
-  case "stop button":
-    if(!state)
-      {
-	write("The recorder is already stopped.\n");
-	return 1;
-      }
-    state = 0;
-    this_body()->simple_action("$N $vstop $p recorder.");
-    return 1;
-  default:
-    return 0;
-  }
 }
+
+
+void record()
+{
+    if(environment(this_object()) != environment(this_body()))
+    {
+	write("It won't pick up anything while you're holding it, you know, except maybe the sound of your skin.\n");
+    }
+    if(at_beginning)
+	transcript = "\n";
+    at_beginning = 0;
+    this_body()->simple_action( "A soft sound can be heard as the recorder starts.");
+}
+
+
+void fast_forward()
+{
+    current_button = "stop";
+    if( !( at_beginning && sizeof( transcript )))
+    {
+	this_body()->simple_action("The recorder, however, appears to already be at the end.");
+	pop_up( "fast forward" );
+	return;
+    }
+    at_beginning = 0;
+    this_body()->simple_action( "There is a soft whirring from the machine.");
+    call_out( (: "pop_up", "fast forward" :), 2);
+}
+
+
+void rewind()
+{
+    current_button = "stop";
+    if( at_beginning || !sizeof(transcript))
+    {
+	this_body()->simple_action( "The recorder appears to already be at the beginning.");
+	pop_up( "rewind" );
+	return;
+    }
+    at_beginning = 1;
+    this_body()->simple_action( "There is a soft whirring from the machine.");
+    call_out( (: "pop_up", "rewind" :), 2);
+}
+
 
 void receive_outside_msg(string s)
 {
-  if(state)
-    transcript += s;
+    if( current_button == "record" )
+	transcript += s;
 }
+
+
+mapping lpscript_attributes()
+{
+    return m_gettable::lpscript_attributes() + container::lpscript_attributes();
+}
+

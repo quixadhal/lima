@@ -87,6 +87,7 @@
 ** M_MOUNTABLE
 ** M_ENTERABLE
 ** M_GUILD_MASTER	act as a "guild master"
+** M_SIBLING          objects that exist in two rooms;
 **
 ** M_LIB_LOCKABLE	arbitrates "locked" state of multiple instances
 ** M_LIB_OPENABLE	arbitrates "opened" state of multiple instances
@@ -156,18 +157,21 @@
 //### temporary
 #define ROOM			INDOOR_ROOM
 
-#define VOID_ROOM		"/domains/std/void"
-#define WIZ_ROOM		"/domains/std/wizroom"
+#define VOID_ROOM		"/domains/std/Void"
+#define WIZ_ROOM		"/domains/std/Wizroom"
 
 #define ARMOR			"/std/armor"
 #define BASE_OBJ		"/std/base_obj"
 #define CONTAINER		"/std/container"
 #define COMPLEX_CONTAINER	"/std/complex_container"
 #define DOOR			"/std/door"
-#define SECRET_DOOR              "/std/secret_door"
-#define HIDDEN_DOOR      "/std/hidden_door"
+#define SECRET_DOOR             "/std/secret_door"
+#define FLAME                               "/std/flame.c"
+#define HIDDEN_DOOR             "/std/hidden_door"
+#define FOOD                    "/std/food"
 #define FURNITURE		"/std/furniture"
-#define GUILD_GUARD          "/std/guild_guard.c"
+#define GUILD_GUARD             "/std/guild_guard"
+#define KEY                     "/std/key"
 #define LIVING			"/std/living"
 #define	MENUS			"/std/menu"
 #define MONSTER			"/std/monster"
@@ -219,6 +223,7 @@
 #define M_MOUNTABLE		"/std/modules/m_mountable"
 #define M_OPENABLE		"/std/modules/m_openable"
 #define M_READABLE		"/std/modules/m_readable"
+#define M_SIBLING               "/std/modules/m_sibling"
 #define M_SWITCHABLE		"/std/modules/m_switchable"
 #define M_THROWABLE		"/std/modules/m_throwable"
 #define M_TRIGGERS		"/std/modules/m_triggers"
@@ -251,7 +256,7 @@
 #define PLAYER_MENU		"/obj/mudlib/plmenu"
 #define PLYR_SHELL		"/obj/mudlib/pshell"
 #define SIMPLE_OB		"/obj/mudlib/simple_ob"
-#define TEMP_WORKROOM		"/obj/mudlib/tworkroom"
+#define TEMP_WORKROOM		"/obj/mudlib/TWorkroom"
 #define WATER			"/obj/mudlib/water"
 
 #define M_ACCESS		"/secure/modules/m_access"

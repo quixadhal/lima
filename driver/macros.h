@@ -98,6 +98,10 @@
 !Only one wrapper (at most) should be defined
 #endif
 
+#if defined(DO_MSTATS) && defined(SYSMALLOC)
+!'DO_MSTATS' not available with 'SYSMALLOC'
+#endif
+
 #if defined (WRAPPEDMALLOC) && !defined(IN_MALLOC_WRAPPER)
 
 #  define MALLOC(x)               wrappedmalloc(x)
@@ -266,6 +270,19 @@
 #   define string_unlink(x,y) int_string_unlink(x)
 #   define new_string(x,y) int_new_string(x)
 #   define alloc_cstring(x,y) int_alloc_cstring(x)
+#endif
+
+#ifndef INLINE
+#  ifdef WIN32
+#    define INLINE extern __inline
+#    define INLINE_STATIC __inline
+#  else
+#    define INLINE
+#  endif
+#endif
+
+#ifndef INLINE_STATIC
+#  define INLINE_STATIC static INLINE
 #endif
 
 #endif

@@ -23,7 +23,7 @@ private void main(string s) {
 #ifdef ZORKMUD
     this_body()->simple_action("$N $vsay, \"$O\"", punctuate(s));
 #else
-    this_body()->simple_action("$N $vsay: $o", punctuate(s));
+    this_body()->simple_action("%^SAY%^$N $vsay:%^RESET%^ $o", punctuate(s));
 #endif
 }
 

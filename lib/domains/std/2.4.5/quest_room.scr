@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 is=room
 exists=south:wiz_hall.scr
 brief=Room of quests

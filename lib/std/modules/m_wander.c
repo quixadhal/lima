@@ -17,7 +17,7 @@ The important functions to call in your monster are
 
 private string *obvious_exits;
 private string enter_msg = "$N enters.\n";
-private string exit_msg = "$N exits.\n";
+private string exit_msg = "$N $vexit.";
 private string wander_area;
 
 private int movement_time = 20;
@@ -70,7 +70,6 @@ mixed move_this_monster(int cloned)
     string my_exit;
     string monster_exit;
     string new_area;
-    object ob;
 
     if(!environment(this_object()))
     {

@@ -1,0 +1,28 @@
+
+If CONFIGURABLE_COLOURS is defined in config.h, Lima lets users decide what
+colours, if any, they want certain pieces of text to have.
+
+From the player's standpoint: 
+
+The 'colours' command lists their current colour settings.  These
+can be changed by doing 'colours <which setting> <whatever>'.
+
+From the coder's standpoint:
+
+If you want a piece of text to be work with this system, the following
+is necessary.  First, make up a name for the setting, like
+"combat_messages".  Then, use %%^^COMBAT_MESSAGES%%^^ just like
+you would use any other colour code, remembering to turn it
+off at the end with %%^^RESET%%^^.  For example,
+
+tell(this_body(), "%%^^COMBAT_MESSAGES%%^^" + message + "%%^^RESET%%^^");
+
+[Note that RESET isn't strictly necessary here, since tell()
+ automatically puts one at the end]
+
+Then, if this is a NEW type, you must add it with admtool.  Under admtool,
+select 'd' for daemons, then 'C' for colour, then 'a COMBAT_MESSAGES none',
+where 'none' can be any legal colour setting and is the default value.
+
+That's it!  The colour should automatically start working as soon as it is
+added by admtool.

@@ -16,7 +16,7 @@ void cast_spell(object ob, object reagent)
     }
     else
     {
-	this_body()->targetted_action("$N $vcast $p test spell on $t.\n", ob);
+	this_body()->targetted_action("$N $vcast $p test spell on $t.", ob);
     }
 }
 

@@ -42,8 +42,8 @@ string query_msg(string which) { return messages[which] || def_messages[which]; 
 void set_msgs(string cls, string *msgs) {
     if (!messages) messages = ([]);
     if(!msgs || !sizeof(msgs))  {
-         map_delete(messages, cls);
-        return;
+	map_delete(messages, cls);
+	return;
     }
     messages[cls] = msgs;
 }
@@ -63,7 +63,7 @@ string *query_msg_types() {
 //Usually this routine is used through the higher level interfaces.
 
 varargs string compose_message(object forwhom, string msg, object *who, 
-			       array obs...) {
+  array obs...) {
     mixed ob;
     mixed *fmt;
     string res;
@@ -76,7 +76,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
 
     fmt = reg_assoc(msg, ({ "\\$[NnVvTtPpOoRr][a-z0-9]*" }), ({ 1 }) );
     fmt = fmt[0]; // ignore the token info for now
-
+    
     res = fmt[0];
     i=1;
     while (i<sizeof(fmt)) {
@@ -114,7 +114,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
 		} else if (res[<4..<1] == "The ") {
 		    res = res[0..<5];
 		    bit = capitalize(THE_SHORT(ob));
-		  } else bit = SHORT(ob);
+		} else bit = SHORT(ob);
 		has[ob]++;
 	    }
 	    break;
@@ -129,7 +129,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	    if (str != "p") {
 		/* Handle reflexification */
 		if (subj < sizeof(who) &&
-		    (who[subj] == who[num]) && has[who[subj]]) {
+		  (who[subj] == who[num]) && has[who[subj]]) {
 		    // objective: You kick yourself, Beek kicks himself.
 		    if (str == "o") {
 			if (forwhom == who[subj]) bit = "yourself";
@@ -167,6 +167,12 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	    break;
 	case 'v':
 	case 'V':
+	    /* hack for contractions */
+	    if (i + 1 < sizeof(fmt) && fmt[i+1][0..2] == "'t ") {
+		str += "'t";
+		fmt[i+1] = fmt[i+1][2..];
+	    }
+	    
 	    if (num >= sizeof(who) || who[num]!=forwhom) bit = M_GRAMMAR->pluralize(str);
 	    else bit = str;
 	    break;
@@ -187,13 +193,15 @@ varargs string compose_message(object forwhom, string msg, object *who,
 	// hack to prevent errors.
 	if (!bit) bit = "";
 	if (c < 'a') bit = capitalize(bit);
-//### Hack to avoid inheriting a mixin.  Better one needed.
+	//### Hack to avoid inheriting a mixin.  Better one needed.
 	if (fmt[i+1][0] == '.')
 	    res += M_GRAMMAR->punctuate(bit) + fmt[i+1][1..];
 	else
 	    res += bit + fmt[i+1];
 	i+=2;
     }
+    if( res[<1] != '\n' ) 
+	res += "\n";
     return res;
 }
 
@@ -229,8 +237,8 @@ void inform(object *who, string *msgs, mixed others) {
     int i;
     mapping done = ([]);
     for (i=0; i<sizeof(who); i++) {
-        if (done[who[i]]) continue;
-        done[who[i]]++;
+	if (done[who[i]]) continue;
+	done[who[i]]++;
 	tell(who[i], msgs[i], MSG_INDENT);
     }
     if (pointerp(others))
@@ -256,8 +264,6 @@ varargs void simple_action(mixed msg, array obs...) {
     who = ({ this_object() });
     if (pointerp(msg))
 	msg = msg[random(sizeof(msg))];
-    if ( msg[<1] != '\n' )
-	msg += "\n";
 
     us = compose_message(this_object(), msg, who, obs...);
     others = compose_message(0, msg, who, obs...);

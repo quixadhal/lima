@@ -36,7 +36,7 @@ string *find_best_match_or_complete(string partial, string *potentials)
 {
   string *p = map(potentials,(:lower_case:));
   int i = member_array(lower_case(partial),p);
-  int n;
+
   if(i!=-1)
     return ({potentials[i]});
   return case_insensitive_complete(partial,potentials);

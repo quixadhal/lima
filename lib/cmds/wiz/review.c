@@ -17,7 +17,6 @@ private void main(mixed *arg, mapping flags)
     string *ob_msgs;
     int combat_msgs;
     int debug;
-    string tmp;
     int flag;
 
     if (flags["c"])

@@ -10,7 +10,6 @@ inherit CMD;
 private void main( mixed *arg )
 {
     object ob;
-    mixed msg_ob;
 
     ob = arg[0];
 

@@ -1,4 +1,0 @@
-TYPETEST
-
-void foo(x) {
-}

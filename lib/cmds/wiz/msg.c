@@ -12,7 +12,7 @@ private void main(mixed arg)
     if ( value == "clear" )
 	this_body()->set_msgs(arg[0], ({}));
     else
-	this_body()->add_msg(arg[0], value +"\n");
+	this_body()->add_msg(arg[0], value );
 
     out("Ok.\n");
 }

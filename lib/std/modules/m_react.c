@@ -189,9 +189,6 @@ string parse_expr(array parts) {
 
 string handle_expression(string e) {
     array parts = explode(e, " ");
-    int idx = 0;
-    int tmp;
-    string tmpstr;
     
     parts = ({ 1 }) + map(parts, (: trim_spaces :)) - ({ "" });
 
@@ -205,7 +202,7 @@ string handle_set(string lhs, string rhs) {
 }
 
 void compile_func(mapping funcs, string sname, array prog) {
-    int i,j;
+    int i;
     string ssname;
     mixed prog_stack = ({ "", prog });
     

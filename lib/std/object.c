@@ -155,6 +155,11 @@ int clean_up(int instances)
     return destruct_if_useless();
 }
 
+void on_clone()
+{
+}
+
+
 mapping lpscript_attributes() {
     return ([
         "adj" : ({ LPSCRIPT_LIST, "setup", "add_adj" }),

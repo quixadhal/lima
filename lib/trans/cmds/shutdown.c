@@ -91,3 +91,13 @@ private void main(mixed *args, mapping flags)
     do_shutdown(s);
 }
 
+// Used by the out of memory code; could be added elsewhere too
+void automatic_shutdown(string reason) {
+    if (!check_privilege(1))
+        error("automatic_shutdown() failed: Permission denied\n");
+
+    tell_all(THE_BIG_GUY " shouts: Automatic shutdown (" + reason + ") triggered.\n");
+    LOG_D->log(LOG_SHUTDOWN, "Shutdown started by " THE_BIG_GUY "[" + reason + "]\n");
+    
+    count_down(10, reason);
+}

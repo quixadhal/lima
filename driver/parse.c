@@ -10,8 +10,8 @@
 */
 
 #include "std.h"
-#include "lpc_incl.h"
 #include "parse.h"
+#include "master.h"
 
 /*****************************************************
 

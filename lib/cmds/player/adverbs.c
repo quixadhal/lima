@@ -16,7 +16,7 @@ private void main(string arg)
     list = SOUL_D->get_adverbs();
     count = sizeof(list);
 
-    if ( !arg || arg == "" )
+    if( !sizeof(arg))
         arg = "*";
     else if ( !has_magic(arg) )
         arg = arg + "*";

@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 is=room
 exits=east:sunalley1.scr
 brief=Sun alley

@@ -11,39 +11,26 @@ mixed direct_get_obj( object ob ) {
 	return "#Try climbing it instead.\n";
 }
 
-static void setup_messages(string name, mixed up_dest, mixed down_dest) {
-    if (query_plural()) {
+static void setup_messages(string name, mixed up_dest, mixed down_dest)
+{
+    string dirs;
+    if (up_dest)
+	if (down_dest)
+	    dirs = "up and down";
+	else
+	    dirs = "upwards";
+    else
+	dirs = "downwards";
+
+    if (query_plural())
 	add_id_no_plural(name);
+    else
+	add_id( name );
 
-	if (up_dest) {
-	    if (down_dest) {
-		set_long("The " + name + " lead up and down.\n");
-		set_in_room_desc("There are " + name + " here, leading up and down.");
-	    } else {
-		set_long("The " + name + " lead upwards.\n");
-		set_in_room_desc("There are " + name + " here, leading upwards.");
-	    }
-	} else {
-	    set_long("The " + name + " lead downwards.\n");
-	    set_in_room_desc("There are " + name + " here, leading downwards.");
-	}
-    } else {
-	add_id(name);
-
-	if (up_dest) {
-	    if (down_dest) {
-		set_long("The " + name + " leads up and down.\n");
-		set_in_room_desc("There is a " + name + " here, leading up and down.");
-	    } else {
-		set_long("The " + name + " leads upwards.\n");
-		set_in_room_desc("There is a " + name + " here, leading upwards.");
-	    }
-	} else {
-	    set_long("The " + name + " leads downwards.\n");
-	    set_in_room_desc("There is a " + name + " here, leading downwards.");
-	}
-    }
+    set_long( "The " +name+ " lead" +(query_plural()?" ":"s ") +dirs );
+    set_in_room_desc( "There " +(query_plural()?"are ":"is a ")+name+ " here, leading " +dirs+ ".");
 }
+
 
 // Separated from create() so that objects can overload this separately
 void more_create(mixed up_dest, mixed down_dest, int attached) {
@@ -51,12 +38,12 @@ void more_create(mixed up_dest, mixed down_dest, int attached) {
     setup_messages("stairs", up_dest, down_dest);
 }
 
-void create( mixed up_dest, mixed down_dest, int attached )
+
+void mudlib_setup( mixed up_dest, mixed down_dest, int attached )
 {
-::create();
+    ::mudlib_setup();
     more_create( up_dest, down_dest, attached );
-    if( attached )
-        set_flag( ATTACHED );
+    set_attached( attached );
     set_up_destination(up_dest);
     set_down_destination(down_dest);
 }

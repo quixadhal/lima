@@ -43,6 +43,8 @@ int direct_drive_obj_str()
 // People can't get at stuff inside the Camaro unless they're in it.
 int inventory_accessible()
 {
+
+
   if(environment(this_body()) != this_object())
     return 0;
 

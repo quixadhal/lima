@@ -19,7 +19,7 @@ set_flag(ATTACHED);
     if( present("wall", environment(this_object()))->query_closed())
     this_body()->simple_action( "$N $v" + verb + " around the water for a while.");
 else
-  this_body()->simple_action("$N $v" + verb + " around in the water a bit.\n"
+  this_body()->simple_action("$N $v" + verb + " around in the water a bit."
 			     "The cave floor quivers a bit as $n "
 			     "$vclamber out.");
   call_out((: present("wall", environment(this_object()))->open_with( ) :), 1);

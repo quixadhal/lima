@@ -33,4 +33,5 @@ int set_title(string str)
 	title = sprintf("%s the title-less.", capitalize(query_userid()));
     else
 	title = replace_string(str,"$N", capitalize(query_userid()));
+    title += "%^RESET%^";
 }

@@ -3,12 +3,12 @@
 #define MAX_IDLE_TIME	600     // This is really x+60 seconds.  LWI.
 #define NEEDS_ARG()     if(!arg){ info->cmdPipe->send("500 command not understood.\n"); return; }
 #define FTPLOG(x)	LOG_D->log(LOG_FTP, x)
+#define FTP_WELCOME      "/data/config/FTPWELCOME"
 
 #ifdef ALLOW_ANON_FTP
 #define ANON_PREFIX	"/ftp/pub"
 #define ANON_USER()	(member_array(info->user, anon_logins) != -1)
 #define ANON_CHECK(x)    if(ANON_USER() && x[0..(strlen(ANON_PREFIX)-1)] != ANON_PREFIX) { info->cmdPipe->send("550 Pemission denied.\n"); if(info->dataPipe) destruct(info->dataPipe); return; }
-#define FTP_WELCOME	"/data/config/FTPWELCOME"
 
 #else
 #define ANON_CHECK(x)

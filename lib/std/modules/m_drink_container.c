@@ -3,6 +3,7 @@
 private int needs_contents;
 
 string the_short();
+int query_drinks();
 
 //:FUNCTION set_needs_contents
 //If needs_contents is 1, then the container can only be drunk from if it
@@ -10,7 +11,7 @@ string the_short();
 //part of the container itself (either by also inheriting M_DRINKABLE or
 //otherwise).
 void set_needs_contents(int x) {
-    needs_contents = 1;
+    needs_contents = x;
 }
 
 mixed direct_drink_from_obj() {
@@ -22,7 +23,7 @@ mixed direct_drink_from_obj() {
     if (needs_contents)
 	ob = first_inventory();
     else
-	ob = this_object();
+        ob = this_object();
     
     if (!ob)
 	return capitalize(the_short()) + " is empty.\n";

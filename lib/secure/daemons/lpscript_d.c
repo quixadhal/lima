@@ -519,9 +519,9 @@ string handle_block(array lines) {
 
 string handle_action(string arg) {
     if (member_array(M_ACTIONS, inherits) != -1)
-	return "simple_action(\"" + arg + "\");\n";
+	return "simple_action(\"" + arg + "\");";
     else
-	return "this_body()->simple_action(\"" + arg + "\");\n";
+	return "this_body()->simple_action(\"" + arg + "\");";
 }
 
 string sub_file_name() {
@@ -598,7 +598,6 @@ mixed handle_setup(string arg, array lines) {
 }
 
 mixed handle_trigger(string arg, array lines) {
-    array ret;
     int num;
     int oldlen;
     
@@ -719,7 +718,6 @@ mixed handle_variables(array args) {
 }
 
 mixed handle_is(array args) {
-    string ret = "";
     args = map(explode(args[0], ","), (: trim_spaces :));
 
     foreach (string file in args) {
@@ -786,7 +784,6 @@ void handle_parsing() {
 	int j;
 	mixed arr = lines[i];
 	mixed entry;
-	mixed tmp;
 	
 	if (intp(arr[0])) {
 	    cur = arr[0];

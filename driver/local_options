@@ -1,3 +1,12 @@
+#undef NO_SNOOP
+#define SUPPRESS_ARGUMENT_WARNINGS
+#undef FD6_PORT
+#define REF_RESERVED_WORD
+#undef FD6_KIND
+#undef CUSTOM_CRYPT
+#undef SERVER_IP
+#undef SENSIBLE_MODIFIERS
+
 /*
 ** local_options for LIMA
 */

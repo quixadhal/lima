@@ -22,8 +22,7 @@ int do_update(string file, int deep);
 private void main(mixed *arg, mapping flags) {
     object *obs;
     object ob;
-    string temp;
-    int n,deep_up;
+    int deep_up;
     string file;
     object shell_ob = this_user()->query_shell_ob();
 
@@ -76,9 +75,6 @@ private void main(mixed *arg, mapping flags) {
 int do_update(string file, int deep)
 {
     object ob;
-    int master_flag;
-    int i,n;
-    string res;
     int tmp;
     int newest_inh = 0;
     

@@ -126,6 +126,34 @@ static nomask void rcv_chan_who_reply(string orig_mud, string orig_user,
     }
 }
 
+/* ### to support the April Fool's stuff below... */
+static private string * april_phrases = ({
+    // "yes, you are!",
+    "not you... Ohara is the fool!",
+    "but Zakk is a bigger fool!",
+    "well, duh! we knew that!",
+    "yes... anyone who logs onto IdeaExchange is a fool!",
+    "of course! anyone who idles on a hostile mud is a fool.",
+    "well, Beek's the bigger fool... he admitted to singing Live's \"I Alone\" for a piece of tail.",
+    "so was Rust's mom ... and look at the result!",
+    "yeah, but at least you didn't choose a mud name as lame as 'Deathblade'.",
+    "nog, that's what your mom told me last night.",
+    "then move to StarMUD; you'll fit in better",
+    "I think your mom said that last night, but she had her mouth full at the time.",
+    "we hear you like small children, too.",
+    "well, at least you're not as bad as those who use Heaven 7.",
+    "well, at least you're not as bad as those who use Heaven 7.",
+    "really? You must use TMI.",
+    "you're so lame, that's your *best* quality.",
+    "you're a Discworld admin, right?",
+    "Oh god ... it's _another_ newbie who wants to write their own lib.",
+    "And to add salt to your wounds:  'She' was a 'He'.",
+});
+string query_userid()
+{
+    return "limabean";
+}
+
 static nomask void rcv_channel_m(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)
 {
@@ -136,7 +164,21 @@ static nomask void rcv_channel_m(string orig_mud, string orig_user,
     CHANNEL_D->deliver_tell("imud_" + message[0],
 			     sprintf("%s@%s", message[1], orig_mud),
 			     message[2]);
+
+#if 0
+    /* ### April Fool's ... respond to IdeaExchange :-) */
+    if ( message[2] == "I am a fool!" )
+    {
+	object tu = this_user();
+	set_this_player(this_object());
+	CHANNEL_D->deliver_tell("imud_" + message[0],
+				"Lima Bean",
+				choice(april_phrases));
+	set_this_player(tu);
+    }
+#endif
 }
+
 
 static nomask void rcv_channel_e(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)

@@ -26,7 +26,7 @@ private void main( mixed * arg )
 	{
 	    outf("%-13s%-30s[Only in your Imagination]", capitalize( lower_case( target )), "Does not exist " );
 	}
-	else if( member_array( target, users()))
+	else if( member_array( target, users()) != -1)
 	{
 	    outf("%-13s%-30s[%-s]\n", capitalize( find_body(target)->query_userid()), 		      file_name(environment(find_body(target))), environment(find_body(target))->short());
 	}

@@ -8,13 +8,13 @@ mixed direct_open_obj()
     if(this_object()->query_closed())
 	return "There doesn't seem to be a way to open it from here.\n";
     else
-    return ::direct_open_obj();
+	return ::direct_open_obj();
 }
 
 mixed direct_close_obj()
 {
     if( this_object()->query_closed())
-    return ::direct_close_obj();
+	return ::direct_close_obj();
     else
 	return "You can't see any way of doing that.\n";
 }
@@ -47,8 +47,8 @@ void do_on_close()
 void setup()
 {
     set_id ("wall","inscription", "writing", "passage");
-set_long( "The rock wall abruptly terminates the short passage.\n");
-    set_flag( ATTACHED );
+    set_long( "The rock wall abruptly terminates the short passage.\n");
+    set_attached(1);
     add_hook( "open", (: do_on_open :));
     add_hook( "close", (: do_on_close :));
     set_closed(1);

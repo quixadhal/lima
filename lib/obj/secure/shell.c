@@ -65,9 +65,6 @@ void remove()
 
 static void shell_input(mixed input)
 {
-    mixed argv;
-    string original_input;
- 
     if ( input == -1 )
     {
 	remove();

@@ -11,7 +11,6 @@
 ** 95-May-11.  Deathblade.  Created.
 */
 
-#include <mudlib.h>
 #include <socket.h>
 #include <security.h>
 #include <log.h>
@@ -198,7 +197,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 1.0a4",
+			      "Lima 1.0a5",
 			      "Lima",
 			      driver_version(),
 			      "LP",

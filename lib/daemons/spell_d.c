@@ -26,8 +26,6 @@ private static mapping spell_table = ([ ]);
 
 void add_spell_dir(string dir)
 {
-    int	i;
-
     if ( !check_privilege(PRIV_REQUIRED) )
 	return;
 

@@ -85,12 +85,12 @@ private nomask void parse_directory(string fname)
 {
     string array files = get_dir(fname + "*") - ({ ".", ".." });
     string topic = last_component(fname);
-    
+
     cur_line = 0;
     directives = ([]);
 
     lines = ({"Help topics available under the general topic '" + topic + "':"}) +
-	map_array(files, (: "\t" + last_component($1) :));
+    map_array(files, (: "\t" + last_component($1) :));
 }
 
 private nomask void parse_file(string fname)
@@ -98,6 +98,13 @@ private nomask void parse_file(string fname)
     cur_line = 0;
     directives = ([ ]);
 
+    if( file_size(fname) < 1)
+    {
+	lines = ({ "This file has no text.\n" });
+	return;
+    }
+    write (file_size(fname));
+     write( fname );
     lines = explode(read_file(fname), "\n");
     lines = filter_array(lines, (: f_parse :));
 

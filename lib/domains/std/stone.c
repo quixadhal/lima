@@ -5,10 +5,8 @@ inherit CONTAINER;
 object sword;
 object king;
 
-private void
-find_a_king() {
-    array bods;
-    
+private void find_a_king()
+{
     // Randomly pick someone logged on.  If king == 0, then either we
     // haven't done this yet, or the person we picked logged out.
     if (king) return;
@@ -17,25 +15,31 @@ find_a_king() {
 
 void setup() {
     set_id("stone", "rock");
-    set_long("It is about 3 feet round, but otherwise fairly nondescript.\n");
+    set_long("It is about 3 feet round, but otherwise fairly nondescript.");
     set_in_room_desc("A large stone lies off to the side of the room.");
     // Not using set_objects() here since we don't want to reset
     set_max_capacity(MEDIUM);
     sword = new(__DIR__ "sword_in_stone");
     sword->move(this_object());
+    set_unique(1);
 }
 
 mixed receive_object( object target, string relation ) {
     if (target != sword) return 0;
+    set_hide_contents(0);
     return ::receive_object(target, relation);
 }
 
 mixed release_object( object target, int force ) {
     find_a_king();
-    
+
     if (!force && this_body() != king)
+    {
+	this_body()->other_action( "$N $vtug on the sword, but can't seem to budge it." );
 	return "You can't seem to budge it.\n";
-    write("The sword slides easily out of the stone.\n");
+    }
+    this_object()->simple_action( "$N $vpull on the sword, and $vfind it comes out easily in $p hand." );
+    set_hide_contents(1);
     return ::release_object(target, force);
 }
 

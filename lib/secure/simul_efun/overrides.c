@@ -8,7 +8,8 @@ int check_privilege(mixed priv);
 int adminp(mixed m);
 varargs void tell(object, string);
 
-//:FUNC ed
+
+//:FUNCTION ed
 //The ed() efun is not used by the LIMA mudlib, as we use the new ed
 //functionality.  See ed_session.c
 nomask varargs void ed(string file, mixed func)
@@ -16,7 +17,7 @@ nomask varargs void ed(string file, mixed func)
     error("ed() not available\n");
 }
 
-//:FUNC exec
+//:FUNCTION exec
 //The exec efun is never used by the LIMA mudlib, since only bodies are
 //reconnected.
 nomask int exec(object target, object src)
@@ -24,7 +25,17 @@ nomask int exec(object target, object src)
     error("exec() not available\n");
 }
 
-//:FUNC input_to
+//:FUNCTION debug_info
+//The debug_info efun is temporarily denied, until the driver is altered
+//to use the valid_bind() apply.
+nomask string debug_info(int operation, object ob)
+{
+    if ( !check_privilege(1) )
+	error("debug_info() not available right now\n");
+    return efun::debug_info(operation, ob);
+}
+
+//:FUNCTION input_to
 //input_to should not be used; the stackable input system should be used
 //instead.  See the modal_push() and modal_func() routines.
 nomask varargs int input_to()
@@ -32,7 +43,7 @@ nomask varargs int input_to()
     error("input_to() should not be used.  Use modal_push()/modal_func()\n");
 }
 
-//:FUNC find_player
+//:FUNCTION find_player
 //find_body() and find_user() are used to find the body and connection objects,
 //respectively.
 nomask object find_player(string str)
@@ -40,7 +51,7 @@ nomask object find_player(string str)
     error("find_player() is obsolete.  Use find_body() instead.\n");
 }
 
-//:FUNC this_player
+//:FUNCTION this_player
 //this_body() and this_user() are used to find the body and connection objects,
 //respectively.
 nomask object this_player(string str)
@@ -48,7 +59,7 @@ nomask object this_player(string str)
     error("this_player() is obsolete.  Use this_body() or this_user() instead.\n");
 }
 
-//:FUNC destruct
+//:FUNCTION destruct
 //The destruct simul_efun guarantees that an object will always have remove()
 //called in it if it is destructed by another object.  destruct() with no
 //arguments destructs this_object WITHOUT calling remove, which is the
@@ -68,7 +79,7 @@ nomask varargs void destruct(object ob, mixed arg) {
 	efun::destruct(ob);
 }
 
-//:FUNC shutdown
+//:FUNCTION shutdown
 //The shutdown simul exists to prevent anything less than priv 1 from shutting
 //down the mud.
 nomask void shutdown()
@@ -79,7 +90,7 @@ nomask void shutdown()
 	error("Insufficient privilege to shut down.\n");
 }
 
-//:FUNC query_snoop
+//:FUNCTION query_snoop
 //The query_snoop simul makes sure only priv 1 can check snoops
 nomask object query_snoop(object ob)
 {
@@ -88,7 +99,7 @@ nomask object query_snoop(object ob)
     return efun::query_snoop(ob);
 }
 
-//:FUNC query_snooping
+//:FUNCTION query_snooping
 //The query_snooping simul prevents non priv 1 objects from checking on snoops
 nomask object query_snooping(object ob)
 {
@@ -97,7 +108,7 @@ nomask object query_snooping(object ob)
     return efun::query_snooping(ob);
 }
 
-//:FUNC snoop
+//:FUNCTION snoop
 //The snoop simul does some security checks before allowing snooping
 varargs nomask mixed snoop(mixed snoopee)
 {
@@ -105,7 +116,7 @@ varargs nomask mixed snoop(mixed snoopee)
 
     if (snoopee) {
 	object body = snoopee->query_body();
-	
+
 	if (body && !body->test_flag(F_SNOOPABLE) && !check_privilege(1)) {
 	    write("Failed (permission denied).\n");
 	    return 0;
@@ -117,7 +128,7 @@ varargs nomask mixed snoop(mixed snoopee)
 	result = efun::snoop(this_user(), snoopee);
 	if(result && adminp(snoopee))
 	    tell(snoopee,sprintf("%s starts to snoop you!\n",
-				 this_body()->query_name()));
+		this_body()->query_name()));
     } else {
 	if (!efun::query_snooping(this_user())) {
 	    write("Not snooping.\n");
@@ -154,7 +165,7 @@ varargs void shout()
 }
 
 
-//:FUNC say
+//:FUNCTION say
 //The say() efun is not used by the LIMA mudlib, in favor of the extensive
 //messaging system in the body.  Consider using this_body()->other_action()
 //instead of say().
@@ -176,3 +187,11 @@ void printf(string format, array rest...) {
     else
 	debug_message("]" + sprintf(format, rest...));
 }
+
+
+/*
+varargs int memory_info(object ob)
+{
+    error("memory_info() is disabled for now, pending a bugfix.\n");
+}
+*/

@@ -1,3 +1,152 @@
+Wed Apr  2 14:15:48 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b4
+	* updated with respect to v22pre5
+	* check if my_string is allocated before trying to mark it
+	  [reported by Fermat]
+	* mark the master_user_list in the parser package
+	  [reported by Fermat]
+	* 255 -> LEX_EOF in lex.c [reported by Avenger@CoreDump]
+
+Sat Mar  1 23:32:01 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b3
+	* updated with respect to v22pre4
+	* fixed the error context for error messages at the end of the file
+	  [reported by Jihad]
+	* don't treat directories as source files, even if they end in .c
+	  [reported by Jihad]
+	* fixed a bug that allowed the type of a global variable to be omitted
+	  if a modifier was used
+	* fixed crasher in ref code [reported by Qualin]
+	* fixed #undef SENSIBLE_MODIFIERS not to claim static variables are
+	  also nosave in the variables() output [found while tracking a bug
+	  report from Aragorn though I'm not entirely sure this is what he
+	  meant :-)]
+	* fixed leak in errors during fprintf() in save_object
+	* moved init_instrs (was init_num_args) earlier so it gets the names
+	  of internal efuns (_call_other, etc) correct for LPC->C.  Moved the
+	  name fixing to be part of query_instr_name().
+
+Fri Feb  7 15:31:47 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b2
+	* added Burty's fix for something involving backslashes, quotes,
+	  and #defines [please describe patches ;-)]
+	* fixed crasher in mapping composition (reported by Andrew)
+	* fixed foreach () with a global as the loop variable [reported
+	  by Jihad]
+	* fixed crashes related to errors in object_name()
+
+Fri Feb  7 15:22:52 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.1b1
+	* updated with respect to v22pre2
+
+----------------------------------------------------------------------------
+Wed Apr  2 13:31:44 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre5
+	* fixed leak in check_valid_path() [reported by Fermat]
+	* fixed crashers in function pointer add_actions() when the driver
+	  is run in -d -d mode [reported by Aragorn]
+	* ported back the socket close callback fix
+	* disabled #pragma optimize
+
+Tue Apr  1 23:53:07 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre4
+        * Added Leslie@StyleGates' fix for a leak in REVERSIBLE_EXPLODE_STRING
+        * added Eggjon@Nameless Sorrows' fix for a typo in WIN32 code in file.c
+        * fixed crasher in using functions() on an object with no functions
+          [reported by Valentino]
+	* fixed compilation error in PACKAGE_EXTERNAL
+	* fixed save_object() not to call valid_read() [typo in src]
+	* added Deathblade's fix for filter_mapping() when the result mapping
+	  is large
+
+Tue Feb 25 21:30:57 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre3
+	* fixed bug in rename() efun [used Turrican@DW's fix (essentially);
+	  tons of people reported this one]
+	* fixed crasher in PACKAGE_EXTERNAL (reported by Turrican@DW)
+	* fixed livings() not to return hidden objects (the check was
+	  backwards)
+
+Sun Feb  2 14:09:47 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre2
+	* custom_crypt() now never returns NULL, and can deal with
+	  arbitrarily long salts; also a number of compilation fixes
+	* fixed crypt() to use the password as the password, not the
+	  salt; also fixes a crasher when salt == 0
+	* added the old version of crypt as an oldcrypt() efun; useful
+	  for converting old passwords to the new format, or on systems where
+	  the new crypt is not backwards compatible (FreeBSD)
+	* fixed edit_source to catch options that are #undef'ed in options.h
+	  but not set in local_options
+	
+Sun Feb  2 14:08:33 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22pre1
+	* added documentation and setup the release directory structure
+
+Sat Jan 25 03:40:07 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b27
+	* increased the salt length to 8; salts from the mudlib are no
+	  longer truncated at 2 characters
+	* added Fermat's crypt package; use CUSTOM_CRYPT to enable it
+	* fixed problems with cp() and rename() [reported by Jihad]
+	* fixed crasher in restore_object()
+
+Mon Dec 30 03:57:55 EST 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b26
+	* fixed restore_variable()/restore_object() not to lose precision on
+	  values between 0.01 and 0.0001
+	* fixed sprintf of integer types not to ignore the precision field, and
+	  fixed the '+' option in connection with 'f' and a precision (e.g. "%+.5f")
+	* added two patches from Ceda for Win95 crashers
+	* added ARCH entry for NetBSD
+	* valid_read/write now get passed the real name of the save file for save/restore_object
+	  (e.g. including the .o)
+	* save and restore_object no longer tack on a .o if the filename already has one
+	* the value returned by valid_read/write, if a string, is used as the filename again
+	  [allows ~ expansion, etc]
+	* added dchen@sei.xjtu.edu.cn's fix for a problem with STR rules on HP/UX
+	* fixed bug in 'nomask' error message
+
+Sun Dec  8 22:54:36 EST 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b25
+	* fixed crasher in trying to call_out() from a destructed object
+	* fixed read_file() not to read \0's into strings
+	* fixed a number of builtin operators not to return undefined values
+	* added Marius' patch to not warn about '\"'
+	* fixed reclaim_objects() not to leak destructed objects found as
+	  mapping keys
+
+Fri Dec  6 17:36:10 EST 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b24
+	* fixed typo in INLINE_STATIC changes
+
+Fri Nov  8 11:45:33 EST 1996 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22b23
+	* function_exists() no longer finds #global_init#
+	* don't include #global_init# in functions()
+	* fixed a bug that would cause (mixed)[<anything] to be of
+	  type int, not mixed
+	* added Ceda's fixes for file operations on directories when
+	  using Win95
+	* mention ./build.MudOS debug in IT_CRASHED
+	* fixed unique_mapping() [it broke last time the mapping hash changed]
+	* ported back from v22.1a5
+	  . fixed crasher in using the name of a file that doesn't exist
+	    as the object in an efun callback (e.g. filter(({}), "foo", "bar"))
+	* minor change to mud_status() formatting
+	* removed the restriction disallowing converting 0 to network byte
+	  order using write_buffer()
+	* fixed erroneous too few argument error messages when the last
+	  pattern was %*s followed immediately by another pattern.
+	* fixed delayed crasher in errors with PROFILE_FUNCTIONS defined
+	  (this is the infamous one that causes string constants to
+	   unexplainably start pointing to random memory locaitions)
+	* fixed a crasher in refering to yourself when more than 
+	  MAX_NUM_OBJECTS are around
+	* bumped MAX_NUM_OBJECTS up a bit
+	* fixed a crasher in doing moving or destructing an object, then
+	  using command() in an add_action() that returns zero.
+
 Sat Nov  2 17:41:50 EST 1996 (tim@wfn-shop.princeton.edu (Beek))
 	* raised patchlevel to v22b22
 	* fixed a bug in the parser that would prefer "There is no x ..."

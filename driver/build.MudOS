@@ -5,7 +5,7 @@ if test $# -ne 0; then
         develop)
 	    echo Preparing to build developmental version of MudOS driver ...
 	    OPTIMIZE="-Wall -DPEDANTIC -pedantic"
-	    DEBUG="-g -DDEBUG"
+	    DEBUG="-g -DDEBUG -DDEBUG_MACRO"
             ;;
         debug)
 	    echo Preparing to build debugging version of MudOS driver ...
@@ -122,6 +122,9 @@ INSTALL_DIR="../etc"
 # used by ioctl on some systems.
 #NEED_OLD_CPP=-traditional-cpp
 
+# Location of libmsgql.a, if you are using PACKAGE_DB
+#EXTRALIBS=-L/usr/local/lib -lmsql
+
 ####### END OF USER CONFIGURABLE OPTIONS
 
 echo "Trying out some stuff to see what works; ignore errors ..."
@@ -217,8 +220,8 @@ fi
 # are we using gcc on a 486?
 #
 if test $GNUC; then
-    tmp=`uname -a | grep i486`
-    if test "x$tmp" != "x"; then
+    tmp=`uname -m`
+    if test "x$tmp" = "xi486" -o "x$tmp" = "xi586"; then
         OPTIMIZE="$OPTIMIZE -m486"
     fi
 fi
@@ -389,6 +392,8 @@ echo CFLAGS=$CFLAGS >>Makefile.tmp
 echo CC=$CC >>Makefile.tmp
 echo YACC=$YACC >>Makefile.tmp
 echo RANLIB=$RANLIB >>Makefile.tmp
+echo A=a >>Makefile.tmp
+echo O=o >>Makefile.tmp
 
 echo "***************** Configuration completed **************"
 echo "Installing MudOS on $ARCH"

@@ -14,5 +14,5 @@ int direct_knock_on_obj()
 
 void knock_knock(string name)
 {
-  this_body()->targetted_action("$N $vrap on $t.\n", this_object());
+  this_body()->targetted_action("$N $vrap on $t.", this_object());
 }

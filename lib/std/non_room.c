@@ -12,8 +12,6 @@ inherit COMPLEX_CONTAINER;
 inherit M_ITEMS;
 inherit __DIR__ "room/exits";
 
-int this_look_is_forced;
-
 string stat_me()
 {
     return sprintf("Location: %s [ %s ]\n\n",
@@ -54,7 +52,7 @@ void mudlib_setup()
 
 string get_location_description()
 {
-  return (environment(this_object())->long_without_object(this_object()));
+  return environment(this_object())->long_without_object(this_object());
 }
 
 //:FUNCTION as_location_short
@@ -70,12 +68,9 @@ string get_brief()
 
 //:FUNCTION do_looking
 //print out the description of the current room
-void do_looking(int forced_look)
+void do_looking(int force_long_desc)
 {
-    // This probably shouldn't be done in a global variable,
-    // instead it should be passed to long(), but long does
-    // not take args anywhere else...
-    this_look_is_forced = forced_look;
+//### how to use force_long_desc ??
 
     if ( wizardp() && get_user_variable("show_loc") )
     {

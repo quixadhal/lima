@@ -9,7 +9,6 @@
 //### doc forthcoming...
 */
 
-#include <mudlib.h>
 #include <hooks.h>
 
 mixed call_hooks(string, int);
@@ -38,8 +37,6 @@ int openable() { return 1; }
 int query_closed() { return closed; }
 
 void set_closed(int x) { 
-  string* adjs;
-  
   closed = x; 
   hook_state("extra_short", "open", !closed);
   hook_state( "extra_short", "closed", closed);

@@ -10,10 +10,10 @@
 #include "std.h"
 #include "lpc_incl.h"
 #include "file_incl.h"
-#include "debug.h"
 #include "lint.h"
 #include "include/localtime.h"
 #include "port.h"
+#include "crypt.h"
 
 /* get a value for CLK_TCK for use by times() */
 #if (defined(TIMES) && !defined(RUSAGE))
@@ -22,9 +22,38 @@
 #endif
 
 #ifdef F_CRYPT
+#define SALT_LEN	8
+
 void
 f_crypt PROT((void))
 {
+    char *res, *p, salt[SALT_LEN + 1];
+    char *choice =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ./";
+
+    if (sp->type == T_STRING && SVALUE_STRLEN(sp) >= 2) {
+	p = sp->u.string;
+    } else {
+	int i;
+	
+	for (i = 0; i < SALT_LEN; i++)
+	    salt[i] = choice[random_number(strlen(choice))];
+
+	salt[SALT_LEN] = 0;
+	p = salt;
+    }
+    
+    res = string_copy(CRYPT((sp-1)->u.string, p), "f_crypt");
+    pop_stack();
+    free_string_svalue(sp);
+    sp->subtype = STRING_MALLOC;
+    sp->u.string = res;
+}
+#endif
+
+#ifdef F_OLDCRYPT
+void
+f_oldcrypt PROT((void)) {
     char *res, salt[3];
     char *choice =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ./";
@@ -39,11 +68,7 @@ f_crypt PROT((void))
         pop_stack();
     }
     salt[2] = 0;
-#if defined(sun) && !defined(SunOS_5)
-    res = string_copy(_crypt(sp->u.string, salt), "f_crypt");
-#else
-    res = string_copy(crypt(sp->u.string, salt), "f_crypt");
-#endif
+    res = string_copy(CRYPT(sp->u.string, salt), "f_crypt");
     free_string_svalue(sp);
     sp->subtype = STRING_MALLOC;
     sp->u.string = res;

@@ -28,10 +28,7 @@ inherit M_OPENABLE;
 inherit M_BLOCKEXITS;
 inherit M_KNOCKABLE;
 inherit M_MESSAGES;
-
-string our_ident;
-string our_dir;
-object cached_sibling;
+inherit M_SIBLING;
 
 private int block(string dir, object who) {
     if (query_closed()) {
@@ -46,49 +43,12 @@ void noisy(string arg) {
     object_event("The $o " + arg + ".\n");
 }
 
-int respond_to_door_ident(string id) {
-    return our_ident == id;
-}
-
-object get_sibling() {
-    if(!environment()) { ZABUG("ENV 0"); return 0; }
-    if (!cached_sibling) {
-	string tmp;
-	object ob;
-    
-	tmp = environment()->query_exit_value(our_dir);
-        if(!tmp) { ZABUG("NO EXIT VAL"); return 0; }
-	ob = load_object(tmp);
-        if(!ob) { ZABUG("NO LOAD"); return 0; }
-
-	foreach (object ob2 in all_inventory(ob)) {
-	    if (ob2->respond_to_door_ident(our_ident)) {
-		cached_sibling = ob2;
-		break;
-	    }
-	}
-    }
-    return cached_sibling;
-}
-
-void update_sibling() {
-    object ob;
-    if (ob = get_sibling())
-	ob->update_state(this_object());
-}
 
 void update_state(object ob) {
     m_openable::set_closed(ob->query_closed());
     m_lockable::set_locked(ob->query_locked(), ob->query_key_type());
 }
 
-private void initial_move() {
-    object ob;
-    // when we initially get moved to a room, check if our sibling already
-    // exits, and if so, get it's state.
-    if (ob = get_sibling())
-	update_state(ob);
-}
 
 void we_changed(string arg) {
     object ob;
@@ -97,10 +57,18 @@ void we_changed(string arg) {
     update_sibling();
 }
 
+
+void on_clone()
+{
+    object sib = get_sibling();
+    ::on_clone();
+    if( sib ) update_state( sib );
+}
+
+
+
 // should be called only once, from create.
 void setup_door(string ident, string dir) {
-    object ob;
-
     our_ident = ident;
     our_dir = dir;
 
@@ -112,7 +80,6 @@ void setup_door(string ident, string dir) {
     set_block_action( (: block :) );
     add_hook("open", (: we_changed, "opens" :));
     add_hook("close", (: we_changed, "closes" :));
-    add_hook("move", (: initial_move :));
 }
 
 varargs void set_locked(string x, string y) {

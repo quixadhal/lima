@@ -1,3 +1,5 @@
+# Do not remove the headers from this file! see /USAGE for more info.
+
 is= secret door
 
 primary_id= door
@@ -20,9 +22,6 @@ setup[string dir]:
   end
 
 ---
-mixed do_on_close();
-mixed do_on_open();
-
 void update_sibling()
 {
     object sibling = get_sibling();

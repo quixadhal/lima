@@ -7,7 +7,7 @@
 
 #include <ports.h>
 
-#define MY_URL sprintf("http://%s:%d/cgi/webed.c", __HOST__, PORT_HTTP)
+#define MY_URL sprintf("http://%s:%d/scgi/webed.c", __HOST__, PORT_HTTP)
 #include <security.h>
 
 inherit M_ACCESS;
@@ -82,7 +82,22 @@ string format_editor(string user, string password, string filename,
   output = output + "</table>\n";
   if (contents)
     {
-      output +="<hr><font size=+1><strong>Edit Window</strong></font><p>";
+	array inh;
+	object ob;
+
+	output +="<hr><font size=+1><strong>Editing: " + HTML_encode(filename) + "</strong></font><p>";
+	/*
+	if ((ob = load_object(filename)) && sizeof(inh = inherit_list(ob))) {
+	    string tmp;
+	    
+	    inh = ({ "<OPTION VALUE='" + HTML_encode(inh[0]) + "' SELECTED>" + HTML_encode(inh[0]) }) + map(inh[1..], (: "<OPTION VALUE='"+HTML_encode($1)+"'>"+HTML_encode($1) :));
+	    tmp = implode(inh, " ");
+	    
+	    output += "<SELECT NAME='inh'>" + tmp + "</SELECT>";
+	    output += "<INPUT name=loadinh type=submit value='Load Inherited File'><p>";
+	}
+	*/
+
       output += sprintf("<TEXTAREA name=contents ROWS=36 COLS=80 WRAP=off>"
 			"%s</TEXTAREA>\n", HTML_encode(contents));
 
@@ -230,7 +245,12 @@ string main(mapping form)
 	    }
 	  else
 	    {
-	      return format_editor(0,0,0,0);
+		if (form["loadinh"]) {
+		    form["loadfile"] = form["inh"];
+
+		    return load_file(form);
+		} else
+		    return format_editor(0,0,0,0);
 	    }
 	}
     }

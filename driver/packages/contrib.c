@@ -273,12 +273,17 @@ void f_functions PROT((void)) {
     unsigned short *types;
     char buf[256];
     char *end = EndOf(buf);
+    program_t *progp;
     
     if (sp->u.ob->flags & O_SWAPPED) 
 	load_ob_from_swap(sp->u.ob);
-    
-    num = sp->u.ob->prog->num_functions_total;
-    
+
+    progp = sp->u.ob->prog;
+    num = progp->num_functions_total;
+    if (num && progp->function_table[progp->num_functions_defined-1].name[0]
+	== APPLY___INIT_SPECIAL_CHAR)
+	num--;
+	
     vec = allocate_empty_array(num);
     i = num;
     
@@ -288,7 +293,7 @@ void f_functions PROT((void)) {
 	func_entry = FIND_FUNC_ENTRY(prog, index);
 
 	/* Walk up the inheritance tree to the real definition */
-	while (prog->function_flags[index] & NAME_INHERITED) {
+	while (prog->function_flags[index] & FUNC_INHERITED) {
 	    prog = prog->inherit[func_entry->inh.offset].prog;
 	    index = func_entry->inh.function_index_offset;
 	    func_entry = FIND_FUNC_ENTRY(prog, index);
@@ -450,7 +455,7 @@ void
 f_terminal_colour P2( int, num_arg, int, instruction)
 {
     char *instr, *cp, *savestr, *deststr, **parts;
-    int num, i, j, k, col, space, *lens, maybe_at_end;
+    int num, i, j, k, col, start, space, *lens, maybe_at_end;
     int space_garbage;
     mapping_node_t *elt, **mtab;
     int tmp;
@@ -534,6 +539,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 
     /* Do the the pointer replacement and calculate the lengths */
     col = 0;
+    start = -1;
     space = 0;
     maybe_at_end = 0;
     for (j = i = 0, k = sp->u.map->table_size; i < num; i++) {
@@ -584,8 +590,13 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 		    char c = p[z];
 		    if (c == '\n') {
 			col = 0;
+			start = -1;
 		    } else {
-			col++;
+			if (col > start || c != ' ')
+			    col++;
+			else
+			    j--;
+
 			if (c == ' ')
 			    space = col;
 			if (col == wrap+1) {
@@ -596,6 +607,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 				j++;
 				col = 1;
 			    }
+			    start = indent;
 			} else
 			    continue;
 		    }
@@ -636,6 +648,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 	char *pt = tmp;
 	
 	col = 0;
+	start = -1;
 	space = 0;
 	for (i = 0; i < num; i++) {
 	    int kind;
@@ -656,8 +669,13 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 		if (c == '\n') {
 		    col = 0;
 		    kind = 0;
+		    start = -1;
 		} else {
-		    col++;
+		    if (col > start || c != ' ')
+			col++;
+		    else
+			pt--;
+		    
 		    if (c == ' ') {
 			space = col;
 			space_garbage = 0;
@@ -671,6 +689,7 @@ f_terminal_colour P2( int, num_arg, int, instruction)
 			    col = 1;
 			    kind = 2;
 			}
+			start = indent;
 		    } else
 			continue;
 		}
@@ -910,6 +929,10 @@ char *pluralize P1(char *, str) {
 	break;
     case 'S':
     case 's':
+        if (!strcasecmp(rel + 1, "niff")) {
+	    found = PLURAL_SUFFIX;
+	    break;
+	}
 	if (!strcasecmp(rel + 1, "heep")) {
 	    found = PLURAL_SAME;
 	    break;
@@ -1024,7 +1047,8 @@ char *pluralize P1(char *, str) {
 	    }
 	    break;
 	case 'O': case 'o':
-	    suffix = "es";
+	    if (end[-2] != 'o')
+		suffix = "es";
 	    break;
 	case 'S': case 's':
 	    if (end[-2] == 'i') {
@@ -1206,7 +1230,7 @@ void f_replaceable PROT((void)) {
     num = prog->num_functions_total;
     
     for (i = 0; i < num; i++) {
-	if (prog->function_flags[i] & (NAME_INHERITED | NAME_NO_CODE)) continue;
+	if (prog->function_flags[i] & (FUNC_INHERITED | FUNC_NO_CODE)) continue;
 	for (j = 0; j < numignore; j++)
 	    if (ignore[j] == prog->function_table[FIND_FUNC_ENTRY(prog, i)->def.f_index].name)
 		break;
@@ -1617,9 +1641,11 @@ static int memory_share P1(svalue_t *, sv) {
 	}
 	return total + subtotal/sv->u.fp->hdr.ref;
     }
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	/* first byte is stored inside the buffer struct */
 	return total + (sizeof(buffer_t) + sv->u.buf->size - 1)/sv->u.buf->ref;
+#endif
     }
     return total;
 }

@@ -17,9 +17,11 @@ private int max_capacity = 10;
 private static int capacity;
 private mapping objects;
 private string main_prep = "in";
+private int hide_contents = 0;
 
 private int contained_light;
 private int contained_light_added;
+
 
 //:FUNCTION valid_prep
 //Overloaded by complex_container
@@ -77,7 +79,6 @@ int query_max_capacity()
 mixed receive_object( object target, string relation )
 {
     int x,m;
-    object ob;
 
     if( target == this_object() )
 	return "You can't move an object inside itself.\n";
@@ -131,7 +132,6 @@ set_max_capacity(int x) {
 //a different relation) of the object
 string look_in( string relation )
 {
-    object* obs;
     string inv;
     mixed ex;
 
@@ -139,8 +139,13 @@ string look_in( string relation )
     //A set of yes/no/error hooks which can prevent looking <relation> OBJ
     //The actual hook is prevent_look_<relation>, so to prevent looking
     //in something use prevent_look_in.
-    ex = call_hooks("prevent_look_" + relation, HOOK_YES_NO_ERROR);
-    if (!ex) ex = "That doesn't seem possible.";
+    //One can also use prevent_look_all to prevent all looks.
+    //This is called automatically by set_hide_contents()
+    ex = call_hooks("prevent_look" + relation, HOOK_YES_NO_ERROR);
+    if (ex == 1)
+	ex = call_hooks("prevent_look_all", HOOK_YES_NO_ERROR);
+    if (!ex)
+	ex = "That doesn't seem possible.";
     if (stringp(ex))
 	return ex;
 
@@ -155,6 +160,23 @@ string look_in( string relation )
 	capitalize(main_prep), short(),
 	inv ));
 }
+
+void set_hide_contents( int hide )
+{
+    hide_contents = hide;
+    if( hide )
+	add_hook( "prevent_look_all", 0 );
+    else 
+	remove_hook( "prevent_look_all", 0 );
+}
+
+
+// Needed for simul_efun::inv_list()
+int query_hide_contents()
+{
+    return hide_contents;
+}
+
 
 void mudlib_setup()
 {
@@ -214,8 +236,10 @@ string long()
 
     res = ::long();
     contents = inv_list(all_inventory(), 1);
-    if (inventory_visible() && contents)
+    if (!hide_contents && inventory_visible() && contents)
+    {
 	res += inventory_header() + contents;
+    }
     return res;
 }
 
@@ -264,6 +288,8 @@ void make_objects_if_needed()
 	    continue;
 
 #ifdef NOPE
+	if (!potential_object = load_object(file))
+	    error("Bad file name '" + file + "' in " + base_name());
 	oids = file->query_id();
 	if( pointerp(oids) && sizeof(oids) )
 	    name = oids[0];
@@ -285,6 +311,7 @@ void make_objects_if_needed()
 	    {
 		error("Initial clone failed for '" + file +"': " + ret + "\n");
 	    }
+         ob->on_clone();
 	}
     }
 }
@@ -450,11 +477,14 @@ mixed indirect_get_obj_from_obj(object ob1, object ob2) {
 	    return capitalize(the_short())+" is closed.\n";
 	}
     }
-    tmp = ob1;
+
+    if (!(tmp = ob1)) return 1;
+    
     while (tmp = environment(tmp)) {
-        if (tmp == ob2) break;
+	if (tmp == ob2) break;
     }
     if (!tmp) return capitalize(ob1->the_short()) + " is not " + main_prep + " " + the_short()+ "\n";
+    
     return 1;
 }
 
@@ -582,27 +612,27 @@ void resync_visibility()
 string stat_me()
 {
     return
-	"Container capacity: "+query_capacity()+"/"+max_capacity+"\n" +
-	"main_prep: " + main_prep + "\n" +
-	"It contains:\n"+ show_contents() + "\n" +
-	::stat_me();
+    "Container capacity: "+query_capacity()+"/"+max_capacity+"\n" +
+    "main_prep: " + main_prep + "\n" +
+    "It contains:\n"+ show_contents() + "\n" +
+    ::stat_me();
 }
 
 // If this is called, clean_up in /std/object has decided we might be
 // useless.  Make sure we don't have any 'people' inside us, though.
 int destruct_if_useless() {
     foreach (object ob in deep_inventory(this_object())) {
-        object link = ob->query_link();
+	object link = ob->query_link();
 
-        if (link && userp(link))
-            return ASK_AGAIN;
+	if (link && userp(link))
+	    return ASK_AGAIN;
     }
     return ::destruct_if_useless();
 }
 
 mapping lpscript_attributes() {
     return ::lpscript_attributes() + ([
-        "objects" : ({ LPSCRIPT_OBJECTS }),
-        "capacity" : ({ LPSCRIPT_INT, "setup", "set_max_capacity" }),
+      "objects" : ({ LPSCRIPT_OBJECTS }),
+      "capacity" : ({ LPSCRIPT_INT, "setup", "set_max_capacity" }),
     ]);
 }

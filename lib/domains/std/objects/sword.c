@@ -12,3 +12,8 @@ void setup() {
     add_combat_message("miss", "$N $vtake a clumsy swipe at $t, but only $vsucceed in making a fool of $r.\n");
 }
 
+
+mapping lpscript_attributes()
+{
+    return sword::lpscript_attributes() + m_valuable::lpscript_attributes();
+}

@@ -141,7 +141,7 @@ void report_something(string type, string input)
     if( !input || input == "" )
 	begin_report(type);
     else
-	short_report(type, input);
+	short_report(type, 0, input);
 
 #else
 

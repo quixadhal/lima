@@ -130,7 +130,7 @@ private nomask void init_cmd_hook()
 	write("\n>>You have new mail<<\n");
     }
 
-write( "\n" );
+    write( "\n" );
     naming_init_ids();
 
 #ifdef USE_MASS
@@ -143,10 +143,10 @@ write( "\n" );
 
     if (saved_items) {
 	string e;
-	
+
 	if (e = catch(load_from_string(saved_items, 1))) {
 	    mapping tmp = restore_variable(saved_items);
-	    
+
 	    if (tmp["#base_name#"] != base_name(this_object())) {
 		update_for_new_body(tmp);
 		tmp["#base_name#"] = base_name(this_object());
@@ -181,25 +181,25 @@ void enter_game(int state)
 	/* new user */
 	if (wizardp(link)) {
 	    write("\n"
-		  "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
-		  "Doing: wiz /on\n"
-		  "Doing: chan news /on   (you'll see when new news is posted.)\n"
-		  "Doing: gossip /on\n"
-		  "Doing: newbie /on\n"
-		  "Doing: announce /on\n"
-		  "\n");
-	    
+	      "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
+	      "Doing: wiz /on\n"
+	      "Doing: chan news /on   (you'll see when new news is posted.)\n"
+	      "Doing: gossip /on\n"
+	      "Doing: newbie /on\n"
+	      "Doing: announce /on\n"
+	      "\n");
+
 	    /* these will be registered later */
 	    channel_list = ({ "wiz", "news", "gossip",
-			      "newbie", "announce" });
-	    
+	      "newbie", "announce" });
+
 	    /* So the hapless new wizard doesn't get spammed. */
 	    set_ilog_time(time());
 	} else {
 	    write("\n"
-		  "Tuning in the newbie channel for you.  (newbie /on)\n"
-		  "Tuning in the gossip channel for you.  (gossip /on)\n"
-		  "\n");
+	      "Tuning in the newbie channel for you.  (newbie /on)\n"
+	      "Tuning in the gossip channel for you.  (gossip /on)\n"
+	      "\n");
 
 	    /* these will be registered later */
 	    channel_list = ({ "gossip", "newbie" });
@@ -209,7 +209,7 @@ void enter_game(int state)
 	/* existing user */
 	init_cmd_hook();
 	CHANNEL_D->deliver_emote("announce", query_name(),
-				 sprintf("enters %s.", mud_name()));
+	  sprintf("enters %s.", mud_name()));
 	/* move the body.  make sure this comes before the simple_action */
 	if ( !move_to_start() ) {
 	    write("Uh-oh, you have no environment.\n");
@@ -224,12 +224,12 @@ void enter_game(int state)
 
 	if ( wizardp(link) ) {
 	    DID_D->dump_did_info(query_ilog_time(),
-				 ({ "",
-					"Changes since you last logged in",
-					"********************************",
-					"" }),
-				 0,
-				 (: enter_game, 2 :));
+	      ({ "",
+		"Changes since you last logged in",
+		"********************************",
+		"" }),
+	      0,
+	      (: enter_game, 2 :));
 	    set_ilog_time(time());
 	    return;
 	}
@@ -335,7 +335,7 @@ void net_dead()
 	simple_action("$N $vhave gone link-dead.");
 
     CHANNEL_D->deliver_emote("announce", query_name(),
-			     sprintf("has gone link-dead.", mud_name()));
+      sprintf("has gone link-dead.", mud_name()));
 }
 
 //:FUNCTION reconnect
@@ -349,23 +349,50 @@ void reconnect(object new_link)
 	simple_action("$N $vhave reconnected.");
 
     CHANNEL_D->deliver_emote("announce", query_name(),
-			     sprintf("has reconnected.", mud_name()));
+      sprintf("has reconnected.", mud_name()));
 }
 
 //:FUNCTION die
 //This function is called when we die :-)
 void die()
 {
+/* Unavoidable historical problem.  I originally spec'ed die() as the function
+ * that got called when you died; i.e. it does whatever else needs to be done
+ * that the combat code hasn't already taken care of.
+ *
+ * Unfortunately, at some later date, someone decided that @ .me->die() should
+ * kill you, which is incompatible with the first definition.  Of course, they
+ * quickly found out that this leaves you only half dead or so, since only the
+ * extra stuff gets done.
+ *
+ * Some really clever person put a 'set_hp(0)' in here to fix that.  This
+ * tells the combat code to kill us.  Unfortunately, that means die() gets
+ * called *again*, resulting in this function running twice.
+ *
+ * In order to be compatible with both abu^H^H^Huses, the following check
+ * asks the combat code if it considers use dead already.  If we aren't
+ * dead, we ask the combat code to kill us.  If we were called by the
+ * combat code, we continue on and do the right thing.
+ *
+ * This fixes yet ANOTHER problem that klu^H^H^Hfeature introduced, which
+ * is that calling die() in dead people isn't a NOP like it should be.
+ * In that case, we now call the combat code to kill us, which notices
+ * we are already dead, and correctly does nothing.
+ */
+   if (!query_ghost()) {
+       set_hp(0);
+       return;
+   }
+
     if ( wizardp(link) )
     {
 	if(is_visible())
 	    simple_action("If $n $vwere mortal, $n would now no longer be mortal.");
-        set_hp(query_max_hp());
+	set_hp(query_max_hp());
 	stop_fight();
 	return;
     }
 
-    set_hp(0);
     if(is_visible())
 	simple_action("$N $vhave kicked the bucket, and $vare now pushing up the daisies.");
     receive_private_msg("\n\n   ****  You have died  ****\n\n"
@@ -382,7 +409,7 @@ void die()
 	//     (MESSAGES_D->get_messages("player_death"))[query_level()/5])[1];
 	string msg = action(({this_object()}), 
 	  MESSAGES_D->get_messages("player-death"))[1];
-    tell( bodies() - ({ this_body() }), msg );
+	tell( bodies() - ({ this_body() }), msg );
     }
 #endif
 }
@@ -404,8 +431,8 @@ int id(string arg)
 string stat_me()
 {
     string result = short() + "\n" +
-	"Userid: " + query_userid() + "\n" +
-	::stat_me();
+    "Userid: " + query_userid() + "\n" +
+    ::stat_me();
 
     if ( link )
 	result += link->stat_me();
@@ -415,8 +442,6 @@ string stat_me()
 
 private void create(string userid)
 {
-    int idx;
-
     if ( !clonep() )
 	return;
 
@@ -516,9 +541,9 @@ int ob_state()
 }
 
 
-void force_look()
+void force_look(int force_long_desc)
 {
-    environment(this_object())->do_looking(1,this_object());
+    environment(this_object())->do_looking(force_long_desc, this_object());
 }
 
 // Called when our environment destructs.  If we don't move, we get dested too.
@@ -576,7 +601,7 @@ void refresh_stats() {
 
 int hit_skill()
 {
-//### change to something based on skill...
+    //### change to something based on skill...
     return fuzzy_divide(query_agi(), 2);
 }
 

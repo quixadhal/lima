@@ -17,7 +17,6 @@
 
 #define F_SNOOPABLE	MakeFlag(PLAYER_FLAGS, 3)
 #define F_BRIEF		MakeFlag(PLAYER_FLAGS, 6)
-#define F_DISPLAY_PATH	MakeFlag(PLAYER_FLAGS, 8)
 
 // No longer used
 //#define F_INVIS		MakeFlag(PLAYER_FLAGS, 0)
@@ -26,6 +25,7 @@
 //#define F_ANNOUNCE	MakeFlag(PLAYER_FLAGS, 4)
 //#define F_ANSI		MakeFlag(PLAYER_FLAGS, 5)
 //#define F_DEAD		MakeFlag(PLAYER_FLAGS, 7)
+//#define F_DISPLAY_PATH	MakeFlag(PLAYER_FLAGS, 8)
 
 // non-persistent flags (they clear when you log off)
 

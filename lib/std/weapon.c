@@ -24,3 +24,7 @@ int indirect_kill_liv_with_obj()
   return 1;
 }
 
+mapping lpscript_attributes()
+{
+    return object::lpscript_attributes() + m_wieldable::lpscript_attributes() + m_wieldable::lpscript_attributes();
+}

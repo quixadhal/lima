@@ -36,7 +36,7 @@
  *        size) and a pad string are specified, the one specified second
  *        overrules).  NOTE:  to include "'" in the pad string, you must
  *        use "\\'" (as the backslash has to be escaped past the
- *        interpreter), similarly, to include "\" requires "\\\\".
+ *        interpreter), similarly, to include "\\" requires "\\\\".
  * The following are the possible type specifiers.
  *  "%"   in which case no arguments are interpreted, and a "%" is inserted, and
  *        all modifiers are ignored.
@@ -52,11 +52,12 @@
  */
 
 #include "std.h"
-#include "lpc_incl.h"
+#include "sprintf.h"
 #include "efuns_incl.h"
 #include "simul_efun.h"
 #include "lex.h"
 #include "stralloc.h"
+#include "master.h"
 
 #if defined(F_SPRINTF) || defined(F_PRINTF)
 
@@ -307,6 +308,10 @@ void svalue_to_string P5(svalue_t *, obj, outbuffer_t *, outbuf, int, indent, in
 	outbuf_add(outbuf, "lvalue: ");
 	svalue_to_string(obj->u.lvalue, outbuf, indent + 2, trailing, 0);
 	break;
+    case T_REF:
+	outbuf_add(outbuf, "ref: ");
+	svalue_to_string(obj->u.ref->lvalue, outbuf, indent + 2, trailing, 0);
+	break;
     case T_NUMBER:
 	numadd(outbuf, obj->u.number);
 	break;
@@ -349,9 +354,11 @@ void svalue_to_string P5(svalue_t *, obj, outbuffer_t *, outbuf, int, indent, in
 	    outbuf_add(outbuf, "})");
 	}
 	break;
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	outbuf_add(outbuf, "<buffer>");
 	break;
+#endif
     case T_FUNCTION:
 	{
 	    svalue_t tmp;
@@ -430,11 +437,19 @@ void svalue_to_string P5(svalue_t *, obj, outbuffer_t *, outbuf, int, indent, in
 		break;
 	    }
 
+	    outbuf_addchar(outbuf, '/');
 	    outbuf_add(outbuf, obj->u.ob->name);
 	    push_object(obj->u.ob);
-	    guard = 1;
-	    temp = safe_apply_master_ob(APPLY_OBJECT_NAME, 1);
-	    guard = 0;
+
+	    /* could be nonzero if we are called by the driver 
+	       [svalue_to_string] instead of sprintf(), and a sprintf() is
+	       in progress.  This can happen while trying to write error
+	       traces for errors in object_name(). */
+	    if (!guard) {
+		guard = 1;
+		temp = safe_apply_master_ob(APPLY_OBJECT_NAME, 1);
+		guard = 0;
+	    }
 	    if (temp && temp != (svalue_t *) -1 && (temp->type == T_STRING)) {
 		outbuf_add(outbuf, " (\"");
 		outbuf_add(outbuf, temp->u.string);
@@ -479,7 +494,7 @@ static void add_pad P2(pad_info_t *, pad, int, len) {
 	memset(p, ' ', len);
 }
 
-static INLINE void add_nstr P2(char *, str, int, len) {
+INLINE_STATIC void add_nstr P2(char *, str, int, len) {
     if (outbuf_extend(&obuff, len) != len)
 	ERROR(ERR_BUFF_OVERFLOW);
     memcpy(obuff.buffer + obuff.real_size, str, len);
@@ -1091,6 +1106,11 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 			cheat[i++] = '+';
 			break;
 		    }
+		    if (pres) {
+			cheat[i++] = '.';
+			sprintf(cheat + i, "%d", pres);
+			i += strlen(cheat + i);
+		    }
 		    switch (finfo & INFO_T) {
 		    case INFO_T_INT:
 			cheat[i++] = 'd';
@@ -1134,15 +1154,8 @@ char *string_print_formatted P3(char *, format_str, int, argc, svalue_t *, argv)
 #endif				/* RETURN_ERROR_MESSAGES */
 		    }
 		    cheat[i] = '\0';
-		    /*
-		     * Floatingpoint output fixed by hasse@solace.hsh.se
-		     * (Kniggit@VikingMud)
-		     */
+
 		    if (carg->type == T_REAL) {
-			if (pres) {
-			    sprintf(cheat, "%%.%df", pres);
-			    pres = 0;
-			}
 			sprintf(temp, cheat, carg->u.real);
 		    } else
 			sprintf(temp, cheat, carg->u.number);

@@ -64,7 +64,7 @@ mixed throw(object target)
 	else
 	{
 	    // Add skill stuff here...
-	    this_body()->targetted_action("$N $vthrow a $o at $t.  It bounces off of $p1 head, and lands in front of $p1 feet.\n", target, this_object());
+	    this_body()->targetted_action("$N $vthrow a $o at $t.  It bounces off of $p1 head, and lands in front of $p1 feet.", target, this_object());
 
 	    return 1;
 	}

@@ -168,7 +168,7 @@ mixed direct_kill_liv(object ob)
 {
 
     if(ob->query_ghost())
-     this_body()->simple_action("$N $vtry to attack a ghost.\n");
+     this_body()->simple_action("$N $vtry to attack a ghost.");
     return 1;
 }
 

@@ -28,7 +28,7 @@ private nomask void become_active(int start_time, string str)
     if(hours) printf("%d hours, ",hours);
     if(minutes) printf("%d minutes, ",minutes);
     printf("%d seconds.\n",num);
-    this_body()->other_action("$N $vreturn to ACTIVE status.\n");
+    this_body()->other_action("$N $vreturn to ACTIVE status.");
     this_body()->clear_flag(F_INACTIVE);
 }
 
@@ -36,7 +36,7 @@ private nomask void become_active(int start_time, string str)
 nomask private void main(string arg)
 {
     out("You place yourself in INACTIVE mode.  Press <ENTER> to return.\n");
-    this_body()->other_action("$N $vgo into INACTIVE mode.\n");
+    this_body()->other_action("$N $vgo into INACTIVE mode.");
     this_body()->set_flag(F_INACTIVE);
     modal_simple((: become_active, time() :));
 }

@@ -2,12 +2,9 @@
 
 inherit PORTAL;
 
-void setup ()
+void setup( string destination )
 {
-    set_flag( ATTACHED );
     set_long( "It's a glowing portal, set into the northern wall.");
     add_adj( "glowing", "northern", "north" );
-    set_id( "portal" );
-    set_destination( START );
     set_look_in_desc( "You can vaguely see a sandy beach.");
 }

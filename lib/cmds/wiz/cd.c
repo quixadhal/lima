@@ -14,6 +14,5 @@ private void main(mixed *arg)
     }
     
     this_user()->query_shell_ob()->set_pwd(fname);
-
     outf("new cwd: %s\n", fname);
 }

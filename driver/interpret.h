@@ -1,5 +1,8 @@
 /* interpret.h */
 
+/* It is usually better to include "lpc_incl.h" instead of including this
+   directly */
+
 #ifndef INTERPRET_H
 #define INTERPRET_H
 
@@ -53,7 +56,7 @@
 #define FRAME_OB_CHANGE    4
 #define FRAME_EXTERNAL     8
 
-typedef struct {
+typedef struct control_stack_s {
 #ifdef PROFILE_FUNCTIONS
     unsigned long entry_secs, entry_usecs;
 #endif
@@ -91,9 +94,6 @@ typedef struct error_context_s {
     svalue_t *save_sp;
     struct error_context_s *save_context;
 } error_context_t;
-
-/* for apply_master_ob */
-#define MASTER_APPROVED(x) (((x)==(svalue_t *)-1) || ((x) && (((x)->type != T_NUMBER) || (x)->u.number))) 
 
 #define IS_ZERO(x) (!(x) || (((x)->type == T_NUMBER) && ((x)->u.number == 0)))
 #define IS_UNDEFINED(x) (!(x) || (((x)->type == T_NUMBER) && \
@@ -217,6 +217,11 @@ typedef struct error_context_s {
 				  sp->u.string = (x);\
 				  )
 
+#define FOREACH_LEFT_GLOBAL 1
+#define FOREACH_RIGHT_GLOBAL 2
+#define FOREACH_REF 4
+#define FOREACH_MAPPING 8
+
 extern program_t *current_prog;
 extern short caller_type;
 extern char *pc;
@@ -238,6 +243,11 @@ extern int simul_efun_is_loading;
 extern program_t fake_prog;
 extern svalue_t global_lvalue_byte;
 extern int num_varargs;
+extern int st_num_arg;
+extern svalue_t const0;
+extern svalue_t const1;
+extern svalue_t const0u;
+extern svalue_t apply_ret_value;
 
 /* with LPC_TO_C off, these are defines using eval_instruction */
 #ifdef LPC_TO_C
@@ -264,8 +274,10 @@ INLINE void copy_and_push_string PROT((char *));
 INLINE void share_and_push_string PROT((char *));
 INLINE void push_array PROT((array_t *));
 INLINE void push_refed_array PROT((array_t *));
+#ifndef NO_BUFFER_TYPE
 INLINE void push_buffer PROT((buffer_t *));
 INLINE void push_refed_buffer PROT((buffer_t *));
+#endif
 INLINE void push_mapping PROT((mapping_t *));
 INLINE void push_refed_mapping PROT((mapping_t *));
 INLINE void push_class PROT((array_t *));
@@ -283,6 +295,7 @@ void remove_object_from_stack PROT((object_t *));
 void setup_fake_frame PROT((funptr_t *));
 void remove_fake_frame PROT((void));
 void push_indexed_lvalue PROT((int));
+void setup_variables PROT((int, int, int));
 
 void process_efun_callback PROT((int, function_to_call_t *, int));
 svalue_t *call_efun_callback PROT((function_to_call_t *, int));
@@ -300,9 +313,6 @@ void call___INIT PROT((object_t *));
 array_t *call_all_other PROT((array_t *, char *, int));
 char *function_exists PROT((char *, object_t *, int));
 void call_function PROT((program_t *, int));
-svalue_t *apply_master_ob PROT((char *, int));
-svalue_t *safe_apply_master_ob PROT((char *, int));
-void init_master PROT((char *));
 void mark_apply_low_cache PROT((void));
 void translate_absolute_line PROT((int, unsigned short *, int *, int *));
 char *add_slash PROT((char *));

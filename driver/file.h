@@ -1,6 +1,8 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include "lpc_incl.h"
+
 /*
  * file.c
  */

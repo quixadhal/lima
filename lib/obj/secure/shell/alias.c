@@ -212,9 +212,6 @@ mixed expand_alias(string input)
   string expanded_input;
   int numargs = sizeof(argv) - 1;
   int i, j;
-  string tmp;
-  mixed tmp2;
-
 
   xverb_matches = filter_array(xaliases, (: strsrch($2, $1) == 0 :), argv[0]);
   switch(sizeof(xverb_matches))

@@ -1,7 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 private int num_eats;
-private mixed eat_action = "$N $veat $o";
+private int original_eats;
+private mixed eat_action = "$N $veat $o.";
 private mixed last_eat_action;
 
 string the_short();
@@ -23,15 +24,25 @@ void set_last_eat_action(mixed action) {
 //:FUNCTION set_num_eats
 //num_eats is the number of eats left before the object is empty.
 void set_num_eats(int num) {
+original_eats = num;
     num_eats = num;
 }
 
-mixed direct_bite_obj() {
-object who= environment(this_object());
+int get_num_eats()
+{
+    return num_eats;
+}
 
-ZBUG( ({ who, this_body(), environment(this_body()) }) );
-if(  who != this_body() && who != environment(this_body()) )
-   return "#You don't have that.\n";
+int get_original_eats()
+{
+    return original_eats;
+}
+
+mixed direct_bite_obj() {
+    object who= environment(this_object());
+
+    if(  who != this_body() && who != environment(this_body()) )
+	return "#You don't have that.\n";
     if (!num_eats)
 	return capitalize(the_short()) + " is gone.\n";
 
@@ -40,16 +51,24 @@ if(  who != this_body() && who != environment(this_body()) )
 
 void eat_it() {
     mixed action;
-    
-    if (num_eats == 1 && last_eat_action)
-	action = last_eat_action;
-    else
-	action = eat_action;
 
-    if (stringp(action))
-this_body()->simple_action(action, this_object());
+    if( num_eats == 1 )
+    {
+	if( last_eat_action ) action = last_eat_action;
+	else action = eat_action;
+	if( stringp( action ))
+	    this_body()->simple_action( action, this_object());
+	else evaluate( action );
+	this_object()->remove();
+    }
     else
-	evaluate(action);
-	
-    num_eats--;
+    {
+
+	if (stringp(eat_action))
+	    this_body()->simple_action(eat_action, this_object());
+	else
+	    evaluate(eat_action);
+
+	num_eats--;
+    }
 }

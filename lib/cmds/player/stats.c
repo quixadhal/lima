@@ -32,10 +32,10 @@ inherit CMD;
 private void main(string arg)
 {
     string name;
-    string e_info;
+    string e_info = 0;
     string * guilds;
-    string g_info;
-    string r_info;
+    string g_info = 0;
+    string r_info = "";
 
     out(SEP_MAJOR);
 
@@ -50,10 +50,9 @@ private void main(string arg)
 
 #ifdef USE_SKILLS
     e_info = sprintf("Eval: %d%%", this_body()->query_evaluation());
-#else
-    e_info = 0;
 #endif
 
+#ifdef USE_GUILDS
     guilds = this_body()->guilds_belong();
     if ( guilds )
     {
@@ -64,11 +63,7 @@ private void main(string arg)
 	else
 	    g_info = "Guild: " + guilds[0];
     }
-    else
-    {
-	/* guilds not being used */
-	g_info = 0;
-    }
+#endif
 
     if ( e_info && g_info )
 	outf("%s  %s\n", e_info, g_info);
@@ -81,8 +76,6 @@ private void main(string arg)
 
 #ifdef USE_RACES
     r_info = "Race: " + capitalize(this_body()->query_race());
-#else
-    r_info = "";
 #endif
 
     outf("Hp: %d (%d)   Sp: %d (%d)   %20s\n",

@@ -9,7 +9,6 @@ private void main( mixed *arg, mapping f)
 {
     object	target;
     mixed	output;
-    string	flag;
 
     target = arg[0];
     if( f["i"] )

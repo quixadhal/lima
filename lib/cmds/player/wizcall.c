@@ -13,7 +13,6 @@ void create()
 private void main(string arg)
 {
     object * wizlist;
-    object wiz;
 
     if ( !arg )
     {

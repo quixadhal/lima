@@ -2,9 +2,9 @@
 
 inherit CORPSE;
 
-void create()
+void mudlib_setup()
 {
-    ::create("adventurer");
+    ::mudlib_setup("adventurer");
 }
 
 void setup()

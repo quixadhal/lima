@@ -40,7 +40,14 @@ varargs nomask object find_body(string str, int even_linkdead)
 {
     object u = find_user(str, even_linkdead);
 
-    return u ? u->query_body() : 0;
+    if (u && (u = u->query_body())) return u;
+    
+    foreach (object b in bodies()) {
+	if (b->query_nickname() == str)
+	    return b;
+    }
+    
+    return 0;
 }
 
 

@@ -38,15 +38,21 @@ private object parent;
 
 private nomask string parent_name() {
     string path = base_name();
-    int idx = strsrch(path, "/", -1);
+    int idx;
 
+//### should be OB_ADMTOOL or something...
+    // the top level object has no parent
+    if ( path == "/obj/admtool/admtool2" )
+	return 0;
+
+    idx = strsrch(path, "/", -1);
     path = path[0..idx-1];
 
-    // for now
-    if (path == "/obj/admtool")
-	return 0;
-    else 
-	return path;
+    // anything in /obj/admtool should have admtool2 as the parent
+    if ( path == "/obj/admtool")
+	return "/obj/admtool/admtool2";
+
+    return path;
 }
 
 static void heading() {
@@ -54,16 +60,22 @@ static void heading() {
 }
 
 void write_menu() {
+    int maxlen = 0;	/* max length of "proto" field */
+
     heading();
-    
+
+    foreach (class command_info comm in commands)
+	if ( comm->proto && sizeof(comm->proto) > maxlen )
+	    maxlen = sizeof(comm->proto);
+
     foreach (class command_info comm in commands) {
 	string desc = comm->desc;
 	
 	if (comm->who)
-	    desc = desc + repeat_string(" ", 55 - strlen(desc) - strlen(comm->who)) + comm->who;
+	    desc = desc + repeat_string(" ", 70 - maxlen - strlen(desc) - strlen(comm->who)) + comm->who;
 	
 	if (comm->key)
-	    printf("  %1s %-16s - %s\n", comm->key, comm->proto || "", desc);
+	    printf("  %1s %-*s - %s\n", comm->key, maxlen, comm->proto || "", desc);
 	else
 	    write("\n");
     }

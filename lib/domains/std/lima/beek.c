@@ -11,9 +11,12 @@ void setup() {
     set_long("You can't tell much about him, and his description (\"This is a test\") isn't notable helpful.\n");
     
     set_options( ([
-	"hello" : "Hey there, what's up?",
+	"name" : "What is your name?",
+	"job" : "What is your job?"
     ]) );
     set_responses( ([
+	"name" : "I'm Beek.",
+	"job" : ({ "!raise", "What do you think this is?  An Ultima game??@@zork,rust1" }),
     ]) );
-    set_start( ({ "hello" }) );
+    set_start( ({ "name", "job" }) );
 }

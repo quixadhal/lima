@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 #include <setbit.h>
 
 inherit VERB_OB;
@@ -24,10 +23,10 @@ int open(object ob, object with)
 	if (with->is_weapon() && ob->test_flag(DESTROYABLE)) {
 	    this_body()->simple_action("$N $vchop a $o up into itty bitty pieces with $p $o1 in a rather violent attempt to open it.", ob, with);
 	    ob->remove();
-	    return;
+	    return 1;
 	}
     }
-    ob->open_with(with);
+    return ob->open_with(with);
 }
 
 void do_open_obj_with_obj(object ob1, object ob2) {

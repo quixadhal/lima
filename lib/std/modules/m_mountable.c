@@ -7,6 +7,13 @@ string the_short();
 string short();
 
 
+string show_exits()
+{
+    object env = environment();
+    return (env ? env->show_exits() : "none");
+}
+
+
 static void set_get_on_msg(string s)
 {
   mount_msg = s;

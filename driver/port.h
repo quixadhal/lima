@@ -7,7 +7,7 @@
 #ifndef _FUNC_SPEC_
 int random_number PROT((int));
 int get_current_time PROT((void));
-char *time_string PROT((int));
+char *time_string PROT((time_t));
 void init_usec_clock PROT((void));
 void get_usec_clock PROT((long *, long *));
 int get_cpu_times PROT((unsigned long *, unsigned long *));

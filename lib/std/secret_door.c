@@ -23,9 +23,3 @@ private int block()
     }
     return 1;
 }
-
-
-void setup_door( string ident, string dir )
-{
-    ::setup_door( ident, dir );
-}

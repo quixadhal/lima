@@ -113,7 +113,7 @@ private void resync() {
 //it should be refered to
 string short()
 {
-    if(!is_visible())
+    if (!is_visible())
 	return invis_name();
     return evaluate(internal_short);
 }
@@ -175,8 +175,8 @@ int plural_id( mixed arg ) {
 /****** add_ ******/
 
 //:FUNCTION add_adj
-//Add an adjective.  The first adjective becomes the primary adjective.
-//See add_secondary_id if you don't want that.
+//:Adds adjectives.  The first one _DOES NOT_ become the prim
+//:primary adjective when using add_adj().
 void
 add_adj(string array adj... )
 {

@@ -1,16 +1,15 @@
 /* 92/04/18 - cleaned up stylistically by Sulam@TMI */
 #include "std.h"
-#include "config.h"
 #include "lpc_incl.h"
 #include "backend.h"
 #include "comm.h"
 #include "replace_program.h"
-#include "debug.h"
 #include "socket_efuns.h"
 #include "swap.h"
 #include "call_out.h"
 #include "port.h"
 #include "lint.h"
+#include "master.h"
 
 #ifdef WIN32
 #include <process.h>
@@ -30,7 +29,7 @@ object_t *current_heart_beat;
 static void look_for_objects_to_swap PROT((void));
 static void call_heart_beat PROT((void));
 
-#ifdef DEBUG
+#if 0
 static void report_holes PROT((void));
 #endif
 
@@ -206,10 +205,8 @@ void backend()
 	/*
 	 * call heartbeat if appropriate.
 	 */
-	if (heart_beat_flag) {
-	    debug(512, ("backend: HEARTBEAT\n"));
+	if (heart_beat_flag)
 	    call_heart_beat();
-	}
     }
 }				/* backend() */
 
@@ -273,11 +270,7 @@ static void look_for_objects_to_swap()
 	 */
 	if ((ob->flags & O_WILL_RESET) && (ob->next_reset < current_time)
 	    && !(ob->flags & O_RESET_STATE)) {
-#ifdef DEBUG
-	    if (d_flag) {
-		debug_message("RESET /%s\n", ob->name);
-	    }
-#endif
+	    debug(d_flag, ("RESET /%s\n", ob->name));
 	    reset_object(ob);
 	}
 #endif
@@ -298,10 +291,8 @@ static void look_for_objects_to_swap()
 		int save_reset_state = ob->flags & O_RESET_STATE;
 		svalue_t *svp;
 
-#ifdef DEBUG
-		if (d_flag)
-		    debug_message("clean up /%s\n", ob->name);
-#endif
+		debug(d_flag, ("clean up /%s\n", ob->name));
+
 		/*
 		 * Supply a flag to the object that says if this program is
 		 * inherited by other objects. Cloned objects might as well
@@ -331,10 +322,8 @@ static void look_for_objects_to_swap()
 		continue;
 	    if (ob->flags & O_HEART_BEAT)
 		continue;
-#ifdef DEBUG
-	    if (d_flag)
-		debug_message("swap /%s\n", ob->name);
-#endif
+
+	    debug(d_flag, ("swap /%s\n", ob->name));
 	    swap(ob);		/* See if it is possible to swap out to disk */
 	}
     }
@@ -403,9 +392,6 @@ static void call_heart_beat()
 #  endif
 #endif
 
-    debug(256, ("."));
-
-    current_time = get_current_time();
     current_interactive = 0;
 
     if ((num_hb_to_do = num_hb_objs)) {
@@ -573,7 +559,7 @@ int heart_beat_status P2(outbuffer_t *, ob, int, verbose)
  */
 void preload_objects P1(int, eflag)
 {
-    array_t *prefiles;
+    VOLATILE array_t *prefiles;
     svalue_t *ret;
     VOLATILE int ix;
     error_context_t econ;
@@ -609,10 +595,10 @@ void preload_objects P1(int, eflag)
 
 	eval_cost = max_cost;
 
-	push_svalue(prefiles->item + ix);
+	push_svalue(((array_t *)prefiles)->item + ix);
 	(void) apply_master_ob(APPLY_PRELOAD, 1);
     }
-    free_array(prefiles);
+    free_array((array_t *)prefiles);
     pop_context(&econ);
 }				/* preload_objects() */
 

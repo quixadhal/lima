@@ -46,6 +46,12 @@ mixed direct_talk_to_liv()
     return 1;
 }
 
+mixed direct_talk_with_liv()
+{
+    return 1;
+}
+
+
 void continue_conversation(object, string);
 
 void show_menu(object ob) 
@@ -92,7 +98,7 @@ void do_action(object ob, mixed action) {
 		else
 		    write("Error: invalid type response\n");
 	    }
-	    simple_action("$N $vare not sure what to say in response to that.\n");
+	    simple_action("$N $vare not sure what to say in response to that.");
 	    show_menu(ob);
 	}
     }
@@ -112,19 +118,18 @@ void continue_conversation(object ob, string input)
     string tmp;
     string response;
     string tag;
-    array exclude_parts;
     
     if (input == "q") {
 	return bye(ob);
     }
     if (sscanf(input, "%d%s", num, tmp) != 2 || tmp != "") {
 	simple_action("$N $vsuggest that you use the numbers to "+
-		      "indicate what you want to say.\n");
+		      "indicate what you want to say.");
 	show_menu(ob);
 	return;
     }
     if (num <= 0 || num > sizeof(current[ob])) {
-	simple_action("$N $vsuggest that you pick a legal option.\n");
+	simple_action("$N $vsuggest that you pick a legal option.");
 	show_menu(ob);
 	return;
     }

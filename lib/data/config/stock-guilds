@@ -19,7 +19,7 @@ banned = all
 
 name = stock-thief
 title = Guild of Thieves
-attributes = stock_guild, thief
+attributes = stock-guild, thief
 banned = all
 
 

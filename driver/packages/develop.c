@@ -147,9 +147,11 @@ f_refs PROT((void))
     case T_FUNCTION:
 	r = sp->u.fp->hdr.ref;
 	break;
+#ifndef NO_BUFFER_TYPE
     case T_BUFFER:
 	r = sp->u.buf->ref;
 	break;
+#endif
     default:
 	r = 0;
 	break;

@@ -1,6 +1,9 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+/* It is usually better to include "lpc_incl.h" instead of including this
+   file directly */
+
 /*
  * Definition of an object.
  * If the object is inherited, then it must not be destructed !
@@ -36,7 +39,9 @@
 #define O_RESET_STATE		0x80	/* Object in a 'reset':ed state ?    */
 #define O_WILL_CLEAN_UP		0x100	/* clean_up will be called next time */
 #define O_VIRTUAL		0x200	/* We're a virtual object            */
+#ifdef F_SET_HIDE
 #define O_HIDDEN		0x400	/* We're hidden from nonprived objs  */
+#endif
 #ifdef PACKAGE_SOCKETS
 #define O_EFUN_SOCKET           0x800	/* efun socket references object     */
 #endif
@@ -48,7 +53,9 @@
 #define O_COMPILED_PROGRAM      0x4000  /* this is a marker for a compiled   */
                                         /* program                           */
 #endif
-#define O_UNUSED                0x8000
+#ifndef NO_SNOOP
+#define O_SNOOP			0x8000
+#endif
 
 /*
  * Note: use of more than 16 bits means extending flags to an unsigned long
@@ -133,9 +140,9 @@ typedef struct object_s {
 #ifdef DEBUG
 #define add_ref(ob, str) SAFE(\
 			      ob->ref++; \
-			      if (d_flag > 1) \
-			      printf("Add_ref %s (%d) from %s\n", \
-				     ob->name, ob->ref, str);\
+			      debug(d_flag, \
+			      ("Add_ref %s (%d) from %s\n", \
+				     ob->name, ob->ref, str));\
 			      )
 #else
 #define add_ref(ob, str) ob->ref++
@@ -169,13 +176,17 @@ void call_create PROT((object_t *, int));
 void reload_object PROT((object_t *));
 void free_object PROT((object_t *, char *));
 object_t *find_living_object PROT((char *, int));
+#ifdef F_SET_HIDE
 INLINE int valid_hide PROT((object_t *));
 INLINE int object_visible PROT((object_t *));
+#else
+#define object_visible(x) 1
+#endif
 void set_living_name PROT((object_t *, char *));
 void remove_living_name PROT((object_t *));
 void stat_living_objects PROT((outbuffer_t *));
 void tell_npc PROT((object_t *, char *));
-void tell_object PROT((object_t *, char *));
+void tell_object PROT((object_t *, char *, int));
 int find_global_variable PROT((program_t *, char *, unsigned short *));
 void dealloc_object PROT((object_t *, char *));
 

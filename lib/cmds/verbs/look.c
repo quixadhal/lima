@@ -17,6 +17,12 @@ int need_to_be_alive() {
     return 0;
 }
 
+mixed can_look_wrd_obj(string wrd, object ob)
+{
+    if (wrd != "through" ) return 0;
+    else return 1;
+}
+
 mixed can_look_str(string str) {
 #if 0 // deprecated
     mixed value = environment(this_body())->query_exit_value(str);
@@ -27,7 +33,7 @@ mixed can_look_str(string str) {
 }
 
 void do_look() {
-    environment(this_body())->do_looking(1);
+    this_body()->force_look(1);
 #ifdef USE_STATUS_LINE
     if( this_body()->has_status_line()) this_body()->update_status_line();
 #endif
@@ -35,7 +41,7 @@ void do_look() {
 
 void do_look_at_obj(object ob, string name) {
     string str;
-    
+
     if (!(str = ob->get_item_desc(name)))
 	str = ob->long();
 
@@ -44,8 +50,6 @@ void do_look_at_obj(object ob, string name) {
 }
 
 void do_look_at_obs(array info, string name) {
-    string str;
-
     handle_obs(info, (: do_look_at_obj :), name);
 }
 
@@ -85,7 +89,7 @@ void do_look_obs_with_obj(array info, object o2) {
 void do_look_for_obj(object ob) {
     object env = environment(ob);
     string relation;
-    
+
     if (!env) {
 	// the room
 	write("You're on it!\n");
@@ -96,14 +100,20 @@ void do_look_for_obj(object ob) {
 	return;
     }
     if (environment(this_body()) == env) {
-//### we need a way to conjugate this
-	this_body()->my_action("The $o0 is right here!\n", ob);
+	//### we need a way to conjugate this
+	this_body()->my_action("The $o0 is right here!", ob);
+	return;
+    }
+    if(env->is_living())
+    {
+	this_body()->my_action("$O $vis carrying it.", env);
+	return;
     } else {
 	relation = env->query_prep(ob);
 
-	printf("%O %O\n", ob, env);
-	this_body()->my_action("The $o0 is " + relation + " the $o1.\n",
-			       ob, env);
+	// printf("%O %O\n", ob, env);
+	this_body()->my_action("The $o0 is " + relation + " the $o1.",
+	  ob, env);
     }
 }
 
@@ -112,15 +122,16 @@ string look_for_phrase(object ob) {
 
     if (env == environment(this_body()))
 	return "on the ground";
+    if(env->is_living())
+	return "carried by " + env->the_short();
     return env->query_prep(ob) + " " + env->the_short();
 }
 
 void do_look_for_obs(array info) {
     mixed ua;
-    array k;
     int i, n;
     string res;
-    
+
     /* ignore errors */
     info = filter(info, (: objectp :));
     ua = unique_array(info, (: look_for_phrase :));
@@ -139,24 +150,30 @@ void do_look_for_obs(array info) {
     write(res + ".\n");
 #if 0
     if (environment(this_body()) == env) {
-	this_body()->my_action("$O is right here!\n", ob);
+	this_body()->my_action("$O is right here!", ob);
     } else {
 	relation = env->query_prep(ob);
-	
-	this_body()->my_action("The $O is " + relation + " the $O.\n",
-			       ob, env);
+
+	this_body()->my_action("The $O is " + relation + " the $O.",
+	  ob, env);
     }
 #endif
 }
 
+mixed
+do_look_wrd_obj(string wrd, object ob)
+{
+ob->look(wrd);
+
+}
 array query_verb_info()
 {
     return ({ 
-         ({ "OBS:v", "OBS:v with OBJ" }), ({ "examine" }),
-	 ({ "", "at OBS:v", "for OBS:v", "STR OBJ:v",
-		"at OBS:v with OBJ" })
+      ({ "OBS:v", "OBS:v with OBJ" }), ({ "examine" }),
+      ({ "", "at OBS:v", "for OBS:v", "STR OBJ:v",
+	"at OBS:v with OBJ", "WRD OBJ", })
     });
-    
+
     /*
     ** "examine OBJ" -> "look OBJ"
     ** "examine OBS" -> "look OBS"
@@ -179,93 +196,3 @@ array query_verb_info()
     ** "stare down" -> "look down"
     */
 }
-
-
-#ifdef OLD_CODE
-
-#include <mudlib.h>
-
-inherit M_PARSING;
-
-static private string * mypreps;
-
-create()
-{
-    mypreps = ({"in","behind","under","with", "on", "down", "around" });
-}
-
-int look( int rule, mixed stack, mixed input )
-{
-    mapping ex;
-    object* obs;
-
-    switch( rule )
-    {
-    case 1:
-	environment( this_body() )->do_looking();
-	return 1;
-    case 2:
-	if( !stringp( stack[2] ) )
-	    write("Right here!\n");
-	else
-	    if( find_player( stack[2] ) )
-		printf("Search around a bit...\n");
-	    else
-		write("I'm sure that's around here somewhere...\n");
-	return 1;
-    case 3:
-	if( sizeof( stack ) == 5 && stack[1] == "at" &&
-	   (objectp(stack[2]) || pointerp(stack[2])) && stringp( stack[3] )
-	   && objectp( stack[4] ) )
-	{
-	    mixed p;
-
-	    p = condense_phrase( stack[2..4] );
-	    if( !pointerp( p ) )
-		return p;
-
-	    if( sizeof( p ) != 1 )
-		return write( "Try just looking at one thing "
-				   "at a time.\n" ), 0;
-
-	    return write( stack[2]-> long() ), 1;
-
-	}
-	if( sizeof( stack ) != 3 )
-	    return 0;
-	if( !objectp( stack[2] ) )
-	    return 0;
-	if( member_array(stack[1], mypreps) == -1)
-	    return 0;
-
-	return write( stack[2]->look_in(stack[1]) ), 1;
-    case 4:
-	stack = ({""}) + stack;
-
-    case 5:
-	if( stack[2] == environment( this_body() ) )
-	    return write(
-			 environment(this_body())->show_item_desc(input[8..])),1;
-	return write( stack[2]->long() ), 1;
-    case 6:
-	write( "Try just looking at one thing at a time.\n" );
-	return 0;
-    case 11:
-	stack = ({""})+stack;
-    case 7:
-	return write( stack[4]->use("look", stack[2] ) ), 1;
-    case 10:
-	ex = environment(this_body())->get_exits();
-	if ( member_array(ex, stack[1]) )
-	{
-	    write(find_object(ex[stack[1]])->
-		      remote_look(environment(this_body())));
-	    return 1;
-	}
-
-	write( "That doesn't seem to be possible.\n" );
-	return 1;
-    }
-}
-
-#endif /* OLD_CODE */

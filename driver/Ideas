@@ -25,12 +25,6 @@ granularities (microsecond?) may/may not be desirable.
 
 -----
 
-It would be nice if a | operator can be used for union on arrays.
-({"a","b","c"}) | ({"c","d"}) would be ({"a","b","c","d"}) it's more
-convenient than distinct_array(({"a","b","c"})+({"c","d"}) ).
-
------
-
 The names of includes which define no code don't have to be saved for
 line number purposes (although they are still needed for binaries; see
 the other note about merging the two lists)

@@ -1,5 +1,5 @@
 asnoop 		user str*
-cd		[dir]
+cd             [dir]
 clean		[obj]
 clone           [cfile]
 dest		obj

@@ -42,8 +42,6 @@ static void set_save_recurse(int flag) {  save_recurse = flag; }
 //saves an object into a string representation.
 varargs string save_to_string(int recursep) {
     string *tmpsaved;
-    string *values;
-    string ret;
     string var;
     mapping map = ([]);
 
@@ -71,7 +69,6 @@ void old_load_from_string(mixed value, int recurse) {
     string obj;
     object ob;
     int i;
-    string str;
     string *tmpsaved;
 
     if(!stringp(value))
@@ -143,7 +140,6 @@ void load_from_string(mixed value, int recurse) {
 	store_variable(var, val);
     }
     if (data["#inventory#"]) {
-      int c;
 	foreach(obj in data["#inventory#"]) {
 	    val = restore_variable(obj);
 	    if(!(ob = new(val["#base_name#"])))

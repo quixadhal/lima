@@ -1,0 +1,13 @@
+#
+# guilds -- guild specification file for the "std" domain
+#
+# Submitted via GULID_D->define_from_file("/domains/std/config/guilds")
+#
+# 970217, Deathblade: created
+#
+#
+
+name = cult of lima
+prospectus = The Cult of Lima is dedicated to the advocacy and promotion of the Lima Mudlib. They go to extreme lengths to "persuade" people to convert. The Cult has built a rather large following and can be rather fearsome to deal with. Their powers of persuasion are reknown throughout the land.
+title = The Cult of Lima
+attributes = cult, chaotic

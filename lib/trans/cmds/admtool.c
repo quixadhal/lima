@@ -8,10 +8,10 @@ inherit CMD;
 
 private void main(string arg)
 {
-    if (arg == "-n")
-	new("/obj/admtool/admtool2");
+    if (arg == "-o")
+	new(ADMTOOL);
     else if (arg)
 	write("Unknown option.\n");
     else
-	new(ADMTOOL);
+	new("/obj/admtool/admtool2");
 }

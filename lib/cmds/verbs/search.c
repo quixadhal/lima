@@ -10,39 +10,39 @@ inherit VERB_OB;
 
 mixed direct_search_obj(object ob1) { 
   if (ob1->can_search_me(0, 0)) return 1;
-  this_body()->other_action("$N $vsearch around.\n");
-  return "#You search around but find nothing useful.\n";
+  this_body()->other_action("$N $vsearch around.");
+  return "#You search around but find nothing useful.";
 }
 
 mixed direct_search_obj_with_obj(object ob1, object ob2) { 
   if (ob1->can_search_me(0, ob2)) return 1;
-  this_body()->other_action("$N $vsearch around.\n");
-  return "#You search around but find nothing useful.\n";
+  this_body()->other_action("$N $vsearch around.");
+  return "#You search around but find nothing useful.";
 }
 
 mixed can_search() {
   if (!environment(this_body())) return "You have no environment.\n";
   if (environment(this_body())->can_search_me(0, 0)) return 1;
-  this_body()->other_action("$N $vsearch around.\n");
+  this_body()->other_action("$N $vsearch around.");
   return "You search vaguely around, but find nothing interesting.\n";
 }
 
 mixed can_search_for_str(string str) {
   if (!environment(this_body())) return "You have no environment.\n";
   if (environment(this_body())->can_search_me(str, 0)) return 1;
-  this_body()->other_action("$N $vsearch around.\n");
+  this_body()->other_action("$N $vsearch around.");
   return "You can't find "+str+" here.\n";
 }
 
 mixed direct_search_for_str_in_obj(string str1, object ob1) { 
   if (ob1->can_search_me(str1, 0)) return 1;
-  this_body()->other_action("$N $vsearch around.\n");
+  this_body()->other_action("$N $vsearch around.");
   return "#You can't find "+str1+" in that.\n";
 }
 
 mixed direct_search_for_str_in_obj_with_obj(string str1, object ob1, object ob2) { 
   if (ob1->can_search_me(str1, ob2)) return 1;
-  this_body()->other_action("$N $vsearch around.\n");
+  this_body()->other_action("$N $vsearch around.");
   return "#You can't find "+str1+" in that.\n";
 }
 

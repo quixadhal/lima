@@ -117,7 +117,7 @@ string trace_line(object obj, string prog, string file, int line) {
 }
 
 varargs string standard_trace(mapping mp, int flag) {
-    string obj, ret;
+    string ret;
     mapping *trace;
     int i,n;
 
@@ -302,7 +302,7 @@ void log_error(string file, string message)
 {
     string name;
     string where, err, context;
-    string src, txt;
+    string src;
     int line;
 
     name = name_of_file_owner(file);
@@ -405,8 +405,7 @@ string parser_error_message(int kind, object ob, mixed arg, int flag) {
     case ERR_NOT_LIVING:
 	if (flag)
 	    return ret + "None of the " + pluralize(arg) + " are alive.\n";
-	else
-	    return ret + "The " + arg + " isn't alive.\n";
+		return ret + "The " + arg + " isn't alive.\n";
 	break;
     case ERR_NOT_ACCESSIBLE:
 	if (flag)
@@ -469,7 +468,7 @@ int valid_override(string file, string efun_name)
 {
     if(file[0] != '/')
     {
-      return 0;
+	return 0;
     }
     switch (efun_name) {
     case "pluralize":
@@ -520,16 +519,20 @@ string* epilog( int eflag )
 
 string object_name( object ob )
 {
+    object link;
+
     if ( !ob )
 	return "<destructed>";
 
     if ( interactive(ob) )
-	return ob->query_userid();
+	return ob->query_userid() + "'s link";
 
     if ( ob->is_living() )
-	if(ob = ob->query_link()) return ob->query_userid()+"'s body";
-	else
-	    return "NPC";
+	if(link = ob->query_link()) return link->query_userid()+"'s body";
+
+	/* uncomment when driver is more tolerant of errors in this function */
+	/*  return ob->short(); */
+    return 0;
 }
 
 
@@ -549,8 +552,6 @@ mixed valid_read(string path, string eff_user, string call_fun, object caller)
 
 mixed valid_write(mixed path, object caller, string call_fun)
 {
-    mixed foo;
-
     if (caller == this_object())
 	return 1;
     path = canonical_path(path);
@@ -568,8 +569,6 @@ mixed valid_write(mixed path, object caller, string call_fun)
 
 mixed valid_read(string path, object caller, string call_fun)
 {
-    mixed foo;
-
     if (caller == this_object())
 	return 1;
     if (file_name(caller)==SECURE_D && call_fun == "restore_object")
@@ -596,5 +595,11 @@ int valid_bind(object binder, object old_owner, object new_owner)
 
 int valid_save_binary()
 {
+    return 1;
+}
+
+private
+int slow_shutdown() {
+    "/trans/cmds/shutdown"->automatic_shutdown("out of memory");
     return 1;
 }

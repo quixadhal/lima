@@ -1,0 +1,132 @@
+ HOOKS - A Tutorial by Lathander
+ -------------------------------
+ 
+ Prototypes
+ ----------
+ varargs mixed call_hooks  (string tag, mixed kind, mixed start, 
+                            array args...);
+ void          add_hook    (string tag, function hook);
+ void          remove_hook (string tag, function hook);
+ 
+ 
+ Headers
+ ----------
+ inherit "/std/object/hooks";
+ #include <hooks.h>
+ 
+ 
+    This is just going to be a quick run through the concept and use of 
+ hooks.  I hope to make it clear, but if its not, let me know and I'll 
+ see if I can clarify it.  
+    After inheriting the hooks file, your object now contains a mapping
+ of hooks.  There can be as many hooks as you like.  However, all of the
+ hooks are grouped into sets with similar 'tag' names.
+ 
+    The first step to setting up a hook is to establish what it will do
+ in its local code.  You do this by adding a call_hooks() function.  In
+ our example, we'll do a hook that modify's a player's strength.
+ 
+ // Example Code in a player object.
+ // This code does not really exist.
+ int get_strength() {
+    int strength;
+ 
+    strength = 100;
+    ...
+    strength = call_hooks("modify_strength",HOOK_FILTER,0,strength);
+    ...
+    return strength;
+ }
+ 
+    In this example we're giving each function that has hooked the 
+ "modify_strength" tag in this object a chance to modify the player's 
+ strength.  This gives us the power of letting other objects modify this 
+ object's strength, without them having to touch this object's code.  
+ Once a hook is in place, it rarely has to be changed.
+    Whenever call_hooks() is called, it, in turn, calls every hook that 
+ has been put into this object with a particular tag.
+ 
+    The second step is to insert the actual hook into the object.  In 
+ this case, we'll have a set of Guantlets of Ogre Power which will insert 
+ a hook into a player to make them stronger when they wear it.
+ 
+    Here's an example for a set of Gauntlets of Ogre Power.  
+ 
+ void eventWear() {
+    ::eventWear();
+    environment(this())->add_hook("modify_strength", (: ogre_strength :));
+    message("event","You feel power course throu your muscles!\n",you());
+ }
+ 
+ int ogre_strength(int strength) {
+    return strength*11/10;
+ }
+ 
+ void eventRemove() {
+    ::eventRemove();
+    environment( this() )->
+       remove_hook("modify_strength",(: ogre_strength :));
+    message("event","You suddenly feel wimpy.\n",you());
+ }
+ 
+    
+    Now, whenever the player puts on the Gauntlets, the add_hook() is 
+ called on them.  The add_hook() links the tag "modify_strength" in the 
+ wearer with the function ogre_strength() in the gauntlets.  Whenever the 
+ wearer's object executes a call_hooks() with the tag "modify_strength" 
+ then the ogre_strength() function will get called with the args specified 
+ in the call_hooks() function.
+    Note that I called remove_hook() when the player took off the 
+ guantlets.  Don't forget to remove the hook or you may get very strange 
+ results.
+ 
+ mixed kind
+ ----------
+ 
+    Now, the call_hooks() function is much more complicated than I made it
+ first appear.  The mixed kind parameter to call_hooks() is the key to 
+ that.  Here's the possible values of kind, and a description of what 
+ they make call_hooks() do.
+ 
+    HOOK_IGNORE - Calls all hooks, but call_hooks() always returns zero.
+ 
+    HOOK_SUM    - Calls all hooks and adds their return values.  The
+                  return value of call_hooks() is the sum of the return 
+                  values.
+ 
+    HOOK_LAND   - Calls the hooks in a random order.  If *any* of the 
+                  hooks returns a zero, then call_hooks() returns a zero.
+                  (Logical And)
+ 
+    HOOK_LOR    - Calls the hooks in a random order.  If *any* of the
+                  hooks returns a one, then call_hooks() returns a one.
+                  (Logical Or)
+ 
+    HOOK_FILTER - Calls all of the hooks in a random order.  The first
+                  hook gets the regular args.  For successive functions,
+                  however, the first argument is the return value of
+                  the previous hook.  call_hooks() returns the value
+                  of the last hook.
+ 
+    HOOK_YES_OR_NO - Calls all of the hooks in a random order.  If any
+                  function returns a zero or a string, then call_hooks()
+                  returns that value and does not process any further
+                  hooks.  If all hooks are processed without returning
+                  a zero or a string, then a one is returned.
+ 
+    a string    - 'kind' can also be a string.  If it is a string, then
+                  the return value of the call_hooks() will be a string
+                  with all of the return values of all of the hooks
+                  concatenated.  The value of 'kind' will act as a 
+                  delimiter between strings.
+ 
+                 
+ Return value if there are no hooks.
+ -----------------------------------
+ 
+    If call_hooks() is called, but there are currently no hooks into that
+ object with the given tag value, then the return value is the same as
+ 'start'.  In other words, start is the defult return value.
+ 
+ 
+ 9/96 Lathander@Accursed Lands

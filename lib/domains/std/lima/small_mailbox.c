@@ -16,3 +16,9 @@ void setup() {
 	"leaflet" : 1
     ]) );
 }
+
+
+mapping lpscript_attributes()
+{
+    return container::lpscript_attributes() + m_openable::lpscript_attributes() + m_gettable::lpscript_attributes();
+}

@@ -23,6 +23,6 @@ int press(string n)
         call_out( (:present( "wall", environment( this_object()))->close() :), 8);
     }
     else
-	this_body()->simple_action("$N $vpress the button, but nothing happens.\n");
+	this_body()->simple_action("$N $vpress the button, but nothing happens.");
     return 1;
 }

@@ -1,0 +1,33 @@
+Ok, here are the files I made for a NEWS_D / bulletin board interface.
+They belong in the following directories:
+
+board.c       > /std
+
+followup.c   \
+replynote.c   \ all in /cmds/player
+delete.c      /
+post.c       /
+
+boarddata.c   > /std/body
+
+This interface actually require two changes to external files.
+In body.c, add a line
+
+inherit __DIR__ "body/boarddata.c";
+
+And in /obj/secure/mailers/mailer.c, change the function send_news_reply()
+to read:
+
+void send_news_reply(string subject, string * text, string * to)
+{
+    if ( base_name(previous_object()) != NEWSREADER )
+         if ( base_name(previous_object()) != "/cmds/player/replynote" )
+             error("security: attempted use by: " +
+               base_name(previous_object()) + "\n");
+
+    send_mail_message(subject, text, to, 0, 0);
+}
+
+I hope this is considered useful. Any comments are appreciated.
+
+--Fritti

@@ -89,3 +89,14 @@ mapping lpscript_attributes() {
         "gender" : ({ LPSCRIPT_GENDER }),
     ]);
 }
+
+string look_in( string relation )
+{
+    // only trap "in", since you may want something to be behind/on/under a living
+
+   if( relation == "in" )
+        return "With your X-Ray vision?";
+      else return ::look_in( relation );
+}
+
+

@@ -1,0 +1,29 @@
+This is probably Lima Bean specific, but may be a useful document on other
+MUDs despite that.  The following are a (not exhaustive) things we would like
+you to keep in mind while editing mudlib code:
+
+(1) try not to break things.
+
+Accidents happen, but, in general, someone who logs on after you've been
+working on something should find *most* things in working order.
+If you are working on something that is used fairly often,
+*be careful*.  Work on a copy in your directory before installing
+if necessary.
+
+(2) didlog *everything*
+
+Use the 'I' command.  Even if you think a change is insignificant, log
+it anyway.  This not only helps other coders keep track of what has happened,
+in the event that something breaks (see (1)) it helps people know where to
+look to fix it [and who to blame! :=)]  This can be the difference between
+a Minor Disaster [tm] and a Major Disaster [tm].
+
+(3) respect the original authors of the code you are editing
+
+Even if you are fixing something that is "obviously broken", the person
+who wrote the code may be aware of this, and have ideas on how it should
+be fixed.  In general, if you are making changes to someone else's code, you
+should at least run the ideas past them first.  Most of the time you'll get
+a "ff" (showemote ff), but it's good to ask just in case they had something
+else in mind.
+

@@ -1,68 +1,274 @@
-Beek added the 'std' domain; the directory exists but for some reason the domain entry no longer did?
+Beek added a lima.advocacy group just for the hell of it
 
-Beek converted the rest of the admtool modules
+Ohara notes that mailer no longer reports [1 of 0]
 
-Beek added a require_privilege() simul
+Ohara fixed /std/modules/m_lightable to catch attempting to light an already lit thing.
 
-Rust installed another FTP_D fix from myth, this time for mkdir
+Deathblade removed lima.advocacy. Sheesh...
 
-Zakk fixed rmpath to actually WORK.
+Zifnab installed tigrans changes to the news_d
 
-Zakk fixed rmpath to print out the new path correctly.
+Ohara put in tigran's reporter_d fix (line 144)
 
-Ohara notes: Minor COMPAT_BUSTER: /std/modules/m_wearable::set_is_on() is now set_worn() .. this only affected /std/armor.c
+Ohara notes that look for now differentiates between items carried by a living and items in a non-living container.
 
-Ohara added is_worn() to m_wearable .. unlike ob_state() it's a boolean.
+Deathblade fixed a problem with "q" from some menus in the new admtool. Switched to use new admtool by default. Altered formatting of menus to not reserve space for "proto" when not needed.
 
-Rust added POST support to HTTP_D
+Deathblade restored /open and /tmp from our Feb 14 4:30am (PST) backup.
 
-Rust installed a few more SOCKET fixes that will hopefully fix Cyberleader's bugs
+Deathblade added the /domains/std/config directory and put a guild config file in it.
 
-Rust wrote a mud editor.  You use it via the web.  Try: http://lima.mudlib.org:7881/cgi/webed.c    Hopefully people will find it a bit easier to use than ed...
+Deathblade began building the Cult of Lima (an example guild). From the wizroom, 1e 2s.
 
-Ohara fixed admtool so it would load .. OLF :)
+Deathblade updated the map to show the Cult.
 
-Valentino added the cmd 'do' after idea from Rust.
+Beek fixed direct_read_obj() to handle objects in other people's inventories correctly
 
-Tigran plan on returning to school to pursue a degree in Computer Science
+Beek made master()::object_name() return the short() of the object, if any.
 
-Beek added a "talk" verb
+Beek added a 'say' configurable colour
 
-Beek added M_CONVERSATION, which supports Ultima/Monkey Island style conversations with NPCs.
+Ohara notes that all strings passed through compose_message now postpend a \n (it was either that or code in every action function)
 
-Beek added /domains/std/greeter as an example use of M_CONVERSATION; it clones to the wizroom
+Deathblade fixed force_look() to use this_object() ... not previous_object(). bog.
 
-Beek made a number of changes to M_CONVERSATION, including adding some of Valentino's ideas.
+Deathblade cleaned out the OLD_CODE from give.c and look.c
 
-Beek started another small example area; /domains/std/lima/entrance.c
+Deathblade noticed that do_looking() was always called with force==1. I fixed up force_look and calls to it to correctly pass 0/1 based on context. NEW: only use body->force_look(int force_long_desc). Never call do_looking() in the environment. I "broke" the unworking force of long vs brief. It needs to be figured out.
 
-Deathblade updated bodies() to filter 0's.
+Deathblade upgraded the capabilities of M_SMARTMOVE with its processing of query_exit_msg() and query_enter_msg(). The functions may now return a two-elem array for self-msg and others-msg. See sandy_beach and outside_cave. Passing 0 for an elem means "no message". Other minor tweaks in the message processing (I may have broken vehicles; haven't tested yet)
 
-Deathblade updated the "who" command to be much more sane
+Deathblade fixed sandy_beach not to manually body->move() the player (BAD!). Replaced with body->move_to(destinaton, direction). That does all the right hook processing, message mgmt, etc. Related changes in outside_cave.
 
-Beek added a MudOS version check for /secure/check_config.
+Deathblade removed F_DISPLAY_PATH from M_SMARTMOVE. Not used. Proper way is defining the "show_loc" shell variable.
 
-Deathblade fixed up GUILD_GUARD: no more inheriting of the body's guilds, fixed check for guild membership and ally status. Fixed bug in GUILD_D for guild allies. Tightened security check in /std/body/guilds.c.
+Deathblade reinstalled the hack for brief/verbose
 
-Deathblade added /domains/std/map.c and put one into the wizroom.  It's an aid to figure out WTF is in the mud and where it is.
+Beek put ROOM_EXIT back in roomdesc.c
 
-Beek added a search option in news ('s'); no more complaining that you can't find the post on "foo" allowed!
+Beek added /help/wizard/adding_colours
 
-Deathblade added relational operators to LPSCRIPT_D::handle_infix(). yard.scr generates code okay now, but the "real" load bombs on not knowing query_money().
+Ohara notes that you can no longer look in a living (other preps are fine)
 
-Deathblade updated WELCOME to point out that the IP address of this machine is changing this weekend!!
+Deathblade moved the room state code into /std/room/state.c. Moved some long() processing from roomdesc.c into base_room. Simplified some stuff here by overriding get_base_long() in base_room.
 
-Ohara notes that you can now suicide ... joy oh joy :) This is _untested_ code .. but it'll hopefully work :)
+Ohara fixed put so that you can no longer put objects in livings.
 
-Deathblade added two design_decision documents: wizzes_can_dest_admins and hiding.
+Ohara fixed die() so that players don't give two death messages (die may still end up being called, but I can't see a better way to do it without breaking set_hp()
 
-Beek added search for author to the newsreader ('S')
+Ohara fixed the move post bug in the news_d
 
-Beek added a lima.undocumented group
+Ohara fixed the who at login bug
 
-Rust installed a imud who fix from andrew
+Ohara clipped the prev_ob() check from the soul_d for addemote .. this is so stupidemote and targetemote will work. There was no reason to keep it since addemote doesn't do any security either (rmemote check kept tho)
 
-Deathblade installed Burty's fix to SECURE_D to clean out domain info when a wizard is deleted.
+Ohara also put DL's fix for who at login (1 player. ... other fix was for 0 on)
 
-Beek fixed news search not to bug on removed articles
+Ohara is, for the forseeable future (touch large chunks of wood), back (in case you haven't noticed :)
+
+Beek fixed a crasher involving some extremely dubious code in master()::object_name()
+
+Beek added 'random2', which uses Markov chains to construct a random emote instead of just picking an existing one.
+
+Beek made 'random2 whatever' produce a random soul that contains the word 'whatever'
+
+Ohara notes that portals are now, by default, ATTACHED, and have an ID of portal.
+
+Beek added colour_center() to M_ANSI
+
+Ohara added FOOD. The apple now inherits from it. In the process, a bunch of minor enhancements were added to the apple and M_EDIBLE.
+
+Ohara ripped all set_gettable(1) from /domains/std
+
+Ohara notes that talk with LIV also works now.
+
+Ohara fixed all the lpscript warnings in /domains/std .. .we're going to have to watch it as lpscript stuff is added to modules which it isn't already in.
+
+Beek reduced random2's overhead a bit (-1 MB)
+
+Ohara notes that a small buglet was fixed in M_WEARABLE for muds with slots turned off.
+
+Ohara added set_display_empty to /std/container (but not complex_container yet) .. it stops the "In the foo you see: nothing" if unset.
+
+Beek dumped all the news to /ftp/news for people who want to read it offline; be warned it is nearly 1 MB.
+
+Beek added a list of examples to /WWW/index.html
+
+Ohara notes that the elevator door no longer errors.
+
+Ohara notes that objectless rooms no longer display the extra newline
+
+Beek made do_game_command() non-static; even if it should be static respond() allowed it to be called, so this doesn't introduce any new problems.
+
+Ohara added a fix to long() when OBVIOUS_EXITS_BOTTOM is deffed .. it doesn't display the "You also see" unless there are actually objects in the room. It doesn't give that for users only though .. whether this is a bug or a feature is undecided.
+
+Beek added hotlinks to inherited files to webed.
+
+Deathblade disabled webed until some critical security problems with it are fixed.
+
+Rust doesn't know who added code to webed to do stuff w/ inherit lists, but it didn't work right, so he commented it out.
+
+Rust made a scgi dir for cgi files needing to live in perm 1 places like webed.  The real place for them is /secure/cgi.  Also moved http_d to /secure/daemons.  This took 2 seconds, and didn't disable webed for this mud only (which was kinda lame)
+
+Beek fixed /daemons/imud/finger.c to be able to handle nonconforming I3 finger reply packets from NM IVr5 libs [level and plan fields missing]
+
+Tigran decided not to take out lpscript after receiving further advisement upon its potential assets
+
+Tigran oops..sorry guys..wrong mud
+
+Ohara fixed the labyrinth to differentiate between rooms with only one exit and those with more than one.
+
+Ohara added a check to ensure file used in GUILD_D->define_from_file() exists (errors nicely rather than gives the explode error it used to)
+
+Ohara overrode debug_info() until it's fixed (reported by Faust@Outworld)
+
+Beek made a /domains/std/misc directory for miscellaneous example code fragments
+
+Beek moved Krithtik's twinkie to /domains/std/misc
+
+Ohara installed Lathander's hooks document. It's very probably out of sync with the hooks in the lib, but I'm sure that someone has proofed it in the N months we've had it :) And it's a LOT better than nothing (Ta Lathander :)
+
+Deathblade fixed Ohara's override of debug_info() to tighten its security. Note: adminp() is NOT secure. check_privilege(1) *is* secure.
+
+Zakk almost got it
+
+Zakk would also like to point out to Ohara that was number 2.
+
+Ohara notes: minor COMPAT_BUSTER: set_drink_action/set_last_drink_action now do a this_body()->simple_action() by default (rather than a write()). This aligns them with M_EDIBLE, as well as being more sane.
+
+Ohara fixed another bug in die. wizzes no longer get turned into ghosts. Maybe.
+
+Ohara notes: minor compat_buster. BOOK now inherits M_GETTABLE. If you want (say) a book that's chained down, use set_gettable(0) or set_getmsg(...).
+
+Ohara folded the key stuff from the skeleton key into KEY
+
+Ohara notes that set_attached() now functions as set_attached(1)
+
+Ohara folded FLAME out of the magic_flame ... it's almost not worth an inherit but it's useful for lotsa fires so ..
+
+Ohara notes: Minor COMPAT_BUSTER: simple_action() etc.  now postpend \n automatically. Don't terminate actions with an explicit \n unless you want that extra line.
+
+Ohara thinks he caught everything that needed \n removed but there'll probably be stragglers ..
+
+Ohara notes that portal now takes a destination as its argument
+
+Ohara notes that you should probably do @.me->set_def_msgs( "living-default" ) to resync your messages
+
+Ohara notes that the set_needs_contents buglet in M_DRINK_CONTAINER is fixed (Reported by Krithtik)
+
+Ohara put back the \n check in compose_message. Shut Up Zakk. (The bright side is lotsa lovely terminating newlines are gone from strings. :)
+
+Beek put Andrew's channel.c (new version of /daemons/imud/channel.c that handles channel-t) in /contrib/incoming, in the hope that someone will have time to look at it/install it (*hint hint*)
+
+Ohara made /domains/std/attic/ and moved some files to it.
+
+Ohara folded M_SIBLING out from DOOR. DOOR now inherits it.
+
+Ohara tidied HIDDEN_DOOR somewhat.
+
+Ohara notes that titles now automatically prepend a %%^^RESET%%^^ .. may need to change a strlen to a color_strlen somewhere.
+
+Beek fixed M_MESSAGES to handle contractions and fixed the plural of "don't".  Also made the SOUL_D inherit M_GRAMMAR so "$vdon't" gets pluralized correctly.
+
+Deathblade noted that parameterized objects generally have the same file name, thereby messing up make_objects_if_needed(), and then realized that virtual obs work wonders here.  See /domains/std/recorder.c and /domains/std/recorder/button.c. [work in progess... Ohara is still fixing probs in the recorder.]
+
+Zifnab failed to read his mail thats why he didnt knwo why it wsa removed :(
+
+Zifnab oops typo :)
+
+Ohara added set_hide_contents() to container .. replaces set_display_empty, and is nicer.
+
+Ohara also added a prevent_look_all hook check (It's auto set in set_hide_contents, but people may want to add/remove it manually)
+
+Ohara finished the new version of the recorder .. Admittedly it's about double the size codewise of the original, but it's got more functionality, has less problems with handling the buttons, and doesn't do very much parsing at all. Old recorder is in attic/
+
+Ohara notes that /domains/std rooms are now in Zorkmud format: Ie: Example_Room.c rather than example_room.c - 2.4.5 .scr files are not, since I'm NOT going to handtinker all 5000 files .. :)
+
+Beek added code (master::slow_shutdown and shutdown::automatic_shutdown) to handle out of memory situations gracefully if a reserved size is specified in the runtime config file.
+
+Ohara rejigged the camera to use a separate object for the button, not a lot of diff from the original, but it means it doesn't have to do parsing.
+
+Ohara made numerous small fixes, cleanups, and enhancements to /domains/std/ objects.
+
+Beek cleaned up /log a bit, freeing up 14MB ... :-)
+
+Ohara added a call for ob->on_clone() in clone and /std/container/set_objects::make_ob_if_needed(). See large_oak_door/HIDDEN_DOOR/DOOR for example.
+
+Ohara notes that on_clone() should probably be strictly called on_move_to_container(), but on_clone() is easier to say and remember :)
+
+Ohara ripped the player uptime file since it hasn't been around for years.
+
+Ohara fixed a couple of non-valued returns in open::open() [Reported by Kodiak]
+
+Ohara moved Room4.c -> Weather_Room.c
+
+Ohara moved Room2.c -> Relations_And_Toys.c
+
+Ohara moved Room3.c -> attic/ ... this leaves barney a little orphanned but 1/ Room3 was orphanned anyway, 2/ We didn't need another dead room in /domains/std, 3/ Barney is evil and must be rm-ed
+
+Ohara scythed STAIRS  by about 25%, effectively. May be ever so slightly slower on the setup_messages, but ...
+
+Ohara added /std/object/move::give_me() and give_environment(). The camera uses give_environment() .. it replaces the new()/if(!ob->move()) code and will be put in a few places.
+
+Ohara changed that to give_new_obj() after seeing the Search_Room code :) .. the third argument is a recurse argument.
+
+Ohara moved beekjr and crowd into attic/ ... hopefully they'll decamp from ther sometime :)
+
+Ohara notes that books now default to SMALL, closed, and with an id of book
+
+Beek made canonical_path() preserve trailing slashes (required for compat get_dir() behavior on future drivers)
+
+Beek fixed a bunch of uses of 'ref' as a variable name
+
+Beek removed a ton of unused local variables
+
+Beek upgraded to v22.1b4
+
+Beek fixed the double death message problem.  I even did it correctly, which is more than I can say for the code I found from whoever else tried to fix it :-)
+
+Deathblade updated /obj/secure/socket.c to work with the new driver (change some private funcs to static). I also updated many callbacks to use funcptrs rather than strings, so I could retain the private. socket_connect() and socket_listen() don't take funcptrs yet (bog) so some funcs were changed to static.
+
+Ohara claims the old bogus code which he noted was bogus when he bogussed it. Then again noone had fixed it in the months prior to the bogussing, so sometimes bogussing is a good thing :)
+
+Ohara notes that yes he means that the bug was unfixed for _months_ after reportage :)
+
+Ohara would like to note that the set_hp(0) was in there PRIOR to his bogussing :) One of the _real_ codeguys can claim that beauty all by himself. <smiles sweetly>
+
+Beek added a bunch of get syns; for some reason 'take OBS' and 'carry OBS' were disallowed
+
+Beek uncommented the indirect_get_obj_from_obj code, and fixed it to handle ob1 == 0
+
+Beek moved Fritti's board files to /contrib
+
+Beek copied Hiccup's bboard stuff to /contrib/bboard
+
+Beek changed NEWS_D::{add,remove}_group to require Mudlib:daemons priv instead of checking if previous object was ADMTOOL (broken anyway, since it is now the news daemon module of admtool)
+
+Rust commented out memory_info()'s override.  We didn't crash.  I saw useful info.  It was cool, or something.
+
+Beek hac^H^H^Hfixed M_MESSAGES to do a better job recognizing contractions, and not be fooled by apostrophes that appear in other contexts
+
+Rust added a "properties" design descision document. See help properties
+
+Beek fixed the memory entry in admtool to sort in the correct direction
+
+Beek made the 'please trim' message have a 5 line "grace" period so that it doesn't print out nonsensical tihngs
+
+Beek added a fix from Fritti: rack_up_a_death() shouldn't use this_body()
+
+Beek added Onyx's container::set_objects() error message
+
+Beek added a system to news_d which tracks the ids of removed posts so that it is possible to count unread posts w/o touching them.  They should swap to disk easily now.
+
+Beek NEWS_D->get_messages(group, 1) now only returns ids of non-removed messages; NEWSREADER uses it instead of manually checking for blank bodies.
+
+Beek fixed news search
+
+Beek made find_body() check nicknames too.  Adds nickname support to a ton of things, including tell.
+
+Beek notes that 'dest', and evidentally all OBJ commands, take nicknames no.  Go figure.
+
+Deathblade cleaned up some unused local vars
+
+Beek added '/help/admin/editing'; admins ff to modify and/or extend it.
 

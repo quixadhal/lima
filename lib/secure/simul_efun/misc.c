@@ -125,10 +125,10 @@ mixed insert( mixed 	to_insert,
 }
 
 
-string parse_ref(string ref)
+string parse_ref(string Ref)
 {
 // If the first thing is a period, we can ignore it.
-    string s = ref[0] == '.' ? ref[1..] : ref;
+    string s = Ref[0] == '.' ? Ref[1..] : Ref;
     string result;
     string noun;
     string* pieces = explode(s,":");
@@ -151,7 +151,7 @@ string parse_ref(string ref)
 	else if ( load_object(evaluate_path(noun)) )
 	    result = "find_object(evaluate_path(\""+noun+"\"))";
 	else
-	    return ref;
+	    return Ref;
     }
 
     foreach ( noun in pieces )
@@ -174,9 +174,9 @@ string parse_ref(string ref)
     return result;
 }
 
-object parse_ref_into_obj(string ref)
+object parse_ref_into_obj(string Ref)
 {
-    string 	s = ref[0] == '.' ? ref[1..] : ref;
+    string 	s = Ref[0] == '.' ? Ref[1..] : Ref;
     object 	result;
     string 	noun;
     string	*pieces = explode(s,":");

@@ -24,7 +24,7 @@
 #define OBS_TOKEN	     ADD_MOD(OBJ_A_TOKEN, PLURAL_MODIFIER)
 #define LVS_TOKEN	     ADD_MOD(LIV_A_TOKEN, PLURAL_MODIFIER)
 
-#define MAX_NUM_OBJECTS      256
+#define MAX_NUM_OBJECTS      1024
 /* must be powers of 2 */
 #define HASH_SIZE            32
 #define VERB_HASH_SIZE       128
@@ -191,7 +191,7 @@ typedef struct saved_error_s {
     int obj;
 } saved_error_t;
 
-struct mu {
+struct ms {
     bitvec_t obs;
     int number;
 };
@@ -200,7 +200,7 @@ typedef struct {
     short token;
     short first, last;
     short ordinal;
-    struct mu val;
+    struct ms val;
 } match_t;
 
 typedef struct {

@@ -32,7 +32,7 @@ private nomask void get_one(object ob, object with_ob)
     if (tmp == MOVE_OK) {
 	write("Taken.\n");
 	ob->set_flag(TOUCHED);
-	this_body()->other_action("$N $vtake a $o.\n", ob);
+	this_body()->other_action("$N $vtake a $o.", ob);
 	return;
     }
     if (tmp == MOVE_NO_ERROR)
@@ -146,7 +146,7 @@ void do_get_wrd_str(string amount, string str)
 	ob->get(number, str);
 	return;
     } else {
-	this_body()->my_action("There are no coins here.\n");
+	this_body()->my_action("There are no coins here.");
     }
 }
 
@@ -159,9 +159,8 @@ array query_verb_info()
 {
     return 
 	({ 
-	    ({ "WRD STR", "OBS from OBJ", "OBS out of OBJ",
-		   "OBJ with OBJ" }), ({ "take", "carry" }),
-	    ({ "off", "off OBJ", "on OBJ" }), ({ }),
-	    ({ "OBS" }), ({ "pick up" })
+	    ({ "OBS", "WRD STR", "OBS from OBJ", "OBS out of OBJ",
+		   "OBJ with OBJ" }), ({ "take", "carry", "pick up" }),
+	    ({ "off", "off OBJ", "on OBJ" }), ({ })
 	});
 }

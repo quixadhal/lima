@@ -68,27 +68,15 @@ private void receive_search(int flag, string str) {
 
 private int count_unread_messages(string group, int all_messages)
 {
-    int * ids = NEWS_D->get_messages(group);
-    int id;
-    class news_msg msg;
-    int count = 0;
-    int read_thru_id;
+    int * ids = NEWS_D->get_messages(group, 1);
 
-    read_thru_id = get_current_id( group );
+    if ( !all_messages ) {
+	int read_thru_id = get_current_id( group );
 
-    if ( !all_messages )
-    {
 	ids = filter_array(ids, (: $1 > $(read_thru_id):));
     }
-    foreach ( id in ids )
-    {
-	msg = NEWS_D->get_message(group, id);
-	if ( msg->body )
-	{
-	    count++;
-	}
-    }
-    return count;
+    
+    return sizeof(ids);
 }
 
 
@@ -354,20 +342,17 @@ private nomask void next_group()
     }
 }
 
-private nomask varargs
-string format_message_line(int short_fmt, int id, int noremoved)
+private nomask
+string format_message_line(int short_fmt, int id)
 {
     class news_msg msg;
     string subject;
 
     msg = NEWS_D->get_message(current_group, id);
 
-    if ( !msg || !msg->body ) {
-	if (noremoved)
-	    return 0;
-	else
-	    return sprintf(short_fmt ? "%d. %s" : "%4d. %-35s", id, "(removed)");
-    } else
+    if ( !msg || !msg->body )
+	return sprintf(short_fmt ? "%d. %s" : "%4d. %-35s", id, "(removed)");
+    else
 	subject = msg->subject;
 
     return sprintf(short_fmt ? "%d. %s  [%s on %s]" :
@@ -383,7 +368,7 @@ private nomask void display_messages(int display_all)
     int *	ids;
     string *	lines;
 
-    ids = NEWS_D->get_messages(current_group);
+    ids = NEWS_D->get_messages(current_group, 1);
 
     if ( !display_all )
     {
@@ -393,7 +378,7 @@ private nomask void display_messages(int display_all)
 	ids = filter_array(ids, (: $1 > $(read_thru_id) :) );
     }
 
-    lines = map_array(sort_array(ids, 1), (: format_message_line(0, $1, 1) :)) - ({ 0 });
+    lines = map_array(sort_array(ids, 1), (: format_message_line(0, $1) :));
     lines = ({sprintf("Messages on %s are:", current_group)}) + lines + ({""});
     more(lines);
 }
@@ -1011,4 +996,3 @@ varargs nomask void begin_reading(string arg)
 
     display_groups_with_new(arg);
 }
-

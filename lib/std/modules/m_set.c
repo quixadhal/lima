@@ -10,7 +10,7 @@
  */
 
 string set_add(string set, int number) {
-    int idx, dash, nextidx;
+    int idx, nextidx;
     int lastidx, lastfirst, lastlast = -10;
     
     if (set == "") return set + number + "-" + number;
@@ -67,7 +67,7 @@ string set_add(string set, int number) {
 }
 
 string set_remove(string set, int number) {
-    int idx, dash, nextidx;
+    int idx, nextidx;
     
     if (set == "") return set;
 
@@ -120,7 +120,7 @@ string set_remove(string set, int number) {
 }
 
 int set_member(string set, int number) {
-    int idx, dash, nextidx;
+    int idx, nextidx;
     if (set == "") return 0;
     
     for (idx = 0, nextidx = member_array(',', set); 

@@ -25,12 +25,12 @@ void do_buy_str_from_liv(string str, object liv)
 	    }
 	    else
 	    {
-		this_body()->my_action("the shopkeeper says, \"I don't understand taht request.\"\n");
+		this_body()->my_action("the shopkeeper says, \"I don't understand that request.\"");
 	    }
 	}
 	else
 	{
-	    this_body()->my_action("The shopkeeper says, \"I don't understand that request.\"\n");
+	    this_body()->my_action("The shopkeeper says, \"I don't understand that request.");
 	}
     }
 }

@@ -69,6 +69,8 @@ gc_mapping P1(mapping_t *, m)
 	while ((elt = *prev)) {
 	    if (elt->values[0].type == T_OBJECT) {
 		if (elt->values[0].u.ob->flags & O_DESTRUCTED) {
+		    free_object(elt->values[0].u.ob, "gc_mapping");
+		    
 		    /* found one, do a map_delete() */
 		    if (!(*prev = elt->next) && !m->table[j])
 			m->unfilled++;
@@ -76,8 +78,7 @@ gc_mapping P1(mapping_t *, m)
 		    m->count--;
 		    total_mapping_nodes--;
 		    total_mapping_size -= sizeof(mapping_node_t);
-		    free_svalue(elt->values + 1, "gc_mapping");
-		    free_node(elt);
+		    free_node(m, elt);
 		    continue;
 		}
 	    } else {

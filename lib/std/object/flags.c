@@ -21,7 +21,7 @@
 
 #include <flags.h>
 
-// #define WONKY__USE_CLASS
+#define WONKY__USE_CLASS
 
 #ifdef WONKY__USE_CLASS
 private class flag_set_info

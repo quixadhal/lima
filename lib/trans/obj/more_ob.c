@@ -100,7 +100,6 @@ private void finish()
 
 private nomask void do_more(mixed arg) {
     int x;
-    string tmp;
 
     if (arg == -1) {
 	destruct(this_object());

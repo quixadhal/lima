@@ -1,5 +1,4 @@
 #include "std.h"
-#include "lpc_incl.h"
 #include "replace_program.h"
 #include "simul_efun.h"
 #include "swap.h"
@@ -22,20 +21,17 @@ void replace_programs()
     int i, num_fewer, offset;
     svalue_t *svp;
 
-#ifdef DEBUG
-    if (d_flag)
-	debug_message("start of replace_programs\n");
-#endif
+    debug(d_flag, ("start of replace_programs"));
+
     for (r_ob = obj_list_replace; r_ob; r_ob = r_next) {
 	program_t *old_prog;
 
 	if (r_ob->ob->flags & O_SWAPPED)
 	    load_ob_from_swap(r_ob->ob);
 	num_fewer = r_ob->ob->prog->num_variables_total - r_ob->new_prog->num_variables_total;
-#ifdef DEBUG
-	if (d_flag)
-	    debug_message("%d less variables\n", num_fewer);
-#endif
+
+	debug(d_flag, ("%d less variables\n", num_fewer));
+
 	tot_alloc_object_size -= num_fewer * sizeof(svalue_t[1]);
 	if ((offset = r_ob->var_offset)) {
 	    svp = r_ob->ob->variables;
@@ -65,10 +61,8 @@ void replace_programs()
 	r_ob->ob->prog = r_ob->new_prog;
 	r_next = r_ob->next;
 	free_prog(old_prog, 1);
-#ifdef DEBUG
-	if (d_flag)
-	    debug_message("program freed.\n");
-#endif
+
+	debug(d_flag, ("program freed."));
 #ifndef NO_SHADOWS
 	if (r_ob->ob->shadowing) {
 	    /*
@@ -94,10 +88,7 @@ void replace_programs()
 	FREE((char *) r_ob);
     }
     obj_list_replace = (replace_ob_t *) 0;
-#ifdef DEBUG
-    if (d_flag)
-	debug_message("end of replace_programs\n");
-#endif
+    debug(d_flag, ("end of replace_programs"));
 }
 
 #ifdef F_REPLACE_PROGRAM
@@ -106,41 +97,29 @@ static program_t *search_inherited P3(char *, str, program_t *, prg, int *, offp
     program_t *tmp;
     int i;
 
-#ifdef DEBUG
-    if (d_flag) {
-	debug_message("search_inherited started\n");
-	debug_message("searching for PRG(/%s) in PRG(/%s)\n", str, prg->name);
-	debug_message("num_inherited=%d\n", prg->num_inherited);
-    }
-#endif
+    debug(d_flag, ("search_inherited started"));
+    debug(d_flag, ("searching for PRG(/%s) in PRG(/%s)", str, prg->name));
+    debug(d_flag, ("num_inherited=%d\n", prg->num_inherited));
+
     for (i = 0; i < (int) prg->num_inherited; i++) {
-#ifdef DEBUG
-	if (d_flag) {
-	    debug_message("index %d:\n", i);
-	    debug_message("checking PRG(/%s)\n", prg->inherit[i].prog->name);
-	}
-#endif
+	debug(d_flag, ("index %d:", i));
+	debug(d_flag, ("checking PRG(/%s)", prg->inherit[i].prog->name));
+
 	if (strcmp(str, prg->inherit[i].prog->name) == 0) {
-#ifdef DEBUG
-	    if (d_flag)
-		debug_message("match found\n");
-#endif
+	    debug(d_flag, ("match found"));
+
 	    *offpnt = prg->inherit[i].variable_index_offset;
 	    return prg->inherit[i].prog;
 	} else if ((tmp = search_inherited(str, prg->inherit[i].prog,
 					  offpnt))) {
-#ifdef DEBUG
-	    if (d_flag)
-		debug_message("deferred match found\n");
-#endif
+	    debug(d_flag, ("deferred match found"));
+
 	    *offpnt += prg->inherit[i].variable_index_offset;
 	    return tmp;
 	}
     }
-#ifdef DEBUG
-    if (d_flag)
-	debug_message("search_inherited failed\n");
-#endif
+    debug(d_flag, ("search_inherited failed"));
+
     return (program_t *) 0;
 }
 
@@ -167,10 +146,8 @@ f_replace_program P2(int, num_arg, int, instruction)
 
     if (sp->type != T_STRING)
 	bad_arg(1, instruction);
-#ifdef DEBUG
-    if (d_flag)
-	debug_message("replace_program called\n");
-#endif
+    debug(d_flag, ("replace_program called"));
+
     if (!current_object)
 	error("replace_program called with no current object\n");
     if (current_object == simul_efun_ob)
@@ -200,10 +177,9 @@ f_replace_program P2(int, num_arg, int, instruction)
     }
     tmp->new_prog = new_prog;
     tmp->var_offset = var_offset;
-#ifdef DEBUG
-    if (d_flag)
-	debug_message("replace_program finished\n");
-#endif
+
+    debug(d_flag, ("replace_program finished"));
+
     free_string_svalue(sp--);
 }
 

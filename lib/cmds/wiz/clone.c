@@ -32,6 +32,7 @@ private void main( mixed *arg ) {
 	    out("Ok. (It is on the ground.)\n");
     } else
 	out("Ok. (It is in your inventory.)\n");
+    o->on_clone();
     return;
 }
 

@@ -120,3 +120,5 @@ void setup() {
 
     add_pattern("%s says: " + name + ", %s", (: do_command :));
 }
+
+

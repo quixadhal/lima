@@ -17,7 +17,7 @@ int deep_scan;
 string
 scan_object(object ob, int depth) {
     object *inv;
-    string tstr, tempstr, retstr, pad;
+    string tempstr, retstr, pad;
     int    i, l;
 
     pad = "";
@@ -44,7 +44,6 @@ private void main(mixed *arg, mapping flags)
 {
     string outstr;
     string objs;
-    string itemstr;
 
     deep_scan = !!flags["d"];
 

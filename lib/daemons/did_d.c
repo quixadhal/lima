@@ -13,9 +13,7 @@ inherit M_GLOB;
 mixed *did = ({ });
 
 int someone_did(string str) {
-    object *who;
-    object ob;
-    int i;
+    object array who;
 
     if( !is_directory( wiz_dir( this_body())))
     {
@@ -29,6 +27,7 @@ int someone_did(string str) {
     who = filter_array( users(), (: wizardp( $1 ):)) - ({ this_user() });
     who = who->query_body() - ({ 0 });
     who->ilog_hook(str);
+
     return 1;
 }
 

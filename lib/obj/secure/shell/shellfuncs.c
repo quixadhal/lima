@@ -55,7 +55,6 @@ static int
 bind(string command, string *argv)
 {
   string fname;
-  function func;
 
   if(sizeof(argv) != 1)
     return -1;
@@ -107,8 +106,8 @@ load_module(mixed argv)
   mapping finfo = ([]);
   mixed item;
   object  module_ob;
-  function* funcs = ({});
   string* funcnames = ({});
+
   if(!(stringp(argv) || (arrayp(argv) && sizeof(argv) == 1 && 
 			 stringp(argv=argv[0]))))
     return 0;
@@ -129,7 +128,6 @@ load_module(mixed argv)
     }
   module_func_names[argv] = funcnames;
   return 1;
-
 }
      
 

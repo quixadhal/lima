@@ -88,6 +88,7 @@ static varargs nomask void input_one_arg(
     string arg
     )
 {
+    ZBUG( ({ arg_prompt, fp, arg }) );
     if ( !arg )
     {
 	modal_simple(fp, arg_prompt);

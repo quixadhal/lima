@@ -1,10 +1,9 @@
 #include "std.h"
 #ifdef LPC_TO_C
 #define SUPRESS_COMPILER_INLINES
-#include "lpc_incl.h"
+#include "compile_file.h"
 #include "file_incl.h"
 #include "interface.h"
-#include "lex.h"
 #include "compiler.h"
 #include "md.h"
 #include "otable.h"
@@ -13,6 +12,7 @@
 #include "backend.h"
 #include "binaries.h"
 #include "cc.h"
+#include "master.h"
 #ifdef INCL_DLFCN_H
 #include <dlfcn.h>
 #endif
@@ -26,7 +26,7 @@ link_jump_table P2(program_t *, prog, void **, jump_table)
     int j;
 
     for (i = 0, j = 0; i < num; i++) {
-	if (prog->function_flags[funcs[i].runtime_index] & (NAME_NO_CODE | NAME_INHERITED)) continue;
+	if (prog->function_flags[funcs[i].runtime_index] & (FUNC_NO_CODE | FUNC_INHERITED)) continue;
 	if (jump_table[j])
 	    funcs[i].address = (unsigned long) jump_table[j];
 	else
@@ -84,9 +84,9 @@ static void compile_and_link P2(char *, file, char *, ident) {
     /* Do the compile */
     sprintf(command,
 #ifdef sgi
-	    "%s %s -shared -I%s -G 0 -o %s.so %s.c > %s 2>&1",
+	    "%s %s -c -shared -I%s -G 0 -o %s.so %s.c > %s 2>&1",
 #else
-	    "%s %s -shared -I%s -o %s.so %s.c > %s 2>&1",
+	    "%s %s -c -shared -I%s -o %s.so %s.c > %s 2>&1",
 #endif
 	    COMPILER, CFLAGS,
 	    "lpc2c", file, file, "lpc2c/errors");
@@ -97,14 +97,14 @@ static void compile_and_link P2(char *, file, char *, ident) {
     sprintf(tmp, "%s.so", file);
     handle = dlopen(tmp, RTLD_LAZY);
     if (!handle) {
-	sprintf(tmp, "dlopen() failed: %s", dlerror());
+	sprintf(tmp, "dlopen() failed: %s\n", dlerror());
 	error(tmp);
     }
     
     sprintf(tmp, "LPCINFO_%s", ident);
     interface = dlsym(handle, tmp);
     if (!interface) {
-	sprintf(tmp, "dlsym() failed: %s", dlerror());
+	sprintf(tmp, "dlsym() failed: %s\n", dlerror());
 	error(tmp);
     }
     
@@ -330,13 +330,14 @@ int generate_source P2(svalue_t *, arg1, char *, out_fname)
 	    fprintf(compilation_output_file, "extern interface_t LPCINFO_%s;\n", ident);
 	}
 	fprintf(compilation_output_file, "\n\ninterface_t *interface[] = {\n");
+	fprintf(makefile, "interface.o");
 	for (index = 0; index < arr->size; index++) {
 	    strip_name(arr->item[index].u.string, name, sizeof name);
 	    generate_identifier(ident, name);
 	    fprintf(compilation_output_file, "    &LPCINFO_%s,\n", ident);
-	    fprintf(makefile, "%s.o ", ident);
+	    fprintf(makefile, " %s.o", ident);
 	}
-	fprintf(makefile, "interface.o\nSRC=");
+	fprintf(makefile, "\nSRC=");
 	for (index = 0; index < arr->size; index++) {
 	    strip_name(arr->item[index].u.string, name, sizeof name);
 	    generate_identifier(ident, name);

@@ -12,3 +12,8 @@ void mudlib_setup()
     set_damage_kind("fire");
     set_weapon_class(5);
 }
+
+mapping lpscript_attributes()
+{
+    return weapon::lpscript_attributes() + m_lightable::lpscript_attributes();
+}
