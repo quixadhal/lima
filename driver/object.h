@@ -42,7 +42,7 @@
 #ifdef F_SET_HIDE
 #define O_HIDDEN		0x400	/* We're hidden from nonprived objs  */
 #endif
-#ifdef PACKAGE_SOCKETS
+#if defined(PACKAGE_SOCKETS) || defined(PACKAGE_EXTERNAL)
 #define O_EFUN_SOCKET           0x800	/* efun socket references object     */
 #endif
 #define O_WILL_RESET            0x1000	/* reset will be called next time    */
@@ -108,6 +108,7 @@ typedef struct object_s {
     struct object_s *super;	/* Which object surround us ? */
 #endif
     struct interactive_s *interactive;	/* Data about an interactive user */
+    char *replaced_program;	/* Program replaced with */
 #ifndef NO_LIGHT
     short total_light;
 #endif
@@ -137,6 +138,8 @@ typedef struct object_s {
     /* The variables MUST come last in the struct */
 } object_t;
 
+typedef int (* get_objectsfn_t) PROT((object_t *, void *));
+
 #ifdef DEBUG
 #define add_ref(ob, str) SAFE(\
 			      ob->ref++; \
@@ -156,11 +159,14 @@ typedef struct object_s {
 #define ROB_CLASS_ERROR 32
 #define ROB_ERROR 63
 
-extern object_t *hashed_living[CFG_LIVING_HASH_SIZE];
 extern object_t *previous_ob;
 extern int tot_alloc_object;
 extern int tot_alloc_object_size;
 extern int save_svalue_depth;
+extern object_t **cgsp;
+#ifdef F_SET_HIDE
+extern int num_hidden;
+#endif
 
 void bufcat PROT((char **, char *));
 INLINE int svalue_save_size PROT((svalue_t *));
@@ -175,19 +181,22 @@ void reset_object PROT((object_t *));
 void call_create PROT((object_t *, int));
 void reload_object PROT((object_t *));
 void free_object PROT((object_t *, char *));
-object_t *find_living_object PROT((char *, int));
 #ifdef F_SET_HIDE
 INLINE int valid_hide PROT((object_t *));
 INLINE int object_visible PROT((object_t *));
 #else
 #define object_visible(x) 1
 #endif
-void set_living_name PROT((object_t *, char *));
-void remove_living_name PROT((object_t *));
-void stat_living_objects PROT((outbuffer_t *));
 void tell_npc PROT((object_t *, char *));
 void tell_object PROT((object_t *, char *, int));
 int find_global_variable PROT((program_t *, char *, unsigned short *, int));
 void dealloc_object PROT((object_t *, char *));
+void get_objects PROT((object_t ***, int *, get_objectsfn_t, void *));
+#ifdef DEBUGMALLOC_EXTENSIONS
+void mark_command_giver_stack PROT((void));
+#endif
+void save_command_giver PROT((object_t *));
+void restore_command_giver PROT((void));
+void set_command_giver PROT((object_t *));
 
 #endif

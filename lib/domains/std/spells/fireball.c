@@ -5,7 +5,9 @@ inherit COMBAT_SPELL;
 
 void setup()
 {
-   set_spell_name("fireball");
+  set_spell_name("fireball");
+  set_combat_messages("combat-torch");
+  set_damage_type("magic");
 }
 
 int calculate_damage()

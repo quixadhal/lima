@@ -18,7 +18,7 @@ object drink_source;  //
 
 string the_short();
 string query_primary_id();
-int get_size();
+int query_size();
 void set_size( int x );
 void set_quantity( int x );
 void remove();
@@ -76,7 +76,7 @@ drink_source = load_object(source);
 
 
 int calculate_num_drinks(){
-  num_drinks = get_size() * drinks_per_unit + drinks_current_unit;
+  num_drinks = query_size() * drinks_per_unit + drinks_current_unit;
   return num_drinks;
 }
 
@@ -87,8 +87,8 @@ void reduce_drink_number(){
   if (!drinks_current_unit)
 	{
 	drinks_current_unit = drinks_per_unit;
-	set_size( get_size() - 1 );
-	set_quantity( get_size() );
+	set_size( query_size() - 1 );
+	set_quantity( query_size() );
 	};
   calculate_num_drinks();
   if ( !num_drinks ) remove();

@@ -23,10 +23,10 @@ make_ansi_string(string file, string path)
     string fname = path + file;
 
     if(is_dir(fname))
-	return "%^LS_DIR%^" + file + "%^RESET%^";
+        return "%^LS_DIR%^" + file + "%^RESET%^/";
     if(info[fname] && sizeof(info[fname]) == 3 &&
       intp(info[fname][2]) && info[fname][2])
-	return "%^LS_LOADED%^" + file + "%^RESET%^";
+        return "%^LS_LOADED%^" + file + "%^RESET%^*";
     return "%^LS_DEFAULT%^" + file + "%^RESET%^";
 }
 

@@ -1,0 +1,918 @@
+
+   [1]Back to the index
+   
+                    Scatter's Guide to the MudOS Parser
+                                      
+   One of the advanced features of the MudOS LPMud driver is the built in
+   natural language parser. This is at the same time one very useful and
+   very frustrating system. This guide is intended to help reduce the
+   latter and maximise the former. The parsing package appeared in MudOS
+   around version 21.6a4 but has been changed several times since then.
+   This guide is based on using MudOS v22.1 beta or v22.2 alpha versions.
+   The information presented here has been gained from four main sources:
+   
+     * [2]Beek's explanation of the parsing efuns
+     * [3]The Lima Mudlib
+     * [4]The rec.games.mud.lp newsgroup
+     * [5]The MudOS source code and ChangeLogs
+       
+   Plus lots of trial and error.
+   
+   The aim of this guide is to pull together all this information and
+   provide all the instructions you need to implement a command system
+   using the natural language parser. Please note that I describe the way
+   I've implemented my system - this is not the only way to do it and may
+   well not be the best way to do it, but it does work and should allow
+   enough understanding for you to implement other methods.
+   
+   Another guide to the MudOS parser has been written by George Reese and
+   can be found at
+   [6]http://ringbreak.dnd.utwente.nl/~krimud/Docs/NMAdmin/Parser/.
+     _________________________________________________________________
+   
+                           Contents of This Guide
+                                      
+     * [7]Initial Requirements for Objects
+          + [8]Efun: void parse_init()
+          + [9]Efun: void parse_refresh()
+          + [10]Apply: string *parse_command_id_list()
+          + [11]Apply: string *parse_command_adjective_id_list()
+          + [12]Apply: string *parse_command_plural_id_list()
+          + [13]Apply: int is_living()
+          + [14]Apply: int inventory_visible()
+          + [15]Apply: int inventory_accessible()
+     * [16]Initial Requirements for the Master Object
+          + [17]Apply: string *parse_command_id_list()
+          + [18]Apply: string *parse_command_adjective_id_list()
+          + [19]Apply: string *parse_command_plural_id_list()
+          + [20]Apply: string *parse_command_prepos_list()
+          + [21]Apply: string parse_command_all_word()
+          + [22]Apply: object *parse_command_users()
+          + [23]Apply: string parser_error_message( int error, object ob,
+            mixed arg, int plural )
+     * [24]Adding and Handling Commands - the Command Object
+          + [25]Call parse_init()
+          + [26]Add the parsing rules to the parser
+          + [27]Enable the object to handle the rules
+          + [28]Add applies to process the rules
+     * [29]Allowing Objects to be Used by Commands
+     * [30]Processing User Input with the MudOS Parser
+          + [31]Apply: int process_input( string str )
+          + [32]Efun: mixed parse_sentence( string str )
+     * [33]Miscellaneous Notes
+          + [34]The "can_" applies
+          + [35]Mixing STR and WRD rules with OBJ or LIV rules
+          + [36]Updating command objects
+          + [37]Bug in parse_refresh()
+          + [38]Efun: string parse_dump()
+     * [39]The End
+     _________________________________________________________________
+   
+   [40]Return to Contents
+   
+                      Initial Requirements for Objects
+                                      
+   There are a number of efuns that must be called and applies that must
+   be present in objects before they can use and be used by the MudOS
+   parser. Remember that an apply not being present is assumed to return
+   0.
+   
+  Efun: void parse_init()
+  
+   The efun parse_init() is used to tell MudOS that this object is one
+   that may use or be used by the parsing package. If your object does
+   not call this then trying to use other parsing efuns will generate a
+   runtime error and the parser will ignore the object when searching for
+   matches. I call parse_init() from create() in my standard object.
+   
+  Efun: void parse_refresh()
+  
+   The parsing package caches information about objects in order to
+   improve performance. This means that if any information that gets
+   cached is changed, you need to tell MudOS to clear the cache. That's
+   what this efun does. If the information returned by any of the applies
+   below changes, you need to call parse_refresh() so that the parser
+   knows it has changed. For example if the name of an object changes, or
+   perhaps an adjective changes as a spell is cast to change it from blue
+   to red - call parse_refresh() afterwards. The efun clears the cache
+   for the object that called it.
+   
+  Apply: string *parse_command_id_list()
+  
+   This apply is used by the parser when it is searching for objects to
+   match a text string. It should return a string array containing a list
+   of nouns (nouns only, no adjectives and no "adjective noun" pairs)
+   which refer to an object. For example, an NPC merchant called Bill
+   might return:
+({ "bill", "man", "human", "merchant", "trader" })
+
+   The list should contain any names which could be used to refer to the
+   object. The list returned by this apply is cached by the parser, so if
+   it changes you must call the parse_refresh() efun for the parser to
+   notice the change.
+   
+  Apply: string *parse_command_adjectiv_id_list()
+  
+   This apply is also used by the parser when it is searching for objects
+   matching a text string. It should return a string array containing a
+   list of any adjectives that apply to the object. For example, the NPC
+   merchant mentioned above might return:
+({ "old", "fat", "bearded", "tall" })
+
+   The parser will match the object if any combination of adjectives
+   returned by this apply and a name from parse_command_id_list() match
+   the string typed in a command. Again, the list returned by this apply
+   is cached so if it changes parse_refresh() must be called or the
+   parser will be unaware of the change.
+   
+  Apply: string *parse_command_plural_id_list()
+  
+   This apply is also used by the parser when it is searching for objects
+   matching a text string. It should return a string array containing a
+   list of any plurals that apply to the object. For example, the NPC
+   merchant mentioned above might return:
+({ "men", "people", "merchants", "traders" })
+
+   The parser will match the object if any combination of adjectives
+   returned by parse_command_adjectiv_id_list and a name from this apply
+   match the string typed in a command. Again, the list returned by this
+   apply is cached so if it changes parse_refresh() must be called or the
+   parser will be unaware of the change.
+   
+  Apply: int is_living()
+  
+   This apply is used by the parser to determine whether an object is
+   alive or not, that is to say an NPC or player as opposed to a table.
+   It should return an int - 1 for "yes, I'm alive" and 0 for "no, I'm
+   not alive." This response is used to check whether the object is
+   allowed to match a "LIV" rule (see below) or not. The response is
+   cached and so should it change parse_refresh() will need to be called
+   before the parser will notice.
+   
+  Apply: int inventory_visible()
+  
+   This apply is used by the parser to check whether objects inside this
+   one should be included when checking for objects matching the text
+   being parsed. It should return an int - 1 for "yes, objects inside me
+   are visible" or 0 for "no, objects inside me are invisible." The
+   response is cached and so should it change (for example, an open box
+   is closed and changes from visible to hidden inventory) then
+   parse_refresh() must be called.
+   
+  Apply: int inventory_accessible()
+  
+   This apply is used by the parser to check whether the objects inside
+   this one can be manipulated by commands or not. It should return an
+   int - 1 for "yes, you can get at objects inside me" or 0 for "no, you
+   can't get at objects inside me." At first glance this is very similar
+   to inventory_visible() and it's true that in most cases they will both
+   return the same answer for a given object. Consider a glass box though
+   - you can see what's inside it (inventory_visible() returns 1) but you
+   can't get at it because the box is locked (inventory_accessible()
+   returns 0).
+   
+   The important point is the difference this makes to the messages given
+   to the player. If inventory_visible() returns 0, the message is likely
+   to be of the form "There is no [thing] here." - i.e. you can't find
+   one. Whereas when inventory_visible() returns 1 and
+   inventory_accessible returns 0 the message is more likely to be like
+   "You can't [verb] the [thing]." This may become clearer in the section
+   on error messages, below.
+   
+   As usual, the response to inventory_accessible() is cached and
+   parse_refresh() must be called if it changes.
+     _________________________________________________________________
+   
+   [41]Return to Contents
+   
+                 Initial Requirements for the Master Object
+                                      
+   There are a number of applies needed in the master object in order to
+   use the MudOS parser. These provide information the parser needs to
+   help find matching objects and to generate intelligent error messages.
+   >
+     _________________________________________________________________
+   
+  Transfer interrupted!
+  
+   tring *parse_command_id_list()
+   
+   This should return a list of nouns (names) that apply to all objects
+   in existence. Mine returns:
+({ "thing" })
+
+   This apply is only ever called once in the master object, so a
+   shutdown is needed to bring changes into effect.
+   
+  Apply: string *parse_command_adjectiv_id_list()
+  
+   This should return a list of adjectives that apply to all objects in
+   existence. Mine returns:
+({ "the", "a", "an" })
+
+   However this is probably redundant as I believe the parser deals
+   correctly with articles and determinates anyway. This apply is also
+   only called once and never again.
+   
+  Apply: string *parse_command_plural_id_list()
+  
+   This should return a list of plurals that match any object in
+   existence. Mine returns:
+({ "things", "them", "everything" })
+
+   Again this apply is called once only and never again.
+   
+  Apply: string *parse_command_prepos_list()
+  
+   This should return a list of preposition words that are permitted in
+   parsing rules (see below for more on parsing rules). A preposition is
+   a word which clarifies or defines the meaning of a sentence - it aids
+   working out which objects should be used in which way. Mine returns:
+({ "in", "on", "at", "along", "upon", "by", "under", "behind", "with",
+   "beside", "into", "onto", "inside", "within", "from" })
+
+   In order to be used in a parsing rule, a preposition must be present
+   in this list. This apply is only called once and never again.
+   
+  Apply: string parse_command_all_word()
+  
+   This apply should return a single word used to refer to everything in
+   an environment (i.e. room or container). Mine returns "all". This
+   apply is called once and never again.
+   
+  Apply: object *parse_command_users()
+  
+   This should return a list of living objects that can be refered to by
+   commands that match remote living objects. Normally the objects
+   examined when parsing a string are obtained from the deep_inventory()
+   of the environment of the object that called parse_sentence() (see
+   below), however in some cases you want commands to be able to match
+   players who are not in the same room. This apply should return valid
+   "remote living" objects. Mine simply returns users(). The response to
+   this call is cached, and if it should change (e.g. someone logs in or
+   out) then parse_refresh() must be called.
+   
+   Note, since parse_refresh() clears the cache for the object that
+   called it, it's worth having something like
+void p_refresh() { parse_refresh(); }
+
+   in the master to enable other objects to force the master object to
+   call parse_refresh().
+   
+  Apply: string parser_error_message( int error, object ob, mixed arg, int
+  plural )
+  
+   This apply is called by the parser to generate intelligent error
+   messages in cases where rules have been "nearly matched". The
+   parameters passed are the error code (defined in an errors.h file
+   packaged with MudOS), the object concerned (if known), data about the
+   error (dependent on the error code) and whether or not the error was a
+   "plural" error or not (i.e. the error data represents more than one
+   object).
+   
+   As an example, here's my current version. This was based on the
+   version in the Lima mudlib.
+string parser_error_message(int error, object ob, mixed arg, int plural)
+{
+  switch( error )
+  {
+    case PARSE_NOT_HERE: /* parser couldn't find a matching object */
+      return "There is no " + arg + " here.\n";
+
+    case PARSE_NOT_ALIVE: /* is_living() returned 0 for match for LIV token */
+      if( plural )
+        return "The " + pluralize(arg) + " are not alive.\n";
+      else
+        return "The " + arg + " isn't alive.\n";
+
+    case PARSE_UNACCESSIBLE: /* inventory_accessible() returned 0 in container
+*/
+      if( plural )
+        return "They are out of reach.\n";
+      else
+        return "It is out of your reach.\n";
+
+    case PARSE_AMBIGUOUS: /* more than one object matched for a singular rule *
+/
+      return "Which of the " + query_multiple_short( arg ) +
+        " do you mean?\n";
+
+    case PARSE_WRONG_NUMBER: /* not enough matching objects found */
+      arg = -arg - 1;
+      if( arg > 1 )
+        return "There are only " + query_num(arg) + " of them.\n";
+      else
+        return "There is only one of them.\n";
+
+    case PARSE_ALLOCATED:  /* no idea what this one is :) */
+      return arg;
+
+    case PARSE_NOT_FOUND: /* no matching object found */
+      return "There is no " + arg + " here.\n";
+
+    case PARSE_TOO_MANY: /* multiple objects matched for a singular rule? */
+      return "You can only do that to one thing at a time.\n";
+    }
+}
+     _________________________________________________________________
+   
+   [42]Return to Contents
+   
+                        Adding and Handling Commands
+                                      
+   An important piece of the parsing system are the objects that
+   represent commands. I have each command as a seperate object, but
+   there's no reason you can't have multiple commands within an object as
+   far as I know. In order to have an object handle a command you need to
+   do the following things.
+   
+  Call parse_init()
+  
+   This may seem obvious but you do have to register the fact that the
+   object exists with the parser before it will let you do anything else.
+   Indeed if you forget this step, you'll get a runtime error on the next
+   step telling you to call parse_init() first.
+   
+  Add the parsing rules to the parser
+  
+   This is done with the parse_add_rule() efun. The efun form is:
+void parse_add_rule(string verb, string rule, object handler)
+
+   Here "verb" is the command word (e.g. "look", "read" etc), and
+   "handler" is the object that will handle the command - usually a
+   command object will pass this_object() as the handler. The "rule" is
+   the parsing rule to add.
+   
+   Rules are made up from two parts - tokens, and prepositions. Tokens
+   are used to match various objects or strings, and prepositions are
+   fixed positional words to specify meaning (like "with" or "in").
+   
+   The MudOS parser accepts six tokens that I'm aware of:
+   
+     * OBJ - matches a single object
+     * OBS - matches one or more objects
+     * LIV - matches a single, living object
+     * LVS - matches one or more living objects
+     * WRD - matches a single word
+     * STR - matches one or more words
+       
+   So, taking a simple "look" command as an example, you might come up
+   with the following rules (note, the command "look" isn't technically
+   part of the rule):
+   
+     * look
+       A simple "command only" rule. The rule passed with
+       parse_add_rule() would be "".
+     * look at OBS
+       For looking at one or more objects. The rule here contains a
+       preposition ("at") and a token ("OBS"). The token OBS here
+       represents direct objects - that is to say, the objects upon which
+       the verb acts directly.
+     * look at OBS in OBJ
+       For looking at objects inside a container. This rule has two
+       prepositions ("at" and "in") and two tokens. The first token, OBS,
+       again represents direct objects - the objects that the verb acts
+       directly on. The second token, OBJ, represents an indirect object
+       - that's one that the verb references but isn't acting on.
+       
+   To clarify direct and indirect objects a little, suppose you type the
+   command "read book". The book is a direct object - the verb "read"
+   acts directly on the book - the book is the object that you read. Now,
+   suppose the command was "read page in book". Here, the page is the
+   direct object. The thing that you read is the page. The book is an
+   indirect object - you don't read the book, you just use the book to
+   find which page is meant. Similarly, in "look at books in box", the
+   books are the direct objects (the things you actually look at) and the
+   box in an indirect object - you don't look at the box, it's just
+   mentioned to specify which books you want to look at.
+   
+   The MudOS parser seems to assume that the first token represents a
+   direct object and the second token represents an indirect object. This
+   is a probably a simple optimisation based on the fact that word order
+   is important in English and "command format" sentences virtually
+   always follow that order.
+   
+   Using the LIV and LVS tokens is done in the same way - the difference
+   is simply that LIV and LVS will not match objects for which
+   object->is_living() returns 0. If you want the rule to be able to
+   match living objects that are not in the same environment as the
+   command giver (e.g. players who are in a totally different part of the
+   mud) then you need to add the livings_are_remote() apply:
+int livings_are_remote() { return 1; }
+
+   The WRD and STR tokens are slightly different as they match text
+   directly instead of looking for matching objects. The only things to
+   be careful of are no more than two tokens per rule and only one plural
+   token ("OBS" or "LVS") per rule.
+   
+   Don't let the simplicity of the rules above fool you as to the
+   complexity of what can be typed in. A rule like "look at OBS in OBJ"
+   doesn't mean that you can only type things like "look at gem in
+   chest". The parser will do all sorts of clever processing that allows
+   that simple rule to match complex sentences like "look at the second
+   red gem in the third old brown chest".
+   
+  Enable the object to handle the rules
+  
+   The next step is to add applies to the object which tell the parser
+   that this object can handle the rules you've added to it. The applies
+   are of the form can_[rule]() where [rule] is replaced by the rule
+   string you are handling. The apply should return 1 if the object wants
+   to handle the command, or 0 if it does not.
+   
+   So for the look command given above, you would need the following
+   applies:
+   
+     * int can_look()
+     * int can_look_at_obj()
+     * int can_look_at_obj_in_obj()
+       
+   Note that for the "plural" rules which contain "OBS" tokens,
+   "singular" applies are needed - using "obj" rather than "obs". This
+   also applies to rules with "LVS" in them - the "can_" apply should use
+   "liv" instead.
+   
+   All these applies should do is state whether the object handles the
+   given rule or not, they shouldn't do any other processing and there
+   certainly shouldn't be any side effects of calling them. Most of mine
+   simply return 1.
+   
+   These applies technically take parameters, but I've yet to find a use
+   for them at this stage for several reasons. [43]See the Notes section
+   for more information.
+   
+  Add applies to process the rules
+  
+   The last thing you need to put in the command object are applies
+   called to actually carry out the command. They should contain the
+   processing needed to execute the command, whether they carry it
+   directly or call functions in the affected objects to do so is a
+   design decision and thus up to you. These applies are named in a
+   similar way way to the "can_" applies, except that they start with
+   "do_". For the look command the applies would be:
+   
+     * void do_look()
+     * void do_look_at_obs( object *obs, string obs_text )
+     * void do_look_at_obs_in_obj( object *obs, object obj, string
+       obs_text, string obj_text )
+       
+   Note that the "do_" applies for "plural" rules do use the plural
+   version of the token in their name.
+   
+   These applies are called and passed the results of parsing the command
+   given. The parameters match the tokens in the rule, the matched
+   objects are passed and then the text string that matched them from the
+   command.
+   
+   So if the typed command was "look", do_look() would be called. If the
+   command was "look at gem in chest" then do_look_at_obs_in_obj( ({
+   gem#23 }), chest#12, "gem", "chest" ) would be called.
+   
+   For STR and WRD tokens there are no matching objects, so the matched
+   strings are passed instead - for a rule "say STR", for example,
+   do_say_str( string str ) would be needed.
+   
+   A final note on these applies - when they are called, the objects
+   passed have already been checked as being valid for the command (see
+   next section). So there should be no need for checking objects and
+   displaying error messages in these applies. This checking is done
+   elsewhere.
+     _________________________________________________________________
+   
+   [44]Return to Contents
+   
+                  Allowing Objects to be Used by Commands
+                                      
+   In order for an object to be used by a rule there are a number of
+   applies specific to the rule in question that it must respond to.
+   These applies tell the parser whether the object is valid for the
+   rule, and suggest error messages for circumstances where the object is
+   not valid in the current context. The applies are named in a similar
+   way to the "do_" applies in the command object (see above) but "do_"
+   is replaced by either "direct_" or "indirect_" depending on whether
+   the object has been matched as a direct or indirect object for this
+   situation. Beware that as with the "can_" applies, the "direct_"
+   applies for rules containing plural tokens are named using the
+   singular token. This is because the apply is called for each object
+   that matches the plural token in turn, rather than being called once
+   with a list of objects.
+   
+   For the "look" command example, the applies needed would be:
+   
+     * mixed direct_look_at_obj( object obj, string ob_text )
+     * mixed direct_look_at_obj_in_obj( object obj1, object obj2, string
+       obj1_text, string obj2_text )
+     * mixed indirect_look_at_obj_in_obj( object obj1, object obj2,
+       string obj1_text, string obj2_text )
+       
+   Note that no apply is needed for for the simplest "look" rule which
+   specifies no object tokens. This is also true of rules that use "WRD"
+   or "STR". Only rules containing object tokens need these applies in
+   object ("LIV" and "LVS" count as object tokens and would need applies
+   named appropriately). Two applies are needed for the complicated "look
+   OBS in OBJ" - one for when this object is the direct object, and one
+   for when this object is the indirect object.
+   
+   The parameters passed are the same as those passed to the "do_"
+   applies in the command object - they are the objects that were matched
+   and the text that matched them. Beware though because often these
+   applies will be called with one or more of the object parameters being
+   0 - this happens when the parser is trying to match a rule and hasn't
+   yet worked out what all the matched objects would be. Most commonly
+   this happens when a rule has both direct and indirect objects - the
+   "direct_" apply may be called with the indirect object passed as 0,
+   and the "indirect_" apply may be called with the direct object passed
+   as 0. These situations should be interpreted as the parser asking
+   "would this object be valid as a direct object for any indirect
+   object?" or "would this object be valid as an indirect object for any
+   direct object?" respectively - the 0 value effectively standing for
+   "any object".
+   
+   These applies should do all the checks necessary to see if the object
+   can be used in the given manner and then return either 0 (if the
+   object can't be used by this rule - note that the default if the apply
+   doesn't exist is to assume it returned 0) or return a string error
+   message to be shown to the player (if the object can sometimes be used
+   by this rule but not in this particular case) or return 1 if it's ok
+   to use the object. The following example may make this a bit clearer.
+   
+   Take the rule "look at OBS in OBJ" as an example. The applies might
+   look like these below. First, the "direct_" apply, called in the
+   object being looked at:
+mixed direct_look_at_obj_in_obj( object ob, object container,
+                                 string ob_name, string container_name )
+{
+  if( !this_player()->can_see( ob ) )
+    return 0;
+
+   This first check is to see if the player can see the object - if the
+   object is concealed from the player somehow, or it is too dark then
+   can_see() will return 0, and thus the apply will return 0. This will
+   mean the parser skips this object altogether and may result in a
+   message to the player along the lines of "There is no [item] here." if
+   nothing else is matched.
+  if( container )
+  {
+    if( environment( ob ) != container )
+    {
+      return "#The " + ob->query_short() + " is not in the " +
+        container->query_short() + ".\n";
+    }
+  }
+
+   If the container is a valid object, check that the object is inside
+   the container. If not, return an error message. The "#" on the
+   beginning of the message tells the parser to disgard the message if a
+   "plural" rule matches more than one object - this prevents players
+   getting an error message for each object matched.
+  return 1;
+}
+
+   If we got this far, we've satisfied ourselves that the object is
+   visible and is inside the specified container, or that the object is
+   visible and the container is not yet known. In both these cases it's
+   fine to let the parser continue so we return 1.
+   
+   Now, the "indirect_" apply will be called in the indirect object -
+   that is to say the container. It might go like this:
+mixed indirect_look_at_obj_in_obj( object ob, object container,
+                                   string ob_name, string container_name )
+{
+  if( !container->query_container() )
+    return 0;
+
+   The first check is simply to check if the object in question is in
+   fact a container. If not, return 0 - you can never look in something
+   that isn't a container. Note that this check isn't really necessary if
+   the apply only exists in container objects - a nonexistent apply is
+   assumed to return 0.
+  if( !this_player()->can_see( container ) )
+    return 0;
+
+   As in the "direct_" apply, this checks the container is visible to the
+   player. If not, return 0 to tell the parser there's no way this object
+   can match.
+  return 1;
+}
+
+   If we got this far, the container exists, is a valid container object
+   and is visible to the player - so return 1 to tell the parser it's a
+   valid match.
+   
+   As with the "can_" applies in the command object, it is important that
+   these applies have no side effects. They should simply do their checks
+   and affect nothing inside or outside the object. Each apply may be
+   called several times in the same object for complicated parses,
+   especially when the parser is trying to build sensible error messages.
+   
+   Note that error circumstances and error messages are generated by
+   these applies in the objects matched and not by the command object.
+   All the errors and bad matches have to be weeded out by these applies
+   so that the parser can build a list of valid matches to pass to the
+   "do_" applies in the command object. The reason for this is that the
+   parser must be able to determine things like "the 2nd red hat"
+   correctly.
+   
+   Suppose there are three red hats in the room, A, B and C. A and C are
+   out in the open, but B is in a dark corner and not visible to the
+   player. The player types "get 2nd red hat". He must mean hat C since
+   he can't see hat B. There will be in the hat object, an apply
+   direct_get_obj() - this will be called in all three hats, A, B and C.
+   For hat B, it would return 0 as the player cannot see it. This means
+   the parser ends up with a list of matches for "red hat" which contains
+   A and C. So the 2nd hat is resolved to C.
+   
+   Now if the "direct_" apply had not checked the hat was visible and
+   returned 1 for B as well, then the parser ends up with a list of A, B
+   and C and the 2nd hat is resolved to B - the invisible hat. Even if
+   the do_get_obj() apply in the command object does the check that the
+   hat is visible, it's too late and the output to the player will be
+   confusing:
+There are two red hats here.
+> get 2nd red hat
+You can't see the red hat.
+
+   Worse, this can happen:
+There are two red hats here.
+> get 3rd red hat
+You pick up the red hat.
+
+   With the check correctly back in the "direct_" apply, things go
+   smoothly. Note that for the purposes of building lists of matched
+   objects to find which is meant (as in this example) returning an error
+   message starting with "#" is equivalent to a returning 0 from the
+   apply - the object is silently skipped. Returning an error message
+   that doesn't start with "#" will mean the error message is displayed
+   and then processing continues with the object skipped.
+     _________________________________________________________________
+   
+   [45]Return to Contents
+   
+                Processing User Input with the MudOS Parser
+                                      
+   There's one crucial aspect we haven't yet convered. How to get the
+   input typed by a user (or indeed, generated by an NPC) processed by
+   the parser. The answer is twofold - the process_input() apply, and the
+   parse_sentence() efun.
+   
+  Apply: int process_input( string str )
+  
+   This apply is called in the user object when the user enters a line of
+   text. The apply is passed the text entered and must return an int - 1
+   if the command was processed and dealt with and 0 if the command was
+   not processed. It's called before any other processing is done. If it
+   returns zero then if add_action() support is enabled in the driver,
+   then the driver will continue processing the input and search for
+   matching add_action()s to call. If add_action() is disabled
+   (recommended if the parser is being used) then no further processing
+   will be done, and the driver will send the default "no command
+   matched" message to the player - usually this is "What?". This message
+   is defined in the driver config file.
+   
+   To use the MudOS parser, you must make this apply call the
+   parse_sentence() efun (either directly, or through some other command
+   handling/queuing system).
+   
+  Efun: mixed parse_sentence( string str )
+  
+   This efun calls the driver parser and tells it to parse and execute
+   the command contained in the given string. The efun may return an
+   integer error code, or a string error message. If a string message is
+   returned, it should be displayed to the player. The integer codes are:
+   
+     * 1: command has been processed ok
+     * 0: no matching command was found, no processing done
+     * -1: A matching command was found but none of its rules were
+       matched.
+     * -2: A rule made sense but all "can_" or "direct_" applies returned
+       0.
+       
+   With this in mind, a simple process_input() apply might look like
+   this:
+int process_input( string str )
+{
+  mixed result;
+  result = parse_sentence( str );
+
+  if( stringp( result ) )
+  {
+    write( result );
+    return 1;
+  }
+
+  if( result > -1 )
+    return result;
+
+  if( result == -1 )
+    write( "You can't use that command that way.\n" );
+  else
+    write( "You can't do that right now.\n" );
+
+  return 1;
+}
+
+   Of course this example will do no alias handling, command queuing or
+   any clever pre-processing of user input.
+     _________________________________________________________________
+   
+   [46]Return to Contents
+   
+                            Miscellaneous Notes
+                                      
+   This section contains various bits of advice and things to beware of.
+   This is mainly a record of things that I've encountered that have
+   caused wasted hours of trial and error but also noted here are items
+   on which various sources disagree with each other and/or don't seem to
+   match what actually happens, and things that just didn't fit anywhere
+   else but ought to be noted somewhere.
+   
+  The "can_" applies
+  
+   The sections above don't list all the "can_" applies and where they
+   are called. The two missing ones are:
+int can_verb_[rule](string verb, [rule data] )
+int can_verb_rule(string verb, string rule, [rule data] )
+
+   Here, [rule] stands for the part of the apply name built from the
+   parsing rule, e.g. "obs_in_obj", and [rule data] stands for the list
+   of object and string parameters from parsing the rule, e.g. "object
+   *obs, object obj, string obs_txt, string obj_txt" for the previous
+   example.
+   
+   All the "can_" applies mentioned in the previous sections do in fact
+   take the parameters from parsing the rule as described for "direct_"
+   and "do_" applies, I've omitted them because in my experience they are
+   generally not useful. For example, object parameters seem to be
+   invariably passed as 0 because at the point the "can_" apply is called
+   the parser has not yet worked out which objects match the rule. The
+   string parts are passed but I don't think they are useful because to
+   use them you'd need to parse them manually to find their matching
+   objects...
+   
+   According to [47]Beek's page the "can_" applies are called first in
+   the user object, and then in the command object if they were not found
+   or returned 0 in the user object. I've not yet found a use for having
+   them in the user object and I prefer to keep them in the command
+   object.
+   
+   I suggested that most of my "can_" functions simply return 1. This is
+   because returning 0 denies the player use of the command completely -
+   the parse_sentence() efun then returns -2 and so no useful error
+   message specific to the command is generated. However, I do have some
+   commands whose "can_" functions will return 1 only if the player has
+   been taught the command and 0 otherwise. This allows commands to be
+   restricted by skill level or otherwise.
+   
+  Mixing STR and WRD rules with OBJ or LIV rules
+  
+   It's probably best to avoid using rules with STR or WRD tokens in the
+   same command as rules with OBJ or LIV rules. This is because when you
+   do so error message generation goes to pot. The reason behind this is
+   simple - any text typed can match a STR token and any word typed can
+   match a WRD token. So, in a case where the rule containing OBJ or LIV
+   tokens matches but finds no valid option, any error messages returned
+   by "direct_" or "indirect_" calls will be ignored because the STR rule
+   will match the same input. As a result, error messages tend to be very
+   confusing to the player.
+   
+   This might be made clearer with an example. Here's the one that bit
+   me. I had extra details in rooms that could be looked at, but had no
+   actual object associated with them. For example the description might
+   mention a tapestry - to conserve memory rather than clone a tapestry
+   object and have it in the room, the room object instead maintains a
+   mapping of detail names and their associated descriptions. To cope
+   with this, my look command had these rules amongst others:
+   
+     * look at OBS
+     * look at STR
+       
+   The first rule matched any real objects the player might want to look
+   at. The second was to cope with the player looking at details. The
+   do_look_at_str() function compared the matched text against valid
+   details in the room and displayed descriptions if there was a match,
+   and an error message of "There is no here." if there was no matching
+   detail.
+   
+   The problem immediately occured that whatever error message
+   direct_look_at_obj() returned was ignored in favour of "There is no
+   here." - because the OBS rule was considered to have failed whereas
+   the STR rule was considered to have succeeded. I attempted to
+   compensate for this by having can_look_at_str() return 0 if the string
+   did not match a detail in the player's room. This didn't work either -
+   the result was a parser generated "You cannot look at that." instead
+   (because the rule matched but can_look_at_str() returned 0).
+   
+   I tried many methods of getting around this including trying to order
+   the rules so that the STR one was not processed last etc, but with no
+   success. It just doesn't seem possible to reconcile mixing these rule
+   types.
+   
+   My solution, like the best of them, is simple once you've thought of
+   it. I modified the room object so that parse_command_id_list()
+   returned a list of valid details. Then direct_look_at_obj() in the
+   room object simply compares the string passed (ignoring the object)
+   against it's list of details and returns 1 for matches. In
+   do_look_at_obj() I simply check if the object passed is a room, and if
+   so use the string passed to find the required detail description.
+   
+  Updating command objects
+  
+   Be careful when you are coding and testing command objects because I
+   have several times encountered odd behaviour from the parser when
+   command objects are updated (i.e. destructed and re-loaded). This
+   behaviour includes such things as rules not being matched when they
+   should be and "direct_" applies not being called or being called with
+   duff data. Unfortunately nothing traceable or repeatable enough for me
+   to report as a driver bug. In all cases restarting MudOS cleared the
+   problems so I'm fairly sure it's not my code at fault, but the process
+   of editing and updating objects that have parsing rules associated
+   with them. My conclusions thus far are that changing the processing in
+   any of the applies doesn't cause problems, neither does adding or
+   removing applies. Adding rules doesn't seem to cause problems, but
+   removing (or changing) rules sometimes does.
+   
+   Your mileage may vary. However, you may want to avoid modifying
+   command objects on a running (open) mud without restarting MudOS.
+   
+  Bug in parse_refresh()
+  
+   Somewhere (I forget where I saw it) I remember reading a report that
+   using parse_refresh() didn't always have any effect unless it was
+   called twice in succession. This doesn't seem to happen in the
+   versions of MudOS I have been using, but if you're experiencing
+   problems with the parser not recognising changes in responses to the
+   applies in objects then it might be worth trying parse_refresh()
+   twice.
+   
+  Efun: string parse_dump()
+  
+   This efun returns a string describing all the commands and rules known
+   to the parser. I've not found the information particularly useful
+   although it does at least confirm which rules your objects have added.
+     _________________________________________________________________
+   
+   [48]Return to Contents
+   
+                                  The End
+                                      
+   I hope this guide is of some use to someone, somewhere. If you have
+   any comments, criticism, suggestions etc. please mail me at the
+   address below. If I've got something blatantly wrong (which wouldn't
+   surprise me) do please point it out. Also, if you happen to find this
+   thing useful, do let me know - else I won't bother to maintain it! :)
+     _________________________________________________________________
+   
+   © Copyright 1998 by Scatter ([49]scatter@thevortex.com)
+   Please do not distribute without permission. Thank you.
+
+References
+
+   1. http://home.clara.net/stormbringer/mudos/index.html
+   2. http://www.imaginary.com/~beek/mudos/packages/parsing.html
+   3. http://lima.mudlib.org/
+   4. news:rec.games.mud.lp
+   5. ftp://ftp.imaginary.com/pub/LPC/servers/MudOS
+   6. http://ringbreak.dnd.utwente.nl/~krimud/Docs/NMAdmin/Parser/
+   7. http://home.clara.net/stormbringer/mudos/parser.html#part1
+   8. http://home.clara.net/stormbringer/mudos/parser.html#part1a
+   9. http://home.clara.net/stormbringer/mudos/parser.html#part1b
+  10. http://home.clara.net/stormbringer/mudos/parser.html#part1c
+  11. http://home.clara.net/stormbringer/mudos/parser.html#part1d
+  12. http://home.clara.net/stormbringer/mudos/parser.html#part1e
+  13. http://home.clara.net/stormbringer/mudos/parser.html#part1f
+  14. http://home.clara.net/stormbringer/mudos/parser.html#part1g
+  15. http://home.clara.net/stormbringer/mudos/parser.html#part1h
+  16. http://home.clara.net/stormbringer/mudos/parser.html#part2
+  17. http://home.clara.net/stormbringer/mudos/parser.html#part2a
+  18. http://home.clara.net/stormbringer/mudos/parser.html#part2b
+  19. http://home.clara.net/stormbringer/mudos/parser.html#part2c
+  20. http://home.clara.net/stormbringer/mudos/parser.html#part2d
+  21. http://home.clara.net/stormbringer/mudos/parser.html#part2e
+  22. http://home.clara.net/stormbringer/mudos/parser.html#part2f
+  23. http://home.clara.net/stormbringer/mudos/parser.html#part2g
+  24. http://home.clara.net/stormbringer/mudos/parser.html#part3
+  25. http://home.clara.net/stormbringer/mudos/parser.html#part3a
+  26. http://home.clara.net/stormbringer/mudos/parser.html#part3b
+  27. http://home.clara.net/stormbringer/mudos/parser.html#part3c
+  28. http://home.clara.net/stormbringer/mudos/parser.html#part3d
+  29. http://home.clara.net/stormbringer/mudos/parser.html#part4
+  30. http://home.clara.net/stormbringer/mudos/parser.html#part5
+  31. http://home.clara.net/stormbringer/mudos/parser.html#part5a
+  32. http://home.clara.net/stormbringer/mudos/parser.html#part5b
+  33. http://home.clara.net/stormbringer/mudos/parser.html#part6
+  34. http://home.clara.net/stormbringer/mudos/parser.html#part6a
+  35. http://home.clara.net/stormbringer/mudos/parser.html#part6b
+  36. http://home.clara.net/stormbringer/mudos/parser.html#part6c
+  37. http://home.clara.net/stormbringer/mudos/parser.html#part6d
+  38. http://home.clara.net/stormbringer/mudos/parser.html#part6e
+  39. http://home.clara.net/stormbringer/mudos/parser.html#part7
+  40. http://home.clara.net/stormbringer/mudos/parser.html#contents
+  41. http://home.clara.net/stormbringer/mudos/parser.html#contents
+  42. http://home.clara.net/stormbringer/mudos/parser.html#contents
+  43. http://home.clara.net/stormbringer/mudos/parser.html#part6
+  44. http://home.clara.net/stormbringer/mudos/parser.html#contents
+  45. http://home.clara.net/stormbringer/mudos/parser.html#contents
+  46. http://home.clara.net/stormbringer/mudos/parser.html#contents
+  47. http://www.imaginary.com/~beek/mudos/packages/parsing.html
+  48. http://home.clara.net/stormbringer/mudos/parser.html#contents
+  49. mailto:scatter@thevortex.com

@@ -205,9 +205,6 @@
  */
 #undef NO_SNOOP
 
-/* NO_ADD_ACTION: define this to remove add_action, commands, livings, etc.
-   process_input() then becomes the only way to deal with player input. */
-
 /* NO_ENVIRONMENT: define this to remove the handling of object containment
  * relationships by the driver 
  *
@@ -458,17 +455,6 @@
  */
 #define TRAP_CRASHES
 
-/* DROP_CORE: define this if you want the driver to attempt to create
- *   a core file when it crashes via the crash_MudOS() function.  This
- *   define only has an affect if -DDEBUG isn't defined in the makefile
- *   (except for the SIGINT and SIGTERM signals which are always trapped).
- *
- * [NOTE: keep this undefined for now since it seems to hang some machines
- *  upon crashing (some DECstations apparently).  If you want to get a core
- *  file, undef'ing TRAP_CRASHES should work.]
- */
-#undef DROP_CORE
-
 /* THIS_PLAYER_IN_CALL_OUT: define this if you wish this_player() to be
  *   usable from within call_out() callbacks.
  */
@@ -636,6 +622,11 @@
  */
 #undef PACKAGE_EXTERNAL
 
+/* NUM_EXTERNAL_CMDS: the number of external commands supported */
+#ifdef PACKAGE_EXTERNAL
+#define NUM_EXTERNAL_CMDS
+#endif
+
 /* PACKAGE_DB: efuns for external database access using msql */
 #undef PACKAGE_DB
 
@@ -643,7 +634,9 @@
  * databases
  */
 #ifdef PACKAGE_DB
-#define MSQL		/* MiniSQL, it's small; it's free */
+#define USE_MSQL 1		/* MiniSQL, it's small; it's free */
+#undef USE_MYSQL 2		/* MySQL, bigger; it's free */
+#define DEFAULT_DB USE_MSQL	/* default database */
 #endif
 
 /****************************************************************************
@@ -731,15 +724,16 @@
 /* APPLY_CACHE_BITS: defines the number of bits to use in the call_other cache
  *   (in interpret.c).
  * 
- * Memory overhead is (1 << APPLY_CACHE_BITS)*18.
+ * Memory overhead is (1 << APPLY_CACHE_BITS)*16.
+ * [assuming 32 bit pointers and 16 bit shorts]
  *
  * ACB:    entries:     overhead:
- *  6         64          1152b
- *  8        256          4608b
- * 10       1024            18k
- * 12       4096            72k
- * 14      16384           288k
- * 16      65536          1152k
+ *  6         64             1k
+ *  8        256             4k
+ * 10       1024            16k
+ * 12       4096            64k
+ * 14      16384           256k
+ * 16      65536             1M
  */
 #define APPLY_CACHE_BITS 12
 
@@ -765,7 +759,7 @@
  *
  * Note: This currently only works on machines that have the dlopen() system
  * call.  SunOS and IRIX do, as do a number of others.  AIX and Ultrix don't.
- * Linux does if you are using ELF.
+ * Linux does if you are using ELF.  Versions of FreeBSD prior to 3.0 don't.
  */
 #undef RUNTIME_LOADING
 
@@ -782,35 +776,20 @@
  */
 #define HEART_BEAT_CHUNK      32
 
-/* SERVER_IP: For machines with multiple IP addresses, this specifies which
- * one to use.  This is useful for IP accounting and is necessary to be
- * able to do ident lookups on such machines.
- *
- * example: #define SERVER_IP "194.229.18.27"
+/* GET_CHAR_IS_BUFFERED: Normally get_char() is unbuffered.  That is, once
+ * a character is received for get_char(), anything else is in the input
+ * stream is immediately thrown away.  This can be very undesirable, especially
+ * if you're calling get_char() again from the handler from the previous call.
+ * Define this if you want get_char() to be buffered.  In this case, the buffer
+ * will only get flushed if get_char() is not called from the first get_char()'s
+ * LPC callback handler.
  */
-#undef SERVER_IP
-
-/* If MudOS inherits an open file descriptor #6 from it's parent process,
- * it uses that as an additional login port.  The 'port #' for internal
- * purposes (debugging messages, argument to connect(), etc) and kind is
- * defined here.  The definition here assumes we inherited a port which
- * was bound to the telnet port by 'portbind'.
- *
- * #define FD6_KIND PORT_TELNET
- * #define FD6_PORT 23
- *
- * If you're not using this, I'd suggest leaving it disabled.  A suprising
- * number of operating systems/debuggers/etc leave files open on various
- * file descriptors, possibly including fd #6.
- */
-#undef FD6_KIND
-#undef FD6_PORT
+#undef GET_CHAR_IS_BUFFERED
 
 /* Some maximum string sizes
  */
 #define SMALL_STRING_SIZE     100
 #define LARGE_STRING_SIZE     1000
-#define COMMAND_BUF_SIZE      2000
 
 /* Number of levels of nested datastructures allowed -- this limit prevents
  * crashes from occuring when saving objects containing variables containing
@@ -825,7 +804,6 @@
 #define CFG_MAX_LOCAL_VARIABLES		25
 
 #define CFG_EVALUATOR_STACK_SIZE 	1000
-#define CFG_COMPILER_STACK_SIZE		200
 #define CFG_MAX_CALL_DEPTH		50
 /* This must be one of 4, 16, 64, 256, 1024, 4096 */
 #define CFG_LIVING_HASH_SIZE		256

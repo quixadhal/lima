@@ -2,7 +2,8 @@
 
 /* $Id: bank_accountant.c,v 1.5 1998/02/04 23:35:16 monica Exp $ */
 
-inherit ACCOUNTANT;
+inherit ADVERSARY;
+inherit M_ACCOUNTANT;
 
 void setup() {
   set_name("Samuel");
@@ -12,8 +13,8 @@ void setup() {
   set_in_room_desc("Samuel the Bank Accountant stands behind the counter.");
   set_long("Samuel is a boring looking balding man. Perfectly clothed of "
 	   "course.");
-  set_bank_id("zet");
-  set_bank_name("First National Bank of Zetenet");
+  set_bank_id("lima");
+  set_bank_name("The Imperial Bank of the Bean");
   set_currency_type("dollar");
   set_exchange_fee(5);
 }

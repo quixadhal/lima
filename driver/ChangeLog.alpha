@@ -1,3 +1,253 @@
+-------------------------------------------------------------
+(v22.2a37 promoted to v22.2b1)
+
+Sat Jul 29 21:32:05 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a37
+	* updated with respect to v22.1b32
+	* fixed miscellaneous typos and compile errors in a36
+	* moved most all add_action code into add_action.c
+	* corrected db_connect in PACKAGE_DB to take only four
+	  arguments rather than five.
+	* strings in PACKAGE_DB are now malloced/counted rather
+	  than shared [suggestion from Beek]
+	* fixed a memory overwrite crasher in handling prototypes
+	  of inherited functions [reported by Zifnab, Loriel,
+	  Mystic, and others.  thanks to Javelin@VH for a test
+	  case to reliable reproduce]
+	* Fix error messages generated when PACKAGE_UIDS is defined
+	  and get_root_uid() or get_backbone_uid() either do not exist
+	  in the master object or do not work.  Error messages were
+	  causing a crash [reported by Mystic]
+
+Fri Jul  7 21:16:16 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a36
+	* updated with respect to v22.1b31
+	* fixed process_input() so that the modified command is passed
+	  on to parse_command() rather than the original unmodified
+	  [reported by Beyond@LimaBean]
+	* added debug code for tracing object references and finding
+	  destructed objects that never get freed.
+	* fix receive_snoop() to handle non-nul terminated buffers
+	  passed -- use the len argument [reported by Passerby@IoT]
+	* prepend slashes to filenames for display in ed (f, w, x
+	  commands) [reported by Avenger@AtP -- missed from v22.1b25]
+	* implemented rfc 1184 (telnet linemode option) to better
+	  support running on port 23.  the implementation is partial
+	  at present, but sufficient to serve its purpose.
+
+Tue Jul  4 19:45:03 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a35
+	* updated with respect to v22.1b30
+	* fixed escape_command() so that ! command escaping
+	  works again.
+	* if there's no master object present when attempting a
+	  virtual object clone (shouldn't ever happen, but ...),
+	  be sure to clean up the stack before returning failure
+	* removed recently added debug checks for destructed
+	  objects pushed onto/assigned into the stack.
+
+Sun Jul  2 19:00:55 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a34
+	* updated with respect to v22.1b29
+	* fixed lower_case() and upper_case(), both broken in a32 by
+	  locale changes
+	* updated PACKAGE_DB support to include MySQL support and
+	  restructured to ease adding new database support [based on
+	  patches from Andrew@Nanvaent]
+	* COMPAT BUSTER: When loading/cloning a virtual object, mudlib
+	  stats, uid/euid and privs are now properly reset with the
+	  newly assigned object name.
+	* compile_object() in master.c will now be passed a second
+	  argument indicating whether the operation is a clone or not.
+	* If arguments are now passed to clone_object() for create() when
+	  cloning a virtual object, the arguments will be aggregated and
+	  passed on to compile_object() in master.c as the third arg.
+	  The prototype for compile_object() is now as follows:
+
+	  varargs
+	  object compile_object(string filename, int cloning, mixed args...);
+	* Don't bail out of edit_source if PACKAGE_DB is defined and it
+	  can't find msql.h, mysql.h, libmsql.a, or libmysql.a.  If they
+	  can't be found, you'll have to hack the source for now.
+
+Sat Jul  1 13:18:19 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a33
+	* don't save command_giver on the runtime stack.  use a separate
+	  stack instead.
+	* add missing add_ref in save_command_giver() to match the
+	  free_object() in restore_command_giver()
+
+Tue Jun 20 18:41:51 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a32
+	* updated with respect to v22.1b28
+	* for the network_stats() contrib efun, return the external ports with
+	  port number rather than index position in the internal port list
+	* restructured more code in comm.c for command handling.  broke out
+	  duplicated code into new functions and generally cleaned some stuff
+	  up.  This makes way for the next change:
+	* command_giver is now reference counted and properly restored on
+	  error, etc.  no more need for it to be reset to 0 in the backend.
+	* all objects now get the class definitions from the simul_efun object
+	  if there are any, just as if they had inherited the simul_efun
+	  object.  This resolves problems with class related errors when the
+	  simul_efun object is involved [reported by Pinkfish@Discworld]
+
+Sat Jun 17 12:15:08 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a31
+	* updated with respect to v22.1b27
+	* added extensive packet/volume statistic gathering to comm.c and
+	  socket_efuns.c when the network_stats() contrib efun is compiled into
+	  the driver [based on patches from Skullslayer@RoD]
+	* Patches from Turrican@Discworld:
+	  . added an optional 3rd argument to socket_bind efun to specify the
+	    address and port to bind to (in the same format as socket_connect)
+	  . added an optional 2nd argument to socket_address efun to return the
+	    socket's local address when specified as non-zero
+
+Thu Jun 15 17:11:07 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a30
+	* NUL terminate user input buffer before passing it to handle_snoop().
+	  [reported by Passerby@IoT]
+	* correct handling of cr/lf when processing commands [reported by
+	  Loriel@Lima Bean]
+
+Mon Jun 12 09:06:09 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a29
+	* updated with respect to v22.1b26
+	* handle backspace in user input because some clients send everything
+	  and don't filter out local edits [reported by Requiem@SG]
+	* handle both \r and \n for command delimiters in user input
+	  [reported by Requiem@SG]
+	* respect NO_IP_DEMON option and -N driver command line option in the
+	  new address server reconnection code [reported by Skullslayer@RoD]
+	* expanded the array returned from the localtime() efun to include
+	  LT_ISDST.  This is supported on most platforms.  For those that it is
+	  not, the value will be -1.
+	* the third argument to tell_room() can now be an object (from Ideas)
+	* when COMPAT_32 is defined, closurep becomes an alias for functionp
+	  [reported by Passerby@IoT]
+	* made PACKAGE_PARSER compile with NO_ENVIRONMENT again
+	* added an error handler to (s)printf to clean up its state when an
+	  error occurs (usually only caused by the object_name master apply)
+	* edit_source will load options.h/local_options for -configure, but will
+	  not yet check the validity of these files.  this is done so that proper
+	  configuration can be done for PACKAGE_DB
+	* when NO_ANSI and STRIP_BEFORE_PROCESS_INPUT are both defined, escape
+	  characters are stripped as they're copied into the user buffer, saving
+	  alot of unnecessary work stripping them out later.
+	* removed dead telnet_neg() function from comm.c
+	* check for tzset() and the need to prototype it in configure phase
+
+Mon Jun  5 13:16:25 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a28
+	* updated with respect to v22.1b25
+	* rewrote user command handling in comm.c:
+	  . several buffer over-run fixes
+	  . flush existing buffer before flushing a new OOB buffer
+	  . ignore other than IAC IAC and IAC SE while in an IAC SB
+	  . remove the space/backspace empty command hack
+	  . some optimizations, less string scanning/copying than before
+	  . fixed a memory leak when there are more than two lines to be
+	    processed in PORT_ASCII and the object is destructed
+	  . user input that exceeds the input buffer is now completely
+	    thrown away.
+	* additional cleanups to parser package from brett@stummies.org
+	* check the reference time of the object before calling reset to
+	  determine if the object needs cleanup, the same way it's checked
+	  for swapping.
+	* line number information is now stored as an int rather than a
+	  short if USE_32BIT_ADDRESSES is defined.
+	* COMPAT_BUSTER: when COMPAT_32 is defined with PACKAGE_UIDS,
+	  the uid assigned to a new object is the euid of the current
+	  object rather than the uid of the current object.
+	* fixed #warn to be properly recognized [fix from Skullslayer@RoD]
+	* fix a parser crasher in interrogate_object() when the object has
+	  both PI_SETUP and PI_REFRESH flags [reported by Dvarsk@Nightmare]
+
+Wed May 24 12:01:34 CDT 2000 (mmessier@prilnari.com (Marius))
+	* raised patchlevel to v22.2a27
+	* updated with respect to v22.1b24
+	* fixed (s)printf() to be re-entrant.  This allows for the removal
+	  of the master()->object_name() restriction which would cause an
+	  infinite loop and crash the driver anyway.
+	* contrib efun replaceable() does the checks that replace_program()
+	  actually does now, and also adds a check for APPLY___INIT in
+	  addition to APPLY_CREATE.
+	* added a query_replaced_program() contrib efun to return the name
+	  of the program that was replaced by replace_program().  Returns 0
+	  if replace_program() has not been called on the object.
+	* save_object() will save the name of the program that was replaced
+	  by replace_program() if it has been replaced rather than the program
+	  it was replaced with.
+	* fixed crasher when number of locals to pop in the compiler was 0.
+	* added GET_CHAR_IS_BUFFERED to options.h.  Not defined by default,
+	  but when it is defined, get_char() will be buffered.  See the comment
+	  in options.h for more information.
+	* an attempt will now be made once every 15 minutes to reconnect to the
+	  address server if the connection has been lost (or not made at start-
+	  up to begin with).
+	* if THIS_PLAYER_IN_CALL_OUT is defined, reclaim_objects() will only
+	  zero the saved command_giver if that object has been destructed.
+
+Thu Nov 12 12:53:35 EST 1998 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.2a26
+	* updated with respect to v22.1b22
+	* added Skullslayer@RoD's patch for #warn and #error
+
+Wed Mar  4 04:57:16 EST 1998 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.2a25
+	* updated with respect to v22.1b21
+	* paranoid debugging check added in compiler.c
+	* fixed typo in string_copy() call in add_slash()
+	* Fixes from Belgarat:
+	  . update patch_in() to take into account the v22.2a17 switch
+	    changes
+	  . remove obsolete code in DEBUG_MALLOC_EXTENSIONS (privs_file_fname
+	    no longer used)
+	  . fixed typo that caused parse_refresh() to be ignored
+	* SERVER_IP stuff moved to the runtime config file.  SERVER_IP defines
+	  in local_options files will still work. [change from Gorta]
+	* '&' is now a synonym for 'ref' when COMPAT_32 is defined
+	* fixed crasher when ref was used in function calls inside function
+	  arguments, e.g. func(foo, bar(ref x), ref x)
+
+Thu Feb 26 00:34:42 EST 1998 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.2a24
+	* more EOF fixes in lex.c [reported by Lathander]
+	* fixes from Turrican@DW
+	  . call set_non_blocking() on all new accepted sockets since there
+	    evidentally exists OSs that don't do this
+	  . NUM_EXTERNAL_CMDS is now in options.h
+	  . removed name field from lpc_socket_t (was unused, and the lookup
+	    didn't use addr_server, ack)
+	  . external_start can now take an array of string arguments as the
+	    second arg
+	* call_stack(0) now correctly returns "<function>" and not
+          "/<function>"; actual fix is in add_slash() so this may fix other
+          instances of this behavior as well [reported by Donky]
+
+Mon Nov 24 14:58:27 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.2a23
+	* added leading / to filename in function return type warning
+	  message [reported by Aragorn]
+	* fixed crasher in explode() when result exceeds the max array size
+	  [reported by Aragorn]
+	* fixed EOF handling in lex.c
+	* Errors no longer turn off the heartbeat (and send the heartbeat
+	  message) if MUDLIB_ERROR_HANDLER is enabled.
+	* program_info() now returns a mapping
+
+Wed Nov 12 21:42:54 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
+	* raised patchlevel to v22.2a22
+	* recompute runtime_index instead of storing it in the apply_low
+	  cache
+	* fixed all uses of is*() functions on signed chars with the high
+	  bit set
+	* fixed typo in apply_low() cache check
+	* reference programs in the apply_low() cache to avoid being confused
+	  by dangled pointers.  fixes crasher reported by Aragorn, Jihad.
+	  See discussion in interpret.c for additional details.
+
 Wed Nov 12 13:17:52 EST 1997 (tim@wfn-shop.princeton.edu (Beek))
 	* raised patchlevel to v22.2a21
 	* fixed BINARIES to work with the new switch() format

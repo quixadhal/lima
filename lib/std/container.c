@@ -21,33 +21,38 @@
  */
 inherit OBJ;
 
+#ifdef SAY_HISTORY_IN_ROOMS
+inherit "/std/body/history";
+#endif 
+
+
 /* 
  * CLASS DEFINITIONS
  */
 class relation_data
 {
-  object array contents;              /* All of the objects associated with 
-				       * that relation */
-  int max_capacity;                   /* The maximum capacity that can be 
-				       * maintained by that relation. */
-  int hidden;                         /* Whether or not the contents in 
-				       * this relation can be seen or not */
-  int attached;                       /* Determines whether or not the contents
-				       * of the relation will be added to 
-				       * the relations mass/size when calc'd */
-  mixed hidden_func;                  /* Function or int to be evaluated 
-				       * to determine whether or not the
-				       * contents of the relation can be seen*/
-  mapping create_on_reset;            /* A mapping containing filenames, 
-				       * quantities and parameters needed for
-				       * objects to be updated every reset()
-				       * in the relation */
-  mapping create_unique_on_reset;     /* Mapping similar to that above, but 
-				       * the entire game is checked for the
-				       * existance of the object before cloning
-				       */
+    object array contents;              /* All of the objects associated with 
+					 * that relation */
+    int max_capacity;                   /* The maximum capacity that can be 
+					 * maintained by that relation. */
+    int hidden;                         /* Whether or not the contents in 
+					 * this relation can be seen or not */
+    int attached;                       /* Determines whether or not the contents
+					 * of the relation will be added to 
+					 * the relations mass/size when calc'd */
+    mixed hidden_func;                  /* Function or int to be evaluated 
+					 * to determine whether or not the
+					 * contents of the relation can be seen*/
+    mapping create_on_reset;            /* A mapping containing filenames, 
+					 * quantities and parameters needed for
+					 * objects to be updated every reset()
+					 * in the relation */
+    mapping create_unique_on_reset;     /* Mapping similar to that above, but 
+					 * the entire game is checked for the
+					 * existance of the object before cloning
+					 */
 }
- 
+
 /* 
  * VARIABLES
  */
@@ -80,33 +85,33 @@ int inventory_visible();
 /* Return 1 if the relation is valid, else 0 */
 private nomask int valid_relation(string relation)
 {
-  relation=PREPOSITION_D->translate_preposition(relation);
-  if(member_array(relation,keys(relations))==-1)
-    return 0;
-  return 1;
+    relation=PREPOSITION_D->translate_preposition(relation);
+    if(member_array(relation,keys(relations))==-1)
+	return 0;
+    return 1;
 }
 
 //:FUNCTION query_relation
 //Return the relation which the given object is conatained by
 string query_relation(object ob)
 {
-  foreach(string test,class relation_data values in relations)
+    foreach(string test,class relation_data values in relations)
     if(member_array(ob,values->contents)>-1)
-      return test;
+	return test;
 }
 
 //:FUNCTION add_relation
 //Add a relation to the complex container.
 varargs void add_relation(string relation,int max_capacity,int hidden)
 {
-  class relation_data new_relation=new(class relation_data);
-  relation=PREPOSITION_D->translate_preposition(relation);
-  new_relation->max_capacity=max_capacity;
-  new_relation->hidden=hidden;
-  new_relation->contents=({});
-  new_relation->create_on_reset=([]);
-  new_relation->create_unique_on_reset=([]);
-  relations[relation]=new_relation;
+    class relation_data new_relation=new(class relation_data);
+    relation=PREPOSITION_D->translate_preposition(relation);
+    new_relation->max_capacity=max_capacity;
+    new_relation->hidden=hidden;
+    new_relation->contents=({});
+    new_relation->create_on_reset=([]);
+    new_relation->create_unique_on_reset=([]);
+    relations[relation]=new_relation;
 }
 
 //:FUNCTION remove_relations
@@ -114,12 +119,12 @@ varargs void add_relation(string relation,int max_capacity,int hidden)
 //if they are unoccupied.
 void remove_relations(string array rels...)
 {
-  foreach(string rel in rels)
+    foreach(string rel in rels)
     {
-      rel=PREPOSITION_D->translate_preposition(rel);
-      if(sizeof(relations[rel]->contents))
-	continue;
-      map_delete(relations,rel);
+	rel=PREPOSITION_D->translate_preposition(rel);
+	if(sizeof(relations[rel]->contents))
+	    continue;
+	map_delete(relations,rel);
     }
 }
 
@@ -128,12 +133,12 @@ void remove_relations(string array rels...)
 //set_relations("on", "in", "under").  The first one is the default
 //relation (the one used by set_objects(), etc)
 void set_relations(string array rels...) {
-  /* Ok, a bit tricky here.  We can't remove relations if there is an
-     object occupying that, so we remove all relations with no objects,
-     and add the new ones */
-  /* Cheat and remove_relations() instead, it handles this already -- Tigran */
-  remove_relations(keys(relations)...);
-  foreach(string rel in rels)
+    /* Ok, a bit tricky here.  We can't remove relations if there is an
+       object occupying that, so we remove all relations with no objects,
+       and add the new ones */
+    /* Cheat and remove_relations() instead, it handles this already -- Tigran */
+    remove_relations(keys(relations)...);
+    foreach(string rel in rels)
     add_relation(rel,VERY_LARGE);
 }
 
@@ -149,28 +154,28 @@ string array get_relations()
 //the alias is associated with.
 string is_relation_alias(string test)
 {
-  foreach(string relation,mixed aliases in relation_aliases)
+    foreach(string relation,mixed aliases in relation_aliases)
     {
-      if(member_array(test,aliases)>-1)
-	return relation;
+	if(member_array(test,aliases)>-1)
+	    return relation;
     }
-  return 0;
+    return 0;
 }
 
 //:FUNCTION set_relation_alias
 //Set the aliases that a relation has
 void set_relation_alias(string relation,string aliases...)
 {
-  string aliased_to;
-  relation=PREPOSITION_D->translate_preposition(relation);
-  aliased_to=is_relation_alias(relation);
-  if(!valid_relation(relation))
+    string aliased_to;
+    relation=PREPOSITION_D->translate_preposition(relation);
+    aliased_to=is_relation_alias(relation);
+    if(!valid_relation(relation))
     {
-      if(!aliased_to)
-	error("Cannot set a relation alias to a nonexistant relation");
-      relation=aliased_to;
+	if(!aliased_to)
+	    error("Cannot set a relation alias to a nonexistant relation");
+	relation=aliased_to;
     }
-  relation_aliases[relation]=flatten_array(aliases);
+    relation_aliases[relation]=flatten_array(aliases);
 }
 
 //:FUNCTION add_relation_alias
@@ -178,41 +183,41 @@ void set_relation_alias(string relation,string aliases...)
 void add_relation_alias(string relation,string aliases...)
 {
     string aliased_to;
-  relation=PREPOSITION_D->translate_preposition(relation);
-  aliased_to=is_relation_alias(relation);
-  if(!valid_relation(relation))
+    relation=PREPOSITION_D->translate_preposition(relation);
+    aliased_to=is_relation_alias(relation);
+    if(!valid_relation(relation))
     {
-      if(!aliased_to)
-	error("Cannot add a relation alias to a nonexistant relation");
-      relation=aliased_to;
+	if(!aliased_to)
+	    error("Cannot add a relation alias to a nonexistant relation");
+	relation=aliased_to;
     }
-  if(!sizeof(relation_aliases[relation]))
-    set_relation_alias(relation,aliases...);
-  else
-    relation_aliases[relation]=flatten_array(relation_aliases[relation]+aliases);
+    if(!sizeof(relation_aliases[relation]))
+	set_relation_alias(relation,aliases...);
+    else
+	relation_aliases[relation]=flatten_array(relation_aliases[relation]+aliases);
 }
 
 //FUNCTION remove_relation_alias
 //Remove aliases that a relation has.
 void remove_relation_alias(string relation,string aliases...)
 {
-  relation_aliases[relation]-=aliases;
-  if(!sizeof(relation_aliases))
-    map_delete(relation_aliases,relation);
+    relation_aliases[relation]-=aliases;
+    if(!sizeof(relation_aliases))
+	map_delete(relation_aliases,relation);
 }
 
 //:FUNCTION query_relation_aliases
 //Return the array of aliases that a relation has.
 string array query_relation_aliases(string relation)
 {
-  return relation_aliases[relation];
+    return relation_aliases[relation];
 }
 
 //:FUNCTION list_relation_aliases
 //List all of the relation alias information
 mapping list_relation_aliases()
 {
-  return relation_aliases;
+    return relation_aliases;
 }
 
 //:FUNCTION set_default_relation
@@ -220,23 +225,23 @@ mapping list_relation_aliases()
 //relation is specified on many functions
 void set_default_relation(string set)
 {
-  string aliased_to;
-  set=PREPOSITION_D->translate_preposition(set);
-  aliased_to=is_relation_alias(set);
-  if(!valid_relation(set))
+    string aliased_to;
+    set=PREPOSITION_D->translate_preposition(set);
+    aliased_to=is_relation_alias(set);
+    if(!valid_relation(set))
     {
-      if(!aliased_to)
-	error("Cannot set a nonexistant relation as default");
-      default_relation=aliased_to;
+	if(!aliased_to)
+	    error("Cannot set a nonexistant relation as default");
+	default_relation=aliased_to;
     }
-  default_relation=set;
+    default_relation=set;
 }
 
 //:FUNCTION query_default_relation
 //Returns the default relation for the container.  See set_default_relation.
 string query_default_relation()
 {
-  return default_relation;
+    return default_relation;
 }
 
 
@@ -247,69 +252,69 @@ string query_default_relation()
 //Returns the amount of mass currently attached to a container
 varargs int query_capacity(string relation)
 {
-  int cap;
-  string aliased_to;
-  /* Need a little special handling for #CLONE# */
-  if(!relation||relation==""||relation="#CLONE#")
-    relation=query_default_relation();
-  relation=PREPOSITION_D->translate_preposition(relation);
-  aliased_to=is_relation_alias(relation);
-  if(!valid_relation(relation))
+    int cap;
+    string aliased_to;
+    /* Need a little special handling for #CLONE# */
+    if(!relation||relation==""||relation=="#CLONE#")
+	relation=query_default_relation();
+    relation=PREPOSITION_D->translate_preposition(relation);
+    aliased_to=is_relation_alias(relation);
+    if(!valid_relation(relation))
     {
-      if(!aliased_to)
-	return 0;
-      relation=aliased_to;
+	if(!aliased_to)
+	    return 0;
+	relation=aliased_to;
     }
-  foreach(object ob in relations[relation]->contents)
+    foreach(object ob in relations[relation]->contents)
     {
-      if(!ob)
+	if(!ob)
 	{
-	  relations[relation]->contents-=({ob});
-	  continue;
+	    relations[relation]->contents-=({ob});
+	    continue;
 	}
 #ifdef USE_SIZE 
-      cap+=ob->query_size();
+	cap+=ob->query_size();
 #else
-      cap+=ob->query_mass();
+	cap+=ob->query_mass();
 #endif
     }
-  return cap;
+    return cap;
 }
 
 //:FUNCTION set_max_capacity
 //Set the maximum capacity for a given relation.
 varargs void set_max_capacity(int cap, string relation)
 {
-  string aliased_to;
-  if(!relation||relation=="")
-    relation=query_default_relation();
-  relation=PREPOSITION_D->translate_preposition(relation);
-  aliased_to=is_relation_alias(relation);
-  if(!valid_relation(relation))
+    string aliased_to;
+    if(!relation||relation=="")
+	relation=query_default_relation();
+    relation=PREPOSITION_D->translate_preposition(relation);
+    aliased_to=is_relation_alias(relation);
+    if(!valid_relation(relation))
     {
-      if(!aliased_to)
-	error("Invalid relation");
-      relation=aliased_to;
+	if(!aliased_to)
+	    error("Invalid relation");
+	relation=aliased_to;
     }
-  relations[relation]->max_capacity=cap;
+    relations[relation]->max_capacity=cap;
 }
 
 //:FUNCTION query_max_capacity
 //Returns the maximum capacity for a given relation
 varargs int query_max_capacity(string relation)
 {
-  string aliased_to;
-  if(!relation||relation=="")
-    relation=query_default_relation();
-  relation=PREPOSITION_D->translate_preposition(relation);
-  aliased_to=is_relation_alias(relation);
-  if(!valid_relation(relation))
+    string aliased_to;
+    if(!relation||relation=="")
+	relation=query_default_relation();
+    relation=PREPOSITION_D->translate_preposition(relation);
+    aliased_to=is_relation_alias(relation);
+    if(!valid_relation(relation))
     {
-      if(!aliased_to)
-	return 0;
-      relation=aliased_to;
+	if(!aliased_to)
+	    return 0;
+	relation=aliased_to;
     }
-  return relations[relation]->max_capacity;
+    return relations[relation]->max_capacity;
 }
 
 //### Yo! finish this -- Tigran 
@@ -318,7 +323,7 @@ varargs int query_max_capacity(string relation)
 //normally include anything attached or within the container.
 int query_total_capacity()
 {
-  
+
 }
 #ifdef USE_MASS
 //:FUNCTION query_mass
@@ -331,7 +336,7 @@ int query_mass()
 #ifdef USE_SIZE
 int query_aggregate_size()
 {
-    return query_total_capacity() + ::get_size();
+    return query_total_capacity() + ::query_size();
 }
 #endif
 
@@ -341,28 +346,28 @@ int query_aggregate_size()
 //returns a value from <move.h> if there is an error
 mixed receive_object( object target, string relation )
 {
-  int x, m;
-  string aliased_to;
-  if(!relation||relation==""||relation=="#CLONE#")
-    relation=query_default_relation();
-  relation=PREPOSITION_D->translate_preposition(relation);
-  aliased_to=is_relation_alias(relation);
-  if( target == this_object() )
-    return "You can't move an object inside itself.\n";
-  
-  /* Have to be a bit stricter here to keep relations[] sane */
-  if (!valid_relation(relation))
+    int x, m;
+    string aliased_to;
+    if(!relation||relation==""||relation=="#CLONE#")
+	relation=query_default_relation();
+    relation=PREPOSITION_D->translate_preposition(relation);
+    aliased_to=is_relation_alias(relation);
+    if( target == this_object() )
+	return "You can't move an object inside itself.\n";
+
+    /* Have to be a bit stricter here to keep relations[] sane */
+    if (!valid_relation(relation))
     {
-      if(!aliased_to)
-	return "You can't put things " + relation + " that.\n";
-      relation=aliased_to;
+	if(!aliased_to)
+	    return "You can't put things " + relation + " that.\n";
+	relation=aliased_to;
     }
-  
-  
+
+
 #ifdef USE_SIZE
-  x = target->get_size();
+    x = target->query_size();
 #else
-  x=target->query_mass();
+    x=target->query_mass();
 #endif
 
     if ( (m=(query_capacity(relation))+x) > query_max_capacity(relation) )
@@ -378,19 +383,21 @@ mixed receive_object( object target, string relation )
 //to leave if we return zero or a string (error message)
 varargs mixed release_object( object target, int force )
 {
-  string relation;
-  if(!target||force)
+    string relation;
+    if(!target||force)
+	return 1;
+    relation=query_relation(target);
+    if(!relation&&!force)
+	return 0;
+    relations[relation]->contents-=({target});
     return 1;
-  relation=query_relation(target);
-  if(!relation&&!force)
-    return 0;
-  relations[relation]->contents-=({target});
-  return 1;
 }
 
 
 void reinsert_object( object target, string relation )
 {
+    if(!relation)
+	relation = query_default_relation();
     relations[relation]->contents += ({ target });
 }
 
@@ -399,18 +406,19 @@ void reinsert_object( object target, string relation )
 
 string long()
 {
-  string res;
-  string contents;
-  
-  res = simple_long();
-  if (!inventory_visible()) return res;
-  
-  foreach (string rel,class relation_data data in relations) {
-    contents = inv_list(data->contents, 1);
-    if (contents)
-      res += introduce_contents(rel) + contents;
-  }
-  return res;
+    string res;
+    string contents;
+
+    res = simple_long();
+    if (!inventory_visible()) return res;
+
+    foreach (string rel,class relation_data data in relations) {
+	contents = inv_list(data->contents, 1);
+	if (contents) {
+	    res += introduce_contents(rel) + contents;
+	}
+    }
+    return res;
 }
 
 //:FUNCTION look_in
@@ -422,7 +430,7 @@ string look_in( string relation )
     mixed ex;
     string aliased_to;
     if(!relation||relation=="")
-      relation=query_default_relation();
+	relation=query_default_relation();
     relation=PREPOSITION_D->translate_preposition(relation);
     aliased_to=is_relation_alias(relation);
     //    if (!relation) relation = query_prep();
@@ -433,88 +441,88 @@ string look_in( string relation )
     //in something use prevent_look_in.
     ex = call_hooks("prevent_look_" + relation, HOOK_YES_NO_ERROR);
     if(!ex)
-    ex = call_hooks("prevent_look_all", HOOK_YES_NO_ERROR);
+	ex = call_hooks("prevent_look_all", HOOK_YES_NO_ERROR);
     if (!ex) ex = "That doesn't seem possible.";
     if (stringp(ex))
 	return ex;
 
     if (!valid_relation(relation))
-      {
+    {
 	if(!aliased_to)
-	  return "There is nothing there.\n";
+	    return "There is nothing there.\n";
 	relation=aliased_to;
-      }
+    }
 
     inv = inv_list(relations[relation]->contents);
     if ( !inv )
 	inv = "  nothing";
 
     return (sprintf( "%s %s you see: \n%s\n",
-		     capitalize(relation),
-		     short(),
-		     inv ));
+	capitalize(relation),
+	short(),
+	inv ));
 }
 
 
 varargs void set_hide_contents( mixed hide, string relation )
 {
-  string aliased_to;
-  if(hide)
+    string aliased_to;
+    if(hide)
     {
-      if(!relation)
+	if(!relation)
 	{
-	  all_hidden_func=hide;
-	  add_hook( "prevent_look_all", all_hidden_func );
+	    all_hidden_func=hide;
+	    add_hook( "prevent_look_all", all_hidden_func );
 	}
-      else
+	else
 	{
-	  relation=PREPOSITION_D->translate_preposition(relation);
-	  aliased_to=is_relation_alias(relation);
-	  if(!valid_relation(relation))
+	    relation=PREPOSITION_D->translate_preposition(relation);
+	    aliased_to=is_relation_alias(relation);
+	    if(!valid_relation(relation))
 	    {
-	      if(!aliased_to)
-		error("Attempted to hide contents of a container with a "
+		if(!aliased_to)
+		    error("Attempted to hide contents of a container with a "
 		      "nonexistant relation.");
-	      relation=aliased_to;
+		relation=aliased_to;
 	    }
-	  relations[relation]->hidden_func=hide;
-	  add_hook ("prevent_look_"+relation,relations[relation]->hidden_func);
+	    relations[relation]->hidden_func=hide;
+	    add_hook ("prevent_look_"+relation,relations[relation]->hidden_func);
 	}
     }
-  else 
+    else 
     {
-      if(!relation)
+	if(!relation)
 	{
-	  remove_hook( "prevent_look_all", all_hidden_func );
-	  all_hidden_func=0;
+	    remove_hook( "prevent_look_all", all_hidden_func );
+	    all_hidden_func=0;
 	}
-      relation=PREPOSITION_D->translate_preposition(relation);
-      if(!valid_relation(relation))
+	relation=PREPOSITION_D->translate_preposition(relation);
+	if(!valid_relation(relation))
 	{
-	  if(!aliased_to)
-	    error("Attempted to unhide contents of a container with a nonexistant "
+	    if(!aliased_to)
+		error("Attempted to unhide contents of a container with a nonexistant "
 		  "relation");
-	  relation=aliased_to;
+	    relation=aliased_to;
 	}
-      remove_hook( "prevent_look_"+relation, relations[relation]->hidden_func );
-      relations[relation]->hidden_func=0;
+	remove_hook( "prevent_look_"+relation, relations[relation]->hidden_func );
+	relations[relation]->hidden_func=0;
     }   
 }
 
 mixed query_hide_contents(string relation)
 {
-  string aliased_to;
-  if(!relation)
-    return all_hidden_func;
-  relation=PREPOSITION_D->translate_preposition(relation);
-  aliased_to=is_relation_alias(relation);
-  if(!valid_relation(relation))
+    string aliased_to;
+    if(!relation)
+	return all_hidden_func;
+    relation=PREPOSITION_D->translate_preposition(relation);
+    aliased_to=is_relation_alias(relation);
+    if(!valid_relation(relation))
     {
-      if(!aliased_to)
-	return 0;
-      relation=aliased_to;
+	if(!aliased_to)
+	    return 0;
+	relation=aliased_to;
     }
-  return relations[relation]->hidden_func;
+    return relations[relation]->hidden_func;
 }
 
 
@@ -569,121 +577,122 @@ int inventory_visible()
 
 mixed array make_objects_if_needed()
 {
-  mixed *objs = ({});
-  
-  /* Start by looping through each of the relations of the object */
-  foreach(string relation,class relation_data object_data in relations)
+    mixed *objs = ({});
+
+    /* Start by looping through each of the relations of the object */
+    foreach(string relation,class relation_data object_data in relations)
     {
-      /* Loop through each element of the mapping */
-      object_data->contents-=({0});
-      foreach(string file,mixed parameters in object_data->create_on_reset)
+	/* Loop through each element of the mapping */
+	object_data->contents-=({0});
+	foreach(string file,mixed parameters in object_data->create_on_reset)
 	{
-	  int num=1;
-	  mixed array rest=({});
-	  object array matches=({});
-	  /* Allow use of relative paths, relative to the container. */
-	  file = absolute_path(file, this_object());
-	  /* If the only parameter is an integer, it is the quantity of the
-	   * object that needs to be in this relation */
-	  if (intp(parameters)) 
-	    num = parameters;
-	  else
+	    int num=1;
+	    mixed array rest=({});
+	    object array matches=({});
+	    /* Allow use of relative paths, relative to the container. */
+	    file = absolute_path(file, this_object());
+	    /* If the only parameter is an integer, it is the quantity of the
+	     * object that needs to be in this relation */
+	    if (intp(parameters)) 
+		num = parameters;
+	    else
 	    if (arrayp(parameters)) 
-	      {
+	    {
 		/* Check the first argument for an integer value, if it is
 		 * then it is the quantity fo the object to be in the 
 		 * relation */
 		if(intp(parameters[0]))
-		  {
+		{
 		    num = parameters[0];
 		    rest = parameters[1..];
-		  }
+		}
 		/* Everything else is parameters passed to create() */
 		else
-		  rest = parameters;
-	      }
+		    rest = parameters;
+	    }
 	    else
-	      continue;
-	  if(sizeof(object_data->contents))
+		continue;
+	    if(sizeof(object_data->contents))
 	    {
-	      matches=filter(object_data->contents,(:cannonical_form ($1)==$(file) :) );
+		matches=filter(object_data->contents,(:cannonical_form ($1)==$(file) :) );
 	    }
-	  while(sizeof(matches)<num)
+	    while(sizeof(matches)<num)
 	    {
-	      int ret;
-	      object ob = new(absolute_path(file), rest...);
-	      if(!ob)
-		error("Couldn't find file '" + file + "' to clone!\n");
-	      ret = ob->move(this_object(), "#CLONE#");
-	      if ( ret != MOVE_OK )
-		error("Initial clone failed for '" + file +"': " + ret + "\n");
-	      ob->on_clone( rest... );
-	      matches+=({ob});
+		int ret;
+		object ob = new(absolute_path(file), rest...);
+		if(!ob)
+		    error("Couldn't find file '" + file + "' to clone!\n");
+		ret = ob->move(this_object(), "#CLONE#");
+		if ( ret != MOVE_OK )
+		    error("Initial clone failed for '" + file +"': " + ret + "\n");
+		ob->on_clone( rest... );
+		matches+=({ob});
 	    }
-	  objs+=matches;
+	    objs+=matches;
 	}
     }
-  return objs;
+    return objs;
 }
 
 mixed array make_unique_objects_if_needed()
 {
-  mixed array objs=({});
-  
-  /* Loop through each relation */
-  foreach(string relation,class relation_data object_data in relations)
+    mixed array objs=({});
+
+    /* Loop through each relation */
+    foreach(string relation,class relation_data object_data in relations)
     {
-      /* Loop through each file in the mapping. */
-      foreach (string file, mixed parameters in relations[relation]->create_unique_on_reset)
+	/* Loop through each file in the mapping. */
+	foreach (string file, mixed parameters in relations[relation]->create_unique_on_reset)
 	{
-	  mixed array rest=({});
-	  int num;
-	  object array matches=({});
-	  /* Allow use of relative paths, relative to the container. */
-	  file = absolute_path(file, this_object());
-	  /* If the only parameter is an integer, it is the quantity of the
-	   * object that needs to be in this relation */
-	  if (intp(parameters)) 
-	    num = parameters;
-	  else
+	    mixed array rest=({});
+	    int num;
+	    object array matches=({});
+	    /* Allow use of relative paths, relative to the container. */
+	    file = absolute_path(file, this_object());
+	    /* If the only parameter is an integer, it is the quantity of the
+	     * object that needs to be in this relation */
+	    if (intp(parameters)) 
+		num = parameters;
+	    else
 	    if (arrayp(parameters)) 
-	      {
+	    {
 		/* Check the first argument for an integer value, if it is
 		 * then it is the quantity for the object to be in the 
 		 * relation */
 		if(intp(parameters[0]))
-		  {
+		{
 		    num = parameters[0];
 		    rest = parameters[1..];
-		  }
+		}
 		/* Everything else is parameters passed to create() */
 		else
-		  rest = parameters;
-	      }
-	    else
-	      continue;
-	  matches=children(file);
-	  /* Clone x of the object to catch it up to the number of objects 
-	   * requested by the mapping */
-	  while(sizeof(matches)<num)
-	    {
-	      int ret;
-	      object ob = new(absolute_path(file), rest...);
-	      if(!ob)
-		error("Couldn't find file '" + file + "' to clone!\n");
-	      /* Test for uniqueness in the object by calling test_unique() */
-	      if(ob->test_unique())
-		break;
-	      ret = ob->move(this_object(), "#CLONE#");
-	      if ( ret != MOVE_OK )
-		error("Initial clone failed for '" + file +"': " + ret + "\n");
-	      ob->on_clone( rest... );
-	      matches+=({ob});
+		    rest = parameters;
 	    }
-	  objs+=matches;
+	    else
+		continue;
+	    matches=children(file);
+	    matches = filter(matches, (: clonep($1) :));
+	    /* Clone x of the object to catch it up to the number of objects 
+	     * requested by the mapping */
+	    while(sizeof(matches)<num)
+	    {
+		int ret;
+		object ob = new(absolute_path(file), rest...);
+		if(!ob)
+		    error("Couldn't find file '" + file + "' to clone!\n");
+		/* Test for uniqueness in the object by calling test_unique() */
+		if(ob->test_unique())
+		    break;
+		ret = ob->move(this_object(), "#CLONE#");
+		if ( ret != MOVE_OK )
+		    error("Initial clone failed for '" + file +"': " + ret + "\n");
+		ob->on_clone( rest... );
+		matches+=({ob});
+	    }
+	    objs+=matches;
 	}
     }
-  return objs;
+    return objs;
 }
 
 //:FUNCTION set_objects
@@ -699,11 +708,11 @@ mixed array make_unique_objects_if_needed()
 //objects with the same first id, and objects are only cloned to bring the
 //count up to that number.
 varargs mixed array set_objects(mapping m,string relation) {
-  if(!relation||relation=="")
-    relation=query_default_relation();
-  relation=PREPOSITION_D->translate_preposition(relation);
-  relations[relation]->create_on_reset = m;
-  return make_objects_if_needed();
+    if(!relation||relation=="")
+	relation=query_default_relation();
+    relation=PREPOSITION_D->translate_preposition(relation);
+    relations[relation]->create_on_reset = m;
+    return make_objects_if_needed();
 }
 
 //:FUNCTION set_unique_objects
@@ -719,11 +728,11 @@ varargs mixed array set_objects(mapping m,string relation) {
 //An optional second string argument represents a specific relation which
 //should produce objects on reset()
 varargs mixed array set_unique_objects(mapping m,string relation) {
-  if(!relation||relation=="")
-    relation=query_default_relation();
-  relation=PREPOSITION_D->translate_preposition(relation);
-  relations[relation]->create_unique_on_reset = m;
-  return make_unique_objects_if_needed();
+    if(!relation||relation=="")
+	relation=query_default_relation();
+    relation=PREPOSITION_D->translate_preposition(relation);
+    relations[relation]->create_unique_on_reset = m;
+    return make_unique_objects_if_needed();
 }
 
 /* Hrm, are the following two functions really necessary?  Should the relation
@@ -733,18 +742,18 @@ varargs mixed array set_unique_objects(mapping m,string relation) {
 //returns a string appropriate for introduction the contents of an object
 //in room descriptions.
 varargs string introduce_contents(string relation) {
-  if(!relation||relation=="")
-    relation=query_default_relation();
-  relation=PREPOSITION_D->translate_preposition(relation);
-  switch (relation)
+    if(!relation||relation=="")
+	relation=query_default_relation();
+    relation=PREPOSITION_D->translate_preposition(relation);
+    switch (relation)
     {
     case "in":
-      return capitalize(the_short()) + " contains:\n";
+	return capitalize(the_short()) + " contains:\n";
     case "on":
-      return "Sitting on "+the_short()+" you see:\n";
+	return "Sitting on "+the_short()+" you see:\n";
     default:
-      return capitalize(relation)+" "+the_short()+" you see:\n";
-  }
+	return capitalize(relation)+" "+the_short()+" you see:\n";
+    }
 }
 
 /* //:FUNCTION inventory_header */
@@ -758,40 +767,42 @@ varargs string introduce_contents(string relation) {
 /* } */
 
 varargs string inventory_recurse(int depth, mixed avoid) {
-  string res;
-  object array obs;
-  int i;
-  string str="";
-  string tmp;
-  
-  if (avoid) 
+    string res;
+    object array obs;
+    int i;
+    string str="";
+    string tmp;
+
+    if (avoid) 
     {
-      if(!arrayp(avoid))
-	avoid = ({ avoid });
-      obs = all_inventory() - avoid;
+	if(!arrayp(avoid))
+	    avoid = ({ avoid });
+	obs = all_inventory() - avoid;
     }
-  else
-    obs = all_inventory();
-  
-  if (!this_object()->is_living()) {
-    foreach (object ob in obs) {
-      if (!(ob->is_visible())) continue;
-      if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
-	str += ob->untouched_long()+"\n";
-	if (ob->inventory_visible())
-	  if (!ob->is_living())
-	    str += ob->inventory_recurse(0, avoid);
-      }
+    else
+	obs = all_inventory();
+
+    if (!this_object()->is_living()) {
+	foreach (object ob in obs) {
+	    if (!(ob->is_visible())) continue;
+	    if (!ob->test_flag(TOUCHED) && ob->untouched_long()) {
+		str += ob->untouched_long()+"\n";
+		if (ob->inventory_visible())
+		    if (!ob->is_living())
+			str += ob->inventory_recurse(0, avoid);
+	    }
+	}
     }
-  }
-  if (!this_object()->is_living()) {
-    res = introduce_contents();
-    if (tmp = inv_list(obs, 1, depth)) {
-      for (i=0; i<depth; i++) str += "  ";
-      str += res + tmp;
+    if (!this_object()->is_living()) {
+	foreach(string key,mixed data in relations) {
+	    res = introduce_contents(key);
+	}
+	if (tmp = inv_list(obs, 1, depth)) {
+	    for (i=0; i<depth; i++) str += "  ";
+	    str += res + tmp;
+	}
     }
-  }
-  return str;
+    return str;
 }
 
 string show_contents()
@@ -802,10 +813,10 @@ string show_contents()
 //:FUNCTION inventory_accessible
 //Return 1 if the contents of this object can be touched, manipulated, etc
 int inventory_accessible() {
-  return 1;
-/*     if (!is_visible()) return 0; */
-/*     if (!short()) return 0; */
-/*     return !this_object()->query_closed(); */
+    return 1;
+    /*     if (!is_visible()) return 0; */
+    /*     if (!short()) return 0; */
+    /*     return !this_object()->query_closed(); */
 }
 
 
@@ -938,7 +949,7 @@ int destruct_if_useless() {
 }
 
 mapping lpscript_attributes() {
-    return ::lpscript_attributes() + ([
+    return ([
       "objects" : ({ LPSCRIPT_OBJECTS }),
       "capacity" : ({ LPSCRIPT_INT, "setup", "set_max_capacity" }),
     ]);
@@ -948,25 +959,25 @@ mapping lpscript_attributes() {
 // The default verb handling where the container is an indirect object.  
 mixed indirect_verb_rule(string verb,string rule,mixed second,mixed third,mixed fourth)
 {
-  string aliased_to;
-  third=PREPOSITION_D->translate_preposition(third);
-  // The third should /always/ be the relation.  If this is in err..oops --Tig
-  aliased_to=is_relation_alias(third);
-  if(!valid_relation(third))
-    {
-      if(!aliased_to)
-	return 0;
-      third=aliased_to;
-    }
-  if(query_relation(second)!=third)
-    return 0;
-  if(!is_visible())
-    return 0;
-  if(!short())
-    return 0;
-  if(this_object()->query_closed()&&third=="in")
-    return 0;
-  return 1;
+    string aliased_to;
+    third=PREPOSITION_D->translate_preposition(third);
+    // The third should /always/ be the relation.  If this is in err..oops --Tig
+    aliased_to=is_relation_alias(third);
+    //  if(!valid_relation(third))
+    //    {
+    //      if(!aliased_to)
+    //	return 0;
+    //      third=aliased_to;
+    //    }
+    //  if(query_relation(second)!=third)
+    //    return 0;
+    if(!is_visible())
+	return "not visible";
+    if(!short())
+	return "no short";
+    if(this_object()->query_closed()&&third=="in")
+	return "closed";
+    return 1;
 }
 
 

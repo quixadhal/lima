@@ -28,7 +28,6 @@ typedef struct {
     enum socket_state state;
     struct sockaddr_in l_addr;
     struct sockaddr_in r_addr;
-    char name[ADDR_BUF_SIZE];
     object_t *owner_ob;
     object_t *release_ob;
     union string_or_func read_callback;
@@ -45,15 +44,16 @@ typedef struct {
 extern lpc_socket_t *lpc_socks;
 extern int max_lpc_socks;
 
-#define	S_RELEASE	0x01
-#define	S_BLOCKED	0x02
-#define	S_HEADER	0x04
-#define	S_WACCEPT	0x08
-#define S_BINARY        0x10
-#define S_READ_FP       0x20
-#define S_WRITE_FP      0x40
-#define S_CLOSE_FP      0x80
+#define	S_RELEASE	0x001
+#define	S_BLOCKED	0x002
+#define	S_HEADER	0x004
+#define	S_WACCEPT	0x008
+#define S_BINARY	0x010
+#define S_READ_FP	0x020
+#define S_WRITE_FP	0x040
+#define S_CLOSE_FP	0x080
 #define S_EXTERNAL	0x100
+#define S_LINKDEAD	0x200
 
 array_t *socket_status PROT((int));
 array_t *socket_status_by_fd PROT((int));
@@ -64,8 +64,8 @@ void assign_socket_owner PROT((svalue_t *, object_t *));
 object_t *get_socket_owner PROT((int));
 void dump_socket_status PROT((outbuffer_t *));
 void close_referencing_sockets PROT((object_t *));
-int get_socket_address PROT((int, char *, int *));
-int socket_bind PROT((int, int));
+int get_socket_address PROT((int, char *, int *, int));
+int socket_bind PROT((int, int, char *));
 int socket_create PROT((enum socket_mode, svalue_t *, svalue_t *));
 int socket_listen PROT((int, svalue_t *));
 int socket_accept PROT((int, svalue_t *, svalue_t *));

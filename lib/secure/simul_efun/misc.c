@@ -11,7 +11,7 @@ private nosave string array normal_directions = ({ "up", "down",
                                                    "southeast", "southwest",
                                                    "south", "west" });
 
-//: FUNCTION is_normal_direction
+//FUNCTION: is_normal_direction
 //returns the stack of objects and functions
 int
 is_normal_direction(string dir) {
@@ -673,3 +673,4 @@ string dump_socket_status() {
   }
   return ret;
 }
+

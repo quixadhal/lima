@@ -15,7 +15,8 @@ void recurse(string dir) {
 		foreach (string fn in get_dir(dir + "fail/*.c")) {
 		    ASSERT2(catch(load_object(dir+"fail/"+fn)), "fail/" + fn + " loaded");
 #if defined(__DEBUGMALLOC_EXTENSIONS__) && defined(__CHECK_MEMORY__)
-		    if (sizeof(explode(leaks = check_memory(), "\n")) != 1) {
+		    leaks = check_memory();
+		    if (sizeof(filter(explode(leaks, "\n"), (: $1 && $1[0] :))) != 1) {
 			write("After trying to compile: " + dir + "fail/" + fn + "\n");
 			write(leaks);
 			error("LEAK\n");
@@ -43,7 +44,8 @@ main(string fun)
     if (tp != this_player())
 	error("Bad this_player() after calling " + fun + "\n");
 #if defined(__DEBUGMALLOC_EXTENSIONS__) && defined(__CHECK_MEMORY__)
-    if (sizeof(explode(leaks = check_memory(), "\n")) != 1) {
+    leaks = check_memory();
+    if (sizeof(filter(explode(leaks, "\n"), (: $1 && $1[0] :))) != 1) {
 	write("After calling: " + fun + "\n");
 	write(leaks);
 	error("LEAK\n");

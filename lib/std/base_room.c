@@ -27,6 +27,10 @@ inherit __DIR__ "room/roomdesc";
 inherit __DIR__ "room/state";
 
 private nosave string array area_names = ({ });
+private string listen, smell;
+private nosave mixed chat_msg;
+private nosave int chat_period = 15;
+private nosave int tag;
 
 //:FUNCTION stat_me
 //Returns some debugging info about the object.  Shows the container info,
@@ -157,7 +161,6 @@ mapping lpscript_attributes() {
     return ([
       "area" : ({ LPSCRIPT_STRING, "setup", "set_area" }),
       "brief" : ({ LPSCRIPT_STRING, "setup", "set_brief" }),
-      "default_exit" : ({ LPSCRIPT_STRING, "setup", "set_default_exit" }),
       "exits" : ({ LPSCRIPT_MAPPING, "setup", "set_exits" }),
       "state" : ({ LPSCRIPT_TWO, (: ({ "setup", "set_state_description(\"" + $1 + "\", \"" + $2[0] + "\")" }) :) }),
       "item" : ({ LPSCRIPT_SPECIAL, (: ({ "setup", "add_item(\"" + $1[0] + "\", \"" + implode($1[1..], " ") + "\")" }) :) })
@@ -220,7 +223,84 @@ string long_without_object(object o)
 #endif
 }
 
+void set_listen(string str) { listen = str; }
+
+string query_listen() { return listen; }
+
+void set_smell(string str) { smell = str; }
+
+string query_smell() { return smell; }
+
 void do_listen()
 {
+  if(listen)
+    write(listen);
+  else
     write( "You hear nothing unusual.\n" );
+}
+
+void do_pray() { write( "Nothing special happens.\n" ); }
+
+void do_smell()
+{
+  if(smell)
+    write(smell);
+  else
+    write( "You smell nothing unusual.\n" );
+}
+
+int listeners()
+{
+  object array inv = all_inventory(this_object());
+  return sizeof(filter(inv, (: $1->query_link() :) ) );
+}
+
+void check_anybody_here()
+{
+  if(listeners())
+  {
+    tag = call_out("room_chat", chat_period, chat_msg);
+  } else {
+    remove_call_out(tag);
+    tag = 0;
+  }
+}
+
+void room_chat()
+{
+  if(stringp(chat_msg))
+    tell_from_outside(this_object(), chat_msg + "\n");
+  else if(arrayp(chat_msg))
+    tell_from_outside(this_object(), choice(chat_msg) + "\n");
+  else if(functionp(chat_msg))
+    tell_from_outside(this_object(), evaluate(chat_msg) + "\n");
+  check_anybody_here();
+}
+
+void departure(object who)
+{
+  call_out("check_anybody_here",0);
+}
+
+void arrival(object who)
+{
+  if(!listeners())
+    tag = call_out("room_chat", chat_period, chat_msg);
+}
+
+void set_room_chat(mixed chat, int interval)
+{
+  chat_msg = chat;
+  chat_period = interval;
+
+  add_hook("object_arrived", (: arrival :) );
+  add_hook("object_left", (: departure :) );
+
+  if(tag)
+  {
+    remove_call_out(tag);
+    tag = 0;
+  }
+
+  call_out("check_anybody_here",0);
 }

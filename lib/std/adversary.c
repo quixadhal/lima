@@ -29,21 +29,19 @@ inherit MODULE("blows", BLOW_MODULE);
 inherit MODULE("formula", FORMULA_MODULE);
 inherit MODULE("advancement", ADVANCEMENT_MODULE);
 
-void mudlib_setup()
+void mudlib_setup(mixed array args...)
 {
-   living::mudlib_setup();
-   set_to_hit_bonus(-25);  // -25% to hit bare hand.
-   set_weapon_class(3);    // and low WC
-   set_combat_messages("combat-unarmed");
-   set_death_message(query_default_death_message());
+    living::mudlib_setup(args...);
+    // Please read the headers in /std/adversary/mod_config.c before
+    // removing this line.
+    check_combat_config();
+    set_to_hit_bonus(-25);  // -25% to hit bare hand.
+    set_weapon_class(3);    // and low WC
+    set_combat_messages("combat-unarmed");
+    set_death_message(query_default_death_message());
 
-   /* by pinging query_weapon(), we will default to self as a weapon */
-   query_weapon();
-}
-
-void remove()
-{
-   living::remove();
+    /* by pinging query_weapon(), we will default to self as a weapon */
+    query_weapon();
 }
 
 //:FUNCTION start_fight
@@ -52,64 +50,53 @@ void remove()
 // take a swing at them.
 int start_fight(object who)
 {
-   if(!(who->attackable()))
-      return 0;
-   attacked_by(who, 1);
-   return 1;
+    if(!(who->attackable()))
+	return 0;
+    attacked_by(who, 1);
+    return 1;
 }
 
 //:FUNCTION attackable
 // return 1 if we can be attacked.
 int attackable()
 {
-   return 1;
-}
-
-void create(mixed array args...)
-{
-   ::create(args...);
-
-   // Please read the headers in /std/adversary/mod_config.c before
-   // removing this line.
-   check_combat_config();
+    return 1;
 }
 
 mixed direct_diagnose_liv(object ob)
 {
-   return 1;
+    return 1;
 }
 
 mixed direct_kill_liv(object ob)
 {
-   if(query_ghost())
-      return "Someone beat you to it; " + the_short() + " is already dead.\n";
-   return 1;
+    if(query_ghost())
+	return "Someone beat you to it; " + the_short() + " is already dead.\n";
+    return 1;
 }
 
 mapping lpscript_attributes()
 {
-   return living::lpscript_attributes() +
-          m_damage_source::lpscript_attributes() +
-          ([
-             "max_health" : ({ LPSCRIPT_INT, "setup", "set_max_health" }),
-          ]);
+    return ([
+      "max_health" : ({ LPSCRIPT_INT, "setup", "set_max_health" }),
+    ]);
 }
 
 //:FUNCTION query_ghost
 // Returns 1 if the adversary is dead.
 int query_ghost()
 {
-   return HEALTH_MODULE::query_ghost();
+    return HEALTH_MODULE::query_ghost();
 }
 
 int event_damage(class event_info evt)
 {
-   return BLOW_MODULE::event_damage(evt);
+    return BLOW_MODULE::event_damage(evt);
 }
 
 //:FUNCTION diagnose
 // Returns a string describing the current state of the adversary.
 string diagnose()
 {
-   return HEALTH_MODULE::diagnose();
+    return HEALTH_MODULE::diagnose();
 }

@@ -93,7 +93,7 @@ varargs void set_fluid_level( int x, string y ){
 
 varargs int add_fluid( object fluid){
   if (!fluid) return 0;
-  set_fluid_level( get_size() + (fluid -> get_size()) );
+  set_fluid_level( query_size() + (fluid -> query_size()) );
   fluid -> remove();
   return 1;
 }
@@ -165,7 +165,7 @@ varargs void pour( string how, mixed ob2, mixed from ){
 int will_fit( object bottle ){
 	int fluid_size;
 	int room_left;
-	fluid_size = get_size();
+	fluid_size = query_size();
 	room_left = 
 	bottle -> query_max_capacity() 
 	   - bottle -> query_capacity() ;
@@ -189,9 +189,9 @@ void remove_puddle(){
 
 void evaporate_puddle_func(){
 
-   set_size( get_size() -1 );
+   set_size( query_size() -1 );
 
-   if( get_size() <= 0 ) {remove_puddle(); return;};
+   if( query_size() <= 0 ) {remove_puddle(); return;};
 
     this_object() -> simple_action
 	( evaporate_action, this_object() );

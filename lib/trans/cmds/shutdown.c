@@ -71,6 +71,7 @@ private void main(mixed *args, mapping flags)
 		   sprintf("Shutdown cancelled by %s [%s]\n",
 			    this_body()->query_name(), s));
 	tell_all(THE_BIG_GUY " tells you: Shutdown has been cancelled.\n");
+          call_number=0;
 	return;
     }
     /* Check to make sure that a shutdown isn't already in progress */

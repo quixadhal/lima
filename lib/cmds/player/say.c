@@ -9,89 +9,65 @@
 // It is done in a common language that everybody can understand.
 // The /last and /history syntaxes will display your say history.
 
-#include <mudlib.h>
-
 inherit CMD;
 inherit M_GRAMMAR;
 
-#define MAX_HISTORY 20
-#undef PER_BODY_sAY_HISTORY
-
-void query_history(object o);
-void add_history(object o, string msg);
-
-private mapping history = ([ ]);
+#ifdef SAY_HISTORY_IN_ROOMS
+# define HISTORY_OB environment(this_body())
+#else
+# define HISTORY_OB this_body()
+#endif
 
 void create()
 {
-  ::create();
-  no_redirection();
+    ::create();
+    no_redirection();
 }
 
-private void main(string s)
+private void main(string str)
 {
-  if (!s || s == "")
-  {
-    out("Say what?\n");
-    return;
-  }
+    string array msgs;
+    object array others = ({});
+    object ob;
 
-  if (s == "/last")
-#ifdef PER_BODY_SAY_HISTORY
-    return query_history(this_body());
+    // Collect speech recipients upwards through environments,
+    // where proper. Not possible to use normal message propagation
+    // if you want to save say history in the body object.
+    // -- Marroc
+    ob = this_body();
+    while (ob && ob->environment_can_hear()) {
+	others += all_inventory(environment(ob)) - ({ ob });
+	ob = environment(ob);
+    }
+
+    if (!str || str == "")  {
+	out("Say what?\n");
+	return;
+    }
+    switch(explode(str," ")[0]) {
+	string array out=({});
+    case "/last":
+    case "/history":
+	out=({"History of says:\n"});
+	msgs=HISTORY_OB->list_say_history();
+	if(sizeof(msgs))
+	    out+=msgs;
+	else
+	    out+=({"\t<none>"});
+	more(out);
+	break;
+    default:
+	msgs=this_body()->action(({this_body()}),
+	  "%^SAY%^$N $vsay:%^RESET%^ $o",
+	  punctuate(str));
+	this_body()->inform(({this_body()}),msgs,others);
+#ifndef SAY_HISTORY_IN_ROOMS
+	HISTORY_OB->add_say_history(msgs[0]);
+	others->add_say_history(msgs[1]);
 #else
-    return query_history(environment(this_body()));
-#endif /* PER_BODY_SAY_HISTORY */
-
-#ifdef ZORKMUD
-    this_body()->simple_action("$N $vsay, \"$O\"", punctuate(s));
-#ifdef PER_BODY_SAY_HISTORY
-    add_history(this_body(), sprintf("You say, \"%s\"", punctuate(s)));
-    foreach(object ob in filter(all_inventory(environment(this_body())) - ({ this_body() }), (: $1->query_link() :)))
-      add_history(ob,
-#else
-    add_history(environment(this_body()),
-#endif /* PER_BODY_SAY_HISTORY */
-                  sprintf("%s says, \"%s\"", this_body()->query_name(), punctuate(s)));
-#else
-    this_body()->simple_action("%^SAY%^$N $vsay:%^RESET%^ $o", punctuate(s));
-#ifdef PER_BODY_SAY_HISTORY
-    add_history(this_body(),
-                sprintf("%%^SAY%%^You say:%%^RESET%%^ %s", punctuate(s)));
-    foreach(object ob in filter(all_inventory(environment(this_body())) - ({
-this_body() }), (: $1->query_link() :)))
-      add_history(ob,
-#else
-    add_history(environment(this_body()),
-                  sprintf("%%^SAY%%^%s says:%%^RESET%%^ %s", this_body()->query_name(), punctuate(s)));
-#endif /* PER_BODY_SAY_HISTORY */
-
-#endif /* ZORKMUD */
-}
-
-private void add_history(object o, string msg)
-{
-  if (!history[o])
-    history[o] = ({ msg });
-  else
-    history[o] += ({ msg });
-
-  if (sizeof(history[o]) > MAX_HISTORY)
-    history[o] = history[o][1..<1];
-}
-
-private void query_history(string o)
-{
-  string hist;
-
-  if ( !history[o] )
-    return out("No say history.\n");
-  hist = implode(history[o], "\n");
-
-  if ( hist == "" )
-    hist = "<none>\n";
-
-  more(sprintf("History of 'says':\n%s\n", hist));
+	HISTORY_OB->add_say_history(msgs[1]);
+#endif
+    }
 }
 
 nomask int valid_resend(string ob) {

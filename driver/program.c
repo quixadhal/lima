@@ -110,9 +110,6 @@ function_t *find_func_entry P2(program_t *, prog, int, index) {
     }
     
     index -= prog->last_inherited;
-#ifdef BINARIES
-    index = prog->sorted_funcs[index];
-#endif
 
     return prog->function_table + index;
 }

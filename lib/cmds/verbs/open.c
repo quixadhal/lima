@@ -1,7 +1,7 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 /* open <something destroyable> with <weapon> */
 mixed direct_open_obj_with_obj(object ob1, object ob2) {

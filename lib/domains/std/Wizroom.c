@@ -26,14 +26,13 @@ void setup()
   set_exits( ([
 	       "east" : "Example_Room1",
 	       "south" : "Monster_Room",
-	       "west" : "2.4.5/elevator.scr",
 	       "northwest" : "Lava_Room",
 	       ]) );
   set_objects( ([
 		 STAIRS : ({ "Attic", "Shop" }),
 		 "large_oak_door" : ({ "northeast", "Quiet_Room" }),
-		 "portal" :  ({ START }),
-		 "2.4.5/obj/elevator_door.scr" : ({ "lima" }),
+		 "portal" :  ({ "/domains/std/rooms/beach/Sandy_Beach" }),
+		 "2.4.5/obj/elevator_door" : ({ "west", "/domains/std/2.4.5/elevator" }),
 		 "2.4.5/obj/elevator_call_button.scr" : ({ "lima" }),
 		 "greeter" : 1,
 		 "map" : 1,
@@ -41,7 +40,7 @@ void setup()
   set_default_error("Walking through walls is painful. Try a more pleasant "
 		    "direction.\n");
   set_exit_msg( "east", ({ "$N $vwomble east.", "$N $vfritter away." }));
-  set_enter_msg( "east", ({ "$N enters from the zoo.", "$N $vdecide to pop in for a visit." }) );
+  set_enter_msg( "east", ({ "$N $venter from the zoo.", "$N $vdecide to pop in for a visit." }) );
 }
 
 void do_listen()

@@ -100,6 +100,18 @@ f_log PROT((void))
 }
 #endif
 
+#ifdef F_LOG10
+void
+f_log10 PROT((void))
+{
+    if (sp->u.real <= 0.0) {
+        error("math: log10(x) with (x <= 0.0)\n");
+        return;
+    }
+    sp->u.real = log10(sp->u.real);
+}
+#endif
+
 #ifdef F_POW
 void
 f_pow PROT((void))

@@ -167,7 +167,7 @@ private nomask void perform_set_dir_priv(int rw, string dir, mixed priv)
     if ( write_error(SECURE_D->set_protection(dir, rw, priv)) )
 	return;
 
-    printf("Directory '%s' has been set to '%s'.\n", dir, priv);
+    printf("Directory '%s' has been set to '%O'.\n", dir, priv);
 }
 
 private nomask void perform_clear_dir_priv(string dir)

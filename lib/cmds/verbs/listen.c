@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_listen_to_obj(object ob)
 {

@@ -48,7 +48,7 @@ void check_combat_config()
    error("No valid blows module set.\n");
 #endif
 
-#if FORMULA_STYLE != FORMULA_SIMPLE
+#if FORMULA_STYLE != FORMULA_SIMPLE && FORMULA_STYLE != FORMULA_STATS
    error("No valid formula style set.\n");
 #endif
 

@@ -40,7 +40,7 @@ void set_light_msgs(string x, string y)
    light_with_msg = y;
 }
 
-//:FUNC set_source
+//:FUNCTION set_source
 //set_source(function f) makes it so that the object can only be lit by
 //objects for which evaluate(f, ob) returns 1.  f may return a string
 //error message on failure.  If f is a string, any object with that string

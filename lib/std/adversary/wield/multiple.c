@@ -3,10 +3,12 @@
 // multiple.c - Module to allow adversaries to wield multiple objects at a
 //              time without requiring a limb-based health module.
 // July 22, 1998: Iizuka created.
+// Sep 2000 : Loriel added code from Designa to remove/ignore empty slots
+//            in query_weapon()
 
 void simple_action(string, object);
 
-private nosave mapping weapons = ([
+private mapping weapons = ([
                                  "right hand" : 0,
                                  "left hand"  : 0,
 ]);
@@ -51,6 +53,7 @@ varargs void wield(object ob, string where)
 
    weapons[where] = ob;
    ob->mark_wielded_by(this_object(), where);
+   simple_action(ob->query_wield_message(), ob);
 }
 
 varargs void unwield(string where)
@@ -74,8 +77,19 @@ varargs object query_weapon(string where)
       string array slots = keys(weapons);
       if(!sizeof(slots))
          return this_object();   // I am my own lethal weapon..
-
-      where = choice(slots);
+      while(1)
+      {
+        if(sizeof(slots)>1)
+          where = choice(slots);
+        else
+          where = slots[0];
+        if(weapons[where])
+          break;
+        else
+          slots -= ({ where });
+        if(sizeof(slots) == 0)
+          return this_object();
+      }
    }
 
    return weapons[where];
@@ -87,8 +101,6 @@ varargs int do_wield(object ob, string slot)
       return 0;
    if(ob->query_wielded_by() == this_object())
       return 0;
-   simple_action(ob->query_wield_message(), ob);
-
    wield(ob, slot);
 
    return 1;

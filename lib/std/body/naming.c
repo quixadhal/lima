@@ -43,7 +43,9 @@ string query_long_name()
 
 nomask string query_userid()
 {
-    return living_query_name();
+  if(!query_link())
+    return 0;
+  return query_link()->query_userid();
 }
 
 nomask string query_invis_name()

@@ -144,11 +144,7 @@ dump_prog P3(program_t *, prog, char *, fn, int, flags)
 	    
 	    fprintf(f, "%4d: %-20s  %5d  %7s      %7d   %5d\n",
 		    i, func_entry->name,
-#ifdef BINARIES
-		    prog->sorted_funcs[runtime_index - prog->last_inherited]
-#else
 		    runtime_index - prog->last_inherited
-#endif			
 		    ,sflags,
 		    (int) func_entry->num_arg,
 		    (int) func_entry->num_local);
@@ -251,17 +247,9 @@ disassemble P5(FILE *, f, char *, code, int, start, int, end, program_t *, prog)
 		offsets[i << 1] = end + 1;
 	    }
 	    else {
-#ifdef BINARIES
-		offsets[i << 1] = prog->function_table[prog->sorted_funcs[i]].address;
-#else
 		offsets[i << 1] = prog->function_table[i].address;
-#endif
 	    }
-#ifdef BINARIES
-	    offsets[(i << 1) + 1] = prog->sorted_funcs[i];
-#else
 	    offsets[(i << 1) + 1] = i;
-#endif
 	}
 #ifdef _SEQUENT_
 	qsort((void *) &offsets[0],
@@ -666,7 +654,7 @@ dump_line_numbers P2(FILE *, f, program_t *, prog) {
     unsigned char *li;
     int addr;
     int sz;
-    short s;
+    ADDRESS_TYPE s;
 
     if (!prog->line_info) {
 	load_line_numbers(prog);
@@ -693,8 +681,12 @@ dump_line_numbers P2(FILE *, f, program_t *, prog) {
     fprintf(f,"\naddress -> absolute line table:\n");
     while (li < li_end) {
 	sz = *li++;
+#if !defined(USE_32BIT_ADDRESSES) && !defined(LPC_TO_C)
 	COPY_SHORT(&s, li);
-	li += 2;
+#else
+	COPY_INT(&s, li);
+#endif
+	li += sizeof(ADDRESS_TYPE);
 	fprintf(f, "%4x-%4x: %i\n", addr, addr + sz - 1, (int)s);
 	addr += sz;
     }

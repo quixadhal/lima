@@ -16,6 +16,19 @@ void set_gender(int x) { gender = x; }
 //query an object's gender
 int query_gender() { return gender; }
 
+//:FUNCTION query_gender_string
+//Query the string representation of an objects gender
+string query_gender_string() {
+  switch(gender) {
+  case 1:
+    return "male";
+  case 2:
+    return "female";
+  default:
+    return "neuter";
+  }
+}
+
 //:FUNCTION query_pronoun
 //return the (subjective) pronoun of a object (he, she, it)
 string query_pronoun() { switch (gender) {

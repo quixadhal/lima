@@ -8,7 +8,7 @@
 #include <move.h>
 #include <setbit.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 private nomask void get_one(object ob, object with_ob)
 {

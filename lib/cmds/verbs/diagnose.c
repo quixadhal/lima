@@ -2,7 +2,7 @@
 
 #include <verbs.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void create()
 {
@@ -16,12 +16,18 @@ void create()
 void do_diagnose_liv(object ob)
 {
 #if 0
-   write(ob->compose_message(this_body(), ob->diagnose(), ({ ob }), 0));
+  write(ob->compose_message(this_body(), ob->diagnose(), ({ ob }), 0));
 #endif
-   if(ob == this_body())
-      this_body()->my_action(ob->diagnose());
-   else
-      ob->other_action(ob->diagnose(), this_body());
+  if(ob == this_body())
+  {
+    this_body()->simple_action("$N $vexamine $r closely.");
+    this_body()->my_action(ob->diagnose());
+  }
+  else
+  {
+    this_body()->targetted_action("$N $vexamine $t closely.", ob);
+    write(ob->compose_message(this_body(), ob->diagnose(), ({ ob }), 0));
+  }
 }
 
 void do_diagnose()

@@ -16,7 +16,7 @@ void do_write_obj_with_str(object ob, string str) {
     write("Done.\n");
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "STR on OBJ", "OBJ with STR" }), ({ "inscribe" }) });
+    add_rules( ({ "STR on OBJ", "OBJ with STR" }), ({ "inscribe" }) );
 }

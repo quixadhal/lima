@@ -14,8 +14,3 @@ void mudlib_setup()
   set_max_moves(10);
   moving_monster::mudlib_setup();
 }
-
-mapping lpscript_attributes()
-{
-  return moving_monster::lpscript_attributes()+m_wander::lpscript_attributes();
-}

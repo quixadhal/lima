@@ -126,7 +126,7 @@ int snoop(object snooper, object snoopee)
 
   // Delete this check if you don't like all the snoopable crap.
   // All the shit gets logged anyway.
-  if (!snoopee->test_flag(F_SNOOPABLE) && !adminp(this_body()))
+  if (!snoopee->test_flag(F_SNOOPABLE) && !adminp(this_user()))
     {
       return -3;
     }

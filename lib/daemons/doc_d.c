@@ -88,15 +88,25 @@ private void delete_directory(string directory)
 
 private void make_directories()
 {
-  mkdir("/help/autodoc");
-  mkdir("/help/autodoc/FIXME");
-  mkdir("/help/autodoc/command");
-  mkdir("/help/autodoc/examples");
-  mkdir("/help/autodoc/functions");
-  mkdir("/help/autodoc/hook");
-  mkdir("/help/autodoc/modules");
-  mkdir("/help/autodoc/todo");
-  mkdir(sprintf("/help/autodoc/%s",MUD_AUTODOC_DIR));
+  /* Assume that if the filesize is -1 that a directory needs to be created */
+  if(file_size("/help/autodoc")==-1)
+    mkdir("/help/autodoc");
+  if(file_size("/help/autodoc/FIXME")==-1)
+    mkdir("/help/autodoc/FIXME");
+  if(file_size("/help/autodoc/command")==-1)
+    mkdir("/help/autodoc/command");
+  if(file_size("/help/autodoc/examples")==-1)
+    mkdir("/help/autodoc/examples");
+  if(file_size("/help/autodoc/functions")==-1)
+    mkdir("/help/autodoc/functions");
+  if(file_size("/help/autodoc/hook")==-1)
+    mkdir("/help/autodoc/hook");
+  if(file_size("/help/autodoc/modules")==-1)
+    mkdir("/help/autodoc/modules");
+  if(file_size("/help/autodoc/todo")==-1)
+    mkdir("/help/autodoc/todo");
+  if(file_size(sprintf("/help/autodoc/%s",MUD_AUTODOC_DIR))==-1)
+    mkdir(sprintf("/help/autodoc/%s",MUD_AUTODOC_DIR));
 }  
   
 //:FUNCTION scan_mudlib

@@ -157,7 +157,7 @@ void SocketPerror P2(char *, what, char *, file) {
         debug_message("System Error: %s:%s\n", what, s);
 }
 
-void cleanup_sockets(void) {
+void CDECL cleanup_sockets(void) {
 	WSACleanup();
 }
 #endif

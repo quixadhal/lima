@@ -34,7 +34,7 @@ private void flush_buffer(class file_info fi) {
 }
 
 private void refill_buffer(class file_info fi) {
-    flush_buffer();
+    flush_buffer(fi);
     fi->buf = read_bytes(fi->fname, fi->pos, BUFFER_SIZE);
     fi->bpos = 0;
     fi->buffered = sizeof(fi->buf);
@@ -171,7 +171,7 @@ void file_close(string fn) {
     class file_info fi = find_file(fn);
 
     flush_buffer(fi);
-    map_delete(open_files, fi->fn);
+    map_delete(open_files, fn);
 }
 
 void file_flush(string fn) {
@@ -180,7 +180,7 @@ void file_flush(string fn) {
     flush_buffer(fi);
 }
 
-void file_pos(string fn) {
+int file_pos(string fn) {
     class file_info fi = find_file(fn);
     
     return fi->pos;

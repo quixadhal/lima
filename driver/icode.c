@@ -268,11 +268,10 @@ generate_lvalue_list P1(parse_node_t *, expr) {
     }
 }
 
-/* FIXME: short is wrong here for USE_32BIT_ADDRESSING */
 INLINE_STATIC void
 switch_to_line P1(int, line) {
     int sz = CURRENT_PROGRAM_SIZE - last_size_generated;
-    short s;
+    ADDRESS_TYPE s;
     unsigned char *p;
 
     if (sz) {
@@ -280,14 +279,22 @@ switch_to_line P1(int, line) {
 
 	last_size_generated += sz;
 	while (sz > 255) {
-	    p = (unsigned char *)allocate_in_mem_block(A_LINENUMBERS, 3);
+	    p = (unsigned char *)allocate_in_mem_block(A_LINENUMBERS, sizeof(ADDRESS_TYPE) + 1);
 	    *p++ = 255;
+#if !defined(USE_32BIT_ADDRESSES) && !defined(LPC_TO_C)
 	    STORE_SHORT(p, s);
+#else
+	    STORE_INT(p, s);
+#endif
 	    sz -= 255;
 	}
-	p = (unsigned char *)allocate_in_mem_block(A_LINENUMBERS, 3);
+	p = (unsigned char *)allocate_in_mem_block(A_LINENUMBERS, sizeof(ADDRESS_TYPE) + 1);
 	*p++ = sz;
+#if !defined(USE_32BIT_ADDRESSES) && !defined(LPC_TO_C)
 	STORE_SHORT(p, s);
+#else
+	STORE_INT(p, s);
+#endif
     }
     line_being_generated = line;
 }
@@ -953,6 +960,24 @@ i_initialize_parser() {
 
     line_being_generated = 0;
     last_size_generated = 0;
+}
+
+void
+i_uninitialize_parser() {
+#ifdef DEBUGMALLOC_EXTENSIONS
+    /*
+     * The intention is to keep the allocated space for forward branches
+     * hanging around between compiles so we don't have to keep allocating it.
+     * The problem is that with DEBUGMALLOC_EXENTIONS compiled in, it'll be
+     * reported as a memory leak, so clean it up here.  Yes, it's a performance
+     * hit, but we're trying to debug not run a race, so deal with it.
+     * -- Marius, 11-Aug-2000
+     */
+    if (forward_branches) {
+	FREE(forward_branches);
+	forward_branches = 0;
+    }
+#endif
 }
 
 void

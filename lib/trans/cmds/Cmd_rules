@@ -37,7 +37,5 @@ tsh		file
 times		num str*
 update	-rRz	[obfile*]
 renew		obj
+cd              [dir|fname|obfile]
 xargs	-!	str*
-dir -cFls	[dir|file*]
-
-

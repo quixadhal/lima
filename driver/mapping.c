@@ -285,8 +285,7 @@ allocate_mapping2 P2(array_t *, arr, svalue_t *, sv)
     int i;
     
     newmap = allocate_mapping(arr->size);
-    sp++;
-    sp->u.map = newmap;
+    push_refed_mapping(newmap);
 
     for (i = 0; i < arr->size; i++) {
 	svalue_t *svp, *ret;
@@ -653,7 +652,8 @@ void f_unique_mapping PROT((void))
     nlist->mask = mask;
     g_u_m_list = nlist;
 
-    (++sp)->type = T_ERROR_HANDLER;
+    STACK_INC;
+    sp->type = T_ERROR_HANDLER;
     sp->u.error_handler = unique_mapping_error_handler;
 
     size = v->size;
@@ -1022,8 +1022,10 @@ INLINE void
 absorb_mapping(m1, m2)
 mapping_t *m1, *m2;
 {
-	if (MAP_COUNT(m2)) 
+    if (MAP_COUNT(m2)) {
+	if (m1 != m2)
 	    add_to_mapping(m1, m2, 0);
+    }
 }
 
 /*
@@ -1098,23 +1100,31 @@ map_mapping P2(svalue_t *, arg, int, num_arg)
 void
 filter_mapping P2(svalue_t *, arg, int, num_arg)
 {
-    mapping_t *m = arg->u.map, *newmap;
+    mapping_t *m, *newmap;
     mapping_node_t **a, *elt;
     mapping_node_t **b, *newnode, *n;
-    int j = m->table_size, count = 0, size;
+    int j, count = 0, size;
     svalue_t *ret;
     unsigned short tb_index;
     function_to_call_t ftc;
     
     process_efun_callback(1, &ftc, F_FILTER);
 
+    if (arg->u.map->ref > 1) {
+	m = copyMapping(arg->u.map);
+	free_mapping(arg->u.map);
+	arg->u.map = m;
+    } else {
+	m = arg->u.map;
+    }
+
     newmap = allocate_mapping(0);
-    (++sp)->type = T_MAPPING;
-    sp->u.map = newmap;
+    push_refed_mapping(newmap);
     b = newmap->table;
     size = newmap->table_size;
 
     a = m->table;
+    j = m->table_size;
     debug(mapping,("mapping.c: filter_mapping\n"));
     do {
 	for (elt = a[j]; elt ; elt = elt->next) {
@@ -1170,8 +1180,7 @@ filter_mapping P2(svalue_t *, arg, int, num_arg)
 
     sp--;
     pop_n_elems(num_arg);
-    (++sp)->type = T_MAPPING;	
-    sp->u.map = newmap;
+    push_refed_mapping(newmap);
 }
 #endif
 
@@ -1180,48 +1189,47 @@ filter_mapping P2(svalue_t *, arg, int, num_arg)
 INLINE mapping_t *
 compose_mapping P3(mapping_t *,m1, mapping_t *,m2, unsigned short,flag)
 {
-	mapping_node_t *elt, *elt2, **a, **b = m2->table, **prev;
-	unsigned short j = m1->table_size, deleted = 0;
-	unsigned short mask = m2->table_size;
-	svalue_t *sv;
+    mapping_node_t *elt, *elt2, **a, **b = m2->table, **prev;
+    unsigned short j = m1->table_size, deleted = 0;
+    unsigned short mask = m2->table_size;
+    svalue_t *sv;
 
-	debug(mapping,("mapping.c: compose_mapping\n"));
-	if (flag) m1 = copyMapping(m1);
-	a = m1->table;
+    debug(mapping,("mapping.c: compose_mapping\n"));
+    if (flag)
+	m1 = copyMapping(m1);
+    a = m1->table;
 
-	do {
-	    if ((elt = *(prev = a))) {
-		do {
-		    sv = elt->values + 1;
-		    if ((elt2 = b[svalue_to_int(sv) & mask])) {
-			do {
-			    if (msameval(sv, elt2->values)) {
+    do {
+	if ((elt = *(prev = a))) {
+	    do {
+		sv = elt->values + 1;
+		if ((elt2 = b[svalue_to_int(sv) & mask])) {
+		    do {
+			if (msameval(sv, elt2->values)) {
+			    if (sv != elt2->values + 1)	/* if m1 == m2 */
 				assign_svalue(sv, elt2->values + 1);
-				break;
-			    }
-			} while ((elt2 = elt2->next));
-		    }
-		    if (!elt2) {
-			if (!(*prev = elt->next) && !(*a)) m1->unfilled++;
-			deleted++;
-			free_node(m1, elt);
-		    } else {
-			prev = &(elt->next);
-		    }
-		} while ((elt = *prev));
-	    }
-	} while (a++, j--);
-
-
-	if (deleted) {
-	    m1->count -= deleted;
-	    total_mapping_nodes -= deleted;
-	    total_mapping_size -= deleted * sizeof(mapping_node_t);
+			    break;
+			}
+		    } while ((elt2 = elt2->next));
+		}
+		if (!elt2) {
+		    if (!(*prev = elt->next) && !(*a)) m1->unfilled++;
+		    deleted++;
+		    free_node(m1, elt);
+		} else {
+		    prev = &(elt->next);
+		}
+	    } while ((elt = *prev));
 	}
+    } while (a++, j--);
 
-	if (flag) return m1;
+    if (deleted) {
+	m1->count -= deleted;
+	total_mapping_nodes -= deleted;
+	total_mapping_size -= deleted * sizeof(mapping_node_t);
+    }
 
-	return NULL;
+    return m1;
 }
 
 /* mapping_indices */

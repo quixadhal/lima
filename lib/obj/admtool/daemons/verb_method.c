@@ -57,7 +57,7 @@ private void receive_add_method_equivalent(string method, string equiv)
 
 private void list_methods()
 {
-   string array tmp = METHOD_D->list_methods();
+   string array tmp = sort_array(METHOD_D->list_methods(), 1);
    write(implode(tmp, ", ") + "\n\n");
 }
 
@@ -70,7 +70,7 @@ private void list_method_equivalents(string method)
    }
    else
    {
-      write(implode(tmp, ", ") + "\n\n");
+      write(implode(sort_array(tmp, 1), ", ") + "\n\n");
    }
 }
 

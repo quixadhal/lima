@@ -48,13 +48,12 @@ varargs nomask void cmd_channel(string channel_name, string arg,
   int channel_type)
 {
     class channel_info ci = query_channel_info(channel_name);
-    object tb;
+    object user=this_user();
     int listening;
     string user_channel_name;
     string sender_name;
 
-    tb = this_body();
-    listening = member_array(channel_name, tb->query_channel_list()) != -1;
+    listening = member_array(channel_name, user->query_channel_list()) != -1;
     user_channel_name = user_channel_name(channel_name);
 
     if ( !arg || arg == "" )
@@ -97,7 +96,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	    switch ( option )
 	    {
 	    case "admin":
-		if ( !adminp(this_user()) )
+		if ( !adminp(user) )
 		{
 		    printf("Only admins can create admin channels.\n");
 		    return;
@@ -109,12 +108,12 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	    case "wiz":
 	    case "wizard":
 		/* ### need better security? */
-		if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) )
+		if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(user) )
 		{
 		    printf("Only admins can turn off admin-only.\n");
 		    return;
 		}
-		else if ( !wizardp(this_user()) )
+		else if ( !wizardp(user) )
 		{
 		    printf("Only wizards can create wizard channels.\n");
 		    return;
@@ -125,7 +124,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 
 	    case "permanent":
 		/* ### need better security? */
-		if ( !adminp(this_user()) )
+		if ( !adminp(user) )
 		{
 		    printf("Only admins can tweak permanent channels.\n");
 		    return;
@@ -137,7 +136,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	    case "nopermanent":
 	    case "goaway":
 		/* ### need better security? */
-		if ( !adminp(this_user()) )
+		if ( !adminp(user) )
 		{
 		    printf("Only admins can tweak permanent channels.\n");
 		    return;
@@ -168,25 +167,24 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	{
 	    /* enforce the channel restrictions now */
 	    /* ### not super secure, but screw it :-) */
-	    if ( (ci->flags & CHANNEL_WIZ_ONLY) && !wizardp(this_user()) )
+	    if ( (ci->flags & CHANNEL_WIZ_ONLY) && !wizardp(user) )
 	    {
 		printf("Sorry, but '%s' is for wizards only.\n",
 		  user_channel_name);
 		return;
 	    }
-        if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(this_user()) && member_array(this_user()->query_userid(), SECURE_D->query_domain_members("admin-channels")) == -1)
+        if ( (ci->flags & CHANNEL_ADMIN_ONLY) && !adminp(user) && member_array(user->query_userid(), SECURE_D->query_domain_members("admin-channels")) == -1)
 	    {
 		printf("Sorry, but '%s' is for admins only.\n",
 		  user_channel_name);
 		return;
 	    }
-
-	    tb->channel_add(channel_name);
-	    printf("You are now listening to '%s'.\n", user_channel_name);
+	user->add_channel(channel_name);
+	printf("You are now listening to '%s'.\n", user_channel_name);
 	}
-
+	
 	print_mod_info(channel_name);
-
+	
 	return;
     }
 
@@ -199,18 +197,18 @@ varargs nomask void cmd_channel(string channel_name, string arg,
 	return;
     }
 
-    sender_name = tb->query_name();
+    sender_name = user->query_name();
 
     if ( arg == "/off" )
     {
-	tb->channel_remove(channel_name);
+	user->remove_channel(channel_name);
 	printf("You are no longer listening to '%s'.\n", user_channel_name);
 
 	moderation_signoff(channel_name);
     }
     else if ( arg == "/list" || arg == "/who" )
     {
-	tell(this_user(), sprintf("Users listening to '%s': %s.\n",
+	tell(user, sprintf("Users listening to '%s': %s.\n",
 	    user_channel_name,
 	    make_name_list(ci->listeners)), MSG_INDENT);
     }
@@ -226,7 +224,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     }
     else if( arg == "/clear" )
     {
-	if ( adminp(tb) || tb = ci->moderator )
+	if ( adminp(user) || user = ci->moderator )
 	{
 	    ci->history = ({});
 	    write("Channel cleared.\n");
@@ -243,7 +241,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     else if ( arg[0] == ';' || arg[0] == ':' )
     {
 	if ( ci->moderator && ci->speaker &&
-	  tb != ci->moderator && tb != ci->speaker )
+	  user != ci->moderator && user != ci->speaker )
 	{
 	    printf("You are not the speaker on '%s'.\n", user_channel_name);
 	}
@@ -279,7 +277,7 @@ varargs nomask void cmd_channel(string channel_name, string arg,
     else
     {
 	if ( ci->moderator && ci->speaker &&
-	  tb != ci->moderator && tb != ci->speaker )
+	  user != ci->moderator && user != ci->speaker )
 	{
 	    printf("You are not the speaker on '%s'.\n", user_channel_name);
 	}

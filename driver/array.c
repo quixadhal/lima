@@ -211,7 +211,7 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
     int num, j, limit;
     array_t *ret;
     char *buff, *tmp;
-    short sz;
+    unsigned short sz;
 
     if (!slen)
 	return &the_null_array;
@@ -288,10 +288,10 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 		sz = p - beg;
 		ret->item[num].type = T_STRING;
 		ret->item[num].subtype = STRING_MALLOC;
-		ret->item[num].u.string = buff = new_string(p - beg, "explode_string: buff");
+		ret->item[num].u.string = buff = new_string(sz, "explode_string: buff");
 
-		strncpy(buff, beg, p - beg);
-		buff[p - beg] = '\0';
+		strncpy(buff, beg, sz);
+		buff[sz] = '\0';
 		num++;
 		beg = ++p;
 	    } else {
@@ -305,7 +305,7 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
 	ret->item[num].u.string = string_copy(beg, "explode_string: last, len == 1");
 #else
 	/* Copy last occurence, if there was not a 'del' at the end. */
-	if (*beg != '\0') {
+	if (*beg != '\0' && num != limit) {
 	    ret->item[num].type = T_STRING;
 	    ret->item[num].subtype = STRING_MALLOC;
 	    ret->item[num].u.string = string_copy(beg, "explode_string: last, len == 1");
@@ -384,7 +384,7 @@ array_t *explode_string P4(char *, str, int, slen, char *, del, int, len)
     ret->item[num].subtype = STRING_MALLOC;
     ret->item[num].u.string = string_copy(beg, "explode_string: last, len != 1");
 #else
-    if (*beg != '\0') {
+    if (*beg != '\0' && num != limit) {
 	ret->item[num].type = T_STRING;
 	ret->item[num].subtype = STRING_MALLOC;
 	ret->item[num].u.string = string_copy(beg, "explode_string: last, len != 1");
@@ -397,11 +397,10 @@ char *implode_string P3(array_t *, arr, char *, del, int, del_len)
 {
     int size, i, num;
     char *p, *q;
-    svalue_t *sv = arr->item;
 
     for (i = arr->size, size = 0, num = 0; i--;) {
-	if (sv[i].type == T_STRING) {
-	    size += SVALUE_STRLEN(&sv[i]);
+	if (arr->item[i].type == T_STRING) {
+	    size += SVALUE_STRLEN(&arr->item[i]);
 	    num++;
 	}
     }
@@ -411,13 +410,13 @@ char *implode_string P3(array_t *, arr, char *, del, int, del_len)
     p = new_string(size + (num - 1) * del_len, "implode_string: p");
     q = p;
     for (i = 0, num = 0; i < arr->size; i++) {
-	if (sv[i].type == T_STRING) {
+	if (arr->item[i].type == T_STRING) {
 	    if (num) {
 		strncpy(p, del, del_len);
 		p += del_len;
 	    }
-	    size = SVALUE_STRLEN(&sv[i]);
-	    strncpy(p, sv[i].u.string, size);
+	    size = SVALUE_STRLEN(&arr->item[i]);
+	    strncpy(p, arr->item[i].u.string, size);
 	    p += size;
 	    num++;
 	}
@@ -472,14 +471,14 @@ array_t *users()
 #ifdef F_SET_HIDE
     int display_hidden = 0;
 
-    if (num_hidden > 0) {
+    if (num_hidden_users > 0) {
 	if (current_object->flags & O_HIDDEN) {
 	    display_hidden = 1;
 	} else {
 	    display_hidden = valid_hide(current_object);
 	}
     }
-    ret = allocate_empty_array(num_user - (display_hidden ? 0 : num_hidden));
+    ret = allocate_empty_array(num_user - (display_hidden ? 0 : num_hidden_users));
 #else
     ret = allocate_empty_array(num_user);
 #endif
@@ -806,7 +805,8 @@ void f_unique_array PROT((void)) {
     head = &unlist->head;
     g_u_list = unlist;
 
-    (++sp)->type = T_ERROR_HANDLER;
+    STACK_INC;
+    sp->type = T_ERROR_HANDLER;
     sp->u.error_handler = unique_array_error_handler;
     
     for (i = 0; i < size; i++) {
@@ -1010,8 +1010,7 @@ map_array P2(svalue_t *, arg, int, num_arg)
 	    
 	r = int_allocate_array(size);
 
-	(++sp)->type = T_ARRAY;
-	sp->u.arr = r;
+	push_refed_array(r);
 
 	for (cnt = 0; cnt < size; cnt++) {
 	    push_svalue(arr->item + cnt);
@@ -1023,8 +1022,7 @@ map_array P2(svalue_t *, arg, int, num_arg)
     }
 
     pop_n_elems(num_arg);
-    (++sp)->type = T_ARRAY;
-    sp->u.arr = r;
+    push_refed_array(r);
 }
 
 void
@@ -1260,8 +1258,7 @@ f_sort_array PROT((void))
     }
     
     pop_n_elems(num_arg);
-    (++sp)->type = T_ARRAY;
-    sp->u.arr = tmp;
+    push_refed_array(tmp);
 }
 #endif
 
@@ -1400,7 +1397,7 @@ INLINE_STATIC svalue_t *alist_sort P1(array_t *, inlist) {
 	for (j = 0; j < size; j++) {
 	    if (((tmp = (sv_ptr + j))->type == T_OBJECT) && (tmp->u.ob->flags & O_DESTRUCTED)) {
 		free_object(tmp->u.ob, "alist_sort");
-		sv_tab[j] = *tmp = const0;
+		sv_tab[j] = *tmp = const0u;
 	    } else if ((tmp->type == T_STRING) && !(tmp->subtype == STRING_SHARED)) {
 		sv_tab[j].u.string = make_shared_string(tmp->u.string);
 		(tmp = sv_tab + j)->subtype = STRING_SHARED;
@@ -1424,7 +1421,7 @@ INLINE_STATIC svalue_t *alist_sort P1(array_t *, inlist) {
 	for (j = 0; j < size; j++) {
 	    if (((tmp = (sv_tab + j))->type == T_OBJECT) && (tmp->u.ob->flags & O_DESTRUCTED)) {
 		free_object(tmp->u.ob, "alist_sort");
-		*tmp = const0;
+		*tmp = const0u;
 	    } else if ((tmp->type == T_STRING) && !(tmp->subtype == STRING_SHARED)) {
 		str = make_shared_string(tmp->u.string);
 		free_string_svalue(tmp);
@@ -1496,7 +1493,7 @@ array_t *subtract_array P2(array_t *, minuend, array_t *, subtrahend) {
 
 	if ((source->type == T_OBJECT) && (source->u.ob->flags & O_DESTRUCTED)) {
 	    free_object(source->u.ob, "subtract_array");
-	    *source = const0;
+	    *source = const0u;
 	} else if ((source->type == T_STRING) && !(source->subtype == STRING_SHARED)) {
 	    svalue_t stmp = {T_STRING, STRING_SHARED};
 	    
@@ -1559,7 +1556,7 @@ array_t *intersect_array P2(array_t *, a1, array_t *, a2) {
 	for (j = 0; j < a2s; j++) {
 	    if (((tmp = (sv_ptr + j))->type == T_OBJECT) && (tmp->u.ob->flags & O_DESTRUCTED)) {
 		free_object(tmp->u.ob, "intersect_array");
-		sv_tab[j] = *tmp = const0;
+		sv_tab[j] = *tmp = const0u;
 	    } else if ((tmp->type == T_STRING) && !(tmp->subtype == STRING_SHARED)) {
 		sv_tab[j].u.string = make_shared_string(tmp->u.string);
 		(tmp = sv_tab + j)->subtype = STRING_SHARED;
@@ -1585,7 +1582,7 @@ array_t *intersect_array P2(array_t *, a1, array_t *, a2) {
 	for (j = 0; j < a2s; j++) {
 	    if (((tmp = (sv_tab + j))->type == T_OBJECT) && (tmp->u.ob->flags & O_DESTRUCTED)) {
 		free_object(tmp->u.ob, "alist_sort");
-		*tmp = const0;
+		*tmp = const0u;
 	    } else if ((tmp->type == T_STRING) && !(tmp->subtype == STRING_SHARED)) {
 		str = make_shared_string(tmp->u.string);
 		free_string_svalue(tmp);
@@ -1700,7 +1697,7 @@ array_t *union_array P2(array_t *, a1, array_t *, a2) {
 	for (j = 0; j < a2s; j++) {
 	    if (((tmp = (sv_ptr + j))->type == T_OBJECT) && (tmp->u.ob->flags & O_DESTRUCTED)) {
 		free_object(tmp->u.ob, "union_array");
-		sv_tab[j] = *tmp = const0;
+		sv_tab[j] = *tmp = const0u;
 	    }
 	    else if ((tmp->type == T_STRING) && !(tmp->subtype == STRING_SHARED)) {
 		sv_tab[j].u.string = make_shared_string(tmp->u.string);
@@ -1728,7 +1725,7 @@ array_t *union_array P2(array_t *, a1, array_t *, a2) {
 	for (j = 0; j < a2s; j++) {
 	    if (((tmp = (sv_tab + j))->type == T_OBJECT) && (tmp->u.ob->flags & O_DESTRUCTED)) {
 		free_object(tmp->u.ob, "union_array");
-		*tmp = const0;
+		*tmp = const0u;
 	    }
 	    else if ((tmp->type == T_STRING) && !(tmp->subtype == STRING_SHARED)) {
 		str = make_shared_string(tmp->u.string);
@@ -1935,193 +1932,126 @@ array_t *inherit_list P1(object_t *, ob)
     return ret;
 }
 
+typedef struct children_filter_s {
+    int len;
+    char buf[MAX_OBJECT_NAME_SIZE];
+} children_filter_t;
+
+static int children_filter P2(object_t *, ob, children_filter_t *, cf)
+{
+    int ol = strlen(ob->name);
+    return ((ol == cf->len || (ol > cf->len && ob->name[cf->len] == '#')) && !strncmp(ob->name, cf->buf, cf->len));
+}
+
 array_t *
 children P1(char *, str)
 {
-    int i, j;
-    int t_sz;
-    int sl, ol;
-    object_t *ob;
-    object_t **tmp_children;
+    int count;
+    children_filter_t cf;
+    object_t **list;
     array_t *ret;
-#ifdef F_SET_HIDE
-    int display_hidden = -1;
-#endif
-    char tmpbuf[MAX_OBJECT_NAME_SIZE];
 
-    if (!strip_name(str, tmpbuf, sizeof tmpbuf))
+    if (!strip_name(str, cf.buf, sizeof(cf.buf)))
 	return &the_null_array;
+    cf.len = strlen(cf.buf);
 
-    sl = strlen(tmpbuf);
+    get_objects(&list, &count, (get_objectsfn_t)children_filter, (void *)&cf);
 
-    if (!(tmp_children = (object_t **)
-	  DMALLOC(sizeof(object_t *) * (t_sz = 50),
-		  TAG_TEMPORARY, "children: tmp_children"))) 
-	return &the_null_array;	/* unable to malloc enough temp space */
+    if (count > max_array_size)
+	count = max_array_size;
+    ret = allocate_empty_array(count);
+    while (count--) {
+	ret->item[count].type = T_OBJECT;
+	ret->item[count].u.ob = list[count];
+	add_ref(list[count], "children");
+    }
 
-    for (i = 0, ob = obj_list; ob; ob = ob->next_all) {
-	ol = strlen(ob->name);
-	if (((ol == sl) || ((ol > sl) && (ob->name[sl] == '#')))
-	    && !strncmp(tmpbuf, ob->name, sl)) {
-#ifdef F_SET_HIDE
-	    if (ob->flags & O_HIDDEN) {
-		if (display_hidden == -1) {
-		    display_hidden = valid_hide(current_object);
-		}
-		if (!display_hidden)
-		    continue;
-	    }
-#endif
-	    tmp_children[i] = ob;
-	    if ((++i == t_sz) && (!(tmp_children
-			= RESIZE(tmp_children, (t_sz += 50), object_t *,
-				 TAG_TEMPORARY, "children: tmp_children: realloc")))) {
-		/* unable to REALLOC more space 
-		 * (tmp_children is now NULL) */
-		return &the_null_array;
-	    }
-	}
-    }
-    if (i > max_array_size) {
-	i = max_array_size;
-    }
-    ret = allocate_empty_array(i);
-    for (j = 0; j < i; j++) {
-	ret->item[j].type = T_OBJECT;
-	ret->item[j].u.ob = tmp_children[j];
-	add_ref(tmp_children[j], "children");
-    }
-    FREE((void *) tmp_children);
+    pop_stack();
     return ret;
 }
 
 #ifdef F_LIVINGS
+static int livings_filter P2(object_t *, ob, void *, data)
+{
+    return (ob->flags & O_ENABLE_COMMANDS);
+}
+
 array_t *livings()
 {
-    int nob;
-#ifdef F_SET_HIDE
-    int apply_valid_hide, hide_is_valid = 0;
-#endif
-    object_t *ob, **obtab;
-    array_t *vec;
+    int count;
+    object_t **list;
+    array_t *ret;
 
-    nob = 0;
+    get_objects(&list, &count, livings_filter, 0);
 
-#ifdef F_SET_HIDE
-    apply_valid_hide = 1;
-#endif
-
-    obtab = CALLOCATE(max_array_size, object_t *, TAG_TEMPORARY, "livings");
-
-    for (ob = obj_list; ob != NULL; ob = ob->next_all) {
-	if ((ob->flags & O_ENABLE_COMMANDS) == 0)
-	    continue;
-#ifdef F_SET_HIDE
-	if (ob->flags & O_HIDDEN) {
-	    if (apply_valid_hide) {
-		apply_valid_hide = 0;
-		hide_is_valid = valid_hide(current_object);
-	    }
-	    if (!hide_is_valid)
-		continue;
-	}
-#endif
-	if (nob == max_array_size)
-	    break;
-	obtab[nob++] = ob;
+    if (count > max_array_size)
+	count = max_array_size;
+    ret = allocate_empty_array(count);
+    while (count--) {
+	ret->item[count].type = T_OBJECT;
+	ret->item[count].u.ob = list[count];
+	add_ref(list[count], "livings");
     }
 
-    vec = allocate_empty_array(nob);
-    while (--nob >= 0) {
-	vec->item[nob].type = T_OBJECT;
-	vec->item[nob].u.ob = obtab[nob];
-	add_ref(obtab[nob], "livings");
-    }
-
-    FREE(obtab);
-
-    return vec;
+    pop_stack();
+    return ret;
 }
 #endif
 
 #ifdef F_OBJECTS
 void f_objects PROT((void))
 {
+    int count, i;
     char *func;
-    object_t *ob, **tmp;
+    object_t **list;
     array_t *ret;
     funptr_t *f = 0;
-#ifdef F_SET_HIDE
-    int display_hidden = 0;
-#endif
-    int t_sz, i,j, num_arg = st_num_arg;
-    svalue_t *v;
+
+    int num_arg = st_num_arg;
 
     if (!num_arg) func = 0;
     else if (sp->type == T_FUNCTION) f = sp->u.fp;
     else func = sp->u.string;
-	
-    if (!(tmp = (object_t **)new_string( (t_sz = 1000)*sizeof(object_t *),
-					"TMP: objects: tmp")))
-	fatal("Out of memory!\n");
 
-    push_malloced_string((char *)tmp);
+    get_objects(&list, &count, 0, 0);
+    if (f || func) {
+	/* NOTE: If an object's hidden status changes during a callback, that
+	 * change will NOT be reflected in the returned array.  If the caller
+	 * is destructed in a callback or the callback function does not exist,
+	 * abort and return the_null_array.
+	 */
+	for (i = 0;  i < count;  i++) {
+	    svalue_t *v;
 
-    for (i = 0, ob = obj_list; ob; ob = ob->next_all) {
-#ifdef F_SET_HIDE
-	if (ob->flags & O_HIDDEN) {
-	    if (!display_hidden)
-		display_hidden = 1 + !!valid_hide(current_object);
-	    if (!(display_hidden & 2))
-		continue;
-	}
-#endif
-	if (f) {
-	    push_object(ob);
-	    v = call_function_pointer(f, 1);
-	    if (!v) {
-		FREE_MSTR((char *)tmp);
-		sp--;
-		free_svalue(sp,"f_objects");
-		*sp = const0;
+	    push_object(list[i]);
+	    if (f) v = call_function_pointer(f, 1);
+	    else v = apply(func, current_object, 1, ORIGIN_EFUN);
+	    if (!v || (current_object->flags & O_DESTRUCTED)) {
+		pop_n_elems(num_arg + 1);
+		push_refed_array(&the_null_array);
 		return;
 	    }
-	    if (v->type == T_NUMBER && !v->u.number) continue;
-	} else if (func) {
-	    push_object(ob);
-	    v = apply(func, current_object, 1, ORIGIN_EFUN);
-            if (!v) {
-                FREE_MSTR((char *)tmp);
-                sp--;
-                free_svalue(sp,"f_objects");
-                *sp = const0;
-                return;
-	    }
-            if ((v->type == T_NUMBER) && !v->u.number) continue;
+	    if (v->type == T_NUMBER && !v->u.number)
+		list[i] = 0;
 	}
 
-	tmp[i] = ob;
-	if (++i == t_sz) {
-	    if (!(tmp = (object_t **)extend_string((char *)tmp, (t_sz += 1000)*sizeof(object_t *))))
-		fatal("Out of memory!\n");
-	    else
-		sp->u.string = (char *) tmp;
+	for (i = 0;  i < count;  i++) {
+	    if (!list[i] || (list[i]->flags & O_DESTRUCTED))
+		list[i--] = list[--count];
 	}
     }
-    if (i > max_array_size)
-	i = max_array_size;
-    ret = allocate_empty_array(i);
-    for (j = 0; j < i; j++) {
-	ret->item[j].type = T_OBJECT;
-	ret->item[j].u.ob = tmp[j];
-	add_ref(tmp[j], "objects");
+
+    if (count > max_array_size)
+	count = max_array_size;
+    ret = allocate_empty_array(count);
+    for (i = 0;  i < count;  i++) {
+	ret->item[i].type = T_OBJECT;
+	ret->item[i].u.ob = list[i];
+	add_ref(list[i], "f_objects");
     }
 
-    FREE_MSTR((char *)tmp);
-    sp--;
-    pop_n_elems(num_arg);
-    (++sp)->type = T_ARRAY;
-    sp->u.arr = ret;
+    pop_n_elems(num_arg + 1); /* include our temporary 'string' */
+    push_refed_array(ret);
 }
 #endif
 

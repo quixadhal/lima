@@ -315,9 +315,6 @@ locate_out P1(program_t *, prog)
     prog->program = (char *)DIFF(prog->program, prog);
     prog->function_table = (function_t *)DIFF(prog->function_table, prog);
     prog->function_flags = (unsigned short *)DIFF(prog->function_flags, prog);
-#ifdef BINARIES
-    prog->sorted_funcs = (unsigned short *) DIFF(prog->sorted_funcs, prog);
-#endif
     prog->strings = (char **)DIFF(prog->strings, prog);
     prog->variable_table = (char **)DIFF(prog->variable_table, prog);
     prog->variable_types = (unsigned short *)DIFF(prog->variable_types, prog);
@@ -350,9 +347,6 @@ locate_in P1(program_t *, prog)
     prog->program = ADD(prog->program, prog);
     prog->function_table = (function_t *)ADD(prog->function_table, prog);
     prog->function_flags = (unsigned short *)ADD(prog->function_flags, prog);
-#ifdef BINARIES
-    prog->sorted_funcs = (unsigned short *) ADD(prog->sorted_funcs, prog);
-#endif
     prog->strings = (char **)ADD(prog->strings, prog);
     prog->variable_table = (char **)ADD(prog->variable_table, prog);
     prog->variable_types = (unsigned short *)ADD(prog->variable_types, prog);
@@ -399,7 +393,7 @@ int swap P1(object_t *, ob)
 	return 0;
     }
     if (ob->prog->ref > 1 || ob->interactive) {
-	debug(d_flag, ("  object not swapped - inherited or interactive."));
+	debug(d_flag, ("  object not swapped - inherited or interactive or in apply_low() cache."));
 
 	return 0;
     }

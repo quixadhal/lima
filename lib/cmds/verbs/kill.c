@@ -3,7 +3,7 @@
 
 #include <mudlib.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_kill_liv(object ob)
 {

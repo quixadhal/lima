@@ -4,22 +4,37 @@
 #include "swap.h"
 #include "eoperators.h"
 #include "compiler.h"
+#include "replace_program.h"
 
 INLINE void
 dealloc_funp P1(funptr_t *, fp)
 {
-    free_object(fp->hdr.owner, "free_funp");
+    program_t *prog = 0;
+
+    switch (fp->hdr.type) {
+	case FP_LOCAL | FP_NOT_BINDABLE:
+	    if (fp->hdr.owner)
+		prog = fp->hdr.owner->prog;
+	    break;
+	case FP_FUNCTIONAL:
+	case FP_FUNCTIONAL | FP_NOT_BINDABLE:
+	    prog = fp->f.functional.prog;
+	    break;
+    }
+
+    if (fp->hdr.owner)
+        free_object(fp->hdr.owner, "free_funp");
     if (fp->hdr.args)
 	free_array(fp->hdr.args);
-    if ((fp->hdr.type & 0x0f) == FP_FUNCTIONAL) {
-    	fp->f.functional.prog->func_ref--;
+
+    if (prog) {
+    	prog->func_ref--;
 	debug(d_flag, ("subtr func ref /%s: now %i\n",
-		   fp->f.functional.prog->name,
-		   fp->f.functional.prog->func_ref));
-	if (fp->f.functional.prog->func_ref == 0 
-	    && fp->f.functional.prog->ref == 0)
-	    deallocate_program(fp->f.functional.prog);
+		    prog->name, prog->func_ref));
+	if (!prog->func_ref && !prog->ref)
+	    deallocate_program(prog);
     }
+
     FREE(fp);
 }
 
@@ -36,7 +51,7 @@ free_funp P1(funptr_t *, fp)
 INLINE void
 push_refed_funp P1(funptr_t *, fp)
 {
-    sp++;
+    STACK_INC;
     sp->type = T_FUNCTION;
     sp->u.fp = fp;
 }
@@ -44,7 +59,7 @@ push_refed_funp P1(funptr_t *, fp)
 INLINE void
 push_funp P1(funptr_t *, fp)
 {
-    sp++;
+    STACK_INC;
     sp->type = T_FUNCTION;
     sp->u.fp = fp;
     fp->hdr.ref++;
@@ -62,6 +77,7 @@ int merge_arg_lists P3(int, num_arg, array_t *, arr, int, start) {
     svalue_t *sptr;
     
     if (num_arr_arg) {
+	CHECK_STACK_OVERFLOW(num_arr_arg);
 	sptr = (sp += num_arr_arg);
 	if (num_arg) {
 	    /* We need to do some stack movement so that the order
@@ -108,12 +124,20 @@ make_lfun_funp P2(int, index, svalue_t *, args)
 {
     funptr_t *fp;
     int newindex;
-    
+
+    if (replace_program_pending(current_object))
+	error("cannot bind an lfun fp to an object with a pending replace_program()\n");
+
     fp = (funptr_t *)DXALLOC(sizeof(funptr_hdr_t) + sizeof(local_ptr_t),
-			     TAG_FUNP, "make_efun_funp");
+			     TAG_FUNP, "make_lfun_funp");
     fp->hdr.owner = current_object;
-    add_ref( current_object, "make_efun_funp" );
+    add_ref( current_object, "make_lfun_funp" );
     fp->hdr.type = FP_LOCAL | FP_NOT_BINDABLE;
+    
+    fp->hdr.owner->prog->func_ref++;
+    debug(d_flag, ("add func ref /%s: now %i\n",
+		fp->hdr.owner->prog->name,
+		fp->hdr.owner->prog->func_ref));
     
     newindex = index + function_index_offset;
     if (current_object->prog->function_flags[newindex] & FUNC_ALIAS)
@@ -136,9 +160,9 @@ make_simul_funp P2(int, index, svalue_t *, args)
     funptr_t *fp;
     
     fp = (funptr_t *)DXALLOC(sizeof(funptr_hdr_t) + sizeof(simul_ptr_t),
-			     TAG_FUNP, "make_efun_funp");
+			     TAG_FUNP, "make_simul_funp");
     fp->hdr.owner = current_object;
-    add_ref( current_object, "make_efun_funp" );
+    add_ref( current_object, "make_simul_funp" );
     fp->hdr.type = FP_SIMUL;
     
     fp->f.simul.index = index;
@@ -157,6 +181,9 @@ INLINE funptr_t *
 make_functional_funp P5(short, num_arg, short, num_local, short, len, svalue_t *, args, int, flag)
 {
     funptr_t *fp;
+
+    if (replace_program_pending(current_object))
+	error("cannot bind a functional to an object with a pending replace_program()\n");
     
     fp = (funptr_t *)DXALLOC(sizeof(funptr_hdr_t) + sizeof(functional_t), 
 			     TAG_FUNP, "make_functional_funp");
@@ -196,9 +223,9 @@ call_function_pointer P2(funptr_t *, funp, int, num_arg)
 {
     static func_t *oefun_table = efun_table - BASE;
     
-    if (funp->hdr.owner->flags & O_DESTRUCTED)
+    if (!funp->hdr.owner || (funp->hdr.owner->flags & O_DESTRUCTED))
 	error("Owner (/%s) of function pointer is destructed.\n",
-	      funp->hdr.owner->name);
+	      (funp->hdr.owner ? funp->hdr.owner->name : "(null)"));
     
     setup_fake_frame(funp);
     if (current_object->flags & O_SWAPPED)
@@ -225,13 +252,9 @@ call_function_pointer P2(funptr_t *, funp, int, num_arg)
 	    if (num_arg == instrs[i].min_arg - 1 && 
 		((def = instrs[i].Default) != DEFAULT_NONE)) {
 		if (def == DEFAULT_THIS_OBJECT) {
-		    if (current_object && !(current_object->flags & O_DESTRUCTED))
-			push_object(current_object);
-		    else
-			*(++sp)=const0;
+		    push_object(current_object);
 		} else {
-		    (++sp)->type = T_NUMBER;
-		    sp->u.number = def;
+		    push_number(def);
 		}
 		num_arg++;
 	    } else

@@ -7,6 +7,7 @@
  * main.c
  */
 
+#define PORT_UNDEFINED   0
 #define PORT_TELNET      1
 #define PORT_BINARY      2
 #define PORT_ASCII       3
@@ -16,11 +17,17 @@ typedef struct {
     int kind;
     int port;
     int fd;
+#ifdef F_NETWORK_STATS
+    int in_packets;
+    int in_volume;
+    int out_packets;
+    int out_volume;
+#endif
 } port_def_t;
 
 extern port_def_t external_port[5];
 #ifdef PACKAGE_EXTERNAL
-extern char *external_cmd[5];
+extern char *external_cmd[NUM_EXTERNAL_CMDS];
 #endif
 
 extern int t_flag;
@@ -37,6 +44,6 @@ extern char *reserved_area;
 extern double consts[];
 extern int slow_shut_down_to_do;
 
-void debug_message PROT1V(char *);
+void CDECL debug_message PROT1V(char *);
 
 #endif

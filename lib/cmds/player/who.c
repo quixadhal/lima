@@ -12,7 +12,7 @@ inherit CMD;
 
 #ifdef ZORKMUD
 # define USER_DESC	"(ZORKERS ONLY)"
-# define WHO_FORMAT	"%s:  (GUE Time is: %s) %-28s%s\n%s\n"
+# define WHO_FORMAT	"%s:  (GUE Time is: %s) %-28s%d\n%s\n"
 #else
 # define USER_DESC	"(PLAYERS ONLY)"
 # define WHO_FORMAT	"%s:  (Local Time is: %s) %s%d users listed.\n%s\n"
@@ -41,7 +41,7 @@ string get_who_string(string arg)
 	    extra = "(IMPLEMENTORS ONLY)\n";
 	    break;
 	case "-m":
-	    if ( wizardp() )
+            if ( wizardp(this_user()) )
 	    {
 		u = filter_array(children(USER_OB),
 				 (: !interactive($1) :))->query_body();
@@ -55,7 +55,7 @@ string get_who_string(string arg)
 	    u = bodies();
 	    break;
         }
-        if ( !wizardp() )
+        if ( !wizardp(this_user()) )
 	    u = filter_array(u, (: $1->is_visible() :));
     }
     else

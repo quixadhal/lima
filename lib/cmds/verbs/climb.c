@@ -4,7 +4,7 @@
  * Revised 2-14-99 by Tigran in his exit rewrite
  */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_climb_wrd_obj(string prep, object ob)
 {

@@ -115,18 +115,25 @@ void reincarnate()
    health_time = time();
 }
 
+//:FUNCTION update_health
+// Correct the health if necessary 
+void update_health()
+{
+  if(!dead && time() != health_time)
+    {
+      /* pretend we've been healing ... */
+      heal_us(fuzzy_divide((time()-health_time) * heal_rate, 1000));
+      health_time = time();
+    }
+}
+
 //:FUNCTION query_health
 // varargs int query_health(string unused);
 // Find the current number of hitpoints of a monster
 varargs int query_health(string unused)
 {
-   if(!dead && time() != health_time)
-   {
-      /* pretend we've been healing ... */
-      heal_us(fuzzy_divide((time()-health_time) * heal_rate, 1000));
-      health_time = time();
-   }
-   return health;
+  update_health();
+  return health;
 }
 
 //:FUNCTION query_max_health

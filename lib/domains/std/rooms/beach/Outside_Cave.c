@@ -3,7 +3,7 @@
 inherit OUTDOOR_ROOM;
 
 void obj_arrived(object ob) {
-    if (ob->get_size() >= VERY_LARGE) 
+    if (ob->query_size() >= VERY_LARGE) 
     {
 	if(!ob->is_living())
 	    receive_inside_msg(capitalize(ob->the_short()) + " makes a "

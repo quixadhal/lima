@@ -11,6 +11,7 @@ void mudlib_setup()
 {
     ::mudlib_setup();
     add_id("weapon");
+    add_save( ({ "persist_flags" }) );
 }
 
 mixed ob_state()
@@ -26,9 +27,4 @@ void remove() {
 int indirect_kill_liv_with_obj()
 {
   return 1;
-}
-
-mapping lpscript_attributes()
-{
-    return object::lpscript_attributes() + m_damage_source::lpscript_attributes();
 }

@@ -19,28 +19,33 @@ private void main(string arg)
     list = sort_array(SOUL_D->list_emotes(), 1);
     count = sizeof(list);
 
+    if (count == 0) {
+	out("There are no feelings.");
+	return;
+    }
+
     if ( !arg || arg == "" )
-        arg = "*";
+	arg = "*";
     else if ( !has_magic(arg) )
-        arg = arg + "*";
+	arg = arg + "*";
     arg = "^"+translate(arg)+"$";
     list = regexp(list, arg);
     if ( !list )
     {
-        printf("No feelings matched '%s'.\n", arg);
-        return;
+	printf("No feelings matched '%s'.\n", arg);
+	return;
     }
     too_damn_long = filter(list, (: sizeof($1) >= TOO_DAMN_LONG :));
     not_too_long = filter(list, (: sizeof($1) < TOO_DAMN_LONG :));
 
     if(end_of_pipeline())
-      out(HEADER + sprintf("%-#79s\n", implode(not_too_long, "\n")));
+	out(HEADER + sprintf("%-#79s\n", implode(not_too_long, "\n")));
     else
-      outf("%s\n", implode(not_too_long, "\n"));
+	outf("%s\n", implode(not_too_long, "\n"));
     if ( sizeof(too_damn_long) )
     {
-      if(end_of_pipeline())
-	out("\nSouls that are too damn long:\n");
+	if(end_of_pipeline())
+	    out("\nSouls that are too damn long:\n");
 	out(implode(too_damn_long, "\n") + "\n");
     }
     outf(TRAILER, sizeof(list), count, sizeof(list) * 100 / count);
@@ -48,7 +53,7 @@ private void main(string arg)
 
 void player_menu_entry(string str)
 {
-  bare_init();
-  main(str);
-  done_outputing();
+    bare_init();
+    main(str);
+    done_outputing();
 }

@@ -7,6 +7,7 @@
 void add_hook(string, function);
 void remove_hook(string, function);
 object query_target();
+object query_link();
 
 void action_arrival(object);
 void action_departure(object);
@@ -30,6 +31,8 @@ object query_body()
 
 object query_shell_ob()
 {
+  if(this_object()->query_link())
+    return this_object()->query_link()->query_shell_ob();
   return this_object();
 }
 

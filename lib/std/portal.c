@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-//:MODULE portal
+//:MODULE
 // A simple one way portal
 
 inherit COMPLEX_EXIT_OBJ;
@@ -11,8 +11,8 @@ string look_in_desc;
 
 //:FUNCTION set_destination
 // Set where you go when you enter the portal.  Valid arguments are a function
-//pointer or a filename
-void set_destination(function f)
+//pointer,  or a filename
+void set_destination(mixed f)
 {
   add_method("enter",f);
 }

@@ -47,6 +47,9 @@ object _new(string, ...);
 
 unknown call_other _call_other(object | string | object *, string | mixed *,...);
 mixed evaluate _evaluate(mixed, ...);
+#ifdef COMPAT_32
+mixed funcall _evaluate(mixed, ...);
+#endif
 object this_object _this_object();
 int to_int _to_int(string | float | int OR_BUFFER);
 float to_float _to_float(string | float | int);
@@ -82,7 +85,7 @@ object *deep_inventory(object default: F__THIS_OBJECT);
 object first_inventory(object|string default: F__THIS_OBJECT);
 object next_inventory(object default: F__THIS_OBJECT);
 void say(string, void | object | object *);
-void tell_room(object | string, string | object | int | float, void | object *);
+void tell_room(object | string, string | object | int | float, void | object | object *);
 object present(object | string, void | object);
 void move_object(object | string);
 #endif
@@ -103,6 +106,7 @@ object find_player(string);
 void notify_fail(string | function);
 #else
 void set_this_player(object | int);
+void set_this_user set_this_player(object | int);
 #endif
 
 string lower_case(string);
@@ -114,6 +118,9 @@ mixed restore_variable(string);
 object *users();
 mixed *get_dir(string, int default: 0);
 int strsrch(string, string | int, int default: 0);
+#ifdef COMPAT_32
+int strstr strsrch(string, string | int, int default: 0);
+#endif
 
 /* communication functions */
 
@@ -160,6 +167,9 @@ void message(mixed, mixed, string | string * | object | object *,
     int stringp(mixed);
     int virtualp(object);
     int functionp(mixed);
+#ifdef COMPAT_32
+    int closurep functionp(mixed);
+#endif
     int pointerp(mixed);
     int arrayp pointerp(mixed);
     int objectp(mixed);
@@ -275,6 +285,9 @@ void message(mixed, mixed, string | string * | object | object *,
     string in_edit(object default:F__THIS_OBJECT);
     int in_input(object default:F__THIS_OBJECT);
     int userp(object);
+#ifdef COMPAT_32
+    int query_once_interactive userp(object);
+#endif
 
 #ifndef NO_WIZARDS
     void enable_wizard();
@@ -302,6 +315,9 @@ void message(mixed, mixed, string | string * | object | object *,
     void reload_object(object);
 
     void error(string);
+#ifdef COMPAT_32
+    void raise_error error(string);
+#endif
     int uptime();
     int strcmp(string, string);
 
@@ -357,6 +373,9 @@ void message(mixed, mixed, string | string * | object | object *,
     int reset_eval_cost set_eval_limit(int default: 0);
     int eval_cost set_eval_limit(int default: -1);
     int max_eval_cost set_eval_limit(int default: 1);
+#ifdef COMPAT_32
+    int get_eval_cost set_eval_limit(int default: -1);
+#endif
 
 #ifdef DEBUG_MACRO
     void set_debug_level(int|string);

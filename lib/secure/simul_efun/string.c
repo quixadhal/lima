@@ -226,3 +226,26 @@ string format_list(string array list, string separator) {
     if (sizeof(list)==2) return list[0] + " " + separator + " " + list[1];
     return implode(list[0..<2], ", ") + ", " + separator + " " + list[<1];
 }
+
+
+//:FUNCTION title_capitalize
+//Return the incoming string with the appropriate words capitalized
+//for a title.
+string title_capitalize(string instring) {
+  /* Always capitalize the first word. The normal capitalize() handles this */
+  string array inarr=explode(capitalize(instring)," ");
+  string array out=({});
+  /* There are more in parse_command_prepos_list() than is necessary, but 
+   * they are all two word preps, so they will never be matched, thus this 
+   * works */
+#define UNCAPPED ({ "a","an","the","and","but","or",}) + master()->parse_command_prepos_list()
+
+  foreach(string word in inarr) {
+    if(member_array(word,UNCAPPED)>-1)
+      out+=({word});
+    else
+      out+=({capitalize(word)});
+  }
+
+  return implode(out," ");
+}

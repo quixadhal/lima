@@ -50,8 +50,8 @@ void do_search()
     environment( this_body() )->do_search();
 }
 
-array query_verb_info() {
-    return ({ ({ "OBJ", "OBJ with OBJ", "for STR", "for STR in OBJ", 
+void create() {
+    add_rules( ({ "OBJ", "OBJ with OBJ", "for STR", "for STR in OBJ", 
 	"OBJ for STR", "OBJ with OBJ for STR", "OBJ for STR with OBJ",
-	"for STR in OBJ with OBJ", "" }) });
+	"for STR in OBJ with OBJ", "" }) );
 }

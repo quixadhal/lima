@@ -37,7 +37,7 @@ void receive_outside_msg(string str)
     }
     if ( search(str, "leave +(|the +)guild") != -1 )
     {
-        if( !this_body()->query_member_guild( query_which_guild()))
+        if( this_body()->query_member_guild( query_which_guild()))
 	{
             call_out((: release_a_member, this_body() :), 0);
 	}

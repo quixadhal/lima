@@ -9,7 +9,7 @@ class event_info
    object target_extra;
 #endif
    object weapon;
-   int data;
+   mixed data;
 }
 
 int event_damage(class event_info evt)

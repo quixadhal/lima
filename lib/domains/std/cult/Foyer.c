@@ -18,7 +18,7 @@ void setup()
 	     "where you hear faint echoes of maniacal laughter. "
 	     "A desk sits to one side of the room.");
     set_exits( ([
-	"noRth" : "../room2",
+	"north" : "../Relations_And_Toys.c",
 	]) );
     set_objects( ([
 	"portal" : 1,

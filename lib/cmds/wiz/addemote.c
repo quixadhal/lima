@@ -4,6 +4,7 @@
 
 #include <mudlib.h>
 #include <daemons.h>
+#include <log.h>
 
 inherit M_INPUT;
 inherit CMD;
@@ -29,6 +30,7 @@ mixed parse_rule(string str)
 private nomask void got_message(string verb, string rule, string str)
 {
     string array parts;
+    string s;
 
     if ( str == "" )
     {
@@ -39,6 +41,10 @@ private nomask void got_message(string verb, string rule, string str)
     str = replace_string(str, "\\n", "\n");
     parts = explode(str, " && ");
     SOUL_D->add_emote(verb, rule, parts);
+    s = sprintf("%s added the emote %s at %s\n",
+      this_user()->query_userid(),
+      verb, ctime(time()));
+    LOG_D->log(LOG_ADDEMOTE,s);
 }
 
 private nomask void got_rule(string verb, string str)

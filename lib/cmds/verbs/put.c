@@ -7,7 +7,7 @@
 
 #include <move.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_put_obj_wrd_obj(object ob1, string p, object ob2) 
 {

@@ -7,5 +7,6 @@
 #define LIMB_WIELDING 2
 #define LIMB_MOBILE   4
 #define LIMB_SYSTEM   8
+#define LIMB_ATTACKING 16
 
 #endif

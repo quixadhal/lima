@@ -8,7 +8,6 @@
 ** 95-Apr-30.  Deathblade.  Created.
 */
 
-#include <config.h>
 #include <security.h>
 
 inherit M_ACCESS;
@@ -20,10 +19,12 @@ inherit __DIR__ "user/failures";
 inherit __DIR__ "user/inputsys";
 inherit __DIR__ "user/userinfo";
 inherit __DIR__ "user/messages";
+inherit __DIR__ "user/mailbase";
 inherit __DIR__ "user/shell";
-#ifdef NEWS_DATA_IN_USER
 inherit __DIR__ "user/newsdata";
-#endif
+inherit __DIR__ "user/channel";
+inherit __DIR__ "user/misc";
+inherit __DIR__ "user/history";
 
 /*
 ** This users's userid (login id).
@@ -47,6 +48,9 @@ protected nomask void set_userid(string new_userid)
 void remove()
 {
     object body = query_body();
+
+    MAILBOX_D->unload_mailbox(query_userid());
+    unload_mailer();
 
     if ( body )
 	destruct(body);

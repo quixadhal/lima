@@ -21,7 +21,7 @@ void do_enter()
 
 mixed direct_enter_obj()
 {
-  return 1;
+  return "You can't seem to find a way in, there are no doors.\n";
 }
 
 void dig(object o)

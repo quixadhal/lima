@@ -8,7 +8,7 @@
 ** 951123, Deathblade: created
 */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 //###should be shared somehow with go.c
 string array normal_directions = ({ "north", "south", "east", "west",
@@ -16,7 +16,14 @@ string array normal_directions = ({ "north", "south", "east", "west",
 
 mixed can_drive_str(string str)
 {
-   mixed value = environment(environment(this_body()))->can_go_str(str);
+   mixed value;
+   object where = environment(this_body());
+   if(!where)
+     return("You don't appear to have any environment!");
+   where = environment(where);
+   if(!where)
+     return("You don't appear to be in a vehicle!");     
+   value = where->can_go_str(str);
    if(!stringp(value) && (value == 1))
      return default_checks();
    if(!stringp(value) && (member_array(str, normal_directions) != -1))

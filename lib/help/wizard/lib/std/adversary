@@ -1,0 +1,70 @@
+The '/std/adversary' inheritable and its associated sub-modules.
+
+inherits: LIVING, M_DAMAGE_SOURCE
+
+Summary:
+The 'adversary' inheritable implements the concept of an object that
+can attack other objects.  It uses sub-modules to increase flexibility and
+to be more easily configurable.
+
+Functions useful for configuring:
+see also LIVING, M_DAMAGE_SOURCE
+
+New Functions:
+attackable() - Returns 1.
+query_ghost() - Returns 1 if the adversary is dead.
+start_fight() - Tells the adversary to attack a new person, or to focus
+                upon that person.
+diagnose() - Reports the health of the adversary.
+
+Overloaded Functions:
+flee() - Overload this behavior.  It does nothing by default.
+surrender() - Overload this behavior.  It does nothing by default.
+panic() - By default, this randomly calls either flee() or surrender().
+          Overload this one to change the behavior or the probability.
+target_is_asleep() - Overload this to define how an adversary will behave
+                     when attacking a sleeping target.  Will he kill them
+                     or spare them?
+
+Modules:
+advancement - This module is provided merely as a convenience, since most
+              MUDs will want to have some sort of player advancement
+              system.  However, Lima's stock lib implements only the most
+              trivial advancement module, and it is not used for anything
+              else in the mudlib.  The advancement module should be
+              designed by MUD implementors to cooperate with the formula
+              module.
+armor - This module provides a system of absorbing damage from attacks.
+        To configure the limbs module, you must also have configured the
+        health module to use limbs.  The other two modules implement the
+        concept of bodyslots, but, as the names imply, one is more complex
+        than the other and provides more features.
+blows - Configure this module to use simple blows, or typed blows.  Typed
+        blows allow you to implement weapons to have attack types, such
+        as 'fire', or 'steel', or 'magic'.  Similarly, you can then
+        implement such things as resistances to those types.
+death - You can configure player deaths to either vaporize the player
+        entirely when he or she dies, or to leave behind a corpse.
+formula - The formula, like the advancement module, does not implement
+          anything useful.  It is intended for the MUD wizards and admins
+          to design.  A simple example is provided.
+health - Lima provides three health modules: hitpoints, limbs, and wounds.
+         Hitpoints is the simplest module; a player has a certain number
+         of hitpoints, and when that number reaches 0 the player dies.
+         The limbs module implements the idea that the player has various
+         hit-zones, each with a number of hitpoints.
+
+         Lima implements types of limbs. A 'vital' limb is critical for
+         the player's survival.  If that limb's hitpoints reach 0, the
+         player will die.  A typical example of a vital limb is a
+         humanoid's head.  'System' limbs are limbs that the player must
+         keep at least one in order to survive.  If the hitpoints on
+         every system limb on an adversary reach 0, the adversary dies.
+         An example of system limbs would be the heads on a hydra.
+pulse - Two pulse modules are provided; one that uses heart_beat() as its
+        method of timing, and one that uses call_out().  Most people use
+        the heart_beat() method.
+wield - The wield module controls how weapon wielding is implemented.
+        Lima provides three modules: single, multiple, and limbs.  The
+        limbs module requires that the health/limbs module also be
+        configured.

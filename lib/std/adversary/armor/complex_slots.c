@@ -5,7 +5,7 @@
 inherit CLASS_BODYSLOTS;
 
 // Set some defaults. If you want other ones, override this.
-nosave mapping slots = ([
+private mapping slots = ([
     TORSO  : new(class slot, howmany: 1, name: TORSO, max_size: LARGE,
                  stuff: ({ })),
     HEAD   : new(class slot, howmany: 1, name: HEAD,  max_size: SMALL,
@@ -57,11 +57,12 @@ nomask int wear_item(object what, string sname)
    if(!slots[sname])
       return 0;
 
+   SLOT(sname)->stuff -= ({ 0 });
+
    athere = SLOT(sname)->stuff;
    num = SLOT(sname)->howmany;
    if(sizeof(athere) >= num)
       return 0;
-
    slot_max_size = SLOT(sname)->max_size;
    if(what->get_size() > slot_max_size && slot_max_size)
       return 0;

@@ -3,6 +3,7 @@ ADJECTIVE:parse_command_adjectiv_id_list
 CATCH_TELL
 CLEAN_UP
 CREATE
+DESTRUCTOR
 ID
 INIT
 LOGON
@@ -47,6 +48,7 @@ USERS:parse_command_users
 VALID_ASM
 VALID_BIND
 VALID_COMPILE_TO_C
+VALID_DATABASE
 VALID_HIDE
 VALID_LINK
 LITERALS:parse_command_prepos_list
@@ -60,3 +62,6 @@ VALID_SETEUID
 VALID_SHADOW
 VALID_SOCKET
 VALID_WRITE
+PARSE_FIRST_INVENTORY:parse_get_first_inventory
+PARSE_NEXT_INVENTORY:parse_get_next_inventory
+PARSE_ENVIRONMENT:parse_get_environment

@@ -51,6 +51,6 @@ void do_switch_obj_to_str(object ob, string str) {
     ob->do_switch(str);
 }
 
-array query_verb_info() {
-    return ({ ({ "to STR", "OBJ to STR" }) });
+void create() {
+    add_rules( ({ "to STR", "OBJ to STR" }) );
 }

@@ -2,8 +2,8 @@
 
 #include <bodyslots.h>
 
-nosave mapping slots = allocate_mapping(({ TORSO, HEAD, ARMS, LEGS, HANDS, FEET }), 0);
-nosave mapping non_armors = allocate_mapping(({ "left hand", "right hand", "neck" }), 0);
+private mapping slots = allocate_mapping(({ TORSO, HEAD, ARMS, LEGS, HANDS, FEET }), 0);
+private mapping non_armors = allocate_mapping(({ "left hand", "right hand", "neck" }), 0);
 
 private int wear_non_armor(object what, string sname)
 {

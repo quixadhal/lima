@@ -15,18 +15,18 @@ mixed *did = ({ });
 int someone_did(string str) {
     object array who;
 
-    if( !is_directory( wiz_dir( this_body())))
+    if( !is_directory( wiz_dir( this_user())))
     {
 	write( "Sorry, but only full wizards may use the didlog.\n");
         return 0;
     }
-    str = capitalize( this_body()->query_userid()) + " " + str;
+    str = capitalize( this_user()->query_userid()) + " " + str;
     did += ({ ({ time(), str }) });
     save_me();
 
     who = filter_array( users(), (: wizardp( $1 ):)) - ({ this_user() });
-    who = who->query_body() - ({ 0 });
-    who->ilog_hook(str);
+    who -= ({ 0 });
+    who->deliver_didlog_message(str);
 
     return 1;
 }
@@ -48,6 +48,8 @@ private nomask int start_index(int after)
 
     return index;
 }
+
+
 
 private nomask string * get_entries(int after, string * header, string pattern)
 {
@@ -75,6 +77,11 @@ private nomask string * get_entries(int after, string * header, string pattern)
     }
 
     return output;
+}
+
+string array dump_entries()
+{
+  return did;
 }
 
 varargs void dump_did_info(int after, string * header, string pattern,
@@ -159,3 +166,4 @@ void print_weblog_to_file(string fname)
 {
     write_file(fname, get_changelog_for_web(1));
 }
+

@@ -85,7 +85,7 @@ protected nomask void rcv_finger_reply(string orig_mud, string orig_user,
 	if ( message[3] )
 	    s += sprintf("%' '42sEmail: %s\n", "", message[3]);
 	s += sprintf("Level: %-35sTitle: %s\n",
-		     message[7] ? message[7] : "<unknown>",
+		     message[7] ? "" + message[7] : "<unknown>",
 		     message[1] ? message[1] : "<unknown>");
 	if ( message[5] == -1 )
 	{

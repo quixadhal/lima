@@ -89,6 +89,7 @@ static void remove_simuls() {
 		ihe->sem_value--;
 	    ihe->dn.simul_num = -1;
 	    ihe->token &= ~IHE_SIMUL;
+	    ihe->token |= IHE_ORPHAN;
 	}
     }    
 }
@@ -104,6 +105,7 @@ void get_simul_efuns P1(program_t *, prog)
 	if (!num_new) {
 	    FREE(simul_names);
 	    FREE(simuls);
+	    num_simul_efun = 0;
 	} else {
 	    /* will be resized later */
 	    simul_names = RESIZE(simul_names, num_simul_efun + num_new,
@@ -169,6 +171,7 @@ find_or_add_simul_efun P2(function_t *, funp, int, runtime_index) {
 	else {
 	    ihe = find_or_add_perm_ident(simul_names[j].name);
 	    ihe->token |= IHE_SIMUL;
+	    ihe->token &= ~IHE_ORPHAN;
 	    ihe->sem_value++;
 	    ihe->dn.simul_num = simul_names[j].index;
 	    simuls[simul_names[j].index].index = runtime_index;
@@ -184,6 +187,7 @@ find_or_add_simul_efun P2(function_t *, funp, int, runtime_index) {
     simul_names[first].index = num_simul_efun;
     ihe = find_or_add_perm_ident(funp->name);
     ihe->token |= IHE_SIMUL;
+    ihe->token &= ~IHE_ORPHAN;
     ihe->sem_value++;
     ihe->dn.simul_num = num_simul_efun++;
     ref_string(funp->name);

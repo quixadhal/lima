@@ -12,7 +12,7 @@
 #include <mudlib.h>
 #include <setbit.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 mixed can_drink(){
    return "Drink what?";

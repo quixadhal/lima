@@ -19,6 +19,8 @@ void setup()
     set_in_room_desc( "A recording device sits on the ground.");
     set_long( "It looks like a tape recorder, and it has the usual panel of buttons, but there's no place to put a tape in it.");
     set_id( "recorder", "player" );
+    set_relations("in");
+    set_default_relation("in");
     set_objects( ([
 	"recorder/button/play" : 1,
 	"recorder/button/record" : 1,

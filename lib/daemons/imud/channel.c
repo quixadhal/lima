@@ -9,6 +9,9 @@
 */
 
 #include <daemons.h>
+#include <security.h>
+
+#define PRIV_REQUIRED	"Mudlib:daemons"
 
 nosave private int	filter_msg;
 
@@ -74,7 +77,6 @@ nomask void channel_rcv_data(string channel_name,
 	    string all_mess = data[<1][<1];
 	    string targ_mess = data[<1][1];
 
-	    DBBUG(data);
 	    if ( all_mess[<1] == '\n' ) all_mess = all_mess[0..<2];
 	    if ( targ_mess[<1] == '\n' ) targ_mess = targ_mess[0..<2];
 	    
@@ -113,7 +115,10 @@ protected nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 	else
 	{
 	    chanlist[channel_name] = channel_data;
+//	  /* We only want to add the channels that the mud is listening to. */
+//	  if(member_array(channel_name,listened_channels)>-1) {
 	    CHANNEL_D->register_channels(({ int_name }));
+//	  }	    
 	}
     }
 }
@@ -121,7 +126,8 @@ protected nomask void rcv_chanlist_reply(string orig_mud, string orig_user,
 protected nomask void rcv_chan_who_req(string orig_mud, string orig_user,
 				    string targ_user, mixed * message)
 {
-    object * listeners = CHANNEL_D->query_listeners(message[0]);
+    object * listeners = CHANNEL_D->query_listeners("imud_" + message[0]);
+
 
     if ( !listeners )
     {
@@ -132,7 +138,7 @@ protected nomask void rcv_chan_who_req(string orig_mud, string orig_user,
     {
 	listeners -= ({ 0, this_object() });
 	send_to_user("chan-who-reply", orig_mud, orig_user,
-		     ({ message[0], listeners->query_name() }));
+		     ({ message[0], listeners->query_body()->query_name() }));
     }
 }
 
@@ -155,29 +161,6 @@ protected nomask void rcv_chan_who_reply(string orig_mud, string orig_user,
     }
 }
 
-/* ### to support the April Fool's stuff below... */
-nosave private string * april_phrases = ({
-    // "yes, you are!",
-    "not you... Ohara is the fool!",
-    "but Zakk is a bigger fool!",
-    "well, duh! we knew that!",
-    "yes... anyone who logs onto IdeaExchange is a fool!",
-    "of course! anyone who idles on a hostile mud is a fool.",
-    "well, Beek's the bigger fool... he admitted to singing Live's \"I Alone\" for a piece of tail.",
-    "so was Rust's mom ... and look at the result!",
-    "yeah, but at least you didn't choose a mud name as lame as 'Deathblade'.",
-    "nog, that's what your mom told me last night.",
-    "then move to StarMUD; you'll fit in better",
-    "I think your mom said that last night, but she had her mouth full at the time.",
-    "we hear you like small children, too.",
-    "well, at least you're not as bad as those who use Heaven 7.",
-    "well, at least you're not as bad as those who use Heaven 7.",
-    "really? You must use TMI.",
-    "you're so lame, that's your *best* quality.",
-    "you're a Discworld admin, right?",
-    "Oh god ... it's _another_ newbie who wants to write their own lib.",
-    "And to add salt to your wounds:  'She' was a 'He'.",
-});
 string query_userid()
 {
     return "limabean";
@@ -193,19 +176,6 @@ protected nomask void rcv_channel_m(string orig_mud, string orig_user,
     CHANNEL_D->deliver_tell("imud_" + message[0],
 			     sprintf("%s@%s", message[1], orig_mud),
 			     message[2]);
-
-#if 0
-    /* ### April Fool's ... respond to IdeaExchange :-) */
-    if ( message[2] == "I am a fool!" )
-    {
-	object tu = this_user();
-	set_this_player(this_object());
-	CHANNEL_D->deliver_tell("imud_" + message[0],
-				"Lima Bean",
-				choice(april_phrases));
-	set_this_player(tu);
-    }
-#endif
 }
 
 
@@ -309,10 +279,12 @@ protected nomask void rcv_chan_user_reply(string orig_mud, string orig_user,
     /* ### do rest of emote now... */
 }
 
+//FUNCITON: chan_startup
+//Register the channels that we listen to with CHANNEL_D
 protected nomask void chan_startup()
 {
-    CHANNEL_D->register_channels(map_array(keys(chanlist),
-					    (: "imud_" + $1 :)));
+  CHANNEL_D->register_channels(map_array(listened_channels,
+			       (: "imud_" + $1 :)));
 }
 protected nomask void chan_shutdown()
 {
@@ -326,12 +298,16 @@ nomask mapping query_chanlist()
 
 nomask void add_channel(string channel_name, int channel_type)
 {
-    send_to_router("channel-add", ({ channel_name, channel_type }));
+//  if ( !check_privilege(PRIV_REQUIRED) )
+//    error("security: illegal attempt to create an owned intermud channel\n");
+  send_to_router("channel-add", ({ channel_name, channel_type }));
 }
 
 nomask void remove_channel(string channel_name)
 {
-    send_to_router("channel-remove", ({ channel_name }));
+//  if ( !check_privilege(PRIV_REQUIRED) )
+//    error("security: illegal attempt to remove an owned intermud channel\n");
+  send_to_router("channel-remove", ({ channel_name }));
 }
 
 nomask void remote_listeners(string mudname, string channel_name)
@@ -340,20 +316,28 @@ nomask void remote_listeners(string mudname, string channel_name)
 }
 
 nomask void listen_to_channel(string channel_name) {
-    if (member_array(channel_name, listened_channels) == -1) 
-       listened_channels += ({ channel_name });
-
-    send_to_router("channel-listen", ({ channel_name, 1 }));
+//  if(this_user()) {
+//    if ( !check_privilege(PRIV_REQUIRED) )
+//      error("security: illegal attempt to add a listened intermud channel\n");
+//  }
+  if (member_array(channel_name, listened_channels) == -1) 
+    listened_channels += ({ channel_name });
+  
+  send_to_router("channel-listen", ({ channel_name, 1 }));
 }
 
 nomask void ignore_channel(string channel_name) {
-    if (member_array(channel_name, listened_channels) != -1) 
-       listened_channels -= ({ channel_name });
-    send_to_router("channel-listen", ({ channel_name, 0 }));
+//  if ( !check_privilege(PRIV_REQUIRED) )
+//    error("security: illegal attempt to remove a listened intermud channel\n");
+  if (member_array(channel_name, listened_channels) != -1) 
+    listened_channels -= ({ channel_name });
+  send_to_router("channel-listen", ({ channel_name, 0 }));
 }
 
 nomask void ban_mud(string chan, string mud) {
-    send_to_router("channel-admin", ({ chan, ({}), ({ mud })}));
+//  if ( !check_privilege(PRIV_REQUIRED) )
+//    error("security: illegal attempt to administer an intermud channel\n");
+  send_to_router("channel-admin", ({ chan, ({}), ({ mud })}));
 }
 
 nomask void relisten_all_channels() {

@@ -57,21 +57,21 @@ void set_unique(int x)
     unique = x;
 }
 
-//:FUNCTION
+//:FUNCTION query_unique
 //Return the value of 'unique'
 int query_unique()
 {
     return unique;
 }
 
-//:FUNCTION
+//:FUNCTION set_plural
 //Plural objects are referred to as "the", not "a"
 void set_plural( int x )
 {
     plural = x;
 }
 
-//:FUNCTION
+//:FUNCTION query_plural
 //Return the value of plural
 int query_plural()
 {
@@ -83,13 +83,16 @@ private void resync() {
     if (!proper_name) {
 	if (!primary_id && sizeof(ids))
 	    primary_id = ids[0];
+	if (!primary_adj && sizeof(adjs))
+	    primary_adj = adjs[0];
 
 	if (primary_id) {
 	    if (primary_adj)
 		internal_short = primary_adj + " " + primary_id;
 	    else
 		internal_short = primary_id;
-	} else {
+	}
+	else {
 	    internal_short = "nondescript thing";
 	}
     } else
@@ -122,17 +125,17 @@ string plural_short() {
 /* More could be done with these quantity functions, assuming that they 
  * belong here, which I haven't decided yet, thoughts? -- Tigran */
 void set_quantity( int x ){
-  quantity = x;
+    quantity = x;
 }
 
 int query_quantity()
 {
-  return quantity;
+    return quantity;
 }
 
 //### should be somewhere else?
 string add_article(string str) {
-  if (quantity ) return "some " + str;
+    if (quantity ) return "some " + str;
     switch (str[0]) {
     case 'a':
     case 'e':
@@ -187,7 +190,7 @@ int plural_id( mixed arg ) {
 void
 add_adj(string array adj... )
 {
-    if(!arrayp(adjs))
+    if(!arrayp(adjs)) 
 	adjs = adj;
     else
 	adjs += adj;
@@ -217,7 +220,7 @@ void add_id_no_plural( string array id... ) {
 }
 
 //:FUNCTION add_id
-//Add an id and it's corresponding plural
+//Add an id and its corresponding plural
 void add_id( string array id... )
 {
     if(!arrayp(ids))
@@ -231,9 +234,9 @@ void add_id( string array id... )
 /****** set_ ******/
 //These actually add, but the first argument becomes the primary id/adjective
 void set_id( string array id... ) {
-    ids += id;
+    ids = id + ids; // Ensure proper order for resync of primary id
     plurals += map(id, (: pluralize :));
-    primary_id = id[0];
+    primary_id = 0;
     resync();
 }
 
@@ -241,21 +244,21 @@ void set_adj( string array adj... ) {
     if(!arrayp(adjs))
 	adjs = adj;
     else
-	adjs += adj;
-    primary_adj = adj[0];
+	adjs = adj + adjs; // Ensure proper order for resync of primary adj
+    primary_adj = 0;
     resync();
 }
 
 /****** remove_ ******/
 //:FUNCTION remove_id
 //Remove the given id
-protected
 void remove_id( string array id... )
 {
     if(!arrayp(ids))
 	return;
     ids -= id;
     plurals -= map(id, (: pluralize :));
+    primary_id = 0;
     resync();
 }
 
@@ -263,6 +266,7 @@ void remove_adj( string array adj ... ) {
     if(!arrayp(ids))
 	return;
     adjs -= adj;
+    primary_adj = 0;
     resync();
 }
 
@@ -273,6 +277,7 @@ void remove_adj( string array adj ... ) {
 void clear_id() {
     ids = ({ });
     plurals = ({ });
+    primary_id = 0;
     resync();
 }
 
@@ -281,6 +286,7 @@ void clear_id() {
 void clear_adj() 
 {
     adjs = ({ });
+    primary_adj = 0;
     resync();
 }
 

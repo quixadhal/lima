@@ -13,6 +13,7 @@
 #ifndef LOG_H
 #define LOG_H
 
+#define LOG_ADDEMOTE		"addemote"
 #define LOG_AUTODOC		"autodoc"
 #define LOG_BANISH		"banish"
 #define LOG_BUG			"bug"
@@ -31,6 +32,7 @@
 #define LOG_QUESTION		"question"
 #define LOG_QUIT		"quit"
 #define LOG_RCP			"rcp"
+#define LOG_SETNAME             "set_name"
 #define LOG_SHUTDOWN		"shutdown"
 #define LOG_SNOOP		"snoop"
 #define LOG_SOCKET		"socket"

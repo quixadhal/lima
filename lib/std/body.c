@@ -9,8 +9,6 @@
 //              Peregrin @ZorkMUD (GUE)
 // Beek ... Deathblade ... The rest of the Zorkmud staff ...
 //
-#include <daemons.h>
-#include <config.h>
 #include <security.h>
 #include <setbit.h>
 #include <playerflags.h>
@@ -18,7 +16,6 @@
 #include <move.h>
 #include <hooks.h>
 #include <size.h>
-//#include <combat.h>
 #include <clean_up.h>
 
 // Files we need to inherit --
@@ -34,7 +31,6 @@ private inherit M_SAVE; // don't want people calling load_from_string()
 #endif
 
 inherit __DIR__ "body/quests";
-inherit __DIR__ "body/mailbase";
 inherit __DIR__ "body/cmd";
 inherit __DIR__ "body/help";
 inherit __DIR__ "body/wizfuncs";
@@ -42,6 +38,10 @@ inherit __DIR__ "body/money";
 inherit __DIR__ "body/start";
 inherit __DIR__ "body/time";
 inherit __DIR__ "body/naming";
+
+#ifndef SAY_HISTORY_IN_ROOMS
+inherit __DIR__ "body/history";
+#endif
 
 #ifdef USE_STATUS_LINE
 inherit __DIR__ "body/status_line";
@@ -61,21 +61,20 @@ inherit __DIR__ "body/guilds";
 #ifdef USE_STATS
 inherit M_BODY_STATS;
 #endif
-#ifndef NEWS_DATA_IN_USER
-inherit __DIR__"body/newsdata";
-#endif
 
 void heal_all();
 varargs void stop_fight(object);
 
 // Global variables --
-private string reply;
-private string array channel_list = ({ });
 private string plan;
 private nosave object link;
 private mixed saved_items;
 
 // interfaces for other objects to manipulate our global variables
+
+//:FUNCTION is_body
+//Is this a body object? 
+int is_body() { return 1; }
 
 //:FUNCTION query_link
 //Return our link object
@@ -84,10 +83,10 @@ nomask object query_link()
     return link;
 }
 
-void mudlib_setup()
+void mudlib_setup(mixed args...)
 {
-   adversary::mudlib_setup();
-   m_follow::mudlib_setup();
+   adversary::mudlib_setup(args...);
+   m_follow::mudlib_setup(args...);
 }
 
 #ifdef EVERYONE_HAS_A_PLAN
@@ -115,30 +114,41 @@ nomask void set_plan(string new_plan)
 protected void update_for_new_body(mapping tmp) {
     /* nothing for now; can be overloaded for races that need it */
 }
+//:FUNCTION update_containers
+// Update containers on loading - fix relationships
+private nomask void update_container(object ob)
+{
+  foreach(object inv in all_inventory(ob))
+  {
+    if(inv->is_container())
+      update_container(inv);
+    ob->receive_object(inv);
+  }
+}
+
+// Added to complete initialisation of stuff loaded
+private nomask void init_stuff()
+{
+  foreach(object inv in all_inventory())
+  {
+#ifdef WIELD_SINGLE
+    if(inv->test_flag(F_WIELDED))
+      do_wield(inv);
+#else
+    if( inv->query_wielding() && sizeof(inv->query_wielding()) )
+       this_object()->wield(inv, inv->query_wielding()[0]);
+#endif
+    if(inv->test_flag(F_WORN))
+      inv->do_wear();
+  }
+  update_container(this_object());
+}
 
 /* initialize various internal things */
 //### needs a new name
 private nomask void init_cmd_hook()
 {
-    object mailbox;
-    int idx;
-
     link = previous_object();
-
-    mailbox = MAILBOX_D->get_mailbox(query_userid());
-
-    idx = mailbox->first_unread_message();
-    if ( idx == -1 )
-    {
-	mailbox->set_message_index(mailbox->query_message_count() - 1);
-    }
-    else
-    {
-	mailbox->set_message_index(idx);
-	write("\n>>You have new mail<<\n");
-    }
-
-   write("\n");
     naming_init_ids();
 
 #ifdef USE_MASS
@@ -164,21 +174,12 @@ private nomask void init_cmd_hook()
 	}
 	saved_items = 0;
     }
+  init_stuff();
 }
 
 nomask void su_enter_game(object where)
 {
     init_cmd_hook();
-
-    //### this should go away once we torch the corresponding leave msg for 'su'
-    CHANNEL_D->deliver_emote("announce", query_name(),
-      sprintf("enters %s.", mud_name()));
-
-    if ( is_visible() )
-	simple_action("$N $venter "+mud_name()+".");
-
-    CHANNEL_D->register_channels(channel_list);
-
     move(where);
 }
 
@@ -186,32 +187,7 @@ void enter_game(int state)
 {
     switch (state) {
     case 1:
-	/* new user */
-	if (wizardp(link)) {
-	    write("\n"
-	      "Hi, new wiz! Tuning you in to all the mud's important channels.\n"
-	      "Doing: wiz /on\n"
-	      "Doing: chan news /on   (you'll see when new news is posted.)\n"
-	      "Doing: gossip /on\n"
-	      "Doing: newbie /on\n"
-	      "Doing: announce /on\n"
-	      "\n");
 
-	    /* these will be registered later */
-	    channel_list = ({ "wiz", "news", "gossip",
-	      "newbie", "announce" });
-
-	    /* So the hapless new wizard doesn't get spammed. */
-	    set_ilog_time(time());
-	} else {
-	    write("\n"
-	      "Tuning in the newbie channel for you.  (newbie /on)\n"
-	      "Tuning in the gossip channel for you.  (gossip /on)\n"
-	      "\n");
-
-	    /* these will be registered later */
-	    channel_list = ({ "gossip", "newbie" });
-	}
 	/* FALLTHROUGH */   
     case 0:
 	/* existing user */
@@ -228,23 +204,10 @@ void enter_game(int state)
 		simple_action("$N $venter "+mud_name()+".");
 	    write("\n");
 	}
-	CHANNEL_D->register_channels(channel_list);
-
-	if ( wizardp(link) ) {
-	    DID_D->dump_did_info(query_ilog_time(),
-	      ({ "",
-		"Changes since you last logged in",
-		"********************************",
-		"" }),
-	      0,
-	      (: enter_game, 2 :));
-	    set_ilog_time(time());
-	    return;
-	}
 	/* FALLTHROUGH */
     case 2:
 	do_game_command("look");
-        query_health(this_body()->query_random_limb());
+	update_health();
     }
 }
 
@@ -280,10 +243,13 @@ void remove()
 	return;
     }
 
+#ifdef PLAYERS_START_WHERE_THEY_QUIT
+    if (environment() && !wizardp(link))
+	set_start_location(file_name(environment()));
+#endif
+
     save_me();
 
-    MAILBOX_D->unload_mailbox(query_userid());
-    unload_mailer();
     LAST_LOGIN_D->register_last(query_userid());
     SNOOP_D->bye();
     ::remove();
@@ -305,12 +271,7 @@ void quit()
 
     CHANNEL_D->deliver_emote("announce", query_name(),
       sprintf("has left %s.", mud_name()));
-    CHANNEL_D->unregister_channels();
 
-#ifdef PLAYERS_START_WHERE_THEY_QUIT
-    if (environment() && !wizardp(link))
-	set_start_location(file_name(environment()));
-#endif
 
     remove();
 }
@@ -320,19 +281,6 @@ void do_receive(string msg, int msg_type) {
 	link->do_receive(msg, msg_type);
 }
 
-//:FUNCTION set_reply
-//set_reply(s) sets the person to whom 'reply' goes to.
-void set_reply(string o)
-{
-    reply = o;
-}
-
-//:FUNCTION query_reply
-//query the person to whom reply goes to
-string query_reply()
-{
-    return reply;
-}
 
 //:FUNCTION net_dead
 //This function is called when we lose our link
@@ -434,9 +382,6 @@ void create(string userid)
     messages = ([]);
 
     adversary::create();
-#ifdef USE_STATS
-    m_bodystats::create();
-#endif
 
     /*
     ** Make some of the flags non-persistent (they won't be saved).
@@ -450,45 +395,6 @@ void create(string userid)
 
     // up to the player
     set_attack_speed(0);
-}
-
-
-/*
-** Listen to channel messages and manipulate the channels
-*/
-void channel_rcv_string(string channel_name, string message)
-{
-    receive_private_msg(message);
-}
-
-void channel_rcv_soul(string channel_name, array data)
-{
-    string msg;
-
-    if ( data[0][0] == this_object() )
-	msg = data[1][0];
-    else if ( sizeof(data[0]) == 2 && data[0][1] != this_object() )
-	msg = data[1][2];
-    else
-	msg = data[1][1];
-
-    receive_private_msg(msg);
-}
-
-void channel_add(string which_channel)
-{
-    channel_list += ({ which_channel });
-    CHANNEL_D->register_channels(({ which_channel }));
-}
-
-void channel_remove(string which_channel)
-{
-    channel_list -= ({ which_channel });
-    CHANNEL_D->unregister_channels(({ which_channel }));
-}
-string * query_channel_list()
-{
-    return channel_list;
 }
 
 //### temp hack. be both user and body

@@ -15,11 +15,12 @@ inherit M_DAMAGE_SINK;
 
 void mudlib_setup()
 {
-    ::mudlib_setup();
+    object::mudlib_setup();
+    m_wearable::mudlib_setup();
     add_id( "armor", "armour" );
 }
 
-//:FUNC set_worn
+//:FUNCTION set_worn
 //set_worn(1) causes this object to be worn by whatever is holding it.
 //set_worn(0) takes it back off again.
 #ifndef USE_BODYSLOTS
@@ -33,11 +34,6 @@ void set_worn(int g) {
 void remove() {
     m_wearable::remove();
     object::remove();
-}
-
-mapping lpscript_attributes()
-{
-   return object::lpscript_attributes() + m_damage_sink::lpscript_attributes() + m_gettable::lpscript_attributes() + m_wearable::lpscript_attributes();
 }
 
 mixed ob_state()

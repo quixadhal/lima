@@ -11,6 +11,11 @@ void refresh() {
     today = ctime(time())[4..9];
 }
 
+void repeat_refresh() {
+    today = ctime(time())[4..9];
+    call_out((:repeat_refresh:),86400);
+}
+
 varargs string array query_birthdays(string when) {
     mixed item;
 
@@ -105,7 +110,7 @@ void create() {
     }
 
     refresh();
-    call_out((: refresh :), start - time());
+    call_out((: repeat_refresh :), start - time());
 }
 
     

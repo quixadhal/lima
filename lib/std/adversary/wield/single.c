@@ -2,7 +2,7 @@
 
 void simple_action(string, object);
 
-private nosave object weapon;
+private object weapon;
 
 varargs void unwield(string unused)
 {

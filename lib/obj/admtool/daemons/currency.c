@@ -13,7 +13,7 @@ nomask string module_key() {
 }
 
 private nomask void list_currencies() {
-  string *types = MONEY_D->query_currency_types();
+  string *types = sort_array(MONEY_D->query_currency_types(), 1);
 
   if ( sizeof(types) == 0 ) {
     write("No currencies are defined.\n");
@@ -55,7 +55,7 @@ private nomask void list_denomination(string type) {
   write("Currency "+capitalize(type) + ":\n");
   printf("   Name        Plural     Exchange rate factor  Resulting Value\n"
 	 "   ------------------------------------------------------------\n");
-  foreach (string name in MONEY_D->query_denominations(type)) {
+  foreach (string name in MONEY_D->query_denominations(type) ) {
     printf("   %-12s%-12s  %12.4f      %12d\n", name, 
 	   MONEY_D->query_plural(name), MONEY_D->query_factor(name),
 	   to_int(MONEY_D->query_factor(name) 

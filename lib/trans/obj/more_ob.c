@@ -126,6 +126,10 @@ private nomask void do_more(mixed arg) {
 		}
 		break;
 	    }
+	    if(!current_search || current_search=="") {
+	      print_help();
+	      return;
+	    }
 	    write("more: illegal syntax, type \"h\" for help.\n");
 	    return;
 	case 'h':

@@ -19,10 +19,16 @@ void hook_state(string, mixed, int);
 string worn_extra_short();
 int test_flag(int);
 void assign_flag(int, int);
+void add_save( string array );
 
 private string wearmsg = "$N $vwear a $o.";
 private nosave string slot;
 private nosave string array also_covering;
+
+void mudlib_setup()
+{
+  add_save( ({ "persist_flags" }) );
+}
 
 mixed ob_state()
 {

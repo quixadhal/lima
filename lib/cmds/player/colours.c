@@ -45,11 +45,6 @@ void do_print(string which) {
 nomask private void main(string str) {
     string which, what;
     
-#ifndef CONFIGURABLE_COLOUR
-    write("Support not enabled.\n");
-    return;
-#endif
-
     if (!str) {
 	do_print(0);
 	return;

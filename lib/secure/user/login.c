@@ -12,27 +12,23 @@
 
 string query_userid();
 void set_userid(string new_name);
-
 void save_me();
 void restore_me(string some_name, int preserve_vars);
-
 void userinfo_handle_logon();
 void sw_body_handle_existing_logon(int);
-
 void register_failure(string addr);
-
 varargs void modal_push(function input_func,
                         mixed prompt,
                         int secure,
                         function return_to_func);
-
 varargs void modal_func(function input_func,
                         mixed prompt,
                         int secure);
-
 void modal_pop();
 void modal_recapture();
 mixed unguarded(mixed priv, function fp);
+void initialize_channels();
+void display_didlog();
 
 /* Login states */
 #define TIMEOUT			-1
@@ -143,6 +139,11 @@ private nomask int valid_name(string str)
    return 1;
 }
 
+private nomask void initialize_user() {
+  initialize_channels();
+  display_didlog();
+}
+
 private nomask int check_special_commands(string arg)
 {
    string array b;
@@ -237,8 +238,8 @@ void login_handle_logon(int state, mixed extra, string arg)
 	 write("");
 #ifdef WELCOME_DIR
          foo = get_dir(WELCOME_DIR + "/");
-         write(read_file(absolute_path(WELCOME_DIR + "/" +
-                         foo[random(sizeof(foo))])));
+         if(sizeof(foo))
+           write(read_file(absolute_path(WELCOME_DIR + "/" + choice(foo))));
 #else
          write(read_file(WELCOME_FILE));
 #endif
@@ -253,7 +254,7 @@ void login_handle_logon(int state, mixed extra, string arg)
 	 * extensively modified/rewritten more than half of the base mudlib first
 	 * (intend to modify ... doesn't cut it)
 	 */
-         printf("%s is running Lima 1.0a9 on %s\n\n",
+         printf("%s is running Lima 1.0b3 on %s\n\n",
                 mud_name(), driver_version());
 	
 #ifdef ZORKMUD
@@ -261,7 +262,6 @@ void login_handle_logon(int state, mixed extra, string arg)
 #else
          write("Hello, Player!\n");
 #endif
-
          modal_push((: login_handle_logon, NAME_PROMPT, 0 :), LOGIN_PROMPT);
 
         /* do this to kick off the modal system and print a prompt */
@@ -354,14 +354,10 @@ void login_handle_logon(int state, mixed extra, string arg)
                */
                set_userid(extra);
 
-#ifdef ZORKMUD
-               write("\nAh, a New Zorker.\n");
-#else
-               write("\nAh, a New Player.\n");
-#endif
+               write("\nA new player in our midst!\n");
 
                modal_func((: login_handle_logon, NEW_PASSWORD, 0 :),
-                          "Password: ", 1);
+                          "Please enter your password: ", 1);
                break;
 
             case "maybe":
@@ -405,6 +401,7 @@ void login_handle_logon(int state, mixed extra, string arg)
          password = extra;
          write("\n");     /* needed after a no-echo input */
 
+
          /*
          ** Done with the login sequence.  Pop our input handler now.
          */
@@ -424,7 +421,10 @@ void login_handle_logon(int state, mixed extra, string arg)
             ** Done with the login sequence.  Pop our input handler now.
             */
             modal_pop();
-
+	    
+	    /* We need to do work to finish initializing the user.
+	     * -- Tigran */
+	    initialize_user();
             sw_body_handle_existing_logon(0);
             return;
          }

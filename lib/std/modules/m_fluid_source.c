@@ -1,5 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
-//:MODULE m_fluid_source
+//:MODULE
 //Inherit this module into anything that
 //is a source for fluid.  Rivers, fountains,
 //bee-hives, volcanoes, corpses, etc.
@@ -15,7 +15,7 @@ string query_primary_id();
 
 string source_of;
 mixed fluid_disturb = "The $o1 ripples gently as you disturb it.";
-mixed fill_action = "$N $vdip $p $o into $o1 and withdraw some $o2.";
+mixed fill_action = "$N $vdip $p $o into $o1 and $vwithdraw some $o2.";
 
 //:FUNCTION set_source_of
 //set_source_of( string x )

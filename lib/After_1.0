@@ -1,0 +1,29 @@
+1.0 has now been released.
+
+Misc things that could be done or the idea discarded:
+- skill examples (and integration w/ lib): combat, spells, misc
+- spell examples: objects, training, books, interaction w/ skills, admin'ing
+- guild examples: training, halls, guards, admin'ing
+- admtool: wizdir administration
+- msg/review
+- fix location of mail messages
+- ambiguity on drop, throw, etc...
+- modularize stats, skills, and races fully
+- newsreader changes, mailer changes
+- more ANSI usage
+- more LPScript support
+- more documentation of code
+- Adversary documentation (nudge Iizuka)
+- Use of SQL interfaces in the driver to replace some .o's (like news)
+- New web pages to replace the ones lost in the crash
+
+Features unrelated to gaming, to be included post-alpha 
+(even though alpha means feature freeze):
+- I3: OOB services, better channels
+- time zone support
+- possibly water/underwater rooms
+
+Future versions (Post 1.0):
+- mail unsend
+- conversion of SECURE_D to array of paths, not a tree
+- RCP

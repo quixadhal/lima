@@ -19,8 +19,3 @@ void mudlib_setup()
 {
     set_id("key");
 }
-
-mapping lpscript_attributes()
-{
-    return object::lpscript_attributes() + m_gettable::lpscript_attributes();
-}

@@ -13,9 +13,3 @@ void mudlib_setup()
   moving_monster::mudlib_setup();
   m_follow::mudlib_setup();
 }
-
-mapping lpscript_attributes()
-{
-  return moving_monster::lpscript_attributes()+m_follow::lpscript_attributes();
-}
-

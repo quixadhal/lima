@@ -2,7 +2,7 @@
 
 #include <verbs.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 mixed do_curse()
 {

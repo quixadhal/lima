@@ -39,7 +39,7 @@ void lfun2(mixed a1, mixed a2) {
 void lfun3(mixed a1, mixed a2, mixed a3) {
 }
 #ifdef MUDOS
-#define START before = rusage()
+#define START do { reset_eval_cost();  set_eval_limit(0x7fffffff);  before = rusage(); } while (0)
 #define END   after = rusage(); time = after["stime"] + after["utime"] - before["stime"] - before["utime"]
 #else
 #ifdef ANCIENT

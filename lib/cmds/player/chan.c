@@ -8,9 +8,6 @@
 ** 06-Nov-94. Created. Deathblade.
 */
 
-#include <mudlib.h>
-#include <daemons.h>
-
 inherit CMD;
 
 
@@ -29,7 +26,7 @@ private void main(string arg)
     {
 	string * channel_list;
 
-	channel_list = this_body()->query_channel_list();
+	channel_list = this_user()->query_channel_list();
 	if ( sizeof(channel_list) == 0 )
 	    out("You are not listening to any channels.\n");
 	else

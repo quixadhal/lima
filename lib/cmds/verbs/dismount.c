@@ -4,7 +4,7 @@
 ** dismount.c
 */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_dismount_obj(object ob)
 {

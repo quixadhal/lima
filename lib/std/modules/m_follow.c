@@ -33,7 +33,7 @@ private object follow;
 private nosave object my_location;
 private nosave int following;
 
-//:FUNCTION set_follow_string()
+//:FUNCTION set_follow_search
 //Set the names of the objects that the object will follow.
 //Allowable arguments are strings, objects or function pointers.
 //Strings must be an id of the object which you want to have 
@@ -46,7 +46,7 @@ void set_follow_search(mixed array follow...)
   follow_search=clean_array(flatten_array(follow));
 }
 
-//:FUNCTION add_follow_search()
+//:FUNCTION add_follow_search
 //Add names to the list of objects that the object will follow
 //See set_follow_search
 void add_follow_search(mixed array follow...)
@@ -54,14 +54,14 @@ void add_follow_search(mixed array follow...)
   follow_search=clean_array(flatten_array(follow_search+follow));
 }
 
-//:FUNCTION remove_follow_search()
+//:FUNCTION remove_follow_search
 //Remove names from the list of objects that the object will follow
 void remove_follow_search(mixed array follow...)
 {
   follow_search-=flatten_array(follow);
 }
 
-//:FUNCTION clear_follow_search()
+//:FUNCTION clear_follow_search
 //Clears the search array for following
 void clear_follow_search()
 {
@@ -81,14 +81,14 @@ varargs private mixed array expand_follows()
   return clean_array(potentials);
 }
 
-//:FUNCTION query_follow_search()
+//:FUNCTION query_follow_search
 //Returns a list of the follow strings that the object will follow
 string array query_follow_search()
 {
   return expand_follows();
 }
 
-//:FUNCTION set_follow()
+//:FUNCTION set_follow
 //Set the follow that the object will follow
 void set_follow(object what)
 {
@@ -96,28 +96,28 @@ void set_follow(object what)
     follow=what;
 }
 
-//:FUNCTION clear_follow()
+//:FUNCTION clear_follow
 //Clear the follow that's the object will follow
 void clear_follow()
 {
   follow=0;
 }
 
-//:FUNCTION query_follow()
+//:FUNCTION query_follow
 //Returns the follow object which the object is currently following
 object query_follow()
 {
   return follow;
 }
 
-//:FUNCTION is_following()
+//:FUNCTION is_following
 //Returns 1 if the object is currently following another object
 int is_following()
 {
   return !!following;
 }
 
-//:FUNCTION acquire_follow()
+//:FUNCTION acquire_follow
 //If there is no current follow, or the current follow is not present.
 //The new follow is determined by the follow_search
 //:TODO 
@@ -126,16 +126,15 @@ void acquire_follow()
 {
   int i;
   mixed array potentials=({});
-  if(follow &&
-     present(follow,environment(this_object() ) ) )
+  if(follow && present(follow,environment(this_object() ) ) )
     return;
   
   potentials=filter(expand_follows(), (: present($1,environment(this_object())) :) );
   i=sizeof(potentials);
   if(i)
-    {
-      set_follow(present(potentials[random(i)],environment(this_object())));
-    }
+  {
+    set_follow(present(potentials[random(i)],environment(this_object())));
+  }
   else
     clear_follow();
 }
@@ -169,10 +168,12 @@ void follow_hook(string whichway)
 
 void arrive_hook(object what)
 {
-  if(!follow)
+  object env = environment(this_object());
+
+  if(!env)
     return;
-  if(present(follow,environment(this_object()))||
-     query_follow()==what)
+
+  if((follow && present(follow,env))|| query_follow()==what)
     return;
   clear_follow();
   if(is_potential_follow(what))
@@ -215,15 +216,16 @@ mapping lpscript_attributes()
 void do_follow_obj(object ob)
 {
   if(member_array(ob,follow_search)>-1)
-    {
-      remove_follow_search(ob);
-      clear_follow();
-      this_body()->my_action("You stop following "+ob->short()+".");
-    }
+  {
+    remove_follow_search(ob);
+    clear_follow();
+    this_body()->my_action("You stop following "+ob->short()+".");
+  }
   else
-    {
-      add_follow_search(ob);
-      this_body()->my_action("You begin following "+ob->short()+".");
-      acquire_follow();
-    }
+  {
+    add_follow_search(ob);
+    this_body()->my_action("You begin following "+ob->short()+".");
+    acquire_follow();
+    did_move();
+  }
 }

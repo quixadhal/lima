@@ -34,7 +34,7 @@ inherit __DIR__ "imud/mail";
 
 nosave private object	router_socket;
 
-private string *        router_list = ({ ({ "*gjs", "216.98.238.194 9000"}) });
+private string *        router_list = ({ ({ "*gjs", "198.144.203.194 9000"}) });
 //private string *	router_list = ({ ({ "*gjs", "208.192.43.105 9000"}) });
 private int		password;
 
@@ -202,7 +202,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-                              "Lima 1.0a9",
+                              "Lima 1.0b2",
 			      "Lima",
 			      driver_version(),
 			      "LP",
@@ -258,6 +258,7 @@ void create()
     mail_startup();
 
     trigger_reconnect("router");
+    set_privilege("Mudlib:daemons");
 }
 
 void remove(int coming_back_soon)
@@ -287,10 +288,10 @@ protected nomask void log_error_rcv(string mudname, mixed * message)
     LOG_D->log(LOG_I3_ERROR, sprintf("(<- %s) %s: %s\n%O\n", mudname,
 				     message[0], message[1], message[2]));
 
-    CHANNEL_D->deliver_channel("errors",
-				sprintf("I3 (%s): %s",
-					message[0],
-					message[1]));
+/*     CHANNEL_D->deliver_channel("errors", */
+/* 				sprintf("I3 (%s): %s", */
+/* 					message[0], */
+/* 					message[1])); */
 }
 protected nomask void log_error_snd(string mudname, mixed * message)
 {
@@ -338,8 +339,8 @@ private nomask void rcv_error(string orig_mud, string orig_user,
 
     if ( targ_user && (ob = find_user(targ_user)) )
     {
-	tell(ob, sprintf("Intermud tells you: %s: %s\n",
-			 message[0], message[1]));
+        tell(ob, sprintf("Error from %s: %s: %s\n",
+             orig_mud, message[0], message[1]));
     }
     else
     {

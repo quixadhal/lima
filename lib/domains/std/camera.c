@@ -12,6 +12,8 @@ void setup()
     set_id( "camera" );
     set_adj( "polaroid" );
     set_long( "It's a polaroid camera with a button on top." );
+    set_relations("in");
+    set_default_relation("in");
     set_objects( ([ "camera/button" : 1, ]));
     set_hide_contents( 1 );
 }

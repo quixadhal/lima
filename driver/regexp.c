@@ -211,7 +211,7 @@
 #  define UCHARAT(p)      ((int) *(unsigned char *)(p))
 #endif
 
-#define ISWORDPART(c) ( isalnum(c) || (c) == '_' )
+#define ISWORDPART(c) ( isalnum((unsigned char)c) || (c) == '_' )
 
 /*
  * Flags to be passed up and down.

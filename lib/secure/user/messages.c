@@ -2,9 +2,7 @@
 
 /* %^RESET%^ gets used early in the login sequence by tell() */
 private nosave mapping translations = (["RESET" : ""]);
-#ifdef CONFIGURABLE_COLOUR
 private mapping colours;
-#endif
 
 void save_me();
 object query_shell_ob();
@@ -23,7 +21,6 @@ int query_screen_width()
 }
 
 void update_translations() {
-#ifdef CONFIGURABLE_COLOUR
     /* handle new people, old save files, or save files for which this
      * option was disabled */
     if (!colours) colours = ([]);
@@ -31,12 +28,10 @@ void update_translations() {
      * chooses the second when there is an overlap.
      */
     colours = ANSI_D->defaults() + colours;
-#endif
     if (query_shell_ob()->get_variable("ansi"))
 	translations = ANSI_D->query_translations()[0];
     else
 	translations = ANSI_D->query_translations()[1];
-#ifdef CONFIGURABLE_COLOUR
     translations = copy(translations);
     foreach (string code, string value in colours) {
 	string array parts = map(explode(value, ","), (: upper_case :));
@@ -48,10 +43,8 @@ void update_translations() {
 	}
 	translations[code] = val;
     }
-#endif
 }
 
-#ifdef CONFIGURABLE_COLOUR
 void set_colour(string which, string what) {
     colours[upper_case(which)] = what;
     update_translations();
@@ -74,7 +67,6 @@ void remove_colour(string which) {
     update_translations();
     save_me();
 }
-#endif
 
 void do_receive(string msg, int msg_type) {
     if (msg_type & NO_ANSI) {
@@ -113,4 +105,5 @@ void receive_private_msg(string msg, int message_type, mixed other)
 {
     do_receive(msg, message_type);
 }
+
 

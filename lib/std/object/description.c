@@ -150,7 +150,7 @@ void set_plural_in_room_desc( string arg ){ plural_in_room_desc = arg; }
 
 string query_possessive(){  return "its"; }
 
-//:FUNCTION
+//:FUNCTION set_untouched_desc
 //set the untouched description of the object.  This is the way the object
 //is described originally, but not after is has been taken or moved.
 void set_untouched_desc(string arg){

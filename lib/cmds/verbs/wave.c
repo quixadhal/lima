@@ -3,7 +3,7 @@
 #include <mudlib.h>
 #include <setbit.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 inherit M_PARSING;
 
 // Anything can be waved at/be waved.  Might not do anything, tho :)

@@ -1,20 +1,16 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_give_obj_to_liv(object ob, object liv) {
-
-    if (!try_to_acquire(ob))
-	return;
-    if( ob->is_worn())
-	write( "You'll need to remove it first.\n");
-    else
-    {
-	this_body()->targetted_action("$N $vgive a $o to $t.", liv, ob);
-	//### Need to check the return value
-	ob->move(liv);
-    }
+  mixed msg=ob->move(liv);
+  if(stringp(msg)) {
+    write(msg);
+    return;
+  }
+  if(msg==1)
+    this_body()->targetted_action("$N $vgive a $o to $t.", liv, ob);
 }
 
 void do_give_obs_to_liv(array info, object liv) {

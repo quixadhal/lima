@@ -1,5 +1,9 @@
 int var1;
+#ifndef __SENSIBLE_MODIFIERS__
 static int var2;
+#else
+nosave int var2;
+#endif
 int var3;
 int var4;
 

@@ -46,41 +46,43 @@ private nomask void add_alias(string name,
 }
     
 private nomask void handle_l(string cmd) {
-    string a;
-    mixed       alias_info;
-    string* xaliases;
-    class alias val;    
-    string output;
-    int i;
-    mapping aliases;
+  string a;
+  mixed       alias_info;
+  string* xaliases;
+  class alias val;    
+  string output;
+  int i;
+  mapping aliases;
     
-    alias_info = ALIAS_D->query_default_aliases();
+  alias_info = ALIAS_D->query_default_aliases();
 
-    if(cmd == "L") {
-        aliases = alias_info[2];
-        xaliases = alias_info[3];
-    }
-    else {
-        aliases = alias_info[0];
-        xaliases=alias_info[1];
-    }
+  if(cmd == "L") {
+    aliases = alias_info[2];
+    xaliases = alias_info[3];
+  }
+  else {
+    aliases = alias_info[0];
+    xaliases=alias_info[1];
+  }
     
-    output = sprintf("Alias:%9sExpansion:%29sDefaults:\n","","");
-    output += repeat_string("-", 77) + "\n";
+  output = sprintf("Alias:%9sExpansion:%29sDefaults:\n","","");
+  output += repeat_string("-", 77) + "\n";
     
-    foreach (a, val in aliases)
-        {
-            output += sprintf("%-14s %-38s ", a, val->template);
-            if(sizeof(val->defaults) == 1 && val->defaults[0] == "")
-                output += "\n";
-            else
-                {
-                    output += "$*: " + val->defaults[0] + "\n";
-                    for(i=1;i<sizeof(val->defaults);i++)
-                        output += sprintf("%54s$%d: %s\n","",i,val->defaults[i]);
-                }
-        }
-    more(output);
+//    foreach (a, val in aliases)
+  foreach(a in sort_array(keys(aliases),1))
+  {
+    val=aliases[a];
+    output += sprintf("%-14s %-38s ", a, val->template);
+    if(sizeof(val->defaults) == 1 && val->defaults[0] == "")
+      output += "\n";
+    else
+    {
+      output += "$*: " + val->defaults[0] + "\n";
+      for(i=1;i<sizeof(val->defaults);i++)
+        output += sprintf("%54s$%d: %s\n","",i,val->defaults[i]);
+    }
+  }
+  more(output);
 }
 
 private nomask void handle_a(string cmd, string name,string expansion) {

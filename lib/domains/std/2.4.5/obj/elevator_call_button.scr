@@ -10,12 +10,19 @@ setup[string w]:
   lpc
     _where = w
 
-do_press:
-  call "/domains/std/2.4.5/elevator.scr" "call_elevator" $where
-  call container "set_room_state" "lamp"
-  ok
-end
-
 direct_press_obj:
   ok
 end
+
+---
+void do_press() {
+    int state = 0;
+
+    this_body()->simple_action("$N $vpress the $o.", this_object());
+    state = call_other("/domains/std/2.4.5/elevator", "call_elevator", _where);
+
+    if(state) {
+        tell_from_inside(environment(this_object()), "The lamp on the elevator button lights up.\n");
+        environment(this_object())->set_room_state("lamp");
+    }
+}

@@ -1,486 +1,288 @@
+<p><h1>Changes since Lima 1.0b1</h1></p>
 <DL>
-<DT><em>Thu Sep 17 20:15:48 1998</em>: <strong>Tigran</strong>
-<DD> made a quick hack to more easily allow for multiple login screens.  See config.h for more info.  Files touched config.h login.c<p>
-<DT><em>Tue Sep 22 19:42:07 1998</em>: <strong>Iizuka</strong>
-<DD> removed 'int indrect_get_obs_from_obj()' from /std/container.c. Bog. <?><p>
-<DT><em>Tue Sep 22 19:47:52 1998</em>: <strong>Iizuka</strong>
-<DD> fixed query_primary_adj() in object/names.c to return primary_adj instead of primary_id. Thanks to Dunedain for pointing it out.<p>
-<DT><em>Sat Oct 10 11:23:38 1998</em>: <strong>Iizuka</strong>
-<DD> renamed remove() in /std/modules/m_wearable.c as remove_it().<p>
-<DT><em>Sat Oct 10 11:25:35 1998</em>: <strong>Iizuka</strong>
-<DD> updated /std/armor.c.<p>
-<DT><em>Sat Oct 10 12:39:12 1998</em>: <strong>Iizuka</strong>
-<DD> hacked /std/adversary/death/vaporize.c so that worn objects get dropped correctly when the adversary dies.<p>
-<DT><em>Sat Oct 10 12:39:28 1998</em>: <strong>Iizuka</strong>
-<DD> overloaded ob_state() in /std/armor.c to remove a warning.<p>
-<DT><em>Sat Oct 17 13:16:35 1998</em>: <strong>Iizuka</strong>
-<DD> removed /cmds/player/rep.c. The data it reports is not used anymore at all.<p>
-<DT><em>Thu Oct 22 07:39:21 1998</em>: <strong>Iizuka</strong>
-<DD> changed /domains/std/objects/backpack.c to call m_wearable::remove_it() instead of remove(). Thanks, Antilles.<p>
-<DT><em>Sun Oct 25 09:09:25 1998</em>: <strong>Tigran</strong>
-<DD> tweeked MOVING_MONSTER so that it includes M_ACTIONS, which it should have previously.  Also, M_ACTIONS was removed from FOLLOWING_MONSTER<p>
-<DT><em>Sun Oct 25 10:57:26 1998</em>: <strong>Tigran</strong>
-<DD> made a tweak to M_WANDER, updating query_exit_value() to query_exit_destination().<p>
-<DT><em>Sun Oct 25 19:53:06 1998</em>: <strong>Tigran</strong>
-<DD> fixed help to use more() instead of it's own internal more.  He was sick of it not having some of the functinoality that more() did.<p>
-<DT><em>Sun Oct 25 19:59:22 1998</em>: <strong>Tigran</strong>
-<DD> notes that the file touched was /obj/mudlib/helpsys.c<p>
-<DT><em>Sun Nov  1 13:30:41 1998</em>: <strong>Iizuka</strong>
-<DD> updated the autodocs in /std/adversary/behaviors.c. Some of the comments and docs were left over from the old monster.c.<p>
-<DT><em>Sun Nov  1 13:53:45 1998</em>: <strong>Iizuka</strong>
-<DD> changed die() in body.c to protected.<p>
-<DT><em>Sun Nov  1 14:19:37 1998</em>: <strong>Iizuka</strong>
-<DD> updated autodocs in /std/adversary.c and all adversary/armor modules.<p>
-<DT><em>Sun Nov  1 14:30:28 1998</em>: <strong>Iizuka</strong>
-<DD> made die() protected in both adversary/death modules and autodoc'd a couple things.<p>
-<DT><em>Sun Nov  1 14:31:53 1998</em>: <strong>Iizuka</strong>
-<DD> removed the die() autodocs from /std/body.c.<p>
-<DT><em>Sun Nov  1 14:58:33 1998</em>: <strong>Iizuka</strong>
-<DD> updated autodocs in health/hit_points.c and health/limbs.c. The other modules don't really need autodocs.<p>
-<DT><em>Mon Nov  2 16:28:57 1998</em>: <strong>Iizuka</strong>
-<DD> changed set_lit() in LIGHT_OBJECT, M_LIGHT_SOURCE, and M_LIGHTABLE to be protected.<p>
-<DT><em>Sat Nov  7 08:47:09 1998</em>: <strong>Iizuka</strong>
-<DD> changed line 39 of /cmds/wiz/iftp.c to call lower_case(arg) instead of lower_case(mudname), as Dunedain reported. However, iftp appears still not to work correctly.<p>
-<DT><em>Sat Nov  7 09:19:34 1998</em>: <strong>Iizuka</strong>
-<DD> added an error check as suggested by Loriel into will_fit() for M_FLUID_CONTAINER and re-formatted the file so it's at least readable.<p>
-<DT><em>Sun Nov 15 19:53:29 1998</em>: <strong>Tigran</strong>
-<DD> fixed the cat command to work properly.  The stringlimit now doesn't effect it.<p>
-<DT><em>Mon Nov 23 07:24:15 1998</em>: <strong>Iizuka</strong>
-<DD> changed diagnose_msg() in /std/adversary/health/wounds.c to use a class (diagnosis) instead of a mapping.<p>
-<DT><em>Sat Nov 28 10:06:20 1998</em>: <strong>Beek</strong>
-<DD> fixed renew to work with LPscript objects<p>
-<DT><em>Sun Nov 29 20:38:39 1998</em>: <strong>Iizuka</strong>
-<DD> changed lines 219, 221, and 252 of wounds.c to return "$P" instead of "Your" in the string.<p>
-<DT><em>Thu Dec  3 23:06:19 1998</em>: <strong>Rassilon</strong>
-<DD> changed this_body() to this_object() in force_look in M_SMARTMOVE so that force_look() will work for NPCs.<p>
-<DT><em>Tue Dec 15 14:27:12 1998</em>: <strong>Tigran</strong>
-<DD> made a tweak to object.c that at least gives clean_up an opportunity to destruct objects when it is called.<p>
-<DT><em>Fri Dec 18 12:59:28 1998</em>: <strong>Tigran</strong>
-<DD> updated /std/object/properties so that the variables initialized properly and thus create() wasn't needed anymore.  This also required a tweak to OBJ to remove the properties::create() call<p>
-<DT><em>Fri Dec 18 13:01:11 1998</em>: <strong>Tigran</strong>
-<DD> notes that query_perm_sets() function was also added to properties.c for consistancy<p>
-<DT><em>Tue Dec 22 10:26:28 1998</em>: <strong>Iizuka</strong>
-<DD> fixed /domains/std/magic_torch.c to work with unlimited fuel again. Removed the call to set_fuel() and overloaded check_fuel() to always return 1. It used to call set_fuel(-1). That doesn't work anymore.<p>
-<DT><em>Thu Dec 24 09:59:14 1998</em>: <strong>Iizuka</strong>
-<DD> fixed Dunedain's "every day is my birthday" bug in BIRTHDAY_D. What a fool for reporting that one!<p>
-<DT><em>Thu Dec 24 10:03:51 1998</em>: <strong>Iizuka</strong>
-<DD> installed Dunedain's tell history code. Modified files are /cmds/player/tell.c, /daemons/imud/tell.c, and /daemons/imud/emoteto.c.<p>
-<DT><em>Thu Dec 24 10:15:00 1998</em>: <strong>Iizuka</strong>
-<DD> installed Dunedain's patched /trans/cmds/findfile.c. Fixes some annoying bugs with endless loops.<p>
-<DT><em>Thu Dec 24 10:15:16 1998</em>: <strong>Iizuka</strong>
-<DD> fixed /domains/std/Monster_Room.c not to bug out the GUILD_D when you go north.<p>
-<DT><em>Thu Dec 24 10:43:06 1998</em>: <strong>Iizuka</strong>
-<DD> added Dunedain's patch to /cmds/wiz/review.c that fixes some bugs in displaying fol_leave or fol_enter messages.<p>
-<DT><em>Sat Dec 26 16:51:20 1998</em>: <strong>Iizuka</strong>
-<DD> fixed query_history() in /cmds/player/tell.c to check before imploding.<p>
-<DT><em>Tue Dec 29 10:28:33 1998</em>: <strong>Tigran</strong>
-<DD> modified showtree so that it will take an object as an argument in addition to a filename.  Don't see any reason to keep findfunc anymore.<p>
-<DT><em>Tue Dec 29 10:38:26 1998</em>: <strong>Tigran</strong>
-<DD> ammends, /cmds/wiz/Cmd_rules needed to be fixed so that showtree's new functionality would work right.<p>
-<DT><em>Fri Jan  1 22:03:22 1999</em>: <strong>Iizuka</strong>
-<DD> added lpscript_attributes() to M_WEARABLE, updated ARMOR with respect, then updated /domains/lpscript/chainmail.scr to work.<p>
-<DT><em>Sat Jan  9 17:21:18 1999</em>: <strong>Iizuka</strong>
-<DD> changed all instances of is_player() to query_link() in M_WANDER.<p>
-<DT><em>Sun Jan 10 10:00:26 1999</em>: <strong>Tigran</strong>
-<DD> finally got http_d so that it handles images properly.  It is amazing what happens when you actually send it.  HTTP_D is still a work in progress though.<p>
-<DT><em>Sun Jan 10 18:23:15 1999</em>: <strong>Tigran</strong>
-<DD> made a slight tweek to NEWS_D to make it use a chaching variable that it wasn't previously.<p>
-<DT><em>Sun Jan 10 19:31:22 1999</em>: <strong>Tigran</strong>
-<DD> installed an optimization to the newsreader.  It should be /immensely/ faster now.  There are possibly still a couple of areas where it's performance can be improved however.<p>
-<DT><em>Fri Jan 15 09:33:31 1999</em>: <strong>Tigran</strong>
-<DD> upgraded the driver to 22.2a26<p>
-<DT><em>Fri Jan 15 09:57:27 1999</em>: <strong>Tigran</strong>
-<DD> added local_port_address() to SOCKET so that we can actually figure out what port a socket is listening on when using 0 for the listen port<p>
-<DT><em>Fri Jan 15 09:58:05 1999</em>: <strong>Tigran</strong>
-<DD> added passive file transfers to FTP_D.  This should reduce some of the errors that we get from it.  More work needs to be done now to detect whether a port is connected or not when /not/ in passive mode<p>
-<DT><em>Sat Jan 16 14:42:26 1999</em>: <strong>Tigran</strong>
-<DD> tweaked FTP_D again.  The read callback wasn't fucntioning properly and files would be stored with 0 bytes....no longer a problem.<p>
-<DT><em>Sat Jan 16 14:50:52 1999</em>: <strong>Iizuka</strong>
-<DD> changed line 48 of /trans/cmds/cat.c to 101 rather than 100. Dunedain claims this fixes something. =)<p>
-<DT><em>Sat Jan 16 14:57:53 1999</em>: <strong>Iizuka</strong>
-<DD> fixed /obj/mudlib/plmenu.c to display adverbs and souls correctly.<p>
-<DT><em>Sat Jan 16 19:31:02 1999</em>: <strong>Iizuka</strong>
-<DD> changed the "" rule in stand so that it actually works. "stand WRD" needs to be redone.<p>
-<DT><em>Sun Jan 17 15:15:03 1999</em>: <strong>Iizuka</strong>
-<DD> changed the stand verb again. "stand WRD" is removed, "stand up" is added. Correct messages are displayed now if you try to stand when you're already standing.<p>
-<DT><em>Mon Jan 18 19:32:18 1999</em>: <strong>Tigran</strong>
-<DD> am backgrading the driver to 22.2a21 because a26 crashes too much<p>
-<DT><em>Sat Jan 23 19:24:01 1999</em>: <strong>Iizuka</strong>
-<DD> removed /std/body/simple_exp.c - We don't use it anymore. Write a module for /std/adversary/advancement/ instead.<p>
-<DT><em>Mon Jan 25 19:14:22 1999</em>: <strong>Tigran</strong>
-<DD> installed thread caching into NEWS_D.  This should make the newsreader a /lot/ faster (it was modified some too).  NEWS_D takes longer to load now, so don't update it without a reason.<p>
-<DT><em>Tue Feb  2 05:08:51 1999</em>: <strong>Tigran</strong>
-<DD> made a fix to ADVERSARY, given by Antilles.  It now passes arguments to create in LIVING properly<p>
-<DT><em>Wed Feb  3 16:31:52 1999</em>: <strong>Tigran</strong>
-<DD> added a fix to NEWS_D so that it won't eval_out when starting up initially (I think that's the problem anyway)<p>
-<DT><em>Thu Feb  4 05:53:35 1999</em>: <strong>Tigran</strong>
-<DD> fixed a typo on NEWS_D reported by DuneDain<p>
-<DT><em>Thu Feb  4 10:28:01 1999</em>: <strong>Iizuka</strong>
-<DD> changed $vare to $v1are in "dam3" in messages_d.c.<p>
-<DT><em>Thu Feb  4 11:05:35 1999</em>: <strong>Iizuka</strong>
-<DD> fixed /cmds/verbs/wield.c not to runtime when players try to 'wield sword in right arm' when WIELD_SIMPLE is defined.<p>
-<DT><em>Sun Feb  7 12:16:11 1999</em>: <strong>Iizuka</strong>
-<DD> added a simple implementation of attack speed to adversary. Modified files are /include/combat_modules.h, /std/adversary.c, /std/adversary/main.c, and /std/adversary/formula/simple.c.<p>
-<DT><em>Sun Feb  7 19:56:19 1999</em>: <strong>Iizuka</strong>
-<DD> made attack_speed default to 1.<p>
-<DT><em>Tue Feb  9 18:50:31 1999</em>: <strong>Tigran</strong>
-<DD> wrote METHOD_D, which will be handling synonyms for various go methods (though it may have other applications too).  The functions are fully autodoc'd  (files touched <daemon.h> and METHOD_D<p>
-<DT><em>Tue Feb  9 19:40:20 1999</em>: <strong>Tigran</strong>
-<DD> updated METHOD_D to be more discriminating on methods added<p>
-<DT><em>Wed Feb 10 09:50:33 1999</em>: <strong>Tigran</strong>
-<DD> made a fix to FTP_D.  HOpefully this will reduce the error count.<p>
-<DT><em>Wed Feb 10 12:57:40 1999</em>: <strong>Tigran</strong>
-<DD> updated METHOD_D to clean_array() synonyms.  No sense in having duplicates<p>
-<DT><em>Wed Feb 10 14:47:24 1999</em>: <strong>Tigran</strong>
-<DD> fixed a couple of typos in METHOD_D and made add_method() check for whether the method already existed before adding it again<p>
-<DT><em>Mon Feb 15 19:55:37 1999</em>: <strong>Tigran</strong>
-<DD> added add_relations/remove_relations() to COMPLEX_CONTAINER<p>
-<DT><em>Wed Feb 17 00:56:24 1999</em>: <strong>Iizuka</strong>
-<DD> added set_real_name() to /secure/user/userinfo.c and modified /obj/mudlib/plmenu.c to allow users to change their real names after login.<p>
-<DT><em>Wed Feb 17 08:43:44 1999</em>: <strong>Beek</strong>
-<DD> fixed a few attempts to create targetted messages using {simple,my}_action in resurrect.c<p>
-<DT><em>Wed Feb 17 15:41:17 1999</em>: <strong>Iizuka</strong>
-<DD> changed /secure/user/userinfo.c so that all checks if(this_body() != query_body()) to if(this_user() != this_object())<p>
-<DT><em>Mon Feb 22 08:37:52 1999</em>: <strong>Beek</strong>
-<DD> added code to catch 'drop 0 coins'<p>
-<DT><em>Tue Feb 23 23:26:21 1999</em>: <strong>Iizuka</strong>
-<DD> added a quick little hack to enter_game() in /std/body.c so that on wound-based systems, healing would restart correctly upon login. Thanks to Ajnabi for pointing this bug out.<p>
-<DT><em>Sat Mar  6 12:58:18 1999</em>: <strong>Rassilon</strong>
-<DD> removed /cmds/wiz/findfunc.c because showtree has identical functionallity and its just so much cooler. example syntax: "showtree query_formatted_desc me"<p>
-<DT><em>Sat Mar  6 19:10:12 1999</em>: <strong>Tigran</strong>
-<DD> updated M_MESSAGES to make better utilization of MESSAGES_D.  Default messages will now poll MESSAGES_D rather than first storing them ni the body.<p>
-<DT><em>Sat Mar  6 19:11:34 1999</em>: <strong>Tigran</strong>
-<DD> added a clean message to default-living messages of MESSAGE_D<p>
-<DT><em>Thu Mar 11 12:27:43 1999</em>: <strong>Beek</strong>
-<DD> added a 'admin-channels' domain<p>
-<DT><em>Thu Mar 11 13:01:13 1999</em>: <strong>Rassilon</strong>
-<DD> fixed VERB_D so it doesn't stop loading verbs anymore if one of the verbs fail to compile, it now just does its best to keep on chugging.<p>
-<DT><em>Fri Mar 12 18:11:24 1999</em>: <strong>Rassilon</strong>
-<DD> tweaked M_MESSAGES to now have targeted_action delegate to the mispelled but old favorite targetted_action.<p>
-<DT><em>Mon Mar 15 15:34:43 1999</em>: <strong>Rassilon</strong>
-<DD> commented out some RABUGs in /std/door.c<p>
-<DT><em>Tue Mar 16 02:29:22 1999</em>: <strong>Rassilon</strong>
-<DD> tweaked /std/object/vsupport.c::direct_get_obj_out_of_obj to call direct_get_obj_from_obj to perform some addtional consitency checks before calling direct_get_obj.<p>
-<DT><em>Tue Mar 16 03:05:36 1999</em>: <strong>Rassilon</strong>
-<DD> tweaked /daemons/channel/moderation.c to fix the bug Lighting reported about trimming spaces at the wrong spot in the argument.<p>
-<DT><em>Tue Mar 16 12:05:01 1999</em>: <strong>Iizuka</strong>
-<DD> changed remove_it() to remove() in m_wearable and armor.<p>
-<DT><em>Tue Mar 16 12:19:00 1999</em>: <strong>Rassilon</strong>
-<DD> made Iizuka copy /include/light.h into place. It contains FUEL_DELAY (# of seconds between decays of the fuel source) and INF_FUEL. If you pass INF_FUEL into set_fuel() you can create a light_object that flickers forever. Modified /std/light_object.c to yank FUEL_DECAY<p>
-<DT><em>Tue Mar 16 15:01:23 1999</em>: <strong>Rassilon</strong>
-<DD> fixed /domains/std/objects/backpack.c to call m_wearable::remove() instead of remove_it()<p>
-<DT><em>Tue Mar 16 16:01:13 1999</em>: <strong>Iizuka</strong>
-<DD> changed all instances of pointerp() to arrayp() throughout the lib.<p>
-<DT><em>Thu Mar 18 20:59:13 1999</em>: <strong>Rassilon</strong>
-<DD> special cased "hum" -> "hums" in M_GRAMMAR since pluralize translated it into "ha"<p>
-<DT><em>Thu Mar 18 22:49:39 1999</em>: <strong>Rassilon</strong>
-<DD> added some helpful instructions for multiple message rules to addemote.c<p>
-<DT><em>Fri Mar 19 11:14:16 1999</em>: <strong>Iizuka</strong>
-<DD> added weaknesses to armor code. Modifications to /std/modules/m_damage_sink.c by myself and Rodney@Timescapes.<p>
-<DT><em>Fri Mar 19 22:57:12 1999</em>: <strong>Iizuka</strong>
-<DD> added abs() absolute value function to /secure/simul_efun/misc.c.<p>
-<DT><em>Sun Mar 21 14:03:48 1999</em>: <strong>Tigran</strong>
-<DD> made a fix to reply.  If you hadn't received a tell and tried to reply, it errored.<p>
-<DT><em>Mon Mar 22 04:41:31 1999</em>: <strong>Tigran</strong>
-<DD> banished *.hawaii.rr.com<p>
-<DT><em>Thu Apr  8 20:16:50 1999</em>: <strong>Tigran</strong>
-<DD> added NEWS_D to preload so that the newsreader doesn't crap out when the first person invokes it.<p>
-<DT><em>Fri Apr 23 11:41:38 1999</em>: <strong>Tigran</strong>
-<DD> fixed find_body() so that find_body(0) won't resolve to the first person it finds with no nickname.<p>
-<DT><em>Sat Apr 24 20:43:39 1999</em>: <strong>Iizuka</strong>
-<DD> fixed /domains/std/Monster_Room to send ({ "sorcery" }) rather than "sorcery" as an arg to guild_guard.<p>
-<DT><em>Thu May  6 18:41:54 1999</em>: <strong>Zakk</strong>
-<DD> won't even start until I have the cash<p>
-<DT><em>Thu May  6 21:50:19 1999</em>: <strong>Zakk</strong>
-<DD> would like to point out Moonie is no longer using Lima<p>
-<DT><em>Sun May 23 19:31:03 1999</em>: <strong>Tigran</strong>
-<DD> fixed FTP_D to allow NLST to take flags.  I do not believe that this meets the RFC requirements (they should be using LIST if they are passing flags), but some clients appear to be doing this anyway, nto the least of which is the crappy ftp client that comes with MS Windows<p>
-<DT><em>Fri Jun 25 14:03:44 1999</em>: <strong>Tigran</strong>
-<DD> notes that all files which are being replaced are being saved as <file>.pre_conv instead of <file>.c<p>
-<DT><em>Sat Jun 26 05:34:22 1999</em>: <strong>Tigran</strong>
-<DD> completed the exits update so far as I can recall from my changelog.  If there's any parts missing I'll get them imp'd and didloged separately<p>
-<DT><em>Sat Jun 26 05:46:19 1999</em>: <strong>Tigran</strong>
-<DD> removed all calls of query_prone() from /std/body/naming.c<p>
-<DT><em>Sat Jun 26 09:12:04 1999</em>: <strong>Tigran</strong>
-<DD> installed COMPLEX_EXIT_OBJ.  <mudlib.h> has the added define for this and the EXIT_OBJ define now also points at the new exit object.<p>
-<DT><em>Sat Jun 26 11:52:50 1999</em>: <strong>Tigran</strong>
-<DD> fixed a typo in M_EXIT's autodoc for query_default error<p>
-<DT><em>Tue Jun 29 10:53:12 1999</em>: <strong>Tigran</strong>
-<DD> removed /trans/cmds/dbxtracer.c  It is something which appears to be /very/ out of date.  In fact it used shadows which are turned off in compilation.  The shadow that it was trying to use (and is really the purpose of the command) doesn't exist.<p>
-<DT><em>Thu Jul  1 06:35:21 1999</em>: <strong>Tigran</strong>
-<DD> fixed some things that were wrong with vehicles.c and replaced /domains/std/camaro.c with a version that will work with the new vehicle.c and containers and exits.<p>
-<DT><em>Thu Jul  1 07:08:44 1999</em>: <strong>Tigran</strong>
-<DD> moved /domains/std/chest.c to /std/chest.c and added an entry for CHEST in mudlib.h.<p>
-<DT><em>Thu Jul  1 07:08:56 1999</em>: <strong>Tigran</strong>
-<DD> fixed CHEST to handle new container code<p>
-<DT><em>Thu Jul  1 07:16:55 1999</em>: <strong>Tigran</strong>
-<DD> wrote a new /domain/std/chest.c utilizing the new CHEST inheritable.  I also trimmed down the inheritable so that it does only what it needs to.<p>
-<DT><em>Fri Jul  2 22:24:19 1999</em>: <strong>Iizuka</strong>
-<DD> added set_relations("in") to /domains/std/chest.c.<p>
-<DT><em>Fri Jul  2 22:53:53 1999</em>: <strong>Iizuka</strong>
-<DD> added set_relations("in", "on") to /domains/std/dish.c.<p>
-<DT><em>Sun Jul  4 18:33:18 1999</em>: <strong>Iizuka</strong>
-<DD> added /std/adversary/state_of_mind.c. It's undecided whether this will remain in adversary or go back to living, but in the mean time it does fix combat.<p>
-<DT><em>Sun Jul  4 18:34:18 1999</em>: <strong>Iizuka</strong>
-<DD> changed /std/combat_spell.c so that it correctly considers damage types when adding a new combat event.<p>
-<DT><em>Wed Jul  7 07:48:02 1999</em>: <strong>Tigran</strong>
-<DD> fixed CHEST and /domains/std/chest.c properly so that they have default relations set.<p>
-<DT><em>Wed Jul  7 08:09:45 1999</em>: <strong>Tigran</strong>
-<DD> fixed M_SMARTMOVE in the manner suggested by Loriel.  This is not a total fix I don't think as there is still the issue of the rest of the message looking wierd.  This may be desirable or may not, but currently the short description of the destination room is used in the message instead of the direction you left.<p>
-<DT><em>Thu Jul  8 16:37:42 1999</em>: <strong>Iizuka</strong>
-<DD> fixed a typo in /cmds/wiz/trans.c reported by Loriel. Line 38: "disappears" is corrected.<p>
-<DT><em>Thu Jul  8 16:42:04 1999</em>: <strong>Iizuka</strong>
-<DD> changed take_a_swing() in /std/adversary/main.c to only add "disarm" events if the target is wielding a weapon; otherwise it will add a "miss" event.<p>
-<DT><em>Thu Jul  8 16:49:48 1999</em>: <strong>Iizuka</strong>
-<DD> changed /std/adversary/main.c->take_a_swing() not to switch() on panic(). This may have been a remnant of the old monster code, but it looks like a bug now. There was a condition where stop_fight() would be called without checking to see if the opponent wanted to stop. Rather than switching, we simply call panic() now.<p>
-<DT><em>Thu Jul  8 17:12:43 1999</em>: <strong>Iizuka</strong>
-<DD> made a couple changes to health/limb.c->diagnose() so that health wouldn't be updated before messages are made (resulting in a message of "0"). Thanks to Loriel.<p>
-<DT><em>Fri Jul  9 06:32:04 1999</em>: <strong>Tigran</strong>
-<DD> fixed an error in /cmds/verbs/sit.c<p>
-<DT><em>Fri Jul  9 09:10:13 1999</em>: <strong>Tigran</strong>
-<DD> fixed the bug in M_COMPLEX_EXIT pointed out by Loriel wrt query_method_destination().  PORTAL should now work.<p>
-<DT><em>Sat Jul 24 13:18:33 1999</em>: <strong>Iizuka</strong>
-<DD> fixed M_AGGRESSIVE as reported by Loriel. Aggressive adversaries no longer attack themselves.<p>
-<DT><em>Sat Jul 24 15:21:52 1999</em>: <strong>Iizuka</strong>
-<DD> applied Darklord's fix to webed.c so that ^M doesn't get written to the end of every line of the file.<p>
-<DT><em>Sat Jul 24 19:16:14 1999</em>: <strong>Iizuka</strong>
-<DD> added is_{vital,system,wielding,mobile}_limb() to /std/adversary/health/limbs.c.<p>
-<DT><em>Sat Jul 24 19:34:21 1999</em>: <strong>Iizuka</strong>
-<DD> applied Rassilon's patch to /obj/admtool/secure/user.c so that receive_name_for_wiz() fails if the name isn't a real user name.<p>
-<DT><em>Sat Jul 24 19:38:41 1999</em>: <strong>Iizuka</strong>
-<DD> removed /help/wizard/bin/findfunc because we don't have that command anymore.<p>
-<DT><em>Sat Jul 24 19:45:16 1999</em>: <strong>Iizuka</strong>
-<DD> changed /obj/mudlib/water.c to inherit FLUID rather than OBJ and M_GETTABLE.<p>
-<DT><em>Sun Aug  1 22:37:19 1999</em>: <strong>Iizuka</strong>
-<DD> installed a new pac_sword.c to /domains/std/objects. This one is written by me and Loriel.<p>
-<DT><em>Mon Aug  2 05:17:32 1999</em>: <strong>Tigran</strong>
-<DD> finally got vehicular movement pretty much fixed.  (CONTAINER, M_EXIT, /cmds/verbs/drive, M_SMARTMOVE, /cmds/verbs/go.c....think that's all)<p>
-<DT><em>Sat Aug  7 20:22:08 1999</em>: <strong>Tigran</strong>
-<DD> fixed a small typo in /std/object/vsupport.c at line 59.  It was direct_look_at_obj instead of direct_look_for_obj<p>
-<DT><em>Sun Aug  8 12:39:53 1999</em>: <strong>Tigran</strong>
-<DD> updated /domains/std/camaro.c to remove the inventory_accessible() apply from it.<p>
-<DT><em>Sun Aug  8 12:41:43 1999</em>: <strong>Tigran</strong>
-<DD> updated CONTAINER's inventory_accessible() apply to always return 1.  This is going tob reak some things, for now, but they should be fixed shortly as direct() and indirect() applies are fixed to handle the runtime possibilities.<p>
-<DT><em>Sun Aug  8 14:05:25 1999</em>: <strong>Tigran</strong>
-<DD> made a fix to /std/object/vsupport.c's direct_get_obj().  It now checks to make sure that the environment of the object and this_body() are the same.<p>
-<DT><em>Mon Aug  9 11:39:29 1999</em>: <strong>Iizuka</strong>
-<DD> changed set_level() in /std/adversary/advancement/level.c to check this_body()->query_link() before trying to save_me(). Thanks to Loriel for pointing this out.<p>
-<DT><em>Mon Aug  9 11:40:59 1999</em>: <strong>Iizuka</strong>
-<DD> applied Loriel's solution to Rodney's bug where inventory listings were fucked up when (among other times) WIELD_MULTIPLE is defined.<p>
-<DT><em>Mon Aug  9 12:25:40 1999</em>: <strong>Iizuka</strong>
-<DD> added query_experience() and add_experience() to /std/adversary/advancement/level.c. This file should probably be renamed 'simple.c' really.<p>
-<DT><em>Mon Aug  9 12:26:54 1999</em>: <strong>Iizuka</strong>
-<DD> installed /cmds/player/team.c, /obj/mudlib/team_menu.c, /daemons/team_d.c, and updated /include/mudlib.h with respect to these. I'll post some information about this addition to news soon.<p>
-<DT><em>Mon Aug  9 12:34:37 1999</em>: <strong>Iizuka</strong>
-<DD> moved /std/adversary/advancement/level.c to simple.c and changed /include/combat_modules.h to refer to it as ADVANCEMENT_SIMPLE. This is more sensible I think.<p>
-<DT><em>Thu Aug 12 14:51:36 1999</em>: <strong>Iizuka</strong>
-<DD> added an admtool module for controlling methods. /obj/admtool/daemons/method.c.<p>
-<DT><em>Thu Aug 12 19:52:35 1999</em>: <strong>Tigran</strong>
-<DD> tweaked direct_get_obj_from_obj() in /std/object/vsupport.c This should at least partially correct the problem pointed out in Loriel's post (which is removed).<p>
-<DT><em>Sat Aug 14 12:43:36 1999</em>: <strong>Iizuka</strong>
-<DD> changed /obj/admtool/daemons/method.c to verb_method.c and changed its key from 'm' to 'v' so it doesn't conflict with the 'previous menu' option in admtool.<p>
-<DT><em>Sat Aug 14 15:33:48 1999</em>: <strong>Tigran</strong>
-<DD> did work on /std/object/vsupport.c.  Removed direct_get_obs() from it, it's not used, direct_get_obj() is.<p>
-<DT><em>Sat Aug 14 23:27:59 1999</em>: <strong>Iizuka</strong>
-<DD> changed /cmds/player/team.c lines 110 and 112 so that some prompts are displayed correctly during team creation process.<p>
-<DT><em>Sun Aug 15 18:11:51 1999</em>: <strong>Tigran</strong>
-<DD> modified direct_put_obj_wrd_obj() in vsupport.c.  It now works a little better.<p>
-<DT><em>Sun Aug 15 18:52:44 1999</em>: <strong>Tigran</strong>
-<DD> modified indirect_verb_rule() of CONTAINER to check that the relation is valid<p>
-<DT><em>Sun Aug 15 21:19:11 1999</em>: <strong>Iizuka</strong>
-<DD> changed the team creation/joining process a little bit and moved the relevant code from /cmds/player/team.c to /obj/mudlib/team_menu.c.<p>
-<DT><em>Sun Aug 15 21:23:55 1999</em>: <strong>Iizuka</strong>
-<DD> changed MAX_ATTEMPTS to 3 in /obj/mudlib/team_menu.c.<p>
-<DT><em>Sun Aug 15 21:25:13 1999</em>: <strong>Iizuka</strong>
-<DD> fixed /obj/mudlib/team_menu.c so that max attempts actually works in password confirmation. =)<p>
-<DT><em>Mon Aug 16 18:41:19 1999</em>: <strong>Tigran</strong>
-<DD> wrote indirect_verb_rule into CONTAINER.  It may still need some work, or other parsing functions may yet require some modification<p>
-<DT><em>Wed Aug 18 17:17:20 1999</em>: <strong>Tigran</strong>
-<DD> changed the newsreader so that the list of all messages in a group now utilizes the message ID of the post.  In addition #<article number> now goes to the article of that ID rather than it's position in the queue.  Numbers will appear out of order due to threading, but now also searches and the like are useful again.<p>
-<DT><em>Wed Aug 18 17:26:47 1999</em>: <strong>Tigran</strong>
-<DD> notes...this does not fix the imroper scrolling in news (i.e. going backwards then forwards through the list)<p>
-<DT><em>Wed Aug 18 19:12:14 1999</em>: <strong>Tigran</strong>
-<DD> did some more changes to the newsreader.  It's mostly internal stuff and probably still will not fix the misordering problem, but does do a bit of internal cleanup.<p>
-<DT><em>Thu Aug 19 12:40:03 1999</em>: <strong>Tigran</strong>
-<DD> fixed a couple typo's in the newsreader code..sorry<p>
-<DT><em>Thu Aug 19 14:37:50 1999</em>: <strong>Tigran</strong>
-<DD> fixed ED_SESSION so that it is more restrictive in commands when in the restricted mode of ed.  Basically for players, and if the editor is in restricted mode, any command that reads or writes a file is disabled.  If you don't have any privileges at all by default that means you are a player and shouldn't have any access to any file in the game.<p>
-<DT><em>Fri Aug 20 12:39:26 1999</em>: <strong>Iizuka</strong>
-<DD> installed RACE_D (/daemons/race_d, updated daemons.h), and moved all relevant code from NEW_USER_D into USER (I think it's all in sw_body.c now).<p>
-<DT><em>Fri Aug 20 12:43:04 1999</em>: <strong>Iizuka</strong>
-<DD> changed login.c userinfo.c and sw_body.c. Almost all of the changes were in sw_body.. I'm actually not sure if much was changed in the other two except for pretty-printing because those files were so atrocious looking. Either way, they've changed for the better. =)<p>
-<DT><em>Fri Aug 20 18:30:30 1999</em>: <strong>Tigran</strong>
-<DD> removed NEW_USER_D.  With Iizuka's last changes, it should be completely unnecessary now and we don't want to confuse people anymore than causes us to laugh.<p>
-<DT><em>Sat Aug 21 15:49:12 1999</em>: <strong>Tigran</strong>
-<DD> fixed set_default_relation() in CONTAINER to check to see that hte relation is valid first, and removed the default of "in" for the default relation<p>
-<DT><em>Sun Aug 22 14:25:51 1999</em>: <strong>Tigran</strong>
-<DD> fixed the small mailbox's error reported by Loriel<p>
-<DT><em>Sun Aug 22 15:54:56 1999</em>: <strong>Tigran</strong>
-<DD> implemented a fix pointed out by Loriel in CONTAINER where the maximum capacity was never actually set.<p>
-<DT><em>Sun Aug 22 18:45:54 1999</em>: <strong>Tigran</strong>
-<DD> made heavy enhancements to M_READABLE including autodoc'ing several functions, adding additional functions to handle entries and synonyms, allowing filenames used to be relative rather than absolute, and fixing read_entry(as reported by Loriel)<p>
-<DT><em>Sun Aug 22 21:06:34 1999</em>: <strong>Tigran</strong>
-<DD> fixed LIVING so that there was a default relation.  Not having it caused problems.<p>
-<DT><em>Mon Aug 23 11:39:22 1999</em>: <strong>Tigran</strong>
-<DD> hacked vsupport to handle targetted emotes and such again.  It is a temporary fix and not complete.<p>
-<DT><em>Tue Aug 24 12:28:11 1999</em>: <strong>Iizuka</strong>
-<DD> fixed a bug in /obj/mudlib/team_menu.c that was preventing multiple people from joining a team. Also added "\n" output after the secure modal inputs.<p>
-<DT><em>Fri Aug 27 17:55:39 1999</em>: <strong>Tigran</strong>
-<DD> fixed M_READABLE to detect file existance properly.  Bug reported by Loriel<p>
-<DT><em>Sun Aug 29 13:22:10 1999</em>: <strong>Tigran</strong>
-<DD> removed the molest verb.  Didn't work right anyway, should be a soul.<p>
-<DT><em>Tue Aug 31 13:15:42 1999</em>: <strong>Tigran</strong>
-<DD> added clear_entries() to M_READABLE<p>
-<DT><em>Mon Sep  6 21:39:21 1999</em>: <strong>Iizuka</strong>
-<DD> fixed handle_events() in /std/adversary/blows/base.c so that i is incremented before each 'continue' statement. This should fix the "*Too long evaluation" error that Loriel reported.<p>
-<DT><em>Sat Sep 11 15:47:41 1999</em>: <strong>Rust</strong>
-<DD> fixed Deathblade's stupid broken su code.<p>
-<DT><em>Sun Sep 12 00:17:38 1999</em>: <strong>Iizuka</strong>
-<DD> added custom death messages for adversaries. set_death_message(string) to customize your monsters. Added /std/adversary/death/death_messages.c, modified /std/adversary.c, /std/adversary/death/{corpses,vaporize}.c.<p>
-<DT><em>Thu Sep 16 07:30:17 1999</em>: <strong>Tigran</strong>
-<DD> added at token d to $N/$T for M_MESSAGES.  This token is similar to the p token except that it does a_short() instead of short().<p>
-<DT><em>Fri Sep 17 07:58:18 1999</em>: <strong>Tigran</strong>
-<DD> updated the flip verb to use NVERB_OB instead of VERB_OB<p>
-<DT><em>Fri Sep 17 08:00:42 1999</em>: <strong>Tigran</strong>
-<DD> updated the knock verb to use NVERB_OB instead of VERB_OB<p>
-<DT><em>Fri Sep 17 08:05:26 1999</em>: <strong>Tigran</strong>
-<DD> fixed the light verb to use NVERB_OB instead of VERB_OB<p>
-<DT><em>Fri Sep 17 08:27:12 1999</em>: <strong>Tigran</strong>
-<DD> updated the following verbs to use NVERB_OB instead of VERB_OB: mount, open, pick, pull, read, ring, smell, swim, talk, throw, wade, wave, whisper, wish<p>
-<DT><em>Fri Sep 17 22:23:52 1999</em>: <strong>Tigran</strong>
-<DD> fixed DOC_D so that it properly updates when a complete_scan() is done, when it is initially loaded, or if a file is newer than the time of the last update.  A side effect of this is that TODO, FIXME and some other similar tags can now have multiple entries for the same file, rather than just the last entry being written to the file (the file is rm'd in a more appropriate place)<p>
-<DT><em>Fri Sep 17 22:36:41 1999</em>: <strong>Tigran</strong>
-<DD> fixed the tell command to be consistant for emotes between local and remote.<p>
-<DT><em>Fri Sep 17 22:55:32 1999</em>: <strong>Tigran</strong>
-<DD> fixed /daemons/imud/emoteto.c so that the format of emotes in tells is consistant with the tell command too<p>
-<DT><em>Sat Sep 18 12:43:28 1999</em>: <strong>Tigran</strong>
-<DD> fixed a problem with M_MESSAGES<p>
-<DT><em>Sat Sep 18 14:46:14 1999</em>: <strong>Tigran</strong>
-<DD> completed the nasty Himself/Herself bugfix in M_MESSAGES<p>
-<DT><em>Sat Sep 18 16:06:12 1999</em>: <strong>Tigran</strong>
-<DD> fixed IMUD_D (/daemons/imud/emoteto) so that it didn't send tokens through the remote emotes (done via tell.)  It's up to the remote mud to handle the message, not the local mud to enforce it.<p>
-<DT><em>Sat Sep 18 21:08:21 1999</em>: <strong>Tigran</strong>
-<DD> fixed exec_code in /secure/simul_efun/misc to handle capital letters as well as lowercase.<p>
-<DT><em>Sat Sep 18 21:30:07 1999</em>: <strong>Tigran</strong>
-<DD> fixed SECURE_D to not accept null strings as a valid name. -- Fix originally pionted out by Beldin and perfected by Beek<p>
-<DT><em>Tue Sep 21 07:10:03 1999</em>: <strong>Tigran</strong>
-<DD> changed ls to no longer use colour-ls but to use the standard ansi check like all the other colours do.  Fix proposed by Antilles<p>
-<DT><em>Tue Sep 21 07:43:02 1999</em>: <strong>Tigran</strong>
-<DD> fixed a small error in the newsreader that reported the wrong message number on the message prompt.  It now reflects the proper number<p>
-<DT><em>Thu Sep 23 11:39:21 1999</em>: <strong>Tigran</strong>
-<DD> fixed the look command by reactivating the STR rule.  This eliminates the annoying message that is returned if an object isn't found.  (i.e. look at the car'  There is no at the car here.)<p>
-<DT><em>Wed Sep 29 11:28:38 1999</em>: <strong>Tigran</strong>
-<DD> implemented a fix to M_MESSAGES which was mucking up some of the pronouns (Courtesy of Loriel)<p>
-<DT><em>Wed Sep 29 12:30:43 1999</em>: <strong>Tigran</strong>
-<DD> fixed a couple of typo's in the rm() portions of DOC_D (they were missing some trailing /'s)  Also removed another place where a file was rm'd and shouldn't have been.  (first pointed out by Loriel)<p>
-<DT><em>Thu Sep 30 04:46:20 1999</em>: <strong>Tigran</strong>
-<DD> fixed mv to not so that mv file1 file1 fails and does not remove the file.<p>
-<DT><em>Thu Sep 30 05:34:53 1999</em>: <strong>Tigran</strong>
-<DD> fixed ANSI_D so that it should load with CONFIGURABLE_COLOURS undefined<p>
-<DT><em>Thu Sep 30 05:52:21 1999</em>: <strong>Tigran</strong>
-<DD> made a small fix to M_SMARTMOVE changing notify_move() to tell this_object() instead of this_body().  Fix suggested by Loriel<p>
-<DT><em>Thu Sep 30 07:25:43 1999</em>: <strong>Tigran</strong>
-<DD> fixed a bug in M_FOLLOW that didn't remove the current followee when you stopped following something.  Also cleaned the code up a little bit<p>
-<DT><em>Thu Sep 30 10:48:08 1999</em>: <strong>Tigran</strong>
-<DD> protected the ipname/number of users in FINGER_D (thorugh PLAYER_INFO_IS_PUBLIC)<p>
-<DT><em>Fri Oct  1 07:20:14 1999</em>: <strong>Tigran</strong>
-<DD> fixed /domains/std/web.c to also inherit M_LIGHT_SOURCE<p>
-<DT><em>Fri Oct  1 19:32:47 1999</em>: <strong>Tigran</strong>
-<DD> added NEWS_D to the preload file list.  Thought it was already done.<p>
-<DT><em>Fri Oct  1 19:56:59 1999</em>: <strong>Tigran</strong>
-<DD> fixed /domains/std/objects/hole.c to handle the new container code, moved it to /std/hole.c and added HOLE to <mudlib.h>.  /domains/std/objects/sand_with_treasure also now points to the proper location of HOLE<p>
-<DT><em>Mon Oct  4 14:36:20 1999</em>: <strong>Tigran</strong>
-<DD> fixed a bug in /domains/std/large_oak_door.  It was not accepting or passing arguments to on_clone()<p>
-<DT><em>Fri Oct  8 17:00:21 1999</em>: <strong>Tigran</strong>
-<DD> tweaked HIDDEN_DOOR DOOR and M_SIBLING tomake doors work properly again<p>
-<DT><em>Fri Oct 15 05:09:03 1999</em>: <strong>Tigran</strong>
-<DD> made changes to M_WANDER.  It now uses what should be the proper hooks.<p>
-<DT><em>Fri Oct 22 14:01:15 1999</em>: <strong>Zifnab</strong>
-<DD> put a change into http_d around line 250 to stop people from doing ../../../ to get to any file in the mudlib.  its not a very elegant solution, and if anyone another way to do that please do so.<p>
-<DT><em>Fri Nov 26 09:06:18 1999</em>: <strong>Tigran</strong>
-<DD> implemented a fix to M_MESSAGES from Megaboz.  Incorrect } placement<p>
-<DT><em>Tue Dec  7 03:23:16 1999</em>: <strong>Tigran</strong>
-<DD> made a fix to direct_read_obj() of M_READABLE.  It doesn't do much good to check if the person has the object to be read or not after the reading occurs<p>
-<DT><em>Tue Dec  7 03:42:01 1999</em>: <strong>Tigran</strong>
-<DD> made another fix to M_READABLE so that the other direct_* behave like direct_read_obj()<p>
-<DT><em>Wed Dec 15 14:56:24 1999</em>: <strong>Tigran</strong>
-<DD> fixed DOC_D so that it doesn't error anymore and will actually properly rebuild the helpfiles again<p>
-<DT><em>Wed Dec 15 14:56:38 1999</em>: <strong>Tigran</strong>
-<DD> fixed NEWS_D so that it will load out of startup.<p>
-<DT><em>Fri Dec 17 13:24:37 1999</em>: <strong>Tigran</strong>
-<DD> installed a new BOOK.  This one has a lot more functionality than the old one.  There may still be some to be added to it, but this is a very good start. (You might also need to update M_READABLE).  Example in /wiz/tigran/tests/book.c<p>
-<DT><em>Sat Dec 18 06:36:28 1999</em>: <strong>Tigran</strong>
-<DD> installed RCP_D courtesy of Dunedain.  The new file resides in /secure/daemons/rpc_d.  Changes were required to <ports.h> <log.h> <daemons.h> and /data/config/preload.  The RCP_PORT is __PORT__ + 5<p>
-<DT><em>Mon Dec 20 07:06:55 1999</em>: <strong>Tigran</strong>
-<DD> fixed CORPSE to work with the new container system.  It was also moved from /obj/mudlib to /std and <mudlib.h> updated to reflect this change<p>
-<DT><em>Mon Dec 20 07:16:31 1999</em>: <strong>Tigran</strong>
-<DD> fixed SECURE_D.  It had a query_prevent_shadow() apply which should have been a query_allow_shadow() apply.  If you don't allow shadows, (my recomendation), this won't affect you.  If you do...<p>
-<DT><em>Mon Dec 20 07:51:33 1999</em>: <strong>Tigran</strong>
-<DD> fixed BED so that it has the proper default relation.<p>
-<DT><em>Mon Dec 20 08:34:40 1999</em>: <strong>Iizuka</strong>
-<DD> changed line 82 of /std/adversary/wield/limbs.c from this_body() to this_object() in do_wield().<p>
-<DT><em>Wed Dec 22 11:09:53 1999</em>: <strong>Loriel</strong>
-<DD> reinstated Tigran's new version of mount (/cmds/verbs/mount.c) which had somehow been lost and overwritten by an older version<p>
-<DT><em>Wed Dec 22 13:50:02 1999</em>: <strong>Loriel</strong>
-<DD> amended /std/nverb_ob.c so that the check_vision() checks "outside" if appropriate - so you can see from horses etc...<p>
-<DT><em>Wed Dec 22 13:52:10 1999</em>: <strong>Loriel</strong>
-<DD> fixed the horse (in /domains/std/) so that it now works again, though it could do with more cleaning up later, together with M_MOUNTABLE.<p>
-<DT><em>Wed Dec 22 14:54:35 1999</em>: <strong>Dunedain</strong>
-<DD> added an option to turn didlog notifications on (didlog /on) and off (didlog /off).  (This is in response to the overwhelming number of didlogs being posted since Loriel became an admin.)<p>
-<DT><em>Wed Dec 22 14:55:09 1999</em>: <strong>Loriel</strong>
-<DD> amended NON_ROOM (/std/non_room.c), putting colour into the short and exits in do_looking() to be consistent with a normal room "look"<p>
-<DT><em>Wed Dec 22 15:13:19 1999</em>: <strong>Loriel</strong>
-<DD> amended M_FLUID_CONTAINER (/std/modules/m_fluid_container.c), fixing a number of minor bugs and omissions and adding a get_extra_long() showing how full the container is, similar to M_EDIBLE.<p>
-<DT><em>Wed Dec 22 19:13:22 1999</em>: <strong>Loriel</strong>
-<DD> amended CHEST (/std/chest.c), adding a default relation "in".<p>
-<DT><em>Wed Dec 22 19:32:11 1999</em>: <strong>Loriel</strong>
-<DD> amended /domains/std/dish.c, adding a line: set_default_relation("in");<p>
-<DT><em>Wed Dec 22 20:02:00 1999</em>: <strong>Loriel</strong>
-<DD> amended M_BLOCKEXITS (/std/modules/m_blockexits.c), removing an apparently unneeded line 92 :- write( "FOO\n");<p>
-<DT><em>Wed Dec 22 20:18:42 1999</em>: <strong>Loriel</strong>
-<DD> amended /std/adversary/state_of_mind.c so that query_stunned() returns 0 or 1, instead of the time the stun wears off - consistent with diagnose messages in health.<p>
-<DT><em>Wed Dec 22 22:46:18 1999</em>: <strong>Loriel</strong>
-<DD> amended LANTERN (/std/lantern.c) by calling object::mudlib_setup() and light_object::mudlib_setup() (in order to correctly initialise the decay/fuel usage), and also set the fuel to save (ie num_decays).<p>
-<DT><em>Wed Dec 22 22:59:38 1999</em>: <strong>Loriel</strong>
-<DD> amended TORCH (/std/torch.c) by calling weapon::mudlib_setup() and light_object::mudlib_setup() (in order to correctly initialise the decay/fuel usage), and also set the fuel to save (ie num_decays), and also adding set_decay_auto_remove(1) so dead torches are removed.<p>
-<DT><em>Thu Dec 23 12:38:13 1999</em>: <strong>Tigran</strong>
-<DD> fixed LOG_D to accept the RCP log as a legal log<p>
-<DT><em>Thu Dec 23 13:27:45 1999</em>: <strong>Loriel</strong>
-<DD> amended /domains/std/objects/backpack.c, adding the relation "in" and setting it as default.<p>
-<DT><em>Thu Dec 23 13:28:11 1999</em>: <strong>Loriel</strong>
-<DD> amended CORPSE (/std/corpse.c), adding the relation "on" and setting it as default.<p>
-<DT><em>Thu Dec 23 13:29:35 1999</em>: <strong>Loriel</strong>
-<DD> amended /domains/std/rooms/caves/Grotto.c, changing set_default_exit() to set_default_error()<p>
-<DT><em>Thu Dec 23 17:24:50 1999</em>: <strong>Loriel</strong>
-<DD> amended /std/object/move.c, adding a check for MOVE_OK into give_new_obj() so recursion should now work correctly.<p>
-<DT><em>Thu Dec 23 19:11:30 1999</em>: <strong>Loriel</strong>
-<DD> provided an extended version of M_ACTIONS (/std/modules/m_actions.c) with set_actions() working again, using a system similar to M_WANDER so the actions will pause with no players in the room, resume when a player enters.<p>
-<DT><em>Thu Dec 23 20:22:32 1999</em>: <strong>Loriel</strong>
-<DD> fixed various parts of the quest, including file names specified in the quest daemon and changes in the following files : /domains/std/rooms/caves/Inside_Cave.c, Low_Crawl.c, Small_Dock.c, /domains/std/objects/dock_wall.c, navigation_table.s, rock_wall.c, and HOLE (/std/hole.c).<p>
-<DT><em>Fri Dec 24 10:29:10 1999</em>: <strong>Dunedain</strong>
-<DD> modified 'say' to provide two kinds of history: history that follows the body around (#ifdef PER_BODY_SAY_HISTORY) or history that sticks to the room (#ifndef PER_BODY_SAY_HISTORY).<p>
-<DT><em>Fri Dec 24 11:00:41 1999</em>: <strong>Loriel</strong>
-<DD> fixed a number of alternative spellings of FUNCTION which were causing errors in DOC_D. Files involved were M_FOLLOW, M_BLOCKEXITS, M_COMPLEX_EXIT and CONTAINER<p>
-<DT><em>Fri Dec 24 11:34:08 1999</em>: <strong>Loriel</strong>
-<DD> amended STAIRS (/std/stairs.c), replacing "climb up" with "ascend" and "climb down" with "descend", as the existing methods try to put you in a non-existent relation "up" or "down" in the destination room. The methods "climb up" and "climb down" were deleted, and "ascend" and "descend" added, with "climb up" and "climb down" as equivalents.<p>
-<DT><em>Fri Dec 24 11:42:13 1999</em>: <strong>Loriel</strong>
-<DD> amended /domains/std/web.c, adding a default relation "in" so it no longer gives errors on "look" (due to problems in introducing its non-existent inventory).<p>
-<DT><em>Mon Dec 27 13:01:16 1999</em>: <strong>Loriel</strong>
-<DD> fixed /std/adversary/blows/class_simple.c, which was missing the word "class" in line 11<p>
-<DT><em>Tue Dec 28 05:38:47 1999</em>: <strong>Dunedain</strong>
-<DD> modified /obj/admtool/secure/security.c to use more(sprintf()) instead of printf() in privilege_owners() so that even large numbers of privilege owners can be printed without exceeding maximum printable string length.<p>
-<DT><em>Thu Dec 30 07:09:08 1999</em>: <strong>Tigran</strong>
-<DD> made modifications to /std/object/vsupport, CONTAINER, and M_COMPLEX_EXIT.  Mods include streamlining the function calls, making it more readable, and adding relation 'alias' support (so you can alias the relation 'on' to 'in' in the case of a bed or something similar).<p>
-<DT><em>Thu Dec 30 07:33:17 1999</em>: <strong>Tigran</strong>
-<DD> removed the #include <combat_modules.h> line from ADVERSARY, /std/adversary/mod_config.c, /std/classes/event_info.c, M_DAMAGE_SOURCE, and M_WIELDABLE and put it into <config.h><p>
-<DT><em>Thu Dec 30 14:10:53 1999</em>: <strong>Tigran</strong>
-<DD> reorganized config.h and added some comments etc.  Hopefully this will deteur some of the obvious questions that get asked.<p>
-<DT><em>Thu Dec 30 14:19:09 1999</em>: <strong>Tigran</strong>
-<DD> removed the MONSTER define from mudlib.h  Anything that blows up should be changed to ADVERSARY<p>
-<DT><em>Thu Dec 30 14:26:05 1999</em>: <strong>Tigran</strong>
-<DD> removed the GHOST define from mudlib.h (it was bogus anyway)<p>
-<DT><em>Sat Jan  1 07:08:33 2000</em>: <strong>Tigran</strong>
-<DD> tweaked the release script so that it will include the driver docs.<p>
-<DT><em>Sat Jan  1 07:11:51 2000</em>: <strong>Tigran</strong>
-<DD> tweaked the release script to prune out emacs backup files (*~)<p>
+<DT><em>Sun Jul  2 09:00:32 2000</em>: <strong>Tigran</strong>
+<DD> updated help release<p>
+<DT><em>Sun Jul  2 22:08:05 2000</em>: <strong>Tigran</strong>
+<DD> modified compile() in LPSCRIPT_D so that it will not regenerate the tmp file if the tmp file is newer than the source file.<p>
+<DT><em>Fri Jul  7 14:45:01 2000</em>: <strong>Tigran</strong>
+<DD> made a change to SOCKET to utilize an updated socket_address() efun<p>
+<DT><em>Fri Jul  7 16:38:34 2000</em>: <strong>Tigran</strong>
+<DD> added a local_address() function to SOCKET (That's harder to get than you might think and this way is better)<p>
+<DT><em>Fri Jul  7 16:38:34 2000</em>: <strong>Tigran</strong>
+<DD> made various modifications to FTP_D to remove resolve() calls that are no longer necessary with the recent SOCKET modifications<p>
+<DT><em>Sat Jul  8 00:43:46 2000</em>: <strong>Tigran</strong>
+<DD> fixed FTP_D to return an empty list when trying to ls <filename>/. rather than a 550 error.  The other way worked, but was not what is proper. (This still isn't perfect, but it's much much closer.  It's not an error now, but still gives an extra linefeed, which may be acceptable)<p>
+<DT><em>Fri Jul 14 12:58:51 2000</em>: <strong>Loriel</strong>
+<DD> fixed BODY (/std/body.c) to inherit /std/body/skills.c (subject to the define USE_SKILLS), removing comments and fixing a typo.<p>
+<DT><em>Sat Jul 15 12:18:58 2000</em>: <strong>Loriel</strong>
+<DD> fixed M_ITEMS (/std/modules/m_items.c), changing "long" to "look" in line 43.<p>
+<DT><em>Tue Jul 18 09:49:03 2000</em>: <strong>Tigran</strong>
+<DD> fixed a typo in M_EXIT on line 327.  query_method_destination should be query_method_description<p>
+<DT><em>Tue Jul 18 10:14:55 2000</em>: <strong>Tigran</strong>
+<DD> made a modification to M_EXIT to automatically append a \n to an exit description if it does not already have one.  (lines 341,342 added)<p>
+<DT><em>Tue Jul 18 10:24:53 2000</em>: <strong>Tigran</strong>
+<DD> modified the look verb so that you can now look at exits.  This means that exits can be described with set_exit_description(dir,desc) from the room.  (This function is smart enough to set the long of complex exits as well though not preferred and may change).  add_item()'s will still error if you add_item() an item with the same name as a simple exit(which shouldn't happen).<p>
+<DT><em>Sun Jul 23 09:53:34 2000</em>: <strong>Loriel</strong>
+<DD> fixed the typo "bask" to "back" in /domains/std/Example_Room1.c<p>
+<DT><em>Sun Jul 23 12:04:27 2000</em>: <strong>Loriel</strong>
+<DD> extended /include/combat_modules.h to handle FORMULA_STATS.<p>
+<DT><em>Sun Jul 23 12:09:05 2000</em>: <strong>Loriel</strong>
+<DD> extended /std/adversary/mod_config.c to recognise FORMULA_STATS as a valid option.<p>
+<DT><em>Wed Aug  2 14:16:01 2000</em>: <strong>Tigran</strong>
+<DD> (re)installed the colours command that works without the CONFIGURABLE_COLOUR define that was removed a /long/ time ago<p>
+<DT><em>Sun Aug  6 08:29:16 2000</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/table.c, changing the inherit from COMPLEX_CONTAINER to CONTAINER and added a default relation of "on" (Thanks to Jonez for pointing this out).<p>
+<DT><em>Sun Aug  6 12:34:30 2000</em>: <strong>Loriel</strong>
+<DD> amended PLAYER_MENU (/obj/mudlib/plmemu.c) to better handle prompting to change the ansi setting, by adding an intermediate function prompt_change_ansi() (problem and solution courtesy of Jonez).<p>
+<DT><em>Sun Aug  6 13:39:12 2000</em>: <strong>Tigran</strong>
+<DD> added some additional LPSCRIPT functionality to OBJECT>  Objects now retain their lpscript_attributes after first use so that they do not have to be recalculated every time an lpscript object is loaded.  A list of lpscript_attributes for a given object can also be acquired with list_lpscript_attributes().  A copy of the mapping is attained through dump_lpscript_attributes().<p>
+<DT><em>Tue Aug  8 20:09:08 2000</em>: <strong>Loriel</strong>
+<DD> changed the north exit in /domains/std/cult/Foyer.c from ../room2 to ../Relations_And_Toys. Thanks to Marroc for pointing this out.<p>
+<DT><em>Fri Aug 18 17:09:00 2000</em>: <strong>Loriel</strong>
+<DD> amended /trans/cmds/cat.c, changing line 22 to avoid looping on an empty string when reading a null file.  Thanks to Rakk for pointing out the problem.<p>
+<DT><em>Mon Sep  4 21:32:48 2000</em>: <strong>Tigran</strong>
+<DD> added go down as an equivalent to descend and 'go up' as an equivalent to 'ascend' in METHOD_D<p>
+<DT><em>Thu Sep  7 09:08:20 2000</em>: <strong>Tigran</strong>
+<DD> added has_method() to M_COMPLEX_EXIT<p>
+<DT><em>Thu Sep  7 09:09:10 2000</em>: <strong>Tigran</strong>
+<DD> rewrote STAIRS.  This may be a bit of a compat buster, but I don't think so.  It is no longer necessary for STAIRS to have arguments passed to it's crete/setup() in order for them to properly function.<p>
+<DT><em>Thu Sep  7 09:09:50 2000</em>: <strong>Tigran</strong>
+<DD> fixed /std/object/names.c so that add_adjective will set a primary_adjective if one does not already exisdt.<p>
+<DT><em>Thu Sep  7 11:08:32 2000</em>: <strong>Tigran</strong>
+<DD> added the verbs ascend and descend<p>
+<DT><em>Thu Sep  7 19:28:41 2000</em>: <strong>Tigran</strong>
+<DD> fixed DOC_D to check for existing directories before creating new ones.<p>
+<DT><em>Thu Sep  7 20:14:33 2000</em>: <strong>Tigran</strong>
+<DD> fixed M_READABLE at Loriel's suggestion just over a year ago (Line 60, in set_text())<p>
+<DT><em>Fri Sep  8 14:36:34 2000</em>: <strong>Loriel</strong>
+<DD> amended /std/adversary/wield/multiple.c, adding a check for empty slots into query_weapon() as suggested by Designa.<p>
+<DT><em>Sat Sep  9 10:38:52 2000</em>: <strong>Loriel</strong>
+<DD> made 3 fixes in M_FILE (/secure/modules/m_file.c) for problems pointed out by Seven - line 37, line 174 and line 183.<p>
+<DT><em>Sun Sep 10 13:10:59 2000</em>: <strong>Iizuka</strong>
+<DD> added LIMB_ATTACKING to /include/limbs.h and added query_attacking_limbs() to /std/adversary/health/limbs.c.<p>
+<DT><em>Sun Sep 10 13:18:19 2000</em>: <strong>Iizuka</strong>
+<DD> updated /obj/admtool/daemons/body.c with respect to attacking limbs.<p>
+<DT><em>Sun Sep 10 22:44:17 2000</em>: <strong>Loriel</strong>
+<DD> amended /obj/admtool/daemons/body.c, inserting parent in finish_add_limb() - line 58.<p>
+<DT><em>Sun Sep 10 22:57:39 2000</em>: <strong>Loriel</strong>
+<DD> amended BODY_D (/daemons/body_d.c) adding the setting of parent into add_limb_to_body().<p>
+<DT><em>Mon Sep 11 15:06:47 2000</em>: <strong>Loriel</strong>
+<DD> added is_attacking_limb() into /std/adversary/health/limbs.c.<p>
+<DT><em>Mon Sep 11 20:17:50 2000</em>: <strong>Loriel</strong>
+<DD> changed STR to STRINGIZE in /std/classes/event_info.c to comply with the correct usage enforced in newer drivers (v22.2b5 onwards).<p>
+<DT><em>Tue Sep 12 19:26:41 2000</em>: <strong>Loriel</strong>
+<DD> improved /obj/admtool/daemons/body.c, fixing the description of the 'r' option (remove limb) to distinguish it from 'R' (remove body), and added attacking to the valid limb types referred to in line 93 in set_limb_flags().<p>
+<DT><em>Tue Sep 12 19:27:25 2000</em>: <strong>Loriel</strong>
+<DD> added a check for valid body type into add_limb_to_body() in BODY_D (/daemons/body_d.c).<p>
+<DT><em>Fri Sep 15 16:41:10 2000</em>: <strong>Loriel</strong>
+<DD> amended "/bulders/" to "/wiz/" in DOC_D (/daemons/doc_d.c). Thanks to Marroc for spotting it.<p>
+<DT><em>Sun Sep 17 01:02:37 2000</em>: <strong>Loriel</strong>
+<DD> improved the messaging in do_diagnose_liv() in /cmds/verbs/diagnose.c, to avoid others in the room seeing full details - problem reported by Krant.<p>
+<DT><em>Mon Sep 18 19:37:35 2000</em>: <strong>Loriel</strong>
+<DD> fixed the typo in line 90 of NON_ROOM (/std/non_room.c) pointed out by Krant : ..RESET^.. -> ..RESET%%^..<p>
+<DT><em>Sat Sep 23 19:59:54 2000</em>: <strong>Loriel</strong>
+<DD> changed data from int to mixed in class event_info in /std/classes/event_info/simple.c (pointed out by Argon).<p>
+<DT><em>Sun Sep 24 12:20:04 2000</em>: <strong>Iizuka</strong>
+<DD> removed /std/accountant.c and removed ACCOUNTANT from /include/mudlib.h.<p>
+<DT><em>Sun Sep 24 12:21:56 2000</em>: <strong>Iizuka</strong>
+<DD> installed /std/modules/m_accountant.c and added M_ACCOUNTANT to /include/mudlib.h.<p>
+<DT><em>Sun Sep 24 12:23:00 2000</em>: <strong>Iizuka</strong>
+<DD> updated /domains/std/bank_accountant.c with respect to the last two changelogs.<p>
+<DT><em>Fri Sep 29 11:08:40 2000</em>: <strong>Iizuka</strong>
+<DD> installed /std/accountant.c.  This solves the LPscript problem reported by Marroc.  This assumes adversary, so if you want one from living either modify this or make a similar object using living instead.<p>
+<DT><em>Sat Sep 30 16:25:35 2000</em>: <strong>Loriel</strong>
+<DD> fixed follow_hook() in M_FOLLOW (/std/modules/m_follow.c) to improve following, including support for function pointers and better checking.<p>
+<DT><em>Sun Oct  1 11:21:01 2000</em>: <strong>Iizuka</strong>
+<DD> removed add_save() from /std/armor.c and moved it to /std/modules/m_wearable.c, as Marroc suggested.  m_wearable now has a mudlib_setup().<p>
+<DT><em>Wed Oct 11 04:25:24 2000</em>: <strong>Deathblade</strong>
+<DD> fixed a bug! whee! the LPSCRIPT_D / ACCOUNTANT thing. solution was posted by Marroc a couple weeks ago to lima.bugs. It prevented a clean login for me on a fresh mud reboot... had to be fixed :-)<p>
+<DT><em>Fri Oct 13 05:41:58 2000</em>: <strong>Deathblade</strong>
+<DD> put /daemons/imud/channel.c back to its original pre-bogus state. Minus three cool points to whoever borked it up. Lima can now speak on I3 channels.<p>
+<DT><em>Fri Oct 13 06:01:20 2000</em>: <strong>Deathblade</strong>
+<DD> added a comment to imud_d.c about us-1.i3.intermud.org being the router address. would be nice if somebody could change imud_d.c to use a hostname rather than a bare IP<p>
+<DT><em>Fri Oct 13 21:40:59 2000</em>: <strong>Loriel</strong>
+<DD> moved "help release" from /help/wizard/ to /help/player/ so visitors can see it without being auto-wizzed.<p>
+<DT><em>Sat Oct 14 16:16:44 2000</em>: <strong>Loriel</strong>
+<DD> amended get_size() to query_size() in /domains/std/rooms/beach/Outside_Cave.c. Thanks to Marroc for pointing it out.<p>
+<DT><em>Mon Oct 16 07:01:30 2000</em>: <strong>Deathblade</strong>
+<DD> added a comment about router_list to imud_d.c to inform newless clubies that it really *is* intended to be saved. (*cough kesac*  ahem)<p>
+<DT><em>Tue Oct 17 05:38:36 2000</em>: <strong>Deathblade</strong>
+<DD> updated USAGE. christ was that an old email address.<p>
+<DT><em>Fri Oct 20 18:13:56 2000</em>: <strong>Loriel</strong>
+<DD> amended GUILD_D (/daemons/guild_d.c) so that admtool does not give privilege problems, by allowing changes where that is the previous object as well as where the check_previous_privilege() test is passed.<p>
+<DT><em>Thu Nov 16 16:25:29 2000</em>: <strong>Tigran</strong>
+<DD> fixed a typo in master.c line 372 adjectiv->adjective<p>
+<DT><em>Sun Nov 19 09:35:22 2000</em>: <strong>Loriel</strong>
+<DD> updated the help on parse_command_adjective_id_list, following the correction of spelling - see /help/wizard/mudos_doc/applies/parsing/.<p>
+<DT><em>Sat Dec 16 19:21:51 2000</em>: <strong>Loriel</strong>
+<DD> fixed the "no do_* function in /cmds/verbs/go!" error by changing the spelling of do_go_word_obj() to do_go_wrd_obj().<p>
+<DT><em>Sat Dec 16 20:10:01 2000</em>: <strong>Loriel</strong>
+<DD> further amended /cmds/verbs/go.c, adding a can_go_wrd_obj() returning "You can't do that!\n"<p>
+<DT><em>Sat Dec 23 15:55:44 2000</em>: <strong>Loriel</strong>
+<DD> amended /help/release/player to show the new (temporary) download site available by courtesy of Rust : http://pip.list.org/~viega/lima-1.0b1+driver.tar.gz<p>
+<DT><em>Sun Jan  7 17:20:55 2001</em>: <strong>Iizuka</strong>
+<DD> installed very simple docs for adversary in /help/wizard/lib/std/<p>
+<DT><em>Tue Jan 23 09:01:32 2001</em>: <strong>Loriel</strong>
+<DD> amended DOOR (/std/door.c), changing the messaging in door_check() as proposed by Marroc, namely deleting this_body() from the arguments of the other_action() and changing dir to the_short() in the returned sprintf().<p>
+<DT><em>Tue Jan 23 17:15:16 2001</em>: <strong>Loriel</strong>
+<DD> rearranged the "screwed up" help files on test_bit/next_bit/set_bit, in /help/wizard/mudos_doc/efuns/strings. Thanks to Pan for pointing it out.<p>
+<DT><em>Thu Jan 25 18:59:29 2001</em>: <strong>Loriel</strong>
+<DD> amended /std/adversary/blows/base.c, adding a check for queue[i]->target into line 113.<p>
+<DT><em>Thu Jan 25 19:03:25 2001</em>: <strong>Loriel</strong>
+<DD> amended COMBAT_SPELL (/std/combat_spell.c), changing the final argument to evaluate(damage_func).<p>
+<DT><em>Thu Jan 25 19:17:19 2001</em>: <strong>Loriel</strong>
+<DD> amended /domains/std/spells/fireball.c to use more appropriate message and damage types.<p>
+<DT><em>Wed Jan 31 07:06:19 2001</em>: <strong>Loriel</strong>
+<DD> amended /std/objects/names.c, setting primary_id to 0 in remove_id() and clear_id(), and setting primary_adj to 0 in remove_adj() and clear_adj(), as suggested by Marroc.<p>
+<DT><em>Wed Jan 31 07:12:59 2001</em>: <strong>Loriel</strong>
+<DD> changed pick() to do_pick() in M_LOCKABLE (/std/modules/m_lockable.c), as suggested by Marroc.<p>
+<DT><em>Wed Jan 31 07:18:57 2001</em>: <strong>Loriel</strong>
+<DD> added a default failure in direct_look_wrd_obj() in /std/object/vsupport.c, as suggested by Marroc.<p>
+<DT><em>Wed Jan 31 07:23:55 2001</em>: <strong>Loriel</strong>
+<DD> amended the 'helper functions' page_before() and page_after() in BOOK (/std/book.c), as suggested by Marroc (under the misleading heading 'DOOR'.<p>
+<DT><em>Wed Jan 31 07:28:55 2001</em>: <strong>Loriel</strong>
+<DD> amended the portal setting in setup() in WIZ_ROOM (/domains/std/Wizroom.c) from START to "/domains/std/rooms/beach/Sandy_Beach.c" as suggested by Marroc.<p>
+<DT><em>Fri Feb  2 12:12:07 2001</em>: <strong>Loriel</strong>
+<DD> amended M_AGGRESSIVE (/std/modules/m_aggressive.c), adding functions agro_fn = (: agro_func :) and moved_fn = (: i_moved :) to ensure hooks are removed properly as required.<p>
+<DT><em>Tue Feb 13 13:59:17 2001</em>: <strong>Loriel</strong>
+<DD> amended /secure/user/login.c to use choice() in selecting alternate welcome screens, and to check there are files available before doing so.<p>
+<DT><em>Mon Feb 19 14:52:08 2001</em>: <strong>Loriel</strong>
+<DD> amended /cmds/player/didlog.c so that the /on and /off options use this_user()->set_didlog_off() instead of this_body()->set_ilog_off().<p>
+<DT><em>Mon Feb 19 20:38:18 2001</em>: <strong>Loriel</strong>
+<DD> amended someone_did() in DID_D (/daemons/did_d.c) to send messages to users, instead of bodies.<p>
+<DT><em>Mon Feb 19 22:52:46 2001</em>: <strong>Loriel</strong>
+<DD> changed M_COMPLEX_EXIT (/std/modules/m_complex_exit.c), changing the pattern for Destination from %s to %O in stat_me().<p>
+<DT><em>Mon Feb 19 23:20:56 2001</em>: <strong>Loriel</strong>
+<DD> fixed VEHICLE (/std/vehicle.c) by removing a stray comma from "person_left," in mudlib_setup().<p>
+<DT><em>Tue Feb 20 09:59:38 2001</em>: <strong>Loriel</strong>
+<DD> amended /std/adversary/advancement/simple.c, changing use of this_body() to this_object().<p>
+<DT><em>Tue Feb 20 10:17:54 2001</em>: <strong>Loriel</strong>
+<DD> amended HIDDEN_DOOR (/std/hidden_door.c) to use set_hidden() rather than add/remove_hidden_exit(), as suggested by Marroc.<p>
+<DT><em>Tue Feb 20 10:25:30 2001</em>: <strong>Loriel</strong>
+<DD> amended M_EXIT (/std/modules/m_exit.c) as suggeted by Marroc, using query_hidden_exits() instead of hidden_exits in the function show_exits().<p>
+<DT><em>Tue Feb 20 10:40:21 2001</em>: <strong>Loriel</strong>
+<DD> amended M_SIBLING (/std/modules/m_sibling.c) as proposed by Marroc, adding set_sibling_ident() and zeroing cached_sibling in setup_sibling().<p>
+<DT><em>Tue Feb 20 10:56:49 2001</em>: <strong>Loriel</strong>
+<DD> amended DOOR (/std/door.c) for Marroc's suggested replacement of respond_to_sibling_ident() by setup_sibling_ident() in setup_door().<p>
+<DT><em>Tue Feb 20 11:55:07 2001</em>: <strong>Loriel</strong>
+<DD> amended /include/mudlib.h, adding (back?) the define for MOVING_ROOM.<p>
+<DT><em>Tue Feb 20 12:38:43 2001</em>: <strong>Loriel</strong>
+<DD> amended various rooms and other items in /domains/std/ for door-related changes from Marroc: Wizroom.c, 2.4.5/attic.scr, 2.4.5/church.scr, 2.4.5/wiz_hall.scr, 2.4.5/elevator.c, 2.4.5/obj/elevator_button.scr, 2.4.5/obj/elevator_call_button.scr, 2.4.5/obj/elevator_door.c.<p>
+<DT><em>Tue Feb 20 16:23:09 2001</em>: <strong>Loriel</strong>
+<DD> fixed problems in PLAYER_MENU (/obj/mudlib/plmenu.c) by replacing input_one_arg with get_input_then_call approx lines 270 - 290 (solution from Marroc).<p>
+<DT><em>Tue Feb 20 16:48:01 2001</em>: <strong>Loriel</strong>
+<DD> amended BASE_ROOM (/std/base_room.c), removing the invalid LPscript attribute "default exit" (as pointed out by Marroc), and adding support for room chats, plus support for verbs smell, and pray in the room, as well as proving set_listen() to set the message for listening in the room.<p>
+<DT><em>Tue Feb 20 16:54:05 2001</em>: <strong>Loriel</strong>
+<DD> added /cmds/verbs/pray.c to support prayers for resurrection (with the NEED_TO_BE_ALIVE flag cleared).<p>
+<DT><em>Tue Feb 20 16:55:25 2001</em>: <strong>Loriel</strong>
+<DD> extended /cmds/verbs/smell.c to support the simple 'smell' and using do_smell() in the environment.<p>
+<DT><em>Tue Feb 20 17:07:53 2001</em>: <strong>Loriel</strong>
+<DD> added support for speaking from within containers in rooms to /cmds/players/say.c and /cmds/verbs/say.c (Thanks to Marroc for the code).<p>
+<DT><em>Tue Feb 20 17:11:29 2001</em>: <strong>Loriel</strong>
+<DD> added Marroc's fixed versions of /cmds/players/adverbs.c and /cmds/players/feelings.c which should no longer error if SOUL_D has been cleared.<p>
+<DT><em>Tue Feb 20 17:15:21 2001</em>: <strong>Loriel</strong>
+<DD> installed Marroc's amended LPSCRIPT_D (/secure/daemons/lpscript_d.c) which should fix permission problems in sub object file generation.<p>
+</DL>
+<p><h1>Changes since Lima 1.0b2</h1></p>
+<DL>
+<DT><em>Tue Feb 27 09:48:59 2001</em>: <strong>Loriel</strong>
+<DD> added a further error-trap into read_entry() in M_READABLE (/std/modules/m_readable.c) to return 'nothing there' for attempts to read invalid entries, instead of erroring.<p>
+<DT><em>Tue Feb 27 16:35:53 2001</em>: <strong>Loriel</strong>
+<DD> changed get_lowest_unread_id(current_group) to current_id in menu_select_change_header() in NEWSREADER (/obj/mudlib/newsreader.c) as suggested by Marroc.<p>
+<DT><em>Tue Feb 27 18:40:45 2001</em>: <strong>Loriel</strong>
+<DD> installed a new ACCOUNTANT (/std/accountant.c) to use the M_ACCOUNTANT (/std/modules/m_accountant.c) module by IIzuka.<p>
+<DT><em>Tue Feb 27 18:43:55 2001</em>: <strong>Loriel</strong>
+<DD> amended the lpscript attributes of DOOR (/std/door.c) for ident to set_sibling_ident. Thanks to Marroc for spotting it.<p>
+<DT><em>Tue Feb 27 19:00:04 2001</em>: <strong>Loriel</strong>
+<DD> amended the door_check() function in SECRET_DOOR (/std/secret_door.c) from int to mixed, and to return the environment's get_default_exit() instead of writing it and returning 0. (suggested by Marroc)<p>
+<DT><em>Tue Feb 27 19:11:04 2001</em>: <strong>Loriel</strong>
+<DD> finished the incomplete implementation of Marroc's fixes to PLAYER_MENU (/obj/mudlib/plmenu.c) relating to souls and adverbs.<p>
+<DT><em>Tue Feb 27 19:17:50 2001</em>: <strong>Loriel</strong>
+<DD> fixed the spelling of parse_command_adjective_id_list() in /secure/master.c.<p>
+<DT><em>Wed Feb 28 09:27:43 2001</em>: <strong>Loriel</strong>
+<DD> reinstalled earlier fix to GUILD_D (/daemons/guild_d.c) so that admtool does not give privilege problems, by allowing changes where that is the previous object as well as where the check_previous_privilege() test is passed.<p>
+<DT><em>Wed Feb 28 10:37:40 2001</em>: <strong>Loriel</strong>
+<DD> amended CONTAINER (/std/container.c), adding error-trapping into reinsert_object() to assume default relation if none is specified, and commented out some of the conditions in indirect_verb_rule, and provided better error messages. Note that there are probably better checks to be added for indirect_verb_rule, but at least these correctly check basic stuff like getting from and putting in.<p>
+<DT><em>Thu Mar  1 09:10:06 2001</em>: <strong>Loriel</strong>
+<DD> fixed the exit in /domains/std/cult/Foyer.c from ../room2 to ../Relations_And_Toys. Thanks to Marroc for pointing it out.<p>
+<DT><em>Thu Mar  1 09:13:22 2001</em>: <strong>Loriel</strong>
+<DD> changed get_size() to query_size() in /domains/std/rooms/beach/Outside_Cave.c. Thanks to Marroc for spotting it.<p>
+<DT><em>Thu Mar  1 09:16:16 2001</em>: <strong>Loriel</strong>
+<DD> replaced example_room1 with Example_Room1 in /domains/std/rooms/v_plains.data - thanks to Marroc for spotting it.<p>
+<DT><em>Thu Mar  1 09:23:36 2001</em>: <strong>Loriel</strong>
+<DD> added into OBJ (/std/object.c) various lpscript support functions from Marroc.<p>
+<DT><em>Thu Mar  1 09:27:24 2001</em>: <strong>Loriel</strong>
+<DD> replaced inheritance of COMPLEX_CONTAINER by CONTAINER in /domains/std/table.c.<p>
+<DT><em>Thu Mar  1 09:35:32 2001</em>: <strong>Loriel</strong>
+<DD> added the saving of num_eats into a newly added mudlib_setup() in M_EDIBLE (/std/modules/m_edible.c).<p>
+<DT><em>Thu Mar  1 09:37:40 2001</em>: <strong>Loriel</strong>
+<DD> added a new mudlib_setup() into FOOD (/std/food.c) to properly handle the two inherited mudlib_setup() functions from OBJECT and M_EDIBLE.<p>
+<DT><em>Thu Mar  1 09:47:25 2001</em>: <strong>Loriel</strong>
+<DD> amended query_mail_forward() in NEWS_D (/daemons/news_d.c) as suggested by Marroc, to return an array, empty if no mail forward, and 0 for permission denied.<p>
+<DT><em>Thu Mar  1 09:47:31 2001</em>: <strong>Loriel</strong>
+<DD> amended /obj/admtool/daemons/news.c to reflect the amendment above.<p>
+<DT><em>Thu Mar  1 09:48:55 2001</em>: <strong>Loriel</strong>
+<DD> amended show_exits() in M_EXIT (/std/modules/m_exit.c), installing Marroc's fix to better handle case with all exits hidden.<p>
+<DT><em>Thu Mar  1 09:57:23 2001</em>: <strong>Loriel</strong>
+<DD> added Marroc's proposed fix to /std/body/quests.c, returning 0 for check_quest() if there are no quests.<p>
+<DT><em>Fri Mar  2 08:22:25 2001</em>: <strong>Loriel</strong>
+<DD> added error-checking into can_drive_str() in /cmds/verbs/drive.c so that attempting to drive whilst not in a vehicle is better handled.<p>
+<DT><em>Sat Mar  3 08:12:44 2001</em>: <strong>Loriel</strong>
+<DD> amended CORPSE (/std/corpse.c) to remove the $v from $vgnaw in the set_decay_action() in mudlib_setup().<p>
+<DT><em>Mon Mar  5 08:31:06 2001</em>: <strong>Loriel</strong>
+<DD> amended direct_enter_obj() in /domains/std/objects/sand_castle.c to return a suitable failure message (moving the one from do_enter()).<p>
+<DT><em>Tue Mar  6 19:01:26 2001</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/object/dock_wall.c to use do_close instead of close in its trigger() function.<p>
+<DT><em>Wed Mar  7 17:50:46 2001</em>: <strong>Loriel</strong>
+<DD> removed /daemons/cmd.c (unneeded - misplaced copy of /daemons/channel/cmd.c).<p>
+<DT><em>Sat Mar 10 10:28:46 2001</em>: <strong>Loriel</strong>
+<DD> amended rcv_finger_reply() in /daemons/imud/finger.c to convert int to string for those muds which choose to break the I3 protocol by returning level as int instead of string.<p>
+<DT><em>Fri Mar 23 05:29:59 2001</em>: <strong>Loriel</strong>
+<DD> fixed check_previous() in GUILD_D (/daemons/guild_d.c) to take the argument passed - thanks to Sarak for pointing it out.<p>
+<DT><em>Sun Mar 25 14:58:49 2001</em>: <strong>Loriel</strong>
+<DD> added Marroc's proposed changes to /secure/master.c, to better handle errors of the 'which ... do you mean?' type, adding parser_gen_pos() and amending the ERR_AMBIG case in parser_error_message() to use it.<p>
+<DT><em>Tue Mar 27 08:05:31 2001</em>: <strong>Loriel</strong>
+<DD> installed Marroc's recursive extension to his fix to the master for ambiguous errors - see parser_gen_pos() and parser_error_message().<p>
+<DT><em>Thu Mar 29 15:03:02 2001</em>: <strong>Rust</strong>
+<DD> fixed it so that remote tells from others show up in your tell history.<p>
+<DT><em>Tue Apr 10 02:53:36 2001</em>: <strong>Marroc</strong>
+<DD> created newsgroup lima.bugs.fixed, for bugreps that are supposedly fixed, so that they do not clutter the lima.bugs group.<p>
+<DT><em>Tue Apr 10 15:27:25 2001</em>: <strong>Rust</strong>
+<DD> made it so that when I3 reports an error it tells you the mud name that sent the error.<p>
+<DT><em>Mon Apr 16 19:39:35 2001</em>: <strong>Tigran</strong>
+<DD> tweaked HTTP_D so that it parses cgi a bit better with arguments (? vs ?=)<p>
+<DT><em>Tue Apr 17 05:51:51 2001</em>: <strong>Loriel</strong>
+<DD> amended make_unique_objects_if_needed() in CONTAINER (/std/container.c), adding a clonep() filter and adjusting the number by 1, which should ensure correct number of unique clones created on initial cloning.<p>
+<DT><em>Tue Apr 17 05:55:01 2001</em>: <strong>Loriel</strong>
+<DD> fixed the default fill_action in M_FLUID_SOURCE (/std/modules/m_fluid_source.c), changing withdraw to $vwithdraw.<p>
+<DT><em>Tue Apr 17 05:58:49 2001</em>: <strong>Loriel</strong>
+<DD> amended M_READABLE (/std/modules/m_readable.c), adding set_entry_synonyms() as an alternative to set_synonyms() and adjusting the autodoc help appropriately.<p>
+<DT><em>Tue Apr 17 06:07:43 2001</em>: <strong>Loriel</strong>
+<DD> made fixes to M_FOLLOW (/std/modules/m_follow.c), changing autodoc name of set_follow_search() from set_follow_string, adding a did_move() into do_follow_obj() and improving arrive_hook().<p>
+<DT><em>Mon Apr 23 02:54:55 2001</em>: <strong>Marroc</strong>
+<DD> amended /cmds/player/colours.c, removing the check for CONFIGURABLE_COLOUR (this was probably fixed before, but lost).<p>
+<DT><em>Mon Apr 23 02:58:35 2001</em>: <strong>Marroc</strong>
+<DD> added support for colours in admtool using the defined colours ADMTOOL_HEADING, ADMTOOL_HI and ADMTOOL_LO. Modified /obj/admtool/admtool2.c, /obj/admtool/internal/base.c slightly. The colours default to 'none'.<p>
+<DT><em>Tue Apr 24 00:38:03 2001</em>: <strong>Marroc</strong>
+<DD> amended ADVERSARY (/std/adversary.c), ARMOR (/std/armor.c), CONTAINER (/std/container.c), FLAME (/std/flame.c), FOLLOWING_MONSTER (/std/following_monster.c), FOOD (/std/food.c), KEY (/std/key.c), PAPER (/std/paper.c), SIGN (/std/sign.c), TORCH (/std/torch.c), WANDERING_MONSTER (/std/wandering_monster.c) and WEAPON (/std/weapon.c) -- Eliminating calls to ::lpscript_attributes() in inherited modules etc, as they are redundant; LPSCRIPT_D digs through all the inherits by itself.<p>
+<DT><em>Thu May 10 14:19:49 2001</em>: <strong>Marroc</strong>
+<DD> updated M_SIBLING (/std/modules/m_sibling.c) to use a function instead of a string to refer to the sibling room path, removing the need for initialisation through on_clone().<p>
+<DT><em>Thu May 10 14:20:07 2001</em>: <strong>Marroc</strong>
+<DD> updated DOOR (/std/door.c) to reflect the changes in M_SIBLING.<p>
+<DT><em>Fri May 11 04:03:02 2001</em>: <strong>Loriel</strong>
+<DD> added a 'destruct(ob)' into add_sell() in M_VENDOR (/std/modules/m_vendor.c) to remove items which are cloned as part of the sales process but neither used nor removed properly.<p>
+<DT><em>Fri May 11 05:56:38 2001</em>: <strong>Marroc</strong>
+<DD> added the concept of a 'through' object in the movement system, that specifies the object through which you enter a room. This enables enter/leave msgs to make more sense, especially when one room has a "northern door" that you walk through, entering the next room through it's "southern door". Complex exit objects automatically set the 'through' object if they can find a sibling at the destination. Modified CLASS_MOVE (/std/classes/move.c), M_COMPLEX_EXIT (/std/modules/m_complex_exit.c) and M_SMARTMOVE (/std/modules/m_smartmove.c).<p>
+<DT><em>Fri May 11 06:09:32 2001</em>: <strong>Marroc</strong>
+<DD> updated SECRET_DOOR (/std/secret_door.c), replacing call to get_default_exit() with query_default_error() so that it'll return the proper error message if trying to walk through the door without opening it (same message as if trying to walk in an invalid direction).<p>
+<DT><em>Fri May 11 06:11:08 2001</em>: <strong>Marroc</strong>
+<DD> modified M_OPENABLE (/std/modules/m_openable.c), commenting out the code that changes adjectives of the object depending on open/closed state, as the new adjective seems to become primary, interfering with what you set in the object.<p>
+<DT><em>Fri May 11 07:52:59 2001</em>: <strong>Marroc</strong>
+<DD> added punctiation and a newline to the return message of door_check() in DOOR (/std/door.c)<p>
+<DT><em>Fri May 11 08:12:09 2001</em>: <strong>Marroc</strong>
+<DD> modified /std/object/names.c, moving initialisation of primary_adj to resync(), where init. of primary_id is. Also modified set_id() and set_adj() to ensure the new ids/adjs end up in the beginning of the id/adj arrays, so that primary_id/adj resync properly.<p>
+<DT><em>Sun May 13 16:19:06 2001</em>: <strong>Marroc</strong>
+<DD> amended M_COMPLEX_EXIT (/std/modules/m_complex_exit.c), removing call to error() in complex_exit_direct_verb_rule() when rule format is unexpected. It now returns 0 now, as would seem more proper when the check cannot handle the rule.<p>
+<DT><em>Sun May 13 16:47:50 2001</em>: <strong>Loriel</strong>
+<DD> fixed part of the 'Pirate Quest', changing "player_left" to "person_left" in on_clone() in /domains/std/objects/ocean.c, and changing the matching in award_points() to if(evaluate(direction) == "the ocean") in the same file, and set the granting object to ocean instead of room.<p>
 </DL>

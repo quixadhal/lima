@@ -31,6 +31,8 @@ add_quest( string quest, int pts )
 int
 check_quest( string quest )
 {
+    if ( !quests )
+	return 0;
     return member_array(quest, quests) != -1;
 }
 

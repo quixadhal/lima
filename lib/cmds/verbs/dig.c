@@ -7,7 +7,7 @@
 
 #include <mudlib.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 
 mixed can_dig_str(string str)

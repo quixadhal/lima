@@ -64,6 +64,11 @@ int is_mobile_limb(string limb)
    return ((class limb) health[limb])->flags & LIMB_MOBILE;
 }
 
+int is_attacking_limb(string limb)
+{
+  return ((class limb) health[limb])->flags & LIMB_ATTACKING;
+}
+
 //:FUNCTION query_limbs
 // string array query_limbs();
 // Returns a string array containing all limbs that health is applied to.
@@ -78,6 +83,15 @@ string array query_limbs()
 string array query_wielding_limbs()
 {
    return filter(keys(health), (: ((class limb)health[$1])->flags & LIMB_WIELDING :));
+}
+
+//:FUNCTION query_attacking_limbs
+// string array query_attacking_limbs();
+// Returns a string array containing all the limba that can attack.
+string array query_attacking_limbs()
+{
+   return filter(keys(health), (: ((class limb)health[$1])->flags &
+LIMB_ATTACKING :));
 }
 
 //:FUNCTION query_vital_limbs

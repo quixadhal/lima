@@ -37,7 +37,7 @@ private nosave int counting_moves;
 private nosave function arrive_func=(:player_did_arrive:);
 private nosave function move_hook=(:moving:);
 
-//:FUNCTION set_wander_area()
+//:FUNCTION set_wander_area
 //Set the area(s) that an NPC can wander in.  If this is not set 
 //it is assumed that the NPC can wander anywhere without area
 //restrictions.
@@ -46,14 +46,14 @@ void set_wander_area(string array area...)
   wander_area=clean_array(area);
 }
 
-//:FUNCTION add_wander_area()
+//:FUNCTION add_wander_area
 //Add area(s) which an NPC can wander in.  See set_wander_area()
 void add_wander_area(string array area...)
 {
   wander_area=clean_array(wander_area+({area}));
 }
 
-//:FUNCTION remove_wander_area()
+//:FUNCTION remove_wander_area
 //Remove area(s) which an NPC can wander in.  See set_wander_area()
 void remove_wander_area(string array area...)
 {
@@ -61,7 +61,7 @@ void remove_wander_area(string array area...)
     wander_area-=({area});
 }
 
-//:FUNCTION clear_wander_area()
+//:FUNCTION clear_wander_area
 //Clear the area(s) in which an NPC can wander in.  Effectively
 //this allows the NPC to wander anywhere.  See set_wander_area()
 void clear_wander_area()
@@ -69,7 +69,7 @@ void clear_wander_area()
   wander_area=({});
 }
 
-//:FUNCTION query_wander_area()
+//:FUNCTION query_wander_area
 //Returns an array of areas in which may wander.  
 //See set_wander_area()
 string array query_wander_area()
@@ -77,7 +77,7 @@ string array query_wander_area()
   return wander_area;
 }
 
-//:FUNCTION set_wander_time()
+//:FUNCTION set_wander_time
 //Sets the time between an NPC's movements.  
 //
 //If the argument is an int it sets the time in seconds.
@@ -93,7 +93,7 @@ void set_wander_time(mixed time)
   wander_time=time;
 }
 
-//:FUNCTION query_wander_time()
+//:FUNCTION query_wander_time
 //Returns an integer which is the amount of time to be used
 //for the interval between movements.  It does not return 
 //the time til the next movement.  query_wander_time()
@@ -111,7 +111,7 @@ int query_wander_time()
   return i;
 }
 
-//:FUNCTION set_max_moves()
+//:FUNCTION set_max_moves
 //Sets the maximum number of moves a monster will make without
 //running into a player.  This prevents too many NPCs
 //moving around for no reason.  If the argument is 0 it assumes
@@ -122,7 +122,7 @@ void set_max_moves(int i)
   max_moves=i;
 }
 
-//:FUNCTION query_max_moves()
+//:FUNCTION query_max_moves
 //Returns the number of moves an NPC will make without player 
 //interaction before stopping.
 int query_max_moves()
@@ -154,7 +154,7 @@ void cease_wandering()
 }
 
 
-//:FUNCTION stop_wandering()
+//:FUNCTION stop_wandering
 //Stops an NPC from wandering.  
 //If you use this function the npc will start moving again if a PC enters the 
 //room.
@@ -165,7 +165,7 @@ void stop_wandering()
   environment()->add_hook("person_arrived",arrive_func);
 }
 
-//:FUNCTION start_wandering()
+//:FUNCTION start_wandering
 //Starts an NPC wandering
 void start_wandering()
 {

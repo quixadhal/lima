@@ -2,7 +2,7 @@
 // The drink source module.
 //  Coded by Uae of Zork.  2/20/98.
 
-//:MODULE m_drink_source
+//:MODULE
 //This module picks up where m_fluid_source
 //leaves off.  It allows drinking from a source.
 

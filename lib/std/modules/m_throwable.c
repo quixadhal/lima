@@ -44,7 +44,7 @@ set_throwable( int g )
     }
 }
 
-mixed throw(object target)
+mixed do_throw(object target)
 {
     object env;
     mixed tmp;
@@ -75,9 +75,3 @@ int is_throwable()
 {
 	return throw_response == 1;
 }
-
-
-
-
-
-

@@ -36,7 +36,7 @@ private nomask mixed page_before(string first)
     first=query_synonym(first);
   if(!query_entry(first))
     return 0;
-  if(member_array(to_int(first),pages)+1<=0)
+  if(member_array(to_int(first),pages)-1<=0)
     return -1;
   return sprintf("%i",pages[member_array(to_int(first),pages)-1]);
 }
@@ -48,7 +48,7 @@ private nomask mixed page_after(string first)
     first=query_synonym(first);
   if(!query_entry(first))
     return 0;
-  if(member_array(to_int(first),pages)+1>sizeof(pages))
+  if(member_array(to_int(first),pages)+1>=sizeof(pages))
     return -1;
   return sprintf("%i",pages[member_array(to_int(first),pages)+1]);
 }
@@ -117,7 +117,7 @@ mixed direct_read_obj(object ob)
   return 1;
 }
 
-varargs void turn(mixed str, mixed wrd,string wrd2)
+varargs void do_turn(mixed str, mixed wrd,string wrd2)
 {
   if(wrd2)
     wrd=sprintf("%s %s",wrd,wrd2);

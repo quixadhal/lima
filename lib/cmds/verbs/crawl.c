@@ -4,7 +4,7 @@
  * Written 2-16-99 by Tigran
  */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_crawl_wrd_obj(string prep, object ob)
 {

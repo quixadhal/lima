@@ -264,7 +264,7 @@ inheritance:
 		$1 |= global_modifiers;
 
 %ifdef SENSIBLE_MODIFIERS
-                acc_mod = $1 & DECL_ACCESS;
+                acc_mod = ($1 & DECL_ACCESS) & ~global_modifiers;
 		if (acc_mod & (acc_mod - 1)) {
 		    char buf[256];
 		    char *end = EndOf(buf);
@@ -400,7 +400,7 @@ def:
 		flags |= global_modifiers;
 
 %ifdef SENSIBLE_MODIFIERS
-                acc_mod = flags & DECL_ACCESS;
+                acc_mod = (flags & DECL_ACCESS) & ~global_modifiers;
 		if (acc_mod & (acc_mod - 1)) {
 		    char buf[256];
 		    char *end = EndOf(buf);
@@ -558,48 +558,70 @@ type_decl:
 		ihe = find_or_add_ident(
 			   PROG_STRING($<number>$ = store_prog_string($3)),
 			   FOA_GLOBAL_SCOPE);
-		if (ihe->dn.class_num == -1)
+		if (ihe->dn.class_num == -1) {
 		    ihe->sem_value++;
+		    ihe->dn.class_num = mem_block[A_CLASS_DEF].current_size / sizeof(class_def_t);
+		    if (ihe->dn.class_num > CLASS_NUM_MASK){
+			char buf[256];
+			char *p;
+
+			p = buf;
+			sprintf(p, "Too many classes, max is %d.\n", CLASS_NUM_MASK + 1);
+			yyerror(buf);
+		    }
+
+		    scratch_free($3);
+		    $<ihe>2 = 0;
+		}
 		else {
-		    /* Possibly, this should check if the definitions are
-		       consistent */
-		    char buf[256];
-		    char *end = EndOf(buf);
-		    char *p;
-		    
-		    p = strput(buf, end, "Illegal to redefine class ");
-		    p = strput(p, end, $3);
-		    yyerror(buf);
+		    $<ihe>2 = ihe;
 		}
-		if (ihe->dn.class_num > CLASS_NUM_MASK){
-		    char buf[256];
-		    char *p;
-
-		    p = buf;
-		    sprintf(p, "Too many classes, max is %d.\n", CLASS_NUM_MASK + 1);
-		    yyerror(buf);
-		}
-
-		ihe->dn.class_num = mem_block[A_CLASS_DEF].current_size / sizeof(class_def_t);
-		scratch_free($3);
-		
 	    }
     member_list '}'
             {
 		class_def_t *sd;
 		class_member_entry_t *sme;
-		int i;
+		int i, raise_error = 0;
 		
-		sd = (class_def_t *)allocate_in_mem_block(A_CLASS_DEF, sizeof(class_def_t));
-		i = sd->size = current_number_of_locals;
-		sd->index = mem_block[A_CLASS_MEMBER].current_size / sizeof(class_member_entry_t);
-		sd->name = $<number>5;
+		/* check for a redefinition */
+		if ($<ihe>2 != 0) {
+		    sd = CLASS($<ihe>2->dn.class_num);
+		    if (sd->size != current_number_of_locals)
+			raise_error = 1;
+		    else {
+			i = sd->size;
+			sme = (class_member_entry_t *)mem_block[A_CLASS_MEMBER].block + sd->index;
+			while (i--) {
+			    /* check for matching names and types */
+			    if (strcmp(PROG_STRING(sme[i].name), locals_ptr[i].ihe->name) != 0 ||
+				sme[i].type != (type_of_locals_ptr[i] & ~LOCAL_MODS)) {
+				raise_error = 1;
+				break;
+			    }
+			}
+		    }
+		}
 
-		sme = (class_member_entry_t *)allocate_in_mem_block(A_CLASS_MEMBER, sizeof(class_member_entry_t) * current_number_of_locals);
+		if (raise_error) {
+		    char buf[256];
+		    char *end = EndOf(buf);
+		    char *p;
 
-		while (i--) {
-		    sme[i].name = store_prog_string(locals_ptr[i].ihe->name);
-		    sme[i].type = type_of_locals_ptr[i] & ~LOCAL_MODS;
+		    p = strput(buf, end, "Illegal to redefine class ");
+		    p = strput(p, end, PROG_STRING($<number>$));
+		    yyerror(buf);
+		} else {
+		    sd = (class_def_t *)allocate_in_mem_block(A_CLASS_DEF, sizeof(class_def_t));
+		    i = sd->size = current_number_of_locals;
+		    sd->index = mem_block[A_CLASS_MEMBER].current_size / sizeof(class_member_entry_t);
+		    sd->name = $<number>5;
+
+		    sme = (class_member_entry_t *)allocate_in_mem_block(A_CLASS_MEMBER, sizeof(class_member_entry_t) * current_number_of_locals);
+
+		    while (i--) {
+			sme[i].name = store_prog_string(locals_ptr[i].ihe->name);
+			sme[i].type = type_of_locals_ptr[i] & ~LOCAL_MODS;
+		    }
 		}
 
 		free_all_local_names(0);
@@ -626,7 +648,7 @@ new_local_name:
       ;
 
 atomic_type:
-        L_BASIC_TYPE 
+        L_BASIC_TYPE
       | L_CLASS L_DEFINED_NAME
             {
 		if ($2->dn.class_num == -1) {
@@ -642,6 +664,18 @@ atomic_type:
 		} else {
 		    $$ = $2->dn.class_num | TYPE_MOD_CLASS;
 		}
+	    }
+      | L_CLASS L_IDENTIFIER
+	    {
+		char buf[256];
+		char *end = EndOf(buf);
+		char *p;
+
+		p = strput(buf, end, "Undefined class '");
+		p = strput(p, end, $2);
+		p = strput(p, end, "'");
+		yyerror(buf);
+		$$ = TYPE_ANY;
 	    }
        ;
 
@@ -668,7 +702,7 @@ basic_type:
 arg_type:
          basic_type
 %ifdef REF_RESERVED_WORD
-       | basic_type L_REF
+       | basic_type ref
             {
 		$$ = $1 | LOCAL_MOD_REF;
 	    }
@@ -678,10 +712,9 @@ arg_type:
 new_arg:
         arg_type optional_star
             {
-		if ($1 == TYPE_VOID)
-		    yyerror("Illegal to declare argument of type void.");
-                $$ = 0;
-                add_local_name("", $1 | $2);
+                $$ = $1 | $2;
+		if ($1 != TYPE_VOID)
+		    add_local_name("", $1 | $2);
             }
       | arg_type optional_star new_local_name
 	    {
@@ -689,7 +722,7 @@ new_arg:
 		    yyerror("Illegal to declare argument of type void.");
                 add_local_name($3, $1 | $2);
 		scratch_free($3);
-                $$ = 0;
+                $$ = $1 | $2;
 	    }
       | new_local_name
             {
@@ -698,7 +731,7 @@ new_arg:
 		}
 		add_local_name($1, TYPE_ANY);
 		scratch_free($1);
-		$$ = 0;
+		$$ = TYPE_ANY;
             }
       ;
 
@@ -729,14 +762,24 @@ argument:
 argument_list:
 	new_arg
 	    {
-		$$.num_arg = 1;
-                $$.flags = $1;
+		if (($1 & TYPE_MASK) == TYPE_VOID && !($1 & TYPE_MOD_CLASS)) {
+		    if ($1 & ~TYPE_MASK)
+			yyerror("Illegal to declare argument of type void.");
+		    $$.num_arg = 0;
+		} else {
+		    $$.num_arg = 1;
+		}
+                $$.flags = 0;
 	    }
     |   argument_list ',' new_arg
 	    {
+		if (!$$.num_arg)    /* first arg was void w/no name */
+		    yyerror("argument of type void must be the only argument.");
+		if (($3 & TYPE_MASK) == TYPE_VOID && !($3 & TYPE_MOD_CLASS))
+		    yyerror("Illegal to declare argument of type void.");
+
                 $$ = $1;
 		$$.num_arg++;
-                $$.flags |= $3;
 	    }
     ;
 
@@ -754,7 +797,7 @@ type_modifier_list:
 		$$ = $1 | $2;
 		
 %ifdef SENSIBLE_MODIFIERS
-                acc_mod = $$ & DECL_ACCESS;
+                acc_mod = ($$ & DECL_ACCESS) & ~global_modifiers;
 		if (acc_mod & (acc_mod - 1)) {
 		    char buf[256];
 		    char *end = EndOf(buf);
@@ -890,7 +933,7 @@ block:
 
 decl_block: block | for | foreach ;
 
- local_declarations:
+local_declarations:
         /* empty */
             {
                 $$.node = 0;
@@ -915,7 +958,7 @@ decl_block: block | for | foreach ;
     ;
 
 
- new_local_def:
+new_local_def:
 	optional_star new_local_name
             {
 		if (current_type & LOCAL_MOD_REF) {
@@ -960,8 +1003,8 @@ decl_block: block | for | foreach ;
 	    }
     ;
 
- single_new_local_def:
-        basic_type optional_star new_local_name
+single_new_local_def:
+        arg_type optional_star new_local_name
             {
 		if ($1 == TYPE_VOID)
 		    yyerror("Illegal to declare local variable of type void.");
@@ -971,7 +1014,7 @@ decl_block: block | for | foreach ;
 	    }
     ;
 
- single_new_local_def_with_init:
+single_new_local_def_with_init:
         single_new_local_def L_ASSIGN expr0
             {
                 int type = type_of_locals_ptr[$1];
@@ -1003,7 +1046,7 @@ decl_block: block | for | foreach ;
 	    }
     ;
 
- local_name_list:
+local_name_list:
         new_local_def
             {
                 $$.node = $1;
@@ -1152,7 +1195,7 @@ foreach_var: L_DEFINED_NAME
 		    CREATE_OPCODE_1($$.node, F_LOCAL_LVALUE, 0, $1->dn.local_num);
 		    type_of_locals_ptr[$1->dn.local_num] &= ~LOCAL_MOD_UNUSED;
 		} else
-	        if ($1->dn.global_num != -1) {
+		if ($1->dn.global_num != -1) {
 		    CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, $1->dn.global_num);
 		} else {
 		    char buf[256];
@@ -1166,10 +1209,10 @@ foreach_var: L_DEFINED_NAME
 		    CREATE_OPCODE_1($$.node, F_GLOBAL_LVALUE, 0, 0);
 		}
 		$$.num = 0;
-            }
+	    }
           | single_new_local_def
-            {
-                if (type_of_locals_ptr[$1] & LOCAL_MOD_REF) {
+	    {
+		if (type_of_locals_ptr[$1] & LOCAL_MOD_REF) {
 		    CREATE_OPCODE_1($$.node, F_REF_LVALUE, 0, $1);
 		} else {
 		    CREATE_OPCODE_1($$.node, F_LOCAL_LVALUE, 0, $1);
@@ -1271,6 +1314,7 @@ first_for_expr:
 		} else {
                     NODE_NO_LINE(node2, NODE_SWITCH_NUMBERS);
                 }
+
                 node2->l.expr = $3;
                 node2->r.expr = node1;
                 prepare_cases(node2, $<number>2);
@@ -1344,6 +1388,7 @@ first_for_expr:
                     yyerror("Mixed case label list not allowed");
 
                 if ($1) context |= SWITCH_NUMBERS;
+
 		$$ = new_node();
 		$$->kind = NODE_CASE_NUMBER;
                 $$->r.expr = (parse_node_t *)$1;
@@ -1457,9 +1502,18 @@ comma_expr:
 	    }
     ;
 
+%ifdef REF_RESERVED_WORD
+ref:
+      L_REF 
+%ifdef COMPAT_32
+    | '&' 
+%endif
+    ;
+%endif
+
 expr0:
 %ifdef REF_RESERVED_WORD
-        L_REF lvalue
+        ref lvalue
             {
 		int op;
 
@@ -3200,26 +3254,28 @@ function_call:
 	efun_override '(' 
             {
 		$<number>$ = context;
+		$<number>2 = num_refs;
 		context |= ARG_LIST; 
 	    }
         expr_list ')'
 	    {
 		context = $<number>3;
 		$$ = validate_efun_call($1,$4);
-		$$ = check_refs(num_refs, $4, $$);
-		num_refs = 0;
+		$$ = check_refs(num_refs - $<number>2, $4, $$);
+		num_refs = $<number>2;
 	    }
         | L_NEW '('
             {
 		$<number>$ = context;
+		$<number>2 = num_refs;
 		context |= ARG_LIST;
 	    }
         expr_list ')'
             {
 		context = $<number>3;
 		$$ = validate_efun_call(new_efun, $4);
-		$$ = check_refs(num_refs, $4, $$);
-		num_refs = 0;
+		$$ = check_refs(num_refs - $<number>2, $4, $$);
+		num_refs = $<number>2;
             }
         | L_NEW '(' L_CLASS L_DEFINED_NAME opt_class_init ')'
             {
@@ -3256,9 +3312,28 @@ function_call:
 		    }
 		}
             }
+	| L_NEW '(' L_CLASS L_IDENTIFIER opt_class_init ')'
+	    {
+		parse_node_t *node;
+		char buf[256];
+		char *end = EndOf(buf);
+		char *p;
+
+		p = strput(buf, end, "Undefined class '");
+		p = strput(p, end, $4);
+		p = strput(p, end, "'");
+		yyerror(buf);
+		CREATE_ERROR($$);
+		node = $5;
+		while (node) {
+		    scratch_free((char *)node->l.expr);
+		    node = node->r.expr;
+		}
+	    }
 	| L_DEFINED_NAME '(' 
             {
 		$<number>$ = context;
+		$<number>2 = num_refs;
 		context |= ARG_LIST;
 	    }
         expr_list ')'
@@ -3320,12 +3395,13 @@ function_call:
 			yyerror(buf);
 		    }
 		}
-		$$ = check_refs(num_refs, $4, $$);
-		num_refs = 0;
+		$$ = check_refs(num_refs - $<number>2, $4, $$);
+		num_refs = $<number>2;
 	    }
 	| function_name	'(' 
             {
 		$<number>$ = context;
+		$<number>2 = num_refs;
 		context |= ARG_LIST;
 	    }
         expr_list ')'
@@ -3389,13 +3465,14 @@ function_call:
 		  else
 		      $$->type = TYPE_ANY;  /* Just a guess */
 	      }
-	      $$ = check_refs(num_refs, $4, $$);
-	      num_refs = 0;
+	      $$ = check_refs(num_refs - $<number>2, $4, $$);
+	      num_refs = $<number>2;
 	      scratch_free(name);
 	  }
     |   expr4 L_ARROW identifier '(' 
             {
 		$<number>$ = context;
+		$<number>4 = num_refs;
 		context |= ARG_LIST;
 	    }
     expr_list ')'
@@ -3440,12 +3517,13 @@ function_call:
 		    $$->type = TYPE_ANY;
 #endif		  
 		}
-		$$ = check_refs(num_refs, $6, $$);
-		num_refs = 0;
+		$$ = check_refs(num_refs - $<number>4, $6, $$);
+		num_refs = $<number>4;
 	    }
     |   '(' '*' comma_expr ')' '(' 
             {
 		$<number>$ = context;
+		$<number>5 = num_refs;
 		context |= ARG_LIST;
 	    }
         expr_list ')'
@@ -3467,8 +3545,8 @@ function_call:
 		expr->v.expr = $3;
 		expr->r.expr = $$->r.expr;
 		$$->r.expr = expr;
-		$$ = check_refs(num_refs, $7, $$);
-		num_refs = 0;
+		$$ = check_refs(num_refs - $<number>5, $7, $$);
+		num_refs = $<number>5;
 	    }
     ;
 

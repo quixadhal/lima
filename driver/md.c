@@ -9,7 +9,7 @@
 #include "swap.h"
 #include "call_out.h"
 #include "mapping.h"
-#ifdef PACKAGE_SOCKETS
+#if defined(PACKAGE_SOCKETS) || defined(PACKAGE_EXTERNAL)
 #include "socket_efuns.h"
 #endif
 #include "cfuns.h"
@@ -278,6 +278,9 @@ static void mark_object P1(object_t *, ob) {
 	DO_MARK(ob->name, TAG_OBJ_NAME);
     }
 
+    if (ob->replaced_program)
+	EXTRA_REF(BLOCK(ob->replaced_program))++;
+
 #ifdef PRIVS
     if (ob->privs)
 	EXTRA_REF(BLOCK(ob->privs))++;
@@ -354,9 +357,18 @@ static void mark_funp P1(funptr_t*, fp) {
     if (fp->hdr.args)
 	fp->hdr.args->extra_ref++;
 
-    fp->hdr.owner->extra_ref++;
-    if ((fp->hdr.type & 0x0f) == FP_FUNCTIONAL) 
-	fp->f.functional.prog->extra_func_ref++;
+    if (fp->hdr.owner)
+        fp->hdr.owner->extra_ref++;
+    switch (fp->hdr.type) {
+	case FP_LOCAL | FP_NOT_BINDABLE:
+	    if (fp->hdr.owner)
+		fp->hdr.owner->prog->extra_func_ref++;
+	    break;
+	case FP_FUNCTIONAL:
+	case FP_FUNCTIONAL | FP_NOT_BINDABLE:
+	    fp->f.functional.prog->extra_func_ref++;
+	    break;
+    }
 }
 
 static void mark_sentence P1(sentence_t *, sent) {
@@ -433,7 +445,7 @@ static void mark_config PROT((void)) {
     }
 }
 
-#ifdef PACKAGE_SOCKETS
+#if defined(PACKAGE_SOCKETS) || defined(PACKAGE_EXTERNAL)
 void mark_sockets PROT((void)) {
     int i;
     char *s;
@@ -683,8 +695,8 @@ void check_all_blocks P1(int, flag) {
     
     if (!(flag & 2)) {
 	/* the easy ones to find */
-	if (blocks[TAG_SIMULS & 0xff] > 2)
-	    outbuf_add(&out, "WARNING: more than two simul_efun tables allocated.\n");
+	if (blocks[TAG_SIMULS & 0xff] > 3)
+	    outbuf_add(&out, "WARNING: more than three simul_efun tables allocated.\n");
 	if (blocks[TAG_INC_LIST & 0xff] > 1)
 	    outbuf_add(&out, "WARNING: more than one include list allocated.\n");
 	if (blocks[TAG_IDENT_TABLE & 0xff] > 1)
@@ -725,17 +737,18 @@ void check_all_blocks P1(int, flag) {
 	if (blocks[TAG_MAP_TBL & 0xff] != num_mappings)
 	    outbuf_addv(&out, "WARNING: %i tables for %i mappings\n",
 			blocks[TAG_MAP_TBL & 0xff], num_mappings);
-	if (blocks[TAG_INTERACTIVE & 0xff] != total_users)
-	    outbuf_addv(&out, "WATNING: total_users is: %i should be: %i\n",
-			total_users, blocks[TAG_INTERACTIVE & 0xff]);
+	if (blocks[TAG_INTERACTIVE & 0xff] != num_user)
+	    outbuf_addv(&out, "WATNING: num_user is: %i should be: %i\n",
+			num_user, blocks[TAG_INTERACTIVE & 0xff]);
 #ifdef STRING_STATS
 	check_string_stats(&out);
 #endif
 	
 #ifdef PACKAGE_EXTERNAL
-	for (i = 0; i < 5; i++) {
-	    if (external_cmd[i])
+	for (i = 0; i < NUM_EXTERNAL_CMDS; i++) {
+	    if (external_cmd[i]) {
 		DO_MARK(external_cmd[i], TAG_STRING);
+	    }
 	}
 #endif
     
@@ -776,7 +789,7 @@ void check_all_blocks P1(int, flag) {
 #ifdef PACKAGE_MUDLIB_STATS
 	mark_mudlib_stats();
 #endif
-#ifdef PACKAGE_SOCKETS
+#if defined(PACKAGE_SOCKETS) || defined(PACKAGE_EXTERNAL)
 	mark_sockets();
 #endif
 #ifdef PACKAGE_PARSER
@@ -790,6 +803,7 @@ void check_all_blocks P1(int, flag) {
 	mark_free_sentences();
 	mark_iptable();
 	mark_stack();
+	mark_command_giver_stack();
 	mark_call_outs();
 	mark_simuls();
 	mark_apply_low_cache();
@@ -874,6 +888,15 @@ void check_all_blocks P1(int, flag) {
 			    while (tmp && tmp != ob)
 				tmp = tmp->next_all;
 			}
+			if (!tmp) {
+			    tmp = obj_list_dangling;
+			    while (tmp && tmp != ob)
+				tmp = tmp->next_all;
+			    if (tmp)
+				outbuf_addv(&out,
+					"WARNING: %s is dangling.\n",
+					ob->name);
+			}
 			if (!tmp)
 			    outbuf_addv(&out, 
 					"WARNING: %s not in object list.\n",
@@ -889,8 +912,9 @@ void check_all_blocks P1(int, flag) {
 		case TAG_PROGRAM:
 		    prog = NODET_TO_PTR(entry, program_t *);
 		    
-		    if (prog->line_info)
+		    if (prog->line_info) {
 			DO_MARK(prog->file_info, TAG_LINENUMBERS);
+		    }
 		    
 		    for (i = 0; i < (int) prog->num_inherited; i++)
 			prog->inherit[i].prog->extra_ref++;
@@ -950,7 +974,7 @@ void check_all_blocks P1(int, flag) {
 		case TAG_FUNP:
 		    fp = NODET_TO_PTR(entry, funptr_t *);
 		    if (fp->hdr.ref != fp->hdr.extra_ref)
-			outbuf_addv(&out, "Bad ref count for function pointer (owned by %s), is %d - should be %d\n", fp->hdr.owner->name, fp->hdr.ref, fp->hdr.extra_ref);
+			outbuf_addv(&out, "Bad ref count for function pointer (owned by %s), is %d - should be %d\n", (fp->hdr.owner ? fp->hdr.owner->name : "(null)"), fp->hdr.ref, fp->hdr.extra_ref);
 		    break;
 #ifndef NO_BUFFER_TYPE
 		case TAG_BUFFER:
@@ -1027,6 +1051,8 @@ void check_all_blocks P1(int, flag) {
     }
     if (!(flag & 2))
 	outbuf_push(&out);
+    else
+	push_number(0);
 }
 #endif                          /* DEBUGMALLOC_EXTENSIONS */
 #endif				/* DEBUGMALLOC */

@@ -36,6 +36,7 @@ static char *mud_lib;
 double consts[NUM_CONSTS];
 
 #ifndef NO_IP_DEMON
+int no_ip_demon = 0;
 void init_addr_server();
 #endif				/* NO_IP_DEMON */
 
@@ -77,7 +78,6 @@ int main P2(int, argc, char **, argv)
 {
     time_t tm;
     int i, new_mudlib = 0, got_defaults = 0;
-    int no_ip_demon = 0;
     char *p;
     char version_buf[80];
 #if 0
@@ -85,10 +85,12 @@ int main P2(int, argc, char **, argv)
 #endif
     error_context_t econ;
 
-/* FIXME: should be a configure check */
-#if !defined(LATTICE) && !defined(OLD_ULTRIX) && !defined(sequent) && \
-    !defined(sgi) && !defined(WIN32)
+#ifdef PROTO_TZSET
     void tzset();
+#endif
+
+#ifdef INCL_LOCALE_H
+    setlocale(LC_ALL, "");
 #endif
 
 #if !defined(__SASC) && (defined(AMITCP) || defined(AS225))
@@ -105,7 +107,7 @@ int main P2(int, argc, char **, argv)
 #if (defined(PROFILING) && !defined(PROFILE_ON) && defined(HAS_MONCONTROL))
     moncontrol(0);
 #endif
-#if !defined(OLD_ULTRIX) && !defined(LATTICE) && !defined(sequent)
+#ifdef USE_TZSET
     tzset();
 #endif
     boot_time = get_current_time();
@@ -514,6 +516,9 @@ void debug_message P1V(char *, fmt)
     V_VAR(char *, fmt, args);
     vfprintf(debug_message_fp, fmt, args);
     fflush(debug_message_fp);
+    va_end(args);
+    V_START(args, fmt);
+    V_VAR(char *, fmt, args);
     vfprintf(stderr, fmt, args);
     fflush(stderr);
     va_end(args);

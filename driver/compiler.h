@@ -73,6 +73,7 @@ typedef struct {
 #define TYPE_FUNCTION   8
 #define TYPE_REAL       9
 #define TYPE_BUFFER     10
+#define TYPE_MASK	0xf
 
 typedef struct {
     int runtime_index;

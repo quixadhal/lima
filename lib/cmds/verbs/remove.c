@@ -64,7 +64,6 @@ void do_remove_wrd_from_obj(string wrd, object ob) {
     ob->do_remove(id);
 }
 
-array query_verb_info() {
-    return ({ ({ "WRD", "WRD from OBJ" }), ({ }),
-              ({ "OBJ" }), ({ "take off", "unwield" }) });
+void create() {
+    add_rules( ({ "WRD", "WRD from OBJ", "OBJ" }), ({ "take off","unwield" }));
 }

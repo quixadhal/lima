@@ -15,7 +15,6 @@
 #include "lex.h"
 #include "backend.h"
 #include "swap.h"
-#include "qsort.h"
 #include "compile_file.h"
 #include "hash.h"
 #include "master.h"
@@ -191,7 +190,7 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
 	if (tmp > (int) USHRT_MAX) {	/* possible? */
 	    fclose(f);
 	    unlink(file_name);
-	    error("String to long for save_binary.\n");
+	    error("String too long for save_binary.\n");
 	    return;
 	}
 	len = tmp;
@@ -231,109 +230,6 @@ void save_binary P3(program_t *, prog, mem_block_t *, includes, mem_block_t *, p
 
     fclose(f);
 }				/* save_binary() */
-
-static program_t *comp_prog;
-
-static int compare_funcs P2(unsigned short *, x, unsigned short *, y) {
-    char *n1 = comp_prog->function_table[*x].name;
-    char *n2 = comp_prog->function_table[*y].name;
-
-    /* make sure #global_init# stays last */
-    if (n1[0] == '#') {
-	if (n2[0] == '#')
-	    return 0;
-	return 1;
-    }
-    if (n2[0] == '#')
-	return -1;
-    
-    if (n1 < n2)
-	return -1;
-    if (n1 > n2)
-	return 1;
-    return 0;
-}
-
-static void sort_function_table P1(program_t *, prog) {
-    unsigned short *sorttmp, *invtmp;
-    int i, last_inherited, j;
-    int num = prog->num_functions_defined;
-    
-    if (!num) return;
-
-    comp_prog = prog;
-    sorttmp = CALLOCATE(num, unsigned short, TAG_TEMPORARY, "sort_function_table");
-
-    i = num;
-    while (i--) sorttmp[i] = i;
-    quickSort(sorttmp, num,sizeof(unsigned short), compare_funcs);
-
-    invtmp = CALLOCATE(num, unsigned short, TAG_TEMPORARY, "sort_function_table");
-
-    i = num;
-    while (i--) {
-	invtmp[sorttmp[i]] = i;
-    }
-
-    i = num;
-    while (i--) {
-	prog->sorted_funcs[i] = invtmp[prog->sorted_funcs[i]];
-    }
-
-    FREE((char *) invtmp);
-
-    /* We're not copying, so we have to do the sort in place.  This is a
-     * bit tricky to do based on a permutation table, but can be done.
-     *
-     * Basically, we figure out how to turn the permutation into n swaps.
-     * If anyone has a reference for an algorithm for this, I'd like to
-     * know; I made this one up.  The basic idea is to do a swap, and then
-     * figure out the correct permutation on the remaining n-1 elements.
-     */
-
-    /* Well, we can think of permutations as composed 
-     * of disjoint cycles and 
-     * just complete the cycles one at a time - Sym                         
-     */
-
-    last_inherited = prog->last_inherited;
-
-    for (i = 0; i < num - 1; i++) {
-	function_t cft;
-	int next, orig;
-
-	if ((next = sorttmp[i]) == i) continue;
-
-	orig = j = i;
-
-	cft = prog->function_table[j];
-	do {
-	    prog->function_table[j] = prog->function_table[next];
-	    j = next;
-	    next = sorttmp[j];
-	} while (next != orig);
-
-	prog->function_table[j] = cft;
-
-	if (prog->type_start) {
-	    int orig_type_start = prog->type_start[j = orig];
-
-	    while ((next = sorttmp[j]) != orig) {
-		prog->type_start[j] = prog->type_start[next];
-		j = next;
-	    }
-	    prog->type_start[j] = orig_type_start;
-	}
-
-	j = sorttmp[orig];
-	do {
-	    next = sorttmp[j];
-	    sorttmp[j] = j;
-	} while ((j = next) != orig);
-    }
-
-    FREE(sorttmp);
-}
 
 #define ALLOC_BUF(size) \
     if ((size) > buf_size) { FREE(buf); buf = DXALLOC(buf_size = size, TAG_TEMPORARY, "ALLOC_BUF"); }
@@ -423,6 +319,13 @@ program_t *int_load_binary P1(char *, name)
     if (fread((char *) &i, sizeof i, 1, f) != 1 || config_id != i) {
 	if (comp_flag)
 	    debug_message("out of date. (config file changed)\n");
+	fclose(f);
+	FREE(buf);
+	return OUT_OF_DATE;
+    }
+    if (check_times(mtime, SIMUL_EFUN) <= 0) {
+	if (comp_flag)
+	    debug_message("out of date (simul_efun newer).\n");
 	fclose(f);
 	FREE(buf);
 	return OUT_OF_DATE;
@@ -531,7 +434,6 @@ program_t *int_load_binary P1(char *, name)
 	buf[len] = '\0';
 	p->function_table[i].name = make_shared_string(buf);
     }
-    sort_function_table(p);
 
     /* line numbers */
     fread((char *) &len, sizeof len, 1, f);
@@ -712,7 +614,8 @@ static void patch_in P3(program_t *, prog, short *, patches, int, len)
 		offset += SWITCH_CASE_SIZE;
 	    }
 	    /* sort so binary search still works */
-	    quickSort(&p[start], (break_addr - start) / SWITCH_CASE_SIZE, 
+	    quickSort(&p[start + i + 1], 
+		      (break_addr - start) / SWITCH_CASE_SIZE, 
 		      SWITCH_CASE_SIZE, str_case_cmp);
 	}
     } 

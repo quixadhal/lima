@@ -8,11 +8,11 @@
 #include <move.h>
 #include <setbit.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_pick_obj(object ob)
 {
-  ob->pick();
+  ob->do_pick();
 }
 
 void do_pick_obj_with_obj(object ob1, object ob2)

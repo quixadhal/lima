@@ -163,6 +163,32 @@ f_refs PROT((void))
 }
 #endif
 
+#ifdef F_DESTRUCTED_OBJECTS
+void f_destructed_objects PROT((void))
+{
+    int i;
+    array_t *ret;
+    object_t *ob;
+
+    ret = allocate_empty_array(tot_dangling_object);
+    ob = obj_list_dangling;
+
+    for (i = 0;  i < tot_dangling_object;  i++) {
+        ret->item[i].type = T_ARRAY;
+        ret->item[i].u.arr = allocate_empty_array(2);
+        ret->item[i].u.arr->item[0].type = T_STRING;
+        ret->item[i].u.arr->item[0].subtype = STRING_SHARED;
+        ret->item[i].u.arr->item[0].u.string = make_shared_string(ob->name);
+        ret->item[i].u.arr->item[1].type = T_NUMBER;
+        ret->item[i].u.arr->item[1].u.number = ob->ref;
+
+        ob = ob->next_all;
+    }
+
+    push_refed_array(ret);
+}
+#endif
+
 #if (defined(DEBUGMALLOC) && defined(DEBUGMALLOC_EXTENSIONS))
 #ifdef F_DEBUGMALLOC
 void
@@ -218,15 +244,19 @@ f_traceprefix PROT((void))
     if (command_giver && command_giver->interactive) {
         old = command_giver->interactive->trace_prefix;
         if (sp->type & T_STRING) {
-            command_giver->interactive->trace_prefix =
-                make_shared_string(sp->u.string);
+	    char *p = sp->u.string;
+	    if (*p == '/') p++;
+	    
+            command_giver->interactive->trace_prefix = make_shared_string(p);
             free_string_svalue(sp);
 	} else
             command_giver->interactive->trace_prefix = 0;
     }
     if (old) {
-        put_shared_string(old);
-    } else *sp = const0;
+	put_malloced_string(add_slash(old));
+	free_string(old);
+    } else 
+	*sp = const0;
 }
 #endif
 

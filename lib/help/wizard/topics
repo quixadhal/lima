@@ -7,7 +7,7 @@ directories.  Here are a few to start with, though:
   std: security, input_handling, book, container, door,
 	 enterable, gettable
 
-  moduless: getopt, grammar, lpc, messages(*), objcalls(*), parsing,
+  modules: getopt, grammar, lpc, messages(*), objcalls(*), parsing,
 	path(*), regex, string(*)
 
   misc: exits(*), simul_efuns, global_macros

@@ -87,11 +87,13 @@ nomask void add_news_id_read(string group,int id)
  * registered we must take care of that as well */
 nomask void unsubscribe_group(string group)
 {
-  if(undefinedp(news_data[group]))
+  if(undefinedp(news_data[group])) {
     news_data[group]="#";
-  else
+  }
+  else {
     news_data[group]=sprintf("#%s",
 			     news_data[group][1..]);
+  }
   save_me();
 }
 
@@ -99,11 +101,13 @@ nomask void unsubscribe_group(string group)
  * we need to do that too. */
 nomask void subscribe_group(string group)
 {
-  if(undefinedp(news_data[group]))
+  if(undefinedp(news_data[group])) {
     news_data[group]=":";
-  else
+  }
+  else {
     news_data[group]=sprintf(":%s",
 			     news_data[group][1..]);
+  }
   save_me();
 }
 
@@ -140,31 +144,19 @@ nomask string array registered_groups()
 nomask void validate_groups()
 {
   string array groups;
-  if(!news_data)
+  if(!news_data) {
     news_data=([]);
+  }
   if(!sizeof(news_data))
     return;
   groups = keys(news_data) - NEWS_D->get_groups();
   map_array(groups, (: map_delete(news_data, $1) :));
-  foreach(string group,mixed data in news_data)
-    {
-      if(intp(data))
-	{
-	  data=sprintf(":%s",
-		       set_add_range("",1,data) );
-	}
+  foreach(string group,mixed data in news_data) {
+    if(intp(data)) {
+      data=sprintf(":%s",set_add_range("",1,data) );
     }
+  }
   save_me();
-}
-
-/* Function for use when converting news from user to body or vice versa */
-nomask void set_news_data(mapping data)
-{
-  if(base_name(previous_object())!=NEWSREADER)
-    return;
-  news_data=data;
-  save_me();
-  return;
 }
 
 nomask mapping get_news_data()

@@ -12,6 +12,7 @@
 #include "std.h"
 #include "parse.h"
 #include "master.h"
+#include "add_action.h"
 
 /*****************************************************
 
@@ -116,7 +117,7 @@
       * The numberwords below should be replaced for the new language *
 
     static char *ord1[] = {"", "first", "second", "third", "fourth", "fifth",
-			   "sixth", "seventh", "eighth", "nineth", "tenth",
+			   "sixth", "seventh", "eighth", "ninth", "tenth",
 			   "eleventh", "twelfth", "thirteenth", "fourteenth",
 			   "fifteenth", "sixteenth", "seventeenth",
 			   "eighteenth","nineteenth"};
@@ -421,7 +422,8 @@ static void parse_clean_up() {
 static void push_parse_globals() {
     parse_global_t *pg;
 
-    (++sp)->type = T_ERROR_HANDLER;
+    STACK_INC;
+    sp->type = T_ERROR_HANDLER;
     sp->u.error_handler = parse_clean_up;
 
     pg = ALLOCATE(parse_global_t, TAG_TEMPORARY, "push_parse_globals");
@@ -770,7 +772,7 @@ static svalue_t *
  * Returns:		svalue holding result of parse.
  */
 static svalue_t *
-       one_parse P6(array_t *, obarr, char *, pat, array_t *, warr, int *, cix_in, int *, fail, svalue_t *, prep_param)
+one_parse P6(array_t *, obarr, char *, pat, array_t *, warr, int *, cix_in, int *, fail, svalue_t *, prep_param)
 {
     char ch;
     svalue_t *pval;
@@ -785,7 +787,7 @@ static svalue_t *
     }
     ch = pat[0];
     if (ch == '%') {
-	ch = ((isupper(pat[1])) ? tolower(pat[1]) : pat[1]);
+	ch = ((uisupper(pat[1])) ? tolower(pat[1]) : pat[1]);
     }
     pval = 0;
 
@@ -859,7 +861,7 @@ static svalue_t *
 
 static char *ord1[] =
 {"", "first", "second", "third", "fourth", "fifth",
- "sixth", "seventh", "eighth", "nineth", "tenth",
+ "sixth", "seventh", "eighth", "ninth", "tenth",
  "eleventh", "twelfth", "thirteenth", "fourteenth",
  "fifteenth", "sixteenth", "seventeenth",
  "eighteenth", "nineteenth"};

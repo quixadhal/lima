@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_talk() {
     this_body()->simple_action("$N $vstart babbling about nothing (and to noone) in particular.");

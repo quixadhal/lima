@@ -12,7 +12,7 @@ void save_me();
 
 mapping methods=([]);
 
-//:FUNCTION add_method()
+//:FUNCTION add_method
 //Add a method and a set of equivalents
 //Any arguments after the first are equivalents to the method.
 void add_method(string method,string array equivs...)
@@ -46,7 +46,7 @@ void add_method(string method,string array equivs...)
   save_me();
 }
 
-//:FUNCTION remove_method()
+//:FUNCTION remove_method
 //Remove a method and it's equivalents
 void remove_method(string method)
 {
@@ -56,14 +56,14 @@ void remove_method(string method)
   save_me();
 }
 
-//:FUNCTION list_methods()
+//:FUNCTION list_methods
 //Return an array of all methods which have equivalents
 string array list_methods()
 {
   return keys(methods);
 }
 
-//:FUNCTION add_method_equivalants()
+//:FUNCTION add_method_equivalants
 //Add an additional equivalents to a given method.
 void add_method_equivalents(string method,string array equivs...)
 {
@@ -90,7 +90,7 @@ void add_method_equivalents(string method,string array equivs...)
   save_me();
 }
 
-//:FUNCTION remove_method_equivalents()
+//:FUNCTION remove_method_equivalents
 //Remove equivalents from a given method
 void remove_method_equivalents(string method, string array equivs...)
 {
@@ -104,7 +104,7 @@ void remove_method_equivalents(string method, string array equivs...)
   save_me();
 }
 
-//:FUNCTION list_method_equivalents()
+//:FUNCTION list_method_equivalents
 //Return an array of equivalents to a given method
 string array list_method_equivalents(string method)
 {

@@ -33,6 +33,8 @@ inherit __DIR__ "object/visible";
 inherit __DIR__ "object/hooks";
 inherit __DIR__ "object/msg_recipient";
 
+mapping lpscript_attributes;
+
 //:FUNCTION stat_me
 //return some debugging info about the state of the object
 string stat_me() 
@@ -41,7 +43,7 @@ string stat_me()
 	"Short: "+short()+"\n";
 
 #ifdef USE_SIZE
-    result += "Size: "+get_size()+" Light: " + query_light() + "\n";
+    result += "Size: "+query_size()+" Light: " + query_light() + "\n";
 #else
 # ifdef USE_MASS
     result += "Weight: "+query_mass()+"  Light: " + query_light() + "\n";
@@ -161,6 +163,20 @@ void on_clone( mixed array args... )
 }
 
 
+void set_lpscript_attributes(mapping attributes)
+{
+  if(base_name(previous_object())!=LPSCRIPT_D)
+    error("Access violation:  Illegal attempt to set_lpscript_attributes");
+  lpscript_attributes=attributes;
+}
+
+string array list_lpscript_attributes() {
+  return copy(keys(lpscript_attributes));
+}
+
+mapping dump_lpscript_attributes() {
+  return copy(lpscript_attributes);
+}
 mapping lpscript_attributes() {
     return ([
         "adj" : ({ LPSCRIPT_LIST, "setup", "add_adj" }),

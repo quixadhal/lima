@@ -6,6 +6,12 @@ private mixed eat_action = "$N $veat $o.";
 private mixed last_eat_action;
 
 string the_short();
+void add_save( string array );
+
+void mudlib_setup()
+{
+  add_save( ({ "num_eats" }) );
+}
 
 //:FUNCTION set_eat_action
 //set_eat_action(string) causes 'string' to be printed when someone

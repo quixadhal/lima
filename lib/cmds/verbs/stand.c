@@ -10,7 +10,7 @@
 */
 
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 /* This is more than likely a temporary fix -- Tigran */
 /* Using default_checks here is bad.  Complaining about not standing when

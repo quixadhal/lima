@@ -1,0 +1,103 @@
+<p><h1>Changes since Lima 1.0b2</h1></p>
+<DL>
+<DT><em>Tue Feb 27 09:48:59 2001</em>: <strong>Loriel</strong>
+<DD> added a further error-trap into read_entry() in M_READABLE (/std/modules/m_readable.c) to return 'nothing there' for attempts to read invalid entries, instead of erroring.<p>
+<DT><em>Tue Feb 27 16:35:53 2001</em>: <strong>Loriel</strong>
+<DD> changed get_lowest_unread_id(current_group) to current_id in menu_select_change_header() in NEWSREADER (/obj/mudlib/newsreader.c) as suggested by Marroc.<p>
+<DT><em>Tue Feb 27 18:40:45 2001</em>: <strong>Loriel</strong>
+<DD> installed a new ACCOUNTANT (/std/accountant.c) to use the M_ACCOUNTANT (/std/modules/m_accountant.c) module by IIzuka.<p>
+<DT><em>Tue Feb 27 18:43:55 2001</em>: <strong>Loriel</strong>
+<DD> amended the lpscript attributes of DOOR (/std/door.c) for ident to set_sibling_ident. Thanks to Marroc for spotting it.<p>
+<DT><em>Tue Feb 27 19:00:04 2001</em>: <strong>Loriel</strong>
+<DD> amended the door_check() function in SECRET_DOOR (/std/secret_door.c) from int to mixed, and to return the environment's get_default_exit() instead of writing it and returning 0. (suggested by Marroc)<p>
+<DT><em>Tue Feb 27 19:11:04 2001</em>: <strong>Loriel</strong>
+<DD> finished the incomplete implementation of Marroc's fixes to PLAYER_MENU (/obj/mudlib/plmenu.c) relating to souls and adverbs.<p>
+<DT><em>Tue Feb 27 19:17:50 2001</em>: <strong>Loriel</strong>
+<DD> fixed the spelling of parse_command_adjective_id_list() in /secure/master.c.<p>
+<DT><em>Wed Feb 28 09:27:43 2001</em>: <strong>Loriel</strong>
+<DD> reinstalled earlier fix to GUILD_D (/daemons/guild_d.c) so that admtool does not give privilege problems, by allowing changes where that is the previous object as well as where the check_previous_privilege() test is passed.<p>
+<DT><em>Wed Feb 28 10:37:40 2001</em>: <strong>Loriel</strong>
+<DD> amended CONTAINER (/std/container.c), adding error-trapping into reinsert_object() to assume default relation if none is specified, and commented out some of the conditions in indirect_verb_rule, and provided better error messages. Note that there are probably better checks to be added for indirect_verb_rule, but at least these correctly check basic stuff like getting from and putting in.<p>
+<DT><em>Thu Mar  1 09:10:06 2001</em>: <strong>Loriel</strong>
+<DD> fixed the exit in /domains/std/cult/Foyer.c from ../room2 to ../Relations_And_Toys. Thanks to Marroc for pointing it out.<p>
+<DT><em>Thu Mar  1 09:13:22 2001</em>: <strong>Loriel</strong>
+<DD> changed get_size() to query_size() in /domains/std/rooms/beach/Outside_Cave.c. Thanks to Marroc for spotting it.<p>
+<DT><em>Thu Mar  1 09:16:16 2001</em>: <strong>Loriel</strong>
+<DD> replaced example_room1 with Example_Room1 in /domains/std/rooms/v_plains.data - thanks to Marroc for spotting it.<p>
+<DT><em>Thu Mar  1 09:23:36 2001</em>: <strong>Loriel</strong>
+<DD> added into OBJ (/std/object.c) various lpscript support functions from Marroc.<p>
+<DT><em>Thu Mar  1 09:27:24 2001</em>: <strong>Loriel</strong>
+<DD> replaced inheritance of COMPLEX_CONTAINER by CONTAINER in /domains/std/table.c.<p>
+<DT><em>Thu Mar  1 09:35:32 2001</em>: <strong>Loriel</strong>
+<DD> added the saving of num_eats into a newly added mudlib_setup() in M_EDIBLE (/std/modules/m_edible.c).<p>
+<DT><em>Thu Mar  1 09:37:40 2001</em>: <strong>Loriel</strong>
+<DD> added a new mudlib_setup() into FOOD (/std/food.c) to properly handle the two inherited mudlib_setup() functions from OBJECT and M_EDIBLE.<p>
+<DT><em>Thu Mar  1 09:47:25 2001</em>: <strong>Loriel</strong>
+<DD> amended query_mail_forward() in NEWS_D (/daemons/news_d.c) as suggested by Marroc, to return an array, empty if no mail forward, and 0 for permission denied.<p>
+<DT><em>Thu Mar  1 09:47:31 2001</em>: <strong>Loriel</strong>
+<DD> amended /obj/admtool/daemons/news.c to reflect the amendment above.<p>
+<DT><em>Thu Mar  1 09:48:55 2001</em>: <strong>Loriel</strong>
+<DD> amended show_exits() in M_EXIT (/std/modules/m_exit.c), installing Marroc's fix to better handle case with all exits hidden.<p>
+<DT><em>Thu Mar  1 09:57:23 2001</em>: <strong>Loriel</strong>
+<DD> added Marroc's proposed fix to /std/body/quests.c, returning 0 for check_quest() if there are no quests.<p>
+<DT><em>Fri Mar  2 08:22:25 2001</em>: <strong>Loriel</strong>
+<DD> added error-checking into can_drive_str() in /cmds/verbs/drive.c so that attempting to drive whilst not in a vehicle is better handled.<p>
+<DT><em>Sat Mar  3 08:12:44 2001</em>: <strong>Loriel</strong>
+<DD> amended CORPSE (/std/corpse.c) to remove the $v from $vgnaw in the set_decay_action() in mudlib_setup().<p>
+<DT><em>Mon Mar  5 08:31:06 2001</em>: <strong>Loriel</strong>
+<DD> amended direct_enter_obj() in /domains/std/objects/sand_castle.c to return a suitable failure message (moving the one from do_enter()).<p>
+<DT><em>Tue Mar  6 19:01:26 2001</em>: <strong>Loriel</strong>
+<DD> fixed /domains/std/object/dock_wall.c to use do_close instead of close in its trigger() function.<p>
+<DT><em>Wed Mar  7 17:50:46 2001</em>: <strong>Loriel</strong>
+<DD> removed /daemons/cmd.c (unneeded - misplaced copy of /daemons/channel/cmd.c).<p>
+<DT><em>Sat Mar 10 10:28:46 2001</em>: <strong>Loriel</strong>
+<DD> amended rcv_finger_reply() in /daemons/imud/finger.c to convert int to string for those muds which choose to break the I3 protocol by returning level as int instead of string.<p>
+<DT><em>Fri Mar 23 05:29:59 2001</em>: <strong>Loriel</strong>
+<DD> fixed check_previous() in GUILD_D (/daemons/guild_d.c) to take the argument passed - thanks to Sarak for pointing it out.<p>
+<DT><em>Sun Mar 25 14:58:49 2001</em>: <strong>Loriel</strong>
+<DD> added Marroc's proposed changes to /secure/master.c, to better handle errors of the 'which ... do you mean?' type, adding parser_gen_pos() and amending the ERR_AMBIG case in parser_error_message() to use it.<p>
+<DT><em>Tue Mar 27 08:05:31 2001</em>: <strong>Loriel</strong>
+<DD> installed Marroc's recursive extension to his fix to the master for ambiguous errors - see parser_gen_pos() and parser_error_message().<p>
+<DT><em>Thu Mar 29 15:03:02 2001</em>: <strong>Rust</strong>
+<DD> fixed it so that remote tells from others show up in your tell history.<p>
+<DT><em>Tue Apr 10 02:53:36 2001</em>: <strong>Marroc</strong>
+<DD> created newsgroup lima.bugs.fixed, for bugreps that are supposedly fixed, so that they do not clutter the lima.bugs group.<p>
+<DT><em>Tue Apr 10 15:27:25 2001</em>: <strong>Rust</strong>
+<DD> made it so that when I3 reports an error it tells you the mud name that sent the error.<p>
+<DT><em>Mon Apr 16 19:39:35 2001</em>: <strong>Tigran</strong>
+<DD> tweaked HTTP_D so that it parses cgi a bit better with arguments (? vs ?=)<p>
+<DT><em>Tue Apr 17 05:51:51 2001</em>: <strong>Loriel</strong>
+<DD> amended make_unique_objects_if_needed() in CONTAINER (/std/container.c), adding a clonep() filter and adjusting the number by 1, which should ensure correct number of unique clones created on initial cloning.<p>
+<DT><em>Tue Apr 17 05:55:01 2001</em>: <strong>Loriel</strong>
+<DD> fixed the default fill_action in M_FLUID_SOURCE (/std/modules/m_fluid_source.c), changing withdraw to $vwithdraw.<p>
+<DT><em>Tue Apr 17 05:58:49 2001</em>: <strong>Loriel</strong>
+<DD> amended M_READABLE (/std/modules/m_readable.c), adding set_entry_synonyms() as an alternative to set_synonyms() and adjusting the autodoc help appropriately.<p>
+<DT><em>Tue Apr 17 06:07:43 2001</em>: <strong>Loriel</strong>
+<DD> made fixes to M_FOLLOW (/std/modules/m_follow.c), changing autodoc name of set_follow_search() from set_follow_string, adding a did_move() into do_follow_obj() and improving arrive_hook().<p>
+<DT><em>Mon Apr 23 02:54:55 2001</em>: <strong>Marroc</strong>
+<DD> amended /cmds/player/colours.c, removing the check for CONFIGURABLE_COLOUR (this was probably fixed before, but lost).<p>
+<DT><em>Mon Apr 23 02:58:35 2001</em>: <strong>Marroc</strong>
+<DD> added support for colours in admtool using the defined colours ADMTOOL_HEADING, ADMTOOL_HI and ADMTOOL_LO. Modified /obj/admtool/admtool2.c, /obj/admtool/internal/base.c slightly. The colours default to 'none'.<p>
+<DT><em>Tue Apr 24 00:38:03 2001</em>: <strong>Marroc</strong>
+<DD> amended ADVERSARY (/std/adversary.c), ARMOR (/std/armor.c), CONTAINER (/std/container.c), FLAME (/std/flame.c), FOLLOWING_MONSTER (/std/following_monster.c), FOOD (/std/food.c), KEY (/std/key.c), PAPER (/std/paper.c), SIGN (/std/sign.c), TORCH (/std/torch.c), WANDERING_MONSTER (/std/wandering_monster.c) and WEAPON (/std/weapon.c) -- Eliminating calls to ::lpscript_attributes() in inherited modules etc, as they are redundant; LPSCRIPT_D digs through all the inherits by itself.<p>
+<DT><em>Thu May 10 14:19:49 2001</em>: <strong>Marroc</strong>
+<DD> updated M_SIBLING (/std/modules/m_sibling.c) to use a function instead of a string to refer to the sibling room path, removing the need for initialisation through on_clone().<p>
+<DT><em>Thu May 10 14:20:07 2001</em>: <strong>Marroc</strong>
+<DD> updated DOOR (/std/door.c) to reflect the changes in M_SIBLING.<p>
+<DT><em>Fri May 11 04:03:02 2001</em>: <strong>Loriel</strong>
+<DD> added a 'destruct(ob)' into add_sell() in M_VENDOR (/std/modules/m_vendor.c) to remove items which are cloned as part of the sales process but neither used nor removed properly.<p>
+<DT><em>Fri May 11 05:56:38 2001</em>: <strong>Marroc</strong>
+<DD> added the concept of a 'through' object in the movement system, that specifies the object through which you enter a room. This enables enter/leave msgs to make more sense, especially when one room has a "northern door" that you walk through, entering the next room through it's "southern door". Complex exit objects automatically set the 'through' object if they can find a sibling at the destination. Modified CLASS_MOVE (/std/classes/move.c), M_COMPLEX_EXIT (/std/modules/m_complex_exit.c) and M_SMARTMOVE (/std/modules/m_smartmove.c).<p>
+<DT><em>Fri May 11 06:09:32 2001</em>: <strong>Marroc</strong>
+<DD> updated SECRET_DOOR (/std/secret_door.c), replacing call to get_default_exit() with query_default_error() so that it'll return the proper error message if trying to walk through the door without opening it (same message as if trying to walk in an invalid direction).<p>
+<DT><em>Fri May 11 06:11:08 2001</em>: <strong>Marroc</strong>
+<DD> modified M_OPENABLE (/std/modules/m_openable.c), commenting out the code that changes adjectives of the object depending on open/closed state, as the new adjective seems to become primary, interfering with what you set in the object.<p>
+<DT><em>Fri May 11 07:52:59 2001</em>: <strong>Marroc</strong>
+<DD> added punctiation and a newline to the return message of door_check() in DOOR (/std/door.c)<p>
+<DT><em>Fri May 11 08:12:09 2001</em>: <strong>Marroc</strong>
+<DD> modified /std/object/names.c, moving initialisation of primary_adj to resync(), where init. of primary_id is. Also modified set_id() and set_adj() to ensure the new ids/adjs end up in the beginning of the id/adj arrays, so that primary_id/adj resync properly.<p>
+<DT><em>Sun May 13 16:19:06 2001</em>: <strong>Marroc</strong>
+<DD> amended M_COMPLEX_EXIT (/std/modules/m_complex_exit.c), removing call to error() in complex_exit_direct_verb_rule() when rule format is unexpected. It now returns 0 now, as would seem more proper when the check cannot handle the rule.<p>
+<DT><em>Sun May 13 16:47:50 2001</em>: <strong>Loriel</strong>
+<DD> fixed part of the 'Pirate Quest', changing "player_left" to "person_left" in on_clone() in /domains/std/objects/ocean.c, and changing the matching in award_points() to if(evaluate(direction) == "the ocean") in the same file, and set the granting object to ocean instead of room.<p>
+</DL>

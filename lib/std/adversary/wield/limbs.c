@@ -6,7 +6,7 @@ void simple_action(string, object);
 int query_health(string);
 varargs mixed call_hooks(string, mixed, mixed, array...);
 
-private nosave mapping weapons = ([]);
+private mapping weapons = ([ ]);
 
 string array query_wielding_limbs();
 
@@ -44,6 +44,7 @@ varargs void wield(object ob, string limb)
    weapons[limb] = ob;
    ob->mark_wielded_by(this_object(), limb);
    call_hooks("on_wield", HOOK_IGNORE);
+   simple_action(ob->query_wield_message(), ob);
 }
 
 varargs void unwield(string limb)
@@ -81,7 +82,6 @@ varargs int do_wield(object ob, string limb)
       return 0;
    if(ob->query_wielded_by() == this_object())
       return 0;
-   simple_action(ob->query_wield_message(), ob);
    wield(ob, limb);
     
    return 1;

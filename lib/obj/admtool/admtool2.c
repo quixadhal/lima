@@ -48,9 +48,9 @@ class command_info array module_commands() {
 }
 
 protected void heading() {
-    write("\n"
+    write("\n%^ADMTOOL_HEADING%^"
 	  "--- Administration Tool ---\n"
-	  "\n");
+	  "%^RESET%^\n");
 }
 
 class command_info array defaults() {

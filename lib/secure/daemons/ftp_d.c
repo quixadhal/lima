@@ -48,6 +48,7 @@ inherit M_ACCESS;
 #define LTYPE_LIST 0
 #define LTYPE_NLST 1
 
+private nosave int idlecall;
 private nosave mapping passives = ([]);
 private nosave mapping sessions = ([]);
 private nosave mapping dataports = ([]);
@@ -71,7 +72,6 @@ private nosave mapping dispatch =
   "syst" : (: FTP_CMD_syst :),
   "pasv" : (: FTP_CMD_pasv :),
 ]);
-private string iphost;
 private object sock;
 
 private mixed outfile=([]);
@@ -130,7 +130,6 @@ private void FTP_handle_idlers()
     {
       return;
     }
-
   foreach(object socket, class ftp_session info in sessions)
     {
       if(info->dataPipe) /* Data connections are still active. */
@@ -139,13 +138,16 @@ private void FTP_handle_idlers()
 	  continue;
 	}
       info->idleTime += 60;
-      if(info->idleTime > MAX_IDLE_TIME+60)
+      if(info->idleTime >= MAX_IDLE_TIME+60)
 	{
-	  FTPLOGF("%s idled out at %s.\n", info->user, ctime(time()));
-	  destruct(info->cmdPipe);
+	  FTPLOGF("%s idled out at %s.\n", capitalize(info->user), ctime(time()));
+	  socket->send(sprintf("421 Timeout. (%i seconds): closing control connection.\n",MAX_IDLE_TIME));
+	  map_delete(sessions,socket);
+	  destruct(socket);
 	}
     }
-  call_out("FTP_handle_idlers", 60);
+  if(sizeof(keys(sessions)))
+    idlecall=call_out( (:FTP_handle_idlers:), 60);
 }
 
 private void FTP_addSession(object socket)
@@ -163,7 +165,7 @@ private void FTP_addSession(object socket)
   map_delete(sessions,0); /* Just make sure there's no stale stuff here */
   if(!sizeof(sessions))
     {
-      call_out("FTP_handle_idlers", 60);
+      idlecall=call_out((:FTP_handle_idlers :), 60);
     }
   sessions[socket] = newSession;
 }
@@ -190,7 +192,16 @@ private void FTP_read(object socket, string data)
       FTP_addSession(socket);
       return;
     }
+
   thisSession = sessions[socket];
+
+  /* Check to make sure that the time idle is not greater than the maximum
+   * idle time.  If it is remove the session and everything attached to it */ 
+/*   if(thisSession->idleTime>MAX_IDLE_TIME) { */
+
+/*     //    call_out((:destruct($(socket) ):),5); */
+/*     return; */
+/*   } */
 
   thisSession->idleTime = 0;
   
@@ -291,7 +302,6 @@ private void create()
 {
   sock = new(SOCKET, SKT_STYLE_LISTEN, PORT_FTP, (: FTP_read :),
 	     (: FTP_close :));
-  resolve(query_host_name(),(: iphost=$2 :) );
 }
 
 private void FTP_DATA_read(object socket, mixed text)
@@ -434,7 +444,6 @@ private void FTP_CMD_pasv(class ftp_session info, string arg)
       info->cmdPipe->send("500 command not understood.\n");
       return;
     }
-  ip=replace_string(iphost,".",",");
   if(info->dataPipe)
     {
       destruct(info->dataPipe);
@@ -460,7 +469,9 @@ private void FTP_CMD_pasv(class ftp_session info, string arg)
   port_dec=listen_socket->local_port();
   port=({port_dec>>8,port_dec%256});
   info->cmdPipe->send(sprintf("227 Entering Passive mode. (%s,%i,%i)\n",
-			      ip,port[0],port[1]) );
+			      replace_string(listen_socket->local_address(),".",","),
+			      port[0],
+			      port[1]) );
 }
 
 private void FTP_CMD_port(class ftp_session info, string arg)
@@ -514,23 +525,20 @@ private void do_list(class ftp_session info, string arg, int ltype)
   string array 	files;
   string flags;
   string output;
+  int isfile;
   
   flags=find_flags(arg);
   arg=strip_flags(arg);
   if(!arg || arg == "")
       arg = ".";
-  /* This hack added by Tigran because things like /secure/master.c/.
-   * evaluate and cause havoc w/ ftp clients like efs for Xemacs and
-   * ange-ftp for Emacs.  Besides it shouldn't happen anyways */
-  if(arg[<2..]=="/.")
-    {
-      if(is_file(arg[0..<3]))
-	{
-	  info->cmdPipe->send(sprintf("550 %s: No such file OR directory.\n",arg));
-	  destruct(info->dataPipe);
-	  return;
-	}
-    }
+  
+  /* Check to make sure we aren't really lookin gat a file.  
+   * canonical_file() mucks this up a bit later on so the check
+   * is necessary */ 
+  if(arg[<2..]=="/.") 
+    if(is_file(arg[0..<3])) 
+      isfile=1;
+  
   arg = evaluate_path(arg, info->pwd);
   ANON_CHECK(arg);
   if(unguarded(1, (:is_directory($(arg)):)))
@@ -541,8 +549,11 @@ private void do_list(class ftp_session info, string arg, int ltype)
       destruct(info->dataPipe);
       return;
     }
-  files = unguarded(info->priv, (:get_dir($(arg),-1):));
-  if(!files)
+  if(isfile)
+    files=({});
+  else
+    files = unguarded(info->priv, (:get_dir($(arg),-1):));
+  if(!files&&!isfile)
     {
 	  info->cmdPipe->send(sprintf("550 %s: Permission denied.\n",arg));
 	  destruct(info->dataPipe);
@@ -551,7 +562,7 @@ private void do_list(class ftp_session info, string arg, int ltype)
   if(flags)
     if(strsrch(flags,'a')==-1)
       files = filter(files, (: member_array($1[0], ({".",".."})) == -1 :));
-  if(!sizeof(files))
+  if(!sizeof(files)&&!isfile)
     {
       info->cmdPipe->send("550 No files found.\n");
       destruct(info->dataPipe);
@@ -650,6 +661,7 @@ private void do_list(class ftp_session info, string arg, int ltype)
 				     $1[0])
 			    :)),"\n");
     }
+
 
   if(strsrch(flags,'1')>-1)
     output=implode(map(files,(:sprintf("%s",$1[0]) :)),"\n");
@@ -941,10 +953,10 @@ void remove()
 	  destruct(item->dataPipe);
 	}
     }
-
+  
   destruct(sock);
-
-  remove_call_out("FTP_handle_idlers");
+  
+  remove_call_out(idlecall);
 }
 
 int clean_up() {

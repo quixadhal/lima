@@ -9,7 +9,7 @@
 #include <move.h>
 #include <setbit.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_swim()
 {

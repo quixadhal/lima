@@ -15,11 +15,11 @@ private void main(mixed *arg) {
     object ob, env;
     string file;
     string data;
-    
+
     ob = arg[0];
     file = base_name(ob);
-    
-    if (file_size(file)<0) {
+
+    if( file_size(file + ".c") < 0) {
 	outf("renew: file '" + file + "' does not exist (or is a directory).\n");
 	return 0;
     }
@@ -28,7 +28,7 @@ private void main(mixed *arg) {
     ob->remove();
     outf("Updating '" + file + "' ...\n");
     if (CMD_OB_UPDATE->do_update(file, 3) < time())
-        out(file + ": No update necessary.\n");
+	out(file + ": No update necessary.\n");
     ob = new(file);
     ob->load_from_string(data, 1);
     ob->move(env);

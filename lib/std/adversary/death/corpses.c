@@ -13,7 +13,7 @@ private string corpse_filename = CORPSE;
 
 nomask string query_default_death_message()
 {
-   return "$N $vbreath $p last breath and $vslump to the ground, dead.";
+   return "$N $vbreathe $p last breath and $vslump to the ground, dead.";
 }
 
 //:FUNCTION set_corpse_long
@@ -37,6 +37,7 @@ void set_corpse_filename(string str)
 void drop_corpse()
 {
    object corpse = new(corpse_filename, query_name(), corpse_long);
+   all_inventory()->set_worn(0);
    all_inventory()->move(corpse);
    corpse->move(environment());
 }

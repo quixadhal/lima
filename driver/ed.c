@@ -485,14 +485,19 @@ static void free_ed_buffer P1(object_t *, who)
         free_object(ED_BUFFER->exit_ob, "ed EOF");
     }
     if (ED_BUFFER->exit_fn) {
-	/* make this "safe" */
-	safe_apply(ED_BUFFER->exit_fn,
-		   ED_BUFFER->exit_ob, 0, ORIGIN_INTERNAL);
-	FREE(ED_BUFFER->exit_fn);
-	free_object(ED_BUFFER->exit_ob, "ed EOF");
+	char *exit_fn = ED_BUFFER->exit_fn;
+	object_t *exit_ob = ED_BUFFER->exit_ob;
+
+	if (P_OLDPAT)
+	    FREE((char *) P_OLDPAT);
 	FREE((char *) ED_BUFFER);
 	who->interactive->ed_buffer = 0;
 	set_prompt("> ");
+
+	/* make this "safe" */
+	safe_apply(exit_fn, exit_ob, 0, ORIGIN_INTERNAL);
+	FREE(exit_fn);
+	free_object(exit_ob, "ed EOF");
 	return;
     }
 #endif
@@ -648,7 +653,7 @@ static int dowrite P4(int, from, int, to, char *, fname, int, apflg)
     if (ED_BUFFER->write_fn) {
         svalue_t *res;
 
-        share_and_push_string(fname);
+        push_malloced_string(add_slash(fname));
         push_number(0);
         res = safe_apply(ED_BUFFER->write_fn, ED_BUFFER->exit_ob, 2, ORIGIN_INTERNAL);
         if (IS_ZERO(res))
@@ -657,7 +662,7 @@ static int dowrite P4(int, from, int, to, char *, fname, int, apflg)
 #endif
 
     if (!P_RESTRICT)
-	ED_OUTPUTV(ED_DEST, "\"%s\" ", fname);
+	ED_OUTPUTV(ED_DEST, "\"/%s\" ", fname);
     if ((fp = fopen(fname, (apflg ? "a" : "w"))) == NULL) {
 	if (!P_RESTRICT)
 	    ED_OUTPUT(ED_DEST, " can't be opened for writing!\n");
@@ -685,7 +690,7 @@ static int dowrite P4(int, from, int, to, char *, fname, int, apflg)
 
 #ifdef OLD_ED
     if (ED_BUFFER->write_fn) {
-        share_and_push_string(fname);
+        push_malloced_string(add_slash(fname));
         push_number(1);
         safe_apply(ED_BUFFER->write_fn, ED_BUFFER->exit_ob, 2, ORIGIN_INTERNAL);
     }
@@ -1177,7 +1182,7 @@ static int set()
     }
     if (!strcmp(word, "shiftwidth")) {
 	Skip_White_Space;
-	if (isdigit(*inptr)) {
+	if (uisdigit(*inptr)) {
 	    P_SHIFTWIDTH = *inptr - '0';
 	    return 0;
 	}
@@ -1369,7 +1374,7 @@ static void indent P1(char *, buf)
     static char g[] =
     {2, 2, 1, 7, 1, 5, 5, 1, 3, 6, 2, 2, 2, 2, 0,};
     char text[ED_MAXLINE], ident[ED_MAXLINE];
-    register char *p, *sp;
+    char *p, *sp;
     register int *ip;
     register long indent_index;
     register int top, token;
@@ -1481,7 +1486,7 @@ static void indent P1(char *, buf)
 		int j = 0;
 		
 		if (*p == '@') p++;
-		while (isalnum(*p) || *p == '_') last_term[j++] = *p++;
+		while (uisalnum(*p) || *p == '_') last_term[j++] = *p++;
 		last_term[j] = '\0';
 		last_term_len = j;
 		in_mblock = TRUE;
@@ -1578,14 +1583,14 @@ static void indent P1(char *, buf)
 		break;
 
 	    default:
-		if (isalpha(*--p) || *p == '_') {
-		    register char *q;
+		if (uisalpha(*--p) || *p == '_') {
+		    char *q;
 
 		    /* Identifier. See if it's a keyword_t. */
 		    q = ident;
 		    do {
 			*q++ = *p++;
-		    } while (isalnum(*p) || *p == '_');
+		    } while (uisalnum(*p) || *p == '_');
 		    *q = '\0';
 
 		    if (strcmp(ident, "if") == 0)
@@ -1858,7 +1863,7 @@ static int docmd P1(int, glob)
 	fptr = getfn(0);
 
 	if (P_NOFNAME)
-	    ED_OUTPUTV(ED_DEST, "%s\n", P_FNAME);
+	    ED_OUTPUTV(ED_DEST, "/%s\n", P_FNAME);
 	else {
 	    if (fptr == NULL)
 		return FILE_NAME_ERROR;
@@ -2249,13 +2254,13 @@ void ed_cmd P1(char *, str)
 	more_append(str);
 	return;
     }
-    if (strlen(str) < ED_MAXLINE)
-	strcat(str, "\n");
 
-    strncpy(inlin, str, ED_MAXLINE - 1);
-    inlin[ED_MAXLINE - 1] = 0;
+    strncpy(inlin, str, ED_MAXLINE - 2);
+    inlin[ED_MAXLINE - 2] = 0;
+    strcat(inlin, "\n");
+
     inptr = inlin;
-    if ((status = getlst()) >= 0 || status == NO_LINE_RANGE)
+    if ((status = getlst()) >= 0 || status == NO_LINE_RANGE) {
 	if ((status = ckglob()) != 0) {
 	    if (status >= 0 && (status = doglob()) >= 0) {
 		setCurLn(status);
@@ -2268,6 +2273,7 @@ void ed_cmd P1(char *, str)
 		return;
 	    }
 	}
+    }
     report_status(status);
 }
 #endif
@@ -2275,8 +2281,8 @@ void ed_cmd P1(char *, str)
 static void report_status P1(int, status) {
     switch (status) {
     case EOF:
-	free_ed_buffer(current_editor);
 	ED_OUTPUT(ED_DEST, "Exit from ed.\n");
+	free_ed_buffer(current_editor);
 	return;
     case CHANGED:
 	ED_OUTPUT(ED_DEST, "File has been changed.\n");
@@ -2756,7 +2762,7 @@ char *object_ed_cmd P2(object_t *, ob, char *, str)
     strcat(inlin, "\n");
 
     inptr = inlin;
-    if ((status = getlst()) >= 0 || status == NO_LINE_RANGE)
+    if ((status = getlst()) >= 0 || status == NO_LINE_RANGE) {
 	if ((status = ckglob()) != 0) {
 	    if (status >= 0 && (status = doglob()) >= 0) {
 		setCurLn(status);
@@ -2769,6 +2775,7 @@ char *object_ed_cmd P2(object_t *, ob, char *, str)
 		return object_ed_results();
 	    }
 	}
+    }
     report_status(status);
     return object_ed_results();
 }

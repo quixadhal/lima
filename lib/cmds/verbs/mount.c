@@ -5,7 +5,7 @@
 */
 
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 
 void do_mount_obj(object ob)

@@ -224,6 +224,7 @@ static void handle_define()
 	else yyerror("Name too long.\n");
     }
     if (q == namebuf) yyerror("Macro name missing.\n");
+    if (*namebuf != '_' && !isalpha(*namebuf)) yyerror("Invalid macro name.\n");
     *q = 0;
     if (*tmp == '(') {            /* if "function macro" */
         int arg;
@@ -974,7 +975,7 @@ void make_efun_tables()
 	fclose(files[i]);
 }
 
-static void handle_local_defines() {
+static void handle_local_defines(int check) {
     defn_t *p;
     int i;
     int problem = 0;
@@ -997,6 +998,9 @@ static void handle_local_defines() {
     
     if ((p = lookup_define("_OPTIONS_H_")))
 	p->flags |= DEF_IS_UNDEFINED;
+
+    if (!check)
+	return;
 
     for (i = 0; i < DEFHASH; i++)
 	for (p = defns[i]; p; p = p->next)
@@ -1026,14 +1030,21 @@ static void write_options_incl P1(int, local) {
     close_output_file();
 }
 
-static void handle_options() {
+static void handle_options(int full) {
     open_input_file(OPTIONS_H);
     ppchar = '#';
     preprocess();
 
+    if (!full) {
+	/* don't do any checking, just find out what is defined */
+	if (maybe_open_input_file(LOCAL_OPTIONS))
+	    handle_local_defines(0);
+	return;
+    }
+
     if (maybe_open_input_file(LOCAL_OPTIONS)) {
 	fprintf(stdout, "Using '%s' file ...\n", LOCAL_OPTIONS);
-	handle_local_defines();
+	handle_local_defines(1);
 	write_options_incl(1);
     } else {
 	fprintf(stderr, "No \"%s\" file present.  If you create one from \"%s\",\nyou can use it when you get a new driver, and you will be warned if there are\nchanges to the real %s which you should include in your local file.\n",
@@ -1182,9 +1193,9 @@ static void handle_malloc() {
 	exit(-1);
     }
 
-    if (unlink("malloc.c") == -1)
+    if (unlink("malloc.c") == -1 && errno != ENOENT)
 	perror("unlink malloc.c");
-    if (unlink("mallocwrapper.c") == -1)
+    if (unlink("mallocwrapper.c") == -1 && errno != ENOENT)
 	perror("unlink mallocwrapper.c");
 
     if (the_wrapper) {
@@ -1194,8 +1205,6 @@ static void handle_malloc() {
 	    perror("link mallocwrapper.c");
     } else {
 	printf("Using memory allocation package: %s\n", the_malloc);
-	if (link("plainwrapper.c", "mallocwrapper.c") == -1)
-	    perror("link mallocwrapper.c");
     }
     if (link(the_malloc, "malloc.c") == -1)
 	perror("link malloc.c");
@@ -1382,13 +1391,24 @@ static void handle_configure() {
 #ifndef WIN32
     check_include("INCL_STDLIB_H", "stdlib.h");
     check_include("INCL_UNISTD_H", "unistd.h");
-    check_include("INCL_TIME_H", "time.h");
+    if (check_include("INCL_TIME_H", "time.h")) {
+	if (!check_prog(0, "#include <time.h>", "tzset();", 0)) {
+	    if (check_prog(0, 0, "void tzset(); tzset();", 0))
+		fprintf(yyout, "#define PROTO_TZSET\n#define USE_TZSET\n");
+	}
+	else
+	    fprintf(yyout, "#define USE_TZSET\n");
+    } else {
+	if (check_prog(0, 0, "void tzset(); tzset();", 0))
+	    fprintf(yyout, "#define PROTO_TZSET\n#define USE_TZSET\n");
+    }
     check_include("INCL_SYS_TIMES_H", "sys/times.h");
     check_include("INCL_FCNTL_H", "fcntl.h");
     check_include("INCL_SYS_TIME_H", "sys/time.h");
     check_include("INCL_DOS_H", "dos.h");
     check_include("INCL_USCLKC_H", "usclkc.h");
     check_include("INCL_LIMITS_H", "limits.h");
+    check_include("INCL_LOCALE_H", "locale.h");
     if (!check_prog(0, 0, "int x = USHRT_MAX;", 0)) {
 	if (!check_prog(0, 0, "int x = MAXSHORT;", 0))
 	    check_include("INCL_VALUES_H", "values.h");
@@ -1445,9 +1465,20 @@ static void handle_configure() {
 #endif
 
     /* Runtime loading support */
-    check_include("INCL_DLFCN_H", "dlfcn.h");
-    if (!check_prog(0, 0, "int x = RTLD_LAZY;", 0))
-	fprintf(yyout, "#define RTLD_LAZY     1\n");
+    if (check_include("INCL_DLFCN_H", "dlfcn.h")) {
+	if (!check_prog(0, "#include <dlfcn.h>", "int x = RTLD_LAZY;", 0))
+	    fprintf(yyout, "#define RTLD_LAZY      1\n");
+    } else {
+	if (!check_prog(0, 0, "int x = RTLD_LAZY;", 0))
+	    fprintf(yyout, "#define RTLD_LAZY     1\n");
+    }
+
+    /* SunOS is missing definition for INADDR_NONE */
+    printf("Checking for missing INADDR_NONE ... ");
+    if (!check_prog(0, "#include <netinet/in.h>", "int x = INADDR_NONE;", 0)) {
+	printf("missing\n");
+	fprintf(yyout, "#define INADDR_NONE (unsigned int)0xffffffff\n");
+    } else printf("ok\n");
 
     printf("Checking for random number generator ...");
     if (check_prog("DRAND48", 0, "srand48(0);", 0)) {
@@ -1520,16 +1551,26 @@ static void handle_configure() {
 	exit(-1);
     }
     
-    /* PACKAGE_DB stuff; can't use lookup_define here tho */
-    if (lookup_define("MSQL")) {
-	/* -I would be nicer, but we don't have an easy way to set -I paths
-	 * right now 
+    /* PACKAGE_DB stuff */
+    if (lookup_define("PACKAGE_DB")) {
+	/* -I would be nicer for added include paths, but we don't have an easy way to
+	 * set -I paths right now 
 	 */
-	if (!(check_include("INCL_LOCAL_MSQL_H", "/usr/local/include/msql.h")
-	      || check_include("INCL_LOCAL_MSQL_MSQL_H", "/usr/local/msql/include/msql.h")
-	      || check_include("INCL_LOCAL_MINERVA_MSQL_H", "/usr/local/Minerva/include/msql.h"))) {
-	    fprintf(stderr, "Cannot find msql.h\n");
-	    exit(-1);
+	if (lookup_define("USE_MSQL")) {
+	    if (!(check_include("INCL_LOCAL_MSQL_H", "/usr/local/include/msql.h")
+		|| check_include("INCL_LOCAL_MSQL_MSQL_H", "/usr/local/msql/include/msql.h")
+		|| check_include("INCL_LOCAL_MINERVA_MSQL_H", "/usr/local/Minerva/include/msql.h")
+		|| check_include("INCL_LIB_HUGHES_MSQL_H", "/usr/lib/Hughes/include/msql.h"))) {
+		fprintf(stderr, "Cannot find msql.h, compilation is going to fail miserably.\n");
+	    }
+	}
+	if (lookup_define("USE_MYSQL")) {
+	    if (!(check_include("INCL_LOCAL_MYSQL_H", "/usr/local/include/mysql.h")
+		|| check_include("INCL_LOCAL_INCLUDE_MYSQL_MYSQL_H", "/usr/local/include/mysql/mysql.h")
+		|| check_include("INCL_LOCAL_MYSQL_MYSQL_H", "/usr/local/mysql/include/mysql.h")
+		|| check_include("INCL_MYSQL_MYSQL_H", "/usr/include/mysql/mysql.h"))) {
+		fprintf(stderr, "Cannot find mysql.h, compilation is going to fail miserably.\n");
+	    }
 	}
     }
     
@@ -1572,13 +1613,21 @@ static void handle_configure() {
     check_linux_libc();
 
     /* PACKAGE_DB stuff */
-    if (lookup_define("MSQL")) {
+    if (lookup_define("PACKAGE_DB") && lookup_define("USE_MSQL")) {
 	if (!(check_library("-lmsql") ||
 	      check_library("-L/usr/local/lib -lmsql") ||
 	      check_library("-L/usr/local/msql/lib -lmsql") ||
-	      check_library("-L/usr/local/Minerva/lib -lmsql"))) {
-	    fprintf(stderr, "Cannot find libmsql.a\n");
-	    exit(-1);
+	      check_library("-L/usr/local/Minerva/lib -lmsql") ||
+	      check_library("-L/usr/lib/Hughes/lib -lmsql"))) {
+	    fprintf(stderr, "Cannot find libmsql.a, compilation is going to fail miserably\n");
+	}
+    }
+    if (lookup_define("PACKAGE_DB") && lookup_define("USE_MYSQL")) {
+	if (!(check_library("-lmysqlclient") ||
+	      check_library("-L/usr/local/lib -lmysqlclient") ||
+	      check_library("-L/usr/local/lib/mysql -lmysqlclient") ||
+	      check_library("-L/usr/local/mysql/lib -lmysqlclient"))) {
+	    fprintf(stderr, "Cannot find libmysqlclient.a, compilation is going to fail miserably\n");
 	}
     }
 
@@ -1596,13 +1645,14 @@ int main P2(int, argc, char **, argv) {
 	    exit(-1);
 	}
 	if (strcmp(argv[idx], "-configure")==0) {
+	    handle_options(0);
 	    handle_configure();
 	} else
 	if (strcmp(argv[idx], "-process")==0) {
 	    handle_process(argv[++idx]);
 	} else
 	if (strcmp(argv[idx], "-options")==0) {
-	    handle_options();
+	    handle_options(1);
 	} else
 	if (strcmp(argv[idx], "-malloc")==0) {
 	    handle_malloc();

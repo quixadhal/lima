@@ -13,49 +13,49 @@ nomask string module_key() {
 
 private nomask void list_groups()
 {
-    string * groups;
+  string * groups;
 
-    groups = keys(GROUP_D->get_group_data());
-    if ( !sizeof(groups) )
-    {
-	write("There are no groups.\n");
-    }
-    else
-    {
-	printf("The following groups exist:\n%-#78s\n",
-	       implode(sort_array(groups, 1), "\n") + "\n");
-    }
+  groups = sort_array(keys(GROUP_D->get_group_data()), 1);
+  if ( !sizeof(groups) )
+  {
+    write("There are no groups.\n");
+  }
+  else
+  {
+    printf("The following groups exist:\n%-#78s\n",
+    implode(sort_array(groups, 1), "\n") + "\n");
+  }
 }
 
 private nomask void show_group_members(string group)
 {
-    string * members;
+  string * members;
 
-    group = lower_case(group);
-    members = GROUP_D->get_group_data()[group];
-    if ( !members )
+  group = lower_case(group);
+  members = sort_array(GROUP_D->get_group_data()[group], 1);
+  if ( !members )
+  {
+    printf("There is no group named '%s'.\n", group);
+  }
+  else
+  {
+    printf("Group %s:\n", group);
+
+    switch ( sizeof(members) )
     {
-	printf("There is no group named '%s'.\n", group);
+      case 0:
+        write("Members: (none)\n");
+        break;
+
+      case 1:
+        printf("Member:  %s\n", members[0]);
+        break;
+
+      default:
+        printf("Members: %s\n", implode(members, ", "));
+        break;
     }
-    else
-    {
-	printf("Group %s:\n", group);
-
-	switch ( sizeof(members) )
-	{
-	case 0:
-	    write("Members: (none)\n");
-	    break;
-
-	case 1:
-	    printf("Member:  %s\n", members[0]);
-	    break;
-
-	default:
-	    printf("Members: %s\n", implode(members, ", "));
-	    break;
-	}
-    }
+  }
 }
 
 private nomask void create_group(string group)

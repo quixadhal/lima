@@ -50,7 +50,7 @@ void mudlib_setup(string name, string long, object l)
     set_max_capacity(VERY_LARGE);
     set_size(VERY_LARGE);
     set_num_decays(3);
-    set_decay_action("Insects $vgnaw at the withering corpse.\n");
+    set_decay_action("Insects gnaw at the withering corpse.\n");
     set_last_decay_action("A corpse $vdecay into dust and ash.\n");
     set_decay_time(20);
     set_decay_auto_remove(1);

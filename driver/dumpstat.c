@@ -119,7 +119,7 @@ void dumpstat P1(char *, tfn)
 
     fn = check_valid_path(tfn, current_object, "dumpallobj", 1);
     if (!fn) {
-	error("Invalid path '/%s' for writing.\n", fn);
+	error("Invalid path '/%s' for writing.\n", tfn);
 	return;
     }
     f = fopen(fn, "w");
@@ -142,6 +142,7 @@ void dumpstat P1(char *, tfn)
 		continue;
 	}
 #endif
+	/* FIXME */
 	if (ob->prog && (ob->prog->ref == 1 || !(ob->flags & O_CLONE)))
 	    tmp = ob->prog->total_size;
 	else

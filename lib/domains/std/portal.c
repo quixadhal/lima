@@ -7,4 +7,5 @@ void setup( string destination )
     set_long( "It's a glowing portal, set into the northern wall.");
     add_adj( "glowing", "northern", "north" );
     set_look_in_desc( "You can vaguely see a sandy beach.");
+    set_in_room_desc("A glowing portal");
 }

@@ -1,7 +1,7 @@
 # Do not remove the headers from this file! see /USAGE for more info.
 
 is=room
-exists=south:wiz_hall.scr
+exits=south:wiz_hall.scr
 brief=Room of quests
 long=
   This is the room of quests. Every wizard can make at most one quest.\n
@@ -20,7 +20,8 @@ light=1
 
 ---
 /* FIXME */
-count(silently) {
+#define FREE_QUESTS 0
+int count(int silently) {
     object ob;
     int i;
 
@@ -50,7 +51,7 @@ count(silently) {
     return i - FREE_QUESTS;
 }
 
-list(i) {
+void list(int i) {
     object ob;
 
     ob = first_inventory(this_object());

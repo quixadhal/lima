@@ -11,30 +11,20 @@
 //### E.g. not "" or it will interfere with the emote
 
 
-inherit NVERB_OB;
+inherit VERB_OB;
 inherit M_GRAMMAR;
 
 void create() {
     clear_flag(NEED_TO_BE_ALIVE);
 
-    add_rules( ({ "", "STR","at OBS:v", "for OBS:v", "STR OBJ:v",
-		      "at OBS:v with OBJ", "WRD OBJ" }) );
+    add_rules( ({ "", "STR OBJ","STR","WRD OBJ","at OBJ", "for OBS",
+		      "at OBS with OBJ" }) );
 
-    add_rules( ({ "OBS:v", "OBS:v with OBJ" }), ({ "examine" }) );
+    add_rules( ({ "OBS", "OBS with OBJ" }), ({ "examine" }) );
 }
 
-mixed can_look_wrd_obj(string wrd, object ob)
-{
-    if (wrd == "through" ) return default_checks();
-    return 0;
-}
 
 mixed can_look_str(string str) {
-#if 0 // deprecated
-    mixed value = environment(this_body())->query_exit_value(str);
-    if (value && value[0] != '#')
-	return default_checks();
-#endif
     return "That doesn't seem to be possible.\n";
 }
 
@@ -150,17 +140,6 @@ void do_look_for_obs(array info) {
 	res += number_word(sizeof(ua[i])) + " " + look_for_phrase(ua[i][0]);
     }
     write(res + ".\n");
-//### why?
-#if 0
-    if (environment(this_body()) == env) {
-	this_body()->my_action("$O is right here!", ob);
-    } else {
-	relation = env->query_prep(ob);
-
-	this_body()->my_action("The $O is " + relation + " the $O.",
-	  ob, env);
-    }
-#endif
 }
 
 mixed

@@ -9,7 +9,7 @@ void assign_flag(string, int);
 int test_flag(string);
 void set_light(int);
 
-//:FUNCTION
+//:FUNCTION remove
 //This function is guaranteed to be called when an object is destructed.
 //It tidies up some things like updating its environment's capacity and
 //light level.  It also calls the "remove" hook.

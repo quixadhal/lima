@@ -4,17 +4,18 @@ inherit OBJ;
 inherit M_EDIBLE;
 inherit M_GETTABLE;
 
+void mudlib_setup()
+{
+  object::mudlib_setup();
+  m_edible::mudlib_setup();
+}
 
 mixed direct_eat_obj( object ob )
 {
-    return m_edible::direct_eat_obj( ob );
+  return m_edible::direct_eat_obj( ob );
 }
 
-
-int is_food()
-{
-    return 1;
-}
+int is_food(){  return 1;}
 
 string get_extra_long()
 {
@@ -28,9 +29,4 @@ string get_extra_long()
     case 91..99: return "It has hardly been touched.";
     case 100: return "It is untouched.";
     }
-}
-
-mapping lpscript_attributes()
-{
-    return object::lpscript_attributes() + m_gettable::lpscript_attributes();
 }

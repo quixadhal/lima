@@ -56,6 +56,8 @@
 #define FRAME_OB_CHANGE    4
 #define FRAME_EXTERNAL     8
 
+#define FRAME_RETURNED_FROM_CATCH   16
+
 typedef struct control_stack_s {
 #ifdef PROFILE_FUNCTIONS
     unsigned long entry_secs, entry_usecs;
@@ -90,8 +92,8 @@ typedef struct {
 typedef struct error_context_s {
     jmp_buf context;
     control_stack_t *save_csp;
-    object_t *save_command_giver; 
     svalue_t *save_sp;
+    object_t **save_cgsp;
     struct error_context_s *save_context;
 } error_context_t;
 
@@ -111,26 +113,31 @@ typedef struct {
 /* add to an svalue */
 #define EXTEND_SVALUE_STRING(x, y, z) \
     SAFE( char *ess_res; \
-      int ess_len; \
-      int ess_r; \
-      ess_len = (ess_r = SVALUE_STRLEN(x)) + strlen(y); \
-      if ((x)->subtype == STRING_MALLOC && MSTR_REF((x)->u.string) == 1) { \
-          ess_res = (char *) extend_string((x)->u.string, ess_len); \
-          if (!ess_res) fatal("Out of memory!\n"); \
-          strcpy(ess_res + ess_r, (y)); \
-      } else { \
-	  ess_res = new_string(ess_len, z); \
-	  strcpy(ess_res, (x)->u.string); \
-	  strcpy(ess_res + ess_r, (y)); \
-	  free_string_svalue(x); \
-	  (x)->subtype = STRING_MALLOC; \
-      } \
-      (x)->u.string = ess_res;  )
+	int ess_len; \
+	int ess_r; \
+	ess_len = (ess_r = SVALUE_STRLEN(x)) + strlen(y); \
+	if (ess_len > MAX_STRING_LENGTH) \
+	    error("Maximum string length exceeded in concatenation.\n"); \
+	if ((x)->subtype == STRING_MALLOC && MSTR_REF((x)->u.string) == 1) { \
+	    ess_res = (char *) extend_string((x)->u.string, ess_len); \
+	    if (!ess_res) fatal("Out of memory!\n"); \
+	    strcpy(ess_res + ess_r, (y)); \
+	} else { \
+	    ess_res = new_string(ess_len, z); \
+	    strcpy(ess_res, (x)->u.string); \
+	    strcpy(ess_res + ess_r, (y)); \
+	    free_string_svalue(x); \
+	    (x)->subtype = STRING_MALLOC; \
+	} \
+	(x)->u.string = ess_res; \
+    )
 
 /* <something that needs no free> + string svalue */
 #define SVALUE_STRING_ADD_LEFT(y, z) \
     SAFE( char *pss_res; int pss_r; int pss_len; \
         pss_len = SVALUE_STRLEN(sp) + (pss_r = strlen(y)); \
+	if (pss_len > MAX_STRING_LENGTH) \
+	    error("Maximum string length exceeded in concatenation.\n"); \
         pss_res = new_string(pss_len, z); \
         strcpy(pss_res, y); \
         strcpy(pss_res + pss_r, sp->u.string); \
@@ -145,6 +152,8 @@ typedef struct {
     SAFE( char *ssj_res; int ssj_r; int ssj_len; \
         ssj_r = SVALUE_STRLEN(x); \
         ssj_len = ssj_r + SVALUE_STRLEN(y); \
+	if (ssj_len > MAX_STRING_LENGTH) \
+	    error("Maximum string length exceeded in concatenation.\n"); \
         if ((x)->subtype == STRING_MALLOC && MSTR_REF((x)->u.string) == 1) { \
             ssj_res = (char *) extend_string((x)->u.string, ssj_len); \
             if (!ssj_res) fatal("Out of memory!\n"); \
@@ -173,7 +182,13 @@ typedef struct {
 #define free_svalue(x,y) int_free_svalue(x)
 #endif
 
-#define push_svalue(x) assign_svalue_no_free(++sp, x)
+#define CHECK_STACK_OVERFLOW(x) if (sp + (x) >= end_of_stack) SAFE( too_deep_error = 1; error("stack overflow"); )
+#define STACK_INC SAFE( CHECK_STACK_OVERFLOW(1); sp++; )
+
+#define push_svalue(x) SAFE( \
+			    STACK_INC;\
+			    assign_svalue_no_free(sp, x);\
+			    )
 #define put_number(x) SAFE( \
 			   sp->type = T_NUMBER;\
 			   sp->subtype = 0;\
@@ -188,7 +203,7 @@ typedef struct {
 				    sp->u.ob = (x);\
 				    )
 #define put_object(x) SAFE(\
-			   if ((x)->flags & O_DESTRUCTED) put_number(0); \
+			   if (!(x) || (x)->flags & O_DESTRUCTED) *sp = const0u;\
 			   else put_undested_object(x);\
 			   )
 #define put_unrefed_undested_object(x, y) SAFE(\
@@ -197,8 +212,7 @@ typedef struct {
 					       add_ref((x), y);\
 					       )
 #define put_unrefed_object(x,y) SAFE(\
-				     if ((x)->flags & O_DESTRUCTED)\
-				     put_number(0);\
+				     if (!(x) || (x)->flags & O_DESTRUCTED) *sp = const0u;\
 				     else put_unrefed_undested_object(x,y);\
 				     )
 /* see comments on push_constant_string */
@@ -232,6 +246,7 @@ extern short caller_type;
 extern char *pc;
 extern svalue_t *sp;
 extern svalue_t *fp;
+extern svalue_t *end_of_stack;
 extern svalue_t catch_value;
 extern control_stack_t control_stack[CFG_MAX_CALL_DEPTH];
 extern control_stack_t *csp;
@@ -253,11 +268,18 @@ extern svalue_t const0;
 extern svalue_t const1;
 extern svalue_t const0u;
 extern svalue_t apply_ret_value;
+extern ref_t *global_ref_list;
+extern int lv_owner_type;
+extern refed_t *lv_owner;
+
+void kill_ref PROT((ref_t *));
+ref_t *make_ref PROT((void));
 
 /* with LPC_TO_C off, these are defines using eval_instruction */
 #ifdef LPC_TO_C
 void call_program PROT((program_t *, POINTER_INT));
 #endif
+void init_interpreter PROT((void));
 void call_direct PROT((object_t *, int, int, int));
 void eval_instruction PROT((char *p));
 INLINE void assign_svalue PROT((svalue_t *, svalue_t *));
@@ -343,7 +365,7 @@ void debug_perror PROT((char *, char *));
 int validate_shadowing PROT((object_t *));
 #endif
 
-#ifdef LAZY_RESETS
+#if !defined(NO_RESETS) && defined(LAZY_RESETS)
 void try_reset PROT((object_t *));
 #endif
 

@@ -4,5 +4,6 @@ class limb
 {
    int health;
    int max_health;
+   string parent;
    int flags;
 }

@@ -118,7 +118,7 @@ protected void execute_command(string original_input)
 	    return;
 
 	/* try a channel */
-	channel_name = CHANNEL_D->is_valid_channel(argv[0], this_body()->query_channel_list());
+	channel_name = CHANNEL_D->is_valid_channel(argv[0], this_user()->query_channel_list());
 	if ( channel_name )
 	{
 	    /* ### strictly speaking, players can't use I3 channels */

@@ -8,13 +8,13 @@
 #include <mudlib.h>
 #include <move.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 varargs private nomask void throw_one(object ob, object target)
 {
     mixed tmp;
 
-    tmp = ob->throw(target);
+    tmp = ob->do_throw(target);
 
     if (!tmp) tmp = target ? "That doesn't make a good weapon.\n" : 
 	"Someone else might pick it up...\n";

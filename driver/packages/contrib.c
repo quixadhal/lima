@@ -9,6 +9,8 @@
 #include "/compiler.h"
 #include "/main.h"
 #include "/eoperators.h"
+#include "/simul_efun.h"
+#include "/add_action.h"
 #else
 #include "../lpc_incl.h"
 #include "../comm.h"
@@ -20,6 +22,8 @@
 #include "../main.h"
 #include "../eoperators.h"
 #include "../efun_protos.h"
+#include "../simul_efun.h"
+#include "../add_action.h"
 #endif
 
 /* should be done in configure */
@@ -91,22 +95,20 @@ f_remove_shadow PROT((void))
     object_t *ob;
     
     ob = current_object;
-    if ( st_num_arg )
-	{
-	    ob = sp->u.ob;
-	    pop_stack();
-	}
-    if ( ! ob || ! ob->shadowing )
-	push_number( 0 );
-    else
-	{
-	    if ( ob->shadowed )
-		ob->shadowed->shadowing = ob->shadowing;
-	    if ( ob->shadowing )
-		ob->shadowing->shadowed = ob->shadowed;
-	    ob->shadowing = ob->shadowed = 0;
-	    push_number( 1 );
-	}
+    if (st_num_arg) {
+	ob = sp->u.ob;
+	pop_stack();
+    }
+    if (ob == 0 || (ob->shadowing == 0 && ob->shadowed == 0))
+	push_number(0);
+    else {
+	if (ob->shadowed)
+	    ob->shadowed->shadowing = ob->shadowing;
+	if (ob->shadowing)
+	    ob->shadowing->shadowed = ob->shadowed;
+	ob->shadowing = ob->shadowed = 0;
+	push_number(1);
+    }
 }
 #endif
 
@@ -122,7 +124,7 @@ f_query_notify_fail PROT((void)) {
 	    push_funp(command_giver->interactive->default_err_message.f);
 	    return;
 	} else if ((p = command_giver->interactive->default_err_message.s)) {
-	    sp++;
+	    STACK_INC;
 	    sp->type = T_STRING;
 	    sp->subtype = STRING_SHARED;
 	    sp->u.string = p;
@@ -309,7 +311,8 @@ void f_functions PROT((void)) {
 
     progp = sp->u.ob->prog;
     num = progp->num_functions_defined + progp->last_inherited;
-    if (num && progp->function_table[progp->num_functions_defined-1].name[0]
+    if (progp->num_functions_defined &&
+	progp->function_table[progp->num_functions_defined-1].name[0]
 	== APPLY___INIT_SPECIAL_CHAR)
 	num--;
 	
@@ -342,9 +345,6 @@ void f_functions PROT((void)) {
 	}
     
 	index -= prog->last_inherited;
-#ifdef BINARIES
-	index = prog->sorted_funcs[index];
-#endif
 
 	funp = prog->function_table + index;
 
@@ -503,9 +503,9 @@ f_terminal_colour PROT((void))
 {
     char *instr, *cp, *savestr, *deststr, **parts;
     int num, i, j, k, col, start, space, *lens, maybe_at_end;
-    int space_garbage;
+    int space_garbage = 0;
     mapping_node_t *elt, **mtab;
-    int tmp;
+    int buflen, max_buflen, space_buflen;
     int wrap = 0;
     int indent = 0;
 
@@ -567,16 +567,34 @@ f_terminal_colour PROT((void))
 	    if (cp) {
 		*cp = 0;
 		if (cp > instr) {
-		    parts[num] = instr;
-		    num++;
-		    if (num % NSTRSEGS == 0)
+		    if (num && num % NSTRSEGS == 0) {
 			parts = RESIZE(parts, num + NSTRSEGS, char *, 
 				       TAG_TEMPORARY, "f_terminal_colour: parts realloc");
+		    }
+		    parts[num++] = instr;
 		}
 	    }
 	}
-	if (*instr)	/* trailing seg, if not delimiter */
+	if (*instr) {	/* trailing seg, if not delimiter */
+	    if (num && num % NSTRSEGS == 0) {
+		parts = RESIZE(parts, num + NSTRSEGS, char *,
+			       TAG_TEMPORARY, "f_terminal_colour: parts realloc");
+	    }
 	    parts[num++] = instr;
+	}
+    }
+
+    if (num == 0) {
+	/* string consists entirely of %^'s */
+	FREE(parts);
+	if (savestr)
+	    FREE_MSTR(savestr);
+	pop_stack();
+	free_string_svalue(sp);
+	sp->type = T_STRING;
+	sp->subtype = STRING_CONSTANT;
+	sp->u.string = "";
+	return;
     }
 
     /* Could keep track of the lens as we create parts, removing the need
@@ -589,160 +607,187 @@ f_terminal_colour PROT((void))
     start = -1;
     space = 0;
     maybe_at_end = 0;
+    buflen = max_buflen = space_buflen = 0;
     for (j = i = 0, k = sp->u.map->table_size; i < num; i++) {
-	int len;
-	    
 	if ((cp = findstring(parts[i]))) {
-	    tmp = MAP_POINTER_HASH(cp);
+	    int tmp = MAP_POINTER_HASH(cp);
 	    for (elt = mtab[tmp & k]; elt; elt = elt->next)
 		if ( elt->values->type == T_STRING && 
 		     (elt->values + 1)->type == T_STRING &&
 		     cp == elt->values->u.string) {
 		    parts[i] = (elt->values + 1)->u.string;
 		    /* Negative indicates don't count for wrapping */
-		    len = SVALUE_STRLEN(elt->values + 1);
-		    if (wrap) len = -len;
+		    lens[i] = SVALUE_STRLEN(elt->values + 1);
+		    if (wrap) lens[i] = -lens[i];
 		    break;
 		}
 	    if (!elt)
-		len = SHARED_STRLEN(cp);
+		lens[i] = SHARED_STRLEN(cp);
 	} else {
-	    len = strlen(parts[i]);
+	    lens[i] = strlen(parts[i]);
 	}
-	lens[i] = len;
-	if (len > 0) {
-	    if (maybe_at_end) {
-		if (j + indent > max_string_length) {
-		    /* this string no longer counts, so we are still in
-		       a maybe_at_end condition.  This means we will end
-		       up truncating the rest of the fragments too, since
-		       the indent will never fit. */
-		    lens[i] = 0;
-		    len = 0;
+
+	if (lens[i] <= 0) {
+	    if (j + -lens[i] > max_string_length)
+		lens[i] = -(-(lens[i]) - (j + -lens[i] - max_string_length));
+	    j += -lens[i];
+	    buflen += -lens[i];
+	    continue;
+	}
+
+	if (maybe_at_end) {
+	    if (j + indent > max_string_length) {
+		/* this string no longer counts, so we are still in
+		   a maybe_at_end condition.  This means we will end
+		   up truncating the rest of the fragments too, since
+		   the indent will never fit. */
+		lens[i] = 0;
+	    } else {
+		j += indent;
+		col += indent;
+		maybe_at_end = 0;
+	    }
+	}
+
+	j += lens[i];
+	if (j > max_string_length) {
+	    lens[i] -= j - max_string_length;
+	    j = max_string_length;
+	}
+
+	if (wrap) {
+	    int z;
+	    char *p = parts[i];
+	    for (z = 0; z < lens[i]; z++) {
+		char c = p[z];
+		buflen++;
+		if (c == '\n') {
+		    col = 0;
+		    space = space_buflen = 0;
+		    start = -1;
+		    max_buflen = (buflen > max_buflen ? buflen : max_buflen);
+		    buflen = 0;
 		} else {
+		    if (col > start || (c != ' ' && c != '\t'))
+			col++;
+		    else {
+			j--;
+			buflen--;
+		    }
+
+		    if (col > start && c == '\t')
+			col += (8 - ((col - 1) % 8));
+		    if (c == ' ' || c == '\t') {
+			space = col;
+			space_buflen = buflen;
+		    }
+		    if (col == wrap+1) {
+			if (space) {
+			    col -= space;
+			    space = 0;
+			    max_buflen = (buflen > max_buflen ? buflen : max_buflen);
+			    buflen -= space_buflen;
+			    space_buflen = 0;
+			} else {
+			    j++;
+			    col = 1;
+			    max_buflen = (buflen > max_buflen ? buflen : max_buflen);
+			    buflen = 1;
+			}
+			start = indent;
+		    } else
+			continue;
+		}
+
+		/* If we get here, we ended a line by wrapping */
+		if (z + 1 != lens[i] || col) {
 		    j += indent;
 		    col += indent;
-		    maybe_at_end = 0;
-		}
-	    }
-	    j += len;
-	    if (j > max_string_length) {
-		lens[i] -= j - max_string_length;
-		j = max_string_length;
-	    }
-	    if (wrap) {
-		int z;
-		char *p = parts[i];
-		for (z = 0; z < lens[i]; z++) {
-		    char c = p[z];
-		    if (c == '\n') {
-			col = 0;
-			start = -1;
-		    } else {
-			if (col > start || c != ' ')
-			    col++;
-			else
-			    j--;
+		} else
+		    maybe_at_end = 1;
 
-			if (c == ' ')
-			    space = col;
-			if (col == wrap+1) {
-			    if (space) {
-				col -= space;
-				space = 0;
-			    } else {
-				j++;
-				col = 1;
-			    }
-			    start = indent;
-			} else
-			    continue;
-		    }
-		    /* If we get here, we ended a line */
-		    if (z + 1 != lens[i] || col) {
-			j += indent;
-			col += indent;
-		    } else
-			maybe_at_end = 1;
-
-		    if (j > max_string_length) {
-			lens[i] -= (j - max_string_length);
-			j = max_string_length;
-			if (lens[i] < z) {
-			    /* must have been ok 
-			       or we wouldn't be here */
-			    lens[i] = z;
-			    break;
-			}
+		if (j > max_string_length) {
+		    lens[i] -= (j - max_string_length);
+		    j = max_string_length;
+		    if (lens[i] < z) {
+			/* must have been ok or we wouldn't be here */
+			lens[i] = z;
+			break;
 		    }
 		}
-	    }
-	} else {
-	    j += -len;
-	    if (j > max_string_length) {
-		lens[i] = -(-(lens[i]) - (j - max_string_length));
-		j = max_string_length;
 	    }
 	}
     }
+
+    if (wrap && buflen > max_buflen)
+	max_buflen = buflen;
     
     /* now we have the final string in parts and length in j. 
        let's compose it, wrapping if necessary */
     cp = deststr = new_string(j, "f_terminal_colour: deststr");
     if (wrap) {
-	/* FIXME */
-	char *tmp = new_string(8192, "f_terminal_colour: wrap");
+	char *tmp = new_string(max_buflen, "f_terminal_colour: wrap");
 	char *pt = tmp;
 	
 	col = 0;
 	start = -1;
 	space = 0;
+	buflen = space_buflen = 0;
 	for (i = 0; i < num; i++) {
 	    int kind;
-	    int len;
-	    int l = lens[i];
 	    char *p = parts[i];
-	    if (l < 0) {
-		memcpy(pt, p, -l);
-		pt += -l;
-		space_garbage += -l; /* Number of chars due to ignored junk
-					since last space */
+	    if (lens[i] < 0) {
+		memcpy(pt, p, -lens[i]);
+		pt += -lens[i];
+		buflen += -lens[i];
+		space_garbage += -lens[i]; /* Number of chars due to ignored junk
+					      since last space */
 		continue;
 	    }
 	    for (k = 0; k < lens[i]; k++) {
 		int n;
 		char c = p[k];
 		*pt++ = c;
+		buflen++;
 		if (c == '\n') {
 		    col = 0;
 		    kind = 0;
+		    space = space_garbage = 0;
 		    start = -1;
+		    buflen = 0;
 		} else {
-		    if (col > start || c != ' ')
+		    if (col > start || (c != ' ' && c != '\t'))
 			col++;
-		    else
+		    else {
 			pt--;
+			buflen--;
+		    }
 		    
-		    if (c == ' ') {
+		    if (col > start && c == '\t')
+			col += (8 - ((col - 1) % 8));
+		    if (c == ' ' || c == '\t') {
 			space = col;
 			space_garbage = 0;
+			space_buflen = buflen;
 		    }
 		    if (col == wrap+1) {
 			if (space) {
 			    col -= space;
 			    space = 0;
 			    kind = 1;
+			    buflen -= space_buflen;
+			    space_buflen = 0;
 			} else {
 			    col = 1;
 			    kind = 2;
+			    buflen = 1;
 			}
 			start = indent;
 		    } else
 			continue;
 		}
 		/* If we get here, we ended a line */
-		len = (kind == 1 ? col + space_garbage : col);
-		n = (pt - tmp) - len;
+		n = (pt - tmp) - buflen;
 		memcpy(cp, tmp, n);
 		cp += n;
 		if (kind == 1) {
@@ -753,8 +798,8 @@ f_terminal_colour PROT((void))
 		    /* need to insert a newline */
 		    *cp++ = '\n';
 		}
-		memmove(tmp, tmp + n, len);
-		pt = tmp + len;
+		memmove(tmp, tmp + n, buflen);
+		pt = tmp + buflen;
 		if (col || !at_end(i, num, k, lens)) {
 		    memset(cp, ' ', indent);
 		    cp += indent;
@@ -871,6 +916,10 @@ static char *pluralize P1(char *, str) {
 	if (!strcasecmp(rel + 1, "us")) {
 	    found = PLURAL_SUFFIX;
 	    suffix = "es";
+	} else
+	if (!strcasecmp(rel + 1, "onus")) {
+	    found = PLURAL_SUFFIX;
+	    suffix = "es";
 	}
 	break;
     case 'C':
@@ -882,6 +931,10 @@ static char *pluralize P1(char *, str) {
 	break;
     case 'D':
     case 'd':
+	if (!strcasecmp(rel + 1, "datum")) {
+	    found = PLURAL_CHOP + 2;
+	    suffix = "a";
+	} else
 	if (!strcasecmp(rel + 1, "ie")) {
 	    found = PLURAL_CHOP + 1;
 	    suffix = "ce";
@@ -905,6 +958,11 @@ static char *pluralize P1(char *, str) {
 	}
 	if (!strcasecmp(rel + 1, "ish")) {
 	    found = PLURAL_SAME;
+	    break;
+	}
+	if (!strcasecmp(rel + 1, "forum")) {
+	    found = PLURAL_CHOP + 2;
+	    suffix = "a";
 	    break;
 	}
 	if (!strcasecmp(rel + 1, "ife"))
@@ -946,6 +1004,10 @@ static char *pluralize P1(char *, str) {
 	    found = PLURAL_CHOP + 4;
 	    suffix = "ice";
 	}
+        if (!strcasecmp(rel + 1, "otus")) {
+            found = PLURAL_SUFFIX;
+            break;
+        }
 	break;
     case 'M':
     case 'm':
@@ -1019,6 +1081,10 @@ static char *pluralize P1(char *, str) {
 	    found = PLURAL_SUFFIX;
 	    suffix = "en";
 	}
+	if (!strcasecmp(rel + 1, "irus")) {
+	    found = PLURAL_SUFFIX;
+	    suffix = "es";
+	}
 	break;
     case 'W':
     case 'w':
@@ -1048,7 +1114,7 @@ static char *pluralize P1(char *, str) {
      * *y -> *ies (gumby -> gumbies)
      */
     /*
-     * *us -> *i (virus -> viri)
+     * *us -> *i (cactus -> cacti)
      */
     /*
      * *man -> *men (foreman -> foremen)
@@ -1080,12 +1146,23 @@ static char *pluralize P1(char *, str) {
 	    if (end[-2] == 'c' || end[-2]=='s')
 		suffix = "es";
 	    break;
+#if 0
+	/*
+	 * This rule is causing more problems than not.  As such, I'm removing
+	 * it in favour of adding exceptions for words above that should use
+	 * this rule.  I'm aware that this rule is proper for Latin derived
+	 * English words, however its use has fallen out of common speech and
+	 * writing for the majority of cases.  Currently known common exceptions
+	 * are forum (fora) and datum (data).
+	 * -- Marius, 23-Jun-2000
+	 */
 	case 'M': case 'm':
 	    if (end[-2] == 'u') {
 		found = PLURAL_CHOP + 2;
 		suffix = "a";
 	    }
 	    break;
+#endif
 	case 'N': case 'n':
 	    if (end[-2] == 'a' && end[-3] == 'm') {
 		found = PLURAL_CHOP + 3;
@@ -1227,19 +1304,19 @@ f_file_length PROT((void))
 void
 f_upper_case PROT((void))
 {
-    register char *str;
+    char *str;
 
     str = sp->u.string;
     /* find first upper case letter, if any */
     for (; *str; str++) {
-	if (islower(*str)) {
+	if (uislower(*str)) {
 	    int l = str - sp->u.string;
 	    unlink_string_svalue(sp);
 	    str = sp->u.string + l;
-	    *str -= 'a' - 'A';
+	    *str = toupper((unsigned char)*str);
 	    for (str++; *str; str++) {
-		if (islower(*str))
-		    *str -= 'a' - 'A';
+		if (uislower((unsigned char)*str))
+		    *str = toupper((unsigned char)*str);
 	    }
 	    return;
 	}
@@ -1249,30 +1326,36 @@ f_upper_case PROT((void))
 
 #ifdef F_REPLACEABLE
 void f_replaceable PROT((void)) {
+    object_t *obj;
     program_t *prog;
-    int i, j, num, numignore;
+    int i, j, num, numignore, replaceable;
     char **ignore;
     
     if (st_num_arg == 2) {
 	numignore = sp->u.arr->size;
 	if (numignore)
-	    ignore = CALLOCATE(numignore, char *, TAG_TEMPORARY, "replaceable");
+	    ignore = CALLOCATE(numignore + 2, char *, TAG_TEMPORARY, "replaceable");
 	else
 	    ignore = 0;
+        ignore[0] = findstring(APPLY_CREATE);
+        ignore[1] = findstring(APPLY___INIT);
 	for (i = 0; i < numignore; i++) {
 	    if (sp->u.arr->item[i].type == T_STRING)
-		ignore[i] = findstring(sp->u.arr->item[i].u.string);
+		ignore[i + 2] = findstring(sp->u.arr->item[i].u.string);
 	    else
-		ignore[i] = 0;
+		ignore[i + 2] = 0;
 	}
-	prog = (sp-1)->u.ob->prog;
+        numignore += 2;
+        obj = (sp-1)->u.ob;
     } else {
-	numignore = 1;
-	ignore = CALLOCATE(1, char *, TAG_TEMPORARY, "replaceable");
+	numignore = 2;
+	ignore = CALLOCATE(2, char *, TAG_TEMPORARY, "replaceable");
 	ignore[0] = findstring(APPLY_CREATE);
-	prog = sp->u.ob->prog;
+        ignore[1] = findstring(APPLY___INIT);
+        obj = sp->u.ob;
     }
     
+    prog = obj->prog;
     num = prog->num_functions_defined + prog->last_inherited;
     
     for (i = 0; i < num; i++) {
@@ -1283,11 +1366,16 @@ void f_replaceable PROT((void)) {
 	if (j == numignore)
 	    break;
     }
+
+    replaceable = (i == num);
+    if (obj == simul_efun_ob || prog->func_ref)
+        replaceable = 0;
+
     if (st_num_arg == 2)
 	free_array((sp--)->u.arr);
     FREE(ignore);
     free_svalue(sp, "f_replaceable");
-    put_number(i == num);
+    put_number(replaceable);
 }
 #endif
 
@@ -1303,8 +1391,8 @@ void f_program_info PROT((void)) {
     int type_size = 0;
     int total_size = 0;
     object_t *ob;
+    mapping_t *m;
     program_t *prog;
-    outbuffer_t out;
     int i, n;
 
     if (st_num_arg == 1) {
@@ -1318,11 +1406,6 @@ void f_program_info PROT((void)) {
 	    func_size += (prog->last_inherited +
 			  prog->num_functions_defined) *sizeof(unsigned short); 
 	         
-#ifdef BINARIES
-	    /* sorted function indices */
-	    func_size += prog->num_functions_defined * sizeof(unsigned short);
-#endif
-
 	    /* definitions */
 	    func_size += prog->num_functions_defined * 
 	     sizeof(function_t);
@@ -1355,11 +1438,6 @@ void f_program_info PROT((void)) {
 	    hdr_size += sizeof(program_t);
 	    prog_size += prog->program_size;
 
-#ifdef BINARIES
-	    /* sorted function indices */
-	    func_size += prog->num_functions_defined * sizeof(unsigned short);
-#endif
-
 	    /* function flags */
 	    func_size += (prog->last_inherited +
 			  prog->num_functions_defined) << 1; 
@@ -1391,20 +1469,19 @@ void f_program_info PROT((void)) {
 	}
     }
 
-    outbuf_zero(&out);
-    
-    outbuf_addv(&out, "\nheader size: %i\n", hdr_size);
-    outbuf_addv(&out, "code size: %i\n", prog_size);
-    outbuf_addv(&out, "function size: %i\n", func_size);
-    outbuf_addv(&out, "string size: %i\n", string_size);
-    outbuf_addv(&out, "var size: %i\n", var_size);
-    outbuf_addv(&out, "class size: %i\n", class_size);
-    outbuf_addv(&out, "inherit size: %i\n", inherit_size);
-    outbuf_addv(&out, "saved type size: %i\n\n", type_size);
+    m = allocate_mapping(0);
+    add_mapping_pair(m, "header size", hdr_size);
+    add_mapping_pair(m, "code size", prog_size);
+    add_mapping_pair(m, "function size", func_size);
+    add_mapping_pair(m, "string size", string_size);
+    add_mapping_pair(m, "var size", var_size);
+    add_mapping_pair(m, "class size", class_size);
+    add_mapping_pair(m, "inherit size", inherit_size);
+    add_mapping_pair(m, "saved type size", type_size);
 
-    outbuf_addv(&out, "total size: %i\n", total_size);
-    
-    outbuf_push(&out);
+    add_mapping_pair(m, "total size", total_size);
+
+    push_refed_mapping(m);
 }
 #endif
 
@@ -1452,7 +1529,7 @@ f_query_ip_port PROT((void))
 	free_object(sp->u.ob, "f_query_ip_port");
     } else {
 	tmp = query_ip_port(command_giver);
-	sp++;
+	STACK_INC;
     }
     put_number(tmp);
 }
@@ -1626,6 +1703,7 @@ static int node_share P3(mapping_t *, m, mapping_node_t *, elt, void *, tp) {
 static int memory_share P1(svalue_t *, sv) {
     int i, total = sizeof(svalue_t);
     int subtotal;
+    static int depth = 0;
     
     switch (sv->type) {
     case T_STRING:
@@ -1642,22 +1720,32 @@ static int memory_share P1(svalue_t *, sv) {
 	break;
     case T_ARRAY:
     case T_CLASS:
+        if (++depth > 100)
+            return 0;
+
 	/* first svalue is stored inside the array struct, so sizeof(array_t)
 	 * includes one svalue.
 	 */
 	subtotal = sizeof(array_t) - sizeof(svalue_t);
 	for (i = 0; i < sv->u.arr->size; i++)
 	    subtotal += memory_share(&sv->u.arr->item[i]);
+        depth--;
 	return total + subtotal/sv->u.arr->ref;
     case T_MAPPING:
+        if (++depth > 100)
+            return 0;
 	subtotal = sizeof(mapping_t);
 	mapTraverse(sv->u.map, node_share, &subtotal);
+        depth--;
 	return total + subtotal/sv->u.map->ref;
     case T_FUNCTION:
     {
 	svalue_t tmp;
 	tmp.type = T_ARRAY;
 	tmp.u.arr = sv->u.fp->hdr.args;
+
+        if (++depth > 100)
+            return 0;
 
 	if (tmp.u.arr)
 	    subtotal = sizeof(funptr_hdr_t) + memory_share(&tmp) - sizeof(svalue_t);
@@ -1678,6 +1766,7 @@ static int memory_share P1(svalue_t *, sv) {
 	    subtotal += sizeof(functional_t);
 	    break;
 	}
+        depth--;
 	return total + subtotal/sv->u.fp->hdr.ref;
     }
 #ifndef NO_BUFFER_TYPE
@@ -1748,4 +1837,79 @@ void f_memory_summary PROT((void)) {
 
 #endif
 
+/* Marius */
+#ifdef F_QUERY_REPLACED_PROGRAM
+void f_query_replaced_program PROT((void))
+{
+    char *res = 0;
 
+    if (st_num_arg)
+    {
+        if (sp->u.ob->replaced_program)
+            res = add_slash(sp->u.ob->replaced_program);
+        free_object(sp->u.ob, "f_query_replaced_program");
+    }
+    else
+    {
+        if (current_object->replaced_program)
+            res = add_slash(sp->u.ob->replaced_program);
+        STACK_INC;
+    }
+
+    if (res) {
+        put_malloced_string(res);
+    } else {
+        put_number(0);
+    }
+}
+#endif
+
+/* Skullslayer@Realms of the Dragon */
+#ifdef F_NETWORK_STATS
+void f_network_stats PROT((void))
+{
+    mapping_t *m;
+    int i, ports = 0;
+
+    for (i = 0;  i < 5;  i++)
+	if (external_port[i].port)
+	    ports += 4;
+
+#ifndef PACKAGE_SOCKETS
+    m = allocate_mapping(ports + 4);
+#else
+    m = allocate_mapping(ports + 8);
+#endif
+
+    add_mapping_pair(m, "incoming packets total", inet_in_packets);
+    add_mapping_pair(m, "incoming volume total", inet_in_volume);
+    add_mapping_pair(m, "outgoing packets total", inet_out_packets);
+    add_mapping_pair(m, "outgoing volume total", inet_out_volume);
+
+#ifdef PACKAGE_SOCKETS
+    add_mapping_pair(m, "incoming packets sockets", inet_socket_in_packets);
+    add_mapping_pair(m, "incoming volume sockets", inet_socket_in_volume);
+    add_mapping_pair(m, "outgoing packets sockets", inet_socket_out_packets);
+    add_mapping_pair(m, "outgoing volume sockets", inet_socket_out_volume);
+#endif
+
+    if (ports) {
+    	for (i = 0;  i < 5;  i++) {
+    	    if (external_port[i].port) {
+    		char buf[30];
+
+    		sprintf(buf, "incoming packets port %d", external_port[i].port);
+		add_mapping_pair(m, buf, external_port[i].in_packets);
+		sprintf(buf, "incoming volume port %d", external_port[i].port);
+    		add_mapping_pair(m, buf, external_port[i].in_volume);
+		sprintf(buf, "outgoing packets port %d", external_port[i].port);
+		add_mapping_pair(m, buf, external_port[i].out_packets);
+		sprintf(buf, "outgoing volume port %d", external_port[i].port);
+		add_mapping_pair(m, buf, external_port[i].out_volume);
+	    }
+	}
+    }
+
+    push_refed_mapping(m);
+}
+#endif

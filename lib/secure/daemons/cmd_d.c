@@ -417,7 +417,7 @@ private mixed parse_arg(int this_arg, mixed argv)
     if (this_arg & IS_PATH) {
       string path = evaluate_path(argv);
       result = glob(path);
-      if((this_arg & IS_CFILE))
+      if((this_arg & IS_CFILE) && ! (this_arg & IS_DIR))
 	result = filter(result, (:!is_directory($1):));
       if (!sizeof(result) && (this_arg & IS_OBFILE)) {
 	object ob = get_object(argv);
@@ -454,7 +454,7 @@ private mixed parse_arg(int this_arg, mixed argv)
 	if (is_directory(base_path(path)))
 	  result = ({ path });
       }
-	    
+
       if (!sizeof(result))
 	result = 0;
       else {

@@ -84,7 +84,7 @@ mixed make_arg(int x, int trail) {
 	x -= BEFORE_LPCS;
 	switch (x % LPCS_LO) {
 	case 0: ret = ({ "O", "1", 1 }); break;
-	case 1: ret = ({ "O", "1.5", 1.5 }); break;
+	case 1: ret = ({ "O", "1.500000", 1.5 }); break;
 	case 2: ret = ({ "O", "\"foo\"", "foo" }); break;
 	case 3: ret = ({ "O", "({ })", ({}) }); break;
 	case 4: ret = ({ "O", "({ /* sizeof() == 2 */\n  1,\n  2\n})", ({ 1, 2 }) }); break;

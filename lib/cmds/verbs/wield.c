@@ -2,7 +2,7 @@
 
 #include <combat_modules.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 void do_wield_obj(object ob)
 {

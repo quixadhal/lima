@@ -55,9 +55,34 @@ id(string arg)
 	return (arg == query_name()) || base::id(arg);
 }
 
+#ifndef __OLD_ED__
+void
+write_prompt() {
+    switch (query_ed_mode()) {
+	case 0:
+	case -2:
+	    write(":");
+	    break;
+
+	case -1:
+	    write("> ");
+	    break;
+
+	default:
+	    write("*\b");
+	    break;
+    }
+}
+
+void
+start_ed(string file) {
+    write(ed_start(file, 0));
+}
+#endif
+
 #ifdef __NO_ADD_ACTION__
 void
-process_input(string arg) {
+exec_command(string arg) {
     string *parts = explode(arg, " ");
     string verb = sizeof(parts) ? parts[0] : "";
     string rest = implode(parts[1..], " ");
@@ -70,12 +95,35 @@ process_input(string arg) {
 	// maybe call an emote/soul daemon here
     }
 }
+
+void
+process_input(string arg) {
+#ifndef __OLD_ED__
+    if (query_ed_mode() != -1) {
+	if (arg[0] != '!') {
+	    write(ed_cmd(arg));
+	    return;
+	}
+	arg = arg[1..];
+    }
+#endif
+    exec_command(arg);
+}
 #else
 string
 process_input(string arg)
 {
-	// possible to modify player input here before driver parses it.
-	return arg;
+#ifndef __OLD_ED__
+    if (query_ed_mode() != -1) {
+	if (arg[0] != '!') {
+	    write(ed_cmd(arg));
+	    return 0;
+	}
+	arg = arg[1..];
+    }
+#endif
+    // possible to modify player input here before driver parses it.
+    return arg;
 }
 
 int
@@ -88,11 +136,11 @@ commandHook(string arg)
 
     cobj = load_object(cmd_path);
     if (cobj) {
-		return (int)cobj->main(arg);
+	return (int)cobj->main(arg);
     } else {
-		// maybe call an emote/soul daemon here
+	// maybe call an emote/soul daemon here
     }
-	return 0;
+    return 0;
 }
 
 // init: called by the driver to give the object a chance to add some
@@ -155,10 +203,12 @@ setup()
 // net_dead: called by the gamedriver when an interactive player loses
 // hir network connection to the mud.
 
+#ifndef __NO_ENVIRONMENT__
 void tell_room(object ob, string msg) {
     foreach (ob in all_inventory(ob) - ({ this_object() }))
         tell_object(ob, msg);
 }
+#endif
 
 void
 net_dead()

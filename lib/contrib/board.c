@@ -155,6 +155,8 @@ private nomask string array query_message_lines() {
 //###    ids = ids[<MAX_HEADERS..];
     ids = ids[j..];
     tmp = map_array(ids, (: format_message_line($1) :));
+    if( sizeof(ids) == 0 )
+       return ({ "The board is bereft of posts.  Feel free to change this!\n" });
     k = ids[<1]-this_body()->get_news_group_id(linked_group);
     for (i = 1; i < sizeof(tmp) + 1; i++) {
         tmp[i-1] = sprintf("%4d%s ", i + j, k>(sizeof(tmp)-i-1) ? "*" : " ") + tmp[i-1];
@@ -222,12 +224,22 @@ nomask mixed direct_read_obj(object ob) {
     return "Use 'read about <postnr>' to read the bulletin board.\n";
 }
 
+mixed direct_read_about_str_from_obj(string str, object ob)
+{
+  return 1;
+}
+
 // Short description.
 private nomask string do_desc() {
     int new_id;
-    int array ids = sort_array(filter_array(NEWS_D->get_messages(linked_group),
-      (: filter_removed :)), 1);
+    int array ids;
     int curr_id = this_body()->get_news_group_id(linked_group);
+
+    if ( !NEWS_D->get_messages(linked_group) ) ids = ({ });
+    else
+      ids = sort_array(filter_array(NEWS_D->get_messages(linked_group),
+                                    (: filter_removed :)),
+                       1);
 
 /* Slight fix here, lest see if this solves our problems. */
     if (curr_id < 0) curr_id=1;
@@ -262,7 +274,7 @@ nomask int valid_id(int id) {
 
 // Check if this_body() can post.
 nomask int valid_post() {
-    return NEWS_D->query_write_to_group(linked_group);
+  return !NEWS_D->is_write_restricted(linked_group);
 }
 
 // Verb interface. These get called by their respective verbs.
@@ -282,7 +294,7 @@ nomask void do_remove(int id) {
     }
 
     NEWS_D->remove_post(linked_group, ids[id - 1]);
-    write("Post nr. " + id + " removed.\n");
+    write("Post number " + id + " removed.\n");
     return;
 }
 

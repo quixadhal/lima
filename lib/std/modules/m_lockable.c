@@ -97,7 +97,7 @@ mixed magic_unlock()
     return 1;
 }
 
-mixed pick()
+mixed do_pick()
 {
     mixed ex;
     int   i;
@@ -239,3 +239,10 @@ mixed direct_lock_obj_with_obj(object ob1, object ob2) {
     return 1;
 }
 
+mapping lpscript_attributes() {
+    return ([
+	"locked" : ({ LPSCRIPT_STRING, "setup", "set_locked" }),
+        "strength_vs_magic" : ({ LPSCRIPT_INT, "setup", "set_strength_vs_magic" }),
+        "strength_vs_picking" : ({ LPSCRIPT_INT, "setup", "set_strength_vs_picking" }),
+    ]);
+}

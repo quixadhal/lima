@@ -3,7 +3,7 @@
 // Original command by Darklord.
 /* Changed to allow default vendor 6-Feb-98 by MonicaS */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 mixed test_vendor() {
   object ob, vendor;

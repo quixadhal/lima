@@ -13,13 +13,10 @@ string extra_long_stuff()
 }
 
 
-int door_check()
+mixed door_check()
 {
-    string ret = environment( this_object())->get_default_exit();
-    if( query_closed())
-    {
-	write( ret );
-	return 0;
-    }
-    return 1;
+  string ret = environment( this_object())->query_default_error();
+  if( query_closed())
+	  return ret;
+  return 1;
 }

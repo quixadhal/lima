@@ -36,20 +36,15 @@ inherit M_DAEMON_DATA;
 #define RESTORE "\e8"
 #define HOME "\e[H"
 
-#ifdef CONFIGURABLE_COLOUR
-protected
-#endif
-mapping translations, null_translations, identity_translations;
+protected mapping translations, null_translations, identity_translations;
 
 mapping array query_translations() {
     return ({ translations, null_translations, identity_translations });
 }
 
-#ifdef CONFIGURABLE_COLOUR
 mapping defaults;
 
 mapping defaults() { return defaults; }
-#endif
 
 void create() {
     ::create();
@@ -67,7 +62,6 @@ void create() {
 	    "RESTORE" : RESTORE, "HOME" : HOME,
 	    ]);
 			
-#ifdef CONFIGURABLE_COLOUR
     if (!defaults)
 	defaults = ([
 	    "ROOM_EXIT" : "magenta",
@@ -82,7 +76,6 @@ void create() {
 	    ]);
 
     translations = translations + defaults;
-#endif
 
 
     null_translations = map(translations, function(){ return "";} );
@@ -91,9 +84,7 @@ void create() {
 
 void resync() {
 
-#ifdef CONFIGURABLE_COLOUR
     translations = translations + defaults;
-#endif
 
     null_translations = map(translations, function(){ return "";} );
     identity_translations = map(translations, (: "%^" + $1 + "%^" :));
@@ -103,7 +94,6 @@ void resync() {
 }
 
 
-#ifdef CONFIGURABLE_COLOUR
 void add_default_colour(string key, string value) {
     require_privilege("Mudlib:daemons");
     
@@ -118,5 +108,4 @@ void remove_default_colour(string key) {
     map_delete(defaults, upper_case(key));
     resync();
 }
-#endif
 

@@ -2,9 +2,9 @@
 
 private nosave int size = MEDIUM;
 
-//:FUNCTION get_size
-//get_size() returns the size of an object
-int get_size()
+//:FUNCTION query_size
+//query_size() returns the size of an object
+int query_size()
 {
   return size;
 }

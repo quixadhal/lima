@@ -369,7 +369,7 @@ string *parse_command_plural_id_list()
     return ({ "ones","stuff", "things", });
 }
 
-string *parse_command_adjectiv_id_list()
+string *parse_command_adjective_id_list()
 {
     return ({});
 }
@@ -403,6 +403,46 @@ object *parse_command_users()
     return users()->query_body();
 }
 
+string parser_gen_pos(object ob, int num, int indirect)
+{
+  object env = environment(ob);
+  string env_str;
+  string str = "";
+
+  if(env == 0)
+    return 0;
+
+  if(num>1)
+  {
+    str += M_GRAMMAR->number_word(num) + " ";
+    if(!ob->query_plural())
+      str += pluralize(ob->short());
+    else
+      str += ob->short();
+  }
+  else
+    str += ob->short();
+  if(env == this_body())
+    return "your " + str;
+  else if(env == environment(this_body()))
+    if(indirect)
+      return "the " + str;
+    else
+      return "the " + str + " on the ground";
+  else if (env->is_living())
+    return env->query_name() + "'s " + str;
+  else
+  {
+    string rel = env->query_relation(ob);
+    string loc;
+    if(environment(env))
+      loc = parser_gen_pos(env,1,1);
+    else
+      loc = env->the_short();
+    return "the " + str + " " + rel + " " + loc;
+  }
+}
+
 string parser_error_message(int kind, object ob, mixed arg, int flag) {
     string ret;
     if (ob) 
@@ -426,31 +466,29 @@ string parser_error_message(int kind, object ob, mixed arg, int flag) {
 	    return ret + "You can't reach it.\n";
 	break;
     case ERR_AMBIG:
-	{
-	    array descs = unique_array(arg, (: $1->the_short() :));
-	    string str;
+      {
+	      array descs = unique_array(arg, (: parser_gen_pos($1, 1, 0) :));
+	      string str;
 
-	    if (sizeof(descs) == 1)
-		return ret + "Which " + descs[0][0]->short() + " do you mean?\n";
-	    str = ret + "Do you mean ";
-	    for (int i = 0; i < sizeof(descs); i++) {
-		if (sizeof(descs[i]) > 1)
-		{
-		    str += "one of ";
-		    if (!descs[i][0]->query_plural())
-			str += pluralize( descs[i][0]-> the_short());
-		    else str += descs[i][0]->the_short();
-		}
-		else
-		    str += descs[i][0]->the_short();
-		if (i < sizeof(descs) - 2)
-		    str += ", ";
-		else if (i == sizeof(descs) - 2)
-		    str += " or ";
-	    }
-	    return str + "?\n";
-	}
-	break;
+	      if (sizeof(descs) == 1)
+	        str = ret + "Which of ";
+  	    else
+          str = ret + "Do you mean ";
+        for (int i = 0; i < sizeof(descs); i++)
+        {
+          str += parser_gen_pos(descs[i][0], sizeof(descs[i]), 0);
+
+          if (i < sizeof(descs) - 2)
+            str += ", ";
+          else if (i == sizeof(descs) - 2)
+            str += " or ";
+        }
+        if(sizeof(descs) == 1)
+          return str + " do you mean?\n";
+        else
+          return str + "?\n";
+      }
+      break;
     case ERR_ORDINAL:
 	if (arg > 1)
 	    return ret + "There are only " + arg + " of them.\n";

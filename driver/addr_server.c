@@ -32,7 +32,7 @@ int name_by_ip PROT((int, char *));
 int ip_by_name PROT((int, char *));
 INLINE_STATIC void process_queue PROT((void));
 void init_conns PROT((void));
-void init_conn_sock PROT((int));
+void init_conn_sock PROT((int, char *));
 
 #ifdef SIGNAL_FUNC_TAKES_INT
 void sigpipe_handler PROT((int));
@@ -79,7 +79,7 @@ void init_conns()
 /*
  * Initialize connection socket.
  */
-void init_conn_sock P1(int, port_num)
+void init_conn_sock P2(int, port_num, char *, ipaddress)
 {
     struct sockaddr_in sin;
     int sin_len;
@@ -111,11 +111,7 @@ void init_conn_sock P1(int, port_num)
      * fill in socket address information.
      */
     sin.sin_family = AF_INET;
-#ifdef SERVER_IP
-    sin.sin_addr.s_addr = inet_addr(SERVER_IP);
-#else
-    sin.sin_addr.s_addr = INADDR_ANY;
-#endif
+    sin.sin_addr.s_addr = (ipaddress ? inet_addr(ipaddress) : INADDR_ANY);
     sin.sin_port = htons((u_short) port_num);
     /*
      * bind name to socket.
@@ -296,6 +292,11 @@ void new_conn_handler()
     new_fd = accept(conn_fd, (struct sockaddr *) & client, (int *) &client_len);
     if (new_fd == -1) {
 	socket_perror("new_conn_handler: accept", 0);
+	return;
+    }
+    if (set_socket_nonblocking(new_fd, 1) == -1) {
+	socket_perror("new_conn_handler: set_socket_nonblocking 1", 0);
+	OS_socket_close(new_fd);
 	return;
     }
     if (total_conns >= MAX_CONNS) {
@@ -576,11 +577,18 @@ int main P2(int, argc, char **, argv)
     struct timeval timeout;
     int i;
     int nb;
+    char *ipaddress = 0;
 
     if (argc > 1) {
 	if ((addr_server_port = atoi(argv[1])) == 0) {
 	    fprintf(stderr, "addr_server: malformed port number.\n");
 	    exit(2);
+	}
+	if (argc > 2) {
+	    if (inet_addr((ipaddress = argv[2])) == INADDR_NONE) {
+		fprintf(stderr, "addr_server: malformed ip address.\n");
+		exit(3);
+	    }
 	}
     } else {
 	fprintf(stderr, "addr_server: first arg must be port number.\n");
@@ -589,7 +597,7 @@ int main P2(int, argc, char **, argv)
 #if defined(LATTICE) && defined(AMITCP)
     init_conns();
 #endif
-    init_conn_sock(addr_server_port);
+    init_conn_sock(addr_server_port, ipaddress);
     while (1) {
 	/*
 	 * use finite timeout for robustness.

@@ -61,12 +61,21 @@ int query_guild_sees_secret(string name);
 int query_guild_is_secret(string name);
 int query_guild_need_all(string name);
 
+int check_previous(string needed)
+{
+  if ( check_previous_privilege(needed) )
+    return 1;
+  if ( base_name(previous_object()) == "/obj/admtool/daemons/guild" )
+    return 1;
+	return 0;
+}
+
 
 void guild_add( string name )
 {
     class guild_defn gi;
 
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     gi = new( class guild_defn );
@@ -80,7 +89,7 @@ void guild_add( string name )
 
 void guild_remove( string name )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     map_delete(guilds, name);
@@ -90,7 +99,7 @@ void guild_remove( string name )
 
 void remove_all_guilds()
 {
-if(!check_previous_privilege( PRIV_NEEDED))
+  if(!check_previous( PRIV_NEEDED))
     error( "Insufficient priv to remove all guilds.");
     guilds = ([]);
     save_me();
@@ -108,7 +117,7 @@ void guild_check(string name)
 
 void set_guild_title( string name, string title )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -119,7 +128,7 @@ void set_guild_title( string name, string title )
 
 void set_guild_banned( string name, string array banned... )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -130,7 +139,7 @@ void set_guild_banned( string name, string array banned... )
 
 void set_guild_prereq( string name, string array prereq... )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -141,7 +150,7 @@ void set_guild_prereq( string name, string array prereq... )
 
 void set_guild_allies( string name, string array allies... )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -152,7 +161,7 @@ void set_guild_allies( string name, string array allies... )
 
 void set_guild_exclusive( string name, string array exclusive... )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -163,7 +172,7 @@ void set_guild_exclusive( string name, string array exclusive... )
 
 void set_guild_attributes( string name, string array attributes... )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -174,7 +183,7 @@ void set_guild_attributes( string name, string array attributes... )
 
 void set_guild_begone( string name, int begone )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -185,7 +194,7 @@ void set_guild_begone( string name, int begone )
 
 void set_guild_suspend_level( string name, int suspend_level )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -196,7 +205,7 @@ void set_guild_suspend_level( string name, int suspend_level )
 
 void set_guild_prospectus( string name, string prospectus )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -207,7 +216,7 @@ void set_guild_prospectus( string name, string prospectus )
 
 void set_guild_sees_secret( string name, int sees_secret )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -218,7 +227,7 @@ void set_guild_sees_secret( string name, int sees_secret )
 
 void set_guild_is_secret( string name, int is_secret )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);
@@ -229,7 +238,7 @@ void set_guild_is_secret( string name, int is_secret )
 
 void set_guild_need_all( string name, int need_all )
 {
-    if ( !check_previous_privilege(PRIV_NEEDED) )
+    if ( !check_previous(PRIV_NEEDED) )
 	error("insufficient privilege");
 
     guild_check(name);

@@ -56,8 +56,6 @@ mixed direct_verb_rule(string verb,string rule,mixed args...)
 	      args[0]=aliased_to;
 	    }
 	}
-      else
-	return 0;
     }
   if(this_object()->is_exit())
     {
@@ -164,11 +162,16 @@ mixed direct_look_obj(object ob) {
   return default_object_checks();
 }
 
-
 //:FUNCTION direct_look_for_obj
 //Always allow "look for OBJ" to succeed by default.
 mixed direct_look_for_obj(object ob) {
     return 1;
+}
+
+//:FUNCTION direct_look_wrd_obj
+//Set "look WRD OBJ" to fail by default.
+mixed direct_look_wrd_obj(object ob) {
+    return "#You can't look there";
 }
 
 //:FUNCTION direct_sell_obj
@@ -353,7 +356,7 @@ mixed direct_search_obj_with_obj( object ob1, object ob2 )
     return 1;
 }
 
-//:FUNCTION direct_search_for_str_in_obj( string str, object obj )
+//:FUNCTION direct_search_for_str_in_obj
 //Default
 mixed direct_search_for_str_in_obj( string str, object ob )
 {
@@ -388,9 +391,8 @@ mixed indirect_search_obj_with_obj_for_str( object ob1, object ob2,  string str 
     return 1;
 }
 
-//:FUNCTION
+//:FUNCTION direct_search_for_str_in_obj_with_obj
 //Default
-
 mixed direct_search_for_str_in_obj_with_obj( string str, object ob1, object ob2 )
 {
     return 1;

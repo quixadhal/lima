@@ -10,6 +10,7 @@
 /* This should be moved with initializers move out of here */
 #include "icode.h"
 #include "lex.h"
+#include "simul_efun.h"
 
 static void clean_parser PROT((void));
 static void prolog PROT((int, char *));
@@ -112,7 +113,7 @@ void free_all_local_names P1(int, flag)
     int i;
 
     for (i=0; i < current_number_of_locals; i++) {
-        if (flag && (type_of_locals_ptr[i] & LOCAL_MOD_UNUSED)) {
+        if (flag && (type_of_locals_ptr[locals_ptr[i].runtime_index] & LOCAL_MOD_UNUSED)) {
 	    char buf[256];
 	    char *end = EndOf(buf);
 	    char *p;
@@ -163,6 +164,10 @@ void clean_up_locals()
 void pop_n_locals P1(int, num) {
     int lcur_start;
     int ltype_start, i1;
+
+    DEBUG_CHECK(num < 0, "pop_n_locals called with num < 0");
+    if (num == 0)
+	return;
     
     lcur_start = current_number_of_locals -= num;
     ltype_start = locals_ptr[lcur_start].runtime_index;
@@ -516,6 +521,18 @@ void copy_structures P1(program_t *, prog) {
     int sd_off = mem_block[A_CLASS_DEF].current_size / sizeof(class_def_t);
     int i, j, offset;
 
+    if (prog->num_classes + sd_off > CLASS_NUM_MASK) {
+	char buf[512];
+	char *end = EndOf(buf);
+	char *p;
+
+	p = strput(buf, end, "Too many classes, max is ");
+	p = strput_int(p, end, CLASS_NUM_MASK - 1);
+	p = strput(p, end, ".\n");
+	yyerror(buf);
+	return;
+    }
+
     for (i = 0; i < prog->num_classes; i++) {
 	str = prog->strings[prog->classes[i].name];
 	ihe = find_or_add_ident(str, FOA_GLOBAL_SCOPE);
@@ -783,9 +800,6 @@ int copy_functions P2(program_t *, from, int, typemod)
 	}
 
 	index -= prog->last_inherited;
-#ifdef BINARIES
-	index = prog->sorted_funcs[index];
-#endif
 
 	funp = prog->function_table + index;
 	
@@ -797,8 +811,6 @@ int copy_functions P2(program_t *, from, int, typemod)
 	} else {
 	    copy_new_function(from, i, prog, index, typemod);
 	}
-	ihe = lookup_ident(funp->name);
-	num = ihe->dn.function_num;
     }
     return initializer;
 }
@@ -907,11 +919,7 @@ static int find_matching_function P3(program_t *, prog, char *, name,
 	    /* Rely on the fact that functions in the table are not inherited
 	       or aliased */
 	    /* Non-inherited aliased ones are always removed anyway */
-#ifdef BINARIES
-	    ri = prog->function_table[mid].runtime_index;
-#else
 	    ri = prog->last_inherited + mid;
-#endif
 
 	    flags = prog->function_flags[ri];
 
@@ -1087,9 +1095,7 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
 	/* only check prototypes for matching.  It shouldn't be required that
 	   overloading a function must have the same signature */
 	if (exact_types && ((flags|funflags) & FUNC_PROTOTYPE)) {
-	    int funtype;
-	    int i;
-	    function_t *fundefp = FUNCTION_DEF(oldindex);
+	    int funtype, i;
 
 	    funtype = funp->type;
 	    if (FUNCTION_TEMP(oldindex)->prog) {
@@ -1097,7 +1103,7 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
 	    }
 	    /* This should be changed to catch two prototypes which disagree */
 	    if (funtype != TYPE_UNKNOWN) {
-		if (fundefp->num_arg != num_arg 
+		if (funp->num_arg != num_arg 
 		    && !((flags|funflags) & FUNC_VARARGS))
 		    yywarn("Number of arguments disagrees with previous definition.");
 		if (!(funflags & FUNC_STRICT_TYPES))
@@ -1110,7 +1116,7 @@ int define_new_function P5(char *, name, int, num_arg, int, num_local,
 		    char *p;
 		    
 		    if (FUNCTION_TEMP(oldindex)->prog) {
-			p = strput(buff, end, "Function inherited from '");
+			p = strput(buff, end, "Function inherited from '/");
 			p = strput(p, end, FUNCTION_TEMP(oldindex)->prog->name);
 			p = strput(p, end, "' does not match ");
 		    } else {
@@ -1250,6 +1256,10 @@ int define_variable P2(char *, name, int, type)
     if (ihe->dn.global_num == -1) {
 	ihe->sem_value++;
 	ihe->dn.global_num = n;
+
+	if (n >= 256) {
+	    yyerror("Too many global variables");
+	}
     } else {
 	char buf[256];
 	char *end = EndOf(buf);
@@ -1316,6 +1326,7 @@ parse_node_t *check_refs P3(int, num, parse_node_t *, elist, parse_node_t *, pn)
 	    tmp--;
 	elist = elist->r.expr;
     }
+    DEBUG_CHECK(tmp < 0, "Oops, found more refs than is possible!\n");
     if (tmp) {
 	/* if we didn't find all the refs at the top level of the argument
 	 * list, then at least one is buried; i.e. something illegal like
@@ -1622,7 +1633,7 @@ int validate_function_call P2(int, f, parse_node_t *, args)
 	}
 	
 	if (arg_types) {
-	    int i, tmp;
+	    int arg, i, tmp;
 	    parse_node_t *enode = args;
 	    int fnarg = funp->num_arg;
 	    
@@ -1632,8 +1643,12 @@ int validate_function_call P2(int, f, parse_node_t *, args)
 	    for (i = 0; (unsigned) i < fnarg && i < num_arg; i++) {
 		if (enode->type & 1) break;
 		tmp = enode->v.expr->type;
+
+		arg = arg_types[i];
+		if (prog)
+		    fix_class_type(&arg, prog);
 		
-		if (!compatible_types(tmp, arg_types[i])) {
+		if (!compatible_types(tmp, arg)) {
 		    char buff[256];
 		    char *end = EndOf(buff);
 		    char *p;
@@ -2019,7 +2034,7 @@ static int compare_funcs P2(unsigned short *, x, unsigned short *, y) {
 }
 
 static void handle_functions() {
-    int num_func;
+    int num_func, total_func;
     int i;
     compiler_temp_t *cur_def;
     int new_index, num_def;
@@ -2028,7 +2043,7 @@ static void handle_functions() {
     
     /* Pass one: Sort the compiler functions first                        */
     
-    num_func = mem_block[A_FUNCTIONS].current_size / sizeof (function_t);
+    num_func = total_func = mem_block[A_FUNCTIONS].current_size / sizeof (function_t);
     if (num_func) {
         func_index_map = CALLOCATE(num_func, unsigned short, 
 				   TAG_TEMPORARY, "handle_functions");
@@ -2046,7 +2061,7 @@ static void handle_functions() {
 	    comp_sorted_funcs[func_index_map[i]] = i;
 	
 	while (num_func && 
-	       FUNC(func_index_map[num_func-1])->address == USHRT_MAX)
+	       FUNC(func_index_map[num_func-1])->address == ADDRESS_MAX)
 	    num_func--;
     }	
     
@@ -2065,16 +2080,6 @@ static void handle_functions() {
 	    inherited_prog->function_table[inherited_prog->num_functions_defined -1].name[0] == '#') comp_last_inherited--;
     } else comp_last_inherited = 0;
     
-#ifdef BINARIES
-    /* assign runtime index */
-    /* Note that FUNC's are _not_ yet sorted */
-    
-    i = num_func;
-    while (i--)
-	FUNC(i)->runtime_index = comp_last_inherited + i;
-#endif
-    
-    
     /* Pass one: We allocate space for the comp_def_index_map             */
     /*           and prog_flags, and fill them out in sequential order    */
     
@@ -2082,7 +2087,7 @@ static void handle_functions() {
     if (num_def) {
 	comp_def_index_map = CALLOCATE(num_def, unsigned short,
 				       TAG_TEMPORARY, "handle functions");
-	prog_flags = CALLOCATE(comp_last_inherited + num_func, unsigned short,
+	prog_flags = CALLOCATE(comp_last_inherited + total_func, unsigned short,
 			       TAG_TEMPORARY, "handle_functions");
 	
 	for (i = 0; i < num_def; i++) {
@@ -2093,11 +2098,7 @@ static void handle_functions() {
 		    + cur_def->function_index_offset;
 	    } else {
 		final_index = comp_last_inherited + 
-#ifdef BINARIES
-		    cur_def->u.index;
-#else
-		comp_sorted_funcs[cur_def->u.index];
-#endif
+			      comp_sorted_funcs[cur_def->u.index];
 	    }
 	    if (cur_def->flags & FUNC_ALIAS) {
 		fatal("Aliasing difficulties!\n");
@@ -2113,11 +2114,7 @@ static void handle_functions() {
 			+ cur_def->function_index_offset;
 		} else {
 		    new_index = comp_last_inherited + 
-#ifdef BINARIES
-		    cur_def->u.index;
-#else
-		    comp_sorted_funcs[cur_def->u.index];
-#endif
+				comp_sorted_funcs[cur_def->u.index];
 		}	    
 		/* We aren't worried about repeating new_indices */
 		/* because it's all the same value               */
@@ -2130,16 +2127,14 @@ static void handle_functions() {
 	}
     }
 
-#ifndef BINARIES
-    if (num_func)     
+    if (total_func)     
 	FREE((char *) comp_sorted_funcs);
- #endif
 }		    
  		    
 /*
  * The program has been compiled. Prepare a 'program_t' to be returned.
  */
-static program_t *epilog() {
+static program_t *epilog PROT((void)) {
     int size, i, lnsz, lnoff;
     char *p;
     int num_func;
@@ -2241,11 +2236,6 @@ static program_t *epilog() {
     /* function flags */
     size += align(((comp_last_inherited + num_func) * sizeof(unsigned short)));
 
-#ifdef BINARIES
-    /* function runtime entries */
-    size += align((num_func * sizeof(unsigned short)));
-#endif
-
     /* A_ARGUMENT_INDEX */
     if (mem_block[A_ARGUMENT_INDEX].current_size)
 	size += align(num_func * sizeof(unsigned short)); 
@@ -2318,15 +2308,6 @@ static program_t *epilog() {
 	FREE((char *)prog_flags);
     }
     p += align(sizeof(unsigned short) * (comp_last_inherited + num_func));
-
-#ifdef BINARIES
-    prog->sorted_funcs = (unsigned short *)p;
-    memcpy(p, comp_sorted_funcs,
-	   num_func * sizeof(unsigned short));
-    if (num_func)
-	FREE((char *) comp_sorted_funcs);
-    p += align(sizeof(unsigned short) * num_func);
-#endif
 
     if (mem_block[A_ARGUMENT_INDEX].current_size) {
 	unsigned short *dest;
@@ -2418,6 +2399,7 @@ static program_t *epilog() {
 	reference_prog (prog->inherit[i].prog, "inheritance");
     }
     release_tree();
+    uninitialize_parser();
     scratch_destroy();
     clean_up_locals();
     free_unused_identifiers();
@@ -2458,6 +2440,14 @@ static void prolog P2(int, f, char *, name) {
 
     current_file = make_shared_string(name);
     current_file_id = add_program_file(name, 1);
+
+    /*
+     * if we've got a simul_efun object and we're not reloading it, make a copy
+     * of its class definitions in the object we're compiling now.
+     */
+    if (simul_efun_ob && *simul_efun_ob->name)
+	copy_structures(simul_efun_ob->prog);
+
     start_new_file(f);
 }
 
@@ -2468,7 +2458,7 @@ static void clean_parser() {
     int i, n;
     function_t *funp;
     compiler_temp_t *fundefp, *nextdefp;
-    
+
     /*
      * Free function stuff.
      */
@@ -2505,6 +2495,7 @@ static void clean_parser() {
 
     /* don't need the parse trees any more */
     release_tree();
+    uninitialize_parser();
     clean_up_locals();
     scratch_destroy();
     free_unused_identifiers();
@@ -2619,8 +2610,8 @@ void prepare_cases P2(parse_node_t *, pn, int, start) {
 	    translate_absolute_line((*(ce-1))->line, 
 				    (unsigned short *)mem_block[A_FILE_INFO].block,
 				    &fi2, &l2);
-	    f1 = PROG_STRING(fi1);
-	    f2 = PROG_STRING(fi2);
+	    f1 = PROG_STRING(fi1 - 1);
+	    f2 = PROG_STRING(fi2 - 1);
 
 	    p = strput(buf, end, "Overlapping cases: ");
 	    if (f1) {
@@ -2628,12 +2619,14 @@ void prepare_cases P2(parse_node_t *, pn, int, start) {
 		p = strput(p, end, ":");
 	    } else
 		p = strput(p, end, "line ");
+	    p = strput_int(p, end, l1);
 	    p = strput(p, end, " and ");
 	    if (f2) {
 		p = strput(p, end, f2);
 		p = strput(p, end, ":");
 	    } else
 		p = strput(p, end, "line ");
+	    p = strput_int(p, end, l2);
 	    p = strput(p, end, ".");
 	    yyerror(buf);
 	}

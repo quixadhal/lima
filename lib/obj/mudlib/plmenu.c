@@ -62,7 +62,7 @@ private nomask void simple_cmd(string cmd)
 void
 start_mail()
 {
-    this_body()->query_mailer()->begin_mail();
+    this_user()->query_mailer()->begin_mail();
 }
 
 void handle_finger(string person)
@@ -79,7 +79,7 @@ void test_soul(string s)
 
 void find_soul(string s)
 {
-    if(!s) {
+    if(!s || s == "") {
 	write("Invalid.\n");	
 	return;
     }
@@ -89,7 +89,7 @@ void find_soul(string s)
 
 void show_souls(string s)
 {
-    CMD_OB_FEELINGS->player_menu_entry();
+    CMD_OB_FEELINGS->player_menu_entry(s);
 }
 
  
@@ -101,7 +101,7 @@ void show_adverbs(string s)
 "kick rust energetically, but kick rust en* won't because it also\n"
 "matches endearingly and enthusiastically.\n");
 
-CMD_OB_ADVERBS->player_menu_entry();
+CMD_OB_ADVERBS->player_menu_entry(s);
 }
 
 
@@ -171,6 +171,15 @@ void prompt_change_url()
     input_one_arg("Change your WWW homepage address to what? ", (: change_url :));
 }
 
+void set_ansi(string s)
+{
+    CMD_OB_ANSI->player_menu_entry(s);
+}
+   
+void prompt_change_ansi()
+{
+	input_one_arg("set ANSI 'on' or 'off': ", (: set_ansi :));
+}
 
 void set_biff(string s)
 {
@@ -183,13 +192,6 @@ void set_biff(string s)
     goto_previous_menu();
 } 
 
- 
-void set_ansi(string s)
-{
-    CMD_OB_ANSI->player_menu_entry(s);
-}
-      
-   
 void set_snoopable(string s)
 {
     if ( s == "y" )
@@ -265,28 +267,28 @@ void create()
   // Add items to the soul menu.
   add_menu_item (soulmenu, main_seperator);
   add_menu_item (soulmenu, 
-		 new_menu_item("List souls", (: input_one_arg,
+		 new_menu_item("List souls", (: get_input_then_call,
+					      (: show_souls :) ,
 					      "List all souls starting with "
-					      "(enter for ALL souls): ",
-					      (: show_souls :) :),
+					      "(enter for ALL souls): " :),
 			       "s"));
   add_menu_item (soulmenu, 
-		 new_menu_item("List adverbs", (: input_one_arg,
+		 new_menu_item("List adverbs", (: get_input_then_call,
+					      (: show_adverbs :),
 					      "List all adverbs starting with "
-					      "(enter for ALL adverbs): ",
-					      (: show_adverbs :) :),
+					      "(enter for ALL adverbs): " :),
 			       "a"));
   add_menu_item (soulmenu, 
-		 new_menu_item("Find souls", (: input_one_arg,
-					      "Find souls whoose output "
-					      "contains string: ",
-					      (: find_soul :) :),
+		 new_menu_item("Find souls", (: get_input_then_call,
+					      (: find_soul :),
+					      "Find souls whose output "
+					      "contains string: " :),
 			       "f"));
 
   add_menu_item (soulmenu, 
-  		 new_menu_item("Test a soul", (: input_one_arg,
-					       "Soul to test: ",
-					       (: test_soul :) :),  "t"));
+  		 new_menu_item("Test a soul", (: get_input_then_call,
+(: test_soul :),
+					       "Soul to test: " :),  "t"));
 
   add_menu_item (soulmenu, quit_item);
   
@@ -304,27 +306,23 @@ void create()
 
   add_menu_item (personalmenu, main_seperator);
   add_menu_item (personalmenu, new_menu_item("View your personal information",
-					     (: query_personal_info :), "v"));
+					      (: query_personal_info :), "v"));
   add_menu_item (personalmenu, new_menu_item("Change your title", 
-					     (: prompt_change_title :), "t"));
+					      (: prompt_change_title :), "t"));
   add_menu_item (personalmenu, new_menu_item("Change your supplied "
-					     "e-mail address",
-					     (: prompt_change_email :), "e"));
+					      "e-mail address",
+					      (: prompt_change_email :), "e"));
   add_menu_item (personalmenu, new_menu_item("Change your supplied WWW home "
 					     "page address",
-					     (: prompt_change_url :), "w"));
+					      (: prompt_change_url :), "w"));
   add_menu_item (personalmenu, new_menu_item("Set or unset mail notification",
 					     biffmenu, "n"));
   add_menu_item (personalmenu, new_menu_item("Set whether or not you can be "
 					     "snooped", snoopablemenu, "s"));
-   add_menu_item(personalmenu, new_menu_item("Change your supplied real name",
+  add_menu_item (personalmenu, new_menu_item("Change your supplied real name",
                                               (: prompt_change_real_name :), "r"));
-  add_menu_item(personalmenu, new_menu_item("Set ANSI on/off",
-					    (: input_one_arg,
-					     "Ansi 'on' or 'off' ? (default off): ",
- 					     (: set_ansi :) :),
-					    "a"));
- 
+  add_menu_item (personalmenu, new_menu_item("Set ANSI on/off",
+					      (: prompt_change_ansi :), "a"));
   add_menu_item (personalmenu, quit_item);
   add_menu_item (personalmenu, goto_main_menu_item);
 

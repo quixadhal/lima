@@ -8,7 +8,7 @@
 
 #include <verbs.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 string array normal_directions = ({ "north", "south", "west", "east",
                                     "northwest", "northeast", 
@@ -21,7 +21,7 @@ void do_go_obj(object ob)
   ob->do_verb_rule("go", "OBJ", ob);
 }
 
-void do_go_word_obj(string prep, object ob)
+void do_go_wrd_obj(string prep, object ob)
 {
   ob->do_verb_rule("go", "WRD OBJ", prep, ob);
 }
@@ -29,6 +29,11 @@ void do_go_word_obj(string prep, object ob)
 void do_go_str(string str) 
 {
   environment(this_body())->do_go_str(str);
+}
+
+mixed can_go_wrd_obj(string prep, object ob)
+{
+  return "You can't do that!\n";
 }
 
 mixed can_go_str(string str) {

@@ -13,9 +13,6 @@
 #include "binaries.h"
 #include "cc.h"
 #include "master.h"
-#ifdef INCL_DLFCN_H
-#include <dlfcn.h>
-#endif
 
 void
 link_jump_table P2(program_t *, prog, void **, jump_table)
@@ -126,17 +123,15 @@ static void compile_and_link P2(char *, file, char *, ident) {
 
     /* Do the compile */
     create_command(command, 
-#ifdef sgi
+#if defined(sgi)
 		   "$c $l -c -shared -I$s -G 0 -o $f.so $f.c >$e 2>&1",
-#endif
-#ifdef __NetBSD__
+#elif defined(__NetBSD__)
 		   "($c $l -c -fpic -DPIC -I$s -o $f.o $f.c && ld -X -Bshareable -o $f.so $f.o && rm $f.o) >$e 2>&1",
-#endif
-#ifdef linux
-		   "$c $l -I$s -fPIC -shared -Wl,-soname,$f.so -o $f.so $f.c > $e 2>&1",
-#endif
-#ifdef __alpha
+#elif defined(__alpha)
 		   "($c $l -c -I$s -o $f.o $f.c && ld -msym -shared -expect_unresolved '*' -o $f.so $f.o && rm $f.o) >$e 2>&1",
+#else
+		   /* Everything else ... known to work for Linux and FreeBSD */
+		   "$c $l -I$s -fPIC -shared -Wl,-soname,$f.so -o $f.so $f.c > $e 2>&1",
 #endif
 		   COMPILER, CFLAGS, "lpc2c", file, "lpc2c/errors");
 

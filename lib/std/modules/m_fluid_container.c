@@ -11,7 +11,7 @@ int query_max_capacity();
 string the_short();
 
 mixed leak_action = "$O leaks out of $o1.";
-mixed full_action = "The $o1 is full of $o.";
+mixed full_action = "The $o1 is too full for $o.";
 mixed fluid_only = 1;
 
 void look_me();
@@ -69,12 +69,12 @@ void leak ( object ob )
 int will_fit( object fluid )
 {
   int fluid_size, room_left, load;
-
+  
   if ( first_inventory() )
-    load = first_inventory() -> get_size();
-  fluid_size = fluid ->get_size();
+    load = first_inventory() -> query_size();
+  fluid_size = fluid ->query_size();
   room_left = query_max_capacity() - load;
-//write ("Fluid size:  " + fluid_size + "   Room left:   " + room_left + ".\n");
+  //  write ("Fluid size:  " + fluid_size + "   Room left:   " + room_left + ".\n");
   return (fluid_size <= room_left );
 }
 
@@ -159,20 +159,22 @@ void drink_from_it( object fluid )
 //(eg fill from source, such as tap)
 int fill_with( object fluid )
 {
-  if (!can_hold_fluid( fluid ) )
+  if (!can_hold_fluid( fluid ) ) {
     return leak( fluid );
+  }
   if (!will_fit( fluid ) )
   { 
     full_action( fluid ); 
     return 0; 
   }
-  if ( fluid_already( fluid ) )
+  if ( fluid_already( fluid ) ) {
     return (fluid_already(fluid)) -> add_fluid( fluid );
-  if ( fluid_already( fluid, "fluid" ) )
+  }
+  if ( fluid_already( fluid, "fluid" ) ) {
     return fluid_already( fluid, "fluid" ) -> do_mix( fluid );
+  }
   if (!fluid -> fill_action( this_object() ))
     return 0; //Give the fluid a chance to have a say.
-
   move_fluid( fluid );
   return 1;
 }
@@ -222,7 +224,7 @@ string get_extra_long()
   if (!ob)
     full = "It is empty";
   else
-    switch ((100 * ob->get_size())/ this_object()->query_max_capacity())
+    switch ((100 * ob->query_size())/ this_object()->query_max_capacity())
     {
     case 0: 
       full = "It is empty.";

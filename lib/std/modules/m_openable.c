@@ -31,14 +31,14 @@ void resync_visibility();
 int test_flag(int which);
 void assign_flag(int which, int state);
 
-//:FUNCTION do_on_open()
+//:FUNCTION do_on_open
 // Called from open_with() so modules that inherit from M_OPENABLE
 // Don't have to catch the "open" hook.
 void do_on_open() {
     /* Overload this later */
 }
 
-//:FUNCTION do_on_close()
+//:FUNCTION do_on_close
 // Called from close() so modules that inherit from M_OPENABLE
 // Don't have to catch the "close" hook.
 void do_on_close() {
@@ -55,17 +55,19 @@ void set_closed(int x)
 {
     assign_flag(F_OPEN, !x);
 
-    remove_adj("closed", "open");
-    if (x)
-	add_adj("closed");
-    else
-	add_adj("open");
+    /* Commenting this out for now -- Marroc
+	remove_adj("closed", "open");
+	if (x)
+	    add_adj("closed");
+	else
+	    add_adj("open");
+    */
 
     if (open_desc && !x) 
 	set_in_room_desc(open_desc);
     if (closed_desc && x)
 	set_in_room_desc(closed_desc);
-  
+
     /* our inventory visibility probably just changed. */
     resync_visibility();
 }
@@ -73,14 +75,14 @@ void set_closed(int x)
 
 void set_open_desc( string desc )
 {
-  open_desc = desc;
-  if (!query_closed()) set_in_room_desc(desc);
+    open_desc = desc;
+    if (!query_closed()) set_in_room_desc(desc);
 }
 
 void set_closed_desc( string desc )
 {
-  closed_desc = desc;
-  if (query_closed()) set_in_room_desc(desc);
+    closed_desc = desc;
+    if (query_closed()) set_in_room_desc(desc);
 }
 
 string query_closed_desc() { return closed_desc; }
@@ -107,8 +109,8 @@ varargs int open_with(object with)
 	return 1;
     }
 
-//:HOOK prevent_open
-//A yes/no/error hook which can prevent an object from being opened.
+    //:HOOK prevent_open
+    //A yes/no/error hook which can prevent an object from being opened.
 
     ex = call_hooks("prevent_open", HOOK_YES_NO_ERROR);
     if (!ex) ex = capitalize(the_short() + " doesn't seem to want to open.\n");
@@ -116,7 +118,7 @@ varargs int open_with(object with)
 	write(ex);
 	return 1;
     }
-    
+
     this_body()->simple_action(open_msg, this_object());
     set_closed(0);
     if (ex = inv_list(all_inventory())) {
@@ -125,31 +127,31 @@ varargs int open_with(object with)
 
     do_on_open();
 
-//:HOOK open
-//called when an object is opened.  The return value is ignored.
+    //:HOOK open
+    //called when an object is opened.  The return value is ignored.
     call_hooks("open", HOOK_IGNORE);
 
     return 1;
 }
 
-mixed close() {
+mixed do_close() {
     mixed tmp;
     if (query_closed()) {
 	write("It is already closed.\n");
 	return 1;
     }
-//:HOOK prevent_close
-//A yes/no/error hook that can prevent an object from being closed
+    //:HOOK prevent_close
+    //A yes/no/error hook that can prevent an object from being closed
     tmp = call_hooks("prevent_close", HOOK_YES_NO_ERROR);
     if (!tmp) tmp = capitalize(the_short()) + " doesn't seem to want to close.\n";
     if (stringp(tmp)) return tmp;
-    
+
     this_body()->simple_action(close_msg, this_object());
     set_closed(1);    
     do_on_close();
 
-//:HOOK close
-//called when an object is closed.  The return value is ignored.
+    //:HOOK close
+    //called when an object is closed.  The return value is ignored.
     call_hooks("close", HOOK_IGNORE);
 
     return 1;
@@ -157,26 +159,26 @@ mixed close() {
 
 int is_open()
 {
-  return !query_closed();
+    return !query_closed();
 }
 
 /* Verb interaction */
 mixed direct_open_obj(object ob) {
     object where = environment(this_object());
 
-  if(where != this_body() && where != environment(this_body()) )
-      return "#You do not have that.\n";
+    if(where != this_body() && where != environment(this_body()) )
+	return "#You do not have that.\n";
     if (!query_closed())
-      return "It is already open.\n";
+	return "It is already open.\n";
     return 1;
 }
 
 mixed direct_close_obj(object ob) {
     object where = environment(this_object());
     if (where != this_body() && where!= environment(this_body()) )
-    return "#You do not have that.\n";
+	return "#You do not have that.\n";
     if (query_closed())
-        return "It is already closed.\n";
+	return "It is already closed.\n";
     return 1;
 }
 
@@ -191,13 +193,13 @@ string extra_long_stuff()
 // so that the proper adjective gets initialized.
 void internal_setup() {
     set_closed(1);
-    
+
     add_hook("extra_long", (: extra_long_stuff :));
     add_hook("prevent_look_in", (: query_closed() ? "It is closed.\n" : (mixed)1 :));
 }
 
 mapping lpscript_attributes() {
     return ([ 
-	"closed" : ({ LPSCRIPT_INT, "setup", "set_closed" }),
+      "closed" : ({ LPSCRIPT_INT, "setup", "set_closed" }),
     ]);
 }

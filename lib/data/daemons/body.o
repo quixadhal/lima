@@ -1,0 +1,2 @@
+#/daemons/body_d.c
+body_types (["humanoid":(["right hand":(/-1,-1,0,/),"right leg":(/15,15,4,/),"left leg":(/15,15,4,/),"right arm":(/15,15,2,/),"left arm":(/15,15,2,/),"head":(/20,20,1,/),"torso":(/25,25,1,/),"neck":(/-1,-1,0,/),"left hand":(/-1,-1,0,/),]),])

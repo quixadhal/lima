@@ -32,22 +32,20 @@
 **
 ** 05-Nov-94. Created. Deathblade.
 */
+#pragma warnings
 
-#define CHANNEL_FORMAT(chan) (chan[0..4] == "imud_" ? "%%^CHANNEL_IMUD%%^[i%s]%%^RESET%%^ %s\n" : "%%^CHANNEL%%^[%s]%%^RESET%%^ %s\n")
+#define CHANNEL_FORMAT(chan) (chan[0..4] == "imud_" ? "%%^CHANNEL_IMUD%%^[%s]%%^RESET%%^ %s\n" : "%%^CHANNEL%%^[%s]%%^RESET%%^ %s\n")
 
-#include <mudlib.h>
 #include <security.h>
-#include <classes.h>
 #include <channel.h>
+
 
 inherit M_DAEMON_DATA;
 inherit M_GRAMMAR;
-
-//inherit CLASS_CHANNEL_INFO;   picked up from channel/cmd
-
+inherit CLASS_CHANNEL_INFO;   //picked up from channel/cmd
 inherit __DIR__ "channel/cmd";
-//inherit __DIR__ "channel/moderation";
-#include "/daemons/channel/moderation.c"
+inherit __DIR__ "channel/moderation";
+
 
 /*
 ** This channel information.  It specifies channel_name -> channel_info.
@@ -78,12 +76,15 @@ private class listener_pair *	saved_hooks;
 
 private nomask string extract_channel_name(string channel_name)
 {
-    int idx = strsrch(channel_name, "_", 1);
+  int idx = strsrch(channel_name, "_", 1);
+  if ( idx == -1 )
+    return channel_name;
 
-    if ( idx == -1 )
-	return channel_name;
+  /* If the channel is an intermud channel, prepend an 'i' to the name */
+  if(channel_name[0..4]=="imud_")
+    return "i"+channel_name[idx+1..];
 
-    return channel_name[idx+1..];
+  return channel_name[idx+1..];
 }
 
 protected nomask class channel_info query_channel_info(string channel_name)
@@ -234,7 +235,11 @@ nomask string user_channel_name(string channel_name)
 */
 nomask void register_channels(string * names)
 {
-    map_array(names, (: register_one, 0, previous_object() :));
+  /* First filter out the channels that don't exist, otherwise the channel 
+   * will be created.  If the channel's not created, we don't want it to be
+   * done so automatically here. */
+  //  names=names&keys(info);
+  map_array(names, (: register_one, 0, previous_object() :));
 }
 
 /*
@@ -279,14 +284,12 @@ private nomask string find_sender_name(string sender_name)
 nomask void deliver_string(string channel_name, string str)
 {
     class channel_info ci = info[channel_name];
-
     if ( !ci ||	sizeof(ci->listeners) == 0 )
 	return;
 
     ci->history += ({ str });
     if ( sizeof(ci->history) > CHANNEL_HISTORY_SIZE )
 	ci->history[0..0] = ({ });
-
     ci->listeners->channel_rcv_string(channel_name, str);
 }
 
@@ -417,48 +420,45 @@ nomask void deliver_notice(string channel_name,
 
 void create()
 {
-    class listener_pair pair;
-
-    info = ([ ]);
-
-    map_array(bodies(), (: register_body :));
-
-    ::create();
-
-    if ( saved_listeners )
+  class listener_pair pair;
+  
+  info = ([ ]);
+  map_array(users(), (: register_body :));
+  ::create();
+  if ( saved_listeners )
     {
-	foreach ( pair in saved_listeners )
+      foreach ( pair in saved_listeners )
 	{
-	    object ob = find_object(pair->filename);
-
-	    if ( ob )
-		register_one(0, ob, pair->channel_name);
+	  object ob = find_object(pair->filename);
+	  
+	  if ( ob )
+	    register_one(0, ob, pair->channel_name);
 	}
-
-	saved_listeners = 0;
+      
+      saved_listeners = 0;
     }
-    if ( saved_hooks )
+  if ( saved_hooks )
     {
-	foreach ( pair in saved_hooks )
+      foreach ( pair in saved_hooks )
 	{
-	    object ob = find_object(pair->filename);
-
-	    if ( ob )
-		register_one(1, ob, pair->channel_name);
+	  object ob = find_object(pair->filename);
+	  
+	  if ( ob )
+	    register_one(1, ob, pair->channel_name);
 	}
-
-	saved_hooks = 0;
+      
+      saved_hooks = 0;
     }
-
-    foreach ( string channel_name, int flags in permanent_channels )
+  
+  foreach ( string channel_name, int flags in permanent_channels )
     {
-	class channel_info ci;
-
-	if ( !info[channel_name] )
-	    create_channel(channel_name);
-
-	ci = info[channel_name];
-	ci->flags = flags;
+      class channel_info ci;
+      
+      if ( !info[channel_name] )
+	create_channel(channel_name);
+      
+      ci = info[channel_name];
+      ci->flags = flags;
     }
 }
 
@@ -468,48 +468,42 @@ void create()
 ** Write out all listeners and hooks that are blueprints.  We'll reset
 ** them at creation time.
 */
-void remove()
-{
-    string channel_name;
-    class channel_info ci;
+void remove() {
+  string channel_name;
+  class channel_info ci;
 
-    saved_listeners = ({ });
-    saved_hooks = ({ });
+  saved_listeners = ({ });
+  saved_hooks = ({ });
 
-    foreach ( channel_name, ci in info )
-    {
-	object ob;
+  foreach ( channel_name, ci in info )  {
+    object ob;
 
-	foreach ( ob in ci->listeners - ({ 0 }) )
-	{
-	    string fname = file_name(ob);
-
-	    if ( member_array('#', fname) == -1 )
-	    {
-		class listener_pair pair = new(class listener_pair);
-
-		pair->channel_name = channel_name;
-		pair->filename = fname;
-		saved_listeners += ({ pair });
-	    }
-	}
-
-	foreach ( ob in ci->hooked - ({ 0 }) )
-	{
-	    string fname = file_name(ob);
-
-	    if ( member_array('#', fname) == -1 )
-	    {
-		class listener_pair pair = new(class listener_pair);
-
-		pair->channel_name = channel_name;
-		pair->filename = fname;
-		saved_hooks += ({ pair });
-	    }
-	}
+    foreach ( ob in ci->listeners - ({ 0 }) ) {
+      string fname = file_name(ob);
+      
+      if ( member_array('#', fname) == -1 ) {
+	class listener_pair pair = new(class listener_pair);
+	
+	pair->channel_name = channel_name;
+	pair->filename = fname;
+	saved_listeners += ({ pair });
+      }
     }
-
-    save_me();
+    
+    foreach ( ob in ci->hooked - ({ 0 }) ) {
+      string fname = file_name(ob);
+      
+      if ( member_array('#', fname) == -1 ) {
+	class listener_pair pair = new(class listener_pair);
+	
+	pair->channel_name = channel_name;
+	pair->filename = fname;
+	saved_hooks += ({ pair });
+      }
+    }
+  }
+  
+  save_me();
 }
 
 
@@ -574,14 +568,12 @@ nomask string make_name_list(mixed * list)
     ** Remove null objects, objects with no links (to interactive users),
     ** and link obs that are no longer interactive.
     */
-    list = filter_array(list, (: $1 && $1->query_link() &&
-			       interactive($1->query_link()) :));
-    return implode(list->query_name(), ", ");
+    list = filter_array(list, (: $1 && interactive($1) :));
+    return implode(list->query_userid(), ", ");
 }
 
 /*
-** is_valid_channel()
-**
+** is_valid_channel()**
 ** Is the given string a valid channel name (as in command name) ?  A list
 ** of internal names should be provided (such as the list a player is
 ** registered with).  The internal channel name will be returned, or 0
@@ -591,6 +583,8 @@ nomask string make_name_list(mixed * list)
 */
 nomask string is_valid_channel(string which, string * list)
 {
+  if(list)
+    if(sizeof(list)>0)
     foreach ( string name in list )
 	if ( info[name] && ((class channel_info)info[name])->name == which )
 	    return name;

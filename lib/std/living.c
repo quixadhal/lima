@@ -1,5 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
-
+#include <log.h>
 
 inherit CONTAINER;
 inherit __DIR__ "living/grammar";
@@ -23,8 +23,8 @@ void mudlib_setup()
     ::mudlib_setup();
     /* We always should have an 'in' relation in living objects. */
     /* This takes care of capacity too */
-    add_relation("in",100);
-    set_default_relation("in");
+    add_relation("on",100);
+    set_default_relation("on");
     set_def_msgs("living-default");
 }
 
@@ -33,6 +33,7 @@ string query_name() { return name; }
 void set_name(string n) {
     if (name) remove_id(lower_case(n));
     name = n;
+    LOG_D->log(LOG_SETNAME, sprintf("%O used set_name() on %O (%s)\n", this_user(), this_object(),query_name()));
     add_id_no_plural(lower_case(n));
 }
 

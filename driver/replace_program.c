@@ -16,7 +16,19 @@ replace_ob_t *obj_list_replace = 0;
 static program_t *search_inherited PROT((char *, program_t *, int *));
 static replace_ob_t *retrieve_replace_program_entry PROT((void));
 
-void replace_programs()
+int replace_program_pending P1(object_t *, ob)
+{
+    replace_ob_t *r_ob;
+
+    for (r_ob = obj_list_replace;  r_ob;  r_ob = r_ob->next) {
+	if (r_ob->ob == ob)
+	    return 1;
+    }
+
+    return 0;
+}
+
+void replace_programs PROT((void))
 {
     replace_ob_t *r_ob, *r_next;
     int i, num_fewer, offset;
@@ -57,7 +69,13 @@ void replace_programs()
 	    }
 	}
 
-	r_ob->new_prog->ref++;
+        if (r_ob->ob->replaced_program) {
+            FREE_MSTR(r_ob->ob->replaced_program);
+            r_ob->ob->replaced_program = 0;
+        }
+        r_ob->ob->replaced_program = string_copy(r_ob->new_prog->name, "replace_programs");
+
+	reference_prog(r_ob->new_prog, "replace_programs");
 	old_prog = r_ob->ob->prog;
 	r_ob->ob->prog = r_ob->new_prog;
 	r_next = r_ob->next;
@@ -124,7 +142,7 @@ static program_t *search_inherited P3(char *, str, program_t *, prg, int *, offp
     return (program_t *) 0;
 }
 
-static replace_ob_t *retrieve_replace_program_entry()
+static replace_ob_t *retrieve_replace_program_entry PROT((void))
 {
     replace_ob_t *r_ob;
 
@@ -157,7 +175,7 @@ f_replace_program PROT((void))
     if (current_object->prog->func_ref)
 	error("cannot replace a program with function references.\n");
 
-    name_len = strlen(sp->u.string);
+    name_len = SVALUE_STRLEN(sp);
     name = (char *) DMALLOC(name_len + 3, TAG_TEMPORARY, "replace_program");
     xname = name;
     strcpy(name, sp->u.string);

@@ -8,8 +8,8 @@ inherit M_COMPLETE;
 inherit M_ACCESS;
 inherit M_GRAMMAR;
 
-private mapping emotes;
-private string* adverbs;
+private mapping emotes=([]);
+private string* adverbs=({});
 
 #define SAVE_FILE "/data/daemons/soul"
 #define CMD_ADD_EMOTE "/cmds/wiz/addemote"
@@ -345,6 +345,8 @@ mixed *parse_soul(string str) {
 
 mixed *parse_imud_soul(string str) {
     object temp;
+    string user;
+    string tmp;
     mixed result;
     mixed soul;
     int i;
@@ -353,16 +355,64 @@ mixed *parse_imud_soul(string str) {
     // could make it handle more, but its not worth it while the IMUD stuff
     // only handles two people
     i = strsrch( str, "@" );
-    if ( i > -1 ) 
+    //    if ( i > -1 ) 
+    if(sscanf(str,"%s@%s",user,tmp)==2)
     {
-	string n;
-	n = str[ strsrch( str[0..i], " ", -1 )+1..
-		strsrch( str[i..]+" ", " " )-1+i ];
-	temp = new( IMUD_CHANNELT_DUMMY, n );
-	if ( temp )
-	  str = replace_string( str, n, "wibblewibble"+n );
+      
+      string array muds=IMUD_D->query_up_muds();
+      string array words=explode(tmp," ");
+      string array matches;
+      string array previous_matches=muds;
+      string emote;
+      int j=sizeof(words);
+      
+
+      /* The soul is all of the user except for the last word. */
+      emote=implode(explode(user," ")[0..<2]," ");
+
+      /* Assume that the last word of user, is the actual users name
+       * this has problems if there are cases where the users name includes
+       * a space, but we will deal with that later.*/
+      user=explode(user," ")[<1];
+
+      tmp="";
+      for(i=0;i<j;i++) {
+	tmp += " " + words[i];
+	if(tmp[0]==' ')
+	  tmp=tmp[1..];
+	matches=find_best_match_or_complete(tmp,muds);
+
+	/* If there are multiple matches, add the next word first and see
+	 * if that narrows the possibilities down. */
+	if(sizeof(previous_matches&matches)>1) {
+	  previous_matches&=matches;
+	  continue;
+	}
+	
+	/* We know that there is either 1 or no matches now.  Check for none
+	 * first.  The fact that we are at this point means that the previous
+	 * iteration had more than one match, but this one doesn't.  It's 
+	 * ambiguous */
+	if(!sizeof(matches)) {
+	  write("Vague mud name.  could be: " + 
+		implode(previous_matches,", ") + "\n");
+	  return;
+	}
+
+	/* We have narrowed things down to one successful match.  Nothing more
+	 * needs to be done.  Just use it. */
+      }
+
+      tmp=sprintf("%s@%s",user,matches[0]);
+
+      temp = new( IMUD_CHANNELT_DUMMY, tmp );
+
+      if ( temp )
+	{
+	str = replace_string( sprintf("%s %s",emote,tmp), tmp, "wibblewibble"+tmp );
+	}
     }
-    
+
     result = parse_my_rules(this_body(), str, 0 );
 
     if (!result || intp(result) || stringp(result))

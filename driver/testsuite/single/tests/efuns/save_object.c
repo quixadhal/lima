@@ -1,5 +1,9 @@
 int x = 0;
+#ifndef __SENSIBLE_MODIFIERS__
 static int z = 5;
+#else
+nosave int z = 5;
+#endif
 int y = 1;
 
 void do_tests() {

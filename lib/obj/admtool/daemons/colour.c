@@ -30,9 +30,9 @@ private void receive_add_colour(string key, string value) {
 }
 
 private void list_colours() {
-    mapping tmp;
-    tmp = ANSI_D->defaults();
-    write(implode(map(keys(tmp), (: lower_case :)), ", ") + "\n\n");
+  mapping tmp;
+  tmp = ANSI_D->defaults();
+  write(implode(map(sort_array(keys(tmp),1),(: lower_case :)), ", ")+"\n\n");
 }
 
 nomask class command_info array module_commands() {

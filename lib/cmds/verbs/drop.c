@@ -2,7 +2,7 @@
 
 #include <move.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 mixed can_drop_obj() {
     // give a better message for this case, since all the errors generated

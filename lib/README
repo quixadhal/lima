@@ -1,4 +1,4 @@
-Welcome to the ALPHA release of the Lima Mudlib!
+Welcome to the BETA release of the Lima Mudlib!
 
 When you find our documentation inadequate, please come to our lib
 support mud, Lima Bean, and ask questions (or type news and post
@@ -6,10 +6,10 @@ them there).
 
 Lima Bean is located at:
 lima.mudlib.org 7878
-(208.192.43.32 7878)
+(24.149.18.52 7878)
 
 Additional information and documentation is also available on our web pages:
-  http://lima.mudlib.org/
+  http://lima.mudlib.org/ (work in progress)
 
 
 Mudlib Features:
@@ -40,6 +40,11 @@ Credits:
  	o Tim Hollebeek, Beek @ Lima Bean
 		 (tim@hollebeek.hep.upenn.edu, http://www.imaginary.com/~beek/)
 
+  The Lima Mudlib is presently maintained by:
+	o Robert M. Zigwied, Tigran @ Lima Bean 
+	o David Walley, Loriel @ Lima Bean
+	o Cody Russell, Iizuka @ Lima BEan
+
   Security system contributed by:
 	o Reimer Behrends, Ellery @ TMI-2  (behrends@buran.fb10.tu-berlin.de)
 
@@ -54,7 +59,12 @@ Credits:
 	o Anthon Pang, Robocoder @ Lima Bean (apang@mindlink.net)
 
 	  For maintaining the lima.mudlib.org web site and the Lima
-	  Mudlib web pages.
+	  Mudlib web pages before they were lost in the crash.  We only 
+	  hope to create new ones that are close to that good.
+
+	o George Reese, Descartes @ Lima Bean 
+
+	  For hosting the distribution site of the mudlib.
 
   Lima Bean staff:
 
@@ -65,14 +75,17 @@ Credits:
           Taro Ogawa, Ohara @ Lima Bean (retired)
           Scott Gamble, Zifnab @ Lima Bean
 	  Zachary Girouard, Zakk @ Lima Bean (zakk@intersurf.com)
-          Robert M. Zigweid, Tigran @ Lima Bean (tigran@lima.mudlib.org)
+          Robert M. Zigweid, Tigran @ Lima Bean (tigran@list.org)
           Cody Russell, Iizuka@Lima Bean (bratsche@dfw.net)
+	  David Walley, Loriel@Lima Bean (DaveWalley@aol.com)
+	  Johan Warlander, Marroc@Lima Bean (johan@warlander.com)
 
 	Staff:
 	  Anthon Pang, Robocoder @ Lima Bean
 	  Darrin Wilson, Satan @ Lima Bean
 	  Fred Strelzoff, Yaynu @ Lima Bean
 	  Hal Schechner, Cowl @ Lima Bean
+	  Bill Tutt, Rassilon @ Lima Bean
 	
 
   Many thanks to:

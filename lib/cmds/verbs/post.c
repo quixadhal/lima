@@ -154,9 +154,9 @@ void do_post_wrd_with_wrd_on_obj(string wrd1, string wrd2, object ob) {
 
 /* ***************************************************************** */
 
-array query_verb_info() {
-    return ({ ({ "about STR", "on OBJ about STR",
+void create() {
+    add_rules( ({ "about STR", "on OBJ about STR",
                  "WRD to WRD", "WRD to WRD on OBJ",
                  "WRD with WRD", "WRD with WRD on OBJ",
-           }) });
+           }), ({ }));
 }

@@ -25,7 +25,7 @@ void trigger()
 {
     QUEST_D->grant_points(this_body(),"pirate:secretPsg");
     call_out( "open_with", 1 );
-    call_out( "close", 8 );
+    call_out( "do_close", 8 );
 }
 
 

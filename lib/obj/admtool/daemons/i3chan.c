@@ -33,7 +33,7 @@ private nomask void list_channels()
 	return;
     }
 
-    write(implode(({ "" }) + keys(chanlist),
+    write(implode(({ "" }) + sort_array(keys(chanlist),1),
 		  (: $1 + sprintf("    %s/%s\n", $2,
 				  $(({"unrestricted",
 					  "restricted",
@@ -97,11 +97,11 @@ private nomask void rcv_ignore_channel(string channel_name) {
 private nomask void list_all_channels() {
     mapping chanlist = IMUD_D->query_chanlist();
 
-    write(colour_table(keys(chanlist), this_user()->query_screen_width(), 4)+"\n");
+    write(colour_table(sort_array(keys(chanlist),1), this_user()->query_screen_width(), 4)+"\n");
 }
 
 private nomask void listened_channels() {
-    string *chanlist = IMUD_D->query_listened_channels();
+    string *chanlist = sort_array(IMUD_D->query_listened_channels(),1);
     write(colour_table(chanlist, this_user()->query_screen_width(), 4)+"\n");
 }
 

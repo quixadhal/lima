@@ -170,9 +170,6 @@ typedef struct {
     unsigned short type;
     unsigned char num_arg;
     unsigned char num_local;
-#ifdef BINARIES
-    unsigned short runtime_index;
-#endif
     ADDRESS_TYPE address;
 #ifdef PROFILE_FUNCTIONS
     unsigned long calls, self, children;
@@ -218,9 +215,6 @@ typedef struct program_s {
     unsigned short *file_info;
     int line_swap_index;	/* Where line number info is swapped */
     function_t *function_table;
-#ifdef BINARIES
-    unsigned short *sorted_funcs;
-#endif
     unsigned short *function_flags; /* separate for alignment reasons */
     class_def_t *classes;
     class_member_entry_t *class_members;

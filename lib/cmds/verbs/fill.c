@@ -15,7 +15,7 @@
 #include <mudlib.h>
 #include <setbit.h>
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 int do_fill_it(object bottle, object fluid)
 {

@@ -439,9 +439,10 @@ f_mult_eq()
 	case T_MAPPING:
 	{
 	    mapping_t *m = compose_mapping(argp->u.map, sp->u.map,0);
-	    pop_stack();
-	    push_mapping(m);
-	    assign_svalue(argp, sp);
+	    if (argp->u.map != sp->u.map) {
+		pop_stack();
+		push_mapping(m);
+	    }
 	    break;
 	}
 
@@ -622,6 +623,7 @@ f_parse_command()
      * perform some stack manipulation;
      */
     fp = sp;
+    CHECK_STACK_OVERFLOW(num_arg + 1);
     sp += num_arg + 1;
     arg = sp;
     *(arg--) = *(fp--);		/* move pattern to top of stack */
@@ -885,6 +887,18 @@ f_sub_eq()
 	    break;
 	}
 
+        case T_LVALUE_BYTE | T_NUMBER:
+	{
+	    char c;
+
+	    c = *global_lvalue_byte.u.lvalue_byte - sp->u.number;
+	    
+	    if (global_lvalue_byte.subtype == 0 && c == '\0')
+		error("Strings cannot contain 0 bytes.\n");
+	    *global_lvalue_byte.u.lvalue_byte = c;
+	    break;
+	}
+    
 	default:
 	{
 	    if (!(sp->type & (T_NUMBER|T_REAL|T_ARRAY))) error("Bad right type to -=\n");
@@ -996,7 +1010,7 @@ f_switch()
      * i is the table size as a power of 2.  Tells us where to start
      * searching.  i==14 is a special case.
      */
-    if (i >= 14)
+    if (i >= 14) {
 	if (i == 14) {
 	    char *zz = end_tab - 4;
 	    
@@ -1018,7 +1032,8 @@ f_switch()
 	    return;
 	} else
 	    fatal("unsupported switch table format.\n");
-
+    }
+    
     /*
      * l - current entry we are looking at. 
      * d - size to add/subtract from l each iteration. 
@@ -1261,6 +1276,7 @@ f_sscanf()
      * already on the stack by this time
      */
     fp = sp;
+    CHECK_STACK_OVERFLOW(num_arg + 1);
     sp += num_arg + 1;
     *sp = *(fp--);		/* move format description to top of stack */
     *(sp - 1) = *(fp);		/* move source string just below the format

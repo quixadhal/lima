@@ -100,7 +100,7 @@ varargs string compose_message(object forwhom, string msg, object *who,
     string bit;
     mapping has = ([]);
     mixed tmp;
-    
+
     fmt = reg_assoc(msg, ({ "\\$[NnVvTtPpOoRr][a-z0-9]*" }), ({ 1 }) );
     fmt = fmt[0]; // ignore the token info for now
 
@@ -278,7 +278,7 @@ void inform(object *who, string *msgs, mixed others) {
     }
     if (arrayp(others))
     {
-	map_array(others - who, (: tell($1, $(msgs[<1]), MSG_INDENT) :));
+	map_array(others - who, (: tell_from_outside($1, $(msgs[<1]), MSG_INDENT) :));
     }
     else if (others)
     {
@@ -304,6 +304,7 @@ varargs void simple_action(mixed msg, array obs...) {
     others = compose_message(0, msg, who, obs...);
 
     tell(this_object(), us, MSG_INDENT);
+    tell_from_outside(all_inventory(this_object()),others,MSG_INDENT);
     tell_environment(this_object(), others, MSG_INDENT, who);
 }
 
@@ -332,6 +333,7 @@ varargs void other_action(mixed msg, array obs...) {
     if (arrayp(msg))
 	msg = msg[random(sizeof(msg))];
     others = compose_message(0, msg, who, obs...);
+    tell_from_outside(all_inventory(this_object()),others,MSG_INDENT);
     tell_environment(this_object(), others, MSG_INDENT, who);
 }
 
@@ -351,13 +353,7 @@ varargs void targetted_action(mixed msg, object target, array obs...) {
     others = compose_message(0, msg, who, obs...);
     tell(this_object(), us, MSG_INDENT);
     tell(target, them, MSG_INDENT);
+    tell_from_outside(all_inventory(this_object()),others,MSG_INDENT);
+    tell_from_outside(all_inventory(target),others,MSG_INDENT);
     tell_environment(this_object(), others, MSG_INDENT, who);
 }
-
-//:FUNCTION targeted_action
-//Generate and send a message involving the doer and a target (and possibly
-//other objects)
-void targeted_action(mixed msg, object target, array obs...) {
-targetted_action(msg, target, obs); }
-
-

@@ -6,7 +6,7 @@ PROOF=
 STRFUNCS=
 INSTALL=install -c
 INSTALL_DIR=../bin
-OPTIMIZE= -m486
+OPTIMIZE=
 CPP=gcc -E 
 CFLAGS=-D__USE_FIXED_PROTOTYPES__    -g -DDEBUG       -rdynamic
 CC=gcc
@@ -18,7 +18,7 @@ O=o
 # YOU DO NOT NEED TO CONFIGURE ANYTHING IN THIS FILE.
 #
 # RUN THE SHELL SCRIPT ./build.MudOS to generate the Makefiles, and follow
-# it's instructions.
+# its instructions.
 #
 ############################################################################
 #
@@ -77,9 +77,9 @@ SRC=grammar.tab.c lex.c main.c rc.c interpret.c simulate.c file.c object.c \
   socket_efuns.c socket_ctrl.c qsort.c eoperators.c socket_err.c md.c \
   disassembler.c binaries.c ualarm.c $(STRFUNCS) \
   replace_program.c ccode.c cfuns.c compile_file.c master.c function.c \
-  debug.c crypt.c applies_table.c
+  debug.c crypt.c applies_table.c add_action.c
 
-all: cc.h files main_build
+all: $(OBJDIR) cc.h files main_build
 
 main_build: $(DRIVER_BIN) addr_server portbind
 
@@ -97,6 +97,9 @@ $(OBJDIR)/%.o: %.c
 $(OBJDIR)/lex.o: lex.c preprocess.c cc.h grammar.tab.c
 
 $(OBJDIR)/grammar.tab.o: grammar.tab.c opcodes.h
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 which_makefile:
 	echo MakeIsGNU
@@ -218,14 +221,13 @@ spotless: clean
 	-rm -f configure.h local_options system_libs configuration
 	-rm -f options_incl.h
 	-rm -f *.diffs
-	-find . -name "*~" -print | xargs rm -f
+	-find . -name "*~" -print | xargs rm
 
 # get ready for recompile
 neat:
 	-(cd packages; $(MAKE) "A=$(A)" "O=$(O)" clean)
 	-(cd mudlib; $(MAKE) "A=$(A)" "O=$(O)" clean)
 	-rm -rf $(OBJDIR) *.$(O) *.tab.c *.tab.h
-	-mkdir $(OBJDIR)
 	-rm -f efun_defs.c option_defs.c
 	-rm -f opcodes.h efunctions.h opc.h efun_protos.h
 	-rm -f malloc.c mallocwrapper.c
@@ -238,13 +240,14 @@ clean: neat
 	-rm -f Makefile.MudOS GNUmakefile.MudOS
 	-rm -f cc.h edit_source
 	-rm -f core y.output testsuite/core testsuite/tmp/*
-	-rm -rf testsuite/binaries
+	-rm -f testsuite/OPCPROF.* testsuite/opc.*
+	-rm -rf testsuite/binaries testsuite/single/swapfile.*
 	-rm -f testsuite/OBJ_DUMP* testsuite/test_file testsuite/testfile
 	-rm -f testsuite/tmp_eval_file.c testsuite/sf.o testsuite/ed_test
 	-rm -f testsuite/log/log testsuite/log/debug.log testsuite/log/compile
-	-find . -name "*~" -print | xargs rm -f
-	-find . -name "*.orig" -print | xargs rm -f
-	-find . -name "*.rej" -print | xargs rm -f
+	-find . -name "*~" -print | xargs rm
+	-find . -name "*.orig" -print | xargs rm
+	-find . -name "*.rej" -print | xargs rm
 	-rm -f *.ln tags TAGS
 	-rm -f $(DRIVER_BIN) $(DRIVER_BIN).old addr_server portbind
 	-rm -f Dependencies tmpdepend

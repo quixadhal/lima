@@ -3,25 +3,31 @@
 inherit M_ACCESS;
 
 private mapping inheritable = ([
-    "torch" : TORCH,
-    "valuable" : M_VALUABLE,
-    "room" : ROOM,
-    "living" : LIVING,
-    "monster" : ADVERSARY,
-    "actor": M_ACTIONS,
-    "portal" : PORTAL,
-    "secret door" : SECRET_DOOR,
-    "object" : OBJ,
-    "weapon" : WEAPON,
-    "armor" : ARMOR,
-    "gettable" : M_GETTABLE,
-    "readable" : M_READABLE,
-    "openable" : M_OPENABLE,
-    "book" : BOOK,
-    "container" : CONTAINER,
-    "moving room" : "/std/moving_room",
+           "accountant" : ACCOUNTANT,
     "following monster" : FOLLOWING_MONSTER,
+              "monster" : ADVERSARY,
+               "living" : LIVING,
     "wandering monster" : WANDERING_MONSTER,
+
+                "armor" : ARMOR,
+                 "book" : BOOK,
+            "container" : CONTAINER,
+          "moving room" : "/std/moving_room",
+               "object" : OBJ,
+               "portal" : PORTAL,
+                 "room" : ROOM,
+	         "door" : DOOR,
+          "secret door" : SECRET_DOOR,
+                "torch" : TORCH,
+               "weapon" : WEAPON,
+
+                 "actor": M_ACTIONS,
+             "gettable" : M_GETTABLE,
+             "lockable" : M_LOCKABLE,
+             "openable" : M_OPENABLE,
+             "readable" : M_READABLE,
+             "valuable" : M_VALUABLE,
+               "vendor" : M_VENDOR,
 ]);
 
 int cur, intrigger;
@@ -174,8 +180,8 @@ array parse_block(int oldind, int indent) {
 	    cur--;
 	    ret[<1] = ({ ret[<1] }) + line_info() + parse_block(indent, newind);
 	} else {
-	    ret += line_info() + ({ line });
-	    needend++;
+	  ret += line_info() + ({ line });
+	  needend++;
 	}
     }
     
@@ -232,10 +238,12 @@ void handle_grouping() {
 	
 	if (part1) {
 	    if (part2 == "") {
-		if (part1[0][0] == "=")
+		if (part1[0][0] == "=")		  
 		    lines[dest++] = line_info() + part1 + parse_long_string();
 		else
+		  {
 		    lines[dest++] = line_info() + part1 + parse_block(0, -1);
+		  }
 	    } else {
 		if (part1[0][0] == ":")
 		    add_error(cur, "Illegal function declaration");
@@ -641,7 +649,7 @@ mixed handle_objects(array args) {
 
 	    if (sscanf(line[0], "%s=%s", id, rest) != 2 || id == "" || rest != "")
 		add_error(cur, "Syntax error in subobject.\n");
-	    write_file(fn, regenerate(line[1..]), 1);
+	    unguarded(1, (: write_file, fn, regenerate(line[1..]), 1 :));
 	    if (ob = find_object(fn))
 		destruct(ob); // we want it to recompile too
 	    line = fn;
@@ -674,10 +682,29 @@ mixed handle_mapping(string rfunc, string func, array args) {
     return ({ rfunc, ret + "]) )" });
 }
 
+mixed handle_int_mapping(string rfunc, string func, array args) {
+    string ret = func + "( ([\n";
+    
+    foreach (string line in args) {
+	string key, value;
+	
+	if (sscanf(line, "%s:%s", key, value) != 2) {
+	    add_error(cur, "Illegal int map value");
+	    continue;
+	}
+	key = trim_spaces(key);
+	value = trim_spaces(value);
+	ret += sprintf("  \"%s\" : %s,\n", key, value);
+    }
+    return ({ rfunc, ret + "]) )" });
+}
+
 string handle_string(array args) {
-    string ret = implode(map(args, (: stringp($1) ? $1 : "%-%" :)), " ");
+    string ret = implode(map(args, (: stringp($1) ? $1 : "%-%" :)), "");
+
     ret = replace_string(ret, " %-% ", "\n\n");
     ret = replace_string(ret, "%-%", "");
+    ret = replace_string(ret, "\"", "\\\"");
     
     return "\"" + ret + "\"";
 }
@@ -753,6 +780,17 @@ mixed handle_gender(array args) {
     return ({ "setup", "set_gender(" + gen + ")" });
 }
 
+int handle_boolean(string arg) {
+    switch (arg) {
+    case "true":
+	return 1;
+	break;
+    case "false":
+	return 0;
+	break;
+    }
+}
+
 array handle_attribute(mixed entry, array args) {
     switch (entry[0]) {
     case LPSCRIPT_LIST:
@@ -765,8 +803,12 @@ array handle_attribute(mixed entry, array args) {
 	return handle_objects(args);
     case LPSCRIPT_GENDER:
 	return handle_gender(args);
+    case LPSCRIPT_BOOLEAN:
+	return ({ entry[1], entry[2] + "(" + handle_boolean (args[0]) + ")" });
     case LPSCRIPT_MAPPING:
 	return handle_mapping(entry[1], entry[2], args);
+    case LPSCRIPT_INT_MAPPING:
+	return handle_int_mapping(entry[1], entry[2], args);
     case LPSCRIPT_SPECIAL:
 	return evaluate(entry[1], args);
     case LPSCRIPT_FLAGS:
@@ -786,7 +828,7 @@ void handle_parsing() {
 	int j;
 	mixed arr = lines[i];
 	mixed entry;
-	
+
 	if (intp(arr[0])) {
 	    cur = arr[0];
 	    j = 1;
@@ -841,6 +883,7 @@ private nomask void handle_generation(string outname) {
 	for (int i = 0; i < sizeof(triggers); i++) {
 	    if (i) ret += ", ";
 	    ret += "\"" + triggers[i][0] + "\"";
+
 	}
 	ret += "});\n";
 	ret += "array num = ({ ";
@@ -848,7 +891,7 @@ private nomask void handle_generation(string outname) {
 	    if (i) ret += ", ";
 	    ret += triggers[i][1];
 	}
-	ret += "});\n";
+	ret += "});\n";	    
 /*******************************/
 	ret += @END
 	
@@ -861,7 +904,7 @@ switch (i) {
 END + actions + "}}}}";
 /*******************************/
     }
-    
+
     tmp = unique_array(lines - ({ 0 }), (: $1[0] :));
     foreach (array item in tmp) {
 	if (item[0][0] == -1) {
@@ -880,7 +923,7 @@ END + actions + "}}}}";
 	    ret += block[1] + ";\n";
 	ret += "}\n\n";
     }
- 
+
     unguarded(1, (: write_file, outname,"#pragma no_warnings\n" + header + globals + protos + tail + ret, 1 :));
 }
 

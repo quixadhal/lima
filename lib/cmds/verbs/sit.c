@@ -4,7 +4,7 @@
 ** sit.c
 */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 /* I'm not sure that I like the lie_down() part here.  It's sitting, you're 
  * not going prone -- Tigran */

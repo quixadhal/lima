@@ -4,7 +4,7 @@
 //   Fixes by Darklord, March 4, 1997.
 /* Changed from command to verb 6-Feb-98 by MonicaS */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 mixed test_vendor() {
   object ob, vendor;

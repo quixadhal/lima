@@ -214,13 +214,13 @@ nomask mapping get_mail_forward()
   return mail_forward;
 }
 
-nomask string query_mail_forward(string group)
+nomask string array query_mail_forward(string group)
 {
   if(!check_privilege("Mudlib:daemons"))
     return 0;
   if(member_array(group,
 		  keys(mail_forward) )==-1)
-    return 0;
+    return ({ });
   return mail_forward[group];
 }
 

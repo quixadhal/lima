@@ -314,7 +314,7 @@ nomask void init_stats()
 /*
 ** Object inheriting this module should be sure to call this.
 */
-void create()
+void internal_setup(mixed args...)
 {
     trans_matrix = query_transformation_matrix();
     constant_vector = query_constant_vector();

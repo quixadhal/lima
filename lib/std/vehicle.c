@@ -164,7 +164,7 @@ void mudlib_setup()
     add_relation("in",VERY_LARGE*3);
     set_default_relation("in");
     add_hook("person_arrived",set_driving_hook);
-    add_hook("person_left,",change_driving_hook);
+    add_hook("person_left",change_driving_hook);
     add_method("get in",this_object(),(:enter_check:));
     add_method("get out",(:environment(this_object()):));
     set_default_enter_message( (: default_message, 1 :) );

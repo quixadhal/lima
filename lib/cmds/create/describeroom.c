@@ -1,42 +1,32 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+#include <edit.h>
+
 inherit __DIR__ "scr_command";
 inherit M_INPUT;
 
-string sofar;
 string fname;
 
-private void continue_describe(string this) {
-    if (this == ".") {
-	modal_pop();
-	if (sofar == "") {
-	    write("Description unchanged.\n");
-	} else {
-	    if (change_attribute(fname, "long", sofar))
-		write("Done.\n");
-	    update(fname);
-	}
-	destruct();
-    } else {
-	if (this == "")
-	    sofar += "\n";
-	else
-	    sofar += this + " ";
-    }
+void finish_editing(string array alltext)
+{
+  string fname=get_file_name();
+  if(!alltext) {
+    write("Description unchanged.\n");
+    return;
+  }
+
+  if(change_attribute(fname,"long",implode(alltext,"\n"))) {
+    write("Description changed.\n");
+    update(fname);
+  }
 }
 
-void begin_description(string fn) {
-    sofar = "";
-    fname = fn;
-    modal_push((: continue_describe :), "]");
-}
-    
 private void main() {
     string fname;
 
     if (!(fname = get_file_name()))
 	return;
 
-    write("Begin typing description.  Use '.' alone on a line when done.\n");
-    new(file_name())->begin_description(fname);
+    write("Begin typing description.\n");
+    new(EDIT_OB,EDIT_TEXT,0,(:finish_editing:));
 }

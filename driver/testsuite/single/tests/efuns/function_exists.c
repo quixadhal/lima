@@ -1,4 +1,9 @@
-static int stat() {
+#ifndef __SENSIBLE_MODIFIERS__
+static
+#else
+protected
+#endif
+int stat() {
 }
 
 private int priv() {

@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit NVERB_OB;
+inherit VERB_OB;
 
 private object* get_all_readable_entry_items()
 {

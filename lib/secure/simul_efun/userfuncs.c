@@ -54,9 +54,7 @@ varargs nomask object find_body(string str, int even_linkdead)
 
 nomask int wizardp(mixed m)
 {
-    if ( !m )
-	m = this_user()->query_userid();
-    else if ( objectp(m) )
+    if ( objectp(m) )
 	m = m->query_userid();
 
     if ( stringp(m) )
@@ -98,7 +96,7 @@ nomask mixed get_user_variable(string varname)
     return shell->get_variable(varname);
 }
 
-//:Function set_this_user()
+//:FUNCTION set_this_user
 //Works like set_this_player().  It was added for consistancies sake.
 nomask void set_this_user(object ob)
 {

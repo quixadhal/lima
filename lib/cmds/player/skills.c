@@ -20,14 +20,14 @@ private void main(string arg)
 #else
 
     mapping skills = this_body()->get_skills();
-    string * names = sort_array(keys(skills), 1);
+    string array names;
 
     if ( sizeof(skills) == 0 )
     {
 	out("You have no skills.\n");
 	return;
     }
-
+    names = sort_array(keys(skills), 1);
     outf("%-20s %8s  %8s\n%*'-'s\n", "Skill", "Points", "Training", 50, "");
 
     foreach ( string name in names )

@@ -74,6 +74,9 @@ void init_master() {
 static void get_master_applies P1(object_t *, ob) {
     int i;
     
+    /* master_applies will be allocated if we're recompiling master_ob */
+    if (master_applies)
+	FREE(master_applies);
     master_applies = CALLOCATE(NUM_MASTER_APPLIES, function_lookup_info_t,
 			       TAG_SIMULS, "get_master_applies");
 
@@ -114,12 +117,12 @@ void set_master P1(object_t *, ob) {
     /* can't be -1 or we wouldn't be here */
     if (!ret) {
         debug_message("No function %s() in master object; possibly the mudlib doesn't want PACKAGE_UIDS to be defined.\n",
-		      APPLY_GET_ROOT_UID);
+		      applies_table[APPLY_GET_ROOT_UID]);
 	exit(-1);
     }
     if (ret->type != T_STRING) {
         debug_message("%s() in master object does not work.\n",
-		      APPLY_GET_ROOT_UID);
+		      applies_table[APPLY_GET_ROOT_UID]);
 	exit(-1);
     }
     if (first_load) {
@@ -131,7 +134,7 @@ void set_master P1(object_t *, ob) {
 	ret = apply_master_ob(APPLY_GET_BACKBONE_UID, 0);
 	if (ret == 0 || ret->type != T_STRING) {
 	    debug_message("%s() in the master file does not work\n",
-			  APPLY_GET_BACKBONE_UID);
+			  applies_table[APPLY_GET_BACKBONE_UID]);
 	    exit(-1);
 	}
 	set_backbone_uid(ret->u.string);

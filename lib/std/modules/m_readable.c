@@ -6,9 +6,9 @@
 string the_short();
 
 
-mapping 	        entries;
-mapping                 synonyms;
-private string		read_text;
+mapping         entries;
+mapping         synonyms;
+private string  read_text;
 
 /* Parser interaction */
 mixed direct_read_obj(object ob) {
@@ -84,6 +84,8 @@ string read_entry( string entry )
   string entry_contents = entries[entry];
   if(!entry_contents)
     entry_contents = entries[synonyms[entry]];
+  if(!entry_contents)
+    return("Nothing there\n");
   if (functionp(entry_contents))
     {
       this_body()->simple_action("$N $vread the $o.", this_object());
@@ -156,7 +158,7 @@ void remove_entry(string entry)
     }
 }
 
-//:FUNCTION clear_entries()
+//:FUNCTION clear_entries
 //Clear all of the entires.  Both pages and synonyms.
 void clear_entries()
 {
@@ -194,7 +196,7 @@ mapping dump_entries()
   return entries;
 }
 
-//:FUNCTION set_entry_synonyms
+//:FUNCTION set_synonyms
 //Set the synonyms for the readable entries.
 //A mapping is passed as argument.  The key is the synonym, and the value is 
 //the entry.
@@ -202,13 +204,22 @@ void set_synonyms(mapping s)
 {
   synonyms=([]);
   foreach(string syn,string entry in s)
-    {
-      if(!query_entry(entry))
-	error(sprintf("Bad value '%s' in mapping for set_entry_synonyms.\n"
-		      "Entry must exist",
-		      entry));
-      synonyms+=([syn:entry]);
-    }
+  {
+    if(!query_entry(entry))
+      error(sprintf("Bad value '%s' in mapping for set_entry_synonyms.\n"
+        "Entry must exist",
+        entry));
+    synonyms+=([syn:entry]);
+  }
+}
+
+//:FUNCTION set_entry_synonyms
+//Set the synonyms for the readable entries.
+//A mapping is passed as argument.  The key is the synonym, and the value is 
+//the entry.
+void set_entry_synonyms(mapping s)
+{
+  set_synonyms(s);
 }
 
 //:FUNCTION add_synonym
@@ -238,7 +249,7 @@ string query_synonym(string syn)
   return synonyms[syn];
 }
 
-//:FUNCTION dump_synonyms()
+//:FUNCTION dump_synonyms
 //Return the mapping of all synonyms
 mapping dump_synonyms()
 {

@@ -1,20 +1,15 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 // By Ohara
+// Revised by Marroc, February 4, 2001.
 
 inherit DOOR;
 
-string our_dir;
-
 void do_hidden_stuff()
 {
-    object here;
-    here = environment(this_object());
-
-    if (!here) return;
     if( query_closed() )
-	here->add_hidden_exit( our_dir );
+      set_hidden(1);
     else
-	here->remove_hidden_exit( our_dir );
+      set_hidden(0);
 }
 
 
@@ -32,13 +27,7 @@ varargs void on_clone( string dir, string room,mixed rest... )
 {
     ::on_clone( dir, room, rest...);
     do_hidden_stuff();
-}
+    set_attached(1);
 
-
-void setup_door( string ident, string dir, string room ) 
-{
-    ::setup_door( ident, dir, room );
-    our_dir = dir;
-    set_flag( ATTACHED );
 }
 

@@ -103,7 +103,7 @@ private nomask void parse_file(string fname)
 	lines = ({ "This file has no text.\n" });
 	return;
     }
-    if(wizardp())
+    if(wizardp(this_user()))
       write( sprintf("\n%*|s\n",this_user()->query_screen_width(),"["+fname+"]" ));
     lines = explode(read_file(fname), "\n");
     lines = filter_array(lines, (: f_parse :));
@@ -155,6 +155,8 @@ private nomask string format_choice(string choice)
 private nomask void lookup_topic(string topic)
 {
     string * files;
+    
+    topic=replace_string(topic," ","_");
 
     files = HELP_D->find_topic(topic);
     if ( sizeof(files) == 0 )

@@ -8,7 +8,7 @@ string query_userid();
 
 void save_me();
 void remove();
-
+void initialize_user();
 void report_login_failures();
 
 void modal_simple(function input_func, mixed prompt, int secure,int lock);
@@ -53,6 +53,25 @@ protected nomask void set_body_fname(string new_body_fname)
    body_fname = new_body_fname;
 }
 
+private void load_mailer()
+{
+    object mailbox;
+    int idx;
+
+    mailbox = MAILBOX_D->get_mailbox(query_userid());
+
+    idx = mailbox->first_unread_message();
+    if ( idx == -1 )
+    {
+        mailbox->set_message_index(mailbox->query_message_count() - 1);
+    }
+    else
+    {
+        mailbox->set_message_index(idx);
+        write("\n>>You have new mail<<\n");
+    }
+}
+
 varargs nomask void switch_body(string new_body_fname, int permanent)
 {
    object where;
@@ -79,17 +98,16 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
    if(old_body)
    {
       old_body->move(VOID_ROOM);
-      old_body->quit();
       if(old_body)
-         catch(old_body->remove());
+           catch(destruct(old_body));
    }
 
+   load_mailer();
    report_login_failures();
 
    /* NOTE: we are keeping the same shell for now... */
 
-   body->su_enter_game();
-   body->move(where);
+   body->su_enter_game(where);
 }
 
 
@@ -119,6 +137,9 @@ private nomask void incarnate(int is_new, string bfn)
       this_body()->init_stats();
 #endif
       body->save_me();
+      /* This seems to me to be a poor place to put this, but fits with 
+       * the default login/new user creation sequence.  -- Tigran */
+      initialize_user();
    }
 }
 
@@ -129,11 +150,20 @@ private nomask void rcv_try_to_boot(object who, string answer)
    answer = lower_case(answer);
    if( answer == "yes" || answer == "y" )
    {
-      who->receive_private_msg("You are taken over by yourself, or something.\n");
-      who->quit();
-
-      sw_body_handle_existing_logon(0);
-      return;
+     /* Check this again, in case the user quits after the question is asked
+      * but before this point. If 'who' exists, give them a message and steal
+      * the body, otherwise not. */
+     if(who)
+       {
+	 who->receive_private_msg("You are taken over by yourself, or something.\n");
+       	 body=who->query_body();
+	 who->steal_body();
+	 start_shell();
+	 body->reconnect(this_object());
+	 return;
+       }
+     sw_body_handle_existing_logon(0);
+     return;
    }
    if(answer == "n" || answer == "no")
    {
@@ -198,6 +228,7 @@ protected nomask void sw_body_handle_existing_logon(int enter_now)
       }
    }
 
+   load_mailer();
    write("\n"+read_file(MOTD_FILE));
 
    report_login_failures();
@@ -209,8 +240,8 @@ protected nomask void sw_body_handle_existing_logon(int enter_now)
 /* when a user reconnects, this is used to steal the body back */
 nomask void steal_body()
 {
-   /* only USER_OB can steal the body, and we should be non-interactive */
-   if(base_name(previous_object()) != USER_OB || interactive())
+   /* only USER_OB can steal the body. */
+   if(base_name(previous_object()) != USER_OB )
       error("illegal attempt to steal a body\n");
 
    body = 0;
@@ -221,7 +252,6 @@ nomask void steal_body()
 void got_entry(function when_done, string line)
 {
    mapping races = RACE_D->query_race_data();
-   IBUG(line);
 
    if(line == "list")
    {
@@ -247,7 +277,7 @@ void got_entry(function when_done, string line)
 }
 #endif /* USE_RACES */
 
-void create_user()
+void create_body()
 {
 #ifndef USE_RACES
    incarnate(1, DIR_RACES "/human");
@@ -317,5 +347,5 @@ protected nomask void sw_body_handle_new_logon()
 
    // pass a lfun pointer so that we don't have to worry about validating
    // the call.
-   create_user();
+   create_body();
 }

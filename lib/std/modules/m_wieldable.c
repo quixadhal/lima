@@ -26,7 +26,7 @@ void clear_flag(int);
 private nosave object wielded_by;
 private nosave function move_hook = (: unwield_me :);
 #if WIELD_STYLE != WIELD_SINGLE
-private nosave string array wielding_limbs;
+private string array wielding_limbs;
 #endif
 
 int valid_wield()
@@ -147,4 +147,11 @@ mixed direct_remove_obj()
       return 0;
 
     return 1;
+}
+
+void internal_setup()
+{
+#if WIELD_STYLE != WIELD_SINGLE
+  this_object()->add_save(({ "wielding_limbs" }));
+#endif
 }

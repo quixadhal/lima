@@ -12,7 +12,7 @@ void do_spell_damage(object target, function damage_func)
 {
    this_body()->start_fight(target);
    this_body()->add_event(target, this_object(), 0,
-                         ({ evaluate(damage_func) }) + query_damage_type());
+                         evaluate(damage_func) );
 }
 
 void setup()

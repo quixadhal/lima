@@ -418,7 +418,7 @@ private nomask void handle_get_request(class client_request req, object socket)
     string extention, args;
     string file;
 
-    sscanf(req->request, "%s?=%s", file, args);
+    sscanf(req->request, "%s?%s", file, args);
     if(!file)
     {
 	file = req->request;

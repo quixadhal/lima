@@ -103,7 +103,6 @@
 ** ALIASMENU
 ** ANNO_MENU
 ** CORPSE
-** FAKE_ITEM_MGR	manage a set of fake items
 ** HELPSYS	help system
 ** HINT_MENU
 ** IFTP_OB	command object to transfer files between muds via I3
@@ -176,6 +175,7 @@
 #define SECRET_DOOR             "/std/secret_door"
 #define FLAME			"/std/flame"
 #define HIDDEN_DOOR             "/std/hidden_door"
+#define HIDDEN_EXIT             "/std/hidden_exit"
 #define FLUID                   "/std/fluid"
 #define FOOD                    "/std/food"
 #define FURNITURE		"/std/furniture"
@@ -184,6 +184,7 @@
 #define LIGHT_OBJECT            "/std/light_object"
 #define LIVING			"/std/living"
 #define	MENUS			"/std/menu"
+#define MOVING_ROOM             "/std/moving_room"
 #define MOVING_MONSTER          "/std/moving_monster"
 #define FOLLOWING_MONSTER       "/std/following_monster"
 #define WANDERING_MONSTER       "/std/wandering_monster"
@@ -212,17 +213,19 @@
 #define M_PARSING		"/std/modules/m_parsing"
 #define M_RECONNECT		"/std/modules/m_reconnect"
 #define M_REGEX			"/std/modules/m_regex"
-#define M_SAVE			"/std/modules/m_save"
-#define M_SET			"/std/modules/m_set"
+#define M_SAVE			"/secure/modules/m_save"
+#define M_SET			"/secure/modules/m_set"
 #define M_SMARTMOVE		"/std/modules/m_smartmove"
 #define M_EDIBLE		"/std/modules/m_edible"
 #define M_DRINKABLE		"/std/modules/m_drinkable"
 #define M_DRINK_CONTAINER	"/std/modules/m_drink_container"
+#define M_DRINK_SOURCE          "/std/modules/m_drink_source"
 #define M_FLUID_SOURCE          "/std/modules/m_fluid_source"
 #define M_FLUID_CONTAINER       "/std/modules/m_fluid_container"
 #define M_CONVERSATION		"/std/modules/m_conversation"
 
 /* for area objects */
+#define M_ACCOUNTANT            "/std/modules/m_accountant"
 #define M_ACTIONS               "/std/modules/m_actions"
 #define M_BLOCKEXITS		"/std/modules/m_blockexits"
 #define M_AGGRESSIVE		"/std/modules/m_aggressive"
@@ -270,7 +273,6 @@
 
 #define ALIASMENU		"/obj/mudlib/aliasmenu"
 #define ANNO_MENU		"/obj/mudlib/annotationmenu"
-#define FAKE_ITEM_MGR		"/obj/mudlib/fake_item_mgr"
 #define HELPSYS			"/obj/mudlib/helpsys"
 #define HINT_MENU		"/obj/mudlib/hintmenu"
 #define IFTP_OB			"/obj/mudlib/iftp_ob"
@@ -281,7 +283,7 @@
 #define SIMPLE_OB		"/obj/mudlib/simple_ob"
 #define TEAM_MENU               "/obj/mudlib/team_menu"
 #define TEMP_WORKROOM		"/obj/mudlib/TWorkroom"
-#define WATER			"/obj/mudlib/water"
+#define WATER			"/std/water"
 
 #define M_ACCESS		"/secure/modules/m_access"
 #define M_FILE			"/secure/modules/m_file"
@@ -292,7 +294,6 @@
 #define MAILER_DIR		"/obj/secure/mailers"
 #define MAILER			MAILER_DIR "/mailer"
 #define SOCKET			"/obj/secure/socket"
-#define BOARD_OB		"/obj/mudlib/board"
 
 #define SHELL		 	"/obj/secure/shell"
 #define M_ALIAS			"/obj/secure/shell/alias"

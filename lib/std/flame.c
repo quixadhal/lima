@@ -25,9 +25,3 @@ mixed indirect_light_obj_with_obj( object obj, object with )
 	return with->id(sf);
     return evaluate( sf, with );
 }
-
-
-mapping lpscript_attributes()
-{
-    return m_gettable::lpscript_attributes() + object::lpscript_attributes();
-}

@@ -9,6 +9,8 @@ void setup() {
     
     set_long("This is the directory where you put all your files.");
     set_droppable("You appear to be stuck with it.");
+    set_relations("in");
+    set_default_relation("in");
     set_max_capacity(100);
     set_objects( ([ "workroom_ob" : 1 ]) );
 }

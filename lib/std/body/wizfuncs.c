@@ -7,31 +7,6 @@
 */
 
 object query_link();
-string query_start_location();
-varargs void receive_private_msg(string);
-
-private int ilog_time;
-private int ilog_off = 0;
-
-int query_ilog_time()
-{
-    return ilog_time;
-}
-
-protected void set_ilog_time(int t)
-{
-    ilog_time = t;
-}
-
-// caller verification here
-void ilog_hook(string str)
-{
-    if ( !ilog_off )
-    {
-      receive_private_msg("*** " + str + "\n");
-      set_ilog_time(time());
-    }
-}
 
 string query_home()
 {
@@ -50,7 +25,3 @@ nomask void wiz_switch_body(string obname)
 
 }
 
-void set_ilog_off(int x)
-{
-  ilog_off = x;
-}

@@ -453,9 +453,8 @@ protected nomask void cmd_forward(int user_num, string newto)
 void send_news_reply(string subject, string * text, string * to)
 {
     if ( base_name(previous_object()) != NEWSREADER )
-         if ( base_name(previous_object()) != BOARD_OB)
-             error("security: attempted use by: " +
-               base_name(previous_object()) + "\n");
+      error("security: attempted use by: " +
+	    base_name(previous_object()) + "\n");
 
     send_mail_message(subject, text, to, 0, 0);
 }

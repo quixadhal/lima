@@ -1,7 +1,10 @@
 $$ see: I
 
-USAGE:  didlog    or didlog <value>
+USAGE: didlog  or didlog <value> or didlog /on or didlog /off
 
    This command shows you the "did" log.  With no arguements it shows the
 log for the past day.  With an integer argument it will show the log for
 that many days back.
+ 
+   /off turns didlog notification on login off. /on turns it back
+on again.

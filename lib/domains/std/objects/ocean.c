@@ -41,8 +41,7 @@ void setup()
 
 void award_points(string direction)
 {
-tell_user("loriel","dir : " + direction);
-  if(direction==query_direction())
+  if(evaluate(direction)=="the ocean")
     QUEST_D->grant_points(this_body(),"pirate:foundCave");
 }
 
@@ -50,5 +49,5 @@ void on_clone(mixed args...)
 {
   ::on_clone(args...);
   /* Add the hook to award quest points to the environment of this object */
-  environment()->add_hook("player_left",award);
+  environment()->add_hook("person_left",award);
 }

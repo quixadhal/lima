@@ -7,66 +7,36 @@
 ** verb rules (to/from the parser efuns).
 */
 
+#include <verbs.h>
 
-/*
-** query_verb_info()
-**
-** This is the heart of this object.  Subclasses should override and
-** return an array with 1 or 2 elements.  The first element should
-** be an array of rules.  If the second is provided, then it should
-** be an array of synonyms.
-**
-** Extension: You can have more than one set of rules/synonyms.
-** Synonyms only correspond to the corresponding rule.  E.g.
-** ({ ({ first rules }), ({ syns for first rules }), ({ second rules }),
-**    ... etc ... })
-*/
-array query_verb_info()
-{
-    return ({ ({ }) });
+string verb = split_path(file_name())[1];
+int flags = NEED_TO_SEE | NEED_TO_BE_ALIVE | NEED_TO_THINK;
+
+protected varargs
+void add_rules(array rules, array syns) {
+    parse_init();
+
+    foreach (string rule in rules) {
+	parse_add_rule(verb, rule);
+        if (syns)
+    	foreach (string syn in syns)
+    	    parse_add_synonym(syn, verb, rule);
+    }
 }
 
-void create()
-{
-    mixed *	info;
-    string	verb;
-    
-    parse_init();
-    verb = split_path(file_name())[1];
-    info = query_verb_info();
+protected
+void set_flags(int f) {
+    flags = f;
+}
 
-    // backwards compat
-    info[0] = map(info[0], (: (stringp($1) ? $1 : ($1 ? "STR" : "") ) :) );
-    
-    if ( !info || !arrayp(info) || !arrayp(info[0]) )
-	throw("bad verb info");
+protected
+void add_flag(int f) {
+    flags |= f;
+}
 
-    switch (sizeof(info)) {
-    case 0:
-	break;
-    case 1:
-	foreach (string rule in info[0])
-	    parse_add_rule(verb, rule);
-	break;
-    case 2:
-	foreach (string rule in info[0])
-	    parse_add_rule(verb, rule);
-	foreach (string syn in info[1])
-	    parse_add_synonym(syn, verb);
-	break;
-    default:
-	for (int i = 0; i < sizeof(info); i += 2) {
-	    if (i == sizeof(info) - 1)
-		foreach (string rule in info[i])
-		    parse_add_rule(verb, rule);
-	    else
-		foreach (string rule in info[i]) {
-		    parse_add_rule(verb, rule);
-		    foreach (string syn in info[i+1])
-			parse_add_synonym(syn, verb, rule);
-		}
-	}
-    }
+protected
+void clear_flag(int f) {
+    flags &= ~f;
 }
 
 string refer_to_object(object ob) {
@@ -104,6 +74,9 @@ mixed check_ghost() {
 mixed check_vision() {
     if (environment(this_body())->query_light())
         return 1;
+    if (environment(this_body())->parent_environment_accessible())
+       if (environment(environment(this_body()))->query_light())
+           return 1;
     return "You can't see a thing!\n";
 }
 
@@ -115,30 +88,18 @@ mixed check_condition() {
     return 1;
 }
 
-int need_to_see() {
-    return 1;
-}
-
-int need_to_be_alive() {
-    return 1;
-}
-
-int need_to_think() {
-    return 1;
-}
-
 /* All (most) can_* functions should call this */
 mixed default_checks() {
     mixed tmp;
 
-    if (need_to_see() && (tmp = check_vision()) != 1)
+    if ((flags & NEED_TO_SEE) && (tmp = check_vision()) != 1)
 	return tmp;
  
-    if (need_to_be_alive() && (tmp = check_ghost()) != 1)
+    if ((flags & NEED_TO_BE_ALIVE) && (tmp = check_ghost()) != 1)
 	return tmp;
     // This checks stunned, asleep
  
-    if (need_to_think())
+    if ((flags & NEED_TO_THINK))
 	return check_condition();
 
     return 1;
@@ -158,4 +119,12 @@ void handle_obs(array info, function callback, mixed extra...) {
 /* we defined the rule, so assume by default we allow it */
 mixed can_verb_rule(string verb, string rule) {
     return default_checks();
+}
+
+/* default behavior for OBJ rules */
+void do_verb_obj(string verb, object ob) {
+    if ((flags & TRY_TO_ACQUIRE) && !try_to_acquire(ob))
+	return;
+    
+    call_other(ob, "do_" + verb);
 }

@@ -10,5 +10,6 @@ void setup()
     set_id("flask", "bottle");
     set_long( "It is a thick flask blown from clear glass." );
     set_size(  1  );
-    set_max_capacity( 1 );
+    add_relation("in",1);
+    set_default_relation("in");
 }

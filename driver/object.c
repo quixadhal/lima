@@ -11,6 +11,7 @@
 #include "file.h"
 #include "hash.h"
 #include "master.h"
+#include "add_action.h"
 
 #define too_deep_save_error() \
     error("Mappings and/or arrays nested too deep (%d) for save_object\n",\
@@ -24,6 +25,8 @@ INLINE_STATIC int restore_array PROT((char **str, svalue_t *));
 INLINE_STATIC int restore_class PROT((char **str, svalue_t *));
 
 #ifdef F_SET_HIDE
+int num_hidden = 0;
+
 INLINE int
 valid_hide P1(object_t *, obj)
 {
@@ -112,7 +115,7 @@ INLINE int svalue_save_size P1(svalue_t *, v)
     case T_REAL:
 	{
 	    char buf[256];
-	    sprintf(buf, "%#g", v->u.real);
+	    sprintf(buf, "%f", v->u.real);
 	    return (int)(strlen(buf)+1);
 	}
 
@@ -198,7 +201,7 @@ INLINE void save_svalue P2(svalue_t *, v, char **, buf)
 
     case T_REAL:
 	{
-	    sprintf(*buf, "%#g", v->u.real);
+	    sprintf(*buf, "%f", v->u.real);
 	    (*buf) += strlen(*buf);
 	    return;
 	}
@@ -482,7 +485,7 @@ restore_interior_string P2(char **, val, svalue_t *, sv)
     return 0;
 }
 
-static int parse_numeric P3(char **, cpp, char, c, svalue_t *, dest) 
+static int parse_numeric P3(char **, cpp, unsigned char, c, svalue_t *, dest) 
 {
     char *cp = *cpp;
     int res, neg;
@@ -505,6 +508,10 @@ static int parse_numeric P3(char **, cpp, char, c, svalue_t *, dest)
 	float f1 = 0.0, f2 = 10.0;
 
 	c = *cp++;
+	if (!c) {
+	    cp--;
+	    c = '0';
+	}
 	if (!isdigit(c)) return 0;
 	
 	do {
@@ -1265,8 +1272,8 @@ int sel = -1;
 int
 save_object P3(object_t *, ob, char *, file, int, save_zeros)
 {
-    char *name;
-    static char tmp_name[256];
+    char *name, *p;
+    static char save_name[256], tmp_name[256];
     int len;
     FILE *f;
     int success;
@@ -1294,13 +1301,20 @@ save_object P3(object_t *, ob, char *, file, int, save_zeros)
     if (!file) 
         error("Denied write permission in save_object().\n");
 
+    strcpy(save_name, ob->name);
+    if ((p = strrchr(save_name, '#')) != 0)
+        *p = '\0';
+    p = save_name + strlen(save_name) - 1;
+    if (*p != 'c' && *(p - 1) != '.')
+        strcat(p, ".c");
+
     /*
      * Write the save-files to different directories, just in case
      * they are on different file systems.
      */
     sprintf(tmp_name, "%.250s.tmp", file);
 
-    if (!(f = fopen(tmp_name, "w")) || fprintf(f, "#/%s\n", ob->prog->name) < 0) {
+    if (!(f = fopen(tmp_name, "w")) || fprintf(f, "#/%s\n", save_name) < 0) {
         error("Could not open /%s for a save.\n", tmp_name);
     }
 
@@ -1515,8 +1529,8 @@ void tell_object P3(object_t *, ob, char *, str, int, len)
 
 void dealloc_object P2(object_t *, ob, char *, from)
 {
-#ifndef NO_ADD_ACTION
-    sentence_t *s;
+#ifdef DEBUG
+    object_t *tmp, *prev_all = 0;
 #endif
 
     debug(d_flag, ("free_object: /%s.\n", ob->name));
@@ -1540,15 +1554,10 @@ void dealloc_object P2(object_t *, ob, char *, from)
 	free_prog(ob->prog, 1);
 	ob->prog = 0;
     }
-#ifndef NO_ADD_ACTION
-    for (s = ob->sent; s;) {
-	sentence_t *next;
-	
-	next = s->next;
-	free_sentence(s);
-	s = next;
+    if (ob->replaced_program) {
+	FREE_MSTR(ob->replaced_program);
+	ob->replaced_program = 0;
     }
-#endif
 #ifdef PRIVS
     if (ob->privs)
 	free_string(ob->privs);
@@ -1561,6 +1570,14 @@ void dealloc_object P2(object_t *, ob, char *, from)
 	FREE(ob->name);
 	ob->name = 0;
     }
+#ifdef DEBUG
+    for (tmp = obj_list_dangling;  tmp != ob;  tmp = tmp->next_all)
+	prev_all = tmp;
+    if (prev_all) prev_all->next_all = ob->next_all;
+    else obj_list_dangling = ob->next_all;
+    ob->next_all = 0;
+    tot_dangling_object--;
+#endif
     tot_alloc_object--;
     FREE((char *) ob);
 }
@@ -1604,114 +1621,18 @@ object_t *get_empty_object P1(int, num_var)
     return ob;
 }
 
-#ifndef NO_ADD_ACTION
-object_t *hashed_living[CFG_LIVING_HASH_SIZE];
-
-static int num_living_names, num_searches = 1, search_length = 1;
-
-INLINE_STATIC int hash_living_name P1(char *, str)
-{
-    return whashstr(str, 20) & (CFG_LIVING_HASH_SIZE - 1);
-}
-
-object_t *find_living_object P2(char *, str, int, user)
-{
-    object_t **obp, *tmp;
-    object_t **hl;
-
-    if (!str)
-	return 0;
-    num_searches++;
-    hl = &hashed_living[hash_living_name(str)];
-    for (obp = hl; *obp; obp = &(*obp)->next_hashed_living) {
-	search_length++;
-#ifdef F_SET_HIDE
-	if ((*obp)->flags & O_HIDDEN) {
-	    if (!valid_hide(current_object))
-		continue;
-	}
-#endif
-	if (user && !((*obp)->flags & O_ONCE_INTERACTIVE))
-	    continue;
-	if (!((*obp)->flags & O_ENABLE_COMMANDS))
-	    continue;
-	if (strcmp((*obp)->living_name, str) == 0)
-	    break;
-    }
-    if (*obp == 0)
-	return 0;
-    /* Move the found ob first. */
-    if (obp == hl)
-	return *obp;
-    tmp = *obp;
-    *obp = tmp->next_hashed_living;
-    tmp->next_hashed_living = *hl;
-    *hl = tmp;
-    return tmp;
-}
-
-void set_living_name P2(object_t *, ob, char *, str)
-{
-    object_t **hl;
-
-    if (ob->flags & O_DESTRUCTED)
-	return;
-    if (ob->living_name) {
-	remove_living_name(ob);
-    }
-    num_living_names++;
-    hl = &hashed_living[hash_living_name(str)];
-    ob->next_hashed_living = *hl;
-    *hl = ob;
-    ob->living_name = make_shared_string(str);
-    return;
-}
-
-void remove_living_name P1(object_t *, ob)
-{
-    object_t **hl;
-
-    num_living_names--;
-    DEBUG_CHECK(!ob->living_name, "remove_living_name: no living name set.\n");
-    hl = &hashed_living[hash_living_name(ob->living_name)];
-    while (*hl) {
-	if (*hl == ob)
-	    break;
-	hl = &(*hl)->next_hashed_living;
-    }
-    DEBUG_CHECK1(*hl == 0, 
-		 "remove_living_name: Object named %s no in hash list.\n",
-		 ob->living_name);
-    *hl = ob->next_hashed_living;
-    free_string(ob->living_name);
-    ob->next_hashed_living = 0;
-    ob->living_name = 0;
-}
-
-void stat_living_objects P1(outbuffer_t *, out)
-{
-    outbuf_add(out, "Hash table of living objects:\n");
-    outbuf_add(out, "-----------------------------\n");
-    outbuf_addv(out, "%d living named objects, average search length: %4.2f\n",
-		num_living_names, (double) search_length / num_searches);
-}
-#endif /* NO_ADD_ACTION */
-
 void reset_object P1(object_t *, ob)
 {
-    object_t *save_command_giver;
-
     /* Be sure to update time first ! */
     ob->next_reset = current_time + TIME_TO_RESET / 2 +
 	random_number(TIME_TO_RESET / 2);
 
-    save_command_giver = command_giver;
-    command_giver = (object_t *) 0;
+    save_command_giver(0);
     if (!apply(APPLY_RESET, ob, 0, ORIGIN_DRIVER)) {
 	/* no reset() in the object */
 	ob->flags &= ~O_WILL_RESET;	/* don't call it next time */
     }
-    command_giver = save_command_giver;
+    restore_command_giver();
     ob->flags |= O_RESET_STATE;
 }
 
@@ -1756,7 +1677,7 @@ void reload_object P1(object_t *, obj)
 	free_svalue(&obj->variables[i], "reload_object");
 	obj->variables[i] = const0u;
     }
-#ifdef PACKAGE_SOCKETS
+#if defined(PACKAGE_SOCKETS) || defined(PACKAGE_EXTERNAL)
     if (obj->flags & O_EFUN_SOCKET) {
 	close_referencing_sockets(obj);
     }
@@ -1793,11 +1714,7 @@ void reload_object P1(object_t *, obj)
     obj->shadowing = 0;
     obj->shadowed = 0;
 #endif
-#ifndef NO_ADD_ACTION
-    if (obj->living_name)
-	remove_living_name(obj);
-    obj->flags &= ~O_ENABLE_COMMANDS;
-#endif
+    remove_living_name(obj);
     set_heart_beat(obj, 0);
     remove_all_call_out(obj);
 #ifndef NO_LIGHT
@@ -1811,4 +1728,84 @@ void reload_object P1(object_t *, obj)
 #endif
 #endif
     call_create(obj, 0);
+}
+
+void get_objects P4(object_t ***, list, int *, size, get_objectsfn_t, callback, void *, data)
+{
+    object_t *ob;
+#ifdef F_SET_HIDE
+    int display_hidden = 0;
+
+    if (num_hidden > 0) {
+	if (current_object->flags & O_HIDDEN) {
+	    display_hidden = 1;
+	} else {
+	    display_hidden = valid_hide(current_object);
+	}
+    }
+    *list = (object_t **)new_string(((tot_alloc_object - (display_hidden ? 0 : num_hidden)) * sizeof(object_t *)) - 1, "get_objects");
+#else
+    *list = (object_t **)new_string((tot_alloc_object * sizeof(object_t *)) - 1, "get_objects");
+#endif
+
+    if (!list)
+	fatal("Out of memory!\n");
+    push_malloced_string((char *)*list);
+
+    for (*size = 0, ob = obj_list;  ob;  ob = ob->next_all) {
+#ifdef F_SET_HIDE
+	if (!display_hidden && (ob->flags & O_HIDDEN))
+	    continue;
+#endif
+	if (!callback || callback(ob, data))
+	    (*list)[(*size)++] = ob;
+    }
+}
+
+static object_t *command_giver_stack[CFG_MAX_CALL_DEPTH];
+object_t **cgsp = command_giver_stack;
+
+#ifdef DEBUGMALLOC_EXTENSIONS
+void mark_command_giver_stack PROT((void))
+{
+    object_t **ob;
+
+    for (ob = &command_giver_stack[0];  ob < cgsp;  ob++) {
+	if (*ob)
+	    (*ob)->extra_ref++;
+    }
+    if (command_giver)
+	command_giver->extra_ref++;
+}
+#endif
+
+/* set a new command giver, saving the old one */
+void save_command_giver P1(object_t *, ob)
+{
+    DEBUG_CHECK(cgsp == &command_giver_stack[CFG_MAX_CALL_DEPTH], "command_giver stack overflow");
+    *(++cgsp) = command_giver;
+
+    command_giver = ob;
+    if (command_giver)
+	add_ref(command_giver, "save_command_giver");
+}
+
+/* restore the saved command giver */
+void restore_command_giver PROT((void))
+{
+    if (command_giver)
+	free_object(command_giver, "command_giver_error_handler");
+    DEBUG_CHECK(cgsp == command_giver_stack, "command_giver stack underflow");
+    command_giver = *(cgsp--);
+}
+
+/* set a new command giver */
+void set_command_giver P1(object_t *, ob)
+{
+    if (command_giver)
+	free_object(command_giver, "set_command_giver");
+
+    command_giver = ob;
+    if (command_giver != 0)
+	add_ref(command_giver, "set_command_giver");
 }

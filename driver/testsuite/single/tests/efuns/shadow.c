@@ -15,12 +15,12 @@ void do_tests() {
     new(__DIR__ "badshad", 1);
 
     ASSERT(shadow(this_object(), 0) == 0);
-    ASSERT(this_object()->foo() == this_object());
+    ASSERT((object)this_object()->foo() == this_object());
 
     ob = new(__DIR__ "goodshad", 1);
     ASSERT(shadow(this_object(), 0) == ob);
-    ASSERT(this_object()->foo() == ob);
-    ASSERT(new(__FILE__)->bar() == ob);
+    ASSERT((object)this_object()->foo() == ob);
+    ASSERT((object)new(__FILE__)->bar() == ob);
 
     ASSERT(catch(shadow(ob)));
     ASSERT(catch(shadow(new(__FILE__))));

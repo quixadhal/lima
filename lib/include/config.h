@@ -35,7 +35,7 @@
 
 /* The players start room.  
  * This is the default for where players start when they log in. */
-#define START			"/domains/std/rooms/beach/Sandy_Beach"
+#define START		"/domains/std/Wizroom"	
 
 /* NOTE: if you define this, you have to modify the lib to save the correct
  * variables.*/
@@ -115,7 +115,7 @@
 /* The file displayed immediatly after login. */
 #define MOTD_FILE		"/data/config/MOTD"
 
-#define LOGIN_PROMPT		"By what name do you hail? "
+#define LOGIN_PROMPT		"What is your name? "
 
 /* Define where the obvious exits should appear if at all. 
  * OBVIOUS_EXITS displays the exits above the long description, 
@@ -123,10 +123,14 @@
 #define OBVIOUS_EXITS
 #undef OBVIOUS_EXITS_BOTTOM
 
-/* If this is defined, then each player can set their own colours individually.
- * There is some disk space/memory overhead for keeping track of all this,
- * though. */
-#define CONFIGURABLE_COLOUR
+/* Define this if you wish closed doors to show up as an obvious exit */
+#undef CLOSED_DOORS_ARE_OBVIOUS_EXITS
+
+/* Define where the obvious exits should appear if at all. 
+ * in the bodies.  If you save to rooms, then anyone can walk in and read the 
+ * last part of a say conversation.  */
+#define SAY_HISTORY_IN_ROOMS
+
 
 /* Define the message that playes see when they run into an error. */
 #define BUG_MSG \
@@ -185,6 +189,14 @@
  * command to make the person a full wizard w/ a directory. */
 #define AUTO_WIZ
 
+/* Wizard Positions are merely a descriptive field to describe what the 
+ * wizard does.  Define this if you want to use it. */
+#define USE_WIZ_POSITION
+
+
+/* Allow wizards to see hidden exits? */
+#define WIZARDS_SEE_HIDDEN_EXITS
+
 
 /*************************************************************************
  ** 									**
@@ -203,14 +215,6 @@
 #define QUESTION_NEWSGROUP "reporter.question"
 #define FEEDBACK_NEWSGROUP "reporter.discussion"
 
-
-/* Define this if you want news data to be stored in the user object rather 
- * than the body.  If you are using multiple bodies for a user object, this 
- * it is recommended that you undef this.  If you do define this, and
- * previously used  to store newsdata in the user object you need to make
- *  sure that both /std/body.c and /secure/user.c inherit 
- * /secure/user/newsdata.c */
-#undef NEWS_DATA_IN_USER
 
 
 /*************************************************************************

@@ -20,13 +20,13 @@ private void main(string str) {
 	ndays = 1;
     else if ( str == "/off" && this_body() )
     {
-      this_body()->set_ilog_off(1);
+      this_user()->set_didlog_off(1);
       out("You will no longer receive didlog notifications.\n");
       return;
     }
     else if ( str == "/on" && this_body() )
     {
-      this_body()->set_ilog_off(0);
+      this_user()->set_didlog_off(0);
       out("You will now receive didlog notifications.\n");
       return;
     }

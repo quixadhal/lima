@@ -590,7 +590,6 @@ static void c_generate_loop P4(int, test_first, parse_node_t *, block,
 		 test->v.number == F_LOOP_COND_NUMBER)) {
 	c_generate_node(test);
 	ins_vstring("goto label%03i;\n", pos);
-	notreached = 1;
     } else {
 	if (test_first == 2)
 	    ins_vstring("if (c_next_foreach())\ngoto label%03i;\n", pos);
@@ -737,6 +736,10 @@ c_initialize_parser() {
     notreached = 0;
 }
 
+void
+c_uninitialize_parser() {
+}
+
 #if 0
 static char *protect_allocated_string = 0;
 
@@ -853,6 +856,8 @@ c_generate_final_program P1(int, x) {
 	
 	for (i = 0; i < num_func; i++){
 	    char *func_name = FUNC(func_index_map[i])->name;
+	    if (!FUNC(func_index_map[i])->address)
+		continue;
 	    if (func_name[0] == APPLY___INIT_SPECIAL_CHAR)
 			    fprintf(f_out, "LPC_%s__LPCinit,\n", compilation_ident);
 	    else 

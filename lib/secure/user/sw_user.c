@@ -5,14 +5,12 @@
 **
 ** 14-Jun-95.  Deathblade.  Created.
 */
-
-#include <mudlib.h>
 #include <security.h>
 #include <commands.h>
 
 string query_userid();
 object query_body();
-
+void initialize_user();
 string query_userid();
 void restore_me(string some_name, int preserve_vars);
 
@@ -52,7 +50,13 @@ private nomask int do_su(string old_userid, string new_userid, string new_body)
     ** old body).
     */
     restore_me(new_userid, 1);
-    switch_body(new_body);
+
+    /* If there is a new_body, that probably means we are changing races.  
+     * If that is the case the change needs to be permanent. --Tigran */
+    if((!new_body||new_body==""))
+      switch_body(new_body,0);
+    else
+      switch_body(new_body,1);
 
     /* alter privileges */
     if ( adminp(query_userid()) )
@@ -71,6 +75,11 @@ private nomask int do_su(string old_userid, string new_userid, string new_body)
 			     ({ body }) );
     }
     receive(sprintf("Done. You are now %s.\n", new_name));
+
+    /* 
+     * Run through the rest of the initialization routine for users
+     */
+    initialize_user();
 }
 
 private nomask void confirm_valid_su(string old_userid,

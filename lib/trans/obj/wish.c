@@ -295,7 +295,7 @@ varargs protected void execute_command(string original_input)
 	    return;
 
 	/* try a channel */
-	channel_name = CHANNEL_D->is_valid_channel(orig_argv[0], this_body()->query_channel_list());
+	channel_name = CHANNEL_D->is_valid_channel(orig_argv[0], this_user()->query_channel_list());
 	if ( channel_name ) {
 	    int chan_type = channel_name[0..4] == "imud_";
 	    CHANNEL_D->cmd_channel(channel_name,

@@ -14,7 +14,7 @@ class wear_info
     object array others;
 }
 
-nosave mapping armors = ([]);
+private mapping armors = ([ ]);
 
 class wear_info find_wi(string s)
 {
@@ -132,5 +132,8 @@ string query_random_armor_slot()
 
 object array event_get_armors(class event_info evt)
 {
+// Following ifdef added so this would update nicely always
+#ifdef HEALTH_USES_LIMBS
    return query_armors(evt->target_extra);
+#endif
 }

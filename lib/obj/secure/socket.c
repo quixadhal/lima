@@ -313,10 +313,18 @@ nomask mixed *address()
 
 nomask int local_port()
 {
-  return to_int(explode(socket_status(fdOwned)[3],".")[<1]);
+  string address;
+  int port;
+  sscanf(socket_address(fdOwned, 1), "%s %d", address, port);
+  return port;
 }
 
-  
+nomask string local_address() {
+  string address;
+  int port;
+  sscanf(socket_address(fdOwned,1),"%s %d",address,port);
+  return address;
+}
 
 void create(int skt_style, mixed p1, mixed p2, mixed p3)
 {

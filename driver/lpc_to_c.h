@@ -51,16 +51,22 @@
 #define C_GLOBAL(x) SAFE(\
 			 lpc_svp = &current_object->variables[variable_index_offset + x];\
 			 if ((lpc_svp->type == T_OBJECT) && (lpc_svp->u.ob->flags & O_DESTRUCTED)) {\
-													*++sp = const0; assign_svalue(lpc_svp, &const0);\
+			    *++sp = const0u; assign_svalue(lpc_svp, &const0u);\
 			 } else assign_svalue_no_free(++sp, lpc_svp);\
 			 )
 #define C_LOCAL(x) SAFE(\
 			if ((fp[x].type == T_OBJECT) &&\
-			    (fp[x].u.ob->flags & O_DESTRUCTED)) {\
-			    *++sp = const0;\
-			    assign_svalue(fp + x, &const0);\
-			} else assign_svalue_no_free(++sp, fp + x);\
+			    (fp[x].u.ob->flags & O_DESTRUCTED))\
+			    assign_svalue(fp + x, &const0u);\
+			push_svalue(fp + x);\
 			)
+#define C_TRANSFER_LOCAL(x) SAFE(\
+				 if ((fp[x].type == T_OBJECT) &&\
+				     (fp[x].u.ob->flags & O_DESTRUCTED))\
+				     assign_svalue(fp + x, &const0u);\
+				 *++sp = fp[x];\
+				 fp[x].type |= T_FREED;\
+				 )
 #define C_LVALUE(x) SAFE((++sp)->type = T_LVALUE; sp->u.lvalue = x;)
 #define C_LAND(x) SAFE(\
 		       if (sp->type == T_NUMBER) {\
@@ -83,6 +89,29 @@
 			       if (x(sp->type == T_NUMBER && !sp->u.number)) {\
 				  y; } pop_stack();\
 			       )
+#define C_REF(x) SAFE(\
+		      svalue_t *lval;\
+		      if (fp[x].type == T_REF) {\
+			  lval = fp[x].u.ref->lvalue;\
+			  if (!lval) error("Reference is invalid.\n");\
+			  if (lval->type == T_LVALUE_BYTE)\
+			      push_number(*global_lvalue_byte.u.lvalue_byte);\
+			  else {\
+			      if (lval->type == T_OBJECT && (lval->u.ob->flags & O_DESTRUCTED))\
+			          assign_svalue(lval, &const0);\
+			      push_svalue(lval);\
+			  }\
+		      } else error("Non-reference value passed as reference argument.\n");\
+		      )
+#define C_REF_LVALUE(x) SAFE(\
+			     if (fp[x].type == T_REF) {\
+				 if (fp[x].u.ref->lvalue) {\
+				     STACK_INC;\
+				     sp->type = T_LVALUE;\
+				     sp->u.lvalue = fp[x].u.ref->lvalue;\
+				 } else error("Reference is invalid.\n");\
+			     } else error("Non-reference value passed as reference argument.\n");\
+			     )
 
 void c_efun_return PROT((int));
 

@@ -11,14 +11,14 @@ inherit M_INPUT;
 // args == 0 means no arguments
 class command_info {
     string key;      // A one character string giving the key to be pressed to
-		     // invoke this command.
+    // invoke this command.
     string proto;    // A short [12 char or less] summary of the args, if any
     string desc;     // A short [~40 chars] description of the command
     string priv;     // priv required to use this command
     string who;      // A short [~10 chars] description of who can use the
-		     // command
+    // command
     array args;      // An array of prompts to use to ask for arguments not
-		     // given on the line.  Max == 2.
+    // given on the line.  Max == 2.
     function action; // The function to be called.
 }
 
@@ -40,7 +40,7 @@ private nomask string parent_name() {
     string path = base_name();
     int idx;
 
-//### should be OB_ADMTOOL or something...
+    //### should be OB_ADMTOOL or something...
     // the top level object has no parent
     if ( path == "/obj/admtool/admtool2" )
 	return 0;
@@ -56,26 +56,41 @@ private nomask string parent_name() {
 }
 
 protected void heading() {
-    write("Administration Tool: " + module_name() + " administration\n\n");
+    write("%^ADMTOOL_HEADING%^Administration Tool: " + module_name() + " administration%^RESET%^\n\n");
 }
 
 void write_menu() {
     int maxlen = 0;	/* max length of "proto" field */
+    int maxkeylen = 1;  /* max length of the key field */
+    int line = 0;       /* line count for colors */
 
     heading();
 
     foreach (class command_info comm in commands)
-	if ( comm->proto && sizeof(comm->proto) > maxlen )
-	    maxlen = sizeof(comm->proto);
+    if ( comm->proto && sizeof(comm->proto) > maxlen ) {
+	maxlen = sizeof(comm->proto);
+	maxkeylen=sizeof(comm->key);
+    }
 
     foreach (class command_info comm in commands) {
 	string desc = comm->desc;
-	
+
 	if (comm->who)
-	    desc = desc + repeat_string(" ", 70 - maxlen - strlen(desc) - strlen(comm->who)) + comm->who;
-	
+	    desc = desc + repeat_string(" ", 65 - maxkeylen - maxlen - strlen(desc) - strlen(comm->who)) + comm->who;
+
 	if (comm->key)
-	    printf("  %1s %-*s - %s\n", comm->key, maxlen, comm->proto || "", desc);
+	{
+	    string color = "";
+
+	    if (line % 2 == 0)
+		color = "%^ADMTOOL_HI%^";
+	    else
+		color = "%^ADMTOOL_LO%^";
+
+	    printf("  %s%3s %-*s - %s%%^RESET%%^\n", color, comm->key, maxlen, comm->proto || "", desc);
+
+	    line++;
+	}
 	else
 	    write("\n");
     }
@@ -108,14 +123,14 @@ protected nomask int write_error(string err) {
 
 protected class command_info array defaults() {
     return  ({
-	    new(class command_info), // blank line
-	    new(class command_info, key : "m", desc : "previous menu", 
-		action : (: do_main_menu :)),
-	    new(class command_info, key : "q", desc : "quit", 
-		action : (: do_quit :)),
-	    new(class command_info, key : "?", desc : "help", 
-		action : (: do_help :))
-	});
+      new(class command_info), // blank line
+      new(class command_info, key : "m", desc : "previous menu", 
+	action : (: do_main_menu :)),
+      new(class command_info, key : "q", desc : "quit", 
+	action : (: do_quit :)),
+      new(class command_info, key : "?", desc : "help", 
+	action : (: do_help :))
+    });
 }
 
 // setup
@@ -123,38 +138,36 @@ void begin_menu();
 
 void create() {
     set_privilege(1);
-    
+
     // abstract class 
     if (strsrch(base_name(), "internal") != -1) return;
-    
+
     commands = module_commands() + defaults();
-    
+
     prompt = "(AdmTool:" + module_name() + ") [" + implode(commands, 
-	      (: ((class command_info)$2)->key ? 
-	       $1 + ((class command_info)$2)->key : $1 :), "") + "] > ";
+      (: ((class command_info)$2)->key ? 
+	$1 + ((class command_info)$2)->key : $1 :), "") + "] > ";
 
     if (clonep()) {
 	if (module_priv() && !check_privilege(module_priv())) {
 	    write("Permission denied: need priv " + module_priv() + "\n");
 	    return;
 	}
-	
+
 	begin_menu();
     }
 }
 
 private void handle_input(string str) {
+    string array parts = explode(str," ");
     string arg;
 
-    if (strlen(str) > 1) {
-	if (str[1] != ' ') {
-	    write("** Format is: <option> <argument>\n");
-	    write_menu();
-	    return;
-	}
-	arg = str[2..];
-	str = str[0..0];
-    } else if (str == "") {
+    if(sizeof(parts)>1) {
+	arg=implode(parts[1..]," ");
+	str=parts[0];
+    }
+
+    if (str == "") {
 	if (parent)
 	    str = "m";
 	else
@@ -165,7 +178,7 @@ private void handle_input(string str) {
 	if (str == comm->key) {
 	    if (comm->priv && !check_previous_privilege(comm->priv)) {
 		printf("Permission denied; need privilege '%O'.\n",
-		       comm->priv);
+		  comm->priv);
 		return;
 	    }
 	    switch (sizeof(comm->args)) {
@@ -188,7 +201,7 @@ private void handle_input(string str) {
 	    }
 	}
     }
-    
+
     write("** Unknown option (? for help)\n");
 }
 
@@ -203,7 +216,7 @@ void begin_menu() {
 	if (base_name(parent) != parent_name())
 	    error("Illegal call to begin_menu()\n");
     }
-    
+
     write_menu();
 
     modal_push((: handle_input :), prompt);

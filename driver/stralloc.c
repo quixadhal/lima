@@ -291,7 +291,7 @@ add_string_status P2(outbuffer_t *, out, int, verbose)
 	outbuf_add(out, "-------------------------\t Strings    Bytes\n");
     }
     if (verbose != -1)
-	outbuf_addv(out, "All strings:\t\t\t%7d %8d + %d overhead\n",
+	outbuf_addv(out, "All strings:\t\t\t%8d %8d + %d overhead\n",
 	      num_distinct_strings, bytes_distinct_strings, overhead_bytes);
     if (verbose == 1) {
 	outbuf_addv(out, "Total asked for\t\t\t%8d %8d\n",

@@ -41,7 +41,7 @@ mixed enter_check()
     return 1;
 }
 
-//:FUNCTION parent_environment_accessible()
+//:FUNCTION parent_environment_accessible
 //Return 1 if the outside should be included in the parse
 //Non-rooms default to returning 1
 int parent_environment_accessible() {
@@ -71,7 +71,7 @@ void do_looking(int force_long_desc)
 {
     //### how to use force_long_desc ??
 
-    if ( wizardp() && get_user_variable("show_loc") )
+    if ( wizardp(this_user()) && get_user_variable("show_loc") )
     {
 	printf("[%s]\n", file_name(this_object()));
     }
@@ -87,7 +87,7 @@ void do_looking(int force_long_desc)
 	  " [exits: %%^ROOM_EXIT%%^%s%%^RESET%%^]\n",
 	  get_brief(), show_exits());
 #else
-	printf("%%^ROOM_SHORT%%^%s%%^RESET^\n",
+	printf("%%^ROOM_SHORT%%^%s%%^RESET%%^\n",
 	  get_brief());
 #endif
 

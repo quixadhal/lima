@@ -110,7 +110,8 @@ void handle_events()
             continue;
          }
       }
-      queue[i] = queue[i]->target->modify_event(queue[i]);
+      if(queue[i]->target)
+        queue[i] = queue[i]->target->modify_event(queue[i]);
       if(!queue[i])
       {
          i++;

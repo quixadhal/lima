@@ -32,7 +32,7 @@
 #include "cc.h"
 
 #define NELEM(a) (sizeof (a) / sizeof((a)[0]))
-#define LEX_EOF ((char) EOF)
+#define LEX_EOF ((unsigned char) EOF)
 
 char lex_ctype[256] = {0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,
                        0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -73,6 +73,8 @@ static char *last_nl;
 static int nexpands = 0;
 
 #define EXPANDMAX 25000
+static char *expands[EXPANDMAX];
+static int expand_depth = 0;
 
 char yytext[MAXLINE];
 static char *outp;
@@ -138,6 +140,9 @@ static keyword_t reswords[] =
     {"case", L_CASE, 0},
     {"catch", L_CATCH, 0},
     {"class", L_CLASS, 0},
+#ifdef COMPAT_32
+    {"closure", L_BASIC_TYPE, TYPE_FUNCTION},
+#endif
     {"continue", L_CONTINUE, 0},
     {"default", L_DEFAULT, 0},
     {"do", L_DO, 0},
@@ -226,7 +231,8 @@ static void lexerror PROT((char *));
 static int skip_to PROT((char *, char *));
 static void handle_cond PROT((int));
 static int inc_open PROT((char *, char *, int));
-static void handle_include PROT((char *));
+static void include_error PROT((char *, int));
+static void handle_include PROT((char *, int));
 static int get_terminator PROT((char *));
 static int get_array_block PROT((char *));
 static int get_text_block PROT((char *));
@@ -238,7 +244,7 @@ static int cmygetc PROT((void));
 static void refill PROT((void));
 static void refill_buffer PROT((void));
 static int exgetc PROT((void));
-static old_func PROT((void));
+static int old_func PROT((void));
 static ident_hash_elem_t *quick_alloc_ident_entry PROT((void));
 static void yyerrorp PROT((char *));
 
@@ -317,7 +323,7 @@ static int
 skip_to P2(char *, token, char *, atoken)
 {
     char b[20], *p;
-    char c;
+    unsigned char c;
     register char *yyp = outp,  *startp;
     char *b_end = b + 19;
     int nest;
@@ -354,7 +360,7 @@ skip_to P2(char *, token, char *, atoken)
 	}
 	while (c != '\n' && c != LEX_EOF) c = *yyp++;
 	if (c == LEX_EOF) {
-	    lexerror("Unexpected end of file while skipping");
+	    lexerror("Unexpected end of file while looking for #endif");
 	    outp = yyp - 1;
 	    return 1;
 	}
@@ -395,16 +401,28 @@ inc_open P3(char *, buf, char *, name, int, check_local)
     return -1;
 }
 
-#define include_error(x) SAFE(\
-			      current_line--;\
-			      yyerror(x);\
-			      current_line++;\
-			      )
+static void
+include_error P2(char *, msg, int, global)
+{
+    current_line--;
+
+    if (global) {
+	int saved_pragmas = pragmas;
+
+	pragmas &= ~PRAGMA_ERROR_CONTEXT;
+	lexerror(msg);
+	pragmas = saved_pragmas;
+    } else {
+	yyerror(msg);
+    }
+
+    current_line++;
+}
 
 static void
-handle_include P1(char *, name)
+handle_include P2(char *, name, int, global)
 {
-    char *p;
+    char *p, *nameptr;
     static char buf[1024];
     incstate_t *is;
     int delim, f;
@@ -416,27 +434,30 @@ handle_include P1(char *, name)
 	    char *q;
 
 	    q = d->exps;
-	    while (isspace(*q))
+	    while (uisspace(*q))
 		q++;
-	    handle_include(q);
+	    handle_include(q, global);
 	} else {
-	    include_error("Missing leading \" or < in #include");
+	    include_error("Missing leading \" or < in #include", global);
 	}
 	return;
     }
+    name = nameptr = string_copy(name, "handle_include");
     delim = *name++ == '"' ? '"' : '>';
     for (p = name; *p && *p != delim; p++);
     if (!*p) {
-	include_error("Missing trailing \" or > in #include");
+	FREE_MSTR(nameptr);
+	include_error("Missing trailing \" or > in #include", global);
 	return;
     }
     if (strlen(name) > sizeof(buf) - 100) {
-	include_error("Include name too long.");
+	FREE_MSTR(nameptr);
+	include_error("Include name too long.", global);
 	return;
     }
     *p = 0;
     if (++incnum == MAX_INCLUDE_DEPTH) {
-	include_error("Maximum include depth exceeded.");
+	include_error("Maximum include depth exceeded.", global);
     } else if ((f = inc_open(buf, name, delim == '"')) != -1) {
 	is = ALLOCATE(incstate_t, TAG_COMPILER, "handle_include: 1");
 	is->yyin_desc = yyin_desc;
@@ -458,14 +479,16 @@ handle_include P1(char *, name)
 	refill_buffer();
     } else {
 	sprintf(buf, "Cannot #include %s", name);
-	include_error(buf);
+	include_error(buf, global);
     }
+    FREE_MSTR(nameptr);
 }
 
 static int
 get_terminator P1(char *, terminator)
 {
-    int c, j = 0;
+    unsigned char c;
+    int j = 0;
 
     while (((c = *outp++) != LEX_EOF) && (isalnum(c) || c == '_'))
 	terminator[j++] = c;
@@ -511,8 +534,9 @@ get_array_block P1(char *, term)
     int header, len;		/* header length; position in chunk */
     int startpos, startchunk;	/* start of line */
     int curchunk, res;		/* current chunk; this function's result */
-    int c, i;			/* a char; an index counter */
-    register char *yyp = outp;
+    int i;			/* an index counter */
+    unsigned char c;		/* a char */
+    char *yyp = outp;
 
     /*
      * initialize
@@ -558,7 +582,7 @@ get_array_block P1(char *, term)
 	 * check for terminator
 	 */
 	if ((!strncmp(array_line[startchunk] + startpos, term, termlen)) &&
-	    (!isalnum(*(array_line[startchunk] + startpos + termlen))) &&
+	    (!uisalnum(*(array_line[startchunk] + startpos + termlen))) &&
 	    (*(array_line[startchunk] + startpos + termlen) != '_')) {
 	    /*
 	     * handle lone terminator on line
@@ -651,7 +675,8 @@ get_text_block P1(char *, term)
     int len;			/* position in chunk */
     int startpos, startchunk;	/* start of line */
     int curchunk, res;		/* current chunk; this function's result */
-    int c, i;			/* a char; an index counter */
+    int i;			/* an index counter */
+    unsigned char c;		/* a char */
     register char *yyp = outp;
 
     /*
@@ -697,7 +722,7 @@ get_text_block P1(char *, term)
 	 * check for terminator
 	 */
 	if ((!strncmp(text_line[startchunk] + startpos, term, termlen)) &&
-	    (!isalnum(*(text_line[startchunk] + startpos + termlen))) &&
+	    (!uisalnum(*(text_line[startchunk] + startpos + termlen))) &&
 	    (*(text_line[startchunk] + startpos + termlen) != '_')) {
 	    if (strlen(text_line[startchunk] + startpos) == termlen) {
 		current_line++;
@@ -806,7 +831,7 @@ get_text_block P1(char *, term)
 
 static void skip_line()
 {
-    int c;
+    unsigned char c;
     register char *yyp = outp;
 
     while (((c = *yyp++) != '\n') && (c != LEX_EOF));
@@ -818,7 +843,7 @@ static void skip_line()
 
 static void skip_comment()
 {
-    int c = '*';
+    unsigned char c = '*';
     register char *yyp = outp;
 
     for (;;) {
@@ -867,7 +892,7 @@ deltrail P1(char *, sp)
     if (!*p) {
 	lexerror("Illegal # command");
     } else {
-	while (*p && !isspace(*p))
+	while (*p && !uisspace(*p))
 	    p++;
 	*p = 0;
     }
@@ -893,7 +918,7 @@ static pragma_t our_pragmas[] = {
     { "save_binary", PRAGMA_SAVE_BINARY },
 #endif
     { "warnings", PRAGMA_WARNINGS },
-    { "optimize", 0 },
+    { "optimize", PRAGMA_OPTIMIZE },
     { "show_error_context", PRAGMA_ERROR_CONTEXT },
     { 0, 0 }
 };
@@ -929,7 +954,7 @@ char *show_error_context() {
     register char *yyp, *yyp2;
     int len;
 
-    if (outp[-1] == LEX_EOF) {
+    if ((unsigned char)outp[-1] == LEX_EOF) {
 	strcpy(buf, " at the end of the file\n");
 	return buf;
     }
@@ -943,7 +968,7 @@ char *show_error_context() {
 	if (*yyp == '\n') {
 	    if (len == 19) strcat(buf, "the end of line");
 	    break;
-	} else if (*yyp == LEX_EOF) {
+	} else if ((unsigned char)*yyp == LEX_EOF) {
 	    if (len == 19) strcat(buf, "the end of file");
 	    break;
 	}
@@ -1135,13 +1160,13 @@ int yylex()
     float myreal;
     char *partp;
 
-    register char *yyp;		/* Xeno */
-    register char c;		/* Xeno */
+    register char *yyp;
+    unsigned char c;
 
     yytext[0] = 0;
 
-    partp = partial;		/* Xeno */
-    partial[0] = 0;		/* Xeno */
+    partp = partial;
+    partial[0] = 0;
 
     for (;;) {
 	if (lex_fatal) {
@@ -1473,7 +1498,7 @@ int yylex()
 		}
 		if (sp) {
 		    *sp++ = 0;
-		    while (isspace(*sp))
+		    while (uisspace(*sp))
 			sp++;
 		} else {
 		    sp = yyp;
@@ -1485,7 +1510,7 @@ int yylex()
 		        *(last_nl = --outp) = LEX_EOF;
 			outp[-1] = '\n';
 		    }
-		    handle_include(sp);
+		    handle_include(sp, 0);
 		    break;
 		} else {
 		    if (outp == last_nl + 1) refill_buffer();
@@ -1527,6 +1552,16 @@ int yylex()
 			}
 		    } else if (strcmp("echo", yytext) == 0) {
 			debug_message("%s\n", sp);
+		    } else if (strcmp("error", yytext) == 0) {
+			char buf[MAXLINE+1];
+			strcpy(buf, yytext);
+			strcat(buf, "\n");
+			yyerror(buf);
+		    } else if (strcmp("warn", yytext) == 0) {
+			char buf[MAXLINE+1];
+			strcpy(buf, yytext);
+			strcat(buf, "\n");
+			yywarn(buf);
 		    } else if (strcmp("pragma", yytext) == 0) {
 			handle_pragma(sp);
 		    } else if (strcmp("breakpoint", yytext) == 0) {
@@ -1569,7 +1604,7 @@ int yylex()
 		    }
 		    break;
 		case 'x':
-		    if (!isxdigit(*outp)) {
+		    if (!isxdigit((unsigned char)*outp)) {
 			yylval.number = 'x';
 			yywarn("\\x must be followed by a valid hex value; interpreting as 'x' instead.");
 		    } else {
@@ -1688,7 +1723,7 @@ int yylex()
 			
 		    case '\\':
 			/* Don't copy the \ in yet */
-			switch(*outp++) {
+			switch((unsigned char)*outp++) {
 			case '\n':
 			    current_line++;
 			    total_lines++;
@@ -1722,7 +1757,7 @@ int yylex()
 			case 'x':
 			{
 			    int tmp;
-			    if (!isxdigit(*outp)) {
+			    if (!isxdigit((unsigned char)*outp)) {
 				*to++ = 'x';
 				yywarn("\\x must be followed by a valid hex value; interpreting as 'x' instead.");
 			    } else {
@@ -1775,7 +1810,7 @@ int yylex()
 
 		       case '\\':
 			   /* Don't copy the \ in yet */
-			   switch(*outp++) {
+			   switch((unsigned char)*outp++) {
 			   case '\n':
 			       current_line++;
 			       total_lines++;
@@ -1809,7 +1844,7 @@ int yylex()
 			   case 'x':
 			   {
 			       int tmp;
-			       if (!isxdigit(*outp)) {
+			       if (!isxdigit((unsigned char)*outp)) {
 				   *yyp++ = 'x';
 				   yywarn("\\x must be followed by a valid hex value; interpreting as 'x' instead.");
 			       } else {
@@ -1851,7 +1886,7 @@ int yylex()
 		for (;;) {
 		    c = *outp++;
 		    SAVEC;
-		    if (!isxdigit(c))
+		    if (!isxdigit((unsigned char)c))
 			break;
 		}
 		outp--;
@@ -1883,7 +1918,7 @@ int yylex()
 			outp--;
 			break;
 		    }
-		} else if (!isdigit(c))
+		} else if (!isdigit((unsigned char)c))
 		    break;
 		SAVEC;
 	    }
@@ -1898,14 +1933,15 @@ int yylex()
 		return L_NUMBER;
 	    }
 	default:
-	    if (isalpha(c) || c == '_') {
+	    if (isalpha((unsigned char)c) || c == '_') {
 		int r;
 
 parse_identifier:
 		yyp = yytext;
 		*yyp++ = c;
 		for (;;) {
-		    if (!isalnum(c = *outp++) && (c != '_'))
+		    c = *outp++;
+		    if (!isalnum((unsigned char)c) && (c != '_'))
 			break;
 		    SAVEC;
 		}
@@ -2142,12 +2178,13 @@ void start_new_file P1(int, f)
     current_line = 1;
     current_line_base = 0;
     current_line_saved = 0;
+    function_flag = 0;
     if (*GLOBAL_INCLUDE_FILE) {
 	char *gifile;
 
 	/* need a writable copy */
 	gifile = alloc_cstring(GLOBAL_INCLUDE_FILE, "global include");
-	handle_include(gifile);
+	handle_include(gifile, 1);
 	FREE(gifile);
     } else refill_buffer();
 }
@@ -2273,11 +2310,11 @@ static void init_instrs()
 		   F_NE_RANGE, T_ARRAY|T_STRING OR_BUFFER);
     add_instr_name("global", "C_GLOBAL(%i);\n", F_GLOBAL, T_ANY);
     add_instr_name("local", "C_LOCAL(%i);\n", F_LOCAL, T_ANY);
-    add_instr_name("make_ref", "c_make_ref();\n", F_MAKE_REF, T_REF);
-    add_instr_name("kill_refs", "c_kill_refs();\n", F_KILL_REFS, T_ANY);
+    add_instr_name("make_ref", "c_make_ref(%i);\n", F_MAKE_REF, T_REF);
+    add_instr_name("kill_refs", "c_kill_refs(%i);\n", F_KILL_REFS, T_ANY);
     add_instr_name("ref", "C_REF(%i);\n", F_REF, T_ANY);
     add_instr_name("ref_lvalue", "C_REF_LVALUE(%i);\n", F_REF_LVALUE, T_LVALUE);
-    add_instr_name("transfer_local", "c_transfer_local(%i);\n", F_TRANSFER_LOCAL, T_ANY);
+    add_instr_name("transfer_local", "C_TRANSFER_LOCAL(%i);\n", F_TRANSFER_LOCAL, T_ANY);
     add_instr_name("number", 0, F_NUMBER, T_NUMBER);
     add_instr_name("real", 0, F_REAL, T_REAL);
     add_instr_name("local_lvalue", "C_LVALUE(fp + %i);\n", F_LOCAL_LVALUE, T_LVALUE);
@@ -2366,29 +2403,18 @@ static void init_instrs()
 
 #define get_next_char(c) if ((c = *outp++) == '\n' && outp == last_nl + 1) refill_buffer()
 
-#define GETALPHA(p, q, m) \
-    while(isalunum(*p)) {\
-	*q = *p++;\
-	if (q < (m))\
-	    q++;\
-	else {\
-	    lexerror("Name too long");\
-	    return;\
+#define GETALPHA(p, q, m, e) \
+    if (*p == '_' || uisalpha(*p)) {\
+	while(isalunum((unsigned char)*p)) {\
+	    *q = *p++;\
+	    if (q < (m))\
+		q++;\
+	    else {\
+		lexerror("Name too long");\
+		return;\
+	    }\
 	}\
-    }\
-    *q++ = 0
-
-/* kludge to allow token pasting */
-#define GETDEFINE(p, q, m) \
-    while (isalunum(*p) || (*p == '#')) {\
-       *q = *p++; \
-       if (q < (m)) \
-           q++; \
-       else { \
-           lexerror("Name too long"); \
-           return; \
-       } \
-    } \
+    } else lexerror(e);\
     *q++ = 0
 
 static int cmygetc()
@@ -2412,7 +2438,7 @@ static int cmygetc()
 static void refill()
 {
     char *p;
-    int c;
+    unsigned char c;
 
     p = yytext;
     do {
@@ -2441,7 +2467,7 @@ static void handle_define P1(char *, yyt)
     p = yyt;
     strcat(p, " ");
     q = namebuf;
-    GETALPHA(p, q, namebuf + NSIZE - 1);
+    GETALPHA(p, q, namebuf + NSIZE - 1, "Invalid macro name");
     if (*p == '(') {		/* if "function macro" */
 	int squote, dquote;
 	int arg;
@@ -2455,7 +2481,7 @@ static void handle_define P1(char *, yyt)
 	} else {
 	    for (arg = 0; arg < NARGS;) {
 		q = args[arg];
-		GETDEFINE(p, q, args[arg] + NSIZE - 1);
+		GETALPHA(p, q, args[arg] + NSIZE - 1, "Invalid macro argument");
 		arg++;
 		SKIPWHITE;
 		if (*p == ')')
@@ -2476,7 +2502,7 @@ static void handle_define P1(char *, yyt)
 	*q++ = ' ';
 	squote = dquote = 0;
 	for (inid = 0; *p;) {
-	    if (isalunum(*p)) {
+	    if (isalunum((unsigned char)*p)) { /* FIXME */
 		if (!inid) {
 		    inid++;
 		    ids = p;
@@ -2572,7 +2598,7 @@ static void add_input P1(char *, p)
 
 	q = outp;
 
-	while (*q != '\n' && *q != LEX_EOF) q++;
+	while (*q != '\n' && (unsigned char)*q != LEX_EOF) q++;
 	/* Incorporate EOF later */
 	if (*q != '\n' || ((q  - outp) + l) >= DEFMAX - 11) {
 	    lexerror("Macro expansion buffer overflow");
@@ -2676,379 +2702,249 @@ static void free_defines()
 }
 
 #define SKIPW \
-        if (!src) \
-            do {\
-	        c = cmygetc();\
-	    } while(is_wspace(c)); \
-        else \
-	    do { \
-		c = *(*src)++; \
-	    } while(is_wspace(c));
+        do {\
+            c = cmygetc();\
+        } while (is_wspace(c));
 
-static char *expand_define2(char *text, char **src);
+static int extract_args P2(char **, argv, char *, argb)
+{
+    int argc = 0, dquote = 0, parcnt = 0, squote = 0;
+    char *out;
+    unsigned char c;
 
-static char *expand_all_defines(char *text, int *len) {
-    static char buf[DEFMAX];
-    static char macro[DEFMAX];
-    char *p = text;
-    char *q = 0;
-    char *r;
-    char *last_copied = text;
-    char *pos = buf;
-    int n, squote, dquote;
-    squote = dquote = 0;
-    
-    while (*p) {
-	if (q) {
-	    if (!isalunum(*p)) {
-		memcpy(macro, q, p - q);
-		macro[p - q] = 0;
-		
-		r = expand_define2(macro, &p);
-		if (r) {
-		    n = q - last_copied;
-		    if (pos + n >= buf + DEFMAX) {
-			lexerror("Macro argument overflow");
-			return 0;
-		    }
-		    if (n) {
-			memcpy(pos, last_copied, n);
-			pos += n;
-		    }
+    SKIPW;
+    if (c != '(') {
+	yyerror("Missing '(' in macro call");
+	if (c == '\n' && outp == last_nl + 1) refill_buffer();
+	return -1;
+    }
 
-		    last_copied = p;
-		
-		    n = strlen(r);
-		    if (pos + n >= buf + DEFMAX) {
-			lexerror("Macro argument overflow");
-			return 0;
-		    }
-		    memcpy(pos, r, n);
-		    pos += n;
+    SKIPW;
+    if (c == ')')
+	return 0;
+
+    argv[0] = out = argb;
+    while (argc < NARGS) {
+	switch (c) {
+	    case '\"':
+		if (!squote)
+		    dquote ^= 1;
+		break;
+	    case '\'':
+		if (!dquote)
+		    squote ^= 1;
+		break;
+	    case '\\':
+		if (squote || dquote) {
+		    *out++ = c;
+		    get_next_char(c);
 		}
-		q = 0;
-	    }
+		break;
+	    case '(':
+		if (!squote && !dquote)
+		    parcnt++;
+		break;
+	    case ')':
+		if (!squote && !dquote)
+		    parcnt--;
+		break;
+	    case '\n':
+		if (outp == last_nl + 1) refill_buffer();
+		if (squote || dquote) {
+		    lexerror("Newline in string");
+		    return -1;
+		}
+		/* Change this to a space so we don't count it more than once */
+		current_line++;
+		total_lines++;
+		c = ' ';
+		break;
+	    case LEX_EOF:
+		lexerror("Unexpected end of file");
+		return -1;
+	}
+
+	/* negative parcnt means we're done collecting args */
+	if (parcnt < 0 || (c == ',' && !parcnt && !dquote && !squote)) {
+	    char *exp;
+
+	    /* strip off trailing whitespace char if there was one */
+	    if (uisspace(*(out - 1))) *(out - 1) = 0;
+	    else *out++ = 0;
+	    if (parcnt < 0)
+		return argc + 1;
+	    argv[++argc] = out;
 	} else {
-	    if (*p == '\\')
-		p++;
-	    else if (*p == '\'')
-		squote ^= 1;
-	    else if (*p == '"')
-		dquote ^= 1;
-	    else if (!dquote && !squote && isalpha(*p))
-		q = p;
+	    /* don't save leading whitespace and don't accumulate trailing whitespace */
+	    if (!uisspace(c) || dquote || squote || (out > argv[argc] && !uisspace(*(out - 1)))) {
+		if (out >= argb + DEFMAX - NARGS) {
+		    lexerror("Macro argument overflow");
+		    return -1;
+		}
+		*out++ = c;
+	    }
 	}
-	p++;
+
+	if (!squote && !dquote) c = cmygetc();
+	else get_next_char(c);
     }
 
-    if (q) {
-	r = expand_define2(q, &p);
-	if (r) {
-	    n = q - last_copied;
-	    if (pos + n >= buf + DEFMAX) {
-		lexerror("Macro argument overflow");
-		return 0;
-	    }
-	    if (n) {
-		memcpy(pos, last_copied, n);
-		pos += n;
-	    }
-
-	    last_copied = p;
-		
-	    n = strlen(r);
-	    if (pos + n >= buf + DEFMAX) {
-		lexerror("Macro argument overflow");
-		return 0;
-	    }
-	    memcpy(pos, r, n);
-	    pos += n;
-	}
-    }
-
-    if (last_copied == text)
-	return 0;
-
-    n = p - last_copied;
-    if (pos + n >= buf + DEFMAX) {
-	lexerror("Macro argument overflow");
-	return 0;
-    }
-    if (n) {
-	memcpy(pos, last_copied, n);
-	pos += n;
-    }
-
-    *pos = 0;
-    *len = pos - buf;
-
-    return buf;
+    lexerror("Maximum macro argument count exceeded");
+    return -1;
 }
 
-static char *expand_define2(char *text, char **src) {
-    defn_t *p;
-    char expbuf[DEFMAX];
-    char *args[NARGS];
-    char *q, *e, *b;
-    static char expand_buffer[DEFMAX];
+/* Check if yytext is a macro and expand if it is. */
+static char *expand_define2 P1(char *, text)
+{
+    int argc = 0, i, paste = 0, pasting = 0;
+    defn_t *macro;
+    char expbuf[DEFMAX], *argv[NARGS], *expand_buffer, *in, *out, *freeme = 0;
+
+    /* have we already expanded this macro? */
+    for (i = 0;  i < expand_depth;  i++) {
+	if (!strcmp(expands[i], text))
+	    return 0;
+    }
+    expands[expand_depth++] = text;
 
     if (nexpands++ > EXPANDMAX) {
+	expand_depth--;
 	lexerror("Too many macro expansions");
 	return 0;
     }
 
-    p = lookup_define(text);
-    if (!p)
+    macro = lookup_define(text);
+    if (!macro) {
+	expand_depth--;
 	return 0;
+    }
 
-    if (p->nargs == -1) {
-	return p->exps;
-    } else {
-	int c, parcnt = 0, dquote = 0, squote = 0;
-	int n;
-
-	SKIPW;
-	if (c != '(') {
-	    yyerror("Missing '(' in macro call");
-	    if (c == '\n' && outp == last_nl + 1) refill_buffer();
+    if (macro->nargs >= 0) {
+	if ((argc = extract_args(argv, expbuf)) == -1) {
+	    expand_depth--;
 	    return 0;
 	}
-	SKIPW;
-	if (c == ')')
-	    n = 0;
-	else {
-	    q = expbuf;
-	    args[0] = q;
-	    for (n = 0; n < NARGS;) {
-		switch (c) {
-		case '"':
-		    if (!squote)
-			dquote ^= 1;
-		    break;
-		case '\'':
-		    if (!dquote)
-			squote ^= 1;
-		    break;
-		case '(':
-		    if (!squote && !dquote)
-			parcnt++;
-		    break;
-		case ')':
-		    if (!squote && !dquote)
-			parcnt--;
-		    break;
-		case '#':
-		    if (!squote && !dquote) {
-			*q++ = c;
-			if (src) {
-			    if (*(*src)++ != '#') {
-				lexerror("'#' expected");
-				return 0;
-			    }
-			} else {
-			    if (*outp++ != '#') {
-				lexerror("'#' expected");
-				return 0;
-			    }
-			}
-		    }
-		    break;
-		case '\\':
-		    if (squote || dquote) {
-			*q++ = c;
-			get_next_char(c);
-		    }
-		    break;
-		case '\n':
-		    if (outp == last_nl + 1) refill_buffer();
-		    if (squote || dquote) {
-			lexerror("Newline in string");
-			return 0;
-		    }
-		    /* Change this to a space so we don't count it a variable
-		       number of times based on how many times it is used
-		       in the expansion */
-		    current_line++;
-		    total_lines++;
-		    c = ' ';
-		    break;
-		}
-		if (c == ',' && !parcnt && !dquote && !squote) {
-		    char *ret;
-		    int len;
-		    
-		    while (q > expbuf && isspace(*(q-1)))
-			q--;
-		    *q++ = 0;
-		    ret = expand_all_defines(args[n], &len);
-		    if (ret) {
-			if (args[n] + len < expbuf + DEFMAX) {
-			    strcpy(args[n], ret);
-			    q = args[n] + len + 1;
-			} else {
-			    lexerror("Macro argument overflow");
-			    return 0;
-			}
-		    }
-		    
-		    args[++n] = q;
-		} else if (parcnt < 0) {
-		    char *ret;
-		    int len;
-		    
-		    while (q > expbuf && isspace(*(q-1)))
-			q--;
-		    *q++ = 0;
-		    ret = expand_all_defines(args[n], &len);
-		    if (ret) {
-			if (args[n] + len < expbuf + DEFMAX) {
-			    strcpy(args[n], ret);
-			    q = args[n] + len + 1;
-			} else {
-			    lexerror("Macro argument overflow");
-			    return 0;
-			}
-		    }
-		    n++;
-		    break;
-		} else {
-		    if (c == LEX_EOF) {
-			lexerror("Unexpected end of file");
-			return 0;
-		    }
-		    if (q >= expbuf + DEFMAX - 5) {
-			lexerror("Macro argument overflow");
-			return 0;
-		    } else {
-			if (isspace(c)) {
-			    if (*args[n])
-				*q++ = c;
-			}
-			else
-			    *q++ = c;
-		    }
-		}
-		if (src)
-		    c = *(*src)++;
-		else if (!squote && !dquote) {
-		    c = cmygetc();
-		} else {
-		    get_next_char(c);
-		}
-	    }
-	    if (n == NARGS) {
-		lexerror("Maximum macro argument count exceeded");
-		return 0;
-	    }
-	}
-	if (n != p->nargs) {
+	if (argc != macro->nargs) {
+	    expand_depth--;
 	    yyerror("Wrong number of macro arguments");
 	    return 0;
 	}
-	/* Do expansion */
-	b = expand_buffer;
-	e = p->exps;
-	squote = dquote = 0;
-	while (*e) {
-	    switch (*e) {
-	    case '"':
-		*b++ = *e++;
-		dquote ^= !squote;
-		break;
-	    case '\'':
-		*b++ = *e++;
-		squote ^= !dquote;
-		break;
-	    case '#':
-		if (squote || dquote) {
-		    *b++ = *e++;
-		    break;
-		}
-		if (*(e+1) == '#') {
-		    for (; *(b-1) == ' '; b--)
-			;
-		    e += 2;
-		    for (; *e == ' '; e++)
-			;
-		    break;
-		}
-		if (*++e == MARKS && *++e != MARKS) {
-		    *b++ = '"';
-		    for (q = args[*e++ - MARKS - 1]; *q == ' '; q++)
-			;
-		    while (*q) {
-			switch (*q) {
-			case '"':
-			    *b++ = '\\';
-			    *b++ = *q++;
-			    dquote ^= !squote;
-			    break;
-			case '\'':
-			    *b++ = *q++;
-			    squote ^= !dquote;
-			    break;
-			case '\\':
-			    if (dquote || squote) {
-				*b++ = '\\';
-			    }
-			    *b++ = *q++;
-			    if (*q == '"') {
-				*b++ = '\\';
-				*b++ = *q++;
-			    }
-			    break;
-			default:
-			    *b++ = *q++;
-			}
-			if (b >= expand_buffer + DEFMAX) {
-			    lexerror("Macro expansion overflow");
-			    return 0;
-			}
-		    }
-		    *b++ = '"';
-		    squote = dquote = 0;
-		} else {
-		    lexerror("'#' operator is not followed by a macro argument name");
-		    return 0;
-		}
-		break;
-	    case MARKS:
-		if (*++e == MARKS)
-		    *b++ = *e++;
-		else {
-		    for (q = args[*e++ - MARKS - 1]; *q == ' '; q++)
-			; /* can this happen any more? */
-		    while (*q) {
-			*b++ = *q++;
-			if (b >= expand_buffer + DEFMAX) {
-			    lexerror("Macro expansion overflow");
-			    return 0;
-			}
-		    }
-		}
-		break;
-	    default:
-		*b++ = *e++;
-		if (b >= expand_buffer + DEFMAX) {
-		    lexerror("Macro expansion overflow");
-		    return 0;
-		}
-	    }
-	}
-	*b++ = 0;
+    }
+
+    if (!argc) {
+	expand_buffer = (char *)DXALLOC(strlen(macro->exps) + 1, TAG_COMPILER, "expand_define2");
+	strcpy(expand_buffer, macro->exps);
+	expand_depth--;
 	return expand_buffer;
     }
+
+    /* Perform expansion with args */
+    in  = macro->exps;
+    out = expand_buffer = (char *)DXALLOC(DEFMAX, TAG_COMPILER, "expand_define2");
+
+#define SAVECHAR(x) SAFE(\
+		    if (out + 1 < expand_buffer + DEFMAX) {\
+			*out++ = (x);\
+		    } else {\
+			if (freeme) FREE(freeme);\
+			FREE(expand_buffer);\
+			lexerror("Macro expansion overflow");\
+			expand_depth--;\
+			return 0;\
+		    })
+
+#define SAVESTR(x, y)	SAFE(\
+			if (out + (y) < expand_buffer + DEFMAX) {\
+			    memcpy(out, (x), (y));\
+			    out += (y);\
+			} else {\
+			    if (freeme) FREE(freeme);\
+			    FREE(expand_buffer);\
+			    lexerror("Macro expansion overflow");\
+			    expand_depth--;\
+			    return 0;\
+			}\
+			if (freeme) {\
+			    FREE(freeme);\
+			    freeme = 0;\
+			})
+
+    while (*in) {
+	char *skip = in + 1;
+
+	if (*in == MARKS && *++in != MARKS) {
+	    char *exp;
+
+	    exp = argv[*in++ - MARKS - 1];
+
+	    if (paste) {
+		paste = 0;
+		*(out - 1) = '\"';
+		while (*exp) {
+		    switch (*exp) {
+			case '\"':
+			    SAVECHAR('\\');
+			    break;
+			case '\\':
+			    SAVECHAR(*exp);
+			    exp++;
+			    break;
+		    }
+		    SAVECHAR(*exp);
+		    exp++;
+		}
+		SAVECHAR('\"');
+	    } else {
+		int len;
+
+		/* don't expand if token pasting with ## */
+		if (!pasting && (freeme = expand_define2(exp)) != 0)
+		    exp = freeme;
+		len = strlen(exp);
+		SAVESTR(exp, len);
+	    }
+	} else {
+	    paste = (*in == '#');
+	    /* FIXME: Here we need to recursively expand any macros that we
+	     * come across.  This cannot possibly be done the way lex.c is
+	     * currently architected.  I've tried.  This all needs to be
+	     * redone anyway, but this just going to have to do for now :-(
+	     */
+	    SAVECHAR(*in);
+	    in++;
+	}
+
+	/* skip over whitespace and see if we've got ## for token pasting.  if
+	 * we do, skip over it and continue at the first non-whitespace char.
+	 * note that comments are not considered whitespace here like they
+	 * should be.
+	 */
+	pasting = 0;
+	while (*skip && uisspace(*skip)) skip++;
+	if (*skip == '#' && *(skip + 1) == '#') {
+	    skip += 2;
+	    /* guaranteed by add_define to not have end of input before non-whitespace */
+	    while (uisspace(*skip)) skip++;
+	    in = skip;
+	    pasting = (*in == MARKS && *(in + 1) != MARKS);
+	}
+    }
+
+    *out = 0;
+    expand_depth--;
+    return expand_buffer;
 }
 
-/* Check if yytext is a macro and expand if it is. */
-static int expand_define()
+int expand_define PROT((void))
 {
-    char *ret = expand_define2(yytext, 0);
-    
-    if (ret) {
-	add_input(ret);
+    char *expand_buffer;
+
+    if ((expand_buffer = expand_define2(yytext)) != 0) {
+	add_input(expand_buffer);
+	FREE(expand_buffer);
 	return 1;
     }
+
     return 0;
 }
 
@@ -3059,7 +2955,8 @@ static int expand_define()
 
 static int exgetc()
 {
-    register char c, *yyp;
+    unsigned char c;
+    char *yyp;
 
     c = *outp++;
     while (isalpha(c) || c == '_') {

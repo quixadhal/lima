@@ -390,22 +390,15 @@ void smart_log P4(char *, error_file, int, line, char *, what, int, flag)
 
     if (pragmas & PRAGMA_ERROR_CONTEXT) {
         char *ls = strrchr(buff, '\n');
-	char *tmp;
+	unsigned char *tmp;
 	if (ls) {
-	    tmp = ls + 1;
+	    tmp = (unsigned char *)ls + 1;
 	    while (*tmp && isspace(*tmp)) tmp++;
 	    if (!*tmp) *ls = 0;
 	}
 	strcat(buff, show_error_context());
     } else strcat(buff, "\n");
 
-    if (flag) 
-	sprintf(buff, "/%s line %d: Warning: %s%s", error_file, line, what,
-		(pragmas & PRAGMA_ERROR_CONTEXT) ? show_error_context() : "\n");
-    else
-	sprintf(buff, "/%s line %d: %s%s", error_file, line, what,
-		(pragmas & PRAGMA_ERROR_CONTEXT) ? show_error_context() : "\n");
-    
     push_malloced_string(add_slash(error_file));
     copy_and_push_string(buff);
     mret = safe_apply_master_ob(APPLY_LOG_ERROR, 2);
@@ -594,6 +587,7 @@ char *read_bytes P4(char *, file, int, start, int, len, int *, rlen)
     if (len == 0)
 	len = size;
     if (len > MAX_BYTE_TRANSFER) {
+	fclose(fp);
 	error("Transfer exceeded maximum allowed number of bytes.\n");
 	return 0;
     }
@@ -604,9 +598,11 @@ char *read_bytes P4(char *, file, int, start, int, len, int *, rlen)
     if ((start + len) > size)
 	len = (size - start);
 
-    if ((size = fseek(fp, start, 0)) < 0)
+    if ((size = fseek(fp, start, 0)) < 0) {
+	fclose(fp);
 	return 0;
-
+    }
+    
     str = new_string(len, "read_bytes: str");
 
     size = fread(str, 1, len, fp);
@@ -698,7 +694,7 @@ int file_size P1(char *, file)
 	p = file;
 	file = new_string(len - 1, "file_size");
 	memcpy(file, p, len - 1);
-	file[len] = 0;
+	file[len-1] = 0;
     }
 #endif
 

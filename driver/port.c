@@ -269,19 +269,6 @@ INLINE char *memmove P3(register char *, b, register char *, a, register int, s)
 }
 #endif
 
-#if 0
-#ifdef WIN32
-char *crypt P2(char *, str, char *, salt)
-{
-    static char buf[50];
-
-    strncpy(buf, str, 50);
-    buf[50] = 0;
-    return buf;
-}				/* crypt() */
-#endif
-#endif
-
 #ifdef WIN32
 char *WinStrError(int err) {
     static char buf[30];

@@ -21,16 +21,6 @@
 #include <classes.h>
 #include <edit.h>
 
-/* 
- * In order to properly convert news from the user to the body, or vice versa,
- * you need to make sure that newsdata.c is inherited both by the body and 
- * the user objects.  It is recommended that its location be where you 
- * intend to leave it (for body in /std/body/ and for user in /secure/user/).
- * And NEWS_DATA_IN_BODY must be defined to have the newsdata in the body 
- * and undefined for the news_data to be in the user. 
- */
-
-
 inherit M_INPUT;
 inherit M_COMPLETE;
 inherit M_GRAMMAR;
@@ -49,13 +39,7 @@ private nosave mapping unread_cache=([]);
 
 #define TOP_PROMPT      ("(...) " + mud_name() + " News [q?lg] > ")
 
-#ifdef NEWS_DATA_IN_USER
 # define SAVE_OB this_user()
-# define OLD_SAVE_OB this_body()
-#else
-# define SAVE_OB this_body()
-# define OLD_SAVE_OB this_user()
-#endif
 
 #define STANDARD_WRAP_WIDTH     68
 #define FOLLOWUP_WRAP_WIDTH     76
@@ -319,7 +303,7 @@ private nomask void menu_select_newsgroup(string num)
 
 private nomask void menu_select_change_header( string header )
 {
-    NEWS_D->change_header( current_group, get_lowest_unread_id(current_group), header );
+    NEWS_D->change_header( current_group, current_id, header );
 }
 
 
@@ -428,6 +412,7 @@ private nomask void next_group()
     int max_group;
     int i;
     int next_group;
+    
     groups = filter_array(SAVE_OB->subscribed_groups(), (: test_for_new :));
     max_group = sizeof( groups ) - 1;
     if( max_group == -1 )
@@ -612,7 +597,7 @@ nomask void receive_reply_text( string * text)
     }
     wrap_post(text);
 
-    this_body()->query_mailer()->send_news_reply(
+    this_user()->query_mailer()->send_news_reply(
       "Re: " + msg->subject,
       text,
       lower_case( msg->poster )
@@ -991,7 +976,7 @@ private nomask void remove_message()
         return;
     }
     printf("Deleting: %s\nAre you sure? [yn] > ",
-      format_message_line(1, current_id));
+      format_message_line(1, current_id,1));
     modal_simple((: receive_remove_verify :));
 }
 
@@ -1141,17 +1126,6 @@ private nomask void receive_msg_cmd(mixed cmd)
       }
 }
 
-nomask void convert_news()
-{
-  if(!SAVE_OB->get_news_data())
-    {
-      SAVE_OB->set_news_data(OLD_SAVE_OB->get_news_data());
-      OLD_SAVE_OB->set_news_data(0);
-      write("Converting news to proper object.\n");
-    }
-}
-
-
 varargs nomask void begin_reading(string arg)
 {
   /* Pull in the active newsgroups */
@@ -1162,7 +1136,6 @@ varargs nomask void begin_reading(string arg)
       foreach(string group in NEWS_D->get_groups())
 	active_messages[group]=sort_array(NEWS_D->get_messages(group,1),1);
     }
-  convert_news();
   if ( !sizeof(NEWS_D->get_groups()) )
     {
       printf( "%s has no newsgroups right now.\n", mud_name());

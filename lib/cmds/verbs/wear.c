@@ -10,7 +10,7 @@ void do_wear_obj(object ob)
     ob->do_wear();
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ" }), ({ "put on" }) });
+    add_rules( ({ "OBJ" }), ({ "put on" }) );
 }

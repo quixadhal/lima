@@ -20,41 +20,41 @@ desc:11312001
 # next, the edge rooms.  we need 8 for the north edge, 8 for the east edge,
 # 8 for the south edge, then 8 for the west edge.
 #
-# for now, all exits will go back to the example_room1.
+# for now, all exits will go back to the Example_Room1.
 #
 # 8 north exits
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
 # 8 east exits
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
 # 8 south exits
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
 # 8 west exits
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
-/domains/std/example_room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1
+/domains/std/Example_Room1

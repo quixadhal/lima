@@ -1,7 +1,7 @@
 # YOU DO NOT NEED TO CONFIGURE ANYTHING IN THIS FILE.
 #
 # RUN THE SHELL SCRIPT ./build.MudOS to generate the Makefiles, and follow
-# it's instructions.
+# its instructions.
 #
 ############################################################################
 #
@@ -61,7 +61,7 @@ SRC=grammar$(TAB_EXT).c lex.c main.c rc.c interpret.c simulate.c file.c object.c
   socket_efuns.c socket_ctrl.c qsort.c eoperators.c socket_err.c md.c \
   disassembler.c binaries.c $(STRFUNCS) \
   replace_program.c ccode.c cfuns.c compile_file.c master.c function.c \
-  debug.c crypt.c applies_table.c
+  debug.c crypt.c applies_table.c add_action.c
 
 all: utils cc.h files main_build
 
@@ -76,9 +76,13 @@ SRC=grammar.tab.c lex.c main.c rc.c interpret.c simulate.c file.c object.c \
   socket_efuns.c socket_ctrl.c qsort.c eoperators.c socket_err.c md.c \
   disassembler.c binaries.c ualarm.c $(STRFUNCS) \
   replace_program.c ccode.c cfuns.c compile_file.c master.c function.c \
-  debug.c crypt.c applies_table.c
+  debug.c crypt.c applies_table.c add_action.c
 
+%ifdef GNU
+all: $(OBJDIR) cc.h files main_build
+%else
 all: cc.h files main_build
+%endif
 
 main_build: $(DRIVER_BIN) addr_server portbind
 %endif
@@ -101,6 +105,9 @@ $(OBJDIR)/lex.o: lex.c preprocess.c cc.h grammar.tab.c
 
 $(OBJDIR)/grammar.tab.o: grammar.tab.c opcodes.h
 
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
 which_makefile:
 	echo MakeIsGNU
 %else
@@ -115,7 +122,7 @@ OBJ=$(OBJDIR)\grammar$(TAB_EXT).obj $(OBJDIR)\lex.obj $(OBJDIR)\main.obj $(OBJDI
 	$(OBJDIR)\program.obj $(OBJDIR)\compiler.obj $(OBJDIR)\avltree.obj $(OBJDIR)\icode.obj $(OBJDIR)\trees.obj \
 	$(OBJDIR)\generate.obj $(OBJDIR)\scratchpad.obj $(OBJDIR)\socket_efuns.obj $(OBJDIR)\socket_ctrl.obj \
 	$(OBJDIR)\qsort.obj $(OBJDIR)\eoperators.obj $(OBJDIR)\socket_err.obj $(OBJDIR)\md.obj \
-	$(OBJDIR)\disassembler.obj $(OBJDIR)\binaries.obj \
+	$(OBJDIR)\disassembler.obj $(OBJDIR)\binaries.obj $(OBJDIR)\add_action.obj \
 	$(OBJDIR)\replace_program.obj $(OBJDIR)\ccode.obj $(OBJDIR)\cfuns.obj $(OBJDIR)\compile_file.obj \
 	$(OBJDIR)\crypt.obj $(OBJDIR)\debug.obj $(OBJDIR)\master.obj $(OBJDIR)\function.obj $(OBJDIR)\applies_table.obj
 
@@ -138,7 +145,7 @@ OBJ=grammar.tab.o lex.o main.o rc.o interpret.o simulate.o file.o object.o \
   socket_efuns.o socket_ctrl.o qsort.o eoperators.o socket_err.o md.o \
   disassembler.o binaries.o ualarm.o $(STRFUNCS) \
   replace_program.o ccode.o cfuns.o compile_file.o master.o function.o \
-  debug.o crypt.o applies_table.o
+  debug.o crypt.o applies_table.o add_action.o
 
 .c.o:
 	$(CC) $(CFLAGS) $(OPTIMIZE) -c $*.c
@@ -303,6 +310,8 @@ files: edit_source sysmalloc.c smalloc.c bsdmalloc.c debugmalloc.c wrappedmalloc
 	./edit_source -process mudlib/GNUmakefile.pre
 	./edit_source -build_efuns -build_applies
 %endif
+	touch mallocwrapper.c
+	touch malloc.c
 	touch files
 
 %ifdef NMAKE
@@ -499,7 +508,6 @@ neat:
 	-(cd mudlib; $(MAKE) "A=$(A)" "O=$(O)" clean)
 	-rm -rf $(OBJDIR) *.$(O) *.tab.c *.tab.h
 %endif
-	-mkdir $(OBJDIR)
 	-rm -f efun_defs.c option_defs.c
 	-rm -f opcodes.h efunctions.h opc.h efun_protos.h
 	-rm -f malloc.c mallocwrapper.c
@@ -516,7 +524,8 @@ neat:
 clean: neat
 %ifdef NMAKE
 	-rm -f cc.h edit_source.exe
-	-rm core y.output testsuite\core
+	-rm core y.output testsuite\core testsuite\single\swapfile.*
+	-rm testsuite\OPCPROF.* testsuite\opc.*
 	-echo y | del testsuite\tmp\*
 	-deltree /y testsuite\binaries
 	-rm testsuite\OBJ_DUMP* testsuite\test_file testsuite\testfile
@@ -527,7 +536,8 @@ clean: neat
 	-rm -f Makefile.MudOS GNUmakefile.MudOS
 	-rm -f cc.h edit_source
 	-rm -f core y.output testsuite/core testsuite/tmp/*
-	-rm -rf testsuite/binaries
+	-rm -f testsuite/OPCPROF.* testsuite/opc.*
+	-rm -rf testsuite/binaries testsuite/single/swapfile.*
 	-rm -f testsuite/OBJ_DUMP* testsuite/test_file testsuite/testfile
 	-rm -f testsuite/tmp_eval_file.c testsuite/sf.o testsuite/ed_test
 	-rm -f testsuite/log/log testsuite/log/debug.log testsuite/log/compile

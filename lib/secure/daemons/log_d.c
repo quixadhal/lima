@@ -16,6 +16,7 @@ inherit M_ACCESS;
 ** many names can map to a single file.
 */
 private nosave mapping legal_logs = ([
+    LOG_ADDEMOTE        : DIR_LOG "/addemote",
     LOG_AUTODOC		: DIR_LOG "/autodoc",
     LOG_BANISH		: DIR_LOG "/banishes",
     LOG_BUG		: DIR_LOG "/bugs",
@@ -31,6 +32,7 @@ private nosave mapping legal_logs = ([
     LOG_NEW_PLAYERS     : DIR_LOG "/new_players",
     LOG_QUEST		: DIR_LOG "/quests",
     LOG_QUIT            : DIR_LOG "/logins",
+    LOG_SETNAME         : DIR_LOG "/setname",
     LOG_SHUTDOWN	: DIR_LOG "/shutdown",
     LOG_SNOOP		: DIR_SECURE_LOG "/snoops",
     LOG_SOCKET		: DIR_LOG "/socket",

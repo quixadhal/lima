@@ -15,4 +15,5 @@ void setup()
     set_max_health(300);
     set_wander_time(5);
     set_wander_area("wiz_area");
+    call_out("start_wandering",0);
 }

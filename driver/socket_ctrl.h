@@ -10,7 +10,7 @@ int set_socket_async PROT((int, int));
 
 #ifdef WIN32
 void SocketPerror PROT((char *, char *));
-void cleanup_sockets PROT((void));
+void CDECL cleanup_sockets PROT((void));
 #endif
 
 #endif

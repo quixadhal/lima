@@ -17,7 +17,7 @@ string canon_mudname(string mudname);
 nomask void do_tell(string mudname, string username, string message)
 {
     send_to_user("tell", canon_mudname(mudname), lower_case(username),
-                 ({ this_body()->query_name(), message }));
+                 ({ capitalize(this_user()->query_userid()), message }));
 }
 
 protected nomask void rcv_tell(string orig_mud, string orig_user,
@@ -25,7 +25,7 @@ protected nomask void rcv_tell(string orig_mud, string orig_user,
 {
     object p;
 
-    p = find_body(targ_user);
+    p = find_user(targ_user);
     if ( !p )
     {
         return_error(orig_mud, orig_user, "unk-user",
@@ -35,7 +35,7 @@ protected nomask void rcv_tell(string orig_mud, string orig_user,
     {
         tell(p, sprintf("%%^TELL%%^%s@%s tells you:%%^RESET%%^ %s\n",
                         message[0], orig_mud, message[1]));
-        CMD_OB_TELL->add_history(p->query_userid(),
+        p->add_tell_history(
                                  sprintf("%%^TELL%%^%s@%s tells you:%%^RESET%%^ %s\n",
                                          message[0], orig_mud, message[1]));
 
