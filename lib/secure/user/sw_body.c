@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 #include <config.h>
 #include <daemons.h>
 #include <security.h>
@@ -71,14 +70,15 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
 
     old_body = body;
     body = new(new_body_fname, query_userid());
+    master()->refresh_parse_info();
 
     if (old_body) {
-        old_body->move(VOID_ROOM);
-        old_body->quit();
-        if ( old_body )
+	old_body->move(VOID_ROOM);
+	old_body->quit();
+	if ( old_body )
 	    catch(old_body->remove());
     }
-    
+
     report_login_failures();
 
     /* NOTE: we are keeping the same shell for now... */
@@ -97,6 +97,7 @@ private nomask void incarnate(int is_new, string bfn)
     if (bfn) body_fname = bfn;
 
     body = new(body_fname, query_userid());
+    master()->refresh_parse_info();
 
     LAST_LOGIN_D->register_last(query_userid(), query_ip_name(this_object()));
     if ( query_n_gen() != -1 )
@@ -110,7 +111,7 @@ private nomask void incarnate(int is_new, string bfn)
     if ( is_new )
     {
 #ifdef USE_STATS
-        this_body()->init_stats();
+	this_body()->init_stats();
 #endif
 	body->save_me();
     }
@@ -120,7 +121,8 @@ void sw_body_handle_existing_logon(int);
 
 private nomask void rcv_try_to_boot(object who, string answer)
 {
-    if ( answer == "y" )
+    answer = lower_case(answer);
+    if( answer == "yes" || answer == "y" )
     {
 	who->receive_private_msg("You are taken over by yourself, or something.\n");
 	who->quit();
@@ -128,7 +130,7 @@ private nomask void rcv_try_to_boot(object who, string answer)
 	sw_body_handle_existing_logon(1);
 	return;
     }
-    if (answer == "n" )
+    if( answer == "n" || answer == "no" )
     {
 	if ( wizardp(query_userid()) )
 	{
@@ -148,7 +150,7 @@ static nomask void sw_body_handle_existing_logon(int enter_now) {
     remove_call_out();	/* all call outs */
 
     if (!enter_now) {
-        /*
+	/*
 	** Okay... an existing user is ready for their body.  Look for other
 	** users currently connected with this userid.  Those other users may
 	** be interactive or link-dead.  Do the right thing...
@@ -170,6 +172,7 @@ static nomask void sw_body_handle_existing_logon(int enter_now) {
 	if ( (idx = member_array(query_userid(), ids)) != -1 ) {
 	    if ( !interactive(the_user = users[idx]) ) {
 		if ( body = the_user->query_body() ) {
+		    master()->refresh_parse_info();
 		    the_user->steal_body();
 		    start_shell();
 		    body->reconnect(this_object());
@@ -187,7 +190,7 @@ static nomask void sw_body_handle_existing_logon(int enter_now) {
 
     report_login_failures();
     BIRTHDAY_D->report();
-    
+
     incarnate(0, 0);
 }
 

@@ -8,6 +8,15 @@ int check_privilege(mixed priv);
 int adminp(mixed m);
 varargs void tell(object, string);
 
+void write(string str) {
+    if (this_user())
+	tell(this_user(), str);
+    else {
+	if (str[<1] == '\n')
+	    str = str[0..<2];
+	debug_message("]" + str);
+    }
+}
 
 //:FUNCTION ed
 //The ed() efun is not used by the LIMA mudlib, as we use the new ed
@@ -172,13 +181,6 @@ varargs void shout()
 void say(string m)
 {
     error("say() not available. Consider using this_body()->other_action()\n");
-}
-
-void write(string str) {
-    if (this_user())
-	tell(this_user(), str);
-    else
-	debug_message("]" + str);
 }
 
 void printf(string format, array rest...) {

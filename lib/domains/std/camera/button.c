@@ -14,10 +14,9 @@ set_adj( "camera", "polaroid" );
 }
 
 
-int press( string s )
+void do_press( string s )
 {
     environment( this_object())->take_picture();
-    return 1;
 }
 
 

@@ -1,7 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
 //  Find - Locate files containing a particular pattern
 //  Created by Rust, Jul 10, 1995
+// See also: findfile
+
 #include <mudlib.h>
 
 inherit CMD;

@@ -2,7 +2,6 @@
 
 //   The following is an attempt at a value module.
 //
-#include <mudlib.h>
 
 int object_value = 0;
 

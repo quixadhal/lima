@@ -5,7 +5,6 @@ inherit CMD;
 
 #define USAGE "Usage: at <living> <command>\n"
 private void main( mixed *arg ) {
-    string where;
     object start, targ;
 
     start = environment(this_body());

@@ -9,9 +9,8 @@
 #include <move.h>
 #include <setbit.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
-// no multiple object support yet 
 private nomask void get_one(object ob, object with_ob)
 {
     mixed msg = ( with_ob ? ob->get_with(with_ob) : ob->get() );
@@ -73,7 +72,6 @@ void do_get_obs_out_of_obj(array info, object ob2) {
 void do_get_obj_with_obj(object ob1, object ob2) {
     get_one(ob1, ob2);
 }
-
 
 void do_get_on_obj(object what)
 {
@@ -155,12 +153,10 @@ int do_get_off()
     "/cmds/verbs/stand"->do_stand();
 }
 
-array query_verb_info()
+void create()
 {
-    return 
-	({ 
-	    ({ "OBS", "WRD STR", "OBS from OBJ", "OBS out of OBJ",
-		   "OBJ with OBJ" }), ({ "take", "carry", "pick up" }),
-	    ({ "off", "off OBJ", "on OBJ" }), ({ })
-	});
+    add_rules( ({ "off", "off OBJ", "on OBJ" }) );
+
+    add_rules( ({ "OBS", "WRD STR", "OBS from OBJ", "OBS out of OBJ",
+		      "OBJ with OBJ" }), ({ "take", "carry", "pick up" }));
 }

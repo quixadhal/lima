@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
-
-#include <mudlib.h>
+// Work in NonProgress ... will be finished sometime after Vendor has been redone. probably for a7
 
 mapping skill_restrictions;
 mapping trainer_msgs = ([

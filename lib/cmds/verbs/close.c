@@ -1,19 +1,12 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+inherit NVERB_OB;
 
-#include <setbit.h>
-inherit VERB_OB;
-
-mixed can_close_obj(object ob)
+mixed do_close_obj(object ob)
 {
-   return 1;
-}
-
-mixed do_close_obj(object ob) {
     ob->close();
 }
 
-array query_verb_info() {
-  return ({ ({ "OBJ" }) });
+void create() {
+    add_rules( ({ "OBJ" }) );
 }

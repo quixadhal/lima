@@ -3,7 +3,7 @@
 
 #include <mudlib.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_kill_liv(object ob)
 {
@@ -15,7 +15,8 @@ void do_kill_liv(object ob)
 
 void do_kill_liv_with_obj(object liv, object ob)
 {
-     
+    /* should probably do a wield in here */ 
+
     if (liv == this_body())
        this_body()->commit_suicide();
     else
@@ -30,8 +31,8 @@ void do_kill() {
     }
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "", "LIV", "LIV with OBJ",  }) });
+    add_rules( ({ "", "LIV", "LIV with OBJ",  }) );
 }
 

@@ -44,10 +44,28 @@
 ** Administered sets
 */
 #define STD_FLAGS	0	/* standard flags (setbit.h) */
+#define MODULE_FLAGS	1	/* module-specific flags */
 #define PLAYER_FLAGS	2	/* player.c flags (playerflags.h) */
 #define PLAYER_NP_FLAGS	3	/* player.c non-persist (playerflags.h) */
 #define MAILBASE_FLAGS	5	/* mailbase.c flags */
 
+
+/*
+** STD_FLAGS
+*/
+#define F_INVIS			MakeFlag(STD_FLAGS, 2)
+#define F_TOUCHED		MakeFlag(STD_FLAGS, 4)
+#define F_DESTROYABLE		MakeFlag(STD_FLAGS, 5)
+#define F_ATTACHED		MakeFlag(STD_FLAGS, 14)
+#define F_TRANSPARENT		MakeFlag(STD_FLAGS, 16)
+
+/*
+** MODULE_FLAGS
+*/
+#define F_OPEN			MakeFlag(MODULE_FLAGS, 0)
+#define F_LIGHTED		MakeFlag(MODULE_FLAGS, 1)
+#define F_WIELDED		MakeFlag(MODULE_FLAGS, 2)
+#define F_WORN			MakeFlag(MODULE_FLAGS, 3)
 
 /*
 ** MAILBASE_FLAGS

@@ -65,7 +65,7 @@ string *query_msg_types() {
 varargs string compose_message(object forwhom, string msg, object *who, 
   array obs...) {
     mixed ob;
-    mixed *fmt;
+    array fmt;
     string res;
     int i;
     int c;
@@ -236,6 +236,7 @@ varargs string *action(object *who, mixed msg, array obs...) {
 void inform(object *who, string *msgs, mixed others) {
     int i;
     mapping done = ([]);
+
     for (i=0; i<sizeof(who); i++) {
 	if (done[who[i]]) continue;
 	done[who[i]]++;

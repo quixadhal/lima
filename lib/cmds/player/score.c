@@ -11,6 +11,13 @@ private void main()
 {
     int		pts,total;
     string	rank;
+#ifdef USE_SIMPLE_LEVEL
+    int lev = this_body()->query_level();
+#endif
+
+#ifdef USE_SIMPLE_EXP
+    int exp = this_body()->query_exp();
+#endif
 
     if( wizardp(this_user()) )
     {
@@ -38,6 +45,13 @@ private void main()
 	  if(pts < 0 ) rank = "blundering buffoon";
 	  else rank = "Dungeon Master";
     }
+#ifdef USE_SIMPLE_LEVEL
+    outf("Your level is %d.\n",lev);
+#endif
+
+#ifdef USE_SIMPLE_EXP
+    outf("You have %d experience points.\n",exp);
+#endif
     if(total)
       outf("You have earned %d out of the %d points on %s.\n"
 	     "This gives you the rank of %s.\n", pts, total, mud_name(), rank );

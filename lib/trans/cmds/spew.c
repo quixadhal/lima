@@ -1,8 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
 // specification is: spew file str*
 // we will recieve: ({ string, ({ args }) })
 // This is pretty much something you can do w/ <
+// See also: shell
 
 #include <mudlib.h>
 
@@ -12,7 +14,6 @@ inherit CMD;
 private void main(mixed* arg) {
     string buf;
     string* lines;
-    string name;
     int loop;
     int i;
     int startln, numlines;

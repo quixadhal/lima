@@ -324,7 +324,6 @@ nomask void begin_help(string topic)
 
 private nomask void display_topic_columns(string *files, string header)
 {
-    string name;
     int i;
     int n = sizeof(files);
 

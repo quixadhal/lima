@@ -1,3 +1,4 @@
+addguest        str
 addpath		dir
 addto		fname|file
 at		user str*
@@ -20,6 +21,7 @@ ls -npsl	[file|dir*]
 mkdir		fname
 more		[obfile*]
 mv -rf		file* fname|dir|file
+removeguest     str
 replace	-qn	str str file*
 rm		file*
 rmdir		dir*

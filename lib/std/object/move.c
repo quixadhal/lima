@@ -133,17 +133,19 @@ object query_last_location()
 }
 
 
-void give_new_obj( object target, string obj, int recurse )
+object give_new_obj( object target, string obj, int recurse )
 {
-    object ob = new( obj );
+    object ob = new( absolute_path(obj));
 
+    if( !ob )
+	error( "give_new_obj() failed: No such object " + obj + ".\n" );
     if( !target )
 	error( "give_new_obj() failed: Invalid target.");
 
     while(1)
     {
 	if( ob->move( target ))
-	    return;
+	    return ob;
 	if( recurse && target = environment( target )) continue;
 	error( "give_new_obj() failed: No room for object anywhere (recursed).");
     }

@@ -10,9 +10,7 @@
 */
 
 #include <hooks.h>
-
-mixed call_hooks(string, int);
-void add_save(array);
+#include <flags.h>
 
 /*
 ** From OBJ::description
@@ -22,38 +20,38 @@ string the_short();
 varargs void add_adj();
 varargs void remove_adj();
 
-private int closed;
 private string open_msg =  "$N $vopen a $o.";
 private string close_msg = "$N $vclose a $o.";
 private string open_desc;
 private string closed_desc;
 
-void hook_state(string, string, int);
+mixed call_hooks(string, int);
 void add_hook(string, function);
 void resync_visibility();
+int test_flag(int which);
+void assign_flag(int which, int state);
 
 int openable() { return 1; }
 
-int query_closed() { return closed; }
+int query_closed() { return !test_flag(F_OPEN); /* closed; */ }
 
-void set_closed(int x) { 
-  closed = x; 
-  hook_state("extra_short", "open", !closed);
-  hook_state( "extra_short", "closed", closed);
+void set_closed(int x)
+{
+    assign_flag(F_OPEN, !x);
 
-  remove_adj("closed", "open");
-  if (closed)
-      add_adj("closed");
-  else
-      add_adj("open");
+    remove_adj("closed", "open");
+    if (x)
+	add_adj("closed");
+    else
+	add_adj("open");
 
-  if (open_desc && !x) 
-      set_in_room_desc(open_desc);
-  if (closed_desc && x)
-      set_in_room_desc(closed_desc);
+    if (open_desc && !x) 
+	set_in_room_desc(open_desc);
+    if (closed_desc && x)
+	set_in_room_desc(closed_desc);
   
-  /* our inventory visibility probably just changed. */
-  resync_visibility();
+    /* our inventory visibility probably just changed. */
+    resync_visibility();
 }
 
 
@@ -83,7 +81,7 @@ void set_close_msg(string new_msg)
     close_msg = new_msg;
 }
 
-int open_with(object with)
+varargs int open_with(object with)
 {
     string ex;
 
@@ -171,11 +169,10 @@ string extra_long_stuff()
 // You should do this, or call set_closed() when you create an openable,
 // so that the proper adjective gets initialized.
 void internal_setup() {
-    add_save(({ "closed" }));
     set_closed(1);
     
     add_hook("extra_long", (: extra_long_stuff :));
-    add_hook("prevent_look_in", (: closed ? "It is closed.\n" : (mixed)1 :));
+    add_hook("prevent_look_in", (: query_closed() ? "It is closed.\n" : (mixed)1 :));
 }
 
 mapping lpscript_attributes() {
@@ -183,3 +180,12 @@ mapping lpscript_attributes() {
 	"closed" : ({ LPSCRIPT_INT, "setup", "set_closed" }),
     ]);
 }
+
+// called once(?) when M_OPENABLE is first loaded.
+#if 0
+private void create()
+{
+    if ( !clonep() )
+	M_OBJ_ATTRIBUTES->register_attribute(F_OPEN, ({ "closed", "open" }));
+}
+#endif

@@ -8,7 +8,6 @@
 //       _after_ inheriting M_LOCKABLE.
 //
 
-#include <mudlib.h>
 #include <hooks.h>
 
 string the_short();
@@ -44,103 +43,102 @@ int strength_vs_picking;
 
 void set_strength_vs_magic(int s)
 {
-  strength_vs_magic = s;
+    strength_vs_magic = s;
 }
 
 int get_strength_vs_magic()
 {
-  return strength_vs_magic;
+    return strength_vs_magic;
 }
 
 void set_strength_vs_picking(int s)
 {
-  strength_vs_picking = s;
+    strength_vs_picking = s;
 }
 
 int get_strength_vs_picking()
 {
-  return strength_vs_picking;
+    return strength_vs_picking;
 }
 
 #endif
 
 mixed magic_unlock()
 {
-  mixed ex;
-  int   i;
+    mixed ex;
+    int   i;
 
 
-  if(!locked)
-    return "It's not locked.\n";
+    if(!locked)
+	return "It's not locked.\n";
 
+    //:HOOK prevent_magic_unlock
+    //A yes/no/error hook which can prevent an object from being magically
+    //unlocked.  However, if your mud uses skills, use set_strength_vs_magic() 
+    //instead, unless you're doing something complex.
 
-//:HOOK prevent_magic_unlock
-//A yes/no/error hook which can prevent an object from being magically
-//unlocked.  However, if your mud uses skills, use set_strength_vs_magic() 
-//instead, unless you're doing something complex.
+    ex = call_hooks("prevent_magic_unlock", HOOK_YES_NO_ERROR);
 
-  ex = call_hooks("prevent_magic_unlock", HOOK_YES_NO_ERROR);
-
-  if(!ex) ex = "Your magic seems to have no effect on it.\n";
-  if(stringp(ex))
+    if(!ex) ex = "Your magic seems to have no effect on it.\n";
+    if(stringp(ex))
     {
-      return ex;
+	return ex;
     }
 
 #ifdef USE_SKILLS
-  i = this_body()->test_skill("spell/unlock", get_strength_vs_magic());
-  if(!i)
-  {
-    return 0;
-  }
+    i = this_body()->test_skill("spell/unlock", get_strength_vs_magic());
+    if(!i)
+    {
+	return 0;
+    }
 #endif
 
-  set_locked(0, "magic");
-  return 1;
+    set_locked(0, "magic");
+    return 1;
 }
 
 mixed pick()
 {
-  mixed ex;
-  int   i;
+    mixed ex;
+    int   i;
 
 
-  if(!locked)
-    write("It's not locked.\n");
+    if(!locked)
+	write("It's not locked.\n");
 
 
-//:HOOK prevent_picking
-//A yes/no/error hook which can prevent an object from being picked
-//open.  However, if your mud uses skills, use set_strength_vs_picking() 
-//instead, unless you're doing something complex.
+    //:HOOK prevent_picking
+    //A yes/no/error hook which can prevent an object from being picked
+    //open.  However, if your mud uses skills, use set_strength_vs_picking() 
+    //instead, unless you're doing something complex.
 
-  ex = call_hooks("prevent_picking", HOOK_YES_NO_ERROR);
+    ex = call_hooks("prevent_picking", HOOK_YES_NO_ERROR);
 
 
-  if(!ex) ex = "You can't seem to get it open.\n";
-  if(stringp(ex))
+    if(!ex) ex = "You can't seem to get it open.\n";
+    if(stringp(ex))
     {
-      write(ex);
-      return;
+	write(ex);
+	return;
     }
 
 #ifdef USE_SKILLS
-  i = this_body()->test_skill("misc/lockpick", get_strength_vs_picking());
-  if(!i)
-  {
-    this_body()->simple_action(pick_fail, this_object());
-    return;
-  }
+    i = this_body()->test_skill("misc/lockpick", get_strength_vs_picking());
+    if(!i)
+    {
+	this_body()->simple_action(pick_fail, this_object());
+	return;
+    }
 #endif
 
-  set_locked(0, "picked");
-  this_body()->simple_action(pick_msg, this_object());
+    set_locked(0, "picked");
+    this_body()->simple_action(pick_msg, this_object());
 }
 
-void unlock_with(object ob)
+varargs void do_unlock(object ob)
 {
-//:HOOK prevent_unlock
-//A yes/no/error hook which can prevent an object from being unlocked.
+    //:HOOK prevent_unlock
+    //A yes/no/error hook which can prevent an object from being unlocked.
     mixed ex = call_hooks("prevent_unlock", HOOK_YES_NO_ERROR);
     if (!ex) ex = "You can't seem to unlock it.\n";
     if (stringp(ex)) {
@@ -148,7 +146,13 @@ void unlock_with(object ob)
 	return;
     }
 
-    if (ob->key_type() == key_type)
+    if( undefinedp( ob ))
+    {
+	ob = present("key", this_body());
+	write("(with " + ob->the_short() + ")\n");
+    }
+
+    if (ob->get_key_type() == key_type)
     {
 	this_body()->simple_action(unlock_msg, this_object(), ob);
 	set_locked(0, key_type);
@@ -160,38 +164,32 @@ void unlock_with(object ob)
     }
 }
 
-void unlock() {
-    object ob = present("key", this_body());
-    write("(with " + ob->the_short() + ")\n");
-    unlock_with(ob);
-}
 
-
-void lock_with(object ob) {
-//:HOOK prevent_lock
-//A yes/no/error hook which can prevent an object from being locked.
+varargs void do_lock(object ob) {
+    //:HOOK prevent_lock
+    //A yes/no/error hook which can prevent an object from being locked.
     mixed ex = call_hooks("prevent_lock", HOOK_YES_NO_ERROR);
     if (!ex) ex = "You can't seem to lock it.\n";
     if (stringp(ex)) {
 	write(ex);
 	return;
     }
-    
-    if (ob->key_type() == key_type) {
+
+    if( undefinedp( ob ))
+    {
+	ob = present("key", this_body());
+	write("(with " + ob->the_short() + ")\n");
+    }
+
+    if (ob->get_key_type() == key_type) {
 	this_body()->simple_action(lock_msg, this_object(), ob);
 	set_locked(key_type);
     }
-//:FIXME if the lock type is picked or magic, it should probably
-// open.
+    //:FIXME if the lock type is picked or magic, it should probably
+    // open.
     else {
 	this_body()->simple_action(lock_fail, this_object(), ob);
     }
-}
-
-void lock() {
-    object ob = present("key", this_body());
-    write("(with " + ob->the_short() + ")\n");
-    lock_with(ob);
 }
 
 /*********************************************************/
@@ -201,7 +199,7 @@ void lock() {
 mixed direct_pick_obj(object ob)
 {
     if (!locked)
-	return "It isn't locked.\n";
+	return "It isn't locked.";
     return 1;
 }
 
@@ -214,6 +212,8 @@ mixed direct_unlock_obj(object ob) {
 }
 
 mixed direct_lock_obj(object ob) {
+    if( !this_object()->query_closed())
+        return "Perhaps you should close it first.";
     if (locked)
 	return "It is already locked.\n";
     if (present("key", this_body()))
@@ -222,23 +222,18 @@ mixed direct_lock_obj(object ob) {
 }
 
 mixed direct_unlock_obj_with_obj(object ob1, object ob2) {
+    if (!locked)
+	return "It isn't locked.";
     return 1;
 }
 
 mixed direct_pick_obj_with_obj() {
-  return 1;
-}
-
-mixed direct_lock_obj_with_obj() {
     return 1;
 }
 
-int can_pick_obj()
-{
-  return 1;
+mixed direct_lock_obj_with_obj() {
+    if (locked)
+	return "It is already locked.";
+    return 1;
 }
 
-int can_pick_obj_with_obj()
-{
-  return 1;
-}

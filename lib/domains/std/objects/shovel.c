@@ -9,7 +9,6 @@ void setup()
 {
   set_adj("plastic");
   set_id("shovel");
-  set_long ("It's a plastic shovel.\n");
+  set_long ("It's a plastic shovel.");
   set_size (SMALL);
-  set_gettable(1);
 }

@@ -180,24 +180,7 @@ SKTLOG("write_callback: # elem",sizeof(write_queue));
     }
 }
 
-//### socket_listen doesn't take funcptrs yet...
-/* private */ static nomask void listen_callback(int fd)
-{
-    object	s;
-    int		err;
-
-SKTLOG("listen_callback: self",this_object());
-SKTLOG("listen_callback: fd",fd);
-    fd = socket_accept(fd, (: read_callback :), (: write_callback :));
-    s = new(SOCKET, SKT_STYLE_INT_ACQUIRE, read_func, close_func);
-SKTLOG("listen_callback: new sock",s);
-    err = socket_release(fd, s, "release_callback");
-SKTLOG("listen_callback: err",err);
-    if ( err < 0 )
-	error("could not release: " + socket_error(err) + "\n");
-}
-
-private nomask void release_callback(int fdToAcquire)
+/* private */ nomask void release_callback(int fdToAcquire)
 {
     int err;
 
@@ -219,6 +202,24 @@ SKTLOG("release_callback: err",err);
     catch(evaluate(read_func, this_object(), 0));
 }
 
+//### socket_listen doesn't take funcptrs yet...
+/* private */ static nomask void listen_callback(int fd)
+{
+    object	s;
+    int		err;
+
+SKTLOG("listen_callback: self",this_object());
+SKTLOG("listen_callback: fd",fd);
+    fd = socket_accept(fd, (: read_callback :), (: write_callback :));
+    s = new(SOCKET, SKT_STYLE_INT_ACQUIRE, read_func, close_func);
+SKTLOG("listen_callback: new sock",s);
+    err = socket_release(fd, s, "release_callback");
+SKTLOG("listen_callback: err",err);
+    if ( err < 0 )
+	error("could not release: " + socket_error(err) + "\n");
+}
+
+//### need a way to protect this from random writes
 varargs nomask void send(mixed message, string address)
 {
     int	err;

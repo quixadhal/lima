@@ -7,7 +7,6 @@
 //
 
 
-#include <mudlib.h>
 #include <daemons.h>
 #include <config.h>
 #include <commands.h>
@@ -247,7 +246,7 @@ void login_handle_logon(int state, mixed extra, string arg) {
 	 * extensively modified/rewritten more than half of the base mudlib first
 	 * (intend to modify ... doesn't cut it)
 	 */
-	printf("%s is running Lima 1.0a5 on %s\n\n",
+	printf("%s is running Lima 1.0a6 on %s\n\n",
 	       mud_name(), driver_version());
 	
 #ifdef ZORKMUD
@@ -322,11 +321,20 @@ void login_handle_logon(int state, mixed extra, string arg) {
 
 	case "y":  case "yes":  case "aye":
 #ifdef NO_NEW_PLAYERS
-	    write("Unfortunately, "+mud_name()+" is still in the " 
-		  "developmental stage, and is not accepting new users. " 
-		  "If it is urgent, please use the guest character.\n");
-	    get_lost();
-	    return;
+// Added Guest allowance during NO_NEW_PLAYERS
+// Vette April 17, 1997
+//
+            if (GUEST_D->guest_exists(extra)) {
+              write("Access granted.\n");
+              GUEST_D->remove_guest(extra);
+            }
+            else {
+              write("Unfortunately, "+mud_name()+" is still in the "
+                  "developmental stage, and is not accepting new users. "
+                  "If it is urgent, please use the guest character.\n");
+              get_lost();
+              return;
+            }
 #endif /* NO_NEW_PLAYERS */
 
 	    /*

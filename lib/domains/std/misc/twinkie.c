@@ -9,7 +9,7 @@ inherit FOOD;
 mixed throw (object target) {
     this_body()->targetted_action("$N $vthrow a golden twinkie at $t.",target);
     target->simple_action("$N $vare covered in a creamy filling!");
-    destruct(this_object());
+    this_object()->remove();
     return 1;
 }
 

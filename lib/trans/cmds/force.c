@@ -7,7 +7,6 @@
 ** ???: created by somebody :-)
 */
 
-#include <mudlib.h>
 #include <log.h>
 
 inherit CMD;

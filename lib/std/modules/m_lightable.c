@@ -1,11 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
 #include <hooks.h>
+#include <flags.h>
 
 private mixed		source_filter;
 private int		light_level = 1;
-private int		is_lit;
-private int		fuel;
+private int		fuel = 400;
 private string		burned_out_msg = "The $o is burned out.";
 private string		die_msg = "The light from the $o flickers and dies.";
 private string		light_msg = "$N $vlight a $o.";
@@ -14,12 +14,13 @@ private string		extinguish_msg = "$N $vextinguish a $o.";
 
 void set_light(int);
 mixed call_hooks(string, int);
-void add_hook(string, mixed);
-void remove_hook(string, mixed);
 string the_short();
+int test_flag(int which);
+int set_flag(int which);
+int clear_flag(int which);
 
 int query_is_lit() {
-    return is_lit;
+    return test_flag(F_LIGHTED);
 }
 
 void set_light_level(int x) {
@@ -56,20 +57,24 @@ void set_source(mixed f) {
     source_filter = f;
 }
 
+mixed query_source() {
+    return source_filter;
+}
+
+
 mixed extinguish() {
     string tmp;
-    
-//:HOOK prevent_extinguish
-//A yes/no/error hook that can prevent an object from being extinguished
+
+    //:HOOK prevent_extinguish
+    //A yes/no/error hook that can prevent an object from being extinguished
     tmp = call_hooks("prevent_extinguish", HOOK_YES_NO_ERROR);
     if (!tmp || stringp(tmp)) return tmp;
-    is_lit = 0;
+    clear_flag(F_LIGHTED);
     if (fuel != -1) fuel = remove_call_out("burn_out");
     set_light(0);
-//:HOOK extinguish
-//called when an object is extinguished.  The return value is ignored
+    //:HOOK extinguish
+    //called when an object is extinguished.  The return value is ignored
     call_hooks("extinguish", HOOK_IGNORE);
-    remove_hook("extra_short", "providing light");
     return 1;
 }
 
@@ -91,26 +96,24 @@ mixed check_fuel() {
 varargs mixed light(object with) {
     string tmp;
 
-
     if (!fuel) return object_event_message(burned_out_msg);
-    
-//:HOOK prevent_light
-//A yes/no/error hook that can prevent an object from getting lit
+
+    //:HOOK prevent_light
+    //A yes/no/error hook that can prevent an object from getting lit
     tmp = call_hooks("prevent_light", HOOK_YES_NO_ERROR);
     if (!tmp || stringp(tmp)) return tmp;
-    is_lit = 1;
+    set_flag(F_LIGHTED);
     if (fuel != -1) call_out("burn_out", fuel);
 
     set_light(light_level);
 
-//:HOOK light
-//called when an object is lit.  The return value is ignored.
+    //:HOOK light
+    //called when an object is lit.  The return value is ignored.
     call_hooks("light", HOOK_IGNORE);
-    add_hook("extra_short", "providing light");
     return 1;
 }
 
-void do_light(object with) {
+varargs void do_light(object with) {
     mixed tmp = light(with);
     if (!tmp) tmp = "That doesn't seem possible.\n";
     if (stringp(tmp)) {
@@ -126,32 +129,48 @@ void do_light(object with) {
 void burn_out() {
     set_light(0);
     fuel = 0;
-    is_lit = 0;
+    clear_flag(F_LIGHTED);
     call_hooks("extinguish", HOOK_IGNORE);
     object_event(die_msg);
 }
 
 mixed direct_light_obj() {
+    if ( test_flag(F_LIGHTED) )
+	return "It is already lit.\n";
     if (source_filter)
 	return "You need to light it with something.\n";
-    if ( is_lit ) return "It is already lit.\n";
     return 1;
 }
 
 mixed direct_extinguish_obj() {
-    if (!is_lit) return "It isn't lit.\n";
+    if ( !test_flag(F_LIGHTED) )
+	return "It isn't lit.\n";
     return 1;
 }
 
 mixed direct_light_obj_with_obj(object ob, object with) {
-    if (!source_filter) return 1;
-    if (!with) return 1;
-    if (stringp(source_filter)) return with->id(source_filter);
+    if( query_is_lit())
+	return "It is already lit.\n";
+    if (!source_filter)
+	return 1;
+    if (!with)
+	return 1;
+    if (stringp(source_filter))
+	return with->id(source_filter);
     return evaluate(source_filter, with);
 }
 
 mixed indirect_light_obj_with_obj(object ob, object with) {
-    if (is_lit) return 1;
+    mixed sf;
+    if( ob ) sf = ob->query_source();
+    if( with->query_is_lit())
+    {
+	if(!sf)
+	    return 1;
+	if(stringp(sf))
+	    return with->id(sf);
+	return evaluate( sf, with );
+    }
     return capitalize(with->the_short()) + " isn't lit.\n";
 }
 
@@ -159,10 +178,10 @@ int need_to_see()
 {
     return 0;
 }
-    
+
 mapping lpscript_attributes() {
     return ([
-	"light_msgs" : ({ LPSCRIPT_SPECIAL, (: ({ "special", "set_light_msgs(\"" + $1[0] + "\", \"" + (sizeof($1) > 1 ? $1[1] : $1[0]) + "\")" }) :) }),
-	"fuel" : ({ LPSCRIPT_INT, "setup", "set_fuel" }),
+      "light_msgs" : ({ LPSCRIPT_SPECIAL, (: ({ "special", "set_light_msgs(\"" + $1[0] + "\", \"" + (sizeof($1) > 1 ? $1[1] : $1[0]) + "\")" }) :) }),
+      "fuel" : ({ LPSCRIPT_INT, "setup", "set_fuel" }),
     ]);
 }

@@ -24,7 +24,7 @@ private void main(string arg)
 	this_user()->query_shell_ob()->set_variable("ansi", 1);
 	out("Turning ansi on.\n");
     }
-    else if (arg = "off")
+else if (arg == "off")
     {
 	this_user()->query_shell_ob()->unset_variable("ansi");
 	out("Turning ansi off.\n");

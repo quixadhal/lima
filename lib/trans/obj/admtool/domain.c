@@ -110,7 +110,6 @@ private nomask void show_domain_info(string domain)
 
 private nomask void create_domain(int no_domain_dir, string domain)
 {
-    string err;
 
     domain = lower_case(domain);
 

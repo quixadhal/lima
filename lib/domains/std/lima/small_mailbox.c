@@ -9,7 +9,6 @@ void setup() {
     set_id("mailbox", "box");
     set_adj("small");
     set_in_room_desc("There is a small mailbox here.");
-    set_closed(1);
     set_max_capacity(SMALL);
     set_size(MEDIUM);
     set_objects( ([

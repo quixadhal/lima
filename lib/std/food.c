@@ -5,6 +5,17 @@ inherit M_EDIBLE;
 inherit M_GETTABLE;
 
 
+mixed direct_eat_obj( object ob )
+{
+    return m_edible::direct_eat_obj( ob );
+}
+
+
+int is_food()
+{
+    return 1;
+}
+
 string get_extra_long()
 {
     switch ((100 * get_num_eats())/ get_original_eats())

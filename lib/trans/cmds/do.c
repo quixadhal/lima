@@ -1,5 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Does multiple commands
+// Syntax: do cmd1;cmd2;cmd3
+
 inherit CMD;
 
 void main(string arg)

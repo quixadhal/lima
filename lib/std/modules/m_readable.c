@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 
 /*
 ** From OBJ::description
@@ -22,8 +21,12 @@ set_text( string t )
 	read_text = t;
 }
 
-string
-read()
+mixed query_text()
+{
+    return read_text;
+}
+
+string read()
 {
     this_body()->simple_action("$N $vread the $o.", this_object());
     return read_text;
@@ -66,7 +69,7 @@ mixed direct_read_obj(object ob) {
 
     o = owner(this_object());
     if (o && o != this_body())
-	return "#Try asking " + o->query_name() + " nicely if you can read " + o->query_possessive() + " " + this_object()->short() + ".\n";
+return "#Try asking " + o->query_name() + " nicely if you can read it.\n";
 
     return 1;
 }

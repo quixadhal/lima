@@ -1,5 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Destructs the old version of a file and loads a new one
+// Usage: update <filename/object>
+
+
 //      /bin/system/_update.c
 //      from the Nightmare Mudlib
 //      destructs an old version of a file and loads a new one

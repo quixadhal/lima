@@ -2,6 +2,9 @@
 
 /*
 ** stand.c
+
+   Added standing in and standing on objects
+   Vette  April 11, 1997
 */
 
 
@@ -61,7 +64,17 @@ void do_stand_up()
 
 array query_verb_info()
 {
-    return ({ ({ "" }), ({}), ({ "up" }), ({ "get" }) });
+    return ({ ({ "" }), ({}), ({ "up" }), ({ "get" }), ({"in OBJ","on OBJ"}) });
+}
+
+void do_stand_in_obj(object ob1)
+{
+  ob1->stand();
+}
+
+void do_stand_on_obj(object ob1)
+{
+  ob1->stand();
 }
 
 

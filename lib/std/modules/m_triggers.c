@@ -62,6 +62,7 @@ void receive_outside_msg(string str) {
     mixed left, right;
     mixed ret;
     
+str = terminal_colour(str, ANSI_D->query_translations()[1], sizeof(str));
     // strip trailing newline and whitespace
     while (str != "" && member_array(str[<1], " \t\n") != -1)
 	str = str[0..<2];

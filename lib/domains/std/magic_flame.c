@@ -4,8 +4,8 @@ inherit FLAME;
 
 void setup() {
     set_adj("blue");
-    set_in_room_desc("A blue flame hovers in the air in the center of the room.");
-    set_long("The air itself seems to burn here, as if by magic.");
+    set_long("It must be magic as there's no fuel feeding it.");
+    set_attached( 1 );
 }
 
 int can_light_the_magic_torch() {

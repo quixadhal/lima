@@ -1,11 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-** drop.c
-**
-*/
-
-#include <mudlib.h>
 #include <move.h>
 
 inherit VERB_OB;

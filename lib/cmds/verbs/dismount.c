@@ -4,17 +4,12 @@
 ** dismount.c
 */
 
+inherit NVERB_OB;
 
-inherit VERB_OB;
-
-
-void do_dismount(object what)
+void do_dismount_obj(object what)
 {
     mixed s;
     string err;
-
-    if(!objectp(what))
-	what = environment(this_body());
 
     if(what != environment(this_body()))
     {
@@ -44,14 +39,13 @@ void do_dismount(object what)
     }
 } 
 
-void do_dismount_obj(object o)
-{
-    do_dismount(o);
+void do_dismount() {
+    do_dismount_obj(environment(this_body()));
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "", "OBJ" }) });
+    add_rules( ({ "", "OBJ" }) );
 }
 
 

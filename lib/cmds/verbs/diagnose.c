@@ -1,23 +1,16 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-** diagnose.c
-**
-*/
 
-inherit VERB_OB;
-inherit M_MESSAGES;
+#include <verbs.h>
 
-int need_to_see() {
-    return 0;
-}
+inherit NVERB_OB;
 
-int need_to_be_alive() {
-    return 0;
-}
+void create() {
+    clear_flag(NEED_TO_SEE);
+    clear_flag(NEED_TO_BE_ALIVE);
+    clear_flag(NEED_TO_THINK);
 
-int need_to_think() {
-    return 0;
+   add_rules( ({ "" }) );
 }
 
 void do_diagnose()
@@ -27,9 +20,4 @@ void do_diagnose()
     // Deja vu.  Drive the players crazy :-)
     if (random(100) == 0)
 	write("You have a funny feeling you've been here before.\n");
-}
-
-array query_verb_info()
-{
-   return ({ ({ "" }) });
 }

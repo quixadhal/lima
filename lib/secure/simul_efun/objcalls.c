@@ -33,62 +33,62 @@ base_name(mixed val) {
 int compare_objects(object o1, object o2)
 {
     return (base_name(o1)==base_name(o2) &&
-	    o1->ob_state()==o2->ob_state() &&
-	    (int)o2->ob_state() != -1);
+      o1->ob_state()==o2->ob_state() &&
+      (int)o2->ob_state() != -1);
 }
 
 varargs int count( object o )
 {
-  int num;
-  object *obs;
-  int i;
+    int num;
+    object *obs;
+    int i;
 
-  if( !o ) {
-      if (origin() == ORIGIN_LOCAL)
-          o = this_object();
-      else
-          o = previous_object();
-  }
-  if(!objectp(environment(o))) return 1;
+    if( !o ) {
+	if (origin() == ORIGIN_LOCAL)
+	    o = this_object();
+	else
+	    o = previous_object();
+    }
+    if(!objectp(environment(o))) return 1;
 
-  obs = all_inventory(environment(o));
-  for (i=0; i<sizeof(obs); i++) {
-    if (compare_objects(obs[i],o)) num++;
-  }
+    obs = all_inventory(environment(o));
+    for (i=0; i<sizeof(obs); i++) {
+	if (compare_objects(obs[i],o)) num++;
+    }
 
-  return num;
+    return num;
 }
 
 /* returns 1 for all identical objects in the environment except
    the first one. */
 varargs int duplicatep( object o ) {
-  int i;
-  object *obs;
+    int i;
+    object *obs;
 
-  if (!o)
-    o = previous_object();
+    if (!o)
+	o = previous_object();
 
-  obs = all_inventory(environment(o));
-  for (i=0; i<sizeof(obs); i++) {
-    if (obs[i]==o) return 0;
-    if (compare_objects(obs[i], o)) return 1;
-  }
+    obs = all_inventory(environment(o));
+    for (i=0; i<sizeof(obs); i++) {
+	if (obs[i]==o) return 0;
+	if (compare_objects(obs[i], o)) return 1;
+    }
 }
 mixed
 deep_useful_inv( object ob )
 {
-  object *ret;
-  int i,n;
+    object *ret;
+    int i,n;
 
-  if( ob->inventory_accessible() )
-  {
-    ret = all_inventory( ob );
-    n = sizeof( ret );
-    for( i = 0; i<n; i++ )
-      ret += deep_useful_inv( ret[i] );
-    return ret;
-  }
-  return ({  });
+    if( ob->inventory_accessible() )
+    {
+	ret = all_inventory( ob );
+	n = sizeof( ret );
+	for( i = 0; i<n; i++ )
+	    ret += deep_useful_inv( ret[i] );
+	return ret;
+    }
+    return ({  });
 }
 
 object get_object(string arg)
@@ -109,27 +109,27 @@ object get_object(string arg)
 
     if ( !(ob = present( arg, this_body())) )
 	if ( environment(this_body()) &&
-	     !(ob = present(arg, environment(this_body()))) )
+	  !(ob = present(arg, environment(this_body()))) )
 	    if ( !(ob = find_body(arg)) )
 		if ( !(ob = load_object(evaluate_path(arg))) )
-		  if (!(ob = load_object(evaluate_path(arg)+".scr")))
-		    return 0;
+		    if (!(ob = load_object(evaluate_path(arg)+".scr")))
+			return 0;
 
     return ob;
 }
 
 object root_environment(object o)
 {
-  object env, env2;
+    object env, env2;
 
-  env = environment(o);
-  if(!env)
-    return 0;
-  while(env2 = environment(env))
+    env = environment(o);
+    if(!env)
+	return 0;
+    while(env2 = environment(env))
     {
-      env = env2;
+	env = env2;
     }
-  return env;
+    return env;
 }
 
 int immediately_accessible( object o )
@@ -137,13 +137,13 @@ int immediately_accessible( object o )
     object	env;
 
     if(!objectp(o))
-      return 0;
+	return 0;
     env = environment( o );
     if((env == this_body()) || (env == environment(this_body())) )
 	return 1;
 
     if(!objectp(env))
-      return 0;
+	return 0;
     return ((int)env->inventory_accessible() && 
       (member_array(o, deep_inventory(root_environment(this_body())))!= -1));
 }
@@ -184,7 +184,6 @@ usable( object o, int flag )
 /* depth is for internal use only */
 varargs string inv_list(object array obs, int flag, int depth) {
     string res;
-    string ex;
     int j;
 
     depth++;
@@ -193,11 +192,11 @@ varargs string inv_list(object array obs, int flag, int depth) {
 	if (!ob->is_visible()) continue;
 	if (!ob->short()) continue;
 	if (flag && !ob->test_flag(TOUCHED) && ob->untouched_long()) continue;
-        if (ob->is_attached()) {
-            if (ob->inventory_visible() && !ob->query_hide_contents())
-                res += ob->inventory_recurse(depth);
-            continue;
-        }
+	if (ob->is_attached()) {
+	    if (ob->inventory_visible() && !ob->query_hide_contents())
+		res += ob->inventory_recurse(depth);
+	    continue;
+	}
 	if (!duplicatep(ob))
 	{
 	    for (j=0; j<depth; j++) res+="  ";
@@ -205,18 +204,16 @@ varargs string inv_list(object array obs, int flag, int depth) {
 		if (j > 4) res += "many " + ob->plural_short();
 		else res += j + " " + ob->plural_short();
 	    } else {
-		res += ob->a_short();
-		if (ex = ob->calculate_extra())
-		    res += ex;
+		res += ob->a_short() + M_OBJ_ATTRIBUTES->get_attributes(ob);
 	    }
 	    res += "\n";
-    if( ob->inventory_visible() && !ob->query_hide_contents())
+	    if( ob->inventory_visible() && !ob->query_hide_contents())
 		res += ob->inventory_recurse(depth);
 	}
     }
     return res == "" ? 0 : res;
 }
- 
+
 object owner(object ob) {
     object env;
 
@@ -236,9 +233,9 @@ mixed target(mixed target)
 	if (target=="here")
 	    target= environment(this_body());
 	else
-	    if (!(target= load_object(evaluate_path(target)))) {
-		target= find_body( target );
-	    }
+	if (!(target= load_object(evaluate_path(target)))) {
+	    target= find_body( target );
+	}
     }
     if (objectp(target))
     {

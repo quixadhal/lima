@@ -1,20 +1,17 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-
-inherit VERB_OB;
-inherit M_PARSING;
+inherit NVERB_OB;
 
 void do_lock_obj_with_obj(object ob1, object ob2) {
-    ob1->lock_with(ob2);
+    ob1->do_lock(ob2);
 }
 
-void do_lock_obj(object ob)
+void do_lock_obj(object ob1)
 {
-    ob->lock(ob);
+    ob1->do_lock();
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBJ", "OBJ with OBJ" }) });
+    add_rules( ({ "OBJ", "OBJ with OBJ" }) );
 }

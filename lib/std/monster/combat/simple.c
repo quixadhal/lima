@@ -81,7 +81,6 @@ target. */
 class combat_result array take_a_swing(object target)
 {
     int diff;
-    class combat_result array result;
     int hp;
     int them;
     int us;

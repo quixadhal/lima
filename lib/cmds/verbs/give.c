@@ -1,15 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-** give.c
-**
-*/
 
-#include <mudlib.h>
-
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_give_obj_to_liv(object ob, object liv) {
+
     if (!try_to_acquire(ob))
 	return;
     if( ob->is_worn())
@@ -62,8 +57,7 @@ void do_give_wrd_str_to_liv(string amount, string str, object who)
     }
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "OBS to LIV", "WRD STR to LIV" }),
-      ({ "hand" }) });
+    add_rules( ({ "OBS to LIV", "WRD STR to LIV" }), ({ "hand" }) );
 }

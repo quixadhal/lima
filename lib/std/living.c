@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include "mudlib.h"
 
 inherit CONTAINER;
 inherit __DIR__ "living/grammar";
@@ -99,4 +98,4 @@ string look_in( string relation )
       else return ::look_in( relation );
 }
 
-
+string query_possessive() { return grammar::query_possessive(); }

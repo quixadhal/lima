@@ -77,7 +77,7 @@ add_emote(string verb, mixed rule, string array parts)
 int
 remove_emote(string verb, string rule) 
 {
-    if (base_name(previous_object())!=CMD_REMOVE_EMOTE)
+    if ( base_name(previous_object())!=CMD_REMOVE_EMOTE )
 	error("Illegal call to remove_emote()\n");
     if (!emotes[verb]) return 0;
     if (sizeof( rule )) {
@@ -87,7 +87,9 @@ remove_emote(string verb, string rule)
 	map_delete(emotes, verb);
     }
 
+    parse_remove(verb);
     parse_refresh();
+
     unguarded(1, (: save_object, SAVE_FILE :));
     return 1;
 }
@@ -115,16 +117,15 @@ query_emote(string em) {
 
 private string get_completion(string);
 
-mixed * internal_get_soul(string verb, string rule,
-  mixed *args,
-  int add_imud_msg)
+#define IMUD_CHANNELT_DUMMY "/obj/mudlib/ichannelt"
+
+mixed * internal_get_soul(string verb, string rule, mixed *args,
+			  int add_imud_msg)
 {
     mapping rules;
     mixed soul;
-    string soul_alt;
-    int i, num;
-    object *targets;
-    object *who;
+    int i, j, num;
+    object *who, *imud_who;
     string token;
     mixed * result;
 
@@ -149,61 +150,65 @@ mixed * internal_get_soul(string verb, string rule,
 
     if (soul[0] == '=') soul = rules[soul[1..]];
     if (stringp(soul)) {
-	soul_alt = soul;
+	if (soul[<1] != '\n') soul += "\n";
     } else {
 	soul = map_array(soul, (: $1[<1] == '\n' ? $1 : $1 + "\n" :));
-	soul_alt = soul[0];
     }
-    if (strsrch(rule, "LIV") == -1) {
-	who = ({ this_body() });
-	result = ({ who, ({
-	    compose_message(this_body(), stringp(soul) ? soul : soul[0], who,
-	      args...),
-	    compose_message(0, stringp(soul) ? soul : soul[1], who, args...)
-	  }) });
-    } else {
+
+
+    who = ({ this_body() });
+    if ( add_imud_msg )
+      imud_who = ({ new( IMUD_CHANNELT_DUMMY, this_body(), 3 ) });
+
+    if (strsrch(rule, "LIV") != -1)
+    {
 	i = 0;
-	targets = ({ });
+
 	foreach (token in explode(rule, " ")) {
 	    if (token == "LIV") {
-		targets += ({ args[i] });
+		who += ({ args[i] });
+		
+		if ( add_imud_msg )
+		  imud_who += ({ new( IMUD_CHANNELT_DUMMY, args[i], 2 ) });
+		
 		args[i..i] = ({});
 	    } else
-	    if (token[0] >= 'A' && token[0] <= 'Z')
+	      if (token[0] >= 'A' && token[0] <= 'Z')
 		i++;
 	}
+    }
+    
+    if ( add_imud_msg )
+      result = ({ who, allocate( sizeof( who )+1 ),
+		  allocate( sizeof( imud_who )+1) });
+    else
+      result = ({ who, allocate(sizeof(who) + 1) });
 
-	who = ({ this_body() }) + targets;
-	result = ({ who, allocate(sizeof(who) + 1) });
-	for (i = 0; i < sizeof(who); i++) {
+    for ( j = 0; j < add_imud_msg+1; j++ )
+    {
+	object *w;
+
+	w = ( j ? imud_who : who );
+
+	for (i = 0; i < sizeof(w); i++) {
 	    string tmp;
 	    if (stringp(soul))
-		tmp = soul;
+	      tmp = soul;
 	    else {
 		if (i && i + 1 < sizeof(soul))
-		    tmp = soul[i + 1];
+		  tmp = soul[i + 1];
 		else
-		    tmp = soul[0];
+		  tmp = soul[0];
 	    }
-	    result[1][i] = compose_message(who[i], tmp, who, args...);
+	    result[1+j][i] = compose_message(w[i], tmp, w, args...);
 	}
-//### tmp fix
-    result[1][sizeof(result[1])-1] = compose_message(0, stringp(soul) ? soul : soul[1], who, args...);
-	    }
-
-	if ( add_imud_msg )
-	{
-	    string msg;
-
-	    soul_alt = replace_string(soul_alt, "$N", chr(255));
-	    soul_alt = replace_string(soul_alt, "$n", chr(255));
-	    msg = compose_message(0, soul_alt, who, args...);
-	    msg = replace_string(msg, chr(255), "$N");
-	    result[1] += ({ msg });
-	}
-
-	return result;
+	//### tmp fix
+	result[1+j][<1] =
+	  compose_message(0, stringp(soul) ? soul : soul[1], w, args...);
     }
+
+    return result;
+}
 
 varargs mixed *
 get_soul(string verb, string rule, mixed *args)
@@ -335,15 +340,37 @@ mixed *parse_soul(string str) {
 }
 
 mixed *parse_imud_soul(string str) {
+    object temp;
     mixed result;
     mixed soul;
+    int i;
+
+    // This bit of the code can only handle one person,
+    // could make it handle more, but its not worth it while the IMUD stuff
+    // only handles two people
+    i = strsrch( str, "@" );
+    if ( i > -1 ) 
+    {
+	string n;
+	n = str[ strsrch( str[0..i], " ", -1 )+1..
+		strsrch( str[i..]+" ", " " )-1+i ];
+	temp = new( IMUD_CHANNELT_DUMMY, n );
+	if ( temp )
+	  str = replace_string( str, n, "wibblewibble"+n );
+    }
     
-    result = parse_my_rules(this_body(), str, 0);
-    if (!result) return 0;
-    if( intp(result) || stringp(result)) return 0;
-    
+    result = parse_my_rules(this_body(), str, 0 );
+
+    if (!result || intp(result) || stringp(result))
+    {
+	if ( temp ) temp->remove();
+	return 0;
+    }
+
     soul = get_imud_soul(result...);
-    if (!soul) return 0;
+
+    if (!soul)
+      return 0;
     return soul;
 }
 

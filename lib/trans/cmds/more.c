@@ -9,6 +9,8 @@ inherit CMD;
 
 
 
+//:COMMAND
+// Prints out the lines of a file
 // specification is : more obj|file*
 // we will recieve  : ({ array of files })
 

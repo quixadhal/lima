@@ -39,7 +39,6 @@ class finger get_finger_data(string userid)
     string * info;
     mixed last;
     object mbox;
-    string connect_from;
 
     info = unguarded(1, (: call_other, USER_D, "query_variable",
 			 userid, ({ "real_name",
@@ -95,8 +94,8 @@ class finger get_finger_data(string userid)
 	if ( result->home_page && result->home_page[0] == '#' )
 	    result->home_page = 0;
 #else
-	result->email =
-	    result->real_name =
+	result->email =0;
+	    result->real_name = 0;
 	    result->home_page = 0;
 #endif
     }

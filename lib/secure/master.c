@@ -386,6 +386,11 @@ string parse_command_all_word()
     return "all";
 }
 
+/* needs to be called when parse_command_users() changes */
+void refresh_parse_info() {
+    parse_refresh();
+}
+
 object *parse_command_users()
 {
     return users()->query_body();

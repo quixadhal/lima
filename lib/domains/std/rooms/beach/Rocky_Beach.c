@@ -57,7 +57,7 @@ mixed wade(string str)
     case "ocean":
       write ("You wade into the ocean, and back to the cave entrance.\n\n"); 
       this_body()->other_action("$N $vwade away.\n");
-      this_body()->move(__DIR__ "outside_cave");
+      this_body()->move(__DIR__ "Outside_Cave");
       this_body()->do_game_command("look");
       this_body()->other_action("$N $vwade over to you.\n");
       return 1;

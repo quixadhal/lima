@@ -7,7 +7,7 @@
 
 #include <move.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_put_obj_wrd_obj(object ob1, string p, object ob2) {
     mixed tmp;
@@ -44,12 +44,8 @@ void do_put_obs_wrd_obj(array info, string p, object ob2) {
     handle_obs(info, (: do_put_obj_wrd_obj :), p, ob2);
 }
 
-
-array query_verb_info()
-{
-    return ({
-      ({ "OBS WRD OBJ" }), ({ "insert", "place", "stuff", "hide" })
-    });
+void create() {
+    add_rules( ({ "OBS WRD OBJ" }), ({ "insert", "place", "stuff", "hide" }) );
 
     /*
     ** "hide OBS next to OBJ" -> "put OBS next to OBJ"

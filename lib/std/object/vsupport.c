@@ -1,7 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 #include <hooks.h>
+inherit M_PARSING;
+
 
 varargs mixed call_hooks(string, int, mixed);
 
@@ -78,7 +79,7 @@ mixed direct_smell_obj(object ob)
 //:FUNCTION direct_give_obj_to_liv
 //Handle parser checks for "give OBJ to LIV" rule, where we are the object
 //being given.
-mixed direct_give_obj_to_liv()
+mixed direct_give_obj_to_liv( object obj, object liv )
 {
     return need_to_have();
 }
@@ -181,7 +182,7 @@ mixed direct_flip_obj(object ob) {
     //useless message will be used.
 
     return call_hooks("direct_flip", HOOK_YES_NO_ERROR,
-      M_PARSING->useless("Fiddling with " + ob->the_short()));
+      useless( "Fiddling with " + ob->the_short()));
 }
 
 //:FUNCTION direct_throw_obj
@@ -205,3 +206,145 @@ mixed indirect_throw_obj_at_obj(object ob1, object ob2)
     return 1;
 }
 
+//:FUNCTION direct_pull_obj
+// Handle parser checks for "pull OBJ"
+mixed direct_pull_obj( object ob )
+{
+    return useless( "Pulling " + ob->the_short() );
+}
+
+//:FUNCTION direct_press_obj
+// Parser check for "press OBJ"
+mixed direct_press_obj( object ob )
+{
+    return useless( "Pushing " + ob->the_short());
+}
+
+//:FUNCTION direct_search_obj
+// Parser check for "search OBJ"
+mixed direct_search_obj( object ob )
+{
+    return 1;
+}
+
+
+//:FUNCTION direct_search_obj_for_obj
+//Default
+mixed direct_search_obj_for_obj( object ob1, object ob2 )
+{
+    return 1;
+}
+
+//:FUNCTION indirect_search_obj_for_obj
+//Default
+mixed indirect_search_obj_for_obj( object ob1, object ob2 )
+{
+    return 1;
+}
+
+//FUNCTION direct_search_for_str
+//Default
+mixed direct_search_for_str( string str )
+{
+    return 1;
+}
+
+//:FUNCTION indirect_search_obj_with_obj
+//Default.
+mixed indirect_search_obj_with_obj( object ob1, object ob2 )
+{
+    if( environment(ob2) != this_body())
+	return "Maybe you should search it with something you're holding.";
+    return 1;
+}
+
+//:FUNCTION direct_search_obj_with_obj
+//Default
+mixed direct_search_obj_with_obj( object ob1, object ob2 )
+{
+    return 1;
+}
+
+//:FUNCTION direct_search_for_str_in_obj( string str, object obj )
+//Default
+mixed direct_search_for_str_in_obj( string str, object ob )
+{
+    return 1;
+}
+
+//:FUNCTION direct_search_obj_for_str
+//Default
+mixed direct_search_obj_for_str( object ob, string str )
+{
+    return 1;
+}
+
+//:FUNCTION direct_search_obj_with_obj_for_str
+//Default
+mixed direct_search_obj_with_obj_for_str( object ob, string str )
+{
+    return 1;
+}
+
+//:FUNCTION indirect_search_obj_with_obj_for_str
+mixed indirect_search_obj_with_obj_for_str( object ob1, object ob2,  string str )
+{
+    if( environment(ob2) != this_body())
+	return "Maybe you should search it with something you're holding.";
+    return 1;
+}
+
+//:FUNCTION
+//Default
+
+mixed direct_search_for_str_in_obj_with_obj( string str, object ob1, object ob2 )
+{
+    return 1;
+}
+
+//:FUNCTION indirect_search_for_str_in_obj_with_obj
+//Default 
+mixed indirect_search_for_str_in_obj_with_obj( string str, object ob1, object ob2 )
+{
+    if( environment( ob2 ) != this_body() )
+	return "Maybe you should search it with something you're holding.";
+    return 1;
+}
+
+//:FUNCTION direct_search_obj_for_str_with_obj
+//Default
+mixed direct_search_obj_for_str_with_obj( object ob1, string str, object ob2 )
+{
+    return 1;
+}
+
+//:FUNCTION indirect_search_obj_for_str_with_obj
+//Default
+mixed indirect_search_obj_for_str_with_obj( object ob1, string str, object ob2 )
+{
+    if( environment( this_object()) != this_body())
+	return "Maybe you should search it with something you're holding.";
+    return 1;
+}
+
+
+//FUNCTION do_search
+// Default searching.
+varargs void do_search( object with, string search_for )
+{
+    string str = "$N $vsearch ";
+    if( this_object() == environment( this_body()))
+	str += "around";
+    else str += "the $o0";
+    if( with ) str += " with $p $o1";
+    str += ", but $vdiscover nothing.";
+    this_body()->simple_action( str, this_object(), with );
+}
+
+
+//:FUNCTION direct_listen_to_obj
+//Default
+mixed direct_listen_to_obj( object obj )
+{
+    return "You hear nothing special.";
+}

@@ -30,23 +30,32 @@ void create_user(function when_done)
     foreach (file in get_dir(DIR_RACES + "/*.c")) {
 	string tmp = DIR_RACES + "/" + file;
 	string name;
-	
-        if ( !load_object(tmp) )
-            continue;
-        name = tmp->query_race();
+
+	if ( !load_object(tmp) )
+	    continue;
+	name = tmp->query_race();
 	races[name] = tmp;
 	if (strlen(name) > width)
 	    width = strlen(name);
     }
 
-    format = "%#-75." + (75/(width + 3)) + "s\n\n";
+    if( sizeof(races) == 1 )
+    {
+	string default_race = races[ keys(races)[0]];
+	write( "You will be a " + default_race + ".\n" );
+	evaluate( when_done, DIR_RACES + "/" + default_race );
+    }
+    else
+    {
+	format = "%#-75." + (75/(width + 3)) + "s\n\n";
 
-    write("\nPlease select a race from the following list:\n");
-    printf(format, implode(keys(races), "\n"));
+	write("\nPlease select a race from the following list:\n");
+	printf(format, implode(keys(races), "\n"));
 
-    printf("Type 'help race' for a brief description.  Type 'list' to show the choices again.\n");
-    this_user()->modal_push( (: got_entry, when_done :), "Race? ");
+	printf("Type 'help race' for a brief description.  Type 'list' to show the choices again.\n");
+	this_user()->modal_push( (: got_entry, when_done :), "Race? ");
 
+    }
 #endif /* USE_RACES */
 }
 

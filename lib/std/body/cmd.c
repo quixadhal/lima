@@ -4,7 +4,6 @@
 ** cmd.c -- general command processing
 */
 
-#include <mudlib.h>
 #include <daemons.h>
 #include <commands.h>
 
@@ -48,7 +47,7 @@ varargs nomask int do_game_command(string str, int debug)
     ** Parse the player's input
     */
     result = parse_sentence(str, debug);
-    
+
     /*
     ** If a string was returned, then the parser figured something out.
     ** Write it out and we're done.
@@ -58,7 +57,9 @@ varargs nomask int do_game_command(string str, int debug)
     {
 	if(debug)
 	    return result;
-	write(result);
+	if( result[<1] != '\n')
+	    result += "\n";
+	write( result );
 	return 1;
     }
 
@@ -69,22 +70,28 @@ varargs nomask int do_game_command(string str, int debug)
     **
     */
     switch(result)
-      {
-      case 0:
+    {
+    case 0:
 	break;
-      case 1:
+    case 1:
 	return 1;
-      case -1:
+    case -1:
 	write(nonsense());
 	return 1;
-      case -2:
+    case -2:
 	write("You aren't able to do that.\n");
 	return 1;
-      default:
+    default:
 	write("This parser code should never be reached. If it is, let "
-	      "someone know how you got here.\n");
+	  "someone know how you got here.\n");
+	if( undefinedp( result )) write("Result was undefined.\n");
+	else
+	{
+	    write( "Error was: " );
+	    write(result); write("\n");
+	}
 	return 1;
-      }
+    }
 
 
     // If in debug mode, we're done
@@ -95,17 +102,17 @@ varargs nomask int do_game_command(string str, int debug)
     */
     go_result = parse_sentence("go " + str);
     if (go_result == 1)
-        return 1;
+	return 1;
     if (!result)
-        result = go_result;
+	result = go_result;
 
     /* 'You can't go ...' is a parser generated message for general
        failure.  The go command is careful to return explicit
        error messages if the command makes sense, so we can safely
        ignore it. */
     if (stringp(result) && result[0..12] != "You can't go ") {
-        write(result);
-        return 1;
+	write(result);
+	return 1;
     }
     return 0;
 }

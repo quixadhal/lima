@@ -5,22 +5,28 @@
 **
 */
 
+#include <verbs.h>
+
 //### peer should be a synonym for some, but not all, of these rules.
 //### E.g. not "" or it will interfere with the emote
 
-#include <mudlib.h>
 
-inherit VERB_OB;
+inherit NVERB_OB;
 inherit M_GRAMMAR;
 
-int need_to_be_alive() {
-    return 0;
+void create() {
+    clear_flag(NEED_TO_BE_ALIVE);
+
+    add_rules( ({ "", "at OBS:v", "for OBS:v", "STR OBJ:v",
+		      "at OBS:v with OBJ", "WRD OBJ" }) );
+
+    add_rules( ({ "OBS:v", "OBS:v with OBJ" }), ({ "examine" }) );
 }
 
 mixed can_look_wrd_obj(string wrd, object ob)
 {
-    if (wrd != "through" ) return 0;
-    else return 1;
+    if (wrd == "through" ) return default_checks();
+    return 0;
 }
 
 mixed can_look_str(string str) {
@@ -53,10 +59,6 @@ void do_look_at_obs(array info, string name) {
     handle_obs(info, (: do_look_at_obj :), name);
 }
 
-// There was name support here, but it was done wrong, as according to 
-// container.c the first arg of look_in() is a prep, not a name.  Anyway,
-// if you're looking for what happened to that code, that's why I removed it.
-// -Beek
 void do_look_str_obj(string prep, object ob) {
     write(ob->look_in(prep)+"\n");
 }
@@ -148,6 +150,7 @@ void do_look_for_obs(array info) {
 	res += number_word(sizeof(ua[i])) + " " + look_for_phrase(ua[i][0]);
     }
     write(res + ".\n");
+//### why?
 #if 0
     if (environment(this_body()) == env) {
 	this_body()->my_action("$O is right here!", ob);
@@ -163,16 +166,8 @@ void do_look_for_obs(array info) {
 mixed
 do_look_wrd_obj(string wrd, object ob)
 {
-ob->look(wrd);
-
+    ob->look(wrd);
 }
-array query_verb_info()
-{
-    return ({ 
-      ({ "OBS:v", "OBS:v with OBJ" }), ({ "examine" }),
-      ({ "", "at OBS:v", "for OBS:v", "STR OBJ:v",
-	"at OBS:v with OBJ", "WRD OBJ", })
-    });
 
     /*
     ** "examine OBJ" -> "look OBJ"
@@ -195,4 +190,3 @@ array query_verb_info()
     ** "stare up" -> "look up"
     ** "stare down" -> "look down"
     */
-}

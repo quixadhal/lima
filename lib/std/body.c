@@ -10,7 +10,6 @@
 // Beek ... Deathblade ... The rest of the Zorkmud staff ...
 //
 #include <daemons.h>
-#include <mudlib.h>
 #include <config.h>
 #include <security.h>
 #include <setbit.h>
@@ -54,6 +53,9 @@ inherit __DIR__ "body/title";
 #endif
 #ifdef USE_SIMPLE_LEVEL
 inherit __DIR__ "body/simple_level";
+#endif
+#ifdef USE_SIMPLE_EXP
+inherit __DIR__ "body/simple_exp";
 #endif
 #ifdef USE_WIZ_POSITION
 inherit __DIR__ "body/wiz_position";
@@ -356,33 +358,33 @@ void reconnect(object new_link)
 //This function is called when we die :-)
 void die()
 {
-/* Unavoidable historical problem.  I originally spec'ed die() as the function
- * that got called when you died; i.e. it does whatever else needs to be done
- * that the combat code hasn't already taken care of.
- *
- * Unfortunately, at some later date, someone decided that @ .me->die() should
- * kill you, which is incompatible with the first definition.  Of course, they
- * quickly found out that this leaves you only half dead or so, since only the
- * extra stuff gets done.
- *
- * Some really clever person put a 'set_hp(0)' in here to fix that.  This
- * tells the combat code to kill us.  Unfortunately, that means die() gets
- * called *again*, resulting in this function running twice.
- *
- * In order to be compatible with both abu^H^H^Huses, the following check
- * asks the combat code if it considers use dead already.  If we aren't
- * dead, we ask the combat code to kill us.  If we were called by the
- * combat code, we continue on and do the right thing.
- *
- * This fixes yet ANOTHER problem that klu^H^H^Hfeature introduced, which
- * is that calling die() in dead people isn't a NOP like it should be.
- * In that case, we now call the combat code to kill us, which notices
- * we are already dead, and correctly does nothing.
- */
-   if (!query_ghost()) {
-       set_hp(0);
-       return;
-   }
+    /* Unavoidable historical problem.  I originally spec'ed die() as the function
+     * that got called when you died; i.e. it does whatever else needs to be done
+     * that the combat code hasn't already taken care of.
+     *
+     * Unfortunately, at some later date, someone decided that @ .me->die() should
+     * kill you, which is incompatible with the first definition.  Of course, they
+     * quickly found out that this leaves you only half dead or so, since only the
+     * extra stuff gets done.
+     *
+     * Some really clever person put a 'set_hp(0)' in here to fix that.  This
+     * tells the combat code to kill us.  Unfortunately, that means die() gets
+     * called *again*, resulting in this function running twice.
+     *
+     * In order to be compatible with both abu^H^H^Huses, the following check
+     * asks the combat code if it considers use dead already.  If we aren't
+     * dead, we ask the combat code to kill us.  If we were called by the
+     * combat code, we continue on and do the right thing.
+     *
+     * This fixes yet ANOTHER problem that klu^H^H^Hfeature introduced, which
+     * is that calling die() in dead people isn't a NOP like it should be.
+     * In that case, we now call the combat code to kill us, which notices
+     * we are already dead, and correctly does nothing.
+     */
+    if (!query_ghost()) {
+	set_hp(0);
+	return;
+    }
 
     if ( wizardp(link) )
     {
@@ -516,6 +518,8 @@ nomask object query_body()
 
 /* verb interaction */
 mixed indirect_give_obj_to_liv(object ob, object liv) {
+    if( previous_object() == liv && ob->is_in( liv )) 
+	return "You already have that.";
     return 1;
 }
 

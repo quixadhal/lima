@@ -1,5 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+/* Renamed and placed out of commission by Vette on April 18, 1997
+   This file is replaced by /cmds/player/buy.c
+   The parsing in the new buy cannot be done by a verb, or
+   so stated by Darklord
+*/
+
 inherit VERB_OB;
 
 void do_buy_obj_from_liv(object ob, object liv) {

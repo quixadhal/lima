@@ -3,6 +3,12 @@
 inherit WEAPON;
 inherit M_LIGHTABLE;
 
+
+int is_flame()
+{
+    return 1;
+}
+
 void mudlib_setup()
 {
     ::mudlib_setup();

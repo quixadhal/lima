@@ -12,7 +12,6 @@ inherit M_REGEX;
 
 void setup()
 {
-    object sword;
 
     set_name("Guildmaster");
     set_proper_name("The Guildmaster");
@@ -24,9 +23,8 @@ void setup()
     set_max_hp(10);
     set_which_guild( "fighter" );
 
-    sword = new("/domains/std/objects/sword");
-    sword->move(this_object());
-    do_wield(sword);
+    set_wielding("/domains/std/objects/sword");
+    set_wearing("/domains/std/objects/platemail");
 }
 
 void receive_outside_msg(string str)

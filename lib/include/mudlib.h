@@ -40,6 +40,7 @@
 ** DOOR		doors to places
 ** SECRET_DOOR        secret doors.
 ** LIVING	can hold things and perform actions (no fighting)
+** PAPER      paper .. WFW
 ** STOCK_MASTER  stock guildmaster for stock muds :)
 ** RACE		a race-modified body
 ** COINS	a bunch of coins
@@ -86,6 +87,7 @@
 ** M_VALUABLE	items that are valuable (have value)
 ** M_MOUNTABLE
 ** M_ENTERABLE
+** M_FLOW_ROOM
 ** M_GUILD_MASTER	act as a "guild master"
 ** M_SIBLING          objects that exist in two rooms;
 **
@@ -166,7 +168,7 @@
 #define COMPLEX_CONTAINER	"/std/complex_container"
 #define DOOR			"/std/door"
 #define SECRET_DOOR             "/std/secret_door"
-#define FLAME                               "/std/flame.c"
+#define FLAME			"/std/flame"
 #define HIDDEN_DOOR             "/std/hidden_door"
 #define FOOD                    "/std/food"
 #define FURNITURE		"/std/furniture"
@@ -177,12 +179,18 @@
 #define MONSTER			"/std/monster"
 #define MOUNT			"/std/mount"
 #define OBJ 			"/std/object"
+#define PAPER                  "/std/paper"
+#define PARAM_OBJ		"/std/param_obj"
 #define RACE			"/std/race"
 #define SIGN                    "/std/sign"
 #define SPELL			"/std/spell"
 #define STOCK_MASTER            "/std/stock_master"
 #define VERB_OB			"/std/verb_ob"
+#define NVERB_OB		"/std/nverb_ob"
 #define WEAPON			"/std/weapon"
+
+/* used by the OBJ object */
+#define M_OBJ_ATTRIBUTES	"/std/object/attributes"
 
 /* for mudlib objects */
 #define M_ANSI          	"/std/modules/m_ansi"
@@ -213,6 +221,7 @@
 #define M_DIGGABLE		"/std/modules/m_diggable"
 #define M_DIGGER		"/std/modules/m_digger"
 #define M_ENTERABLE		"/std/modules/m_enterable"
+#define M_FLOW_ROOM		"/std/modules/m_flow_room"
 #define M_GETTABLE		"/std/modules/m_gettable"
 #define M_GUILD_MASTER          "/std/modules/m_guild_master"
 #define M_KNOCKABLE		"/std/modules/m_knockable"
@@ -268,6 +277,7 @@
 #define MAILER_DIR		"/obj/secure/mailers"
 #define MAILER			MAILER_DIR "/mailer"
 #define SOCKET			"/obj/secure/socket"
+#define BOARD_OB		"/obj/mudlib/board"
 
 #define SHELL		 	"/obj/secure/shell"
 #define M_ALIAS			"/obj/secure/shell/alias"
@@ -285,6 +295,7 @@
 #define BOOK			"/std/book"
 #define COINS			"/std/coins"
 #define LADDER			"/std/ladder"
+#define LANTERN                 "/std/lantern"
 #define PORTAL			"/std/portal"
 #define STAIRS			"/std/stairs"
 #define SWORD			"/std/sword"

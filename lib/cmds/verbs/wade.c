@@ -1,14 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-** get.c
-**
-*/
-
-#include <mudlib.h>
-#include <move.h>
-#include <setbit.h>
-
 inherit VERB_OB;
 
 void do_wade()

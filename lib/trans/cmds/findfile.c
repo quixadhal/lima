@@ -1,5 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Find a file
+// Syntax: findfile [name]
+
 inherit CMD;
 
 #define ITERS_PER_CALL	2

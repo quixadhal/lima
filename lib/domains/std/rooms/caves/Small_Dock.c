@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit ROOM;
+inherit INDOOR_ROOM;
 
 void setup() 
 { 
@@ -9,10 +9,7 @@ void setup()
     set_area("pirate");
     set_brief("Small dock");
 
-    set_long("The river cuts through the north wall of this cave, and wanders "
-      "through an opening in the east wall.  A rotting wooden dock "
-      "suggests that at one point this cave was likely a secret port, "
-      "perhaps for pirates.\n");
+  set_long("The river cuts through the north wall of this cave, and wanders through an opening in the east wall.  A rotting wooden dock  suggests that at one point this cave was likely a secret port, perhaps for pirates.");
     set_light(0);
     set_exits( ([
 	"north" : river,

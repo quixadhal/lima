@@ -4,19 +4,19 @@
 
 */
 
-#include <mudlib.h>
-#include <setbit.h>
-
 inherit VERB_OB;
 
-string can_molest_obj(object ob) {
-    if (ob && ob->is_living())
-        return "Now, now.  Play nice.\n";
-    else
-        return "What an <ahem> strange idea.\n";
+mixed direct_molest_liv( object liv )
+{
+    return "Now, now.  Play nice.\n";
+}
+
+mixed direct_molest_obj( object ob )
+{
+    return "What an <ahem> strange idea.\n";
 }
 
 array query_verb_info()
 {
-    return ({ ({ "OBJ" }) });
+    return ({ ({ "OBJ", "LIV" }) });
 }

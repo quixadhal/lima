@@ -210,7 +210,7 @@ nomask class command_info array module_commands() {
 	    proto : "[name]",
 	    args : ({ "Who should be de-wizzed? " }),
 	    action : (: receive_name_for_dewiz :),
-	    desc : "dewiz a suer"),
+	    desc : "dewiz a user"),
 #ifdef USE_WIZ_POSITION
 	new(class command_info,
 	    key : "p",

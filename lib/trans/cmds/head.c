@@ -1,6 +1,8 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-// The specification is: tail file *
+//:COMMAND
+// Prints out the top few lines of a file
+// The specification is: head file *
 // We will recieve: ({ array of file names })
 
 #include <mudlib.h>

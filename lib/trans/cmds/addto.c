@@ -1,5 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
 // >> makes this command a bit obsolete, so it's not updated to use |
 
 #include <mudlib.h>

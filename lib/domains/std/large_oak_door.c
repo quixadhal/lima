@@ -2,6 +2,7 @@
 
 inherit HIDDEN_DOOR;
 
+
 void update_sibling()
 {
     object sibling = get_sibling();
@@ -40,6 +41,5 @@ void setup(string dir)
     set_long("It is about 10 feet tall, and very beautiful.");
     add_hook( "open", (: do_on_open :));
     add_hook( "close", (: do_on_close :));
-    set_closed(1);
     setup_door("large oak door", dir);
 }

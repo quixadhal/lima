@@ -5,7 +5,6 @@ inherit M_BLOCKEXITS;
 inherit M_ACTIONS;
 
 void setup() {
-    object sword;
 
     set_name("Bill");
     set_id("troll", "bill");
@@ -18,7 +17,5 @@ void setup() {
     add_block("north");
     set_block_action("$N1 $v1try to go $o, but $N $vblock $p1 path.\n");
 
-    sword = new("/domains/std/objects/sword");
-    sword->move(this_object());
-do_wield(sword);
+    set_wielding("/domains/std/objects/sword");
 }

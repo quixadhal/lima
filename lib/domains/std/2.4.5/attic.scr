@@ -12,7 +12,7 @@ exits=
 end
 long=
   This is the attic above the church.\n
-  There is a door to the west.
+  There is a door to the west.$lamp
 end
 state[lamp_on]=\nThe lamp beside the elevator is lit.\n
 can_go_west:

@@ -10,7 +10,6 @@
 ** library, but I think this is probably a better place for it.
 */
 
-#include <mudlib.h>
 #include <log.h>
 
 #define DEFAULT_HISTORY_BUFFER_SIZE	20
@@ -23,7 +22,7 @@ private static string* history = ({});
 private static int buffer_size = DEFAULT_HISTORY_BUFFER_SIZE;
 private static int array_index;
 private static int command_number;
-    
+
 
 // Returns a string or -1 if the item is no longer in your history
 
@@ -105,7 +104,7 @@ add_history_item(string item)
 static int 
 get_buffer_size()
 {
-  return buffer_size;
+    return buffer_size;
 }
 
 //:FUNCTION get_command_number
@@ -137,7 +136,7 @@ get_ordered_history()
 
     return history[array_index..] + history[0..(array_index-1)];
 }
-	
+
 
 private void
 set_history(string* h)
@@ -151,14 +150,14 @@ private
 void
 allocate_history_buffer()
 {
-  string* old_buffer;
-  old_buffer = get_ordered_history();
-  if(buffer_size != -1)
-  {
-      history = allocate(buffer_size);
-  }
-//  if(old_buffer)
-//     set_history(old_buffer);
+    string* old_buffer;
+    old_buffer = get_ordered_history();
+    if(buffer_size != -1)
+    {
+	history = allocate(buffer_size);
+    }
+    //  if(old_buffer)
+    //     set_history(old_buffer);
 }
 
 
@@ -167,16 +166,16 @@ allocate_history_buffer()
 static int
 set_history_buffer_size(int s)
 {
-  if(!intp(s) || s < -1)
+    if(!intp(s) || s < -1)
 	error("bad argument to set_history_buffer_size");
-  buffer_size = s;
-  allocate_history_buffer();
+    buffer_size = s;
+    allocate_history_buffer();
 }
 
 void 
 create()
 {
-  if (!sizeof(history))
+    if (!sizeof(history))
 	allocate_history_buffer();
 }
 
@@ -204,61 +203,63 @@ pattern_history_match(string rgx)
 static void 
 display_history()
 {
-  int i,j;
-  mixed h = get_ordered_history();
-  for(i=command_number-sizeof(h)+1, j=0; i <= command_number; i++,j++)
-    printf("%d\t%s\n", i, h[j]);
+    int i,j;
+    mixed h = get_ordered_history();
+    for(i=command_number-sizeof(h)+1, j=0; i <= command_number; i++,j++)
+	printf("%d\t%s\n", i, h[j]);
 }
-      
-  
+
+
 static string
 history_command(mixed input)
 {
-  int cmdnumber;
-  int lastcmdnum = command_number;
+    int cmdnumber;
+    int lastcmdnum = command_number;
 
-  if(arrayp(input))
+    if(arrayp(input))
     {
-      input = chr(HISTORY_CHAR) + implode(input[1..], " ");
+	input = chr(HISTORY_CHAR) + implode(input[1..], " ");
     }
 
-  switch(strlen(input))
+    switch(strlen(input))
     {
     case 1:
-      display_history();
-      return 0;
+	display_history();
+	return 0;
     case 2:
-      if(input[1] == HISTORY_CHAR)
+	if(input[1] == HISTORY_CHAR)
 	{
-	  if(!lastcmdnum)
+	    if(!lastcmdnum)
 	    {
-	      write("Invalid history item.\n");
-	      return 0;
+		write("Invalid history item.\n");
+		return 0;
 	    }
-	return get_nth_item(lastcmdnum);
+	    return get_nth_item(lastcmdnum);
 	}
     default:
-      if(sscanf(input[1..],"%d", cmdnumber))
+	if( sscanf( input[1..], "%d", cmdnumber ))
 	{
-	  if(cmdnumber < 1 || cmdnumber >= command_number ||
-	     (input = get_nth_item(cmdnumber)) == -1)
+	    if( cmdnumber < 0 )
+		cmdnumber = command_number + cmdnumber + 1;
+	    if(cmdnumber < 1 || cmdnumber > command_number ||
+	      (input = get_nth_item(cmdnumber)) == -1)
 	    {
-	      write("History index out of range.\n");
-	      return 0;
+		write("History index out of range.\n");
+		return 0;
 	    }
-	  return input;
+	    return input;
 	}
 
-      if(!input=pattern_history_match(input[1..]))
+	if(!input=pattern_history_match(input[1..]))
 	{
-	  write("No pattern matches found.\n");
-	  return 0;
+	    write("No pattern matches found.\n");
+	    return 0;
 	}
 
-      return input;
+	return input;
     }
 }
-       
+
 nomask mixed
 query_history()
 {
@@ -269,14 +270,14 @@ query_history()
 	if ( ob )
 	{
 	    string msg = sprintf("%s read the history of %s\n",
-				 this_user()->query_userid(),
-				 ob->query_userid());
+	      this_user()->query_userid(),
+	      ob->query_userid());
 
 	    LOG_D->log(LOG_SNOOP, msg);
 
 	    if ( adminp(ob) )
 		ob->receive_private_msg(sprintf("%s has just read your history!\n",
-						this_body()->query_name()));
+		    this_body()->query_name()));
 	}
 
 	return get_ordered_history();
@@ -285,7 +286,7 @@ query_history()
 
 static void cmd_history(string input)
 {
-  mixed stuff = history_command(input);
-  if(stuff)
-    shell_input(stuff);
+    mixed stuff = history_command(input);
+    if(stuff)
+	shell_input(stuff);
 }

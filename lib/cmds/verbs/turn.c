@@ -2,11 +2,9 @@
 
 inherit VERB_OB;
 
-int do_turn_obj(object ob1)
+void do_turn_obj(object ob)
 {
-
-    if(!ob1->turn()) 
-      return 0;
+    ob->turn();
 }
 
 array query_verb_info()

@@ -155,7 +155,7 @@ int clean_up(int instances)
     return destruct_if_useless();
 }
 
-void on_clone()
+void on_clone( mixed array args... )
 {
 }
 

@@ -8,7 +8,6 @@ void setup() {
     set_id("workroom");
 
     set_long("Your workroom sits patiently in your home directory, waiting for you to enter it.  Although not well known by most of the LPmud community, the 'home' command is simply a slick user interface invented very early on in LPmud history.  Workrooms are actually entered by opening them.");
-    set_closed(1);
     set_droppable("It doesn't seem to want to leave your directory.");
 }
 

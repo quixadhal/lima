@@ -18,6 +18,11 @@ private void main( string  arg )
       out("You can only beep players.\n");
       return;
     }
+if (who->query_link()->query_shell_ob()->get_variable("no_beep"))
+    {
+        write("Sorry that person does not want to be beeped.\n");
+        return;
+    }
   this_body()->inform( ({ this_body(), who }), action( ({this_body(), who }), "$N0 $vbeep $t.\n" + chr(7))
 		      );
   return;

@@ -13,7 +13,7 @@
 
 inherit OBJ;
 
-private int max_capacity = 10;
+private int max_capacity = LARGE;
 private static int capacity;
 private mapping objects;
 private string main_prep = "in";
@@ -154,14 +154,14 @@ string look_in( string relation )
 
     inv = inv_list(all_inventory());
     if ( !inv )
-	inv = "  nothing";
+	inv = "  nothing\n";
 
-    return (sprintf( "%s %s you see: \n%s\n",
-	capitalize(main_prep), short(),
+    return (sprintf( "%s %s you see: \n%s",
+	capitalize(main_prep), a_short(),
 	inv ));
 }
 
-void set_hide_contents( int hide )
+varargs void set_hide_contents( int hide )
 {
     hide_contents = hide;
     if( hide )
@@ -304,14 +304,14 @@ void make_objects_if_needed()
 	num -= tally;
 	for (int j = 0; j < num; j++)
 	{
-	    object ob = new(file, rest...);
+	    object ob = new(evaluate_path(file), rest...);
 	    if (!ob) error("Couldn't find file '" + file + "' to clone!\n");
 	    ret = ob->move(this_object(), "#CLONE#");
 	    if ( ret != MOVE_OK )
 	    {
 		error("Initial clone failed for '" + file +"': " + ret + "\n");
 	    }
-         ob->on_clone();
+	    ob->on_clone( rest... );
 	}
     }
 }
@@ -358,8 +358,7 @@ int can_put_in() {
 //:FUNCTION introduce_contents
 //returns a string appropriate for introduction the contents of an object
 //in room descriptions.
-varargs string
-introduce_contents(string prep) {
+varargs string introduce_contents(string prep) {
     if (!prep)
 	prep = main_prep;
     switch (prep) {
@@ -479,18 +478,22 @@ mixed indirect_get_obj_from_obj(object ob1, object ob2) {
     }
 
     if (!(tmp = ob1)) return 1;
-    
+
     while (tmp = environment(tmp)) {
 	if (tmp == ob2) break;
     }
     if (!tmp) return capitalize(ob1->the_short()) + " is not " + main_prep + " " + the_short()+ "\n";
-    
+
     return 1;
 }
 
 mixed direct_look_str_obj(string prep, object ob) {
     if (valid_prep(prep))
-	return 1;
+    {
+	if( (prep == "in" || prep == "into" || prep = "inside" ) && this_object()->query_closed())
+	    return  "It is closed.";
+	else return 1;
+    }
     return "There is nothing " + prep + " " + the_short() + ".\n";
 }
 

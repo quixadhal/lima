@@ -393,7 +393,6 @@ void enqueue_message(class mail_msg msg)
 {
   mapping		remote_info;
   string		mudName;
-  string		array	remoteUsers;
   int			myMsgId;
 
   if (previous_object() != find_object(MAIL_D))
@@ -411,7 +410,7 @@ void enqueue_message(class mail_msg msg)
   myMsgId = nextMsgId++;
   msg->dels_pending = sizeof(remote_info);
   internal_queue[myMsgId] = msg;
-  foreach (mudName, remoteUsers in remote_info)
+  foreach ( mudName in keys(remote_info) )
     {
       class outgoing_info 	myInfo;
 

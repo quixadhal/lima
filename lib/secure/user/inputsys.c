@@ -10,7 +10,7 @@
 ** 95-May-20.  Rust.        Added char mode support.
 ** 95-Jul-20.  Rust. 	Added clear_input_stack for sw_user.c 's benefit.
 ** 95-Jul-20.  Beek.    Modified clear_input_stack to be more robust and
-                        to allow objects to clean up
+			to allow objects to clean up
 ** 95-Jul-20.  Beek.    Prompts can be strings as well as functions
 */
 
@@ -50,8 +50,8 @@ private nomask int create_handler()
     if ( !sizeof(modal_stack) )
     {
 	write("Sorry, but I can't process your typing for some reason.\n"
-	      "Please log in and try again or send mail to " ADMIN_EMAIL "\n"
-	      "if you continue to have problems.\n");
+	  "Please log in and try again or send mail to " ADMIN_EMAIL "\n"
+	  "if you continue to have problems.\n");
 	destruct(this_object());
 	return 1;
     }
@@ -118,11 +118,11 @@ private nomask class input_info get_bottom_handler()
 ** necessary to accomodate the new element.
 */
 private nomask void push_handler(function input_func,
-				 mixed prompt,
-				 int secure,
-				 function return_to_func,
-				 int input_type
-				 )
+  mixed prompt,
+  int secure,
+  function return_to_func,
+  int input_type
+)
 {
     class input_info info;
 
@@ -154,13 +154,13 @@ private nomask void push_handler(function input_func,
 ** on the stack.
 */
 varargs nomask void modal_push(function input_func,
-			       mixed prompt,
-			       int secure,
-			       function return_to_func
-			       )
+  mixed prompt,
+  int secure,
+  function return_to_func
+)
 {
     push_handler(input_func, prompt, secure, return_to_func,
-		 INPUT_NORMAL);
+      INPUT_NORMAL);
 }
 
 nomask void modal_pop()
@@ -170,10 +170,10 @@ nomask void modal_pop()
     /*
     ** Erase/pop the handler at the top level
     */
-//### work around driver bug with [0..<2] on alphas. it doesn't
-//### work for the last element
-if (sizeof(modal_stack)==1) modal_stack=({ }); else
-    modal_stack = modal_stack[0..<2];
+    //### work around driver bug with [0..<2] on alphas. it doesn't
+    //### work for the last element
+    if (sizeof(modal_stack)==1) modal_stack=({ }); else
+	modal_stack = modal_stack[0..<2];
 
     /*
     ** If there is something in the stack, then execute its return_to_func
@@ -267,7 +267,7 @@ private nomask void dispatch_to_bottom(mixed str) {
 	return;
 
     dispatching_to = 0;
-    
+
     evaluate(info->input_func, str);
 }
 
@@ -333,18 +333,18 @@ private nomask string process_input(string str)
 */
 nomask void force_me(string str)
 {
-    class input_info info;
     object save_this_user = this_user();
 
     /*
     ** If this user has a privilege, then allow forces only from self or
     ** an admin.
     */
-    if ( query_privilege() && !check_privilege(query_userid() + ":") )
-	error("Illegal force attempt.\n");
-//### prevents an admin from forcing themselves. need to think...
-//    if ( adminp(this_object()) )
-//        error("illegal force attempt.\n");
+    if (SECURE_D->valid_privilege(query_userid() + ":"))
+	if ( query_privilege() && !check_privilege(query_userid() + ":") )
+	    error("Illegal force attempt.\n");
+	//### prevents an admin from forcing themselves. need to think...
+	//    if ( adminp(this_object()) )
+	//        error("illegal force attempt.\n");
 
     set_this_player(this_object());
     dispatch_to_bottom(str);
@@ -368,16 +368,16 @@ static nomask void clear_input_stack()
     while (sizeof(modal_stack))
     {
 	if (catch {
-	    top = get_top_handler(1);
-	    modal_pop();
-            evaluate(top->input_func, -1);
-	}) {
-	    write_file("/tmp/bad_handler",
-		       sprintf("Error in input_func(-1):\n\tinput_func: %O\n\tprompt: %O\n", top->input_func, top->prompt));
-	}
+	      top = get_top_handler(1);
+	      modal_pop();
+	      evaluate(top->input_func, -1);
+	    }) {
+	      write_file("/tmp/bad_handler",
+		sprintf("Error in input_func(-1):\n\tinput_func: %O\n\tprompt: %O\n", top->input_func, top->prompt));
+	  }
+      }
     }
-}
-nomask int modal_stack_size()
-{
-    return sizeof(modal_stack);
-}
+    nomask int modal_stack_size()
+    {
+	return sizeof(modal_stack);
+    }

@@ -1,5 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Repeats a command # of times
+// Usage:  times <#> <command>
+
 // Rust/Belboz
 
 #include <mudlib.h>

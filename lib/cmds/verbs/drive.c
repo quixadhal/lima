@@ -8,7 +8,7 @@
 ** 951123, Deathblade: created
 */
 
-inherit VERB_OB;
+inherit NVERB_OB;
 
 //###should be shared somehow with go.c
 string array normal_dirs = ({ "north", "south", "east", "west", "northwest", "northeast", "southwest", "southeast" });
@@ -66,7 +66,7 @@ void do_drive_obj_str(object o, string str)
 }
 
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "STR", "OBJ", "OBJ STR" }) });
+    add_rules( ({ "STR", "OBJ", "OBJ STR" }) );
 }

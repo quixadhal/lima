@@ -77,7 +77,7 @@ mixed wade(string str)
     case "surf":
     case "ocean":
 	// The "(wade)" is the exit name passed, which is used by set_exit_msg()
-	this_body()->move_to(__DIR__ "outside_cave", "(wade)");
+	this_body()->move_to(__DIR__ "Outside_Cave", "(wade)");
 	QUEST_D->grant_points(this_body(),"pirate:foundCave");
 	return 1;
 

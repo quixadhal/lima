@@ -39,15 +39,15 @@ private void main(string which)
 
     if ( data["STR"] )
     {
-	info = SOUL_D->get_soul(which, "STR", ({ "slowly" }));
-	outf("%s slowly :\n     You'll see: %sOthers will see: %s\n",
+	info = SOUL_D->get_soul(which, "STR", ({ "______" }));
+	outf("%s ______ :\n     You'll see: %sOthers will see: %s\n",
 	       which, info[1][0], info[1][1]);
     }
 
     if ( data["LIV STR"] )
     {
-	info = SOUL_D->get_soul(which, "LIV STR", ({ this_object(), "slowly" }));
-	outf("%s somebody slowly :\n     You'll see: %sTarget will see: %sOthers will see: %s\n",
+	info = SOUL_D->get_soul(which, "LIV STR", ({ this_object(), "______" }));
+	outf("%s somebody ______ :\n     You'll see: %sTarget will see: %sOthers will see: %s\n",
 	       which, info[1][0], info[1][1], info[1][2]);
     }
 }

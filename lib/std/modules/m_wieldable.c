@@ -13,9 +13,12 @@
 ** 961216, Deathblade: added related skill for the weapon.
 */
 
+#include <flags.h>
+
 inherit M_DAMAGE_SOURCE;
 
 void hook_state(string, mixed, int);
+void assign_flag(int which, int state);
 
 static function move_hook = (: unwield_me :);
 
@@ -32,12 +35,14 @@ string query_wield_message()
 
 string query_unwield_message()
 {
-   return "$N $vunwield a $o.\n";
+    return "$N $vunwield a $o.\n";
 }
 
 void mark_wielded_by(object which)
 {
-    hook_state("extra_short", "wielded", which && which != this_object());
+//### this needs to be rationalized w.r.t. M_DAMAGE_SOURCE
+    assign_flag(F_WIELDED, which && which != this_object());
+
     hook_state("move", move_hook, which && which != this_object());
 
     m_damage_source::mark_wielded_by(which);
@@ -50,8 +55,9 @@ mixed ob_state()
 
 void do_remove()
 {
-   unwield_me();
+    unwield_me();
 }
+
 int direct_wield_obj()
 {
     object who = owner(this_object());
@@ -68,5 +74,6 @@ int direct_remove_obj()
 
     if(who && who != this_body())
       return 0;
-  return 1;
+
+    return 1;
 }

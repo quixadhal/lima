@@ -1,0 +1,24 @@
+Bulletin Boards allow reading, posting, and replying of news messages
+aruond the mud.  It works in conjunction with the newsreader.
+
+Some boards may be used with only a single newsgroup and others
+may allow switching to different newsgroups.
+
+
+Typical commands for use with the boards:
+
+look at board		- Gives a review of all messages on the board.
+read about <id>		- Reads the post numbered <id>
+read about next         - Reads the next unread post
+post about <str>        - Makes a new post with subject <str>
+post followup to <id>	- Post a followup to post # <id>
+post followup with <id> - Post a followup to post # <id> with included message
+remove <id>		- Remove the post numbered <id>
+answer to <id>		- Send a reply to post # <id>
+switch to <newsgroup>   - Switch the board to another newsgroup (if it is
+			  switchable...)
+switch to next          - Switch to next unread newsgroup
+
+Most verbs also accept an 'on <board>' clause to support more than one board
+in one room.
+

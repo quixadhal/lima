@@ -48,6 +48,7 @@
 /include/colour_conf.h
 /include/bodyslots.h
 /include/clean_up.h
+/include/verbs.h
 /std
 /std/body.c
 /std/object.c
@@ -70,6 +71,7 @@
 /std/body/start.c
 /std/body/wiz_position.c
 /std/body/status_line.c
+/std/body/simple_exp.c
 /std/README
 /std/base_obj.c
 /std/room
@@ -99,6 +101,7 @@
 /std/object/names.c
 /std/object/vsupport.bak
 /std/object/msg_recipient.c
+/std/object/attributes.c
 /std/container.c
 /std/coins.c
 /std/sign.c
@@ -121,6 +124,10 @@
 /std/monster/non_heart_beat.c
 /std/monster/target.c
 /std/monster/wield.c
+/std/monster/mon_level.c
+/std/monster/mon_races.c
+/std/monster/teams.c
+/std/monster/wear.c
 /std/verb_ob.c
 /std/race.c
 /std/armor.c
@@ -151,7 +158,6 @@
 /std/modules/m_enterable.c
 /std/modules/m_gettable.c
 /std/modules/m_aggressive.c
-/std/modules/m_vendor.c
 /std/modules/m_switchable.c
 /std/modules/m_grammar.c
 /std/modules/contrib
@@ -175,8 +181,9 @@
 /std/modules/m_searchable.c
 /std/modules/m_drink_container.c
 /std/modules/m_drinkable.c
-/std/modules/m_wearable.zakk.c
+/std/modules/m_vendor.c
 /std/modules/m_conversation.c
+/std/modules/m_flow_room.c
 /std/key.c
 /std/classes
 /std/classes/newsmsg.c
@@ -205,7 +212,7 @@
 /std/spell.c
 /std/vehicle.c
 /std/flame.c
-/std/stairs.bak
+/std/nverb_ob.c
 /std/hidden_door.c
 /std/furniture.c
 /std/container
@@ -218,6 +225,9 @@
 /std/secret_door.c
 /std/guild_guard.c
 /std/moving_room.c
+/std/param_obj.c
+/std/lantern.c
+/std/paper.c
 /data
 /data/M
 /data/players
@@ -257,6 +267,7 @@
 /data/daemons/group.o
 /data/daemons/money.o
 /data/daemons/ansi.o
+/data/daemons/guest.o
 /data/links
 /data/links/r
 /data/links/a
@@ -396,14 +407,12 @@
 /cmds/wiz/stupidemote.c
 /cmds/wiz/targetemote.c
 /cmds/wiz/users.c
-/cmds/wiz/beep.c
 /cmds/wiz/timer.c
 /cmds/wiz/print.c
 /cmds/wiz/profile.c
 /cmds/wiz/socketinfo.c
 /cmds/wiz/Cmd_rules
 /cmds/wiz/which.c
-/cmds/wiz/wh.c
 /cmds/wiz/parse.c
 /cmds/wiz/verbs.c
 /cmds/wiz/showtree.c
@@ -427,6 +436,10 @@
 /cmds/wiz/flist.bak
 /cmds/wiz/uncd.c
 /cmds/wiz/null.old.c
+/cmds/wiz/where.bak
+/cmds/wiz/echom.c
+/cmds/wiz/emotem.c
+/cmds/wiz/beep.c.sucks
 /cmds/README
 /cmds/player
 /cmds/player/help.c
@@ -484,9 +497,11 @@
 /cmds/player/skills.c
 /cmds/player/inventory.c
 /cmds/player/suicide.c
+/cmds/player/list.c
 /cmds/player/feedback.c
 /cmds/player/colours.c
 /cmds/player/random2.c
+/cmds/player/buy.c
 /cmds/verbs
 /cmds/verbs/xyzzy.c
 /cmds/verbs/smell.c
@@ -507,7 +522,7 @@
 /cmds/verbs/move.c
 /cmds/verbs/wait.c
 /cmds/verbs/curse.c
-/cmds/verbs/bite.c
+/cmds/verbs/TOFIX
 /cmds/verbs/search.c
 /cmds/verbs/press.c
 /cmds/verbs/wear.c
@@ -529,7 +544,7 @@
 /cmds/verbs/enter.c
 /cmds/verbs/write.c
 /cmds/verbs/sell.c
-/cmds/verbs/buy.c
+/cmds/verbs/eat.c
 /cmds/verbs/climb.c
 /cmds/verbs/light.c
 /cmds/verbs/extinguish.c
@@ -553,6 +568,10 @@
 /cmds/verbs/ring.c
 /cmds/verbs/pick.c
 /cmds/verbs/talk.c
+/cmds/verbs/answer.c
+/cmds/verbs/post.c
+/cmds/verbs/switch.c
+/cmds/verbs/buy.old.c
 /cmds/create
 /cmds/create/Cmd_rules
 /cmds/create/newroom.c
@@ -599,7 +618,6 @@
 /help/player/bin/menu
 /help/player/bin/mudlist
 /help/player/bin/news
-/help/player/bin/pipe
 /help/player/bin/save
 /help/player/bin/score
 /help/player/bin/feedback
@@ -613,6 +631,7 @@
 /help/player/bin/emotions
 /help/player/bin/random
 /help/player/bin/question
+/help/player/bin/xargs
 /help/player/help
 /help/player/topics
 /help/player/commands
@@ -631,6 +650,8 @@
 /help/player/quests
 /help/player/quests/quests
 /help/player/quests/pirate
+/help/player/boards
+/help/player/board
 /help/admin
 /help/admin/topics
 /help/admin/telnet
@@ -832,6 +853,8 @@
 /help/autodoc/FIXME
 /help/autodoc/modules
 /help/autodoc/examples
+/help/autodoc/todo
+/help/autodoc/lima
 /help/hints
 /help/hints/Pirate_Quest
 /help/hints/Pirate_Quest/Sandy_Beach
@@ -871,7 +894,6 @@
 /daemons/group_d.c
 /daemons/guild_d.c
 /daemons/README
-/daemons/http_d.c
 /daemons/money_d.c
 /daemons/imud_d.c
 /daemons/channel
@@ -889,7 +911,7 @@
 /daemons/memcheck_d.c
 /daemons/birthday_d.c
 /daemons/ansi_d.c
-/daemons/news_d.bak
+/daemons/guest_d.c
 /domains
 /domains/std
 /domains/std/Attic.c
@@ -901,8 +923,7 @@
 /domains/std/camera/picture.c
 /domains/std/camera/button.c
 /domains/std/Relations_And_Toys.c
-/domains/std/safe.c
-/domains/std/example_scroll.c
+/domains/std/web.c
 /domains/std/Lava_Room.c
 /domains/std/camera.c
 /domains/std/Car_Wash.c
@@ -934,7 +955,6 @@
 /domains/std/attic/beekjr.c
 /domains/std/Quiet_Room.c
 /domains/std/genius.c
-/domains/std/skeleton_key.c
 /domains/std/scarf.c
 /domains/std/large_oak_door.c
 /domains/std/Monster_Room.c
@@ -976,6 +996,7 @@
 /domains/std/rooms/labyrinth
 /domains/std/rooms/labyrinth/0,0.c
 /domains/std/rooms/Labroom.c
+/domains/std/rooms/storage.c
 /domains/std/objects
 /domains/std/objects/rock.c
 /domains/std/objects/debris.c
@@ -1000,8 +1021,8 @@
 /domains/std/objects/sword.c
 /domains/std/objects/ocean.c
 /domains/std/objects/gate.c
-/domains/std/objects/door.c
 /domains/std/objects/rock_wall.c
+/domains/std/objects/portable_board.c
 /domains/std/camaro.c
 /domains/std/Search_Room.c
 /domains/std/table.c
@@ -1271,7 +1292,7 @@
 /domains/std/2.4.5/tmp_tmp_giant_conf_1_0.scr
 /domains/std/2.4.5/tmp_tmp_giant_conf_2_0.scr
 /domains/std/2.4.5/tmp_tmp_plane9_0_0.scr
-/domains/std/magic_box.c
+/domains/std/chest_key.c
 /domains/std/stone.c
 /domains/std/sword_in_stone.c
 /domains/std/guild_guard.c
@@ -1296,6 +1317,8 @@
 /domains/std/cult/Foyer.c
 /domains/std/misc
 /domains/std/misc/twinkie.c
+/domains/std/chest.c
+/domains/std/dish.c
 /domains/README
 /domains/lpscript
 /domains/lpscript/wizroom.scr
@@ -1421,6 +1444,8 @@
 /obj/mudlib/TWorkroom.c
 /obj/mudlib/water.c
 /obj/mudlib/emotetool.c
+/obj/mudlib/board.c
+/obj/mudlib/ichannelt.c
 /README
 /trans
 /trans/cmds
@@ -1452,7 +1477,6 @@
 /trans/cmds/telnet.c
 /trans/cmds/dbxwhere.c
 /trans/cmds/dbxframe.c
-/trans/cmds/finger.bak
 /trans/cmds/cut.c
 /trans/cmds/head.c
 /trans/cmds/dbxfuncs.c
@@ -1479,6 +1503,10 @@
 /trans/cmds/checkpriv.c
 /trans/cmds/addpath.c
 /trans/cmds/showpath.c
+/trans/cmds/addguest.c
+/trans/cmds/removeguest.c
+/trans/cmds/whoguests.c
+/trans/cmds/diff.c
 /trans/README
 /trans/obj
 /trans/obj/addto_ob.c
@@ -1545,7 +1573,6 @@
 /contrib/nntp.c
 /contrib/boards
 /contrib/boards/board.c
-/contrib/boards/boarddata.c
 /contrib/boards/delete.c
 /contrib/boards/followup.c
 /contrib/boards/installation

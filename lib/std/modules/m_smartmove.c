@@ -17,7 +17,7 @@ string *get_player_message(string message, mixed arg);
 int test_flag(int which);
 void simple_action(string s);
 varargs string compose_message(object forwhom, string msg, object *who, 
-			       array obs...);
+  array obs...);
 
 
 private nomask int move_me_there(string dest, string arg)
@@ -99,7 +99,8 @@ private nomask int move_me_there(string dest, string arg)
     }
     else
     {
-	simple_action(txt);
+    m = compose_message( 0, txt, ({ this_object() }) );
+	tell_from_inside( last_loc, m, 0, ({ env }));
     }
 
     //### should we be adding this extra line? I think so...
@@ -195,7 +196,7 @@ int go_somewhere(string arg)
 void do_go_somewhere( string arg )
 {
     int ret = 0;
-object env = environment( this_object());
+    object env = environment( this_object());
 
     // allowed by the room itself; some sort of 'special' exit
     if( function_exists( "do_go_" + arg, env ))

@@ -1,7 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-
 inherit VERB_OB;
 
 void do_wear_obj(object ob)
@@ -12,8 +10,7 @@ void do_wear_obj(object ob)
     ob->do_wear();
 }
 
-array query_verb_info() {
+array query_verb_info()
+{
     return ({ ({ "OBJ" }), ({ "put on" }) });
 }
-
-	

@@ -30,6 +30,7 @@ int test_flag(mixed);
 
 varargs mixed call_hooks(string, mixed, mixed);
 private void resync();
+varargs string get_attributes(object ob);
 
 void create() 
 {
@@ -77,18 +78,6 @@ int query_plural()
     return plural;
 }
 
-
-string calculate_extra() {
-    //:HOOK extra_short
-    //The non-zero return values are added on to the end of the short descriptions
-    //when inv_list() is used (surrounded by parenthesis)
-    return  call_hooks("extra_short", 
-      function(string sofar, mixed this) {
-	  if (!this) return sofar;
-	  return sofar + " (" + this + ")";
-      }
-      , "");
-}
 
 private void resync() {
     if (!proper_name) {

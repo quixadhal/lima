@@ -1,5 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
 //codefor
 //By Beek - derived from eval
 
@@ -21,7 +22,6 @@ string doith(string arg);
 private void main(string str)
 {
     string tmp_file;
-    string error;
     string initial_write_to_file;
     mixed ret;
     object o;

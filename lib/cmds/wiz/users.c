@@ -5,17 +5,14 @@
  * Peregrin@ZorkMUD
  */
 
-#include <mudlib.h>
-
 inherit CMD;
 
 
 private void main()
 {
-    object* ulist;
+    object array ulist = users();
     string ustring;
 
-    ulist = users();
     if (sizeof(ulist) <= 0) {
 	out(sprintf("NO ONE LOGGED IN!!!   (not even you!)\n"));
 	return;

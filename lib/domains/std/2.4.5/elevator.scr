@@ -14,7 +14,7 @@ objects=
   obj/elevator_internal_door.scr
 end
 
-long=You are in the elevator.  There are four buttons, labeled 'church', 'attic', 'wiz hall', and 'lima'.
+long=You are in the elevator.  There are four buttons, labeled 'church', 'attic', 'wiz hall', and 'lima'.$door
 state[door_on]=\nThere is an open door to the east.\n
 state[door_off]=\nThere is an closed door to the east.\n
 

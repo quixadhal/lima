@@ -38,16 +38,15 @@ static nomask int mail_has_outgoing(string mudname)
 
 static nomask int mail_send_outgoing(string mudname, object socket)
 {
-  mixed array	requests = mail_requests[mudname];
-  mixed	array	request;
+    mixed array	requests = mail_requests[mudname];
 
-  if (!sizeof(requests))
+    if (!sizeof(requests))
     {
-      return 0;
+	return 0;
     }
 
-  oob_svc_send(socket, requests[0]);
-  mail_requests[mudname] = requests[1..];
+    oob_svc_send(socket, requests[0]);
+    mail_requests[mudname] = requests[1..];
 }
 
 static nomask void mail_startup()

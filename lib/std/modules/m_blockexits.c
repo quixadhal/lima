@@ -86,9 +86,10 @@ private mixed handle_blocks(string dir) {
 	if (block_action[0] == '#')
 	    write(block_action[1..]);
 	else
-	    targetted_action(block_action, this_body(), dir);
+	    targetted_action(block_action, this_body(), dir, this_object());
 	return 1;
     }
+write( "FOO\n");
     if(!functionp(block_action))
 	error("Blocked exit, but set_block_action() not called.\n");
     

@@ -24,7 +24,6 @@ void setup(string dir) {
     set_id("gate");
     set_adj("rusty" , "rusty gate" );
   set_long("The gate is very rusty and doesnt look like it could stop anything anymore");
-    set_closed(1);
     setup_door("rusty gate", dir);
     set_flag(ATTACHED);
 }

@@ -31,4 +31,24 @@ file calls this hook.  (E.g. "Called by /std/sword.c")
 These are put in /help/autodoc/functions/module/foo, where 'module' is the
 same as above, and 'foo' is the name of the function being documented.
 
+(6) //:TODO This needs to be done
+
+This works just like the //:### FIXME except it should be used for
+items pertaining directly to this mud.  Its purpose is to separate the
+things we WANT to do when we have extra time from the things that just
+need to be fixed.
+
+(7) //:LIMA
+    // I added blah blah to do blah blah because blah
+    // --Vette March 8, 1997
+    // (keep blank line to make these readable)
+
+These are put in /help/autodoc/lima/foo.  Works like module but
+all the comments from one file are placed into one file, thus you can
+have multiple LIMA comments in one file and they are all placed
+into only one file.
+The purpose of this tag is for you to quickly track down changes you
+made to the base mudlib for your mud.  If performed with diligence,
+will allow MUCH easier upgrades to mudlib releases.
+
 Misunderstood tags are writen to the log file specified as LOG_AUTODOC.

@@ -1,32 +1,35 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Prints out the last few lines of a file
 // The specification is: tail file *
 // We will recieve: ({ array of file names })
 
 #include <mudlib.h>
 inherit CMD;
 
-void tail(string file, int n)
+string tail(string file_contents, int n)
 {
-  out(implode(explode(read_file(file),"\n")[<n..],"\n"));
+    if ( !file_contents )
+	out("ERROR: file too large.\n");
+    else
+	out(implode(explode(file_contents, "\n")[<n..],"\n"));
 }
 
-private void main( mixed *arg, mapping flags, string stdin ) {
-  int i;
-  int n = 10;
-  if(flags["n"]) n = (to_int(flags["n"]) || 10);
-  if(stdin)
+private void main(mixed *arg, mapping flags, string stdin)
+{
+    int i;
+    int n = 10;
+
+    if ( flags["n"] )
+	n = to_int(flags["n"]) || 10;
+    if ( stdin )
     {
-      out(implode(explode(stdin,"\n")[<n..],"\n"));
-      return;
+	tail(stdin, n);
+	return;
     }
-  for (i=0; i<sizeof(arg[0]); i++) {
-    tail(arg[0][i],n);
-  }
-}
-
-int help() {
-  printf("Usage: tail [file]\n"
-    "Description: display the last lines of a file\n");
-  return 1;
+    for ( i = 0; i < sizeof(arg[0]); i++ )
+    {
+	tail(read_file(arg[0][i]), n);
+    }
 }

@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 
 inherit VERB_OB;
 inherit M_MESSAGES;
@@ -15,7 +14,7 @@ void whisper_it(object liv, string str) {
     msgs = action(who, "$N $vwhisper to $t: $o", str);
     // change other message
     msgs[2] = this_body()->query_name() + " whispers something to " 
-	      + liv->query_name() + ".";
+	      + liv->query_name() + ".\n";
     inform(who, msgs, environment(this_body()));
 }
     

@@ -1,5 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Displays info on people listening to channels
+// Admin only
+
 /*
 ** listeners.c -- displays info on people listening to channels
 **

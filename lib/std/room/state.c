@@ -14,23 +14,17 @@ string array get_room_state_info()
   return copy(room_state);
 }
 
-string get_state_specific_long()
-{
-  string retval = "";
-  mixed s;
-
-  foreach(string state in room_state)
-    {
-      if(s = room_state_extra_longs[state])
-	retval += evaluate(s)+"\n";
-    }
-  if(retval == "")
-    return "\n";
-  return retval;
-}
-
 int query_state(string state) {
     return member_array(state + "_on", room_state) != -1;
+}
+
+string query_state_desc(string state) {
+    if (member_array(state + "_on", room_state) != -1)
+	return evaluate(room_state_extra_longs[state + "_on"]) || "";
+    else if (member_array(state + "_off", room_state) != -1)
+	return evaluate(room_state_extra_longs[state + "_off"]) || "";
+    else
+	return 0; /* not a valid state */
 }
 
 void set_room_state(string state)

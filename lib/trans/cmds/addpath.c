@@ -2,7 +2,8 @@
 
 /* Created by Ranma@Koko Wa 951001 */
 
-/* This command will add a new path to your current exec path */
+//:COMMAND
+// This command will add a new path to your current exec path
 
 #include <mudlib.h>
 

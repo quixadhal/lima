@@ -2,8 +2,15 @@
 We accept code donations :-).  Several people have
 contributed code so far that will be incorporated into
 the next release of the lib.  If you have something that
-you feel would make sense in the general release, then
-feel free to upload it and send mail to "(admin)"
+you feel would make sense in the general release, or that
+you feel some other people might be interested in using:
+
+(1) ftp it to lima.mudlib.org:/muds/bean
+(2) on Lima Bean, it should appear in the /ftp directory.  Move
+    it to a directory called /open/yourname, creating that directory
+    if necessary
+(3) post a news message to lima.contrib, with a summary of what it
+    does, where it can be found, etc
 
 Any code donated will become "owned" by the Lima team,
 insofar as you relenquish a say in its usage, distribution,

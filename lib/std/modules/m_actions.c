@@ -82,7 +82,7 @@ void respond(string str) {
 static void set_actions(int chance, string *actions) {
 //### use scripts?
 #if 0
-    cmd_mode = CMD_RANDOM;
+cmd_mode = CMD_RANDOM;
     chance_or_delay = chance;
     my_actions = actions;
     start_up();

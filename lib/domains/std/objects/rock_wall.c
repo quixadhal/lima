@@ -20,39 +20,19 @@ mixed direct_close_obj()
 }
 
 
-void update_sibling()
+void trigger()
 {
-    object sibling = get_sibling();
-    // Needed for initial load ...\
-    if( !sibling )
-	return;
-
-    // Magic ...
-    if( is_open())
-	sibling->do_on_open();
-    else sibling->do_on_close();
-    ::update_sibling();
+    call_out( "open_with", 0 );
+    call_out( "close", 8 );
 }
 
-void do_on_open()
-{
-    environment( this_object())->set_room_state( "rock_wall");
-}
 
-void do_on_close()
-{
-    environment( this_object())->clear_room_state( "rock_wall");
-}
 
 void setup()
 {
-    set_id ("wall","inscription", "writing", "passage");
-    set_long( "The rock wall abruptly terminates the short passage.\n");
-    set_attached(1);
-    add_hook( "open", (: do_on_open :));
-    add_hook( "close", (: do_on_close :));
-    set_closed(1);
-    set_close_msg( "The rock slides back, blocking the passageway.\n");
-    set_open_msg( "The rock blocking the passage slides open, allowing you to exit northwards.\n");
+    set_id ("wall", "passage");
+set_long( "You are unable to quite see where it slides." );
+    set_close_msg( "The rock slides back." );
+    set_open_msg( "The rock slides open, allowing you to exit northwards.");
     setup_door("dock wall", "north");
 }

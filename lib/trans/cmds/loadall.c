@@ -1,5 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Removes and reloads all the files in a specified directory
+// Usage: loadall <dir>
+
 /* To help with conversion testing */
 #include <mudlib.h>
 inherit CMD;

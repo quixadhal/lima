@@ -128,7 +128,7 @@ string evaluate_path(string path, string prepend)
     if (!path || path[0] != '/') {
 	if (this_body())
 	    path = get_user_variable("pwd")
-		+ "/" + path;
+	    + "/" + path;
 	else if(prepend) 
 	    path = prepend + "/" + path;
 	else {
@@ -183,4 +183,19 @@ map_paths( mixed paths ){
     return res;
 }
 
+
+
+varargs string absolute_path( string relative_path, mixed relative_to )
+{
+    if( !relative_to ) relative_to = previous_object();
+    if( relative_path[0] != '/' )
+	if( objectp( relative_to ))
+	    relative_path = base_path( file_name( relative_to )) + relative_path;
+	else if ( stringp( relative_to ))
+	    relative_path = relative_to + "/" + relative_path;
+	else error( "Invalid relative_to path passed" );
+    relative_path = cannonical_form( relative_path );
+    relative_path = evaluate_path( relative_path );
+    return relative_path;
+}
 

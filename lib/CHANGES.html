@@ -1,276 +1,256 @@
 <DL>
-<DT><em>Tue Feb 11 19:12:21 1997</em>: <strong>Beek</strong>
-<DD> added a lima.advocacy group just for the hell of it<p>
-<DT><em>Wed Feb 12 23:54:43 1997</em>: <strong>Ohara</strong>
-<DD> notes that mailer no longer reports [1 of 0]<p>
-<DT><em>Thu Feb 13 00:07:51 1997</em>: <strong>Ohara</strong>
-<DD> fixed /std/modules/m_lightable to catch attempting to light an already lit thing.<p>
-<DT><em>Fri Feb 14 02:53:43 1997</em>: <strong>Deathblade</strong>
-<DD> removed lima.advocacy. Sheesh...<p>
-<DT><em>Sat Feb 15 19:22:43 1997</em>: <strong>Zifnab</strong>
-<DD> installed tigrans changes to the news_d<p>
-<DT><em>Sat Feb 15 20:45:33 1997</em>: <strong>Ohara</strong>
-<DD> put in tigran's reporter_d fix (line 144)<p>
-<DT><em>Mon Feb 17 01:10:09 1997</em>: <strong>Ohara</strong>
-<DD> notes that look for now differentiates between items carried by a living and items in a non-living container.<p>
-<DT><em>Mon Feb 17 03:01:34 1997</em>: <strong>Deathblade</strong>
-<DD> fixed a problem with "q" from some menus in the new admtool. Switched to use new admtool by default. Altered formatting of menus to not reserve space for "proto" when not needed.<p>
-<DT><em>Mon Feb 17 03:13:02 1997</em>: <strong>Deathblade</strong>
-<DD> restored /open and /tmp from our Feb 14 4:30am (PST) backup.<p>
-<DT><em>Mon Feb 17 03:51:05 1997</em>: <strong>Deathblade</strong>
-<DD> added the /domains/std/config directory and put a guild config file in it.<p>
-<DT><em>Mon Feb 17 03:52:06 1997</em>: <strong>Deathblade</strong>
-<DD> began building the Cult of Lima (an example guild). From the wizroom, 1e 2s.<p>
-<DT><em>Mon Feb 17 03:52:16 1997</em>: <strong>Deathblade</strong>
-<DD> updated the map to show the Cult.<p>
-<DT><em>Mon Feb 17 08:19:59 1997</em>: <strong>Beek</strong>
-<DD> fixed direct_read_obj() to handle objects in other people's inventories correctly<p>
-<DT><em>Mon Feb 17 18:16:15 1997</em>: <strong>Beek</strong>
-<DD> made master()::object_name() return the short() of the object, if any.<p>
-<DT><em>Mon Feb 17 19:16:37 1997</em>: <strong>Beek</strong>
-<DD> added a 'say' configurable colour<p>
-<DT><em>Mon Feb 17 22:50:38 1997</em>: <strong>Ohara</strong>
-<DD> notes that all strings passed through compose_message now postpend a \n (it was either that or code in every action function)<p>
-<DT><em>Tue Feb 18 01:14:46 1997</em>: <strong>Deathblade</strong>
-<DD> fixed force_look() to use this_object() ... not previous_object(). bog.<p>
-<DT><em>Tue Feb 18 01:34:14 1997</em>: <strong>Deathblade</strong>
-<DD> cleaned out the OLD_CODE from give.c and look.c<p>
-<DT><em>Tue Feb 18 02:58:11 1997</em>: <strong>Deathblade</strong>
-<DD> noticed that do_looking() was always called with force==1. I fixed up force_look and calls to it to correctly pass 0/1 based on context. NEW: only use body->force_look(int force_long_desc). Never call do_looking() in the environment. I "broke" the unworking force of long vs brief. It needs to be figured out.<p>
-<DT><em>Tue Feb 18 03:00:38 1997</em>: <strong>Deathblade</strong>
-<DD> upgraded the capabilities of M_SMARTMOVE with its processing of query_exit_msg() and query_enter_msg(). The functions may now return a two-elem array for self-msg and others-msg. See sandy_beach and outside_cave. Passing 0 for an elem means "no message". Other minor tweaks in the message processing (I may have broken vehicles; haven't tested yet)<p>
-<DT><em>Tue Feb 18 03:02:06 1997</em>: <strong>Deathblade</strong>
-<DD> fixed sandy_beach not to manually body->move() the player (BAD!). Replaced with body->move_to(destinaton, direction). That does all the right hook processing, message mgmt, etc. Related changes in outside_cave.<p>
-<DT><em>Tue Feb 18 03:06:30 1997</em>: <strong>Deathblade</strong>
-<DD> removed F_DISPLAY_PATH from M_SMARTMOVE. Not used. Proper way is defining the "show_loc" shell variable.<p>
-<DT><em>Tue Feb 18 03:28:29 1997</em>: <strong>Deathblade</strong>
-<DD> reinstalled the hack for brief/verbose<p>
-<DT><em>Tue Feb 18 14:23:05 1997</em>: <strong>Beek</strong>
-<DD> put ROOM_EXIT back in roomdesc.c<p>
-<DT><em>Tue Feb 18 14:34:09 1997</em>: <strong>Beek</strong>
-<DD> added /help/wizard/adding_colours<p>
-<DT><em>Tue Feb 18 23:34:44 1997</em>: <strong>Ohara</strong>
-<DD> notes that you can no longer look in a living (other preps are fine)<p>
-<DT><em>Wed Feb 19 03:05:18 1997</em>: <strong>Deathblade</strong>
-<DD> moved the room state code into /std/room/state.c. Moved some long() processing from roomdesc.c into base_room. Simplified some stuff here by overriding get_base_long() in base_room.<p>
-<DT><em>Fri Feb 21 22:00:40 1997</em>: <strong>Ohara</strong>
-<DD> fixed put so that you can no longer put objects in livings.<p>
-<DT><em>Sat Feb 22 00:26:15 1997</em>: <strong>Ohara</strong>
-<DD> fixed die() so that players don't give two death messages (die may still end up being called, but I can't see a better way to do it without breaking set_hp()<p>
-<DT><em>Sat Feb 22 01:02:20 1997</em>: <strong>Ohara</strong>
-<DD> fixed the move post bug in the news_d<p>
-<DT><em>Sat Feb 22 01:22:32 1997</em>: <strong>Ohara</strong>
-<DD> fixed the who at login bug<p>
-<DT><em>Sat Feb 22 01:31:28 1997</em>: <strong>Ohara</strong>
-<DD> clipped the prev_ob() check from the soul_d for addemote .. this is so stupidemote and targetemote will work. There was no reason to keep it since addemote doesn't do any security either (rmemote check kept tho)<p>
-<DT><em>Sat Feb 22 02:13:35 1997</em>: <strong>Ohara</strong>
-<DD> also put DL's fix for who at login (1 player. ... other fix was for 0 on)<p>
-<DT><em>Sat Feb 22 02:24:31 1997</em>: <strong>Ohara</strong>
-<DD> is, for the forseeable future (touch large chunks of wood), back (in case you haven't noticed :)<p>
-<DT><em>Sat Feb 22 10:15:48 1997</em>: <strong>Beek</strong>
-<DD> fixed a crasher involving some extremely dubious code in master()::object_name()<p>
-<DT><em>Sat Feb 22 14:23:11 1997</em>: <strong>Beek</strong>
-<DD> added 'random2', which uses Markov chains to construct a random emote instead of just picking an existing one.<p>
-<DT><em>Sat Feb 22 15:00:21 1997</em>: <strong>Beek</strong>
-<DD> made 'random2 whatever' produce a random soul that contains the word 'whatever'<p>
-<DT><em>Sat Feb 22 18:01:15 1997</em>: <strong>Ohara</strong>
-<DD> notes that portals are now, by default, ATTACHED, and have an ID of portal.<p>
-<DT><em>Sat Feb 22 21:37:45 1997</em>: <strong>Beek</strong>
-<DD> added colour_center() to M_ANSI<p>
-<DT><em>Sun Feb 23 02:12:56 1997</em>: <strong>Ohara</strong>
-<DD> added FOOD. The apple now inherits from it. In the process, a bunch of minor enhancements were added to the apple and M_EDIBLE.<p>
-<DT><em>Sun Feb 23 02:17:58 1997</em>: <strong>Ohara</strong>
-<DD> ripped all set_gettable(1) from /domains/std<p>
-<DT><em>Sun Feb 23 02:25:21 1997</em>: <strong>Ohara</strong>
-<DD> notes that talk with LIV also works now.<p>
-<DT><em>Sun Feb 23 03:56:59 1997</em>: <strong>Ohara</strong>
-<DD> fixed all the lpscript warnings in /domains/std .. .we're going to have to watch it as lpscript stuff is added to modules which it isn't already in.<p>
-<DT><em>Mon Feb 24 09:56:01 1997</em>: <strong>Beek</strong>
-<DD> reduced random2's overhead a bit (-1 MB)<p>
-<DT><em>Thu Feb 27 06:40:41 1997</em>: <strong>Ohara</strong>
-<DD> notes that a small buglet was fixed in M_WEARABLE for muds with slots turned off.<p>
-<DT><em>Thu Feb 27 08:27:45 1997</em>: <strong>Ohara</strong>
-<DD> added set_display_empty to /std/container (but not complex_container yet) .. it stops the "In the foo you see: nothing" if unset.<p>
-<DT><em>Thu Feb 27 10:56:34 1997</em>: <strong>Beek</strong>
-<DD> dumped all the news to /ftp/news for people who want to read it offline; be warned it is nearly 1 MB.<p>
-<DT><em>Sat Mar  1 14:05:26 1997</em>: <strong>Beek</strong>
-<DD> added a list of examples to /WWW/index.html<p>
-<DT><em>Sat Mar  1 18:53:21 1997</em>: <strong>Ohara</strong>
-<DD> notes that the elevator door no longer errors.<p>
-<DT><em>Sat Mar  1 19:05:14 1997</em>: <strong>Ohara</strong>
-<DD> notes that objectless rooms no longer display the extra newline<p>
-<DT><em>Mon Mar  3 09:28:11 1997</em>: <strong>Beek</strong>
-<DD> made do_game_command() non-static; even if it should be static respond() allowed it to be called, so this doesn't introduce any new problems.<p>
-<DT><em>Tue Mar  4 04:31:47 1997</em>: <strong>Ohara</strong>
-<DD> added a fix to long() when OBVIOUS_EXITS_BOTTOM is deffed .. it doesn't display the "You also see" unless there are actually objects in the room. It doesn't give that for users only though .. whether this is a bug or a feature is undecided.<p>
-<DT><em>Tue Mar  4 06:28:37 1997</em>: <strong>Beek</strong>
-<DD> added hotlinks to inherited files to webed.<p>
-<DT><em>Wed Mar  5 03:13:07 1997</em>: <strong>Deathblade</strong>
-<DD> disabled webed until some critical security problems with it are fixed.<p>
-<DT><em>Wed Mar  5 17:24:11 1997</em>: <strong>Rust</strong>
-<DD> doesn't know who added code to webed to do stuff w/ inherit lists, but it didn't work right, so he commented it out.<p>
-<DT><em>Wed Mar  5 17:27:30 1997</em>: <strong>Rust</strong>
-<DD> made a scgi dir for cgi files needing to live in perm 1 places like webed.  The real place for them is /secure/cgi.  Also moved http_d to /secure/daemons.  This took 2 seconds, and didn't disable webed for this mud only (which was kinda lame)<p>
-<DT><em>Thu Mar  6 19:54:22 1997</em>: <strong>Beek</strong>
-<DD> fixed /daemons/imud/finger.c to be able to handle nonconforming I3 finger reply packets from NM IVr5 libs [level and plan fields missing]<p>
-<DT><em>Sat Mar  8 14:29:14 1997</em>: <strong>Tigran</strong>
-<DD> decided not to take out lpscript after receiving further advisement upon its potential assets<p>
-<DT><em>Sat Mar  8 14:29:22 1997</em>: <strong>Tigran</strong>
-<DD> oops..sorry guys..wrong mud<p>
-<DT><em>Sun Mar  9 04:03:23 1997</em>: <strong>Ohara</strong>
-<DD> fixed the labyrinth to differentiate between rooms with only one exit and those with more than one.<p>
-<DT><em>Sun Mar  9 04:28:33 1997</em>: <strong>Ohara</strong>
-<DD> added a check to ensure file used in GUILD_D->define_from_file() exists (errors nicely rather than gives the explode error it used to)<p>
-<DT><em>Mon Mar 10 02:51:46 1997</em>: <strong>Ohara</strong>
-<DD> overrode debug_info() until it's fixed (reported by Faust@Outworld)<p>
-<DT><em>Mon Mar 10 18:47:36 1997</em>: <strong>Beek</strong>
-<DD> made a /domains/std/misc directory for miscellaneous example code fragments<p>
-<DT><em>Mon Mar 10 18:48:47 1997</em>: <strong>Beek</strong>
-<DD> moved Krithtik's twinkie to /domains/std/misc<p>
-<DT><em>Wed Mar 12 01:16:54 1997</em>: <strong>Ohara</strong>
-<DD> installed Lathander's hooks document. It's very probably out of sync with the hooks in the lib, but I'm sure that someone has proofed it in the N months we've had it :) And it's a LOT better than nothing (Ta Lathander :)<p>
-<DT><em>Wed Mar 12 02:12:09 1997</em>: <strong>Deathblade</strong>
-<DD> fixed Ohara's override of debug_info() to tighten its security. Note: adminp() is NOT secure. check_privilege(1) *is* secure.<p>
-<DT><em>Wed Mar 12 23:10:45 1997</em>: <strong>Zakk</strong>
-<DD> almost got it<p>
-<DT><em>Wed Mar 12 23:11:19 1997</em>: <strong>Zakk</strong>
-<DD> would also like to point out to Ohara that was number 2.<p>
-<DT><em>Thu Mar 13 04:23:18 1997</em>: <strong>Ohara</strong>
-<DD> notes: minor COMPAT_BUSTER: set_drink_action/set_last_drink_action now do a this_body()->simple_action() by default (rather than a write()). This aligns them with M_EDIBLE, as well as being more sane.<p>
-<DT><em>Fri Mar 14 04:56:10 1997</em>: <strong>Ohara</strong>
-<DD> fixed another bug in die. wizzes no longer get turned into ghosts. Maybe.<p>
-<DT><em>Fri Mar 14 06:13:18 1997</em>: <strong>Ohara</strong>
-<DD> notes: minor compat_buster. BOOK now inherits M_GETTABLE. If you want (say) a book that's chained down, use set_gettable(0) or set_getmsg(...).<p>
-<DT><em>Sat Mar 15 04:00:18 1997</em>: <strong>Ohara</strong>
-<DD> folded the key stuff from the skeleton key into KEY<p>
-<DT><em>Sat Mar 15 04:39:18 1997</em>: <strong>Ohara</strong>
-<DD> notes that set_attached() now functions as set_attached(1)<p>
-<DT><em>Sat Mar 15 06:16:13 1997</em>: <strong>Ohara</strong>
-<DD> folded FLAME out of the magic_flame ... it's almost not worth an inherit but it's useful for lotsa fires so ..<p>
-<DT><em>Sat Mar 15 06:43:33 1997</em>: <strong>Ohara</strong>
-<DD> notes: Minor COMPAT_BUSTER: simple_action() etc.  now postpend \n automatically. Don't terminate actions with an explicit \n unless you want that extra line.<p>
-<DT><em>Sat Mar 15 07:54:20 1997</em>: <strong>Ohara</strong>
-<DD> thinks he caught everything that needed \n removed but there'll probably be stragglers ..<p>
-<DT><em>Sat Mar 15 18:58:55 1997</em>: <strong>Ohara</strong>
-<DD> notes that portal now takes a destination as its argument<p>
-<DT><em>Sat Mar 15 20:39:43 1997</em>: <strong>Ohara</strong>
-<DD> notes that you should probably do @.me->set_def_msgs( "living-default" ) to resync your messages<p>
-<DT><em>Sat Mar 15 21:56:28 1997</em>: <strong>Ohara</strong>
-<DD> notes that the set_needs_contents buglet in M_DRINK_CONTAINER is fixed (Reported by Krithtik)<p>
-<DT><em>Sun Mar 16 21:37:23 1997</em>: <strong>Ohara</strong>
-<DD> put back the \n check in compose_message. Shut Up Zakk. (The bright side is lotsa lovely terminating newlines are gone from strings. :)<p>
-<DT><em>Wed Mar 19 18:26:42 1997</em>: <strong>Beek</strong>
-<DD> put Andrew's channel.c (new version of /daemons/imud/channel.c that handles channel-t) in /contrib/incoming, in the hope that someone will have time to look at it/install it (*hint hint*)<p>
-<DT><em>Fri Mar 21 03:25:27 1997</em>: <strong>Ohara</strong>
-<DD> made /domains/std/attic/ and moved some files to it.<p>
-<DT><em>Sat Mar 22 09:41:58 1997</em>: <strong>Ohara</strong>
-<DD> folded M_SIBLING out from DOOR. DOOR now inherits it.<p>
-<DT><em>Sat Mar 22 09:42:24 1997</em>: <strong>Ohara</strong>
-<DD> tidied HIDDEN_DOOR somewhat.<p>
-<DT><em>Sat Mar 22 19:06:23 1997</em>: <strong>Ohara</strong>
-<DD> notes that titles now automatically prepend a %%^^RESET%%^^ .. may need to change a strlen to a color_strlen somewhere.<p>
-<DT><em>Wed Mar 26 18:06:32 1997</em>: <strong>Beek</strong>
-<DD> fixed M_MESSAGES to handle contractions and fixed the plural of "don't".  Also made the SOUL_D inherit M_GRAMMAR so "$vdon't" gets pluralized correctly.<p>
-<DT><em>Thu Mar 27 03:39:32 1997</em>: <strong>Deathblade</strong>
-<DD> noted that parameterized objects generally have the same file name, thereby messing up make_objects_if_needed(), and then realized that virtual obs work wonders here.  See /domains/std/recorder.c and /domains/std/recorder/button.c. [work in progess... Ohara is still fixing probs in the recorder.]<p>
-<DT><em>Thu Mar 27 06:44:23 1997</em>: <strong>Zifnab</strong>
-<DD> failed to read his mail thats why he didnt knwo why it wsa removed :(<p>
-<DT><em>Thu Mar 27 06:44:29 1997</em>: <strong>Zifnab</strong>
-<DD> oops typo :)<p>
-<DT><em>Wed Apr  2 04:16:17 1997</em>: <strong>Ohara</strong>
-<DD> added set_hide_contents() to container .. replaces set_display_empty, and is nicer.<p>
-<DT><em>Wed Apr  2 04:17:15 1997</em>: <strong>Ohara</strong>
-<DD> also added a prevent_look_all hook check (It's auto set in set_hide_contents, but people may want to add/remove it manually)<p>
-<DT><em>Wed Apr  2 04:30:01 1997</em>: <strong>Ohara</strong>
-<DD> finished the new version of the recorder .. Admittedly it's about double the size codewise of the original, but it's got more functionality, has less problems with handling the buttons, and doesn't do very much parsing at all. Old recorder is in attic/<p>
-<DT><em>Thu Apr  3 05:35:48 1997</em>: <strong>Ohara</strong>
-<DD> notes that /domains/std rooms are now in Zorkmud format: Ie: Example_Room.c rather than example_room.c - 2.4.5 .scr files are not, since I'm NOT going to handtinker all 5000 files .. :)<p>
-<DT><em>Thu Apr  3 08:49:30 1997</em>: <strong>Beek</strong>
-<DD> added code (master::slow_shutdown and shutdown::automatic_shutdown) to handle out of memory situations gracefully if a reserved size is specified in the runtime config file.<p>
-<DT><em>Fri Apr  4 09:01:35 1997</em>: <strong>Ohara</strong>
-<DD> rejigged the camera to use a separate object for the button, not a lot of diff from the original, but it means it doesn't have to do parsing.<p>
-<DT><em>Fri Apr  4 11:06:04 1997</em>: <strong>Ohara</strong>
-<DD> made numerous small fixes, cleanups, and enhancements to /domains/std/ objects.<p>
-<DT><em>Fri Apr  4 11:39:46 1997</em>: <strong>Beek</strong>
-<DD> cleaned up /log a bit, freeing up 14MB ... :-)<p>
-<DT><em>Fri Apr  4 18:50:28 1997</em>: <strong>Ohara</strong>
-<DD> added a call for ob->on_clone() in clone and /std/container/set_objects::make_ob_if_needed(). See large_oak_door/HIDDEN_DOOR/DOOR for example.<p>
-<DT><em>Fri Apr  4 18:53:59 1997</em>: <strong>Ohara</strong>
-<DD> notes that on_clone() should probably be strictly called on_move_to_container(), but on_clone() is easier to say and remember :)<p>
-<DT><em>Fri Apr  4 20:53:16 1997</em>: <strong>Ohara</strong>
-<DD> ripped the player uptime file since it hasn't been around for years.<p>
-<DT><em>Sat Apr  5 07:34:52 1997</em>: <strong>Ohara</strong>
-<DD> fixed a couple of non-valued returns in open::open() [Reported by Kodiak]<p>
-<DT><em>Sat Apr  5 08:32:35 1997</em>: <strong>Ohara</strong>
-<DD> moved Room4.c -> Weather_Room.c<p>
-<DT><em>Sat Apr  5 08:38:21 1997</em>: <strong>Ohara</strong>
-<DD> moved Room2.c -> Relations_And_Toys.c<p>
-<DT><em>Sat Apr  5 08:39:39 1997</em>: <strong>Ohara</strong>
-<DD> moved Room3.c -> attic/ ... this leaves barney a little orphanned but 1/ Room3 was orphanned anyway, 2/ We didn't need another dead room in /domains/std, 3/ Barney is evil and must be rm-ed<p>
-<DT><em>Sat Apr  5 10:03:57 1997</em>: <strong>Ohara</strong>
-<DD> scythed STAIRS  by about 25%, effectively. May be ever so slightly slower on the setup_messages, but ...<p>
-<DT><em>Sat Apr  5 10:50:03 1997</em>: <strong>Ohara</strong>
-<DD> added /std/object/move::give_me() and give_environment(). The camera uses give_environment() .. it replaces the new()/if(!ob->move()) code and will be put in a few places.<p>
-<DT><em>Sat Apr  5 11:12:32 1997</em>: <strong>Ohara</strong>
-<DD> changed that to give_new_obj() after seeing the Search_Room code :) .. the third argument is a recurse argument.<p>
-<DT><em>Sun Apr  6 00:12:35 1997</em>: <strong>Ohara</strong>
-<DD> moved beekjr and crowd into attic/ ... hopefully they'll decamp from ther sometime :)<p>
-<DT><em>Sun Apr  6 01:25:10 1997</em>: <strong>Ohara</strong>
-<DD> notes that books now default to SMALL, closed, and with an id of book<p>
-<DT><em>Sun Apr  6 13:08:35 1997</em>: <strong>Beek</strong>
-<DD> made canonical_path() preserve trailing slashes (required for compat get_dir() behavior on future drivers)<p>
-<DT><em>Mon Apr  7 11:48:59 1997</em>: <strong>Beek</strong>
-<DD> fixed a bunch of uses of 'ref' as a variable name<p>
-<DT><em>Mon Apr  7 12:11:31 1997</em>: <strong>Beek</strong>
-<DD> removed a ton of unused local variables<p>
-<DT><em>Mon Apr  7 12:20:12 1997</em>: <strong>Beek</strong>
-<DD> upgraded to v22.1b4<p>
-<DT><em>Mon Apr  7 19:25:27 1997</em>: <strong>Beek</strong>
-<DD> fixed the double death message problem.  I even did it correctly, which is more than I can say for the code I found from whoever else tried to fix it :-)<p>
-<DT><em>Tue Apr  8 00:39:06 1997</em>: <strong>Deathblade</strong>
-<DD> updated /obj/secure/socket.c to work with the new driver (change some private funcs to static). I also updated many callbacks to use funcptrs rather than strings, so I could retain the private. socket_connect() and socket_listen() don't take funcptrs yet (bog) so some funcs were changed to static.<p>
-<DT><em>Tue Apr  8 01:39:09 1997</em>: <strong>Ohara</strong>
-<DD> claims the old bogus code which he noted was bogus when he bogussed it. Then again noone had fixed it in the months prior to the bogussing, so sometimes bogussing is a good thing :)<p>
-<DT><em>Tue Apr  8 01:41:02 1997</em>: <strong>Ohara</strong>
-<DD> notes that yes he means that the bug was unfixed for _months_ after reportage :)<p>
-<DT><em>Tue Apr  8 01:51:36 1997</em>: <strong>Ohara</strong>
-<DD> would like to note that the set_hp(0) was in there PRIOR to his bogussing :) One of the _real_ codeguys can claim that beauty all by himself. <smiles sweetly><p>
-<DT><em>Tue Apr  8 08:43:28 1997</em>: <strong>Beek</strong>
-<DD> added a bunch of get syns; for some reason 'take OBS' and 'carry OBS' were disallowed<p>
-<DT><em>Tue Apr  8 09:14:25 1997</em>: <strong>Beek</strong>
-<DD> uncommented the indirect_get_obj_from_obj code, and fixed it to handle ob1 == 0<p>
-<DT><em>Tue Apr  8 09:39:57 1997</em>: <strong>Beek</strong>
-<DD> moved Fritti's board files to /contrib<p>
-<DT><em>Tue Apr  8 18:48:01 1997</em>: <strong>Beek</strong>
-<DD> copied Hiccup's bboard stuff to /contrib/bboard<p>
-<DT><em>Wed Apr  9 10:22:39 1997</em>: <strong>Beek</strong>
-<DD> changed NEWS_D::{add,remove}_group to require Mudlib:daemons priv instead of checking if previous object was ADMTOOL (broken anyway, since it is now the news daemon module of admtool)<p>
-<DT><em>Wed Apr  9 23:48:40 1997</em>: <strong>Rust</strong>
-<DD> commented out memory_info()'s override.  We didn't crash.  I saw useful info.  It was cool, or something.<p>
-<DT><em>Thu Apr 10 00:32:50 1997</em>: <strong>Beek</strong>
-<DD> hac^H^H^Hfixed M_MESSAGES to do a better job recognizing contractions, and not be fooled by apostrophes that appear in other contexts<p>
-<DT><em>Thu Apr 10 00:46:26 1997</em>: <strong>Rust</strong>
-<DD> added a "properties" design descision document. See help properties<p>
-<DT><em>Thu Apr 10 01:30:58 1997</em>: <strong>Beek</strong>
-<DD> fixed the memory entry in admtool to sort in the correct direction<p>
-<DT><em>Thu Apr 10 10:55:27 1997</em>: <strong>Beek</strong>
-<DD> made the 'please trim' message have a 5 line "grace" period so that it doesn't print out nonsensical tihngs<p>
-<DT><em>Thu Apr 10 11:33:38 1997</em>: <strong>Beek</strong>
-<DD> added a fix from Fritti: rack_up_a_death() shouldn't use this_body()<p>
-<DT><em>Thu Apr 10 12:10:39 1997</em>: <strong>Beek</strong>
-<DD> added Onyx's container::set_objects() error message<p>
-<DT><em>Thu Apr 10 13:16:06 1997</em>: <strong>Beek</strong>
-<DD> added a system to news_d which tracks the ids of removed posts so that it is possible to count unread posts w/o touching them.  They should swap to disk easily now.<p>
-<DT><em>Thu Apr 10 13:21:09 1997</em>: <strong>Beek</strong>
-<DD> NEWS_D->get_messages(group, 1) now only returns ids of non-removed messages; NEWSREADER uses it instead of manually checking for blank bodies.<p>
-<DT><em>Thu Apr 10 13:48:39 1997</em>: <strong>Beek</strong>
-<DD> fixed news search<p>
-<DT><em>Fri Apr 11 11:37:55 1997</em>: <strong>Beek</strong>
-<DD> made find_body() check nicknames too.  Adds nickname support to a ton of things, including tell.<p>
-<DT><em>Fri Apr 11 15:00:26 1997</em>: <strong>Beek</strong>
-<DD> notes that 'dest', and evidentally all OBJ commands, take nicknames no.  Go figure.<p>
-<DT><em>Sat Apr 12 04:05:22 1997</em>: <strong>Deathblade</strong>
-<DD> cleaned up some unused local vars<p>
-<DT><em>Mon Apr 14 18:29:29 1997</em>: <strong>Beek</strong>
-<DD> added '/help/admin/editing'; admins ff to modify and/or extend it.<p>
+<DT><em>Tue Apr 15 02:46:41 1997</em>: <strong>Deathblade</strong>
+<DD> removed a bunch more unused vars.<p>
+<DT><em>Tue Apr 15 04:02:25 1997</em>: <strong>Ohara</strong>
+<DD> fixed look_in() not to give an extra newline when the object had inventory<p>
+<DT><em>Tue Apr 15 18:14:28 1997</em>: <strong>Vette</strong>
+<DD> installed Fritti's boards (along with couple tweaks).  help boards  (soon to add wiz help too)<p>
+<DT><em>Tue Apr 15 18:45:12 1997</em>: <strong>Beek</strong>
+<DD> updated master.c to all parse_refresh() when parse_command_users() changes [fixes occasional problems with remote emotes]<p>
+<DT><em>Tue Apr 15 19:52:20 1997</em>: <strong>Vette</strong>
+<DD> added USE_MON_LEVEL, USE_TEAMS, USE_SIMPLE_EXP to config.h for use with new modules to be placed soon<p>
+<DT><em>Tue Apr 15 19:57:50 1997</em>: <strong>Vette</strong>
+<DD> added /std/body/simple_exp.c and inherit support within /std/body.c<p>
+<DT><em>Wed Apr 16 01:17:34 1997</em>: <strong>Beek</strong>
+<DD> fixed write() to check if things end in \n before passing them to debug_message() [which adds a \n anyway]<p>
+<DT><em>Wed Apr 16 01:53:46 1997</em>: <strong>Beek</strong>
+<DD> changed how room state info works.  You now put $statename somewhere in the long description, instead of having things appended to the end.<p>
+<DT><em>Wed Apr 16 12:19:18 1997</em>: <strong>Vette</strong>
+<DD> think I've got all the bugs out of boards, feel free to clone em and try to break em<p>
+<DT><em>Wed Apr 16 18:20:28 1997</em>: <strong>Vette</strong>
+<DD> added support for mon-levels, mon-races, and teams.  Added 3 defines to config.h and 3 inherits in monster.c based on those defines<p>
+<DT><em>Wed Apr 16 18:30:40 1997</em>: <strong>Vette</strong>
+<DD> added /cmds/verbs/stand.c support for standing in and on objects<p>
+<DT><em>Wed Apr 16 19:13:24 1997</em>: <strong>Vette</strong>
+<DD> added a portable board object to /domains/std/objects in portable_board.c<p>
+<DT><em>Wed Apr 16 19:53:20 1997</em>: <strong>Vette</strong>
+<DD> added support for set_objects( (["../apple":1]) );  into /std/container.c.  Was just adding an evaluate_path() around the filename<p>
+<DT><em>Wed Apr 16 20:19:11 1997</em>: <strong>Vette</strong>
+<DD> ifdef'd EVERYTHING_SAVES on the add_save in m_openable<p>
+<DT><em>Thu Apr 17 03:41:44 1997</em>: <strong>Zifnab</strong>
+<DD> limited titles to 65 characters<p>
+<DT><em>Thu Apr 17 11:19:56 1997</em>: <strong>Beek</strong>
+<DD> fixed set_attached(0)<p>
+<DT><em>Thu Apr 17 19:34:05 1997</em>: <strong>Vette</strong>
+<DD> added guest allowance during #define NO_NEW_PLAYERS  (addguest,removeguest,whoguests)  /daemon/guest_d and a few lines added to /secure/user/login.c<p>
+<DT><em>Thu Apr 17 20:38:21 1997</em>: <strong>Vette</strong>
+<DD> added support for rebuilding the autodoc databases into the admtool right next to the help rebuild  (suggest only rare use)<p>
+<DT><em>Thu Apr 17 20:41:27 1997</em>: <strong>Vette</strong>
+<DD> added /wiz/ and /contrib/ to the filtered dirs in doc_d. (If you have reason they NEED to be in there im happy to discuss)<p>
+<DT><em>Thu Apr 17 20:54:51 1997</em>: <strong>Vette</strong>
+<DD> fixed that stupid finger bug in the player menu<p>
+<DT><em>Fri Apr 18 06:30:57 1997</em>: <strong>Ohara</strong>
+<DD> notes that stairs (etc) now take relative paths .. ain't evaluate_path() funky.<p>
+<DT><em>Fri Apr 18 13:34:48 1997</em>: <strong>Vette</strong>
+<DD> added "switch to next" and "post followup with <id>" in boards  (see help boards)  Included update to /cmds/verbs/post.c<p>
+<DT><em>Fri Apr 18 16:42:53 1997</em>: <strong>Vette</strong>
+<DD> added /trans/cmds/diff.c  Its not too pretty but it does the job.<p>
+<DT><em>Fri Apr 18 17:23:51 1997</em>: <strong>Vette</strong>
+<DD> made sure there was help file/autodoc on all /trans/cmds/  only in,testargs,xargs lack help<p>
+<DT><em>Fri Apr 18 18:48:30 1997</em>: <strong>Ohara</strong>
+<DD> added is_food() to FOOD in preparation for vendor. Wow .. one line func :)<p>
+<DT><em>Fri Apr 18 20:38:13 1997</em>: <strong>Ohara</strong>
+<DD> notes that on_clone now passes args.<p>
+<DT><em>Fri Apr 18 20:39:53 1997</em>: <strong>Ohara</strong>
+<DD> notes that stairs and derivatives use relative paths of their _initial_environment_ (hence the stairs in the Wizroom take args of "Shop" and "Attic". having relative paths from /std/stairs is somewhat pointless :) [naturally one can use abs paths]<p>
+<DT><em>Fri Apr 18 22:50:27 1997</em>: <strong>Ohara</strong>
+<DD> ripped unused variables from /trans/cmds<p>
+<DT><em>Fri Apr 18 23:16:59 1997</em>: <strong>Ohara</strong>
+<DD> tweaked SIGN<p>
+<DT><em>Fri Apr 18 23:26:15 1997</em>: <strong>Ohara</strong>
+<DD> added PARAM_OBJ: Use it when you want to have a number of objects that clone from the same file and only differ by the base id passed. (The actual code involved is minor, but it's far far easier to think "inherit PARAM_OBJ" that do a new(...))<p>
+<DT><em>Sat Apr 19 04:54:00 1997</em>: <strong>Ohara</strong>
+<DD> notes that things which inherit M_OPENABLE are by default CLOSED<p>
+<DT><em>Sat Apr 19 04:57:14 1997</em>: <strong>Ohara</strong>
+<DD> notes that all /domains/std set_closed(1) lines are ripped.<p>
+<DT><em>Sat Apr 19 08:08:30 1997</em>: <strong>Ohara</strong>
+<DD> fixed knock on door to at least work. Could be beautified a touch.<p>
+<DT><em>Sat Apr 19 09:33:51 1997</em>: <strong>Ohara</strong>
+<DD> tweaked the Wizroom desc so that it wasn't quite so awkward.<p>
+<DT><em>Sat Apr 19 16:44:22 1997</em>: <strong>Vette</strong>
+<DD> begins to merge the current m_vendor and Darklord's m_vendor<p>
+<DT><em>Sat Apr 19 21:13:14 1997</em>: <strong>Zakk</strong>
+<DD> fixed ftpd and friends.<p>
+<DT><em>Sun Apr 20 00:17:42 1997</em>: <strong>Ohara</strong>
+<DD> moved the help for pipe to xargs<p>
+<DT><em>Sun Apr 20 03:54:08 1997</em>: <strong>Ohara</strong>
+<DD> added absolute_path to sefun/path.c .. it takes a relative path and (optional) base object and returns an absolute path: used in /std/stairs.<p>
+<DT><em>Sun Apr 20 23:47:04 1997</em>: <strong>Deathblade</strong>
+<DD> patched up the "tail" command to not barf indiscriminately on files that are too large.<p>
+<DT><em>Mon Apr 21 02:17:40 1997</em>: <strong>Deathblade</strong>
+<DD> torched the "extra_short" hook. Extra bits after the description are handled by /std/object/attributes now, which looks at objects' flags. Updated M_WEARABLE, M_WIELDABLE, M_LIGHTABLE, M_OPENABLE, and inv_list() in the sefun. Note that this fixes the synchronization bug w/ loading these obs and the relevant hooks.<p>
+<DT><em>Mon Apr 21 02:18:48 1997</em>: <strong>Deathblade</strong>
+<DD> wanted to note that people that have objects with M_OPENABLE in their saved inventory will not load correctly because the "closed" variable is now missing. Just "su" after you fail to load :-)  (you may need to go to the wizroom, too)<p>
+<DT><em>Mon Apr 21 23:48:29 1997</em>: <strong>Deathblade</strong>
+<DD> tweaked the admtool banish and colour code per various postings.<p>
+<DT><em>Sat Apr 26 05:57:33 1997</em>: <strong>Ohara</strong>
+<DD> moved bite.c to eat.c<p>
+<DT><em>Sat Apr 26 07:00:44 1997</em>: <strong>Ohara</strong>
+<DD> feature enhanced nickname a little (it now lowercases to pick up id [Beek]) and reports your nickname if you have one if you give no arg.<p>
+<DT><em>Sat Apr 26 07:12:11 1997</em>: <strong>Ohara</strong>
+<DD> installed Val's fix for force <player><p>
+<DT><em>Sat Apr 26 13:13:04 1997</em>: <strong>Deathblade</strong>
+<DD> purged about 300 people who haven't logged on in the past 60 days.<p>
+<DT><em>Sat Apr 26 18:01:27 1997</em>: <strong>Vette</strong>
+<DD> installed updated m_vendor, shopkeeper, and new room rooms/storage (optional use).  See top of m_vendor and other objs for details<p>
+<DT><em>Sat Apr 26 18:18:11 1997</em>: <strong>Vette</strong>
+<DD> notes buy.c was moved from /cmds/verbs to /cmds/player b/c of its funky parsing rules (speak to Darklord on it).  New command: /cmds/player/list.c (for vendor) and updated /cmds/verbs/sell.c<p>
+<DT><em>Sun Apr 27 01:16:11 1997</em>: <strong>Ohara</strong>
+<DD> added a "the" to the knock message. WFW.<p>
+<DT><em>Sun Apr 27 01:29:36 1997</em>: <strong>Ohara</strong>
+<DD> tweaked lie.c a touch.<p>
+<DT><em>Sun Apr 27 02:56:04 1997</em>: <strong>Ohara</strong>
+<DD> notes that eat_it() in /std/modules/m_edible is now eat().<p>
+<DT><em>Sun Apr 27 03:39:15 1997</em>: <strong>Ohara</strong>
+<DD> notes that KEY no longer inherits M_LOCKABLE, and has 2 indirect functions.<p>
+<DT><em>Sun Apr 27 03:47:00 1997</em>: <strong>Ohara</strong>
+<DD> notes that unlock_with() and lock_with() in M_LOCKABLE (called from /cmds/verbs/[un]lock) are now deprecated in favor of lock()/unlock.<p>
+<DT><em>Sun Apr 27 03:47:24 1997</em>: <strong>Ohara</strong>
+<DD> notes that unlock OBJ with OBJ and lock OBJ with OBJ now work.<p>
+<DT><em>Sun Apr 27 08:32:44 1997</em>: <strong>Ohara</strong>
+<DD> notes that KEY now has set_key_type .. use it ratehr than overloading get_key_type (key_type moved to get_key_type() as well)<p>
+<DT><em>Sun Apr 27 09:01:19 1997</em>: <strong>Ohara</strong>
+<DD> notes that knock_knock in M_KNOCKABLE is not knock() [petty change, but alignment of object functions with verb names is a Good Thing (*TM) :]<p>
+<DT><em>Mon Apr 28 00:17:51 1997</em>: <strong>Ohara</strong>
+<DD> notes that M_EDIBLE/FOOD now has a default num_eats of 1.<p>
+<DT><em>Mon Apr 28 01:01:09 1997</em>: <strong>Ohara</strong>
+<DD> notes that default container capacity is now LARGE<p>
+<DT><em>Mon Apr 28 05:21:57 1997</em>: <strong>Ohara</strong>
+<DD> added someone_didnt() to DID_D. No interface to it yet tho.<p>
+<DT><em>Tue Apr 29 06:32:26 1997</em>: <strong>Ohara</strong>
+<DD> added is_torch() to TORCH (needed because one needs to differentiate between a kerosene fueled torch and a battery fuelled torch :)<p>
+<DT><em>Tue Apr 29 06:50:50 1997</em>: <strong>Ohara</strong>
+<DD> er is_flame() ... added to FLAME too,<p>
+<DT><em>Wed Apr 30 14:14:13 1997</em>: <strong>Beek</strong>
+<DD> fixed the NEWS_D to initialize the removed mapping for new groups<p>
+<DT><em>Thu May  1 18:38:39 1997</em>: <strong>Vette</strong>
+<DD> added /std/monster/wear.c  Supports new do_wear(ob) and set_wearable(string file) funs.<p>
+<DT><em>Thu May  1 18:39:25 1997</em>: <strong>Vette</strong>
+<DD> added set_wieldable(string file) to std/monster/wield.c   Clones/moves/wields a new object.  useful for putting in setup() of mons<p>
+<DT><em>Thu May  1 18:40:45 1997</em>: <strong>Vette</strong>
+<DD> changed this_body()->simple_action() to environment()->simple_action() in m_wearable  to give correct output when a monster wears armor<p>
+<DT><em>Thu May  1 18:45:10 1997</em>: <strong>Vette</strong>
+<DD> notes that M_ACTIONS doesn't need to be inherited by monsters who use set_wieldable() and set_wearable()<p>
+<DT><em>Thu May  1 18:51:46 1997</em>: <strong>Vette</strong>
+<DD> added platemail to the fighter_master2.c and made him wear it using new set_wearable()  also changed his sword to use set_wieldable()<p>
+<DT><em>Thu May  1 18:52:01 1997</em>: <strong>Vette</strong>
+<DD> made the troll use set_wieldable()<p>
+<DT><em>Thu May  1 20:49:29 1997</em>: <strong>Vette</strong>
+<DD> updated score.c to give level and exp output if they are so defined in the mudlib<p>
+<DT><em>Thu May  1 20:54:53 1997</em>: <strong>Vette</strong>
+<DD> updated stats to show cash on hand<p>
+<DT><em>Thu May  1 21:03:34 1997</em>: <strong>Vette</strong>
+<DD> added support for level and exp on the stats command.  (Players like to see everything in one command)<p>
+<DT><em>Fri May  2 19:44:22 1997</em>: <strong>Ohara</strong>
+<DD> installed a mini-non-quest in the attic, utilises a few modified versions of /domains/std objects.<p>
+<DT><em>Sat May  3 06:45:12 1997</em>: <strong>Ohara</strong>
+<DD> notes that default fuel for M_LIGHTABLE objects is 400 (seconds).<p>
+<DT><em>Sat May  3 17:50:12 1997</em>: <strong>Ohara</strong>
+<DD> fixed one of the exit msg bugs (a simple_action rather than a tell_from_inside(last_loc) was used ...<p>
+<DT><em>Sat May  3 20:07:14 1997</em>: <strong>Vette</strong>
+<DD> changed set_wieldable() and set_wearable() to set_wielding() and set_wearing()<p>
+<DT><em>Sat May  3 20:39:36 1997</em>: <strong>Ohara</strong>
+<DD> fixed wh.c and moved it to where.c .. It locates members who aren't on and who don'ty exist as well now.<p>
+<DT><em>Sun May  4 03:43:03 1997</em>: <strong>Ohara</strong>
+<DD> added a very temporary exit message to the wizroom to show how to use a message for the player and the room being left. Seadreamer owes me 3 Zorkmids and a packet of crisps.<p>
+<DT><em>Tue May  6 04:35:30 1997</em>: <strong>Ohara</strong>
+<DD> notes that give_new_obj now takes relative paths.<p>
+<DT><em>Tue May  6 05:01:35 1997</em>: <strong>Ohara</strong>
+<DD> reimplemented INF_SUPPLY: Only objects with -1 are infinite now, you can use relative paths, and you can usse parameterised objects [use "foo" : ({ -1, .... })]<p>
+<DT><em>Tue May  6 06:03:53 1997</em>: <strong>Ohara</strong>
+<DD> notes that you can now use "yes" and "no" on existing user login ..<p>
+<DT><em>Wed May  7 06:36:14 1997</em>: <strong>Ohara</strong>
+<DD> fixed the kenobi error in shell history ..<p>
+<DT><em>Thu May  8 03:03:06 1997</em>: <strong>Ohara</strong>
+<DD> notes that set_wearing/wielding now use give_new_obj() ... WFW<p>
+<DT><em>Thu May  8 03:03:34 1997</em>: <strong>Ohara</strong>
+<DD> notes that give_new_obj() now returns the object or errors (as opposed to either returning nothing or erroring :)<p>
+<DT><em>Thu May  8 18:28:49 1997</em>: <strong>Zakk</strong>
+<DD> will most likely<p>
+<DT><em>Fri May  9 06:26:41 1997</em>: <strong>Ohara</strong>
+<DD> notes that 1/ wearmsg is by default "$N $vwear a $o", and 2/ That M_WEARABLE now USES wearmsg ... see /domains/std/chainmail for a terribly thrilling example.<p>
+<DT><em>Fri May  9 08:01:38 1997</em>: <strong>Ohara</strong>
+<DD> notes that /std/flame now has is_lit(){return 1;}<p>
+<DT><em>Fri May  9 08:36:15 1997</em>: <strong>Ohara</strong>
+<DD> fixed a minor bug in ls* that wasn't apparant very often.<p>
+<DT><em>Fri May  9 08:48:23 1997</em>: <strong>Ohara</strong>
+<DD> added a whole bunch of lima.todo.* groups to sync with lima.bugs.* .. expect posts to be moved there ...<p>
+<DT><em>Fri May  9 18:16:11 1997</em>: <strong>Ohara</strong>
+<DD> notes that absolute_path now takes either a string or an object as its relative_to<p>
+<DT><em>Fri May  9 18:16:23 1997</em>: <strong>Ohara</strong>
+<DD> notes taht showtree now takes relative paths<p>
+<DT><em>Wed May 14 17:00:14 1997</em>: <strong>Vette</strong>
+<DD> retrofitted doc_d with :TODO and :LIMA tags as mentioned in lima.contrib  help autodoc updated in perspective, dirs to /help/autotodoc added accordingly<p>
+<DT><em>Wed May 14 17:00:40 1997</em>: <strong>Vette</strong>
+<DD> added two #defines in config.h for the :LIMA tag<p>
+<DT><em>Thu May 15 05:33:17 1997</em>: <strong>Ohara</strong>
+<DD> cleaned up the navigation room and small dock area/items<p>
+<DT><em>Fri May 16 20:55:02 1997</em>: <strong>Ohara</strong>
+<DD> notes that 1/ vsupport now has direct_press_obj(){return useless().. in it; press() in objects now is do_press() [expect all to align with do_foo eventually]; 3/ do_press does NOT return anything - the stuff that used to be handled by do_press_obj()<p>
+<DT><em>Fri May 16 20:55:48 1997</em>: <strong>Ohara</strong>
+<DD> ... is now in direct_press_obj. Ditto for direct_push_obj(). Oh yeah .. /std/object/vsupport.c now inherits M_PARSING<p>
+<DT><em>Fri May 16 22:51:48 1997</em>: <strong>Ohara</strong>
+<DD> notes that eat() is now do_eat() .. M_EDIBLE and FOOD updated ..<p>
+<DT><em>Sat May 17 02:34:00 1997</em>: <strong>Ohara</strong>
+<DD> notes that lock()/unlock() is now do_unlock()/do_lock(). M_LOCKABLE updated ..<p>
+<DT><em>Sat May 17 05:22:11 1997</em>: <strong>Ohara</strong>
+<DD> notes that disturb() is now do_move() in /cmds/verbs/move [hasn't actually been USED anywhere yet]<p>
+<DT><em>Sat May 17 05:29:47 1997</em>: <strong>Ohara</strong>
+<DD> notes that knock now uses do_knock() - M_KNOCKABLE and DOOR updated.<p>
+<DT><em>Sat May 17 06:19:00 1997</em>: <strong>Ohara</strong>
+<DD> fixed FLAME to work with set_source .. ugh :)<p>
+<DT><em>Sat May 17 21:50:00 1997</em>: <strong>Beek</strong>
+<DD> added echom and emotem commands; they allow you to do messages from the command line.  Examples: "echom @deathblade $Ts $v1die", "emotem @zif kicks $p1 ass"<p>
+<DT><em>Sat May 17 22:24:08 1997</em>: <strong>Beek</strong>
+<DD> added /std/nverb_ob.c; improved version of verb_ob.c<p>
+<DT><em>Sat May 17 22:41:10 1997</em>: <strong>Beek</strong>
+<DD> updated some verbs to use NVERB_OB; see 'eat' and 'diagnose' for example<p>
+<DT><em>Mon May 19 21:47:47 1997</em>: <strong>Ohara</strong>
+<DD> notes that error messages for verbs now no longer need a \n on the end of the returned string .. So Rip Rip Rip :) [file changed was /std/body/cmd]<p>
+<DT><em>Tue May 20 06:55:34 1997</em>: <strong>Ohara</strong>
+<DD> reimped search. M_SEARCHABLE to be updated, but the interface is there and clean ...<p>
+<DT><em>Tue May 20 07:37:26 1997</em>: <strong>Ohara</strong>
+<DD> added back the do_unlock_obj() to unlock until it fails to bug :)<p>
+<DT><em>Tue May 20 07:41:15 1997</em>: <strong>Ohara</strong>
+<DD> notes: ditto for lock<p>
+<DT><em>Thu May 22 02:27:53 1997</em>: <strong>Ohara</strong>
+<DD> notes that armor now also ids to the One True Spelling: "armour"<p>
+<DT><em>Thu May 22 03:26:53 1997</em>: <strong>Ohara</strong>
+<DD> notes that direct_flip_[off/on]_obj in M_SWITCHABLE now returns the values from direct_flip_obj_[off/on], hence you only need to overload the latter functions.<p>
+<DT><em>Thu May 22 03:56:23 1997</em>: <strong>Ohara</strong>
+<DD> ripped the create() from M_SWITCHABLE due to its utter obscenity. Direct_flip_obj will work again sometime as soon as someone works out why there's a precidence problem.<p>
+<DT><em>Thu May 22 03:58:03 1997</em>: <strong>Ohara</strong>
+<DD> fixed the lantern so that it can't be both lit and turned on, etc. In the process, all hook calls were ripped. Yay.<p>
+<DT><em>Thu May 22 03:58:13 1997</em>: <strong>Ohara</strong>
+<DD> notes that there is now a LANTERN base object.<p>
+<DT><em>Thu May 22 05:42:19 1997</em>: <strong>Ohara</strong>
+<DD> notes that giving objects that you're holding to yourself is now caught<p>
+<DT><em>Thu May 22 10:29:55 1997</em>: <strong>Zifnab</strong>
+<DD> puthe fix into /cmds/player/ansi.c that fritti posted about<p>
+<DT><em>Sun May 25 08:36:28 1997</em>: <strong>Ohara</strong>
+<DD> fixed the backpacks using an absolutely eeeeeeeevil hack to their ob_state() [It's the only sane thing I could think of, FF to change]<p>
+<DT><em>Mon May 26 16:21:26 1997</em>: <strong>Ohara</strong>
+<DD> fixed up listen. In the process, listen STR was removed due to the soul clash/precedence prob. sound() is now do_listen(), Wizroom updated.<p>
+<DT><em>Tue May 27 02:28:45 1997</em>: <strong>Ohara</strong>
+<DD> notes that if USE_RACES is deffed, and number of races is 1, it will now be selected automatically. (hopefully .. it compiles, but hasn't been tested :) ..<p>
+<DT><em>Tue May 27 06:41:42 1997</em>: <strong>Ohara</strong>
+<DD> notes that you can now use negative numbers in shell history to use relative history commands - ie %-2 will execute your second last command.<p>
+<DT><em>Wed May 28 08:06:39 1997</em>: <strong>Beek</strong>
+<DD> changed 'semote' to use a blank instead of 'slowly' for STR rules; much less confusing for rules where the STR isn't meant to be an adverb.<p>
+<DT><em>Fri May 30 08:00:41 1997</em>: <strong>Ohara</strong>
+<DD> notes that M_LOCKABLE now catches locking when something is open (technically it should probably handle locking things open, but that gets very ugly very fast.<p>
+<DT><em>Fri May 30 11:51:42 1997</em>: <strong>Beek</strong>
+<DD> added function pointer support to /std/portal.c; also got rid of funky fun () { ... } spacing<p>
+<DT><em>Fri May 30 23:10:58 1997</em>: <strong>Ohara</strong>
+<DD> fixed a newsreader search bug<p>
+<DT><em>Sat May 31 06:42:10 1997</em>: <strong>Ohara</strong>
+<DD> removed the M_MESSAGES inherit from DOOR<p>
+<DT><em>Sun Jun  1 19:09:24 1997</em>: <strong>Zifnab</strong>
+<DD> fixed the problem with triggers.  Had to do with the ansi being sent in says.  I stripped the ansi and triggers seem to work fine again<p>
+<DT><em>Wed Jun 11 13:05:41 1997</em>: <strong>Zifnab</strong>
+<DD> added a check to beep for a shell var no_beep.  (set no_beep)  got sick and tired of being beeped today.<p>
+<DT><em>Mon Jun 16 11:42:04 1997</em>: <strong>Beek</strong>
+<DD> updated 'help donate' a bit<p>
+<DT><em>Mon Jun 16 12:01:19 1997</em>: <strong>Beek</strong>
+<DD> merged in Andrew's channel-t support<p>
 </DL>

@@ -3,7 +3,7 @@
 /* Daemon to keep track of what people have been doing.
  * -Beek
  */
-#include <mudlib.h>
+
 #include <security.h>
 #include <ports.h>
 
@@ -30,6 +30,14 @@ int someone_did(string str) {
 
     return 1;
 }
+
+void someone_didnt()
+{
+    if( !check_privilege("Mudlib:daemons")) error( "Only Admins may remove didlogs.\n");
+    if( sizeof(did)) did = did[0..<2];
+    save_me();
+}
+
 
 private nomask int start_index(int after)
 {

@@ -11,6 +11,7 @@ void setup() {
     set_id("shirt", "chainmail");
     set_armor_class(4);
     set_resist("blade", 2); // a little better against blades
+    set_wearmsg( "$N $vput on a $o." );
 #ifdef USE_BODYSLOTS
     set_slot(TORSO);
 #endif

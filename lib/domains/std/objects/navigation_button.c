@@ -1,28 +1,27 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-
 inherit OBJ;
 
 void setup() {
-
     set_id("button");
-    set_long("The button probably opens up the passage you came through to get here.\n");
-    set_in_room_desc("You see a button on the wall, next to the outline of a passage.");
-    set_size(VERY_SMALL);
+    set_long( "It probably opens up the wall that you came through.");
+    set_attached();
 }
 
-int press(string n)
+mixed direct_press_obj( object obj )
 {
-    object wall;
-    wall = present( "wall", environment( this_object()));
-    if( wall->query_closed())
+    return 1;
+}
+
+void do_press()
+{
+    object wall = present( "wall", environment( this_object()));
+
+    if( wall && wall->query_closed())
     {
-	this_body()->simple_action("$N $vpress the button next to the passage.");
-	wall->open_with();
-        call_out( (:present( "wall", environment( this_object()))->close() :), 8);
+	this_body()->simple_action( "$N $vpress the button.");
+	wall->trigger();
     }
     else
-	this_body()->simple_action("$N $vpress the button, but nothing happens.");
-    return 1;
+	this_body()->simple_action( "$N $vpress the button, but nothing happes." );
 }

@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-private int num_eats;
+private int num_eats = 1;
 private int original_eats;
 private mixed eat_action = "$N $veat $o.";
 private mixed last_eat_action;
@@ -38,18 +38,15 @@ int get_original_eats()
     return original_eats;
 }
 
-mixed direct_bite_obj() {
-    object who= environment(this_object());
-
-    if(  who != this_body() && who != environment(this_body()) )
-	return "#You don't have that.\n";
+mixed direct_eat_obj() {
     if (!num_eats)
 	return capitalize(the_short()) + " is gone.\n";
 
     return 1;
 }
 
-void eat_it() {
+void do_eat()
+{
     mixed action;
 
     if( num_eats == 1 )

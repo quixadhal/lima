@@ -13,7 +13,6 @@ private void cut_it(string what, string array fields, string delim)
     string array delimited;
     int array rfields = ({ });
     string tmp;
-    mixed *regassoc;
     string output = "";
     string line;
     int hi,low;

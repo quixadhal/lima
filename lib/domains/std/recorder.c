@@ -75,7 +75,7 @@ void play()
 	current_button = "stop";
 	return;
     }
-    this_body()->simple_action("The recorder spits out a transcript, in lieu of an actual playback" + pop_up( "play" ));
+    object_event("The recorder spits out a transcript, in lieu of an actual playback" + pop_up( "play" ));
     new(__DIR__ "recorder/transcript", transcript)->move(this_body());
     at_beginning = 0;
 }
@@ -90,7 +90,7 @@ void record()
     if(at_beginning)
 	transcript = "\n";
     at_beginning = 0;
-    this_body()->simple_action( "A soft sound can be heard as the recorder starts.");
+    object_event( "A soft sound can be heard as the recorder starts.");
 }
 
 
@@ -99,12 +99,12 @@ void fast_forward()
     current_button = "stop";
     if( !( at_beginning && sizeof( transcript )))
     {
-	this_body()->simple_action("The recorder, however, appears to already be at the end.");
+	object_event("The recorder, however, appears to already be at the end.");
 	pop_up( "fast forward" );
 	return;
     }
     at_beginning = 0;
-    this_body()->simple_action( "There is a soft whirring from the machine.");
+    object_event( "There is a soft whirring from the machine.");
     call_out( (: "pop_up", "fast forward" :), 2);
 }
 
@@ -114,12 +114,12 @@ void rewind()
     current_button = "stop";
     if( at_beginning || !sizeof(transcript))
     {
-	this_body()->simple_action( "The recorder appears to already be at the beginning.");
+	object_event( "The recorder appears to already be at the beginning.");
 	pop_up( "rewind" );
 	return;
     }
     at_beginning = 1;
-    this_body()->simple_action( "There is a soft whirring from the machine.");
+    object_event( "There is a soft whirring from the machine.");
     call_out( (: "pop_up", "rewind" :), 2);
 }
 

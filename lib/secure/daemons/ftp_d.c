@@ -135,7 +135,6 @@ private void FTP_read(object socket, string data)
   class ftp_session	thisSession;
   function		dispatchTo;
   int i;
-
   /* If there is no data, it's a new connection. */
   if (!data)
     {
@@ -483,8 +482,6 @@ private void FTP_CMD_list(class ftp_session info, string arg)
 private void FTP_CMD_retr(class ftp_session info, string arg)
 {
   string	target_file;
-  string	strToSend;
-  buffer	bufToSend;
   int           i;
 
   NEEDS_ARG();
@@ -748,26 +745,25 @@ private void FTP_CMD_syst(class ftp_session info, string arg) {
  info->cmdPipe->send("215 UNIX Mud Name: "+mud_name()+"\n");
 }
 
-string FTP_CMD_retr_callback(object ob) {
- function f;
- string s;
- int start,length;
- mixed ret;
+string FTP_CMD_retr_callback(object ob)
+{
+    int start,length;
+    mixed ret;
 
- if (!ob || undefinedp(outfile[ob])) return 0;
+    if (!ob || undefinedp(outfile[ob])) return 0;
 
- start=outfile[ob][2];
- length=FTP_BLOCK_SIZE;
- outfile[ob][2]+=length;
+    start=outfile[ob][2];
+    length=FTP_BLOCK_SIZE;
+    outfile[ob][2]+=length;
 
- if (start+length>file_size(outfile[ob][0])) length=file_size(outfile[ob][0])-start;
+    if (start+length>file_size(outfile[ob][0])) length=file_size(outfile[ob][0])-start;
 
- ret=read_buffer(outfile[ob][0],start,length);
+    ret=read_buffer(outfile[ob][0],start,length);
 
- if (start+length>=file_size(outfile[ob][0])) {
-  map_delete(outfile,ob);
-  ob->set_write_callback((:FTP_write:));
- }
+    if (start+length>=file_size(outfile[ob][0])) {
+	map_delete(outfile,ob);
+	ob->set_write_callback((:FTP_write:));
+    }
 
- return ret;
+    return ret;
 }

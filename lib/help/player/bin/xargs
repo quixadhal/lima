@@ -1,8 +1,8 @@
-USAGE:	pipe <command>
+USAGE:	xargs <command>
 
-Pipe acts the same as 'converse' (see help converse), except that it
+Xargs acts the same as 'converse' (see help converse), except that it
 allows you to use something other than say.  For example,
 
-pipe tell rust
+xargs tell rust
 
 Will send all your input to Rust until you type: **

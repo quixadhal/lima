@@ -8,14 +8,14 @@ inherit M_GETTABLE;
 
 mixed direct_read_obj(object ob) {
     if (!is_open())
-	return "Perhaps you should open it first.\n";
+	return "Perhaps you should open it first.";
     
     return m_readable::direct_read_obj(ob);
 }
 
 mixed direct_read_str_word_obj(string str, string p, object ob) {
     if (!is_open())
-	return "Perhaps you should open it first.\n";
+	return "Perhaps you should open it first.";
 
     return m_readable::direct_read_str_word_obj(str, p, ob);
 }
@@ -25,7 +25,6 @@ void mudlib_setup()
 {
      ::mudlib_setup();
     set_id( "book" );
-    set_closed(1);
     set_size( SMALL );
 }
 

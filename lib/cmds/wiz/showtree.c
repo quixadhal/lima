@@ -2,7 +2,6 @@
 
 // Quick hack by Beek
 
-#include <mudlib.h>
 
 inherit CMD;
 
@@ -16,9 +15,7 @@ varargs string print_tree(string file, string func, int indent) {
         return "You need to specify an object.\n";
     }
     
-    ob = find_object( file );
-    if (file[0] != '/')
-	file = "/" + file;
+ob = find_object( absolute_path(file, get_user_variable("pwd")));
     
     if (!ob) {
     return repeat_string("  ", indent) + "Couldn't find object: " + file + "\n";

@@ -1,11 +1,19 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Removes the objects that would be returned from objfind
+// See: objfind
+
+
 /*
-** objfind.c
+** objpurge.c
 **
-** Find the locations (environments) of instances of the given class
+** Remove instances od the given class
 **
 ** 07-Nov-94. Created. Deathblade.
+**
+** Modified from objfind.c by someone at sometime
+**
 */
 
 #include <mudlib.h>

@@ -40,10 +40,16 @@ Rewritten by Beek; the equivalent of the above is now:
  //:EXAMPLE
  //This is an example to illustrate some code.
 
+ //:AUTODOC_MUDNAME
+ // This adds AUTODOC_MUDNAME code change to the mudlib
+ // AUTODOC_MUDNAME is set in config.h
+ // (keep this line blank after comment to make comment file readable)
+
+ //:TODO What we'd like to do with this in the future
+
 Data is updated nightly and dumped to the /help/autodoc directory
 */
 
-#include <mudlib.h>
 #include <security.h>
 #include <log.h>
 
@@ -87,7 +93,8 @@ private:
 
 static private string * filtered_dirs = ({
   "/data/", "/ftp/", "/help/", "/include/",
-  "/log/", "/open/", "/tmp/", "/user/"
+  "/log/", "/open/", "/tmp/", "/user/", "/wiz/",
+  "/contrib/",
 });
 
 string mod_name(string foo) {
@@ -104,18 +111,24 @@ void process_file(string fname)
     int empty;
     int last_line = -20;
     int idx = 0;
+    int nfile = 1;
 
     if (!file) return;
     lines = regexp(explode(file, "\n"), "^//", 1);
 
     rm("/help/autodoc/FIXME/" + mod_name(fname));
+    rm("/help/autodoc/todo/" + mod_name(fname));
 
     while (idx < sizeof(lines)) {
         if (lines[idx][2..4] == "###") {
             write_file("/help/autodoc/FIXME/" + mod_name(fname), lines[idx][5..] + "\n");
         }
-	if (last_line != lines[idx+1] - 1 && sizeof(lines[idx]) > 2 &&
-            lines[idx][2] == ':') {
+        if (lines[idx][2..6] == ":TODO") {
+            write_file("/help/autodoc/todo/" + mod_name(fname),lines[idx][7..]
++ "\n");
+        }
+        if (last_line != lines[idx+1] - 1 && sizeof(lines[idx]) > 2 &&
+          (lines[idx][2] == ':') && (lines[idx][2..6] != ":TODO") ) {
 	    line = lines[idx][3..];
 	    if (line == "MODULE") {
                 if (empty) write_file(outfile, "\n[No description available]\n");
@@ -151,11 +164,21 @@ void process_file(string fname)
 		outfile = "/help/autodoc/examples/" + line;
                 rm(outfile);
                 write_file(outfile, "Found in: " + fname + "\n\n");
-	    } else {
+	    } else
+            if (line == AUTODOC_MUDNAME) {
+                if (empty) write_file(outfile, "\n[No description available]\n");
+                empty = 1;
+                outfile = "/help/autodoc/"+MUD_AUTODOC_DIR+"/" + mod_name(fname);
+                if (nfile) {
+                    rm(outfile);
+                    nfile = 0;
+                    write_file(outfile,"**** "+fname+" ****\n\n");
+                }
+            } else {
                 if (empty) write_file(outfile, "\n[No description available]\n");
                 empty = 0;
 		outfile = 0;
-		LOG_D->log(LOG_AUTODOC, "Bad header tag: " + line + "\n");
+		LOG_D->log(LOG_AUTODOC, "Bad header tag: "+fname+": " + line + "\n");
 	    }
             printf("Writing to: %O\n", outfile);
 	} else {

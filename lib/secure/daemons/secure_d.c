@@ -614,7 +614,6 @@ nomask mixed reduced_privilege(mixed priv,mixed max)
 
 nomask mixed call_unguarded(function code,mixed *handle)
 {
-  mixed result;
   if (function_exists("verify_privilege_granted",previous_object())!=M_ACCESS)
     {
       syslog("Secvio: faked call in " + file_name(previous_object()));

@@ -25,7 +25,6 @@ nomask void do_finger(string mudname, string username)
 static nomask void rcv_finger_req(string orig_mud, string orig_user,
 				  string targ_user, mixed * message)
 {
-    object p;
     class finger info;
 
     info = FINGER_D->get_finger_data(message[0]);

@@ -21,8 +21,7 @@ start		[obj]
 timer -r        num [str] [num]
 trans		obj
 wc -lw		[file*]
-where           [user*]
-wh           [str*]
+where           [str*]
 which		str
 msg             str str*
 null		[str]

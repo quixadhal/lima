@@ -131,7 +131,12 @@ static void return_error(string mudname, string username,
 private nomask void handle_router_read(object socket, mixed * message)
 {
 if (message[0]!= "mudlist")
-    DBBUG(message);
+{
+    string s = sprintf("%O", message);
+    if ( sizeof(s) > 200 )
+	s[200..] = "...";
+    DBBUG(s);
+}
 
     if ( !dispatch[message[0]] )
     {
@@ -197,7 +202,7 @@ private nomask void reconnect()
 			      PORT_I3_TCP_OOB,
 			      0,
 /* DO NOT change this; see comments in /secure/user/login.c */
-			      "Lima 1.0a5",
+			      "Lima 1.0a6",
 			      "Lima",
 			      driver_version(),
 			      "LP",

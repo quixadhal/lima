@@ -4,7 +4,7 @@
 #include <setbit.h>
 
 inherit M_PARSING;
-inherit VERB_OB;
+inherit NVERB_OB;
 
 int do_fill_it(object ob, object with)
 {
@@ -29,7 +29,7 @@ void do_fill_obj_with_obj(object ob1, object ob2) {
     do_fill_it(ob1, ob2);
 }
 
-array query_verb_info(string rule)
+void create()
 {
-   return ({ ({ "OBJ", "OBJ with OBJ" }) });
+   add_rules( ({ "OBJ", "OBJ with OBJ" }) );
 }

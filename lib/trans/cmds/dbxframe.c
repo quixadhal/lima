@@ -1,6 +1,9 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
+//:COMMAND
+// See: dbx
+
+
 #include <security.h>
 
 inherit CMD;
@@ -40,10 +43,8 @@ private mapping get_the_error(string str) {
 private void
 main(string str) {
     mapping frame;
-    object ob;
     string who;
     int num;
-    int i;
     int before;
     	
     if (!str || (sscanf(str, "%d", num)==0 && sscanf(str, "%s %d", who, num)==0)) {

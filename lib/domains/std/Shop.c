@@ -1,6 +1,6 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit ROOM;
+inherit INDOOR_ROOM;
 
 
 mixed can_go_up() { return 1; }
@@ -29,7 +29,7 @@ void setup()
       ]) );
     set_objects( ([
 	"/domains/std/shopkeeper.c" : 1,
-STAIRS : ({ "Wizroom", 0, 1 }),
+	STAIRS : ({ "/domains/std/Wizroom", 0, 1 }),
       ]) );
 
 }

@@ -12,6 +12,7 @@
 #define DID_D           "/daemons/did_d"
 #define DOC_D		"/daemons/doc_d"
 #define GROUP_D		"/daemons/group_d"
+#define GUEST_D		"/daemons/guest_d"
 #define GUILD_D		"/daemons/guild_d"
 #define HELP_D		"/daemons/help_d"
 #define HTTP_D		"/secure/daemons/http_d"

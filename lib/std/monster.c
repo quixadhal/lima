@@ -16,7 +16,20 @@ inherit __DIR__ "monster/behaviors";
 inherit __DIR__ "monster/death";
 inherit __DIR__ "monster/hit_points";
 inherit __DIR__ "monster/target";
+inherit __DIR__ "monster/wear";
 inherit __DIR__ "monster/wield";
+
+#ifdef USE_MON_LEVEL
+inherit __DIR__ "monster/mon_level";
+#endif
+
+#ifdef USE_TEAMS
+inherit __DIR__ "monster/teams";
+#endif
+
+#ifdef USE_MON_RACES
+inherit __DIR__ "monster/mon_races";
+#endif
 
 #ifdef USE_BODYSLOTS
 inherit __DIR__ "monster/bodyslots";

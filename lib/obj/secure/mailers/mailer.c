@@ -6,6 +6,9 @@
 ** Base class for a mailer object.  Provides basic support for all mailers.
 **
 ** Created 31-OCT-94, Deathblade.
+**
+** Changed send_news_reply() to Support Boards as well as newsreader
+**  Vette  April 15, 1997
 */
 
 #include <security.h>
@@ -450,7 +453,9 @@ static nomask void cmd_forward(int user_num, string newto)
 void send_news_reply(string subject, string * text, string * to)
 {
     if ( base_name(previous_object()) != NEWSREADER )
-	error("security: attempted use by: " + base_name(previous_object()) + "\n");
+         if ( base_name(previous_object()) != BOARD_OB)
+             error("security: attempted use by: " +
+               base_name(previous_object()) + "\n");
 
     send_mail_message(subject, text, to, 0, 0);
 }

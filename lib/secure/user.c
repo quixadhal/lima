@@ -8,7 +8,6 @@
 ** 95-Apr-30.  Deathblade.  Created.
 */
 
-#include <mudlib.h>
 #include <config.h>
 #include <security.h>
 

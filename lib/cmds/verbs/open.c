@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <setbit.h>
 
 inherit VERB_OB;
 

@@ -43,13 +43,17 @@
 #define USE_GAME_FEATURES	/* use a lot of features related to gaming */
 
 #ifdef USE_GAME_FEATURES	/* pull in a set for gaming features */
-# define USE_RACES
+# define USE_RACES		// Implement races for PC's only
 # define USE_STATS
 # define USE_GUILDS
 # define USE_SKILLS
 # define USE_TITLES
 # define USE_BODYSLOTS
-//# define USE_SIMPLE_LEVEL	// use the simple level number scheme for players
+# undef USE_SIMPLE_LEVEL	// use the simple level number scheme for players
+# undef USE_MON_LEVEL		// use the simeple level number scheme for monsters
+# undef USE_TEAMS		// use team support
+# undef USE_SIMPLE_EXP		// use the simple experience scheme for players
+# undef USE_MON_RACES		// use monster race support
 #endif
 
 /* one or the other should be defined */
@@ -114,6 +118,12 @@
 #undef ANON_CAN_PUT
 
 
+// The following are to set directory names and short mudname used by
+// the autodoc daemon
+// You will need to make a dir of MUD_AUTODOC_DIR in /help/autodoc
+// If you plan to make use of this feature
+#define AUTODOC_MUDNAME "LIMA"
+#define MUD_AUTODOC_DIR "lima"
 // I'd recommend not changing anything below this point.
 #define LINK_PATH(x)		sprintf("/data/links/%c/%s",x[0],x)
 #define USER_PATH(x)		sprintf("/data/players/%c/%s",x[0],x)

@@ -19,8 +19,7 @@ void setup() {
     set_in_room_desc("A large stone lies off to the side of the room.");
     // Not using set_objects() here since we don't want to reset
     set_max_capacity(MEDIUM);
-    sword = new(__DIR__ "sword_in_stone");
-    sword->move(this_object());
+    sword = give_new_obj( this_object(), "sword_in_stone", 0 );
     set_unique(1);
 }
 

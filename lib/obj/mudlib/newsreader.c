@@ -12,7 +12,6 @@
 */
 
 
-#include <mudlib.h>
 #include <classes.h>
 #include <edit.h>
 
@@ -57,12 +56,23 @@ varargs private nomask int get_current_id(string group_name)
 }
 
 private void receive_search(int flag, string str) {
-    array results = flag ? NEWS_D->search_for_author(str) : NEWS_D->search_for(str);
-    
+    mixed array results;
+
+if(!sizeof(str))
+    {
+    write( "You must specify a search.\n");
+	return;
+    }
+    if ( flag )
+	results = NEWS_D->search_for_author(str);
+    else
+	results = NEWS_D->search_for(str);
+
     if (!sizeof(results)) {
 	write("No matches.\n");
 	return;
     }
+
     more(({ sizeof(results) + " matches:", "" }) + map(results, (: $1[0] + ":" + $1[1] :)));
 }
 
@@ -75,7 +85,7 @@ private int count_unread_messages(string group, int all_messages)
 
 	ids = filter_array(ids, (: $1 > $(read_thru_id):));
     }
-    
+
     return sizeof(ids);
 }
 
@@ -87,10 +97,10 @@ private nomask string format_group_line(string group)
 
     last_id = NEWS_D->get_group_last_id(group);
     return sprintf("  %-40s (%d %s, %d unread)",
-		   group,
-		   unread,
-		   unread == 1 ? "message" : "messages",
-		   count_unread_messages(group, 0));
+      group,
+      unread,
+      unread == 1 ? "message" : "messages",
+      count_unread_messages(group, 0));
 }
 
 private nomask void add_new_groups()
@@ -98,7 +108,7 @@ private nomask void add_new_groups()
     string * groups;
 
     groups = NEWS_D->get_groups() - this_body()->subscribed_groups();
-if( !sizeof(groups))
+    if( !sizeof(groups))
 	return;
 
     /* set each next-id-to-read to 1 */
@@ -122,23 +132,23 @@ private nomask string grp_cmd_prompt()
 
     unread_no = count_unread_messages(current_group, 0);
 
-    return sprintf("(%s:%d) %d %s unread of %d [q?lLmgpnc] > ",
-		   current_group,
-		   /* ### hrm. this is current. needs to be NEXT message. */
-		   get_current_id(current_group),
-		   unread_no,
-		   unread_no == 1 ? "msg" : "msgs",
-		   count_unread_messages(current_group, 1)
-	);
+    return sprintf("(%s:%d) %d %s unread of %d [q?lLmgsSpnc] > ",
+      current_group,
+      /* ### hrm. this is current. needs to be NEXT message. */
+      get_current_id(current_group),
+      unread_no,
+      unread_no == 1 ? "msg" : "msgs",
+      count_unread_messages(current_group, 1)
+    );
 }
 
 private nomask string msg_cmd_prompt()
 {
-    return sprintf("(%s:%d) %d left [q?lLmghprRfFncMD] > ",
-		   current_group,
-		   get_current_id(current_group),
-		   count_unread_messages(current_group, 0)
-	);
+    return sprintf("(%s:%d) %d left [q?lLmghsSprRfFncMD] > ",
+      current_group,
+      get_current_id(current_group),
+      count_unread_messages(current_group, 0)
+    );
 }
 
 private nomask void switch_to_top()
@@ -165,7 +175,7 @@ private nomask void menu_select_newsgroup(string num)
     if ( num=="q" )
     {
 	write( "Selection aborted.\n");
-        if( !current_group) destruct( this_object());
+	if( !current_group) destruct( this_object());
 	modal_func((: receive_msg_cmd :), (: msg_cmd_prompt :));
 	return;
     }
@@ -231,7 +241,7 @@ private nomask void read_group(string group)
     {
     case 0:
 	write("No such group.\n");
-        if(!current_group) destruct( this_object());
+	if(!current_group) destruct( this_object());
 	return;
 
     case 1:
@@ -298,7 +308,7 @@ private nomask void display_groups_with_new(string arg)
 	current_group = groups[0];
 
 	list = ({ "Groups with new messages:", "" }) +
-	    map_array(groups, (: format_group_line :));
+	map_array(groups, (: format_group_line :));
 
 	/* if -c was given, then quit after displaying the new stuff */
 	if ( arg == "-c" )
@@ -434,11 +444,10 @@ private nomask void post_message()
 {
     if( !NEWS_D->query_write_to_group( current_group ))
     {
-        write( "You may not post to " + current_group + ".\n");
-        return;
+	write( "You may not post to " + current_group + ".\n");
+	return;
     }
-    write("Subject: ");
-    modal_simple((: receive_post_subject :));
+    modal_simple((: receive_post_subject :), "Subject: ");
 }
 
 private nomask class news_msg get_current_message()
@@ -526,8 +535,8 @@ nomask void receive_followup_text(string * text)
     ** message to read.
     */
     id = NEWS_D->followup(current_group,
-			  get_current_id(),
-			  implode(text, "\n") + "\n");
+      get_current_id(),
+      implode(text, "\n") + "\n");
     write("Posted:  " + format_message_line(1, id) + "\n");
 }
 
@@ -630,21 +639,21 @@ private nomask int read_next_message(int skip_allowed)
     if ( msg )
     {
 	post = sprintf("Time:    %%^NEWS_TIME%%^%-40s%%^RESET%%^Post-id: %d (%d Last)\n"
-		       "Poster:  %%^NEWS_POSTER%%^%s%%^RESET%%^\n"
-                       "Subject: %%^NEWS_SUBJECT%%^%s%%^RESET%%^\n"
-		       "\n"
-		       "%s",
-		       intp(msg->time) ? ctime(msg->time) : msg->time,
-		       msg_id,
-		       NEWS_D->get_group_last_id(current_group),
-		       msg->poster,
-		       msg->subject,
-		       msg->body ? msg->body : "*** REMOVED ***");
+	  "Poster:  %%^NEWS_POSTER%%^%s%%^RESET%%^\n"
+	  "Subject: %%^NEWS_SUBJECT%%^%s%%^RESET%%^\n"
+	  "\n"
+	  "%s",
+	  intp(msg->time) ? ctime(msg->time) : msg->time,
+	  msg_id,
+	  NEWS_D->get_group_last_id(current_group),
+	  msg->poster,
+	  msg->subject,
+	  msg->body ? msg->body : "*** REMOVED ***");
     }
     else
     {
 	post = sprintf("Post-id: %d (%d Last)\n\n*** REMOVED ***",
-		       msg_id, NEWS_D->get_group_last_id(current_group));
+	  msg_id, NEWS_D->get_group_last_id(current_group));
     }
 
     more(post);
@@ -653,6 +662,7 @@ private nomask int read_next_message(int skip_allowed)
 }
 
 varargs nomask void begin_reading(string arg);
+
 private nomask void global_commands(string cmd)
 {
     if( cmd == "q" )
@@ -661,18 +671,16 @@ private nomask void global_commands(string cmd)
     }
     else if ( cmd == "s" )
     {
-	write("Search for: ");
-	modal_simple((: receive_search, 0 :));
+	modal_simple((: receive_search, 0 :), "Search for message: ");
     }
     else if ( cmd == "S" )
     {
-	write("Search for author: ");
-	modal_simple((: receive_search, 1 :));
+	modal_simple((: receive_search, 1 :), "Search for author: ");
     }
     else if ( cmd == "")
     {
 	if ( sizeof(filter_array(this_body()->subscribed_groups(),
-				 (: test_for_new :))) )
+	      (: test_for_new :))) )
 	{
 	    modal_pop();
 	    begin_reading();
@@ -690,7 +698,7 @@ private nomask void global_commands(string cmd)
 	else
 	{
 	    modal_func((: receive_group :),
-		       "Which group (Or enter for a menu)? ");
+	      "Which group (Or enter for a menu)? ");
 	}
     }
     else
@@ -726,11 +734,10 @@ private nomask void group_commands(string cmd)
 	write("All posts marked as read.\n");
 	next_group();
     }
-else if ( cmd == "h")
-{
-        write( "Change subject to: " );
-        modal_simple( (: menu_select_change_header :));
-}
+    else if ( cmd == "h")
+    {
+	modal_simple((: menu_select_change_header :), "Change subject to: ");
+    }
     else if ( cmd == "" )
     {
 	if ( read_next_message(1) )
@@ -778,14 +785,14 @@ private nomask void get_move_group(string str)
 
     case 1:
 	NEWS_D->move_post(current_group,
-			  get_current_id(current_group),
-			  matches[0]);
+	  get_current_id(current_group),
+	  matches[0]);
 	break;
 
     default:
 	write("\n"
-	      "Select group by number:\n"
-	      "--------------------------------\n");
+	  "Select group by number:\n"
+	  "--------------------------------\n");
 	for ( i = 1; i <= sizeof(matches); i++)
 	    printf("%-4d%s\n",i,matches[i-1]);
 
@@ -802,8 +809,8 @@ private nomask void receive_move_verify( string str )
 	write( "Move aborted.\n");
 	return;
     }
-    write( "Move post to: ");
-    modal_simple( (: get_move_group :));
+
+    modal_simple( (: get_move_group :), "Move post to: ");
 }
 
 private nomask void remove_message()
@@ -816,14 +823,14 @@ private nomask void remove_message()
 	return;
     }
     if ( !adminp(this_user()) &&
-	 msg->userid != this_user()->query_userid() )
+      msg->userid != this_user()->query_userid() )
     {
 	write("You are not allowed to remove that post.\n");
 	return;
     }
 
     printf("Deleting: %s\nAre you sure? [yn] > ",
-	   format_message_line(1, get_current_id()));
+      format_message_line(1, get_current_id()));
     modal_simple((: receive_remove_verify :));
 }
 
@@ -923,8 +930,8 @@ private nomask void receive_msg_cmd(mixed cmd)
 	  "  L   list all messages\n"
 	  "  m   main news menu\n"
 	  "  g   go to a newsgroup\n"
-          "  h   change subject of a post\n"
-          "  s   search for a message\n"
+	  "  h   change subject of a post\n"
+	  "  s   search for a message\n"
 	  "  S   search for an author\n"
 	  "  p   post message\n"
 	  "  r   reply to this message\n"
@@ -961,14 +968,13 @@ private nomask void receive_msg_cmd(mixed cmd)
     {
 	followup_with_message();
     }
-    else if ( cmd == "s" ) {
-	write("Search for: ");
-	modal_simple((: receive_search :));
+    else if ( cmd == "s" )
+    {
+	modal_simple((: receive_search :), "Search for message: ");
     }
     else if ( cmd == "M" )
     {
-	write( "Move post [y/N]");
-	modal_simple((: receive_move_verify :));
+	modal_simple((: receive_move_verify :), "Move post? [y/N] ");
     }
     else
     {

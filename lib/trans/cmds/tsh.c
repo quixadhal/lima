@@ -3,6 +3,9 @@
 #include <mudlib.h>
 inherit CMD;
 
+//:COMMAND
+// Reads the filename and performs the commands specified in the file
+// Useful for when needing to perform a set of commands many times
 // The specification is: tsh file
 // We will receive: ({ filename })
 private void main( mixed *arg )

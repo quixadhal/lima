@@ -68,7 +68,7 @@ void setup(){
  
     set_exits( ([
 	"west" : "Wizroom",
-	"south" : "Room2",
+	"south" : "Relations_And_Toys",
 	"north" : "/domains/std/rooms/V_Plains/4/7",
 	"east" : "Car_Wash",
       ]) );
@@ -80,7 +80,6 @@ void setup(){
     entrance messages.
 */
 
-    set_exit_msg("east", "As you enter the car wash, jets of water begin washing the under carriage of the car. \n");
 
 /*
     add_item()  Allows for items that are used for scenery only.  These items 
@@ -103,7 +102,6 @@ void setup(){
 */
 
     set_objects ( ([
-	"/domains/std/safe.c" : 1 
       ]));
 }
 

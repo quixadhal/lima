@@ -22,6 +22,7 @@ void return_error(string mudname, string username,
 		  string errcode, string errmsg);
 void add_cache_entry(string mudname, string username,
 		     string visname, int gender);
+string get_visname( string mudname, string username );
 
 
 static nomask int query_chanlist_id()
@@ -49,17 +50,41 @@ nomask void channel_rcv_data(string channel_name,
 	break;
 
     case "emote":
+	if ( !strlen( data ) ) break;
 	data = sprintf("$N %s", data);
 	send_to_all("channel-e", ({ channel_name, sender_name, data }));
 	break;
 
     case "soul":
 //### need to work on using channel-t appropriately
-	data = data[1][<1];
-	if ( data[<1] == '\n' )
-	    data = data[0..<2];
-	send_to_all("channel-e",
-		    ({ channel_name, sender_name, data }));
+	if ( sizeof( data[0] ) != 2 )
+	{
+	    data = data[<1][<1];
+	    if ( data[<1] == '\n' )
+	      data = data[0..<2];
+	    send_to_all("channel-e",
+			({ channel_name, sender_name, data }));
+	} else
+	{
+	    string target_mud = data[0][1]->query_mud_name() || mud_name();
+	    string target_name = data[0][1]->query_userid();
+	    string all_mess = data[<1][<1];
+	    string targ_mess = data[<1][1];
+	    
+	    if ( all_mess[<1] == '\n' ) all_mess = all_mess[0..<2];
+	    if ( targ_mess[<1] == '\n' ) targ_mess = targ_mess[0..<2];
+	    
+	    send_to_all("channel-t",
+			({ channel_name,
+			   target_mud,  // Target mud
+			   target_name, // Target name
+			   all_mess, // Message to all
+			   targ_mess,  // Target message
+			   data[0][0]->query_name(), // Sender name
+			   get_visname( target_mud, target_name ) ||
+			     capitalize( target_name ) }) );
+
+	}
 	break;
     }
 }
@@ -183,8 +208,6 @@ static nomask void rcv_channel_m(string orig_mud, string orig_user,
 static nomask void rcv_channel_e(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)
 {
-    object p;
-
     if ( orig_mud == mud_name() )
 	return;
 
@@ -210,26 +233,42 @@ static nomask void rcv_channel_e(string orig_mud, string orig_user,
 static nomask void rcv_channel_t(string orig_mud, string orig_user,
 				 string targ_user, mixed * message)
 {
-#ifdef OLD_BOGUS_CODE
-    object p;
+    
+    string orig_name,targ_name;
+    string targ_mess, all_mess;
 
-    if ( orig_mud == mud_name() )
-	return;
+    if ( mud_name() == orig_mud)
+      return ;
 
-    filter_msg = 1;
-    if ( message[1] == mud_name() &&
-	p = find_body(message[2]) )
+    orig_name = message[5] + "@" + orig_mud;
+	
+    all_mess = replace_string( message[3]+"\n","$N", orig_name );
+
+    if ( mud_name() == message[1] )
     {
-	mixed * soul;
+	object targ_ob = find_body( lower_case( message[2] ) );
 
-	soul = ({ ({ 0, p }), ({ 0, message[4], message[3] }) });
-	CHANNEL_D->deliver_soul("imud_" + message[0], soul);
-    }
-    else
-    {
-	CHANNEL_D->deliver_channel("imud_" + message[0], message[3]);
-    }
-#endif
+	targ_name = message[6];
+
+	if ( targ_ob )
+	{
+            targ_mess = replace_string( message[4]+"\n","$N", orig_name );
+
+            all_mess = replace_string( all_mess, "$O", targ_name );
+
+	    filter_msg = 1;
+    
+	    CHANNEL_D->deliver_soul( "imud_"+message[0],
+				    ({ ({ targ_ob }),
+				       ({ targ_mess, all_mess }) }) );
+	    return ;
+	}
+    } else
+      targ_name = message[6] + "@" + message[1];
+
+    all_mess = replace_string( all_mess, "$O", targ_name );
+    
+    CHANNEL_D->deliver_channel( "imud_"+message[0], all_mess );
 }
 
 static nomask void rcv_chan_user_req(string orig_mud, string orig_user,

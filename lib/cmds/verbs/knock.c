@@ -2,14 +2,15 @@
 
 inherit VERB_OB;
 
-void do_knock_on_obj(object o, string s)
+
+void do_knock_on_obj( object obj )
 {
-  o->knock_knock(s);
+    obj->do_knock();
 }
 
-void do_knock_at_obj(object o, string s)
+void do_knock_at_obj(object obj)
 {
-  o->knock_knock(s);
+    obj->do_knock();
 }
 
 array query_verb_info() {

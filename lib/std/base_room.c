@@ -147,7 +147,7 @@ void adjust_light(int x) {
 mixed direct_get_obj( object ob, string name )
 {
     if( this_object() == environment( this_body()))
-	return "#A surreal idea.\n";
+	return "#A surreal idea.";
     return ::direct_get_obj( ob, name );
 }
 
@@ -165,7 +165,22 @@ mapping lpscript_attributes() {
 /* tweak the base long description to add the state stuff */
 string get_base_long()
 {
-    return ::get_base_long()[0..<2] + get_state_specific_long();
+    string base = ::get_base_long();
+    array fmt;
+    int i;
+    
+    fmt = reg_assoc(base, ({ "\\$[A-Za-z_]*" }), ({ 1 }))[0];
+
+    for (i = 1; i < sizeof(fmt); i++) {
+	string tmp;
+	
+	if (tmp = query_state_desc(fmt[i][1..]))
+	    fmt[i] = tmp;
+    }
+
+    base = implode(fmt, "");
+    if (base[<1] != '\n') base += "\n";
+    return base;
 }
 
 
@@ -201,4 +216,9 @@ string long_without_object(object o)
       simple_long(),
       show_objects(o));
 #endif
+}
+
+void do_listen()
+{
+    write( "You hear nothing unusual.\n" );
 }

@@ -1,5 +1,10 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// replaces all the instances of str1 with str2 in file
+// Usage: replace <str1> <str2> <file>
+
+
 #include <mudlib.h>
 
 inherit M_GLOB;

@@ -11,7 +11,7 @@ direct_open_obj:
     (call container "query_in_motion") : "The door is stuck.\n"
   end
 
-open_with:
+open:
   action $N $vopen the door.\n
   call container "open_the_door"
 end

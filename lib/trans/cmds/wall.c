@@ -1,5 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
+// Sends a broadcast message to anyone and everyone on the mud
+// Admin use only
+// Usage:  wall <message>
+
+
 #include <mudlib.h>
 #include <log.h>
 

@@ -27,9 +27,9 @@ void set_closed( int x )
 }
 
 
-void on_clone()
+void on_clone( string ident, string dir )
 {
-    ::on_clone();
+::on_clone( ident, dir );
     do_hidden_stuff();
 }
 

@@ -15,7 +15,6 @@
 ** would have to know the rules that the verb object can understand.
 */
 
-#include <mudlib.h>
 #include <commands.h>
 
 /*

@@ -49,7 +49,7 @@ nomask class command_info array module_commands() {
 	    action : (: receive_add_colour :)),
 	new(class command_info,
 	    key : "r",
-	    proto : "[coulour]",
+	    proto : "[colour]",
 	    desc : "remove default colour",
 	    args : ({ "Remove which colour? " }),
 	    action : (: receive_remove_colour :))

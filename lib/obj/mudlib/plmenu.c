@@ -236,10 +236,11 @@ void create()
 					 (: start_mail :), "m"));
   add_menu_item (toplevel, new_menu_item("See who's on (who)", 
 					    (: simple_cmd :), "w"));
-  add_menu_item (toplevel, new_menu_item("Get info about a person (finger)", 
-					 (: input_one_arg, 
-					 "Finger who? ",
-                                          (: handle_finger :) :), "f"));
+  add_menu_item (toplevel,
+                new_menu_item("Get info about a person (finger)",
+                           (: get_input_then_call,
+                           (: handle_finger :),
+                           "Finger who? " :), "f"));
   add_menu_item (toplevel, new_menu_item("Soul/emote Menu", soulmenu, "s"));
   add_menu_item (toplevel, new_menu_item("Report a bug, typo or idea", 
 					 reportmenu, "r"));

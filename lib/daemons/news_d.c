@@ -66,6 +66,7 @@ private static mapping restrictions =
   "wiz" : ({ (: wizardp :), (: wizardp :) }),
   "admin" : ({ (: adminp :), (: adminp :) }),
   "." : ({ 0, (: adminp :) }),
+    "lima.todo" : ({ (: wizardp :), (: adminp :) }),
 ]);
 
 #define is_group(x) (member_array(x,get_groups()) != -1)
@@ -320,6 +321,7 @@ varargs nomask void add_group(string group)
 
     data[group] = (["next_id":1]);
     recent_changes[group] = (["next_id":1]);
+    removed[group] = ({});
     save_recent();
 }
 
@@ -634,7 +636,7 @@ array search_for_author(string who) {
     
     foreach (string group, mapping contents in data) {
 	foreach (mixed id, class news_msg post in contents) {
-	    if (id == "next_id" || !post->body)
+	    if (id == "next_id" || !post->body || !post->poster)
 		continue;
 
 	    if (lower_case(post->poster) == lower_case(who) && query_write_to_group(group))

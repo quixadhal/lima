@@ -100,7 +100,6 @@ private nomask void handle_a(string cmd, string input) {
 
 private nomask void handle_r(string cmd, string input) {
     mixed 	alias_info;
-    mapping aliases;
 
 	if(cmd == "r")
 	    alias_info = ALIAS_D->query_default_aliases()[0];

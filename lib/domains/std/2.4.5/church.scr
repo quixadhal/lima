@@ -33,7 +33,7 @@ long=
   This church has the service of reviving ghosts. Dead people come\n
   to the church and pray.\n
   There is a clock on the wall.\n
-  There is an exit to south.\n
+  There is an exit to south.\n$lamp
 end
 state[lamp_on]=\nThe lamp beside the elevator is lit.\n
 exits=

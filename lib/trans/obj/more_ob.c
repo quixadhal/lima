@@ -14,7 +14,6 @@
 ** Rust added more_lines(lines, chunksize) for intentionally small more's.
 */
 
-#include <mudlib.h>
 #include <more.h>
 
 inherit M_INPUT;

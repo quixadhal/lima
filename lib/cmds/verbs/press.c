@@ -1,29 +1,19 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
-
-inherit VERB_OB;
-inherit M_PARSING;
-
-mixed direct_press_obj(object ob) {
-    return 1;
-}
+inherit NVERB_OB;
 
 void do_press_obj(object ob, string name) {
-    if (!ob->press(name)) {
-	write( useless( "Pushing "+ob->the_short() ) );
-    }
+    ob->do_press();
 }
 
 void do_press_obj_with_obj(object ob1, object ob2) {
-    ob2->use("press", ob1);
+    ob1->do_press( ob2 );
 }
 
 void do_press_obj_str(object ob, string str) {
-    ob->press_str(str);
+    ob->do_press( str );
 }
 
-array query_verb_info() {
-    return ({ ({ "OBJ", "OBJ STR", "OBJ with OBJ" }), ({ "push" }) });
+void create() {
+    add_rules( ({ "OBJ", "OBJ STR", "OBJ with OBJ" }), ({ "push" }) );
 }
-

@@ -27,13 +27,11 @@ inherit M_LOCKABLE;
 inherit M_OPENABLE;
 inherit M_BLOCKEXITS;
 inherit M_KNOCKABLE;
-inherit M_MESSAGES;
 inherit M_SIBLING;
 
-private int block(string dir, object who) {
+private mixed block(string dir, object who) {
     if (query_closed()) {
-	who->simple_action("$N $vtry to go $o, but the $o1 is closed.",
-			   dir, this_object());
+	who->simple_action( "$N $vtry to go $o, but the $o1 is closed.", dir, this_object());
 	return 0;
     }
     return 1;
@@ -46,22 +44,21 @@ void noisy(string arg) {
 
 void update_state(object ob) {
     m_openable::set_closed(ob->query_closed());
-    m_lockable::set_locked(ob->query_locked(), ob->query_key_type());
+    ::set_locked(ob->query_locked(), ob->query_key_type());
 }
 
 
 void we_changed(string arg) {
-    object ob;
-    if (ob = get_sibling())
-	ob->noisy(arg);
+    object sib = get_sibling();
+    if (sib) sib->noisy(arg);
     update_sibling();
 }
 
 
-void on_clone()
+void on_clone( string ident, string dir )
 {
     object sib = get_sibling();
-    ::on_clone();
+    ::on_clone( ident, dir );
     if( sib ) update_state( sib );
 }
 
@@ -74,7 +71,7 @@ void setup_door(string ident, string dir) {
 
     add_adj(dir);
     set_unique(1); // doors should have a unique enough description that
-	           // we can refer to them with 'the'
+    // we can refer to them with 'the'
 
     add_block(dir);
     set_block_action( (: block :) );
@@ -88,29 +85,35 @@ varargs void set_locked(string x, string y) {
 }
 
 void set_closed(int x) {
-    m_openable::set_closed(x);
+    ::set_closed(x);
     update_sibling();
 }
 
-void knock_knock(string s)
+void do_knock()
 {
-  object sibling;
+    object sibling;
 
-  if(is_open())
+    if(is_open())
     {
-      write("There is no need, the door is already open.\n");
-      return;
+	write("There is no need, the door is already open.\n");
+	return;
     }
-  sibling = get_sibling();
-  if(sibling)
+    sibling = get_sibling();
+    if(sibling)
     {
-      tell_room(environment(sibling), "There is a knock at the door.\n");
+	tell_environment( sibling, "There is a knock at the door.\n" );
     }
-  ::knock_knock(s);
+    ::do_knock();
 }
 
 
 mixed direct_get_obj( object obj )
 {
     return "#Opening it would be easier.\n";
+}
+
+
+mapping lpscript_attributes()
+{
+    return object::lpscript_attributes() + m_openable::lpscript_attributes();
 }

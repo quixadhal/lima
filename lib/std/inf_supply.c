@@ -1,28 +1,38 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
+//:TODO
+//Fix give_new_obj to take create args; then fix inf supply
+//to pass them.
 
 inherit CONTAINER;
 
-private mapping obs;
+private string array obs = ({ });
 
 void set_objects(mapping m) {
-    // Normalize the filenames
-    array bad_keys = filter(keys(m), (: $1[<2..] == ".c" :));
-
-    foreach (string s in bad_keys) {
-        m[s[0..<3]] = m[s];
-        map_delete(m, s);
+    foreach( string key, mixed value in m )
+    {
+	if( arrayp( value ))
+	{
+	    if( value[0] == -1 )
+	    {
+		m[key] = value[1..];
+		obs += ({ absolute_path(key) });
+	    }
+	}
+	else if( value == -1 )
+	{
+	    m[key] = 1;
+	    obs += ({ absolute_path(key) });
+	}
+	::set_objects( m );
     }
-
-    obs = m;
-    /* Now and at reset, make one of them */
-    ::set_objects(map_mapping(m, (: 1 :)));
 }
 
 mixed release_object(object target, int force) {
     mixed ret = ::release_object(target, force);
+    string obj = absolute_path( base_name(target));
 
-    if (ret == 1 && obs[base_name(target)] == -1 || obs[base_name(target)]-- > 0) 
-	new(base_name(target))->move(this_object());
+    if( ret == 1 && member_array( obj, obs ) != -1 )
+	give_new_obj( this_object(), obj, 0 );
 
     return ret;
 }

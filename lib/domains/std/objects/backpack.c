@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 #ifdef USE_BODYSLOTS
 #include <bodyslots.h>
 #endif
@@ -10,8 +9,7 @@ inherit M_OPENABLE;
 inherit M_WEARABLE;
 inherit M_GETTABLE;
 
-void
-setup() {
+void setup() {
     
     set_id("backpack", "pack");
     set_long("It's a simple leather backpack, with a flap and strap allowing you to close it.");
@@ -22,6 +20,11 @@ setup() {
 #ifdef USE_BODYSLOTS
     set_slot( TORSO );
 #endif
+}
+
+mixed ob_state()
+{
+    return (string) container::ob_state() + (string) m_wearable::ob_state();
 }
 
 	    

@@ -28,7 +28,7 @@ string long() {
         return "The door is closed.\n";
 }
 
-void open_with() {
+void open() {
   this_body()->simple_action("$N $vopen the west door.\n");
   "/domains/std/2.4.5/elevator.scr"->set_room_state("door", "open");
   tell_from_inside("/domains/std/2.4.5/elevator.scr", "The door opens.\n");

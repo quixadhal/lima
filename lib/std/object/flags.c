@@ -21,15 +21,11 @@
 
 #include <flags.h>
 
-#define WONKY__USE_CLASS
-
-#ifdef WONKY__USE_CLASS
 private class flag_set_info
 {
     int is_non_persistent;
     function change_func;
 }
-#endif
 
 /*
 ** Defines the sets of flags.  Maps a set key to a flag_set_info.
@@ -58,27 +54,15 @@ private void init_vars()
 //Any 'get' function for the flag set is also used.
 nomask int get_flags(int set_key)
 {
-#ifdef WONKY__USE_CLASS
     class flag_set_info set_info;
-#else
-    mixed * set_info;
-#endif
 
     if ( !flag_sets ) init_vars();
 
     set_info = flag_sets[set_key];
     if ( !set_info )
-#ifdef WONKY__USE_CLASS
 	set_info = new(class flag_set_info);
-#else
-	set_info = ({ 0, 0 });
-#endif
 
-#ifdef WONKY__USE_CLASS
     if ( set_info->is_non_persistent )
-#else
-    if ( set_info[0] )
-#endif
 	return non_persist_flags[set_key];
     return persist_flags[set_key];
 }
@@ -92,11 +76,7 @@ nomask int get_flags(int set_key)
 private void set_flags(int which, int state)
 {
     int set_key;
-#ifdef WONKY__USE_CLASS
     class flag_set_info set_info;
-#else
-    mixed * set_info;
-#endif
     int value;
 
     if ( !flag_sets ) init_vars();
@@ -104,11 +84,7 @@ private void set_flags(int which, int state)
     set_key = FlagSet(which);
     set_info = flag_sets[set_key];
     if ( !set_info )
-#ifdef WONKY__USE_CLASS
 	set_info = flag_sets[set_key] = new(class flag_set_info);
-#else
-	set_info = flag_sets[set_key] = ({ 0, 0 });
-#endif
 
     value = get_flags(set_key);
     if ( state )
@@ -120,11 +96,7 @@ private void set_flags(int which, int state)
     ** Use the set_closure if provided; otherwise, set the flags
     ** in the appropriate in the appropriate mapping.
     */
-#ifdef WONKY__USE_CLASS
     if ( set_info->is_non_persistent )
-#else
-    if ( set_info[0] )
-#endif
 	non_persist_flags[set_key] = value;
     else
 	persist_flags[set_key] = value;
@@ -132,13 +104,8 @@ private void set_flags(int which, int state)
     /*
     ** Call the change notification function
     */
-#ifdef WONKY__USE_CLASS
     if ( set_info->change_func )
 	evaluate(set_info->change_func, which, state);
-#else
-    if ( set_info[1] )
-	evaluate(set_info[1], which, state);
-#endif
 }
 
 //:FUNCTION configure_set
@@ -152,13 +119,9 @@ varargs nomask void configure_set(
 {
     if ( !flag_sets ) init_vars();
 
-#ifdef WONKY__USE_CLASS
     flag_sets[set_key] = new(class flag_set_info,
 			     is_non_persistent : is_non_persistent,
 			     change_func : change_func);
-#else
-    flag_sets[set_key] = ({ is_non_persistent, change_func });
-#endif
 }
 
 //:FUNCTION test_flag

@@ -251,7 +251,6 @@ private nomask void handle_post_request(class client_request req, object sock)
 private nomask void handle_get_request(class client_request req, object socket)
 {
     string extention, args;
-    int i1;
     string file;
 
     sscanf(req->request, "%s?=%s", file, args);

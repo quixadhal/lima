@@ -1,6 +1,5 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-#include <mudlib.h>
 
 inherit OBJ;
 inherit M_WIELDABLE;
@@ -11,7 +10,6 @@ void mudlib_setup()
 {
     ::mudlib_setup();
     add_id("weapon");
-    set_gettable(1);
 }
 
 void remove() {

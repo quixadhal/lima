@@ -6,21 +6,28 @@ inherit M_CLIMBABLE;
 
 mixed direct_get_obj( object ob ) {
     if( query_plural())
-	return "#Try climbing them instead.\n";
+	return "#Try climbing them instead.";
     else
-	return "#Try climbing it instead.\n";
+	return "#Try climbing it instead.";
 }
 
 static void setup_messages(string name, mixed up_dest, mixed down_dest)
 {
     string dirs;
     if (up_dest)
+    {
 	if (down_dest)
 	    dirs = "up and down";
 	else
 	    dirs = "upwards";
+    }
     else
-	dirs = "downwards";
+    {
+	if( down_dest )
+	    dirs = "downwards";
+	else
+	    dirs = "nowhere";
+    }
 
     if (query_plural())
 	add_id_no_plural(name);
@@ -44,6 +51,13 @@ void mudlib_setup( mixed up_dest, mixed down_dest, int attached )
     ::mudlib_setup();
     more_create( up_dest, down_dest, attached );
     set_attached( attached );
-    set_up_destination(up_dest);
-    set_down_destination(down_dest);
+}
+
+void on_clone( mixed up_dest, mixed down_dest, int attached )
+{
+    ::on_clone( up_dest, down_dest, attached );
+    if( up_dest )
+	set_up_destination( absolute_path( up_dest, environment( )));
+    if( down_dest )
+	set_down_destination( absolute_path( down_dest, environment( )));
 }

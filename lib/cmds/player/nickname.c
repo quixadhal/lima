@@ -7,10 +7,15 @@ inherit CMD;
 
 private void main(string arg) {
     if (!arg) {
-	out("Nickname yourself what?\n");
+	arg = this_body()->query_nickname();
+	if( !arg )
+	    out("Nickname yourself what?\n");
+	else
+	    out( "Your nickname is \"" + this_body()->query_nickname() + "\".\n");
 	return;
     }
-    
+
+    arg = lower_case( arg );
     this_body()->set_nickname(arg);
     out("Ok.\n");
 }

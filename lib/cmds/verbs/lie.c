@@ -1,15 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-/*
-** lie.c
-*/
 
-
-inherit VERB_OB;
+inherit NVERB_OB;
 
 void do_lie_on_obj(object ob1)
 {
-  ob1->lie();
+    ob1->lie();
 }
 
 void do_lie_down() {
@@ -19,12 +15,12 @@ void do_lie_down() {
 
 void do_lie()
 {
-  this_body()->simple_action("$N $vstate that $n $vare well hung.");
+    this_body()->simple_action( "$N $vclaim to have a brilliant wit, and a sparkling personality.");
 }
 
-array query_verb_info()
+void create()
 {
-    return ({ ({ "on OBJ", "", "down" }) });
+    add_rules( ({ "on OBJ", "", "down" }) );
 }
 
 

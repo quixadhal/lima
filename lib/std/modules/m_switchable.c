@@ -11,11 +11,6 @@ void hook_state(string, string, int);
 void add_hook(string, mixed);
 mixed call_hooks(string, int);
 
-void create() {
-    // make abstract version work
-    if (file_name() + ".c" == __FILE__) return;
-    add_hook("direct_flip", "Flip it on or off?\n");
-}
 
 int query_is_on() {
     return is_on;
@@ -74,13 +69,8 @@ void turn_off() {
 
 // Verb interaction
 
-mixed direct_flip_off_obj(object ob) {
+mixed direct_flip_obj_off(object ob) {
     if (!is_on) return "It isn't turned on!\n";
-    return 1;
-}
-
-mixed direct_flip_on_obj(object ob) {
-    if (is_on) return "It is already on!\n";
     return 1;
 }
 
@@ -89,7 +79,15 @@ mixed direct_flip_obj_on(object ob) {
     return 1;
 }
 
-mixed direct_flip_obj_off(object ob) {
-    if (!is_on) return "It isn't turned on!\n";
-    return 1;
+mixed direct_flip_on_obj(object ob) {
+    return direct_flip_obj_on( ob );
+}
+
+mixed direct_flip_off_obj(object ob) {
+    return direct_flip_obj_off( ob );
+}
+
+mixed direct_flip_obj( object ob )
+{
+    return "#Flip it on or off?";
 }

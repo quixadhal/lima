@@ -3,7 +3,6 @@
 inherit VERB_OB;
 
 void do_climb_obj(object ob, mixed a, mixed b, mixed c) {
-    DBBUG(({ob,a,b,c}));
     ob->climb();
 }
 

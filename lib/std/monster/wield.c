@@ -6,6 +6,8 @@
  */
 
 void simple_action(string, object);
+object give_new_obj( object obj, string str, int recurse );
+
 
 private static object weapon;
 static string weapon_damage_kind;
@@ -30,8 +32,8 @@ void wield(object ob)
 void unwield() {
     if (weapon)
 	weapon->mark_wielded_by(0);
-   simple_action(weapon->query_unwield_message(), weapon);
-wield(this_object());
+    simple_action(weapon->query_unwield_message(), weapon);
+    wield(this_object());
 }
 
 //:FUNCTION query_weapon
@@ -54,4 +56,13 @@ int do_wield(object ob) {
     simple_action(ob->query_wield_message(), ob);
     wield(ob);
     return 1;
+}
+
+//:FUNCTION set_wielding
+//clone a new wieldable object, move it to the body and force
+//the body to wield it.
+int set_wielding(string str)
+{
+    object ob = give_new_obj( this_object(), str, 0 );
+    return do_wield(ob);
 }

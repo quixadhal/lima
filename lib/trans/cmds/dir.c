@@ -1,11 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
+//:COMMAND
 // Yet another goddamn ls command - this one will properly parse
 // colours and give me a nice Christmas tree effect 
 // I hate having to choose between decent formatting and no colours
 // or lame formatting with colours.  This would be so much easier
 // if sprintf understood invisible (ansi) characters.. sigh
-
 // Note the emphasis here is on speed, not on memory usage - hell
 // there's always swap space  :)
 // - Fadeout
@@ -38,7 +38,6 @@ private string colourize(string file, int fsize) {
 
 private string list_files(string* files, mapping flags) {
 	// this func actually does the work
-	mixed info;
 	string* fnames;
 	int* fsizes;
 	int* flens;
@@ -143,7 +142,6 @@ private string list_files(string* files, mapping flags) {
 	
 private void main(mixed argv, mapping flags) {
 	string txt;
-	string* files;
 	int i;
 	string* roots;
 

@@ -16,8 +16,7 @@ inherit M_DAMAGE_SINK;
 void mudlib_setup()
 {
     ::mudlib_setup();
-    add_id("armor");
-    set_gettable(1);
+    add_id( "armor", "armour" );
 }
 
 //:FUNC set_worn

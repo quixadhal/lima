@@ -7,7 +7,6 @@
 ** verb rules (to/from the parser efuns).
 */
 
-#include <mudlib.h>
 
 /*
 ** query_verb_info()

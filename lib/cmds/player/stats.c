@@ -36,6 +36,11 @@ private void main(string arg)
     string * guilds;
     string g_info = 0;
     string r_info = "";
+    string x_info = "";
+    string l_info = "";
+    string o_info;
+    string *curr;
+    int i;
 
     out(SEP_MAJOR);
 
@@ -75,13 +80,21 @@ private void main(string arg)
     out(SEP_MINOR);
 
 #ifdef USE_RACES
-    r_info = "Race: " + capitalize(this_body()->query_race());
+    r_info = "  Race: " + capitalize(this_body()->query_race());
 #endif
 
-    outf("Hp: %d (%d)   Sp: %d (%d)   %20s\n",
+#ifdef USE_SIMPLE_EXP
+    x_info = "  Exp: "+this_body()->query_exp();
+#endif
+
+#ifdef USE_SIMPLE_LEVEL
+    l_info = "  Level: "+this_body()->query_level();
+#endif
+
+    outf("Hp: %d (%d)   Sp: %d (%d) %s%s%s\n",
 	 this_body()->query_hp(), this_body()->query_max_hp(),
 	 1, 1,
-	 r_info);
+         r_info,l_info,x_info);
 
 #ifdef USE_STATS
     this_body()->refresh_stats();
@@ -97,6 +110,18 @@ private void main(string arg)
 
     out(SEP_MINOR);
 
+    o_info = "";
+    curr = this_body()->query_currencies();
+    if (!sizeof(curr)) {
+      o_info += "You are broke.";
+    }
+    else {
+      for (i = 0; i < sizeof(curr); i++) {
+        o_info += sprintf("%s: %d  ",
+          capitalize(curr[i]),this_body()->query_amt_money(curr[i]));
+      }
+    }
+    outf("%s\n",o_info);
 //### other misc stats (e.g. sober, poison, wimpy, etc)
     out("<< other misc data: sober, poison, cash, etc >>\n");
 

@@ -52,7 +52,7 @@ varargs mixed release_object( object target, int force )
 //object, and set_attached(0) removes it.
 varargs void set_attached(int a)
 {
-    if( !a )
+    if (undefinedp(a))
         a = 1;
     assign_flag(ATTACHED, a);
 }
