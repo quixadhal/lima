@@ -1,25 +1,20 @@
-If at any point you have problems with these directions, log on to our
-Lima support mud, Lima Bean: lima.mudlib.org 7878.  Type 'news',
-and then post a report of your problems.  We'll help you as soon as
-humanly possible.
-
-
+If at any point you have problems with these directions, post the 
+exact problem and errors on http://lpmuds.net/forum
 
 How to install Lima:
 
-1) You must compile the driver for your machine:
+1) Compile the driver for your machine:
 	a) cd to the driver directory
-	b) Type: ./build.MudOS
-	c) When it is done running, it will tell you to which make
-	   program to use: "make" or "gmake".  Type either "gmake install"
-	   or "make install", depending on which one it says.
+	b) Type: ./configure lima
+	c) When it is done running, type: make install
 	d) When this is finished, you should have a driver and an
-	   addr_server in ../etc
+	   addr_server in ../bin
 
 2) You must edit the mudlib configuration file.
-	a) cd ../etc
-	b) edit config.lima
+	a) cd ../bin
+	b) edit the file config.lima
 	c) follow the directions in the file
+        d) at a minimum you MUST change the mud name, the bin directory, and the lib directory
 
 3) Start your address server if one isn't running already (type this while
    you're in the "etc" directory):
@@ -28,16 +23,16 @@ How to install Lima:
    Change the port number above as needed, ensuring that the config.lima
    file matches the command line used to start the address server.
 
-3) Start the driver with the command (type this while in the "etc"
+4) Start the driver with the command (type this while in the "etc"
    directory):
-	./driver config.lima &
+	./driver ./config.lima &
 
    Your mud should now be starting up.  When it says:
 	Accepting connections on port NNNN.
 
    Then your mud is up.
 
-4) Log in to your mud.  Make sure you're the first person to do so --
+5) Log in to your mud.  Make sure you're the first person to do so --
    whoever is first will become an admin!  After that, new users will
    just be guest wizards (by default).
 
@@ -51,31 +46,31 @@ How to install Lima:
    In order to access all the admin commands, you will need to type:
 	resetpath
 
-5) Creating new admins;
+6) Creating new admins;
 
    You can convert other wizards after they log in into admins by adding
    them into the "admin" domain.  Use the "admtool" command for this.
 
-6) Mudlib configuration:
+7) Mudlib configuration:
 
-   Change any options you feel appropriate in /include/config.h.  You
-   MUST change the ADMIN_EMAIL define if you wish to use the Intermud
-   network.  The Intermud daemon will not load until you edit this line.
+   Change any options you feel appropriate in /include/config.h. 
 
    When you're done with any configuration changes, then shut down the
    mud with the shutdown command.  Restart it, as described above, to
    make those changes happen.
 
-7) You're done! Come see us on Lima Bean (lima.mudlib.org 7878) and
-   let us know how it went!  We are also keeping track of people who
-   are using the Lima Mudlib.  See our web pages at:
+8) You're done! Share your experiences on the Lima area of http://lpmuds.net/forum
 
-	http://lima.mudlib.org:7881/
-
-8) If your machine has /bin/bash, you can modify LIMADIR in
+9) If your machine has /bin/bash, you can modify LIMADIR in
    /etc/backup and /etc/startmud, and follow the usage instructions in
    those scripts, if you think you'll find them useful.
 
-9) Intermud channel rules - please comply with  the rules for the main
+10) Intermud channel rules - please comply with  the rules for the main
    intermud channels, icode and igossip, which are at
-   http://cie.imaginary.com/protocols/channels.html
+   http://lpmuds.net/intermud.html
+
+To join:
+chan imud_imud_gossip /on
+igossip foo
+chan imud_imud_code /on
+icode bar

@@ -64,7 +64,12 @@ object *all_previous_objects previous_object(int default: -1);
 mixed *call_stack(int default: 0);
 int sizeof(mixed);
 int strlen sizeof(string);
-void destruct(object);
+#ifdef USE_ICONV
+int strwidth(string);
+#else
+int strwidth sizeof(string);
+#endif
+void destruct(object default: F__THIS_OBJECT);
 string file_name(object default: F__THIS_OBJECT);
 string capitalize(string);
 string *explode(string, string);
@@ -74,7 +79,7 @@ int call_out(string | function, int,...);
 #else
 void call_out(string | function, int,...);
 #endif
-int member_array(mixed, string | mixed *, void | int);
+int member_array(mixed, string | mixed *, void | int, void | int);
 int input_to(string | function,...);
 int random(int);
 
@@ -129,7 +134,7 @@ void tell_object(object, string);
 void shout(string);
 void receive(string OR_BUFFER);
 void message(mixed, mixed, string | string * | object | object *,
-	          void | object | object *);
+                  void | object | object *);
 
 /* the find_* functions */
 
@@ -165,7 +170,7 @@ void message(mixed, mixed, string | string * | object | object *,
     int nullp undefinedp(mixed);
     int floatp(mixed);
     int stringp(mixed);
-    int virtualp(object);
+    int virtualp(object default: F__THIS_OBJECT);
     int functionp(mixed);
 #ifdef COMPAT_32
     int closurep functionp(mixed);
@@ -181,7 +186,7 @@ void message(mixed, mixed, string | string * | object | object *,
     buffer allocate_buffer(int);
 #endif
 
-    int inherits(string, object);
+    int inherits(string, object default: F__THIS_OBJECT);
     void replace_program(string);
 
     mixed regexp(string | string *, string, void | int);
@@ -207,9 +212,7 @@ void message(mixed, mixed, string | string * | object | object *,
     string read_file(string, void | int, void | int);
     int cp(string, string);
 
-#ifndef LATTICE
     int link(string, string);
-#endif
     int mkdir(string);
     int rm(string);
     int rmdir(string);
@@ -224,7 +227,7 @@ void message(mixed, mixed, string | string * | object | object *,
     string crypt(string, string | int);
     string oldcrypt(string, string | int);
    
-    string ctime(int);
+    string ctime(int|void);
     int exec(object, object);
     mixed *localtime(int);
     string function_exists(string, void | object, void | int);
@@ -247,11 +250,6 @@ void message(mixed, mixed, string | string * | object | object *,
     void set_heart_beat(int);
     int query_heart_beat(object default:F__THIS_OBJECT);
     void set_hide(int);
-
-#ifdef LPC_TO_C
-    int generate_source(string | string *, void | string);
-    string lpc_info();
-#endif
 
 #ifndef NO_RESETS
     void set_reset(object, void | int);
@@ -282,6 +280,7 @@ void message(mixed, mixed, string | string * | object | object *,
  * Object properties
  */
     int interactive(object default:F__THIS_OBJECT);
+    int has_mxp(object default:F__THIS_OBJECT);
     string in_edit(object default:F__THIS_OBJECT);
     int in_input(object default:F__THIS_OBJECT);
     int userp(object);
@@ -307,7 +306,7 @@ void message(mixed, mixed, string | string * | object | object *,
 /* privledge functions */
     string query_privs(object default:F__THIS_OBJECT);
     void set_privs(object, int | string);
-#endif				/* PRIVS */
+#endif                          /* PRIVS */
 
     int get_char(string | function,...);
     object *children(string);
@@ -322,17 +321,17 @@ void message(mixed, mixed, string | string * | object | object *,
     int strcmp(string, string);
 
 #ifndef WIN32
-#if (defined(RUSAGE) || defined(GET_PROCESS_STATS) || defined(TIMES)) || defined(LATTICE)
+#if (defined(RUSAGE) || defined(GET_PROCESS_STATS) || defined(TIMES))
     mapping rusage();
-#endif				/* RUSAGE */
+#endif                          /* RUSAGE */
 #endif
 
     void flush_messages(void | object);
 
 #ifdef OLD_ED
-    void ed(string | void, string | void, string | int | void, int | void);
+    void ed(string | void, string | int | void, string | int | void, int | void, int | void);
 #else
-    string ed_start(string | void, int | void);
+    string ed_start(string | void, int | void, int | void);
     string ed_cmd(string);
     int query_ed_mode();
 #endif
@@ -391,10 +390,17 @@ void message(mixed, mixed, string | string * | object | object *,
     mapping *function_profile(object default:F__THIS_OBJECT);
 #endif
 
-#ifdef DEBUG
-    void swap(object);		/* Only used for debugging */
-#endif
     int resolve(string, string|function);
-
+#ifdef USE_ICONV
+    int set_encoding(string);
+    string to_utf8(string, string);
+    string utf8_to(string, string);
+    int *str_to_arr(string);
+    string arr_to_str(int *);
+#endif
+    void act_mxp();
+    void request_term_type();
+    void start_request_term_type();
+    void request_term_size();
 /* shutdown is at the end because it is only called once per boot cycle :) */
     void shutdown(void | int);

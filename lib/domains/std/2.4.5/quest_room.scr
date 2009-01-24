@@ -9,7 +9,7 @@ long=
   When it is approved, put a permanent object in this room, wich has as\n
   short description the name of the wizard. All objects in this room will be\n
   checked when a player wants to become a wizard. The player must have\n
-  solved ALL quests. To mark that a quest is solved, call 'set_quest(\"name\")'\n
+  solved ALL quests. To mark that a quest is solved, call set_quest("name")\n
   in the player object. The objects must all accept the id 'quest' and the\n
   name of the wizard. The objects must also define a function hint(),\n
   that should return a message giving a hint of where to start the quest.\n

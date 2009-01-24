@@ -343,3 +343,7 @@ void compile_script(string fname) {
 void run_script(string name) {
     call_other(script, name);
 }
+
+varargs add_script(mixed args...){
+     debug_info("Don't you wish this function wasn't missing? What did it do? It is a mystery.");
+}

@@ -1,11 +1,13 @@
 #include "std.h"
 #include "port.h"
-#include "lint.h"
 #include "file_incl.h"
 #include "network_incl.h"
-
-#if defined(WIN32) || defined(LATTICE)
-int dos_style_link P2(char *, x, char *, y) {
+#include <unistd.h>
+#ifndef MINGW
+#include <sys/mman.h>
+#endif
+#if defined(WIN32)
+int dos_style_link (char * x, char * y) {
     char link_cmd[100];
     sprintf(link_cmd, "copy %s %s", x, y);
     return system(link_cmd);
@@ -21,13 +23,13 @@ int dos_style_link P2(char *, x, char *, y) {
 #endif
 
 #ifdef sun
-time_t time PROT((time_t *));
+time_t time (time_t *);
 #endif
 
 /*
  * Return a pseudo-random number in the range 0 .. n-1
  */
-int random_number P1(int, n)
+long random_number (long n)
 {
 #if defined(RAND) || defined(DRAND48)
     static char called = 0;
@@ -44,9 +46,13 @@ int random_number P1(int, n)
 	called = 1;
     }				/* endif */
 #  ifdef RAND
+#    ifdef MINGW
     return rand() % n;
+#    else
+    return 1 + (long) ((float)n * rand() / (RAND_MAX+1.0);
+#endif
 #  else
-    return (int)(drand48() * n);
+    return (long)(drand48() * n);
 #  endif
 #else
 #  ifdef RANDOM
@@ -66,14 +72,17 @@ int random_number P1(int, n)
  * of seconds since 1970.
  */
 
-int get_current_time()
+long get_current_time()
 {
-    return (int) time(0l);	/* Just use the old time() for now */
+    return time(0l);	/* Just use the old time() for now */
 }
 
-char *time_string P1(time_t, t)
+const char *time_string (time_t t)
 {
-    return ctime(&t);
+    const char *res = ctime(&t);
+    if(!res)
+      res = "ctime failed";
+    return res;
 }
 
 /*
@@ -90,7 +99,7 @@ void init_usec_clock()
  * Get a microsecond clock sample.
  */
 void
-get_usec_clock P2(long *, sec, long *, usec)
+get_usec_clock (long * sec, long * usec)
 {
 #ifdef HAS_GETTIMEOFDAY
     struct timeval tv;
@@ -103,27 +112,15 @@ get_usec_clock P2(long *, sec, long *, usec)
            *sec = 0;
     *usec = GETUSCLK();
 #else
-#ifdef LATTICE
-    unsigned int clock[2];
-
-    if (timer(clock)) {
-	*sec = time(0);
-	*usec = 0;
-    } else {
-	*sec = clock[0];
-	*usec = clock[1];
-    }
-#else
     *sec = time(0);
     *usec = 0;
-#endif
 #endif
 #endif
 }
 
 #ifdef USE_POSIX_SIGNALS
 int
-port_sigblock P1(sigset_t, mask)
+port_sigblock (sigset_t mask)
 {
     sigset_t omask;
 
@@ -132,7 +129,7 @@ port_sigblock P1(sigset_t, mask)
 }
 
 int
-port_sigmask P1(int, sig)
+port_sigmask (int sig)
 {
     sigset_t set;
 
@@ -157,7 +154,7 @@ void
 }
 
 int
-port_sigsetmask P1(sigset_t, mask)
+port_sigsetmask (sigset_t mask)
 {
     sigset_t omask;
 
@@ -167,7 +164,7 @@ port_sigsetmask P1(sigset_t, mask)
 #endif
 
 int
-get_cpu_times P2(unsigned long *, secs, unsigned long *, usecs)
+get_cpu_times (unsigned long * secs, unsigned long * usecs)
 {
 #ifdef RUSAGE
     struct rusage rus;
@@ -205,18 +202,7 @@ get_cpu_times P2(unsigned long *, secs, unsigned long *, usecs)
     return 1;
 #else				/* end then TIMES */
 
-#ifdef LATTICE			/* start LATTICE */
-    unsigned int clock[2];
-
-    if (timer(clock))
-	return 0;
-
-    *secs = clock[0];
-    *usecs = clock[1];
-    return 1;
-#else
     return 0;
-#endif				/* end LATTICE */
 #endif				/* end TIMES */
 #endif				/* end else GET_PROCESS_STATS */
 #endif				/* end else RUSAGE */
@@ -224,7 +210,7 @@ get_cpu_times P2(unsigned long *, secs, unsigned long *, usecs)
 
 /* return the current working directory */
 char *
-     get_current_dir P2(char *, buf, int, limit)
+     get_current_dir (char * buf, int limit)
 {
 #ifdef HAS_GETCWD
     return getcwd(buf, limit);	/* POSIX */
@@ -240,7 +226,7 @@ char *
 extern char *sys_errlist[];
 extern int sys_nerr;
 
-char *port_strerror P1(int, which)
+char *port_strerror (int which)
 {
     if ((which < 0) || (which >= sys_nerr)) {
 	return "unknown error";
@@ -252,7 +238,7 @@ char *port_strerror P1(int, which)
 
 #ifdef MEMMOVE_MISSING
 /* for those without memmove() and a working bcopy() that can handle overlaps */
-INLINE char *memmove P3(register char *, b, register char *, a, register int, s)
+INLINE char *memmove (register char * b, register char * a, register int s)
 {
     char *r = b;
 
@@ -275,5 +261,44 @@ char *WinStrError(int err) {
     if (errno < 10000) return strerror(err);
     sprintf(buf, "error #%d", err);
     return buf;
+}
+#endif
+
+#ifdef MMAP_SBRK
+void * sbrkx(long size){
+  static void *end = 0;
+  static unsigned long tsize = 0;
+  void *tmp, *result;
+  long long newsize;
+  if(!end){
+    tmp = mmap((void *)0x41000000, 4096, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS,0,0);
+    tsize=4096;
+    end=(void *)0x41000000;
+    if(tmp != end)
+      return NULL;
+  }
+
+  newsize = (long)end + size;
+  result = end;
+  end = newsize;
+  newsize &= 0xFFFFF000;
+  newsize += 0x1000;
+  newsize -= 0x41000000;
+
+  tmp = mremap((void *)0x41000000, tsize, newsize, 0);
+
+  if(tmp != (void *) 0x41000000)
+    return NULL;
+
+  tsize = newsize;
+  return result;
+}
+
+#else
+
+void *sbrkx(long size){
+#ifndef MINGW
+  return sbrk(size);
+#endif
 }
 #endif

@@ -148,25 +148,31 @@ void userinfo_handle_logon(int state, mixed extra, string arg)
 
          modal_func((: userinfo_handle_logon, GOT_URL, 0 :),
                        "Your home page address (if any): ");
+         //tc("hmm");
          break;
 
       case GOT_URL:
          url = arg;
+         //tc("got url:"+url);
 
          /*
          ** Done with this series of inputs
          */
          modal_pop();
+         //tc("past pop");
 
          /*
          ** Let's move on to introducing the character to the mud.
          */
          if(file_size(NEW_PLAYER) <= 0)
          {
+            //tc("about to call sw_body_handle_new_logon");
             sw_body_handle_new_logon();
             return;
          }
 
+         //tc("about to more a file");
          more_file(NEW_PLAYER, 0, (: sw_body_handle_new_logon :));
+         //tc("done?");
    }
 }

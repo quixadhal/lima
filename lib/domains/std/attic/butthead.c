@@ -5,6 +5,7 @@
 inherit LIVING;
 inherit M_ACTIONS;
 inherit M_TRIGGERS;
+inherit M_REACT;
 
 void make_a_joke()
 {

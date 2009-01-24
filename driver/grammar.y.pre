@@ -1,6 +1,7 @@
 /* This is to make emacs edit this in C mode: -*-C-*- */
 
 %{
+extern char *outp;
 #include "std.h"
 #include "compiler.h"
 #include "lex.h"
@@ -15,6 +16,7 @@
 #ifdef WIN32
 #define MSDOS
 #endif
+#define YYSTACK_USE_ALLOCA 0
 %line
 /*
  * This is the grammar definition of LPC, and its parse tree generator.
@@ -31,11 +33,11 @@
  */
 int context;
 int num_refs;
-
+int func_present;
 /*
  * bison & yacc don't prototype this in y.tab.h
  */
-int yyparse PROT((void));
+int yyparse (void);
 
 %}
 /*
@@ -128,7 +130,7 @@ int yyparse PROT((void));
 %union
 {
     POINTER_INT pointer_int;
-    int number;
+    long number;
     float real;
     char *string;
     int type;
@@ -278,9 +280,23 @@ inheritance:
 %endif
 		
 		if (!($1 & DECL_ACCESS)) $1 |= DECL_PUBLIC;
-		
+#ifndef ALLOW_INHERIT_AFTER_FUNCTION
+		if (func_present)
+		    yyerror("Illegal to inherit after defining functions.");
+#endif
 		if (var_defined)
 		    yyerror("Illegal to inherit after defining global variables.");
+#ifndef ALLOW_INHERIT_AFTER_FUNCTION
+		if (func_present || var_defined){
+#else
+		if (var_defined){
+#endif
+		  inherit_file = 0;
+		  YYACCEPT;
+		}
+#ifdef NEVER
+		} //stupid bison
+#endif
 		ob = find_object2($3);
 		if (ob == 0) {
 		    inherit_file = alloc_cstring($3, "inherit");
@@ -298,7 +314,7 @@ inheritance:
 			+ prev_inherit->prog->num_functions_defined
 			+ prev_inherit->prog->last_inherited;
 		    if (prev_inherit->prog->num_functions_defined &&
-			prev_inherit->prog->function_table[prev_inherit->prog->num_functions_defined - 1].name[0] == '#')
+			prev_inherit->prog->function_table[prev_inherit->prog->num_functions_defined - 1].funcname[0] == APPLY___INIT_SPECIAL_CHAR)
 			inherit.function_index_offset--;
 		} else inherit.function_index_offset = 0;
 		
@@ -394,7 +410,7 @@ def:
 %ifdef SENSIBLE_MODIFIERS
                 int acc_mod;
 %endif
-		
+                func_present = 1;
 		flags = ($1 >> 16);
 		
 		flags |= global_modifiers;
@@ -593,7 +609,7 @@ type_decl:
 			sme = (class_member_entry_t *)mem_block[A_CLASS_MEMBER].block + sd->index;
 			while (i--) {
 			    /* check for matching names and types */
-			    if (strcmp(PROG_STRING(sme[i].name), locals_ptr[i].ihe->name) != 0 ||
+			    if (strcmp(PROG_STRING(sme[i].membername), locals_ptr[i].ihe->name) != 0 ||
 				sme[i].type != (type_of_locals_ptr[i] & ~LOCAL_MODS)) {
 				raise_error = 1;
 				break;
@@ -603,7 +619,7 @@ type_decl:
 		}
 
 		if (raise_error) {
-		    char buf[256];
+		    char buf[512];
 		    char *end = EndOf(buf);
 		    char *p;
 
@@ -614,12 +630,12 @@ type_decl:
 		    sd = (class_def_t *)allocate_in_mem_block(A_CLASS_DEF, sizeof(class_def_t));
 		    i = sd->size = current_number_of_locals;
 		    sd->index = mem_block[A_CLASS_MEMBER].current_size / sizeof(class_member_entry_t);
-		    sd->name = $<number>5;
+		    sd->classname = $<number>5;
 
 		    sme = (class_member_entry_t *)allocate_in_mem_block(A_CLASS_MEMBER, sizeof(class_member_entry_t) * current_number_of_locals);
 
 		    while (i--) {
-			sme[i].name = store_prog_string(locals_ptr[i].ihe->name);
+			sme[i].membername = store_prog_string(locals_ptr[i].ihe->name);
 			sme[i].type = type_of_locals_ptr[i] & ~LOCAL_MODS;
 		    }
 		}
@@ -908,7 +924,7 @@ new_name:
 			p = strput(p, end, $2);
 			yyerror(buff);
 		    }
-		}
+		} else type = 0;
 		$4 = do_promotions($4, type);
 
 		CREATE_BINARY_OP(expr, F_VOID_ASSIGN, 0, $4, 0);
@@ -1178,7 +1194,7 @@ for:
 		$7 = pop_value($7);
 		if ($7 && IS_NODE($7, NODE_UNARY_OP, F_INC)
 		    && IS_NODE($7->r.expr, NODE_OPCODE_1, F_LOCAL_LVALUE)) {
-		    int lvar = $7->r.expr->l.number;
+		    long lvar = $7->r.expr->l.number;
 		    CREATE_OPCODE_1($7, F_LOOP_INCR, 0, lvar);
 		}
 
@@ -1311,9 +1327,15 @@ first_for_expr:
                     NODE_NO_LINE(node2, NODE_SWITCH_STRINGS);
                 } else if (context & SWITCH_RANGES) {
 		    NODE_NO_LINE(node2, NODE_SWITCH_RANGES);
-		} else {
+		} else if ((context & SWITCH_NUMBERS) ||
+			   (context & SWITCH_NOT_EMPTY)) {
                     NODE_NO_LINE(node2, NODE_SWITCH_NUMBERS);
-                }
+                } else {
+		    // to prevent crashing during the remaining parsing bits
+		    NODE_NO_LINE(node2, NODE_SWITCH_NUMBERS);
+
+		    yyerror("need case statements in switch/case, not just default:"); //just a default case present
+		}
 
                 node2->l.expr = $3;
                 node2->r.expr = node1;
@@ -1366,6 +1388,33 @@ first_for_expr:
 
                 add_to_mem_block(A_CASES, (char *)&($2), sizeof($2));
             }
+    |   L_CASE case_label L_RANGE ':'
+            {
+	        if ( $2->kind != NODE_CASE_NUMBER )
+                    yyerror("String case labels not allowed as range bounds");
+
+		context |= SWITCH_RANGES;
+
+                $$ = $2;
+                $$->v.expr = new_node();
+		$$->v.expr->kind = NODE_CASE_NUMBER;
+		$$->v.expr->r.number = ((unsigned long)-1)/2; //maxint
+
+                add_to_mem_block(A_CASES, (char *)&($2), sizeof($2));
+            }
+    |   L_CASE L_RANGE case_label ':'
+            {
+	      if ( $3->kind != NODE_CASE_NUMBER )
+                    yyerror("String case labels not allowed as range bounds");
+
+		context |= SWITCH_RANGES;
+		$$ = new_node();
+		$$->kind = NODE_CASE_NUMBER;
+                $$->r.number = (long) 1+ ((unsigned long)-1)/2; //maxint +1 wraps to min_int, on all computers i know, just not in the C standard iirc 
+                $$->v.expr = $3;
+
+                add_to_mem_block(A_CASES, (char *)&($$), sizeof($$));
+            }
     |  L_DEFAULT ':'
             {
                 if (context & SWITCH_DEFAULT) {
@@ -1387,7 +1436,10 @@ first_for_expr:
                 if ((context & SWITCH_STRINGS) && $1)
                     yyerror("Mixed case label list not allowed");
 
-                if ($1) context |= SWITCH_NUMBERS;
+                if ($1)
+		  context |= SWITCH_NUMBERS;
+		else
+		  context |= SWITCH_NOT_EMPTY;
 
 		$$ = new_node();
 		$$->kind = NODE_CASE_NUMBER;
@@ -1531,10 +1583,12 @@ expr0:
 		case NODE_UNARY_OP_1:
 		case NODE_BINARY_OP:
 		    op = $2->v.number;
-		    if (op > F_RINDEX_LVALUE) {
+		    if (op > F_RINDEX_LVALUE) 
 			yyerror("Illegal to make reference to range");
-			break;
-		    }
+		    break;
+		default:
+		    op=0; //0 is harmless, i hope
+		    yyerror("unknown lvalue kind");
 		}
 		CREATE_UNARY_OP_1($$, F_MAKE_REF, TYPE_ANY, $2, op);
 	    }
@@ -1551,12 +1605,11 @@ expr0:
 
 		if (exact_types && !compatible_types(r->type, l->type) &&
 		    !($2 == F_ADD_EQ
-		      && r->type == TYPE_STRING && 
-		      COMP_TYPE(l->type, TYPE_NUMBER))) {
+		      && l->type == TYPE_STRING && 
+		      (COMP_TYPE(r->type, TYPE_NUMBER))||r->type == TYPE_OBJECT)) {
 		    char buf[256];
 		    char *end = EndOf(buf);
 		    char *p;
-		    
 		    p = strput(buf, end, "Bad assignment ");
 		    p = get_two_types(p, end, l->type, r->type);
 		    p = strput(p, end, ".");
@@ -1812,45 +1865,50 @@ expr0:
 			} else result_type = t1;
 		    } else {
 			switch(t1) {
-			    case TYPE_STRING:
-			    {
-				if (t3 == TYPE_REAL || t3 == TYPE_NUMBER){
-				    result_type = TYPE_STRING;
-				} else goto add_error;
-				break;
-			    }
-			    case TYPE_NUMBER:
-			    {
-				if (t3 == TYPE_REAL || t3 == TYPE_STRING)
-				    result_type = t3;
-				else goto add_error;
-				break;
-			    }
+			case TYPE_OBJECT:
+			  if(t3 == TYPE_STRING){
+			    result_type = TYPE_STRING;
+			  } else goto add_error;
+			  break;
+			case TYPE_STRING:
+			  {
+			    if (t3 == TYPE_REAL || t3 == TYPE_NUMBER || t3 == TYPE_OBJECT){
+			      result_type = TYPE_STRING;
+			    } else goto add_error;
+			    break;
+			  }
+			case TYPE_NUMBER:
+			  {
+			    if (t3 == TYPE_REAL || t3 == TYPE_STRING)
+			      result_type = t3;
+			    else goto add_error;
+			    break;
+			  }
 			case TYPE_REAL:
-			    {
-				if (t3 == TYPE_NUMBER) result_type = TYPE_REAL;
-				else if (t3 == TYPE_STRING) result_type = TYPE_STRING;
-				else goto add_error;
-				break;
+			  {
+			    if (t3 == TYPE_NUMBER) result_type = TYPE_REAL;
+			    else if (t3 == TYPE_STRING) result_type = TYPE_STRING;
+			    else goto add_error;
+			    break;
+			  }
+			default:
+			  {
+			    if (t1 & t3 & TYPE_MOD_ARRAY) {
+			      result_type = TYPE_ANY|TYPE_MOD_ARRAY;
+			      break;
 			    }
-			    default:
+			  add_error:
 			    {
-				if (t1 & t3 & TYPE_MOD_ARRAY) {
-				    result_type = TYPE_ANY|TYPE_MOD_ARRAY;
-				    break;
-				}
-add_error:
-				{
-				    char buf[256];
-				    char *end = EndOf(buf);
-				    char *p;
-				    
-				    p = strput(buf, end, "Invalid argument types to '+' ");
-				    p = get_two_types(p, end, t1, t3);
-				    yyerror(buf);
-				    result_type = TYPE_ANY;
-				}
+			      char buf[256];
+			      char *end = EndOf(buf);
+			      char *p;
+			      
+			      p = strput(buf, end, "Invalid argument types to '+' ");
+			      p = get_two_types(p, end, t1, t3);
+			      yyerror(buf);
+			      result_type = TYPE_ANY;
 			    }
+			  }
 			}
 		    }
 		} else 
@@ -1909,17 +1967,18 @@ add_error:
 		case NODE_STRING:
 		    if ($3->kind == NODE_STRING) {
 			/* Combine strings */
-			int n1, n2;
-			char *new, *s1, *s2;
+			long n1, n2;
+			const char *s1, *s2;
+			char *news;
 			int l;
 
 			n1 = $1->v.number;
 			n2 = $3->v.number;
 			s1 = PROG_STRING(n1);
 			s2 = PROG_STRING(n2);
-			new = (char *)DXALLOC( (l = strlen(s1))+strlen(s2)+1, TAG_COMPILER, "combine string" );
-			strcpy(new, s1);
-			strcat(new + l, s2);
+			news = (char *)DXALLOC( (l = strlen(s1))+strlen(s2)+1, TAG_COMPILER, "combine string" );
+			strcpy(news, s1);
+			strcat(news + l, s2);
 			/* free old strings (ordering may help shrink table) */
 			if (n1 > n2) {
 			    free_prog_string(n1); free_prog_string(n2);
@@ -1927,8 +1986,8 @@ add_error:
 			    free_prog_string(n2); free_prog_string(n1);
 			}
 			$$ = $1;
-			$$->v.number = store_prog_string(new);
-			FREE(new);
+			$$->v.number = store_prog_string(news);
+			FREE(news);
 			break;
 		    }
 		    /* Yes, this can actually happen for absurd code like:
@@ -2509,6 +2568,8 @@ lvalue:
 #define LV_INDEX 4
                 /* Restrictive lvalues, but I think they make more sense :) */
                 $$ = $1;
+		if($$->kind == NODE_BINARY_OP && $$->v.number == F_TYPE_CHECK) 
+		    $$ = $$->l.expr;
                 switch($$->kind) {
 		default:
 		    yyerror("Illegal lvalue");
@@ -2538,6 +2599,12 @@ lvalue:
 			    case NODE_OPCODE_1:
 			    case NODE_UNARY_OP_1:
 			    case NODE_BINARY_OP:
+			        if(node->kind == NODE_BINARY_OP && 
+				   node->v.number == F_TYPE_CHECK) {
+				    node = node->l.expr;
+				    continue;
+				}
+
 				if (node->v.number >= F_LOCAL 
 				    && node->v.number <= F_MEMBER) {
 				    node->v.number++;
@@ -2827,6 +2894,8 @@ expr4:
 		    default:
 			if ($1->type & TYPE_MOD_ARRAY) {
 			    $$->type = $1->type & ~TYPE_MOD_ARRAY;
+			    if ($$->type != TYPE_ANY)
+			        $$ = add_type_check($$, $$->type); 
 			    if (!IS_TYPE($4->type,TYPE_NUMBER))
 				type_error("Bad type of index", $4->type);
 			} else {
@@ -2881,6 +2950,8 @@ expr4:
 		    default:
 			if ($1->type & TYPE_MOD_ARRAY) {
 			    $$->type = $1->type & ~TYPE_MOD_ARRAY;
+			    if($$->type != TYPE_ANY)
+			        $$ = add_type_check($$, $$->type);
 			    if (!IS_TYPE($3->type,TYPE_NUMBER))
 				type_error("Bad type of index", $3->type);
 			} else {
@@ -2960,6 +3031,10 @@ expr4:
     |   l_new_function_open ':' ')'
 %endif
             {
+#ifdef WOMBLES
+	        if(*(outp-2) != ':')
+		  yyerror("End of functional not found");
+#endif
 		$$ = new_node();
 		$$->kind = NODE_FUNCTION_CONSTRUCTOR;
 		$$->type = TYPE_FUNCTION;
@@ -2993,6 +3068,10 @@ expr4:
 	    }
     |   l_new_function_open ',' expr_list2 ':' ')'
             {
+#ifdef WOMBLES
+	        if(*(outp-2) != ':')
+		  yyerror("End of functional not found");
+#endif
 		$$ = new_node();
 		$$->kind = NODE_FUNCTION_CONSTRUCTOR;
 		$$->type = TYPE_FUNCTION;
@@ -3005,8 +3084,8 @@ expr4:
 		    int f = $1 >>8;
 		    int num = $3->kind;
 		    int max_arg = predefs[f].max_args;
-		    
-		    if (num > max_arg && max_arg != -1) {
+		    if(f!=-1){
+		      if (num > max_arg && max_arg != -1) {
 			parse_node_t *pn = $3;
 			
 			while (pn) {
@@ -3023,7 +3102,7 @@ expr4:
 			    p = strput(p, end, predefs[f].word);
 			    yyerror(bff);
 			}
-		    } else if (max_arg != -1 && exact_types) {
+		      } else if (max_arg != -1 && exact_types) {
 			/*
 			 * Now check all types of arguments to efuns.
 			 */
@@ -3071,6 +3150,7 @@ expr4:
 			    argp += i + 1;
 			    enode = enode->r.expr;
 			}
+		      }
 		    }
 		    break;
 		}
@@ -3082,6 +3162,10 @@ expr4:
 	    }
     |   L_FUNCTION_OPEN comma_expr ':' ')'
              {
+#ifdef WOMBLES
+	         if(*(outp-2) != ':')
+		   yyerror("End of functional not found");
+#endif
 		 if (current_function_context->num_locals)
 		     yyerror("Illegal to use local variable in functional.");
 		 if (current_function_context->values_list->r.expr)
@@ -3100,10 +3184,18 @@ expr4:
              }
     |   L_MAPPING_OPEN expr_list3 ']' ')'
 	    {
+#ifdef WOMBLES
+	        if(*(outp-2) != ']')
+		  yyerror("End of mapping not found");
+#endif
 		CREATE_CALL($$, F_AGGREGATE_ASSOC, TYPE_MAPPING, $2);
 	    }
     |   L_ARRAY_OPEN expr_list '}' ')'
 	    {
+#ifdef WOMBLES
+	        if(*(outp-2) != '}')
+		  yyerror("End of array not found");
+#endif  
 		CREATE_CALL($$, F_AGGREGATE, TYPE_ANY | TYPE_MOD_ARRAY, $2);
 	    }
     ;
@@ -3272,8 +3364,26 @@ function_call:
 	    }
         expr_list ')'
             {
+		ident_hash_elem_t *ihe;
+		int f;
+
 		context = $<number>3;
-		$$ = validate_efun_call(new_efun, $4);
+		ihe = lookup_ident("clone_object");
+
+		if ((f = ihe->dn.simul_num) != -1) {
+		    $$ = $4;
+		    $$->kind = NODE_CALL_1;
+		    $$->v.number = F_SIMUL_EFUN;
+		    $$->l.number = f;
+		    $$->type = (SIMUL(f)->type) & ~DECL_MODS;
+		} else {
+		    $$ = validate_efun_call(lookup_predef("clone_object"), $4);
+#ifdef CAST_CALL_OTHERS
+		    $$->type = TYPE_UNKNOWN;
+#else
+		    $$->type = TYPE_ANY;
+#endif		  
+		}
 		$$ = check_refs(num_refs - $<number>2, $4, $$);
 		num_refs = $<number>2;
             }
@@ -3366,7 +3476,6 @@ function_call:
 		     *
 		     * Don't complain, just grok it.
 		     */
-		    int f;
 		    
 		    if (current_function_context)
 			current_function_context->bindable = FP_NOT_BINDABLE;
@@ -3381,7 +3490,7 @@ function_call:
 			char buf[256];
 			char *end = EndOf(buf);
 			char *p;
-			char *n = $1->name;
+			const char *n = $1->name;
 			if (*n == ':') n++;
 			/* prevent some errors; by making it look like an
 			 * inherited function we prevent redeclaration errors

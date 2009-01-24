@@ -22,6 +22,8 @@
 #endif
 
 #ifdef USE_MYSQL
+#define USE_OLD_FUNCTIONS
+#ifndef TCC
 #ifdef INCL_LOCAL_MYSQL_H
 #include "/usr/local/include/mysql.h"
 #endif
@@ -34,20 +36,35 @@
 #ifdef INCL_MYSQL_MYSQL_H
 #include "/usr/include/mysql/mysql.h"
 #endif
+#else
+#ifdef INCL_LOCAL_MYSQL_H
+#include <mysql.h>
+#endif
+#ifdef INCL_LOCAL_INCLUDE_MYSQL_MYSQL_H
+#include <mysql/mysql.h>
+#endif
+#ifdef INCL_LOCAL_MYSQL_MYSQL_H
+#include "/usr/local/mysql/include/mysql.h"
+#endif
+#ifdef INCL_MYSQL_MYSQL_H
+#include <mysql/mysql.h>
+#endif
+#endif
+#undef USE_OLD_FUNCTIONS
 #endif
 
 typedef union dbconn_u {
 #ifdef USE_MSQL
     struct tmp_msql {
-	int handle;
-	m_result * result_set;
+        int handle;
+        m_result * result_set;
     } msql;
 #endif
 #ifdef USE_MYSQL
     struct tmp_mysql {
-	char errormsg[256];
-	MYSQL *handle;
-	MYSQL_RES *results;
+        char errormsg[256];
+        MYSQL *handle;
+        MYSQL_RES *results;
     } mysql;
 #endif
 } dbconn_t;
@@ -56,10 +73,10 @@ typedef union dbconn_u {
  * Structure so we can have a lookup table for the specific database
  */
 typedef struct db_defn_s {
-    char *name;
-    int (*connect)(dbconn_t *, char *, char *, char *, char *);
+    const char *name;
+    int (*connect)(dbconn_t *, const char *, const char *, const char *, const char *);
     int (*close)(dbconn_t *);
-    int (*execute)(dbconn_t *, char *);
+    int (*execute)(dbconn_t *, const char *);
     array_t * (*fetch)(dbconn_t *, int);
     int (*commit)(dbconn_t *);
     int (*rollback)(dbconn_t *);
@@ -68,7 +85,7 @@ typedef struct db_defn_s {
     char * (*error)(dbconn_t *);
 } db_defn_t;
 
-#define DB_FLAG_EMPTY	0x1
+#define DB_FLAG_EMPTY   0x1
 
 typedef struct _db {
     int flags;
@@ -76,8 +93,8 @@ typedef struct _db {
     dbconn_t c;
 } db_t;
 
-void db_cleanup PROT((void));
+void db_cleanup (void);
 
-#endif	/* PACKAGES_DB */
+#endif  /* PACKAGES_DB */
 
-#endif	/* PACKAGES_DB_H */
+#endif  /* PACKAGES_DB_H */

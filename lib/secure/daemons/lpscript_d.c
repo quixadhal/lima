@@ -58,7 +58,7 @@ private mapping keywords = ([
   "call" : (: handle_expression("call " + $1) +";\n" :),
   "lcall" : (: handle_expression("lcall " + $1) +";\n" :),
   "check" : (: handle_check :),
-  "ok" : "return 1;",
+  "ok" :  "return 1;\n",
   "write" : (: "write(" + handle_expression($1) + ");\n" :),
   "lpc" : (: implode($2, "\n") + "\n" :),
   "delay" : (: handle_delay :),
@@ -496,10 +496,12 @@ string handle_block(array lines) {
 
 	    keyword = line[0];
 	    sscanf(keyword, "%s %s", keyword, args);
-	    if (f = keywords[keyword]) {
+	    if (f = keywords[keyword] ) {
 		ret[<2] += evaluate(f, args, line[1..]);
-	    } else
+	    } else {
+                debug_message("handle_block(1): keyword "+keyword+" is a "+typeof(f));
 		add_error(cur, "Unknown keyword '" + keyword + "'.");
+              }
 	}
 	else if (line[0] == '!') {
 	    if (member_array(M_ACTIONS, inherits) != -1)
@@ -521,8 +523,10 @@ string handle_block(array lines) {
 	    sscanf(keyword, "%s %s", keyword, args);
 	    if (f = keywords[keyword]) {
 		ret[<2] += evaluate(f, args, ({}));
-	    } else
+	    } else {
+               debug_message("handle_block(2): keyword "+keyword+" is a "+typeof(f));
 		add_error(cur, "Unknown keyword '" + keyword + "'.");
+              }
 	    if (keyword == "delay")
 		ret += ({ "", "" });
 	}

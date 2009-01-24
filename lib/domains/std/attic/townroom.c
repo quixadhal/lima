@@ -4,6 +4,7 @@ inherit OUTDOOR_ROOM;
 
 void setup(string n, string e, string s, string w) {
     string array d = ({});
+    string i;
 
     if (n) {
 	add_exit("north", __DIR__ + "town/" + n);

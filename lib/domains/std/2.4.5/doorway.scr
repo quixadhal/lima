@@ -2,6 +2,7 @@
 
 #define EXTRA_MOVE /* nothing */
 
+---
 string name,short_desc,long_desc,dir1,dir2,dest;
 
 id(s) {
@@ -36,13 +37,13 @@ set_dest(s) { if(s) dest=s; }
 
 enter(s) {
  if(!id(s)) return;
- EXTRA_MOVE
+ //EXTRA_MOVE
  this_player()->move_player("into the "+name+"#"+dest);
  return 1;
 }
 
 go_room() {
- EXTRA_MOVE
+ //EXTRA_MOVE
  this_player()->move_player(dir1+"#"+dest);
  return 1;
 }

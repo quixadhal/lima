@@ -10,6 +10,8 @@
 #include "my_malloc.h"
 #include "md.h"
 
+void fatal (const char *, ...);
+
 #undef NOISY_MALLOC
 
 #ifdef NOISY_MALLOC
@@ -23,8 +25,6 @@
 #define NOISY2(x,y,z) 
 #define NOISY3(w,x,y,z) 
 #endif
-
-void fatal PROT1V(char *);
 
 typedef struct stats_s {
     unsigned int free_calls, alloc_calls, realloc_calls;
@@ -40,7 +40,7 @@ void debugmalloc_init()
     MDinit();
 }
 
-INLINE void *debugrealloc P4(void *, ptr, int, size, int, tag, char *, desc)
+INLINE void *debugrealloc (void * ptr, int size, int tag, char * desc)
 {
     void *tmp;
 
@@ -58,7 +58,7 @@ INLINE void *debugrealloc P4(void *, ptr, int, size, int, tag, char *, desc)
     return (void *) 0;
 }
 
-INLINE void *debugmalloc P3(int, size, int, tag, char *, desc)
+INLINE void *debugmalloc (int size, int tag, char * desc)
 {
     void *tmp;
 
@@ -71,7 +71,7 @@ INLINE void *debugmalloc P3(int, size, int, tag, char *, desc)
     return (md_node_t *) tmp + 1;
 }
 
-INLINE void *debugcalloc P4(int, nitems, int, size, int, tag, char *, desc)
+INLINE void *debugcalloc (int nitems, int size, int tag, char * desc)
 {
     void *tmp;
 
@@ -85,7 +85,7 @@ INLINE void *debugcalloc P4(int, nitems, int, size, int, tag, char *, desc)
     return (md_node_t *) tmp + 1;
 }
 
-INLINE void debugfree P1(void *, ptr)
+INLINE void debugfree (void * ptr)
 {
     md_node_t *tmp;
 
@@ -98,7 +98,7 @@ INLINE void debugfree P1(void *, ptr)
     }
 }
 
-void dump_malloc_data P1(outbuffer_t *, ob)
+void dump_malloc_data (outbuffer_t * ob)
 {
     int net;
 

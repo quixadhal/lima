@@ -79,7 +79,7 @@ private nomask string * expand_arguments(string* argv)
 
 
 // called when the value of the "path" variable changes
-private void set_path(string arg) {
+private void set_path(string *arg) {
     if (!arrayp(arg))
 	return;
     arg = filter(arg, (: stringp :));

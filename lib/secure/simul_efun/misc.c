@@ -674,3 +674,83 @@ string dump_socket_status() {
 
 
 string lima_version() { return "Lima 1.0b5"; }
+
+varargs string identify( mixed a )
+{
+    int i, s;
+    string ret;
+    mapping RealMap;
+
+    if( undefinedp( a ) ) return "UNDEFINED";
+    if( nullp( a ) ) return "0";
+    if( intp( a ) ) return "" + a;
+    if( floatp( a ) ) return "" + a;
+    if( objectp( a ) )
+    {
+        if( ret = a-> GetKeyName() ) ret += " ";
+        else ret = "";
+        return "OBJ(" + ret + file_name( a ) + ")";
+    }
+    if( stringp( a ) )
+    {
+        a = replace_string( a, "\"", "\\\"" );
+        a = "\"" + a + "\"";
+        a = replace_string( a, "\\", "\\\\" );
+        a = replace_string( a, "\\\"", "\"" );
+        a = replace_string( a, "\n", "\\n" );
+        a = replace_string( a, "\t", "\\t" );
+        return a;
+    }
+    if( pointerp( a ) ) 
+    {
+        ret = "({ ";
+        s = sizeof( a );
+        for( i = 0 ; i < s ; i++ )
+        {
+            if( i ) ret += ", ";
+            ret += identify( a[i] );
+        }
+        return ret + ( s ? " " : "" ) + "})";
+    }
+    if( mapp( a ) )
+    {
+        ret = "([ ";
+        RealMap = (mapping)(a);
+        a = keys( RealMap );
+        s = sizeof( a );
+        for( i = 0 ; i < s ; i++ )
+        {
+            if( i ) ret += ", ";
+            ret += identify( a[i] ) + " : " + identify( RealMap[a[i]] );
+        }
+        return ret + ( s ? " " : "" ) + "])";
+    }
+    if(functionp(a)) return sprintf("%O", a);
+    return "UNKNOWN";
+}
+
+void tc(string mess){
+    object crat = find_body("cratylus");
+    string sauce = base_name((previous_object() || this_object()));
+    //if(crat) tell(crat, sauce +": "+mess+"\n");
+    if(crat) crat->receive_private_msg(sauce+": "+mess, PRIVATE_MSG);
+    debug_message(sauce +": "+mess);
+    flush_messages();
+}
+
+varargs string get_stack( int x) {
+    int i, s;
+    string list = "";
+    string *stack0 = call_stack(0);
+    string *stack1 = call_stack(1);
+    string *stack2 = call_stack(2);
+    for(i = 0, s = sizeof(stack1); i < s; i++){
+        list +="\n"+i+":"+identify(stack2[i])+"."+identify(stack1[i])+"."+identify(stack2[i]);
+    }
+
+    if(x){
+        list += "\n"+ identify(previous_object(-1));
+    }
+
+    return list;
+}

@@ -1,0 +1,1977 @@
+diff -c -r --new-file lima-1.0b5/lib/contrib/homepage_d.c lima_fluffos_v1/lib/contrib/homepage_d.c
+*** lima-1.0b5/lib/contrib/homepage_d.c	1997-11-07 13:27:00.000000000 -0500
+--- lima_fluffos_v1/lib/contrib/homepage_d.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 7,15 ****
+  ** No strings attached :)
+  */
+  
+! inherit DAEMON;
+  
+! #include <net/http_d.h>
+  #define DEEPEST
+  
+  void build_homepages()
+--- 7,16 ----
+  ** No strings attached :)
+  */
+  
+! inherit M_DAEMON_DATA;
+  
+! #include <http_d.h>
+! #include <ports.h>
+  #define DEEPEST
+  
+  void build_homepages()
+***************
+*** 26,35 ****
+    foreach (string name in dirs)
+      {
+        if (is_file(WIZ_DIR+"/"+name+HTTP_USER_HOME+"/index.html"))
+! 	page+="  <LI> <A HREF=http:/"+"/"+__HOST__+":"+(HTTP_PORT)+"/~"+name+
+  	  ">\n        "+capitalize(name)+"'s Homepage.</A>\n";
+      }
+    page+="</UL>\n";
+    set_privilege(1);
+!   unguarded(1, (: write_file, HTTP_ROOT+"/"+HOMEPAGE_PAGE,page,1 :));
+  }
+--- 27,36 ----
+    foreach (string name in dirs)
+      {
+        if (is_file(WIZ_DIR+"/"+name+HTTP_USER_HOME+"/index.html"))
+! 	page+="  <LI> <A HREF=http:/"+"/"+__HOST__+":"+(PORT_HTTP)+"/~"+name+
+  	  ">\n        "+capitalize(name)+"'s Homepage.</A>\n";
+      }
+    page+="</UL>\n";
+    set_privilege(1);
+!   unguarded(1, (: write_file, HTTP_ROOT+"/"+DEFAULT_PAGE,page,1 :));
+  }
+diff -c -r --new-file lima-1.0b5/lib/contrib/nntp.c lima_fluffos_v1/lib/contrib/nntp.c
+*** lima-1.0b5/lib/contrib/nntp.c	1997-11-07 13:27:00.000000000 -0500
+--- lima_fluffos_v1/lib/contrib/nntp.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 459,463 ****
+  
+  void remove()
+  {
+!   catch(news_socket->remove());
+  }
+--- 459,463 ----
+  
+  void remove()
+  {
+!   if(news_socket && objectp(news_socket)) catch(news_socket->remove());
+  }
+diff -c -r --new-file lima-1.0b5/lib/daemons/birthday_d.c lima_fluffos_v1/lib/daemons/birthday_d.c
+*** lima-1.0b5/lib/daemons/birthday_d.c	2000-06-29 21:54:20.000000000 -0400
+--- lima_fluffos_v1/lib/daemons/birthday_d.c	2008-01-16 11:19:10.000000000 -0500
+***************
+*** 100,116 ****
+      ::create();
+  
+      /* binary search for start of tomorrow */
+!     while (start != end) {
+! 	int mid = (start + end)/2;
+! 	
+! 	if (ctime(mid)[0..9] == today)
+! 	    start = mid + 1;
+! 	else
+! 	    end = mid;
+!     }
+  
+      refresh();
+!     call_out((: repeat_refresh :), start - time());
+  }
+  
+      
+--- 100,120 ----
+      ::create();
+  
+      /* binary search for start of tomorrow */
+! //    while (start != end) {
+! //The following line always created a problem on 32 bit machines
+! //because it generated a crazy number. Hence "the Lima birthday bug"
+! //	int mid = (start + end)/2;
+! //This entire routine has been simplified to "just find 24 hours from now"
+! //in the interest of sanity and brevity.
+! //	
+! //	if (ctime(mid)[0..9] == today)
+! //	    start = mid + 1;
+! //	else
+! //	    end = mid;
+! //    }
+  
+      refresh();
+!     call_out((: repeat_refresh :), time() + 86400);
+  }
+  
+      
+diff -c -r --new-file lima-1.0b5/lib/daemons/imud_d.c lima_fluffos_v1/lib/daemons/imud_d.c
+*** lima-1.0b5/lib/daemons/imud_d.c	2003-01-02 15:57:15.000000000 -0500
+--- lima_fluffos_v1/lib/daemons/imud_d.c	2008-01-16 14:36:44.000000000 -0500
+***************
+*** 16,21 ****
+--- 16,24 ----
+  #include <log.h>
+  #include <ports.h>
+  
++ #define ROUTER	"*i4"
++ #define ROUTER_ADDRESS "204.209.44.3 8080"
++ 
+  inherit M_DAEMON_DATA;
+  inherit M_RECONNECT;
+  
+***************
+*** 34,40 ****
+  
+  nosave private object	router_socket;
+  
+! private string *        router_list = ({ ({ "*gjs", "198.144.203.194 9000"}) });
+  //private string *	router_list = ({ ({ "*gjs", "208.192.43.105 9000"}) });
+  private int		password;
+  
+--- 37,46 ----
+  
+  nosave private object	router_socket;
+  
+! private string *        router_list = ({ ({ ROUTER, ROUTER_ADDRESS}) });
+! //private string *        router_list = ({ ({ "*i4", "204.209.44.3 8080"}) });
+! //private string *        router_list = ({ ({ "*yatmim", "149.152.218.102 23"}) });
+! //private string *        router_list = ({ ({ "*gjs", "198.144.203.194 9000"}) });
+  //private string *	router_list = ({ ({ "*gjs", "208.192.43.105 9000"}) });
+  private int		password;
+  
+***************
+*** 103,109 ****
+  
+  protected void send_to_router(string type, mixed * message)
+  {
+!     send_message(type, "*gjs", 0, message);
+  }
+  
+  protected void send_to_mud(string type, string mudname, mixed * message)
+--- 109,115 ----
+  
+  protected void send_to_router(string type, mixed * message)
+  {
+!     send_message(type, ROUTER, 0, message);
+  }
+  
+  protected void send_to_mud(string type, string mudname, mixed * message)
+***************
+*** 232,243 ****
+  {
+      string err;
+  
+      if ( clonep() )
+      {
+  	destruct(this_object());
+  	return;
+      }
+!     if ( ADMIN_EMAIL == "user@host.name" )
+      {
+          write("ERROR:\n"
+  	      "  The I3 daemon will not load until you set a proper ADMIN_EMAIL\n"
+--- 238,251 ----
+  {
+      string err;
+  
++     //debug_message("router_list: "+identify(router_list));
++ 
+      if ( clonep() )
+      {
+  	destruct(this_object());
+  	return;
+      }
+!     if ( ADMIN_EMAIL == "billg@microsoft.com" )
+      {
+          write("ERROR:\n"
+  	      "  The I3 daemon will not load until you set a proper ADMIN_EMAIL\n"
+diff -c -r --new-file lima-1.0b5/lib/data/daemons/damage.o lima_fluffos_v1/lib/data/daemons/damage.o
+*** lima-1.0b5/lib/data/daemons/damage.o	2003-09-24 04:28:19.000000000 -0400
+--- lima_fluffos_v1/lib/data/daemons/damage.o	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,2 ****
+  #/daemons/damage_d.c
+! damage ({"blade","fire","blow",})
+--- 1,2 ----
+  #/daemons/damage_d.c
+! damage ({"blade","fire","blow","magic","emotional",})
+diff -c -r --new-file lima-1.0b5/lib/data/daemons/imud.o lima_fluffos_v1/lib/data/daemons/imud.o
+*** lima-1.0b5/lib/data/daemons/imud.o	2003-10-27 22:53:46.000000000 -0500
+--- lima_fluffos_v1/lib/data/daemons/imud.o	1969-12-31 19:00:00.000000000 -0500
+***************
+*** 1,5 ****
+- #/daemons/imud_d.c
+- chanlist ([])
+- listened_channels ({})
+- mud_info ([])
+- router_list ({({"*gjs","198.144.203.194 9000",}),})
+--- 0 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/bankroom.scr lima_fluffos_v1/lib/domains/std/2.4.5/bankroom.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/bankroom.scr	2003-01-02 10:32:40.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/bankroom.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 2,14 ****
+  
+  #include "std.h"
+  
+! reset(arg) {
+!     if (!arg) {
+! 	set_light(1);
+! 	move_object(clone_object("obj/safe"), this_object());
+!     }
+! }
+! 
+  long(str) {
+      if (str == "door") {
+  	if (call_other("room/bank", "query_door"))
+--- 2,8 ----
+  
+  #include "std.h"
+  
+! ---
+  long(str) {
+      if (str == "door") {
+  	if (call_other("room/bank", "query_door"))
+***************
+*** 48,50 ****
+--- 42,52 ----
+      write("Ok.\n");
+      return 1;
+  }
++ 
++ reset(arg) {
++     if (!arg) {
++         set_light(1);
++         new("obj/safe")->move(this_object());
++     }
++ }
++ 
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/doorway.scr lima_fluffos_v1/lib/domains/std/2.4.5/doorway.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/doorway.scr	2002-12-05 08:03:00.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/doorway.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 2,7 ****
+--- 2,8 ----
+  
+  #define EXTRA_MOVE /* nothing */
+  
++ ---
+  string name,short_desc,long_desc,dir1,dir2,dest;
+  
+  id(s) {
+***************
+*** 36,48 ****
+  
+  enter(s) {
+   if(!id(s)) return;
+!  EXTRA_MOVE
+   this_player()->move_player("into the "+name+"#"+dest);
+   return 1;
+  }
+  
+  go_room() {
+!  EXTRA_MOVE
+   this_player()->move_player(dir1+"#"+dest);
+   return 1;
+  }
+--- 37,49 ----
+  
+  enter(s) {
+   if(!id(s)) return;
+!  //EXTRA_MOVE
+   this_player()->move_player("into the "+name+"#"+dest);
+   return 1;
+  }
+  
+  go_room() {
+!  //EXTRA_MOVE
+   this_player()->move_player(dir1+"#"+dest);
+   return 1;
+  }
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/forest2.scr lima_fluffos_v1/lib/domains/std/2.4.5/forest2.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/forest2.scr	2003-01-02 10:15:38.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/forest2.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 10,16 ****
+      weapon_class=12
+      in_room_desc=A troll
+      long=It is a nasty troll that look very aggressive.
+-     money=500
+    end
+  
+  exits=
+--- 10,15 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/fortress.scr lima_fluffos_v1/lib/domains/std/2.4.5/fortress.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/fortress.scr	2003-01-02 10:32:25.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/fortress.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ ---
+  reset(arg)
+  {
+      if (!arg)
+***************
+*** 10,16 ****
+  extra_reset()
+  {
+      object orc, weapon;
+!     int n,i,class,value,weight;
+      string w_name,alt_name;
+  
+      i = 0;
+--- 11,17 ----
+  extra_reset()
+  {
+      object orc, weapon;
+!     int n,i,classval,value,weight;
+      string w_name,alt_name;
+  
+      i = 0;
+***************
+*** 34,66 ****
+  	    weapon = clone_object("obj/weapon");
+  	    if (n == 0) {
+  		w_name = "knife";
+! 		class = 5;
+  		value = 8;
+  		weight = 1;
+  		alt_name = "knife";  /* JnA: 901127 axes != knives */
+  	    }
+  	    if (n == 1) {
+  		w_name = "curved knife";
+! 		class = 7;
+  		value = 15;
+  		weight = 1;
+  		alt_name = "knife";
+  	    }
+  	    if (n == 2) {
+  		w_name = "hand axe";
+! 		class = 9;
+  		value = 25;
+  		weight = 2;
+  		alt_name = "axe";
+  	    }
+  	    call_other(weapon, "set_name", w_name);
+! 	    call_other(weapon, "set_class", class);
+  	    call_other(weapon, "set_value", value);
+  	    call_other(weapon, "set_weight", weight);
+  	    call_other(weapon, "set_alt_name", alt_name);
+  	    transfer(weapon, orc);
+  	    command("wield " + w_name, orc);
+! 	    move_object(orc, this_object());
+  	}
+      }
+  }
+--- 35,67 ----
+  	    weapon = clone_object("obj/weapon");
+  	    if (n == 0) {
+  		w_name = "knife";
+! 		classval = 5;
+  		value = 8;
+  		weight = 1;
+  		alt_name = "knife";  /* JnA: 901127 axes != knives */
+  	    }
+  	    if (n == 1) {
+  		w_name = "curved knife";
+! 		classval = 7;
+  		value = 15;
+  		weight = 1;
+  		alt_name = "knife";
+  	    }
+  	    if (n == 2) {
+  		w_name = "hand axe";
+! 		classval = 9;
+  		value = 25;
+  		weight = 2;
+  		alt_name = "axe";
+  	    }
+  	    call_other(weapon, "set_name", w_name);
+! 	    call_other(weapon, "set_class", classval);
+  	    call_other(weapon, "set_value", value);
+  	    call_other(weapon, "set_weight", weight);
+  	    call_other(weapon, "set_alt_name", alt_name);
+  	    transfer(weapon, orc);
+  	    command("wield " + w_name, orc);
+! 	    orc->move(this_object());
+  	}
+      }
+  }
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/giant_lair.scr lima_fluffos_v1/lib/domains/std/2.4.5/giant_lair.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/giant_lair.scr	2003-01-02 10:32:10.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/giant_lair.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 7,13 ****
+      proper_name=giant
+      in_room_desc=A giant
+      weapon_class=20
+-     armor_class=2
+    end
+  
+  exits=
+--- 7,12 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/obj/stethoscope.scr lima_fluffos_v1/lib/domains/std/2.4.5/obj/stethoscope.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/obj/stethoscope.scr	2003-01-02 10:34:02.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/obj/stethoscope.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 6,11 ****
+--- 6,13 ----
+  mass=1
+  value=15
+  ---
++ object listen_ob, player_ob;
++ 
+  listen(str) {
+      write("You must apply stethoscope to something.\n");
+      return 1;
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/obj/tmp_elevator_button.c lima_fluffos_v1/lib/domains/std/2.4.5/obj/tmp_elevator_button.c
+*** lima-1.0b5/lib/domains/std/2.4.5/obj/tmp_elevator_button.c	2003-10-27 22:57:19.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/obj/tmp_elevator_button.c	1969-12-31 19:00:00.000000000 -0500
+***************
+*** 1,40 ****
+- #pragma no_warnings
+- inherit "/std/object";
+- 
+- mixed _dest;
+- void setup(string d);
+- mixed do_press();
+- mixed direct_press_obj();
+- string long() {
+-   return "The button is marked '" + _dest + "'\n";
+- }
+- void setup(string d) {
+- function f;
+- set_flag(0 | ATTACHED);
+- set_adj("elevator");
+- set_id("button");
+- {
+- _dest = d;
+- add_adj(d);
+- ;
+- }
+- ;
+- }
+- 
+- 
+- mixed do_press() {
+- {
+- call_other(environment(this_object()), "handle_press",_dest);
+- return 1;;
+- }
+- ;
+- }
+- 
+- 
+- mixed direct_press_obj() {
+- {
+- return 1;;
+- }
+- ;
+- }
+- 
+--- 0 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/obj/tmp_elevator_call_button.c lima_fluffos_v1/lib/domains/std/2.4.5/obj/tmp_elevator_call_button.c
+*** lima-1.0b5/lib/domains/std/2.4.5/obj/tmp_elevator_call_button.c	2003-10-27 22:57:18.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/obj/tmp_elevator_call_button.c	1969-12-31 19:00:00.000000000 -0500
+***************
+*** 1,37 ****
+- #pragma no_warnings
+- inherit "/std/object";
+- 
+- mixed _where;
+- void setup(string w);
+- mixed direct_press_obj();
+- void do_press() {
+-     int state = 0;
+- 
+-     this_body()->simple_action("$N $vpress the $o.", this_object());
+-     state = call_other("/domains/std/2.4.5/elevator", "call_elevator", _where);
+- 
+-     if(state) {
+-         tell_from_inside(environment(this_object()), "The lamp on the elevator button lights up.\n");
+-         environment(this_object())->set_room_state("lamp");
+-     }
+- }
+- void setup(string w) {
+- function f;
+- set_flag(0 | ATTACHED);
+- set_adj("elevator");
+- set_id("button");
+- {
+- _where = w
+- ;
+- }
+- ;
+- }
+- 
+- 
+- mixed direct_press_obj() {
+- {
+- return 1;;
+- }
+- ;
+- }
+- 
+--- 0 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/orc_treasure.scr lima_fluffos_v1/lib/domains/std/2.4.5/orc_treasure.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/orc_treasure.scr	2003-01-02 10:31:55.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/orc_treasure.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,6 ****
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
+! /* FIXME */
+  #include "room.h"
+  
+  object gold_stick, orc_slayer, shaman;
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
+! ---
+  #include "room.h"
+  
+  object gold_stick, orc_slayer, shaman;
+***************
+*** 46,54 ****
+  	call_other(shaman, "set_spell_mess2",
+  	    "The shaman casts an magic missile");
+  	call_other(shaman, "set_spell_dam", 20);
+! 	move_object(shaman, this_object());
+! 	move_object(gold_stick, shaman);
+! 	move_object(orc_slayer, shaman);
+      }
+  }
+  
+--- 46,54 ----
+  	call_other(shaman, "set_spell_mess2",
+  	    "The shaman casts an magic missile");
+  	call_other(shaman, "set_spell_dam", 20);
+! 	shaman->move(this_object());
+! 	gold_stick->move(shaman);
+! 	orc_slayer->move(shaman);
+      }
+  }
+  
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/orc_vall.scr lima_fluffos_v1/lib/domains/std/2.4.5/orc_vall.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/orc_vall.scr	2003-01-02 10:31:37.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/orc_vall.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 3,10 ****
+  is=room
+  ---
+  /* FIXME */
+  
+! get_chats() {
+      if (!chats) {
+  	chats = allocate(7);
+  	chats[0] = "Orc says: Kill him!\n";
+--- 3,12 ----
+  is=room
+  ---
+  /* FIXME */
++ #include "room.h"
++ //inherit "/std/indoor_room";
+  
+! get_chats(mixed chats) {
+      if (!chats) {
+  	chats = allocate(7);
+  	chats[0] = "Orc says: Kill him!\n";
+***************
+*** 21,27 ****
+  extra_reset()
+  {
+      object orc, weapon;
+!     int n,i,class,value,weight;
+      string w_name,alt_name;
+  
+      i = 0;
+--- 23,29 ----
+  extra_reset()
+  {
+      object orc, weapon;
+!     int n,i,classval,value,weight;
+      string w_name,alt_name;
+  
+      i = 0;
+***************
+*** 44,75 ****
+  	    weapon = clone_object("obj/weapon");
+  	    if (n == 0) {
+  		w_name = "knife";
+! 		class = 5;
+  		value = 8;
+  		weight = 1;
+  	    }
+  	    if (n == 1) {
+  		w_name = "curved knife";
+! 		class = 7;
+  		value = 15;
+  		weight = 1;
+  		alt_name = "knife";
+  	    }
+  	    if (n == 2) {
+  		w_name = "hand axe";
+! 		class = 9;
+  		value = 25;
+  		weight = 2;
+  		alt_name = "axe";
+  	    }
+  	    call_other(weapon, "set_name", w_name);
+! 	    call_other(weapon, "set_class", class);
+  	    call_other(weapon, "set_value", value);
+  	    call_other(weapon, "set_weight", weight);
+  	    call_other(weapon, "set_alt_name", alt_name);
+  	    transfer(weapon, orc);
+  	    command("wield " + w_name, orc);
+! 	    move_object(orc, this_object());
+  	}
+      }
+  }
+--- 46,77 ----
+  	    weapon = clone_object("obj/weapon");
+  	    if (n == 0) {
+  		w_name = "knife";
+! 		classval = 5;
+  		value = 8;
+  		weight = 1;
+  	    }
+  	    if (n == 1) {
+  		w_name = "curved knife";
+! 		classval = 7;
+  		value = 15;
+  		weight = 1;
+  		alt_name = "knife";
+  	    }
+  	    if (n == 2) {
+  		w_name = "hand axe";
+! 		classval = 9;
+  		value = 25;
+  		weight = 2;
+  		alt_name = "axe";
+  	    }
+  	    call_other(weapon, "set_name", w_name);
+! 	    call_other(weapon, "set_class", classval);
+  	    call_other(weapon, "set_value", value);
+  	    call_other(weapon, "set_weight", weight);
+  	    call_other(weapon, "set_alt_name", alt_name);
+  	    transfer(weapon, orc);
+  	    command("wield " + w_name, orc);
+! 	    orc->move(this_object());
+  	}
+      }
+  }
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/post.old.scr lima_fluffos_v1/lib/domains/std/2.4.5/post.old.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/post.old.scr	2002-12-05 08:03:00.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/post.old.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,7 ****
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
+  /* FIXME */
+! inherit "room/room";
+  
+  string messages;
+  int new_mail;
+--- 1,9 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ ---
+  /* FIXME */
+! #include "room.h"
+! inherit "/std/indoor_room";
+  
+  string messages;
+  int new_mail;
+***************
+*** 16,27 ****
+  	"read         Read from the mailbox.\n" +
+  	"mail <name>  Mail to player 'name'.\n" +
+  	"from         List all headers.\n";
+!     no_castle_flag = 1;
+  }
+  
+  init() {
+!     ::init();
+!     move_object(clone_object("obj/mail_reader"), this_player());
+  }
+  
+  exit() {
+--- 18,29 ----
+  	"read         Read from the mailbox.\n" +
+  	"mail <name>  Mail to player 'name'.\n" +
+  	"from         List all headers.\n";
+!     //no_castle_flag = 1;
+  }
+  
+  init() {
+!     //::init();
+!     new("obj/mail_reader")->move(this_player());
+  }
+  
+  exit() {
+***************
+*** 32,46 ****
+  
+  query_mail(silent) {
+      string name;
+!     string new;
+  
+      name = lower_case(call_other(this_player(), "query_name"));
+      if (!restore_object("room/post_dir/" + name) || messages == "") return 0;
+      if (silent) return 1;
+!     new = "";
+      if (new_mail)
+! 	new = " NEW";
+!     write("\nThere is" + new + " mail for you in the post office\n"+
+          "   (south from village road).\n\n");
+      return 1;
+  }
+--- 34,48 ----
+  
+  query_mail(silent) {
+      string name;
+!     string newthing;
+  
+      name = lower_case(call_other(this_player(), "query_name"));
+      if (!restore_object("room/post_dir/" + name) || messages == "") return 0;
+      if (silent) return 1;
+!     newthing = "";
+      if (new_mail)
+! 	newthing = " NEW";
+!     write("\nThere is" + newthing + " mail for you in the post office\n"+
+          "   (south from village road).\n\n");
+      return 1;
+  }
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/quest_room.scr lima_fluffos_v1/lib/domains/std/2.4.5/quest_room.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/quest_room.scr	2003-01-02 10:33:43.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/quest_room.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 9,15 ****
+    When it is approved, put a permanent object in this room, wich has as\n
+    short description the name of the wizard. All objects in this room will be\n
+    checked when a player wants to become a wizard. The player must have\n
+!   solved ALL quests. To mark that a quest is solved, call 'set_quest(\"name\")'\n
+    in the player object. The objects must all accept the id 'quest' and the\n
+    name of the wizard. The objects must also define a function hint(),\n
+    that should return a message giving a hint of where to start the quest.\n
+--- 9,15 ----
+    When it is approved, put a permanent object in this room, wich has as\n
+    short description the name of the wizard. All objects in this room will be\n
+    checked when a player wants to become a wizard. The player must have\n
+!   solved ALL quests. To mark that a quest is solved, call set_quest("name")\n
+    in the player object. The objects must all accept the id 'quest' and the\n
+    name of the wizard. The objects must also define a function hint(),\n
+    that should return a message giving a hint of where to start the quest.\n
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/room.h lima_fluffos_v1/lib/domains/std/2.4.5/room.h
+*** lima-1.0b5/lib/domains/std/2.4.5/room.h	2002-12-05 08:03:00.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/room.h	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,8 ****
+  /* Do not remove the headers from this file! see /USAGE for more info. */
+  
+! inherit "room/room";
+  
+  #define EXTRA_RESET
+  
+  #define ONE_EXIT(DEST, DIR, SH, LO, LIGHT)\
+  reset(arg) { if (!arg) { set_light(LIGHT); short_desc = SH;\
+--- 1,11 ----
+  /* Do not remove the headers from this file! see /USAGE for more info. */
+  
+! //inherit "/std/indoor_room";
+! string short_desc, long_desc, dest_dir;
+  
+  #define EXTRA_RESET
++ #define LO ""
++ #define SH ""
+  
+  #define ONE_EXIT(DEST, DIR, SH, LO, LIGHT)\
+  reset(arg) { if (!arg) { set_light(LIGHT); short_desc = SH;\
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/room.scr lima_fluffos_v1/lib/domains/std/2.4.5/room.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/room.scr	2002-12-05 08:03:00.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/room.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ ---
+  /*
+   * This is a proposal of a replacement to std.h. It is used with
+   * 'inherit "room/room";'.
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sforst39.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sforst39.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sforst39.scr	2003-01-02 10:31:04.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sforst39.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,6 ****
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
+! is=door
+  light=1
+  brief=A dimly lit forest
+  long=
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
+! is=room
+  light=1
+  brief=A dimly lit forest
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sislnd10.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sislnd10.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sislnd10.scr	2003-01-02 10:30:20.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sislnd10.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 15,20 ****
+    small grove from here\n
+  end
+  exits=
+!   east=sislnd11.scr
+!   southeast=sislnd9.scr
+  end
+--- 15,20 ----
+    small grove from here\n
+  end
+  exits=
+!   east:sislnd11.scr
+!   southeast:sislnd9.scr
+  end
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sislnd11.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sislnd11.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sislnd11.scr	2002-12-05 08:03:00.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sislnd11.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 2,12 ****
+  
+  is=room
+  light=1
+! brief=A grove on the shore of the Isle of the Magi
+  long=
+!   You are standing in a grove on the shore of the Isle of the Magi\n
+    All of the trees in the grove are either diseased, dead or heavily mutated.\n
+!   The shore of the island continues to the east,and the grove follows\n
+    the shoreline west to Focus Point.\n
+    The grove also continues to the south.\n
+  end
+--- 2,12 ----
+  
+  is=room
+  light=1
+! brief=A grove on the shore 
+  long=
+!   You are standing in a grove on the shore od the Isle of the Magi.\n
+    All of the trees in the grove are either diseased, dead or heavily mutated.\n
+!   The shore of the island continues to the east, and the grove follows\n
+    the shoreline west to Focus Point.\n
+    The grove also continues to the south.\n
+  end
+***************
+*** 15,17 ****
+--- 15,18 ----
+    east:sislnd12.scr
+    west:sislnd10.scr
+  end
++ 
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore25.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore25.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore25.scr	2003-01-02 10:28:20.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore25.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ is=room
+  light=1
+  brief=The shore of Crescent Lake
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore26.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore26.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore26.scr	2003-01-02 10:29:00.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore26.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ is=room
+  light=1
+  brief=The shore of Crescent Lake
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore27.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore27.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore27.scr	2003-01-02 10:27:55.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore27.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ is=room
+  light=1
+  brief=The shore of Crescent Lake
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore28.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore28.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore28.scr	2003-01-02 10:27:35.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore28.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ is=room
+  light=1
+  brief=The shore of Crescent Lake
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore29.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore29.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore29.scr	2003-01-02 10:27:17.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore29.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ is=room
+  light=1
+  brief=The shore of Crescent Lake
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore30.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore30.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore30.scr	2003-01-02 10:27:01.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore30.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ is=room
+  light=1
+  brief=The shore of Crescent Lake
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore7.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore7.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore7.scr	2003-01-02 10:28:36.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore7.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ is=room
+  light=1
+  brief=The shore of Crescent Lake
+  long=
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/south/sshore9.scr lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore9.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/south/sshore9.scr	2003-01-02 10:29:21.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/south/sshore9.scr	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  # Do not remove the headers from this file! see /USAGE for more info.
+  
++ ---
+  reset(started)
+  {
+      if (!started)
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/tmp_church_0.scr lima_fluffos_v1/lib/domains/std/2.4.5/tmp_church_0.scr
+*** lima-1.0b5/lib/domains/std/2.4.5/tmp_church_0.scr	2003-10-27 22:57:19.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/tmp_church_0.scr	1969-12-31 19:00:00.000000000 -0500
+***************
+*** 1,19 ****
+- is=object
+- flag=attached
+- primary_id=clock
+- variables=last_reset
+- setup:
+-   lpc
+-     _last_reset = time();
+-   end
+- end
+- reset:
+-   lpc
+-     _last_reset = time();
+-   end
+- end
+- long:
+-   lpc
+-     return "The clock shows " + convert_time(uptime()) + "\n" + "Time since reset is " + convert_time(time() - _last_reset) + "\n";
+-   end
+- end
+--- 0 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/tmp_church.c lima_fluffos_v1/lib/domains/std/2.4.5/tmp_church.c
+*** lima-1.0b5/lib/domains/std/2.4.5/tmp_church.c	2003-10-27 22:57:19.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/tmp_church.c	1969-12-31 19:00:00.000000000 -0500
+***************
+*** 1,31 ****
+- #pragma no_warnings
+- inherit "/std/indoor_room";
+- 
+- void setup();
+- void arrived() {
+-     if (query_state("lamp"))
+-         tell_from_inside(this_object(), "The lamp on the button beside the elevator goes out.\n");
+-     clear_room_state("lamp");
+- }
+- void setup() {
+- function f;
+- set_light(1);
+- set_brief("Village Church");
+- set_long("You are in the local village church. There is a huge pit in the c"
+- "enter, and an elevator door in the west wall. Next to the door, t"
+- "here's a button.\nThis church has the service of reviving ghosts."
+- " Dead people come to the church and pray.\nThere is a clock on th"
+- "e wall.\nThere is an exit to south.$lamp"
+- );
+- set_state_description("lamp_on", "\nThe lamp beside the elevator is lit.\n");
+- set_objects( ([
+-   "obj/elevator_door" : ({ "west", "/domains/std/2.4.5/elevator" }),
+-   "obj/elevator_call_button.scr" : ({ "church" }),
+-   "/domains/std/2.4.5/tmp_church_0.scr" : 1,
+- ]) );
+- add_item("pit", "In the middle of the church is a deep pit.\n It was used for sacrifice in the old times, but nowadays\n it is only left for tourists to look at.\n");
+- set_exits( ([
+-   "south" : "vill_green.scr",
+- ]) );
+- }
+- 
+--- 0 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/2.4.5/tmp_tmp_church_0.c lima_fluffos_v1/lib/domains/std/2.4.5/tmp_tmp_church_0.c
+*** lima-1.0b5/lib/domains/std/2.4.5/tmp_tmp_church_0.c	2003-10-27 22:57:19.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/2.4.5/tmp_tmp_church_0.c	1969-12-31 19:00:00.000000000 -0500
+***************
+*** 1,37 ****
+- #pragma no_warnings
+- inherit "/std/object";
+- 
+- mixed _last_reset;
+- void setup();
+- mixed reset();
+- mixed long();
+- 
+- void setup() {
+- function f;
+- set_flag(0 | ATTACHED);
+- set_id("clock");
+- {
+- _last_reset = time();
+- ;
+- }
+- ;
+- }
+- 
+- 
+- mixed reset() {
+- {
+- _last_reset = time();
+- ;
+- }
+- ;
+- }
+- 
+- 
+- mixed long() {
+- {
+- return "The clock shows " + convert_time(uptime()) + "\n" + "Time since reset is " + convert_time(time() - _last_reset) + "\n";
+- ;
+- }
+- ;
+- }
+- 
+--- 0 ----
+diff -c -r --new-file lima-1.0b5/lib/domains/std/attic/beavis.c lima_fluffos_v1/lib/domains/std/attic/beavis.c
+*** lima-1.0b5/lib/domains/std/attic/beavis.c	1997-11-07 13:26:40.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/attic/beavis.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 5,10 ****
+--- 5,11 ----
+  inherit LIVING;
+  inherit M_ACTIONS;
+  inherit M_TRIGGERS;
++ inherit M_REACT;
+  
+  void follow_the_script_dumbass()
+  {
+diff -c -r --new-file lima-1.0b5/lib/domains/std/attic/butthead.c lima_fluffos_v1/lib/domains/std/attic/butthead.c
+*** lima-1.0b5/lib/domains/std/attic/butthead.c	1997-11-07 13:26:40.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/attic/butthead.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 5,10 ****
+--- 5,11 ----
+  inherit LIVING;
+  inherit M_ACTIONS;
+  inherit M_TRIGGERS;
++ inherit M_REACT;
+  
+  void make_a_joke()
+  {
+diff -c -r --new-file lima-1.0b5/lib/domains/std/attic/townroom.c lima_fluffos_v1/lib/domains/std/attic/townroom.c
+*** lima-1.0b5/lib/domains/std/attic/townroom.c	1997-11-07 13:26:40.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/attic/townroom.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 4,9 ****
+--- 4,10 ----
+  
+  void setup(string n, string e, string s, string w) {
+      string array d = ({});
++     string i;
+  
+      if (n) {
+  	add_exit("north", __DIR__ + "town/" + n);
+diff -c -r --new-file lima-1.0b5/lib/domains/std/spells/fireball.c lima_fluffos_v1/lib/domains/std/spells/fireball.c
+*** lima-1.0b5/lib/domains/std/spells/fireball.c	2001-02-22 09:47:16.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/spells/fireball.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 34,40 ****
+      foreach ( object item in targets )
+      {
+  	/* okay... we won't have the fireball hit the caster... :-) */
+! 	if ( item == this_body() )
+  	    continue;
+  
+  	//reduce hit points here
+--- 34,40 ----
+      foreach ( object item in targets )
+      {
+  	/* okay... we won't have the fireball hit the caster... :-) */
+! 	if ( item && item == this_body() )
+  	    continue;
+  
+  	//reduce hit points here
+diff -c -r --new-file lima-1.0b5/lib/domains/std/spells/stock-mage/std_mage_spell.c lima_fluffos_v1/lib/domains/std/spells/stock-mage/std_mage_spell.c
+*** lima-1.0b5/lib/domains/std/spells/stock-mage/std_mage_spell.c	1997-11-07 13:26:40.000000000 -0500
+--- lima_fluffos_v1/lib/domains/std/spells/stock-mage/std_mage_spell.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 16,21 ****
+--- 16,26 ----
+  
+  void do_effects(object target, object reagent);
+  
++ void setup ()
++ {
++     set_spell_name("standard mage spell");
++ }
++ 
+  int set_cast_time(int t)
+  {
+      ASSERT(t>=0);
+diff -c -r --new-file lima-1.0b5/lib/domains/std/spells/stock-priest/std_priest_spell.c lima_fluffos_v1/lib/domains/std/spells/stock-priest/std_priest_spell.c
+*** lima-1.0b5/lib/domains/std/spells/stock-priest/std_priest_spell.c	2003-10-01 12:56:22.000000000 -0400
+--- lima_fluffos_v1/lib/domains/std/spells/stock-priest/std_priest_spell.c	2008-01-16 14:25:13.000000000 -0500
+***************
+*** 17,22 ****
+--- 17,29 ----
+  private nosave string skill_used;
+  private nosave int tag;
+  
++ void setup ()
++ {
++   set_spell_name("standard spell cold");
++   set_cast_time(5);
++   set_difficulty(10);
++ }
++ 
+  // This hook interrupts casting when called -
+  // eg by moving, casting a new spell, etc
+  void interrupt_cast();
+***************
+*** 29,35 ****
+  void do_effects(object target, object reagent);
+  void do_fail(object target, object reagent);
+  
+! int no_combat() { return "spell casting"; }
+  
+  void set_skill_used(string val) { skill_used = val; }
+  string query_skill_used() { return skill_used; }
+--- 36,42 ----
+  void do_effects(object target, object reagent);
+  void do_fail(object target, object reagent);
+  
+! mixed no_combat() { return "spell casting"; }
+  
+  void set_skill_used(string val) { skill_used = val; }
+  string query_skill_used() { return skill_used; }
+diff -c -r --new-file lima-1.0b5/lib/help/wizard/bin/? lima_fluffos_v1/lib/help/wizard/bin/?
+*** lima-1.0b5/lib/help/wizard/bin/?	2003-10-08 22:05:06.000000000 -0400
+--- lima_fluffos_v1/lib/help/wizard/bin/?	1969-12-31 19:00:00.000000000 -0500
+***************
+*** 1,3 ****
+- USAGE: ?
+- 
+- Shows the shell help file.
+\ No newline at end of file
+--- 0 ----
+diff -c -r --new-file lima-1.0b5/lib/help/wizard/bin/question_mark lima_fluffos_v1/lib/help/wizard/bin/question_mark
+*** lima-1.0b5/lib/help/wizard/bin/question_mark	1969-12-31 19:00:00.000000000 -0500
+--- lima_fluffos_v1/lib/help/wizard/bin/question_mark	2003-10-08 22:05:06.000000000 -0400
+***************
+*** 0 ****
+--- 1,3 ----
++ USAGE: ?
++ 
++ Shows the shell help file.
+\ No newline at end of file
+diff -c -r --new-file lima-1.0b5/lib/include/mudlib.h lima_fluffos_v1/lib/include/mudlib.h
+*** lima-1.0b5/lib/include/mudlib.h	2003-09-24 05:24:21.000000000 -0400
+--- lima_fluffos_v1/lib/include/mudlib.h	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 249,254 ****
+--- 249,255 ----
+  #define M_MOUNTABLE       "/std/modules/m_mountable"
+  #define M_OPENABLE        "/std/modules/m_openable"
+  #define M_READABLE        "/std/modules/m_readable"
++ #define M_REACT           "/std/modules/m_react"
+  #define M_READY           "/std/modules/m_ready"
+  #define M_SIBLING         "/std/modules/m_sibling"
+  #define M_SWITCHABLE      "/std/modules/m_switchable"
+diff -c -r --new-file lima-1.0b5/lib/obj/secure/socket.c lima_fluffos_v1/lib/obj/secure/socket.c
+*** lima-1.0b5/lib/obj/secure/socket.c	2003-01-02 10:59:58.000000000 -0500
+--- lima_fluffos_v1/lib/obj/secure/socket.c	2008-01-16 20:08:15.000000000 -0500
+***************
+*** 90,95 ****
+--- 90,96 ----
+  {
+  SKTLOG("read_callback: self",this_object());
+  SKTLOG("read_callback: fd",fd);
++     //debug_message("socket: "+identify(message));
+      catch(evaluate(read_func, this_object(), message));
+  }
+  
+***************
+*** 98,103 ****
+--- 99,105 ----
+  SKTLOG("read_udp_callback: self",this_object());
+  SKTLOG("read_udp_callback: fd",fd);
+  SKTLOG("read_udp_callback: read_func",read_func);
++     //debug_message("socket: "+identify(message));
+      catch(evaluate(read_func, this_object(), message, address));
+  }
+  
+diff -c -r --new-file lima-1.0b5/lib/secure/daemons/lpscript_d.c lima_fluffos_v1/lib/secure/daemons/lpscript_d.c
+*** lima-1.0b5/lib/secure/daemons/lpscript_d.c	2003-01-02 10:14:55.000000000 -0500
+--- lima_fluffos_v1/lib/secure/daemons/lpscript_d.c	2008-01-16 11:20:08.000000000 -0500
+***************
+*** 58,64 ****
+    "call" : (: handle_expression("call " + $1) +";\n" :),
+    "lcall" : (: handle_expression("lcall " + $1) +";\n" :),
+    "check" : (: handle_check :),
+!   "ok" : "return 1;",
+    "write" : (: "write(" + handle_expression($1) + ");\n" :),
+    "lpc" : (: implode($2, "\n") + "\n" :),
+    "delay" : (: handle_delay :),
+--- 58,64 ----
+    "call" : (: handle_expression("call " + $1) +";\n" :),
+    "lcall" : (: handle_expression("lcall " + $1) +";\n" :),
+    "check" : (: handle_check :),
+!   "ok" :  "return 1;\n",
+    "write" : (: "write(" + handle_expression($1) + ");\n" :),
+    "lpc" : (: implode($2, "\n") + "\n" :),
+    "delay" : (: handle_delay :),
+***************
+*** 496,505 ****
+  
+  	    keyword = line[0];
+  	    sscanf(keyword, "%s %s", keyword, args);
+! 	    if (f = keywords[keyword]) {
+  		ret[<2] += evaluate(f, args, line[1..]);
+! 	    } else
+  		add_error(cur, "Unknown keyword '" + keyword + "'.");
+  	}
+  	else if (line[0] == '!') {
+  	    if (member_array(M_ACTIONS, inherits) != -1)
+--- 496,507 ----
+  
+  	    keyword = line[0];
+  	    sscanf(keyword, "%s %s", keyword, args);
+! 	    if (f = keywords[keyword] ) {
+  		ret[<2] += evaluate(f, args, line[1..]);
+! 	    } else {
+!                 debug_message("handle_block(1): keyword "+keyword+" is a "+typeof(f));
+  		add_error(cur, "Unknown keyword '" + keyword + "'.");
++               }
+  	}
+  	else if (line[0] == '!') {
+  	    if (member_array(M_ACTIONS, inherits) != -1)
+***************
+*** 521,528 ****
+  	    sscanf(keyword, "%s %s", keyword, args);
+  	    if (f = keywords[keyword]) {
+  		ret[<2] += evaluate(f, args, ({}));
+! 	    } else
+  		add_error(cur, "Unknown keyword '" + keyword + "'.");
+  	    if (keyword == "delay")
+  		ret += ({ "", "" });
+  	}
+--- 523,532 ----
+  	    sscanf(keyword, "%s %s", keyword, args);
+  	    if (f = keywords[keyword]) {
+  		ret[<2] += evaluate(f, args, ({}));
+! 	    } else {
+!                debug_message("handle_block(2): keyword "+keyword+" is a "+typeof(f));
+  		add_error(cur, "Unknown keyword '" + keyword + "'.");
++               }
+  	    if (keyword == "delay")
+  		ret += ({ "", "" });
+  	}
+diff -c -r --new-file lima-1.0b5/lib/secure/daemons/secure_d.c lima_fluffos_v1/lib/secure/daemons/secure_d.c
+*** lima-1.0b5/lib/secure/daemons/secure_d.c	1999-12-20 11:16:12.000000000 -0500
+--- lima_fluffos_v1/lib/secure/daemons/secure_d.c	2008-01-16 21:30:02.000000000 -0500
+***************
+*** 57,64 ****
+    // initialized.
+   if (!restore_object(ACCESS_SAVE))
+    {
+!     if (eval_cost() < 1000) // *sigh*
+!       for (;;);
+      privileges = ([ ]);
+      read_access = allocate_mapping(1);
+      write_access = allocate_mapping(1);
+--- 57,64 ----
+    // initialized.
+   if (!restore_object(ACCESS_SAVE))
+    {
+!     //if (eval_cost() < 1000) // *sigh*
+!       //for (;;);
+      privileges = ([ ]);
+      read_access = allocate_mapping(1);
+      write_access = allocate_mapping(1);
+***************
+*** 169,176 ****
+      return ERR_PRIV;
+    if (!write && !check_privilege(1)) // Only staff can make read restrictions
+      return ERR_PRIV;
+!   if (eval_cost()<1000)
+!     for (;;);
+    if (prot != -1)
+    {
+      if (write && higher_privilege(prot,priv[i]))
+--- 169,176 ----
+      return ERR_PRIV;
+    if (!write && !check_privilege(1)) // Only staff can make read restrictions
+      return ERR_PRIV;
+!   //if (eval_cost()<1000)
+!     //for (;;);
+    if (prot != -1)
+    {
+      if (write && higher_privilege(prot,priv[i]))
+***************
+*** 214,221 ****
+  {
+    if (!check_privilege(1)) // Only staff members can create domains
+      return ERR_PRIV;
+!   if (eval_cost()<1000)
+!     for (;;);
+    if (!valid_domain_name(domain))
+      return "invalid domain name";
+    domain = lower_case(domain);
+--- 214,221 ----
+  {
+    if (!check_privilege(1)) // Only staff members can create domains
+      return ERR_PRIV;
+!   //if (eval_cost()<1000)
+!     //for (;;);
+    if (!valid_domain_name(domain))
+      return "invalid domain name";
+    domain = lower_case(domain);
+***************
+*** 234,241 ****
+    int i;
+    if (!check_privilege(1)) // Only staff members can delete domains
+      return ERR_PRIV;
+!   if (eval_cost()<10000)
+!     for (;;);
+    if (!domains[domain])
+      return ERR_NODOMAIN;
+    members = keys(domains[domain]);
+--- 234,241 ----
+    int i;
+    if (!check_privilege(1)) // Only staff members can delete domains
+      return ERR_PRIV;
+!   //if (eval_cost()<10000)
+!     //for (;;);
+    if (!domains[domain])
+      return ERR_NODOMAIN;
+    members = keys(domains[domain]);
+***************
+*** 259,266 ****
+      return ERR_NOWIZ;
+    if (!check_privilege(capitalize(domain)))
+      return ERR_PRIV;
+!   if (eval_cost()<1000)
+!     for (;;); // This is getting boring...
+    domains[domain][member] = (lord ? 2 : 1);
+    if (domainlists[member])
+      domainlists[member] += ([ domain : 1 ]);
+--- 259,266 ----
+      return ERR_NOWIZ;
+    if (!check_privilege(capitalize(domain)))
+      return ERR_PRIV;
+!   //if (eval_cost()<1000)
+!     //for (;;); // This is getting boring...
+    domains[domain][member] = (lord ? 2 : 1);
+    if (domainlists[member])
+      domainlists[member] += ([ domain : 1 ]);
+***************
+*** 282,289 ****
+      return ERR_NOWIZ;
+    if (!check_privilege(capitalize(domain)))
+      return ERR_PRIV;
+!   if (eval_cost()<1000)
+!     for (;;);
+    map_delete(domains[domain],member);
+    map_delete(domainlists[member],domain);
+    save_data();
+--- 282,289 ----
+      return ERR_NOWIZ;
+    if (!check_privilege(capitalize(domain)))
+      return ERR_PRIV;
+!   //if (eval_cost()<1000)
+!     //for (;;);
+    map_delete(domains[domain],member);
+    map_delete(domainlists[member],domain);
+    save_data();
+***************
+*** 293,309 ****
+  
+  nomask string create_wizard(string wizard)
+  {
+    if (!valid_name(wizard))
+!     return "invalid character name";
+    if (wizards[wizard])
+!     return "this character is already recorded as a wizard";
+    if (!check_privilege(1))
+!     return ERR_PRIV;
+!   if (eval_cost()<1000)
+!     for (;;);
+    wizards[wizard] = 1;
+    privileges[wizard] = ([ "":({}),":":({}) ]);
+    save_data();
+    syslog("Created wizard " + wizard);
+    return 0;
+  }
+--- 293,318 ----
+  
+  nomask string create_wizard(string wizard)
+  {
++   string bad;
++   //tc("create_wizard("+identify(wizard)+")");
++   
+    if (!valid_name(wizard))
+!     bad =  "invalid character name";
+    if (wizards[wizard])
+!     bad =  "this character is already recorded as a wizard";
+    if (!check_privilege(1))
+!     bad =  ERR_PRIV;
+!   //if (eval_cost()<1000)
+!     //for (;;);
+!   if(bad){
+!       //tc("create_wizard("+identify(wizard)+"): "+bad);
+!       return bad;
+!   }
+    wizards[wizard] = 1;
+    privileges[wizard] = ([ "":({}),":":({}) ]);
++   //tc("good");
+    save_data();
++   //tc("good2");
+    syslog("Created wizard " + wizard);
+    return 0;
+  }
+***************
+*** 356,371 ****
+        return "invalid privilege identifier";
+      if (!check_privilege(1))
+        return ERR_PRIV;
+!     if (eval_cost()<1000)
+!       for (;;);
+      privileges[priv] = ([ "": ({ }), ":": ({ }) ]);
+      save_data();
+      return 0;
+    }
+    if (!check_privilege(owner))
+      return ERR_PRIV;
+!   if (eval_cost()<1000)
+!     for (;;);
+    priv = priv[strlen(owner)..];
+    if (privileges[owner][priv])
+      return "attempt to redefine privilege";
+--- 365,380 ----
+        return "invalid privilege identifier";
+      if (!check_privilege(1))
+        return ERR_PRIV;
+!     //if (eval_cost()<1000)
+!       //for (;;);
+      privileges[priv] = ([ "": ({ }), ":": ({ }) ]);
+      save_data();
+      return 0;
+    }
+    if (!check_privilege(owner))
+      return ERR_PRIV;
+!   //if (eval_cost()<1000)
+!     //for (;;);
+    priv = priv[strlen(owner)..];
+    if (privileges[owner][priv])
+      return "attempt to redefine privilege";
+***************
+*** 390,397 ****
+      if (!check_privilege(owner))
+        return ERR_PRIV;
+    }
+!   if (eval_cost()<1000)
+!     for (;;);
+    if (owner == priv)
+      map_delete(privileges,priv);
+    else
+--- 399,406 ----
+      if (!check_privilege(owner))
+        return ERR_PRIV;
+    }
+!   //if (eval_cost()<1000)
+!     //for (;;);
+    if (owner == priv)
+      map_delete(privileges,priv);
+    else
+***************
+*** 466,473 ****
+      if (!check_privilege(owner))
+        return ERR_PRIV;
+    }
+!   if (eval_cost()<1000)
+!     for (;;);
+    priv = priv[strlen(owner)..];
+    privileges[owner][priv] -= ({ add });
+    privileges[owner][priv] += ({ add });
+--- 475,482 ----
+      if (!check_privilege(owner))
+        return ERR_PRIV;
+    }
+!   //if (eval_cost()<1000)
+!     //for (;;);
+    priv = priv[strlen(owner)..];
+    privileges[owner][priv] -= ({ add });
+    privileges[owner][priv] += ({ add });
+***************
+*** 491,498 ****
+      if (!check_privilege(owner))
+        return ERR_PRIV;
+    }
+!   if (eval_cost()<1000)
+!     for (;;);
+    priv = priv[strlen(owner)..];
+    if (member_array(remove,privileges[owner][priv])<0)
+      return "invalid privilege identifier";
+--- 500,507 ----
+      if (!check_privilege(owner))
+        return ERR_PRIV;
+    }
+!   //if (eval_cost()<1000)
+!     //for (;;);
+    priv = priv[strlen(owner)..];
+    if (member_array(remove,privileges[owner][priv])<0)
+      return "invalid privilege identifier";
+diff -c -r --new-file lima-1.0b5/lib/secure/simul_efun/misc.c lima_fluffos_v1/lib/secure/simul_efun/misc.c
+*** lima-1.0b5/lib/secure/simul_efun/misc.c	2003-07-03 06:56:46.000000000 -0400
+--- lima_fluffos_v1/lib/secure/simul_efun/misc.c	2008-01-16 19:56:04.000000000 -0500
+***************
+*** 674,676 ****
+--- 674,756 ----
+  
+  
+  string lima_version() { return "Lima 1.0b5"; }
++ 
++ varargs string identify( mixed a )
++ {
++     int i, s;
++     string ret;
++     mapping RealMap;
++ 
++     if( undefinedp( a ) ) return "UNDEFINED";
++     if( nullp( a ) ) return "0";
++     if( intp( a ) ) return "" + a;
++     if( floatp( a ) ) return "" + a;
++     if( objectp( a ) )
++     {
++         if( ret = a-> GetKeyName() ) ret += " ";
++         else ret = "";
++         return "OBJ(" + ret + file_name( a ) + ")";
++     }
++     if( stringp( a ) )
++     {
++         a = replace_string( a, "\"", "\\\"" );
++         a = "\"" + a + "\"";
++         a = replace_string( a, "\\", "\\\\" );
++         a = replace_string( a, "\\\"", "\"" );
++         a = replace_string( a, "\n", "\\n" );
++         a = replace_string( a, "\t", "\\t" );
++         return a;
++     }
++     if( pointerp( a ) ) 
++     {
++         ret = "({ ";
++         s = sizeof( a );
++         for( i = 0 ; i < s ; i++ )
++         {
++             if( i ) ret += ", ";
++             ret += identify( a[i] );
++         }
++         return ret + ( s ? " " : "" ) + "})";
++     }
++     if( mapp( a ) )
++     {
++         ret = "([ ";
++         RealMap = (mapping)(a);
++         a = keys( RealMap );
++         s = sizeof( a );
++         for( i = 0 ; i < s ; i++ )
++         {
++             if( i ) ret += ", ";
++             ret += identify( a[i] ) + " : " + identify( RealMap[a[i]] );
++         }
++         return ret + ( s ? " " : "" ) + "])";
++     }
++     if(functionp(a)) return sprintf("%O", a);
++     return "UNKNOWN";
++ }
++ 
++ void tc(string mess){
++     object crat = find_body("cratylus");
++     string sauce = base_name((previous_object() || this_object()));
++     //if(crat) tell(crat, sauce +": "+mess+"\n");
++     if(crat) crat->receive_private_msg(sauce+": "+mess, PRIVATE_MSG);
++     debug_message(sauce +": "+mess);
++     flush_messages();
++ }
++ 
++ varargs string get_stack( int x) {
++     int i, s;
++     string list = "";
++     string *stack0 = call_stack(0);
++     string *stack1 = call_stack(1);
++     string *stack2 = call_stack(2);
++     for(i = 0, s = sizeof(stack1); i < s; i++){
++         list +="\n"+i+":"+identify(stack2[i])+"."+identify(stack1[i])+"."+identify(stack2[i]);
++     }
++ 
++     if(x){
++         list += "\n"+ identify(previous_object(-1));
++     }
++ 
++     return list;
++ }
+diff -c -r --new-file lima-1.0b5/lib/secure/user/sw_body.c lima_fluffos_v1/lib/secure/user/sw_body.c
+*** lima-1.0b5/lib/secure/user/sw_body.c	2000-05-30 21:07:18.000000000 -0400
+--- lima_fluffos_v1/lib/secure/user/sw_body.c	2008-01-16 21:30:03.000000000 -0500
+***************
+*** 76,99 ****
+--- 76,105 ----
+  {
+     object where;
+     object old_body;
++ //tc("switch_bofy(): new_body_fname: "+identify(new_body_fname));
+  
+     if(previous_object() != body && this_body() != body)
+        error("security violation: bad body switch attempt\n");
++ //tc("1");
+  
+     where = body ? environment(body) : (mixed)VOID_ROOM;
++ //tc("2");
+  
+     if(permanent && new_body_fname)
+     {
+        body_fname = new_body_fname;
+        save_me();
+     }
++ //tc("3");
+  
+     if(!new_body_fname)
+        new_body_fname = body_fname;
++ //tc("4");
+  
+     old_body = body;
+     body = new(new_body_fname, query_userid());
+     master()->refresh_parse_info();
++ //tc("5");
+  
+     if(old_body)
+     {
+***************
+*** 101,113 ****
+--- 107,123 ----
+        if(old_body)
+             catch(destruct(old_body));
+     }
++ //tc("6");
+  
+     load_mailer();
++ //tc("7");
+     report_login_failures();
++ //tc("8");
+  
+     /* NOTE: we are keeping the same shell for now... */
+  
+     body->su_enter_game(where);
++ //tc("9");
+  }
+  
+  
+***************
+*** 116,121 ****
+--- 126,132 ----
+  */
+  private nomask void incarnate(int is_new, string bfn)
+  {
++ //tc("incarnate");
+     if(bfn)
+        body_fname = bfn;
+  
+***************
+*** 147,152 ****
+--- 158,164 ----
+  
+  private nomask void rcv_try_to_boot(object who, string answer)
+  {
++ //tc("rcv_try_to_boot("+identify(who)+", "+identify(answer));
+     answer = lower_case(answer);
+     if( answer == "yes" || answer == "y" )
+     {
+***************
+*** 184,189 ****
+--- 196,202 ----
+  protected nomask void sw_body_handle_existing_logon(int enter_now)
+  {
+     remove_call_out(); /* all call outs */
++ //tc("sw_body_handle_existing_logon("+identify(enter_now)+")");
+  
+     if(!enter_now)
+     {
+***************
+*** 317,351 ****
+  */
+  protected nomask void sw_body_handle_new_logon()
+  {
+     remove_call_out();   /* all call outs */
+  
+  #ifdef AUTO_WIZ
+     /* auto-wiz everybody as they are created */
+     write(">>>>> You've been granted automatic guest wizard status. <<<<<\n");
+     unguarded(1, (: SECURE_D->create_wizard($(query_userid())) :));
+  #endif
+  
+     /* auto-admin the first wizard if there are no admins */
+     {
+        string *members = SECURE_D->query_domain_members("admin");
+  
+        if(!sizeof(members))
+        {
+!          if(!wizardp(query_userid())) unguarded(1,
+                       (: SECURE_D->create_wizard($(query_userid())) :));
+           write( ">>>>> You have been made admin. Remember to use admtool. <<<<<\n");
+           unguarded(1, (: SECURE_D->add_domain_member("admin",
+                           $(query_userid()), 1) :));
+        }
+     }
+! 
+     /* adjust the privilege of the user ob */
+!    if(adminp(query_userid()))
+        set_privilege(1);
+     else
+        set_privilege(query_userid());
+! 
+     // pass a lfun pointer so that we don't have to worry about validating
+     // the call.
+     create_body();
+  }
+--- 330,378 ----
+  */
+  protected nomask void sw_body_handle_new_logon()
+  {
++ //tc("sw_body_handle_new_logon() stack: "+get_stack());
+     remove_call_out();   /* all call outs */
++ //tc("1");
+  
+  #ifdef AUTO_WIZ
+     /* auto-wiz everybody as they are created */
++    //tc("2");
+     write(">>>>> You've been granted automatic guest wizard status. <<<<<\n");
++    //tc("3");
+     unguarded(1, (: SECURE_D->create_wizard($(query_userid())) :));
++    //tc("4");
+  #endif
+  
+     /* auto-admin the first wizard if there are no admins */
+     {
+        string *members = SECURE_D->query_domain_members("admin");
++ //tc("5: sizeof("+identify(members)+"): "+sizeof(members));
+  
+        if(!sizeof(members))
+        {
+! //tc("6");
+! //tc("wizardp("+identify(query_userid())+"): "+wizardp(query_userid()));
+!          if(!wizardp(query_userid())){ unguarded(1,
+                       (: SECURE_D->create_wizard($(query_userid())) :));
++          }
+           write( ">>>>> You have been made admin. Remember to use admtool. <<<<<\n");
++          tc( ">>>>> "+identify(query_userid())+" has been made admin. <<<<<\n");
+           unguarded(1, (: SECURE_D->add_domain_member("admin",
+                           $(query_userid()), 1) :));
+        }
++ //else tc("6b: apparently an admin existed");
+     }
+! //tc("7");
+     /* adjust the privilege of the user ob */
+!    if(adminp(query_userid())){
+!       //tc("8");
+        set_privilege(1);
++ }
+     else
+        set_privilege(query_userid());
+! //tc("9");
+     // pass a lfun pointer so that we don't have to worry about validating
+     // the call.
+     create_body();
++ //tc("10");
+  }
+diff -c -r --new-file lima-1.0b5/lib/secure/user/userinfo.c lima_fluffos_v1/lib/secure/user/userinfo.c
+*** lima-1.0b5/lib/secure/user/userinfo.c	2000-04-18 23:48:00.000000000 -0400
+--- lima_fluffos_v1/lib/secure/user/userinfo.c	2008-01-16 20:07:56.000000000 -0500
+***************
+*** 148,172 ****
+--- 148,178 ----
+  
+           modal_func((: userinfo_handle_logon, GOT_URL, 0 :),
+                         "Your home page address (if any): ");
++          //tc("hmm");
+           break;
+  
+        case GOT_URL:
+           url = arg;
++          //tc("got url:"+url);
+  
+           /*
+           ** Done with this series of inputs
+           */
+           modal_pop();
++          //tc("past pop");
+  
+           /*
+           ** Let's move on to introducing the character to the mud.
+           */
+           if(file_size(NEW_PLAYER) <= 0)
+           {
++             //tc("about to call sw_body_handle_new_logon");
+              sw_body_handle_new_logon();
+              return;
+           }
+  
++          //tc("about to more a file");
+           more_file(NEW_PLAYER, 0, (: sw_body_handle_new_logon :));
++          //tc("done?");
+     }
+  }
+diff -c -r --new-file lima-1.0b5/lib/std/container.c lima_fluffos_v1/lib/std/container.c
+*** lima-1.0b5/lib/std/container.c	2003-09-22 22:29:14.000000000 -0400
+--- lima_fluffos_v1/lib/std/container.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 71,76 ****
+--- 71,80 ----
+  
+  /********    Relations    ********/
+  
++ varargs void set_preposition(mixed args...){
++     debug_message(base_name(this_object())+" says: \"RAWRR! I am a missing function! Fear me!\"");
++ }
++ 
+  
+  /* Return 1 if the relation is valid, else 0 */
+  private nomask int valid_relation(string relation)
+diff -c -r --new-file lima-1.0b5/lib/std/grid_server.c lima_fluffos_v1/lib/std/grid_server.c
+*** lima-1.0b5/lib/std/grid_server.c	1997-11-07 13:25:42.000000000 -0500
+--- lima_fluffos_v1/lib/std/grid_server.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 60,66 ****
+  {
+      string * lines;
+      int i;
+! 
+      lines = map(explode(read_file(fname), "\n"), (: trim_spaces :));
+      lines = filter(lines - ({ "" }), (: $1[0] != '#' :));
+  
+--- 60,66 ----
+  {
+      string * lines;
+      int i;
+!     //tc("fname: "+identify(fname)+", size: "+file_size(fname));
+      lines = map(explode(read_file(fname), "\n"), (: trim_spaces :));
+      lines = filter(lines - ({ "" }), (: $1[0] != '#' :));
+  
+diff -c -r --new-file lima-1.0b5/lib/std/modules/m_react.c lima_fluffos_v1/lib/std/modules/m_react.c
+*** lima-1.0b5/lib/std/modules/m_react.c	1997-11-07 13:25:38.000000000 -0500
+--- lima_fluffos_v1/lib/std/modules/m_react.c	2008-01-16 14:23:00.000000000 -0500
+***************
+*** 343,345 ****
+--- 343,349 ----
+  void run_script(string name) {
+      call_other(script, name);
+  }
++ 
++ varargs add_script(mixed args...){
++      debug_info("Don't you wish this function wasn't missing? What did it do? It is a mystery.");
++ }
+diff -c -r --new-file lima-1.0b5/lib/std/room/exits.c lima_fluffos_v1/lib/std/room/exits.c
+*** lima-1.0b5/lib/std/room/exits.c	1998-07-31 11:55:02.000000000 -0400
+--- lima_fluffos_v1/lib/std/room/exits.c	2008-01-16 14:23:02.000000000 -0500
+***************
+*** 24,31 ****
+  
+  mixed can_go_somewhere(string dir) {
+      mixed value;
+!     value = ::can_go_somewhere(dir);
+!     if (!stringp(value) && value !=1 && is_normal_direction(dir))
+         return get_default_exit();
+      return value;
+  }
+--- 24,31 ----
+  
+  mixed can_go_somewhere(string dir) {
+      mixed value;
+!     value = ::can_go_str(dir);
+!     if (!value || !stringp(value) && value !=1 && is_normal_direction(dir))
+         return get_default_exit();
+      return value;
+  }
+***************
+*** 115,123 ****
+      exit_str = ((sizeof(exit_names)) ? implode(exit_names,", ") : "none");
+  
+  #ifdef WIZARDS_SEE_HIDDEN_EXITS
+!     if ( wizardp(this_user()) && sizeof(hidden_exits) )
+      {
+! 	exit_str += ", *" + implode(hidden_exits, ", *");
+      }
+  #endif
+  
+--- 115,123 ----
+      exit_str = ((sizeof(exit_names)) ? implode(exit_names,", ") : "none");
+  
+  #ifdef WIZARDS_SEE_HIDDEN_EXITS
+!     if ( wizardp(this_user()) && sizeof(query_hidden_exits()) )
+      {
+! 	exit_str += ", *" + implode(query_hidden_exits(), ", *");
+      }
+  #endif
+  
+diff -c -r --new-file lima-1.0b5/lib/trans/obj/wish.c lima_fluffos_v1/lib/trans/obj/wish.c
+*** lima-1.0b5/lib/trans/obj/wish.c	2003-10-09 00:11:03.000000000 -0400
+--- lima_fluffos_v1/lib/trans/obj/wish.c	2008-01-16 10:00:51.000000000 -0500
+***************
+*** 79,85 ****
+  
+  
+  // called when the value of the "path" variable changes
+! private void set_path(string arg) {
+      if (!arrayp(arg))
+  	return;
+      arg = filter(arg, (: stringp :));
+--- 79,85 ----
+  
+  
+  // called when the value of the "path" variable changes
+! private void set_path(string *arg) {
+      if (!arrayp(arg))
+  	return;
+      arg = filter(arg, (: stringp :));

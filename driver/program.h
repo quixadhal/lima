@@ -46,9 +46,9 @@
        function
 
    (2) A definition is an address that executes code when
-       it is jumped to and finishes with a return.  
+       it is jumped to and finishes with a return.
        The address is labeled by the following info:
-       function name, type, flags,number of arguments, number of locals, 
+       function name, type, flags,number of arguments, number of locals,
        argument types.
 
    (3) A prototype does not execute code, and is basically a label with
@@ -70,35 +70,35 @@
    FUNC_PROTOTYPE - see (3)
    FUNC_ALIAS     - This entry refers us to another entry, usually because
                     this function was overloaded by that function
-		    
+
    Sym
  */
-#define FUNC_INHERITED		0x0001
+#define FUNC_INHERITED          0x0001
 #define FUNC_UNDEFINED          0x0002
-#define FUNC_STRICT_TYPES	0x0004
-#define FUNC_PROTOTYPE		0x0008
+#define FUNC_STRICT_TYPES       0x0004
+#define FUNC_PROTOTYPE          0x0008
 #define FUNC_TRUE_VARARGS       0x0010
-#define FUNC_VARARGS		0x0020
+#define FUNC_VARARGS            0x0020
 #define FUNC_ALIAS              0x8000        /* This shouldn't be changed */
 
-#define DECL_HIDDEN	        0x0100        /* used by private vars */
-#define DECL_PRIVATE		0x0200        /* Can't be inherited */
-#define DECL_PROTECTED		0x0400       /* Static function or variable */
-#define DECL_PUBLIC		0x0800	
-#define DECL_NOMASK		0x1000    /* The nomask => not redefineable */
-#define DECL_NOSAVE		0x2000
+#define DECL_HIDDEN             0x0100        /* used by private vars */
+#define DECL_PRIVATE            0x0200        /* Can't be inherited */
+#define DECL_PROTECTED          0x0400       /* Static function or variable */
+#define DECL_PUBLIC             0x0800
+#define DECL_NOMASK             0x1000    /* The nomask => not redefineable */
+#define DECL_NOSAVE             0x2000
 #ifndef SENSIBLE_MODIFIERS
-#define DECL_VISIBLE		0x4000     /* Force inherit through private */
+#define DECL_VISIBLE            0x4000     /* Force inherit through private */
 
-#define DECL_ACCESS		(DECL_HIDDEN | DECL_PRIVATE | DECL_PROTECTED | DECL_PUBLIC | DECL_VISIBLE)
+#define DECL_ACCESS             (DECL_HIDDEN | DECL_PRIVATE | DECL_PROTECTED | DECL_PUBLIC | DECL_VISIBLE)
 
 #define DECL_MODIFY(x,y) ((((x)|(y))&DECL_VISIBLE) ? ((((x)|(y))&~DECL_ACCESS)|DECL_VISIBLE) : DECL_MODIFY2(x,y))
 #else
-#define DECL_ACCESS		(DECL_HIDDEN | DECL_PRIVATE | DECL_PROTECTED | DECL_PUBLIC)
+#define DECL_ACCESS             (DECL_HIDDEN | DECL_PRIVATE | DECL_PROTECTED | DECL_PUBLIC)
 
 #define DECL_MODIFY(x,y) DECL_MODIFY2(x,y)
 #endif
-#define DECL_MODS		(DECL_ACCESS | DECL_NOMASK | DECL_NOSAVE)
+#define DECL_MODS               (DECL_ACCESS | DECL_NOMASK | DECL_NOSAVE)
 
 #define DECL_MODIFY2(t, mod) ((((t) & DECL_ACCESS) > ((mod) & DECL_ACCESS)) ? ((t) & ~DECL_ACCESS) | (mod) : (t) | ((mod) & ~DECL_ACCESS))
 
@@ -117,17 +117,17 @@
 /* The reason for this is that vars still have a ushort type */
 /* This restriction is not unreasonable, since LPC is still  */
 /* catered for mini-applications (compared to say, C++ or    */
-/* java)..for now - Sym                                      */ 
-  
-#define TYPE_MOD_ARRAY   	0x0040        /* Pointer to a basic type */
+/* java)..for now - Sym                                      */
+
+#define TYPE_MOD_ARRAY          0x0040        /* Pointer to a basic type */
 #define TYPE_MOD_CLASS          0x0080        /* a class */
 #define CLASS_NUM_MASK          0x003f
-  
-#define LOCAL_MOD_REF		0x0100
-#define LOCAL_MOD_UNUSED	0x0200
-  
+
+#define LOCAL_MOD_REF           0x0100
+#define LOCAL_MOD_UNUSED        0x0200
+
 #define LOCAL_MODS (LOCAL_MOD_UNUSED|LOCAL_MOD_REF)
-  
+
 typedef struct {
     unsigned char num_arg;
     unsigned char num_local;
@@ -146,27 +146,22 @@ typedef union {
 
 typedef struct {
     unsigned short first_defined;
-    unsigned short first_overload; 
+    unsigned short first_overload;
     unsigned short num_compressed;
     unsigned short num_deleted;
     unsigned char index[1];
 } compressed_offset_table_t;
 
-#ifdef LPC_TO_C
-#define ADDRESS_TYPE	POINTER_INT
-#define ADDRESS_MAX	UINT_MAX
+#ifdef USE_32BIT_ADDRESSES
+#define ADDRESS_TYPE    unsigned int
+#define ADDRESS_MAX     UINT_MAX
 #else
-#  ifdef USE_32BIT_ADDRESSES
-#define ADDRESS_TYPE	unsigned int
-#define ADDRESS_MAX	UINT_MAX
-#  else
-#define ADDRESS_TYPE	unsigned short
-#define ADDRESS_MAX	USHRT_MAX
-#  endif
+#define ADDRESS_TYPE    unsigned short
+#define ADDRESS_MAX     USHRT_MAX
 #endif
 
 typedef struct {
-    char *name;
+    char *funcname;
     unsigned short type;
     unsigned char num_arg;
     unsigned char num_local;
@@ -177,20 +172,20 @@ typedef struct {
 } function_t;
 
 typedef struct {
-    unsigned short name;
+    unsigned short classname;
     unsigned short type;
     unsigned short size;
     unsigned short index;
 } class_def_t;
 
 typedef struct {
-    unsigned short name;
+    unsigned short membername;
     unsigned short type;
 } class_member_entry_t;
 
 typedef struct {
     char *name;
-    unsigned short type;	/* Type of variable. See above. TYPE_ */
+    unsigned short type;        /* Type of variable. See above. TYPE_ */
 } variable_t;
 
 typedef struct {
@@ -201,28 +196,28 @@ typedef struct {
 } inherit_t;
 
 typedef struct program_s {
-    char *name;			/* Name of file that defined prog */
+    const char *filename;                 /* Name of file that defined prog */
     unsigned short flags;
     unsigned short last_inherited;
-    unsigned short ref;			/* Reference count */
+    unsigned PROG_REF_TYPE ref;                 /* Reference count */
     unsigned short func_ref;
 #ifdef DEBUG
-    int extra_ref;		/* Used to verify ref count */
+    int extra_ref;              /* Used to verify ref count */
     int extra_func_ref;
 #endif
-    char *program;		/* The binary instructions */
+    char *program;              /* The binary instructions */
     unsigned char *line_info;   /* Line number information */
     unsigned short *file_info;
-    int line_swap_index;	/* Where line number info is swapped */
+    int line_swap_index;        /* Where line number info is swapped */
     function_t *function_table;
     unsigned short *function_flags; /* separate for alignment reasons */
     class_def_t *classes;
     class_member_entry_t *class_members;
-    char **strings;		/* All strings uses by the program */
-    char **variable_table;	/* variables defined by this program */
-    unsigned short *variable_types;	/* variables defined by this program */
-    inherit_t *inherit;	/* List of inherited prgms */
-    int total_size;		/* Sum of all data in this struct */
+    char **strings;             /* All strings uses by the program */
+    char **variable_table;      /* variables defined by this program */
+    unsigned short *variable_types;     /* variables defined by this program */
+    inherit_t *inherit; /* List of inherited prgms */
+    int total_size;             /* Sum of all data in this struct */
     /*
      * The types of function arguments are saved where 'argument_types'
      * points. It can be a variable number of arguments, so allocation is
@@ -234,13 +229,13 @@ typedef struct program_s {
      * length (16 bits) of 'type_start' (sorry !).
      */
     unsigned short *argument_types;
-#define INDEX_START_NONE		65535
+#define INDEX_START_NONE                65535
     unsigned short *type_start;
     /*
      * And now some general size information.
      */
     unsigned short heart_beat;  /* Index of the heart beat function. 0 means
-				 * no heart beat */
+                                 * no heart beat */
     unsigned short program_size;/* size of this instruction code */
     unsigned short num_classes;
     unsigned short num_functions_defined;
@@ -252,11 +247,11 @@ typedef struct program_s {
 
 extern int total_num_prog_blocks;
 extern int total_prog_block_size;
-void reference_prog PROT((program_t *, char *));
-void free_prog PROT((program_t *, int));
-void deallocate_program PROT((program_t *));
-char *variable_name PROT((program_t *, int));
-function_t *find_func_entry PROT((program_t *, int));
+void reference_prog (program_t *, const char *);
+void free_prog (program_t **);
+void deallocate_program (program_t *);
+char *variable_name (program_t *, int);
+function_t *find_func_entry (program_t *, int);
 
 #endif
 

@@ -17,6 +17,13 @@ private nosave int diff;
 private nosave string skill_used;
 private nosave int tag;
 
+void setup ()
+{
+  set_spell_name("standard spell cold");
+  set_cast_time(5);
+  set_difficulty(10);
+}
+
 // This hook interrupts casting when called -
 // eg by moving, casting a new spell, etc
 void interrupt_cast();
@@ -29,7 +36,7 @@ function no_combat_function = (: no_combat :);
 void do_effects(object target, object reagent);
 void do_fail(object target, object reagent);
 
-int no_combat() { return "spell casting"; }
+mixed no_combat() { return "spell casting"; }
 
 void set_skill_used(string val) { skill_used = val; }
 string query_skill_used() { return skill_used; }

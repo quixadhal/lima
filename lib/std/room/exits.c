@@ -24,8 +24,8 @@ string query_base() {
 
 mixed can_go_somewhere(string dir) {
     mixed value;
-    value = ::can_go_somewhere(dir);
-    if (!stringp(value) && value !=1 && is_normal_direction(dir))
+    value = ::can_go_str(dir);
+    if (!value || !stringp(value) && value !=1 && is_normal_direction(dir))
        return get_default_exit();
     return value;
 }
@@ -115,9 +115,9 @@ string show_exits()
     exit_str = ((sizeof(exit_names)) ? implode(exit_names,", ") : "none");
 
 #ifdef WIZARDS_SEE_HIDDEN_EXITS
-    if ( wizardp(this_user()) && sizeof(hidden_exits) )
+    if ( wizardp(this_user()) && sizeof(query_hidden_exits()) )
     {
-	exit_str += ", *" + implode(hidden_exits, ", *");
+	exit_str += ", *" + implode(query_hidden_exits(), ", *");
     }
 #endif
 

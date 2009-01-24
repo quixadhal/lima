@@ -6,13 +6,13 @@ typedef struct {
     char *buffer;
 } outbuffer_t;
 
-void outbuf_zero PROT((outbuffer_t *));
-void outbuf_add PROT((outbuffer_t *, char *));
-void outbuf_addchar PROT((outbuffer_t *, char));
-void CDECL outbuf_addv PROT2V(outbuffer_t *, char *);
-void outbuf_fix PROT((outbuffer_t *));
-void outbuf_push PROT((outbuffer_t *));
-int outbuf_extend PROT((outbuffer_t *, int));
+void outbuf_zero (outbuffer_t *);
+void outbuf_add (outbuffer_t *, const char *);
+void outbuf_addchar (outbuffer_t *, char);
+void CDECL outbuf_addv (outbuffer_t *, const char *, ...);
+void outbuf_fix (outbuffer_t *);
+void outbuf_push (outbuffer_t *);
+int outbuf_extend (outbuffer_t *, int);
 
 #include "bsdmalloc.h"
 #include "smalloc.h"
@@ -57,12 +57,12 @@ int outbuf_extend PROT((outbuffer_t *, int));
 #ifdef PACKAGE_PARSER
 #define TAG_PARSER          (TAG_PERMANENT + 37)
 #endif
-#define TAG_INPUT_TO	    (TAG_PERMANENT + 38)
-#define TAG_SOCKETS	    (TAG_PERMANENT + 39)
+#define TAG_INPUT_TO        (TAG_PERMANENT + 38)
+#define TAG_SOCKETS         (TAG_PERMANENT + 39)
 #ifdef PACKAGE_DB
-#define TAG_DB		    (TAG_PERMANENT + 40)
+#define TAG_DB              (TAG_PERMANENT + 40)
 #endif
-#define TAG_INTERPRETER	    (TAG_PERMANENT + 41)
+#define TAG_INTERPRETER     (TAG_PERMANENT + 41)
 
 #define TAG_STRING          (TAG_DATA + 40)
 #define TAG_MALLOC_STRING   (TAG_DATA + 41)

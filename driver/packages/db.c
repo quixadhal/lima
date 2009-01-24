@@ -66,24 +66,23 @@
 #include "../object.h"
 #include "../eoperators.h"
 #include "../backend.h"
-#include "../swap.h"
 
 #include "db.h"
 
 static int  dbConnAlloc, dbConnUsed;
 static db_t *dbConnList;
 
-static db_t * find_db_conn PROT((int));
-static int    create_db_conn PROT((void));
-static void   free_db_conn PROT((db_t *));
+static db_t * find_db_conn (int);
+static int    create_db_conn (void);
+static void   free_db_conn (db_t *);
 
 #ifdef USE_MSQL
-static int      msql_connect  PROT((dbconn_t *, char *, char *, char *, char *));
-static int      msql_close    PROT((dbconn_t *));
-static int      msql_execute  PROT((dbconn_t *, char *));
-static array_t *msql_fetch    PROT((dbconn_t *, int));
-static void     msql_cleanup  PROT((dbconn_t *));
-static char *   msql_errormsg PROT((dbconn_t *));
+static int      msql_connect  (dbconn_t *, const char *, const char *, const char *, const char *);
+static int      msql_close    (dbconn_t *);
+static int      msql_execute  (dbconn_t *, const char *);
+static array_t *msql_fetch    (dbconn_t *, int);
+static void     msql_cleanup  (dbconn_t *);
+static char *   msql_errormsg (dbconn_t *);
 
 static db_defn_t msql = {
     "mSQL", msql_connect, msql_close, msql_execute, msql_fetch, NULL, NULL, msql_cleanup, NULL, msql_errormsg
@@ -91,12 +90,12 @@ static db_defn_t msql = {
 #endif
 
 #ifdef USE_MYSQL
-static int      MySQL_connect  PROT((dbconn_t *, char *, char *, char *, char *));
-static int      MySQL_close    PROT((dbconn_t *));
-static int      MySQL_execute  PROT((dbconn_t *, char *));
-static array_t *MySQL_fetch    PROT((dbconn_t *, int));
-static void     MySQL_cleanup  PROT((dbconn_t *));
-static char *   MySQL_errormsg PROT((dbconn_t *));
+static int      MySQL_connect  (dbconn_t *, const char *, const char *, const char *, const char *);
+static int      MySQL_close    (dbconn_t *);
+static int      MySQL_execute  (dbconn_t *, const char *);
+static array_t *MySQL_fetch    (dbconn_t *, int);
+static void     MySQL_cleanup  (dbconn_t *);
+static char *   MySQL_errormsg (dbconn_t *);
 
 static db_defn_t mysql = {
     "MySQL", MySQL_connect, MySQL_close, MySQL_execute, MySQL_fetch, NULL, NULL, MySQL_cleanup, NULL, MySQL_errormsg
@@ -113,7 +112,7 @@ static db_defn_t no_db = {
  * security on which objects can tweak your database (we don't want
  * people doing "DELETE * FROM *" or equivalent for us)
  */
-static svalue_t *valid_database P2(char *, action, array_t *, info)
+static svalue_t *valid_database (const char * action, array_t * info)
 {
     svalue_t *ret;
 
@@ -141,11 +140,11 @@ static svalue_t *valid_database P2(char *, action, array_t *, info)
  * Returns 1 on success, 0 on failure
  */
 #ifdef F_DB_CLOSE
-void f_db_close PROT((void))
+void f_db_close (void)
 {
     int ret = 0;
     db_t *db;
-    
+
     valid_database("close", &the_null_array);
 
     db = find_db_conn(sp->u.number);
@@ -180,7 +179,7 @@ void f_db_close PROT((void))
  * Returns 1 on success, 0 on failure
  */
 #ifdef F_DB_COMMIT
-void f_db_commit PROT((void))
+void f_db_commit (void)
 {
     int ret = 0;
     db_t *db;
@@ -212,9 +211,10 @@ void f_db_commit PROT((void))
  * Returns a new database handle.
  */
 #ifdef F_DB_CONNECT
-void f_db_connect PROT((void))
+void f_db_connect (void)
 {
-    char *database, *host, *user = "", *errormsg = 0;
+    char *errormsg = 0;
+    const char *user = "", *database, *host;
     db_t *db;
     array_t *info;
     svalue_t *mret;
@@ -304,10 +304,9 @@ void f_db_connect PROT((void))
  * be zero since there is no result set.
  */
 #ifdef F_DB_EXEC
-void f_db_exec PROT((void))
+void f_db_exec (void)
 {
     int ret = 0;
-    char *errormsg;
     db_t *db;
     array_t *info;
 
@@ -371,7 +370,7 @@ void f_db_exec PROT((void))
  * Returns an array of columns from the named row on success.
  */
 #ifdef F_DB_FETCH
-void f_db_fetch PROT((void))
+void f_db_fetch (void)
 {
     db_t *db;
     array_t *ret;
@@ -414,7 +413,7 @@ void f_db_fetch PROT((void))
  * Returns 1 on success, 0 on failure
  */
 #ifdef F_DB_ROLLBACK
-void f_db_rollback PROT((void))
+void f_db_rollback (void)
 {
     int ret = 0;
     db_t *db;
@@ -445,7 +444,7 @@ void f_db_rollback PROT((void))
  * Returns a string describing the database package's current status
  */
 #ifdef F_DB_STATUS
-void f_db_status PROT((void))
+void f_db_status (void)
 {
     int i;
     outbuffer_t out;
@@ -467,7 +466,7 @@ void f_db_status PROT((void))
 }
 #endif
 
-void db_cleanup PROT((void))
+void db_cleanup (void)
 {
     int i;
 
@@ -487,7 +486,7 @@ void db_cleanup PROT((void))
     }
 }
 
-int create_db_conn PROT((void))
+int create_db_conn (void)
 {
     int i;
 
@@ -517,14 +516,14 @@ int create_db_conn PROT((void))
     fatal("dbConnAlloc != dbConnUsed, but no empty slots");
 }
 
-db_t *find_db_conn P1(int, handle)
+db_t *find_db_conn (int handle)
 {
     if (handle < 1 || handle > dbConnAlloc || dbConnList[handle - 1].flags & DB_FLAG_EMPTY)
 	return 0;
     return &(dbConnList[handle - 1]);
 }
 
-void free_db_conn P1(db_t *, db)
+void free_db_conn (db_t * db)
 {
     DEBUG_CHECK(db->flags & DB_FLAG_EMPTY, "Freeing DB connection that is already freed\n");
     DEBUG_CHECK(!dbConnUsed, "Freeing DB connection when dbConnUsed == 0\n");
@@ -536,7 +535,7 @@ void free_db_conn P1(db_t *, db)
  * MySQL support
  */
 #ifdef USE_MYSQL
-static void MySQL_cleanup P1(dbconn_t *, c)
+static void MySQL_cleanup (dbconn_t * c)
 {
     *(c->mysql.errormsg) = 0;
     if (c->mysql.results) {
@@ -545,7 +544,7 @@ static void MySQL_cleanup P1(dbconn_t *, c)
     }
 }
 
-static char *MySQL_errormsg P1(dbconn_t *, c)
+static char *MySQL_errormsg (dbconn_t * c)
 {
     if (*(c->mysql.errormsg)) {
 	return string_copy(c->mysql.errormsg, "MySQL_errormsg:1");
@@ -554,7 +553,7 @@ static char *MySQL_errormsg P1(dbconn_t *, c)
     return string_copy(mysql_error(c->mysql.handle), "MySQL_errormsg:2");
 }
 
-static int MySQL_close P1(dbconn_t *, c)
+static int MySQL_close (dbconn_t * c)
 {
     mysql_close(c->mysql.handle);
     FREE(c->mysql.handle);
@@ -563,7 +562,7 @@ static int MySQL_close P1(dbconn_t *, c)
     return 1;
 }
 
-static int MySQL_execute P2(dbconn_t *, c, char *, s)
+static int MySQL_execute (dbconn_t * c, const char * s)
 {
     if (!mysql_query(c->mysql.handle, s)) {
 	c->mysql.results = mysql_store_result(c->mysql.handle);
@@ -580,7 +579,7 @@ static int MySQL_execute P2(dbconn_t *, c, char *, s)
     return -1;
 }
 
-static array_t *MySQL_fetch P2(dbconn_t *, c, int, row)
+static array_t *MySQL_fetch (dbconn_t * c, int row)
 {
     array_t *v;
     MYSQL_ROW target_row;
@@ -589,7 +588,7 @@ static array_t *MySQL_fetch P2(dbconn_t *, c, int, row)
     if (!c->mysql.results) {
 	return &the_null_array;
     }
-    if (row < 1 || row > mysql_num_rows(c->mysql.results)) {
+    if (row < 0 || row > mysql_num_rows(c->mysql.results)) {
 	return &the_null_array;
     }
 
@@ -598,10 +597,12 @@ static array_t *MySQL_fetch P2(dbconn_t *, c, int, row)
 	return &the_null_array;
     }
 
-    mysql_data_seek(c->mysql.results, row - 1);
-    target_row = mysql_fetch_row(c->mysql.results);
-    if (!target_row) {
+    if(row>0){
+      mysql_data_seek(c->mysql.results, row - 1);
+      target_row = mysql_fetch_row(c->mysql.results);
+      if (!target_row) {
 	return &the_null_array;
+      }
     }
 
     v = allocate_empty_array(num_fields);
@@ -609,7 +610,19 @@ static array_t *MySQL_fetch P2(dbconn_t *, c, int, row)
 	MYSQL_FIELD *field;
 
 	field = mysql_fetch_field(c->mysql.results);
-	if (!field || target_row[i] == NULL) {
+
+        if (row == 0) {
+	  if (field == (MYSQL_FIELD *)NULL) {
+	    v->item[i] = const0u;
+	  } else {
+	    v->item[i].type = T_STRING;
+	    v->item[i].subtype = STRING_MALLOC;
+	    v->item[i].u.string = string_copy(field->name, "f_db_fetch");
+	  }
+	  continue;
+        }
+
+	if (!field || !target_row[i]) {
 	    v->item[i] = const0u;
 	} else {
 	    switch (field->type) {
@@ -636,8 +649,8 @@ static array_t *MySQL_fetch P2(dbconn_t *, c, int, row)
                     if (field->flags & BINARY_FLAG) {
 #ifndef NO_BUFFER_TYPE
 		        v->item[i].type = T_BUFFER;
-		        v->item[i].u.buf = allocate_buffer(field->length);
-		        write_buffer(v->item[i].u.buf, 0, target_row[i], field->length);
+		        v->item[i].u.buf = allocate_buffer(field->max_length);
+		        write_buffer(v->item[i].u.buf, 0, target_row[i], field->max_length);
 #else
                         v->item[i] = const0u;
 #endif
@@ -664,15 +677,20 @@ static array_t *MySQL_fetch P2(dbconn_t *, c, int, row)
     return v;
 }
 
-static int MySQL_connect P5(dbconn_t *, c, char *, host, char *, database, char *, username, char *, password)
+#ifndef MYSQL_SOCKET_ADDRESS
+#define MYSQL_SOCKET_ADDRESS "/tmp/mysql.sock"
+#endif
+
+static int MySQL_connect (dbconn_t * c, const char * host, const char * database, const char * username, const char * password)
 {
     int ret;
     MYSQL *tmp;
 
     tmp = ALLOCATE(MYSQL, TAG_DB, "MySQL_connect");
+    tmp = mysql_init(tmp);
     *(c->mysql.errormsg) = 0;
-
-    c->mysql.handle = mysql_connect(tmp, host, username, password);
+    c->mysql.handle = mysql_real_connect(tmp, host, username, password, database, 0, MYSQL_SOCKET_ADDRESS, 0);
+    //c->mysql.handle = mysql_connect(tmp, host, username, password);
     if (!c->mysql.handle) {
 	strncpy(c->mysql.errormsg, mysql_error(tmp), sizeof(c->mysql.errormsg));
 	c->mysql.errormsg[sizeof(c->mysql.errormsg) - 1] = 0;
@@ -699,7 +717,7 @@ static int MySQL_connect P5(dbconn_t *, c, char *, host, char *, database, char 
  * mSQL support
  */
 #ifdef USE_MSQL
-static void msql_cleanup P1(dbconn_t *, c)
+static void msql_cleanup (dbconn_t * c)
 {
     if (c->msql.result_set) {
 	msqlFreeResult(c->msql.result_set);
@@ -707,7 +725,7 @@ static void msql_cleanup P1(dbconn_t *, c)
     }
 }
 
-static int msql_close P1(dbconn_t *, c)
+static int msql_close (dbconn_t * c)
 {
     msqlClose(c->msql.handle);
     c->msql.handle = -1;
@@ -715,7 +733,7 @@ static int msql_close P1(dbconn_t *, c)
     return 1;
 }
 
-static int msql_execute P2(dbconn_t *, c, char *, s)
+static int msql_execute (dbconn_t * c, const char * s)
 {
     if (msqlQuery(c->msql.handle, s) != -1) {
 	c->msql.result_set = msqlStoreResult();
@@ -729,7 +747,7 @@ static int msql_execute P2(dbconn_t *, c, char *, s)
     return -1;
 }
 
-static array_t *msql_fetch P2(dbconn_t *, c, int, row)
+static array_t *msql_fetch (dbconn_t * c, int row)
 {
     int i, num_fields;
     m_row this_row;
@@ -794,7 +812,7 @@ static array_t *msql_fetch P2(dbconn_t *, c, int, row)
     return v;
 }
 
-static int msql_connect P5(dbconn_t *, c, char *, host, char *, database, char *, username, char *, password)
+static int msql_connect (dbconn_t * c, char * host, char * database, char * username, char * password)
 {
     c->msql.handle = msqlConnect(host);
     if (c->msql.handle < 1) {
@@ -810,7 +828,7 @@ static int msql_connect P5(dbconn_t *, c, char *, host, char *, database, char *
     return 1;
 }
 
-static char *msql_errormsg P1(dbconn_t *, c)
+static char *msql_errormsg (dbconn_t * c)
 {
     return string_copy(msqlErrMsg, "msql_errormsg");
 }

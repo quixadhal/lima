@@ -76,24 +76,30 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
 {
    object where;
    object old_body;
+//tc("switch_bofy(): new_body_fname: "+identify(new_body_fname));
 
    if(previous_object() != body && this_body() != body)
       error("security violation: bad body switch attempt\n");
+//tc("1");
 
    where = body ? environment(body) : (mixed)VOID_ROOM;
+//tc("2");
 
    if(permanent && new_body_fname)
    {
       body_fname = new_body_fname;
       save_me();
    }
+//tc("3");
 
    if(!new_body_fname)
       new_body_fname = body_fname;
+//tc("4");
 
    old_body = body;
    body = new(new_body_fname, query_userid());
    master()->refresh_parse_info();
+//tc("5");
 
    if(old_body)
    {
@@ -101,13 +107,17 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
       if(old_body)
            catch(destruct(old_body));
    }
+//tc("6");
 
    load_mailer();
+//tc("7");
    report_login_failures();
+//tc("8");
 
    /* NOTE: we are keeping the same shell for now... */
 
    body->su_enter_game(where);
+//tc("9");
 }
 
 
@@ -116,6 +126,7 @@ varargs nomask void switch_body(string new_body_fname, int permanent)
 */
 private nomask void incarnate(int is_new, string bfn)
 {
+//tc("incarnate");
    if(bfn)
       body_fname = bfn;
 
@@ -147,6 +158,7 @@ void sw_body_handle_existing_logon(int);
 
 private nomask void rcv_try_to_boot(object who, string answer)
 {
+//tc("rcv_try_to_boot("+identify(who)+", "+identify(answer));
    answer = lower_case(answer);
    if( answer == "yes" || answer == "y" )
    {
@@ -184,6 +196,7 @@ private nomask void rcv_try_to_boot(object who, string answer)
 protected nomask void sw_body_handle_existing_logon(int enter_now)
 {
    remove_call_out(); /* all call outs */
+//tc("sw_body_handle_existing_logon("+identify(enter_now)+")");
 
    if(!enter_now)
    {
@@ -317,35 +330,49 @@ void create_body()
 */
 protected nomask void sw_body_handle_new_logon()
 {
+//tc("sw_body_handle_new_logon() stack: "+get_stack());
    remove_call_out();   /* all call outs */
+//tc("1");
 
 #ifdef AUTO_WIZ
    /* auto-wiz everybody as they are created */
+   //tc("2");
    write(">>>>> You've been granted automatic guest wizard status. <<<<<\n");
+   //tc("3");
    unguarded(1, (: SECURE_D->create_wizard($(query_userid())) :));
+   //tc("4");
 #endif
 
    /* auto-admin the first wizard if there are no admins */
    {
       string *members = SECURE_D->query_domain_members("admin");
+//tc("5: sizeof("+identify(members)+"): "+sizeof(members));
 
       if(!sizeof(members))
       {
-         if(!wizardp(query_userid())) unguarded(1,
+//tc("6");
+//tc("wizardp("+identify(query_userid())+"): "+wizardp(query_userid()));
+         if(!wizardp(query_userid())){ unguarded(1,
                      (: SECURE_D->create_wizard($(query_userid())) :));
+         }
          write( ">>>>> You have been made admin. Remember to use admtool. <<<<<\n");
+         tc( ">>>>> "+identify(query_userid())+" has been made admin. <<<<<\n");
          unguarded(1, (: SECURE_D->add_domain_member("admin",
                          $(query_userid()), 1) :));
       }
+//else tc("6b: apparently an admin existed");
    }
-
+//tc("7");
    /* adjust the privilege of the user ob */
-   if(adminp(query_userid()))
+   if(adminp(query_userid())){
+      //tc("8");
       set_privilege(1);
+}
    else
       set_privilege(query_userid());
-
+//tc("9");
    // pass a lfun pointer so that we don't have to worry about validating
    // the call.
    create_body();
+//tc("10");
 }

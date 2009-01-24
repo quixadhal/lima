@@ -2,13 +2,7 @@
 
 #include "std.h"
 
-reset(arg) {
-    if (!arg) {
-	set_light(1);
-	move_object(clone_object("obj/safe"), this_object());
-    }
-}
-
+---
 long(str) {
     if (str == "door") {
 	if (call_other("room/bank", "query_door"))
@@ -48,3 +42,11 @@ open(str) {
     write("Ok.\n");
     return 1;
 }
+
+reset(arg) {
+    if (!arg) {
+        set_light(1);
+        new("obj/safe")->move(this_object());
+    }
+}
+

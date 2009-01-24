@@ -16,6 +16,9 @@
 #include <log.h>
 #include <ports.h>
 
+#define ROUTER	"*i4"
+#define ROUTER_ADDRESS "204.209.44.3 8080"
+
 inherit M_DAEMON_DATA;
 inherit M_RECONNECT;
 
@@ -34,7 +37,10 @@ inherit __DIR__ "imud/mail";
 
 nosave private object	router_socket;
 
-private string *        router_list = ({ ({ "*gjs", "198.144.203.194 9000"}) });
+private string *        router_list = ({ ({ ROUTER, ROUTER_ADDRESS}) });
+//private string *        router_list = ({ ({ "*i4", "204.209.44.3 8080"}) });
+//private string *        router_list = ({ ({ "*yatmim", "149.152.218.102 23"}) });
+//private string *        router_list = ({ ({ "*gjs", "198.144.203.194 9000"}) });
 //private string *	router_list = ({ ({ "*gjs", "208.192.43.105 9000"}) });
 private int		password;
 
@@ -103,7 +109,7 @@ private nomask void send_message(string type, string target_mud,
 
 protected void send_to_router(string type, mixed * message)
 {
-    send_message(type, "*gjs", 0, message);
+    send_message(type, ROUTER, 0, message);
 }
 
 protected void send_to_mud(string type, string mudname, mixed * message)
@@ -232,12 +238,14 @@ void create()
 {
     string err;
 
+    //debug_message("router_list: "+identify(router_list));
+
     if ( clonep() )
     {
 	destruct(this_object());
 	return;
     }
-    if ( ADMIN_EMAIL == "user@host.name" )
+    if ( ADMIN_EMAIL == "billg@microsoft.com" )
     {
         write("ERROR:\n"
 	      "  The I3 daemon will not load until you set a proper ADMIN_EMAIL\n"

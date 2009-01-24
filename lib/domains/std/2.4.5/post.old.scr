@@ -1,7 +1,9 @@
 # Do not remove the headers from this file! see /USAGE for more info.
 
+---
 /* FIXME */
-inherit "room/room";
+#include "room.h"
+inherit "/std/indoor_room";
 
 string messages;
 int new_mail;
@@ -16,12 +18,12 @@ reset(arg) {
 	"read         Read from the mailbox.\n" +
 	"mail <name>  Mail to player 'name'.\n" +
 	"from         List all headers.\n";
-    no_castle_flag = 1;
+    //no_castle_flag = 1;
 }
 
 init() {
-    ::init();
-    move_object(clone_object("obj/mail_reader"), this_player());
+    //::init();
+    new("obj/mail_reader")->move(this_player());
 }
 
 exit() {
@@ -32,15 +34,15 @@ exit() {
 
 query_mail(silent) {
     string name;
-    string new;
+    string newthing;
 
     name = lower_case(call_other(this_player(), "query_name"));
     if (!restore_object("room/post_dir/" + name) || messages == "") return 0;
     if (silent) return 1;
-    new = "";
+    newthing = "";
     if (new_mail)
-	new = " NEW";
-    write("\nThere is" + new + " mail for you in the post office\n"+
+	newthing = " NEW";
+    write("\nThere is" + newthing + " mail for you in the post office\n"+
         "   (south from village road).\n\n");
     return 1;
 }

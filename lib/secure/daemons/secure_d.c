@@ -57,8 +57,8 @@ void create()
   // initialized.
  if (!restore_object(ACCESS_SAVE))
   {
-    if (eval_cost() < 1000) // *sigh*
-      for (;;);
+    //if (eval_cost() < 1000) // *sigh*
+      //for (;;);
     privileges = ([ ]);
     read_access = allocate_mapping(1);
     write_access = allocate_mapping(1);
@@ -169,8 +169,8 @@ nomask string set_protection(string file,int write,mixed prot)
     return ERR_PRIV;
   if (!write && !check_privilege(1)) // Only staff can make read restrictions
     return ERR_PRIV;
-  if (eval_cost()<1000)
-    for (;;);
+  //if (eval_cost()<1000)
+    //for (;;);
   if (prot != -1)
   {
     if (write && higher_privilege(prot,priv[i]))
@@ -214,8 +214,8 @@ nomask varargs string create_domain(string domain)
 {
   if (!check_privilege(1)) // Only staff members can create domains
     return ERR_PRIV;
-  if (eval_cost()<1000)
-    for (;;);
+  //if (eval_cost()<1000)
+    //for (;;);
   if (!valid_domain_name(domain))
     return "invalid domain name";
   domain = lower_case(domain);
@@ -234,8 +234,8 @@ nomask string delete_domain(string domain)
   int i;
   if (!check_privilege(1)) // Only staff members can delete domains
     return ERR_PRIV;
-  if (eval_cost()<10000)
-    for (;;);
+  //if (eval_cost()<10000)
+    //for (;;);
   if (!domains[domain])
     return ERR_NODOMAIN;
   members = keys(domains[domain]);
@@ -259,8 +259,8 @@ nomask string add_domain_member(string domain,string member,int lord)
     return ERR_NOWIZ;
   if (!check_privilege(capitalize(domain)))
     return ERR_PRIV;
-  if (eval_cost()<1000)
-    for (;;); // This is getting boring...
+  //if (eval_cost()<1000)
+    //for (;;); // This is getting boring...
   domains[domain][member] = (lord ? 2 : 1);
   if (domainlists[member])
     domainlists[member] += ([ domain : 1 ]);
@@ -282,8 +282,8 @@ nomask string remove_domain_member(string domain,string member)
     return ERR_NOWIZ;
   if (!check_privilege(capitalize(domain)))
     return ERR_PRIV;
-  if (eval_cost()<1000)
-    for (;;);
+  //if (eval_cost()<1000)
+    //for (;;);
   map_delete(domains[domain],member);
   map_delete(domainlists[member],domain);
   save_data();
@@ -293,17 +293,26 @@ nomask string remove_domain_member(string domain,string member)
 
 nomask string create_wizard(string wizard)
 {
+  string bad;
+  //tc("create_wizard("+identify(wizard)+")");
+  
   if (!valid_name(wizard))
-    return "invalid character name";
+    bad =  "invalid character name";
   if (wizards[wizard])
-    return "this character is already recorded as a wizard";
+    bad =  "this character is already recorded as a wizard";
   if (!check_privilege(1))
-    return ERR_PRIV;
-  if (eval_cost()<1000)
-    for (;;);
+    bad =  ERR_PRIV;
+  //if (eval_cost()<1000)
+    //for (;;);
+  if(bad){
+      //tc("create_wizard("+identify(wizard)+"): "+bad);
+      return bad;
+  }
   wizards[wizard] = 1;
   privileges[wizard] = ([ "":({}),":":({}) ]);
+  //tc("good");
   save_data();
+  //tc("good2");
   syslog("Created wizard " + wizard);
   return 0;
 }
@@ -356,16 +365,16 @@ nomask string define_privilege(string priv)
       return "invalid privilege identifier";
     if (!check_privilege(1))
       return ERR_PRIV;
-    if (eval_cost()<1000)
-      for (;;);
+    //if (eval_cost()<1000)
+      //for (;;);
     privileges[priv] = ([ "": ({ }), ":": ({ }) ]);
     save_data();
     return 0;
   }
   if (!check_privilege(owner))
     return ERR_PRIV;
-  if (eval_cost()<1000)
-    for (;;);
+  //if (eval_cost()<1000)
+    //for (;;);
   priv = priv[strlen(owner)..];
   if (privileges[owner][priv])
     return "attempt to redefine privilege";
@@ -390,8 +399,8 @@ nomask string undefine_privilege(string priv)
     if (!check_privilege(owner))
       return ERR_PRIV;
   }
-  if (eval_cost()<1000)
-    for (;;);
+  //if (eval_cost()<1000)
+    //for (;;);
   if (owner == priv)
     map_delete(privileges,priv);
   else
@@ -466,8 +475,8 @@ nomask string extend_access(string priv,string add)
     if (!check_privilege(owner))
       return ERR_PRIV;
   }
-  if (eval_cost()<1000)
-    for (;;);
+  //if (eval_cost()<1000)
+    //for (;;);
   priv = priv[strlen(owner)..];
   privileges[owner][priv] -= ({ add });
   privileges[owner][priv] += ({ add });
@@ -491,8 +500,8 @@ nomask string restrict_access(string priv,string remove)
     if (!check_privilege(owner))
       return ERR_PRIV;
   }
-  if (eval_cost()<1000)
-    for (;;);
+  //if (eval_cost()<1000)
+    //for (;;);
   priv = priv[strlen(owner)..];
   if (member_array(remove,privileges[owner][priv])<0)
     return "invalid privilege identifier";

@@ -249,6 +249,7 @@
 #define M_MOUNTABLE       "/std/modules/m_mountable"
 #define M_OPENABLE        "/std/modules/m_openable"
 #define M_READABLE        "/std/modules/m_readable"
+#define M_REACT           "/std/modules/m_react"
 #define M_READY           "/std/modules/m_ready"
 #define M_SIBLING         "/std/modules/m_sibling"
 #define M_SWITCHABLE      "/std/modules/m_switchable"

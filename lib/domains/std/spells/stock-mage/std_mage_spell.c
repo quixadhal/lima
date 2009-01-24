@@ -16,6 +16,11 @@ private nosave int cast_time;
 
 void do_effects(object target, object reagent);
 
+void setup ()
+{
+    set_spell_name("standard mage spell");
+}
+
 int set_cast_time(int t)
 {
     ASSERT(t>=0);

@@ -10,43 +10,43 @@
  * See the GNU General Public License for more details.
  */
 #ifndef S_ISDIR
-#define	S_ISDIR(m)	(((m)&S_IFMT) == S_IFDIR)
+#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
 #endif
 
 #ifndef S_ISREG
-#define	S_ISREG(m)	(((m)&S_IFMT) == S_IFREG)
+#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
 #endif
 
 #ifndef S_ISCHR
-#define	S_ISCHR(m)	(((m)&S_IFMT) == S_IFCHR)
+#define S_ISCHR(m)      (((m)&S_IFMT) == S_IFCHR)
 #endif
 
 #ifndef S_ISBLK
-#define	S_ISBLK(m)	(((m)&S_IFMT) == S_IFBLK)
+#define S_ISBLK(m)      (((m)&S_IFMT) == S_IFBLK)
 #endif
 
 /*
  * file.c
  */
 
-int legal_path PROT((char *));
-char *check_valid_path PROT((char *, object_t *, char *, int));
-void smart_log PROT((char *, int, char *, int));
-void dump_file_descriptors PROT((outbuffer_t *));
+int legal_path (const char *);
+const char *check_valid_path (const char *, object_t *, const char * const, int);
+void smart_log (const char *, int, const char *, int);
+void dump_file_descriptors (outbuffer_t *);
 
-char *read_file PROT((char *, int, int));
-char *read_bytes PROT((char *, int, int, int *));
-int write_file PROT((char *, char *, int));
-int write_bytes PROT((char *, int, char *, int));
-array_t *get_dir PROT((char *, int));
-int tail PROT((char *));
-int file_size PROT((char *));
-int copy_file PROT((char *, char *));
-int do_rename PROT((char *, char *, int));
-int remove_file PROT((char *));
+char *read_file (const char *, int, int);
+char *read_bytes (const char *, int, int, int *);
+int write_file (const char *, const char *, int);
+int write_bytes (const char *, int, const char *, int);
+array_t *get_dir (const char *, int);
+int tail (char *);
+int file_size (const char *);
+int copy_file (const char *, const char *);
+int do_rename (const char *, const char *, int);
+int remove_file (const char *);
 
 #ifdef DEBUGMALLOC_EXTENSIONS
-void mark_file_sv PROT((void));
+void mark_file_sv (void);
 #endif
 
 #endif

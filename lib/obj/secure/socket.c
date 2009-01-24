@@ -90,6 +90,7 @@ int stat_me()
 {
 SKTLOG("read_callback: self",this_object());
 SKTLOG("read_callback: fd",fd);
+    //debug_message("socket: "+identify(message));
     catch(evaluate(read_func, this_object(), message));
 }
 
@@ -98,6 +99,7 @@ private nomask void read_udp_callback(int fd, mixed message, string address)
 SKTLOG("read_udp_callback: self",this_object());
 SKTLOG("read_udp_callback: fd",fd);
 SKTLOG("read_udp_callback: read_func",read_func);
+    //debug_message("socket: "+identify(message));
     catch(evaluate(read_func, this_object(), message, address));
 }
 

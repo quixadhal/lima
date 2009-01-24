@@ -8,9 +8,6 @@
 #  include <unistd.h>
 #endif
 
-//To force use of <stdarg.h> - gcc 3.3 ceased support of <varargs.h>
-#define INCL_STDARG_H
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <setjmp.h>
@@ -64,10 +61,6 @@
 #  include <dlfcn.h>
 #endif
 
-#ifdef LATTICE
-#  undef VOID
-#endif
-
 #ifndef _AUX_SOURCE
 /* supposedly, memmove is in here, but not defined in any lib */
 #  include <string.h>
@@ -81,14 +74,9 @@
 #    include <arpa/inet.h>
 #  endif
 #endif
-#if defined(LATTICE) || defined(__SASC)
-#  include "amiga/amiga.h"
-#  include "amiga/nsignal.h"
-#  include "amiga/socket.h"
-#endif
 
-#if defined(WIN32) || defined(LATTICE)
-int dos_style_link PROT((char *, char *));
+#if defined(WIN32)
+int dos_style_link (char *, char *);
 #define link(x, y) dos_style_link(x, y)
 #endif
 
@@ -100,7 +88,7 @@ int dos_style_link PROT((char *, char *));
 #  include <sys/timeb.h>
 #endif
 
-#if !defined(NeXT) && !defined(LATTICE) && !defined(WIN32)
+#if !defined(NeXT) && !defined(WIN32)
 #  include <sys/param.h>
 #endif
 
@@ -121,16 +109,7 @@ int dos_style_link PROT((char *, char *));
 #  include <alloca.h>
 #endif
 
-#if defined(__APPLE__) && defined(__GNUC__)
-/* varargs.h distributed with Mac OSX is broken */
 #include <stdarg.h>
-#else
-#ifdef INCL_STDARG_H
-#  include <stdarg.h>
-#else
-#  include <varargs.h>
-#endif
-#endif
 
 #ifdef INCL_BSTRING_H
 #include <bstring.h>

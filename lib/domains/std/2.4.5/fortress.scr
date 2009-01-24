@@ -1,5 +1,6 @@
 # Do not remove the headers from this file! see /USAGE for more info.
 
+---
 reset(arg)
 {
     if (!arg)
@@ -10,7 +11,7 @@ reset(arg)
 extra_reset()
 {
     object orc, weapon;
-    int n,i,class,value,weight;
+    int n,i,classval,value,weight;
     string w_name,alt_name;
 
     i = 0;
@@ -34,33 +35,33 @@ extra_reset()
 	    weapon = clone_object("obj/weapon");
 	    if (n == 0) {
 		w_name = "knife";
-		class = 5;
+		classval = 5;
 		value = 8;
 		weight = 1;
 		alt_name = "knife";  /* JnA: 901127 axes != knives */
 	    }
 	    if (n == 1) {
 		w_name = "curved knife";
-		class = 7;
+		classval = 7;
 		value = 15;
 		weight = 1;
 		alt_name = "knife";
 	    }
 	    if (n == 2) {
 		w_name = "hand axe";
-		class = 9;
+		classval = 9;
 		value = 25;
 		weight = 2;
 		alt_name = "axe";
 	    }
 	    call_other(weapon, "set_name", w_name);
-	    call_other(weapon, "set_class", class);
+	    call_other(weapon, "set_class", classval);
 	    call_other(weapon, "set_value", value);
 	    call_other(weapon, "set_weight", weight);
 	    call_other(weapon, "set_alt_name", alt_name);
 	    transfer(weapon, orc);
 	    command("wield " + w_name, orc);
-	    move_object(orc, this_object());
+	    orc->move(this_object());
 	}
     }
 }

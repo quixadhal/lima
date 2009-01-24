@@ -34,7 +34,7 @@ void cast_spell(object ob, object reagent)
     foreach ( object item in targets )
     {
 	/* okay... we won't have the fireball hit the caster... :-) */
-	if ( item == this_body() )
+	if ( item && item == this_body() )
 	    continue;
 
 	//reduce hit points here

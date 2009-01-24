@@ -6,6 +6,8 @@ primary_id=stethoscope
 mass=1
 value=15
 ---
+object listen_ob, player_ob;
+
 listen(str) {
     write("You must apply stethoscope to something.\n");
     return 1;

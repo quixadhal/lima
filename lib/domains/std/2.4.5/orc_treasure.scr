@@ -1,6 +1,6 @@
 # Do not remove the headers from this file! see /USAGE for more info.
 
-/* FIXME */
+---
 #include "room.h"
 
 object gold_stick, orc_slayer, shaman;
@@ -46,9 +46,9 @@ fix_shaman()
 	call_other(shaman, "set_spell_mess2",
 	    "The shaman casts an magic missile");
 	call_other(shaman, "set_spell_dam", 20);
-	move_object(shaman, this_object());
-	move_object(gold_stick, shaman);
-	move_object(orc_slayer, shaman);
+	shaman->move(this_object());
+	gold_stick->move(shaman);
+	orc_slayer->move(shaman);
     }
 }
 

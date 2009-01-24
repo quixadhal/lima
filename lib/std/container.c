@@ -71,6 +71,10 @@ int inventory_visible();
 
 /********    Relations    ********/
 
+varargs void set_preposition(mixed args...){
+    debug_message(base_name(this_object())+" says: \"RAWRR! I am a missing function! Fear me!\"");
+}
+
 
 /* Return 1 if the relation is valid, else 0 */
 private nomask int valid_relation(string relation)

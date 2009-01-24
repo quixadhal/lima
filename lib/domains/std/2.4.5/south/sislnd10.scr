@@ -15,6 +15,6 @@ long=
   small grove from here\n
 end
 exits=
-  east=sislnd11.scr
-  southeast=sislnd9.scr
+  east:sislnd11.scr
+  southeast:sislnd9.scr
 end

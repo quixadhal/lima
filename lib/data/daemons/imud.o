@@ -1,5 +1,0 @@
-#/daemons/imud_d.c
-chanlist ([])
-listened_channels ({})
-mud_info ([])
-router_list ({({"*gjs","198.144.203.194 9000",}),})

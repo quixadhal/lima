@@ -22,7 +22,6 @@
 #define ARCH "Cygwin-32"
 #endif
 
-
 #ifdef WINNT
 #define ARCH "Microsoft Windows NT"
 #endif
@@ -82,7 +81,11 @@
 #endif
 
 #if defined(SunOS_5)
-#define ARCH "Solaris"
+#  ifdef sparc
+#    define ARCH "Solaris SPARC"
+#  else
+#    define ARCH "Solaris x86"
+#  endif
 #endif
 
 #ifdef _AUX_SOURCE
@@ -143,10 +146,6 @@
 
 #if !defined(ARCH) && defined(OSF)
 #define ARCH "OSF/1"
-#endif
-
-#if !defined(ARCH) && defined(LATTICE)
-#define ARCH "Amiga"
 #endif
 
 #if !defined(ARCH) && defined(__APPLE__) && defined(__GNUC__)

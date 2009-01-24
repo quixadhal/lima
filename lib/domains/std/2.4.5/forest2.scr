@@ -10,7 +10,6 @@ objects=
     weapon_class=12
     in_room_desc=A troll
     long=It is a nasty troll that look very aggressive.
-    money=500
   end
 
 exits=

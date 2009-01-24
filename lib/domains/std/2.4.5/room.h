@@ -1,8 +1,11 @@
 /* Do not remove the headers from this file! see /USAGE for more info. */
 
-inherit "room/room";
+//inherit "/std/indoor_room";
+string short_desc, long_desc, dest_dir;
 
 #define EXTRA_RESET
+#define LO ""
+#define SH ""
 
 #define ONE_EXIT(DEST, DIR, SH, LO, LIGHT)\
 reset(arg) { if (!arg) { set_light(LIGHT); short_desc = SH;\

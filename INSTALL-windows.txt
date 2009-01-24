@@ -1,0 +1,52 @@
+If at any point you have problems with these directions, post the 
+exact problem and errors on http://lpmuds.net/forum
+
+How to install Lima for windows:
+
+1) Uncompress this package and move/rename the folder so that the folders like bin and lib 
+   are in c:\lima
+
+2) Use wordpad to edit c:\lima\bin\config.lima.win32 and change the mudname
+
+3) Double-click on c:\lima\win32\mud.bat
+
+4) telnet to localhost 7878
+
+5) Log in to your mud.  Make sure you're the first person to do so --
+   whoever is first will become an admin!  After that, new users will
+   just be guest wizards (by default).
+
+   Connect to the mud, type a name, password, etc.  Once you are logged
+   in, you should be a full admin.  To verify this, type:
+	checkpriv 1
+
+   It should come back with:
+	Verified.  You have privilege '1'
+
+   In order to access all the admin commands, you will need to type:
+	resetpath
+
+6) Creating new admins;
+
+   You can convert other wizards after they log in into admins by adding
+   them into the "admin" domain.  Use the "admtool" command for this.
+
+7) Mudlib configuration:
+
+   Change any options you feel appropriate in /include/config.h. 
+
+   When you're done with any configuration changes, then shut down the
+   mud with the shutdown command.  Restart it, as described above, to
+   make those changes happen.
+
+8) You're done! Share your experiences on the Lima area of http://lpmuds.net/forum
+
+9) Intermud channel rules - please comply with  the rules for the main
+   intermud channels, icode and igossip, which are at
+   http://lpmuds.net/intermud.html
+
+To join:
+chan imud_imud_gossip /on
+igossip foo
+chan imud_imud_code /on
+icode bar

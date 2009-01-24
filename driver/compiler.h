@@ -21,33 +21,32 @@ typedef struct {
     int max_size;
 } mem_block_t;
 
-#define START_BLOCK_SIZE	4096
+#define START_BLOCK_SIZE        4096
 
 /* NUMPAREAS ares are saved with the program code after compilation,
  * the rest are only temporary.
  */
-#define A_PROGRAM		0	/* executable code */
+#define A_PROGRAM               0       /* executable code */
 #define A_FUNCTIONS             1
-#define A_STRINGS		2	/* table of strings */
-#define A_VAR_NAME		3
-#define A_VAR_TYPE		4
-#define A_LINENUMBERS		5	/* linenumber information */
+#define A_STRINGS               2       /* table of strings */
+#define A_VAR_NAME              3
+#define A_VAR_TYPE              4
+#define A_LINENUMBERS           5       /* linenumber information */
 #define A_FILE_INFO             6       /* start of file line nos */
-#define A_INHERITS		7	/* table of inherited progs */
+#define A_INHERITS              7       /* table of inherited progs */
 #define A_CLASS_DEF             8
 #define A_CLASS_MEMBER          9
-#define A_ARGUMENT_TYPES	10	/* */
-#define A_ARGUMENT_INDEX	11	/* */
-#define NUMPAREAS		12
+#define A_ARGUMENT_TYPES        10      /* */
+#define A_ARGUMENT_INDEX        11      /* */
+#define NUMPAREAS               12
 #define A_CASES                 13      /* keep track of cases */
-#define A_STRING_NEXT		14	/* next prog string in hash chain */
-#define A_STRING_REFS		15	/* reference count of prog string */
-#define A_INCLUDES		16	/* list of included files */
-#define A_PATCH			17	/* for save_binary() */
-#define A_FUNCTIONALS           18
-#define A_FUNCTION_DEFS		19
-#define A_VAR_TEMP	        20	/* table of variables */
-#define NUMAREAS		22
+#define A_STRING_NEXT           14      /* next prog string in hash chain */
+#define A_STRING_REFS           15      /* reference count of prog string */
+#define A_INCLUDES              16      /* list of included files */
+#define A_FUNCTIONALS           17
+#define A_FUNCTION_DEFS         18
+#define A_VAR_TEMP              19      /* table of variables */
+#define NUMAREAS                20
 
 #define TREE_MAIN               0
 #define TREE_INIT               1
@@ -62,8 +61,8 @@ typedef struct {
  * the run-time types, named T_ interpret.h.
  */
 
-#define TYPE_UNKNOWN	0	/* This type must be casted */
-#define TYPE_ANY        1	/* Will match any type */
+#define TYPE_UNKNOWN    0       /* This type must be casted */
+#define TYPE_ANY        1       /* Will match any type */
 #define TYPE_NOVALUE    2
 #define TYPE_VOID       3
 #define TYPE_NUMBER     4
@@ -73,7 +72,7 @@ typedef struct {
 #define TYPE_FUNCTION   8
 #define TYPE_REAL       9
 #define TYPE_BUFFER     10
-#define TYPE_MASK	0xf
+#define TYPE_MASK       0xf
 
 typedef struct {
     int runtime_index;
@@ -81,7 +80,7 @@ typedef struct {
 } local_info_t;
 
 extern mem_block_t mem_block[NUMAREAS];
-extern char *compiler_type_names[];
+extern const char *compiler_type_names[];
 
 #define LOOP_CONTEXT            0x1
 #define SWITCH_CONTEXT          0x2
@@ -89,9 +88,11 @@ extern char *compiler_type_names[];
 #define SWITCH_NUMBERS          0x8
 #define SWITCH_DEFAULT          0x10
 #define SWITCH_RANGES           0x20
-#define LOOP_FOREACH            0x40
-#define SPECIAL_CONTEXT		0x80
-#define ARG_LIST		0x100
+#define SWITCH_NOT_EMPTY        0x40
+#define LOOP_FOREACH            0x80
+#define SPECIAL_CONTEXT         0x100
+#define ARG_LIST                0x200
+
 
 typedef struct function_context_s {
     parse_node_t *values_list;
@@ -113,8 +114,8 @@ typedef struct compiler_temp_t {
     unsigned short function_index_offset;
     struct program_s *prog; /* inherited if nonzero */
     union {
-	function_t *func;
-	int index;
+        function_t *func;
+        long index;
     } u;
     struct compiler_temp_t *next;
 } compiler_temp_t;
@@ -127,9 +128,9 @@ typedef struct compiler_temp_t {
 #define CLASS_IDX(t) (t & ~(DECL_MODS | TYPE_MOD_CLASS))
 
 #define COMP_TYPE(e, t) (!(e & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) \
-			 && (compatible[(unsigned char)(e & ~DECL_MODS)] & (1 << (t))))
+                         && (compatible[(e & ~DECL_MODS)] & (1 << (t))))
 #define IS_TYPE(e, t) (!(e & (TYPE_MOD_ARRAY | TYPE_MOD_CLASS)) \
-		       && (is_type[(unsigned char)(e & ~DECL_MODS)] & (1 << (t))))
+                       && (is_type[(e & ~DECL_MODS)] & (1 << (t))))
 
 #define FUNCTION_TEMP(n) ((compiler_temp_t *)mem_block[A_FUNCTION_DEFS].block + (n))
 #define FUNCTION_NEXT(n) (FUNCTION_TEMP(n)->next)
@@ -148,7 +149,7 @@ typedef struct compiler_temp_t {
 #define INHERIT(n)  ((inherit_t *)mem_block[A_INHERITS].block + (n))
 #define VAR_TEMP(n) ((variable_t *)mem_block[A_VAR_TEMP].block + (n))
 #define SIMUL(n)    (simuls[n].func)
-#define PROG_STRING(n)   (((char **)mem_block[A_STRINGS].block)[n])
+#define PROG_STRING(n)   (((const char **)mem_block[A_STRINGS].block)[n])
 #define CLASS(n)    ((class_def_t *)mem_block[A_CLASS_DEF].block + (n))
 
 #if !defined(__alpha) && !defined(cray)
@@ -165,8 +166,8 @@ typedef struct compiler_temp_t {
 
 #define NOVALUE_USED_FLAG        1024
 
-int validate_function_call PROT((int, parse_node_t *));
-parse_node_t *validate_efun_call PROT((int, parse_node_t *));
+int validate_function_call (int, parse_node_t *);
+parse_node_t *validate_efun_call (int, parse_node_t *);
 extern mem_block_t mem_block[];
 extern int exact_types, global_modifiers;
 extern int current_type;
@@ -189,64 +190,65 @@ extern short compatible[11];
 extern short is_type[11];
 extern int comp_last_inherited;
 
-char *get_type_modifiers PROT((char *, char *, int));
-char *get_two_types PROT((char *, char *, int, int));
-char *get_type_name PROT((char *, char *, int));
-void init_locals PROT((void));
+char *get_type_modifiers (char *, char *, int);
+char *get_two_types (char *, char *, int, int);
+char *get_type_name (char *, char *, int);
+void init_locals (void);
 
-void save_file_info PROT((int, int));
-int add_program_file PROT((char *, int));
-void yyerror PROT((char *));
-void yywarn PROT((char *));
-void switch_to_block PROT((int));
-char *the_file_name PROT((char *));
-void free_all_local_names PROT((int));
-void pop_n_locals PROT((int));
-void reactivate_current_locals PROT((void));
-void clean_up_locals PROT((void));
-void deactivate_current_locals PROT((void));
-int add_local_name PROT((char *, int));
-void reallocate_locals PROT((void));
-void initialize_locals PROT((void));
-int get_id_number PROT((void));
-program_t *compile_file PROT((int, char *));
-void reset_function_blocks PROT((void));
-void copy_variables PROT((program_t *, int));
-void copy_structures PROT((program_t *));
-int copy_functions PROT((program_t *, int));
-void type_error PROT((char *, int));
-int compatible_types PROT((int, int));
-int compatible_types2 PROT((int, int));
-int arrange_call_inherited PROT((char *, parse_node_t *));
-void add_arg_type PROT((unsigned short));
-int define_new_function PROT((char *, int, int, int, int));
-int define_variable PROT((char *, int));
-int define_new_variable PROT((char *, int));
-short store_prog_string PROT((char *));
-void free_prog_string PROT((short));
+void save_file_info (int, int);
+int add_program_file (char *, int);
+void yyerror (const char *);
+void yywarn (const char *);
+char *the_file_name (char *);
+void free_all_local_names (int);
+void pop_n_locals (int);
+void reactivate_current_locals (void);
+void clean_up_locals (void);
+void deactivate_current_locals (void);
+int add_local_name (const char *, int);
+void reallocate_locals (void);
+void initialize_locals (void);
+int get_id_number (void);
+program_t *compile_file (int, char *);
+void reset_function_blocks (void);
+void copy_variables (program_t *, int);
+void copy_structures (program_t *);
+int copy_functions (program_t *, int);
+void type_error (const char *, int);
+int compatible_types (int, int);
+int compatible_types2 (int, int);
+int arrange_call_inherited (char *, parse_node_t *);
+void add_arg_type (unsigned short);
+int define_new_function (const char *, int, int, int, int);
+int define_variable (char *, int);
+int define_new_variable (char *, int);
+short store_prog_string (const char *);
+void free_prog_string (short);
 #ifdef DEBUG
-int dump_function_table PROT((void));
+int dump_function_table (void);
 #endif
-void prepare_cases PROT((parse_node_t *, int));
-void push_func_block PROT((void));
-void pop_func_block PROT((void));
-int decl_fix PROT((int));
-parse_node_t *check_refs PROT((int, parse_node_t *, parse_node_t *));
+void prepare_cases (parse_node_t *, int);
+void push_func_block (void);
+void pop_func_block (void);
+int decl_fix (int);
+parse_node_t *check_refs (int, parse_node_t *, parse_node_t *);
 
-int lookup_any_class_member PROT((char *, unsigned char *));
-int lookup_class_member PROT((int, char *, unsigned char *));
-parse_node_t *reorder_class_values PROT((int, parse_node_t *));
+int lookup_any_class_member (char *, unsigned char *);
+int lookup_class_member (int, char *, unsigned char *);
+parse_node_t *reorder_class_values (int, parse_node_t *);
 
-parse_node_t *promote_to_float PROT((parse_node_t *));
-parse_node_t *promote_to_int PROT((parse_node_t *));
-parse_node_t *do_promotions PROT((parse_node_t *, int));
-parse_node_t *throw_away_call PROT((parse_node_t *));
-parse_node_t *throw_away_mapping PROT((parse_node_t *));
+parse_node_t *promote_to_float (parse_node_t *);
+parse_node_t *promote_to_int (parse_node_t *);
+int convert_type (int);
+parse_node_t *add_type_check (parse_node_t *, int);
+parse_node_t *do_promotions (parse_node_t *, int);
+parse_node_t *throw_away_call (parse_node_t *);
+parse_node_t *throw_away_mapping (parse_node_t *);
 
 #define realloc_mem_block(m) do { \
     mem_block_t *M = m; \
     M->max_size <<= 1; \
-    M->block = DREALLOC(M->block, M->max_size, TAG_COMPILER, "realloc_mem_block"); \
+    M->block = (char *)DREALLOC(M->block, M->max_size, TAG_COMPILER, "realloc_mem_block"); \
 } while (0)
 
 #define add_to_mem_block(n, data, size) do { \
@@ -254,11 +256,11 @@ parse_node_t *throw_away_mapping PROT((parse_node_t *));
     int Size = size; \
     \
     if (mbp->current_size + Size > mbp->max_size) { \
-	do { \
+        do { \
             mbp->max_size <<= 1; \
         } while (mbp->current_size + Size > mbp->max_size); \
         \
-        mbp->block = DREALLOC(mbp->block, mbp->max_size, TAG_COMPILER, "insert_in_mem_block"); \
+        mbp->block = (char *)DREALLOC(mbp->block, mbp->max_size, TAG_COMPILER, "insert_in_mem_block"); \
     } \
     memcpy(mbp->block + mbp->current_size, data, Size); \
     mbp->current_size += Size; \
@@ -266,17 +268,17 @@ parse_node_t *throw_away_mapping PROT((parse_node_t *));
 
 #ifndef SUPPRESS_COMPILER_INLINES
 INLINE_STATIC
-char *allocate_in_mem_block P2(int, n, int, size)
+char *allocate_in_mem_block (int n, int size)
 {
     mem_block_t *mbp = &mem_block[n];
     char *ret;
 
     if (mbp->current_size + size > mbp->max_size) {
-	do {
-	    mbp->max_size <<= 1;
-	} while (mbp->current_size + size > mbp->max_size);
-	
-	mbp->block = DREALLOC(mbp->block, mbp->max_size, TAG_COMPILER, "insert_in_mem_block");
+        do {
+            mbp->max_size <<= 1;
+        } while (mbp->current_size + size > mbp->max_size);
+
+        mbp->block = (char *)DREALLOC(mbp->block, mbp->max_size, TAG_COMPILER, "insert_in_mem_block");
     }
     ret = mbp->block + mbp->current_size;
     mbp->current_size += size;

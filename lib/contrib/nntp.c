@@ -459,5 +459,5 @@ void quit()
 
 void remove()
 {
-  catch(news_socket->remove());
+  if(news_socket && objectp(news_socket)) catch(news_socket->remove());
 }

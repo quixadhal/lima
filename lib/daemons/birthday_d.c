@@ -100,17 +100,21 @@ void create() {
     ::create();
 
     /* binary search for start of tomorrow */
-    while (start != end) {
-	int mid = (start + end)/2;
-	
-	if (ctime(mid)[0..9] == today)
-	    start = mid + 1;
-	else
-	    end = mid;
-    }
+//    while (start != end) {
+//The following line always created a problem on 32 bit machines
+//because it generated a crazy number. Hence "the Lima birthday bug"
+//	int mid = (start + end)/2;
+//This entire routine has been simplified to "just find 24 hours from now"
+//in the interest of sanity and brevity.
+//	
+//	if (ctime(mid)[0..9] == today)
+//	    start = mid + 1;
+//	else
+//	    end = mid;
+//    }
 
     refresh();
-    call_out((: repeat_refresh :), start - time());
+    call_out((: repeat_refresh :), time() + 86400);
 }
 
     

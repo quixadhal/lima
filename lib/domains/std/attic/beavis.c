@@ -5,6 +5,7 @@
 inherit LIVING;
 inherit M_ACTIONS;
 inherit M_TRIGGERS;
+inherit M_REACT;
 
 void follow_the_script_dumbass()
 {

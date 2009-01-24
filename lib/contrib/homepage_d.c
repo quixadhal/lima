@@ -7,9 +7,10 @@
 ** No strings attached :)
 */
 
-inherit DAEMON;
+inherit M_DAEMON_DATA;
 
-#include <net/http_d.h>
+#include <http_d.h>
+#include <ports.h>
 #define DEEPEST
 
 void build_homepages()
@@ -26,10 +27,10 @@ void build_homepages()
   foreach (string name in dirs)
     {
       if (is_file(WIZ_DIR+"/"+name+HTTP_USER_HOME+"/index.html"))
-	page+="  <LI> <A HREF=http:/"+"/"+__HOST__+":"+(HTTP_PORT)+"/~"+name+
+	page+="  <LI> <A HREF=http:/"+"/"+__HOST__+":"+(PORT_HTTP)+"/~"+name+
 	  ">\n        "+capitalize(name)+"'s Homepage.</A>\n";
     }
   page+="</UL>\n";
   set_privilege(1);
-  unguarded(1, (: write_file, HTTP_ROOT+"/"+HOMEPAGE_PAGE,page,1 :));
+  unguarded(1, (: write_file, HTTP_ROOT+"/"+DEFAULT_PAGE,page,1 :));
 }

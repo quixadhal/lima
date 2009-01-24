@@ -5,8 +5,7 @@
  * to use sysmalloc or malloc replacements
  */
 #if defined(SYSMALLOC) || \
-    (defined(SMALLOC) && defined(SBRK_OK)) || \
-    defined(BSDMALLOC)
+    (defined(SMALLOC) && defined(SBRK_OK)) 
 #define MALLOC(x)       malloc(x)
 #define FREE(x)         free(x)
 #define REALLOC(x,y)    realloc(x,y)
@@ -31,15 +30,38 @@
 
 /* bsdmalloc - always a replacement */
 #if defined(BSDMALLOC) && !defined(SYSMALLOC)
-#  define bsdmalloc_malloc      malloc
-#  define bsdmalloc_free        free
-#  define bsdmalloc_realloc     realloc
-#  define bsdmalloc_calloc      calloc
+#define MALLOC(x)       bsdmalloc_malloc(x)
+#define FREE(x)         bsdmalloc_free(x)
+#define REALLOC(x,y)    bsdmalloc_realloc(x,y)
+#define CALLOC(x,y)     bsdmalloc_calloc(x,y)
+#ifndef _FUNC_SPEC_
+#include "bsdmalloc.h"
+#endif
+#endif
+
+#ifdef MMALLOC 
+#define MALLOC(x)       mmalloc(x)
+#define FREE(x)         mfree(x)
+#define REALLOC(x,y)    mrealloc(x,y)
+#define CALLOC(x,y)     mcalloc(x,y)
+#ifndef _FUNC_SPEC_
+void mfree(void *block);
+void *mrealloc(void *block, int size);
+void *mcalloc(int num, int size);
+void *mmalloc(int size);
+#endif
+#endif
+
+#ifdef GNUMALLOC
+#define MALLOC(x)       gnumalloc(x)
+#define FREE(x)         gnufree(x)
+#define REALLOC(x,y)    gnurealloc(x,y)
+#define CALLOC(x,y)     gnucalloc(x,y)
+
 #endif
 
 #define DXALLOC(x,tag,desc)     xalloc(x)
 #define DMALLOC(x,tag,desc)     MALLOC(x)
 #define DREALLOC(x,y,tag,desc)  REALLOC(x,y)
 #define DCALLOC(x,y,tag,desc)   CALLOC(x,y)
-
 #endif /* MY_MALLOC_H */
