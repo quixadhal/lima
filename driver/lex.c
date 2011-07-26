@@ -30,6 +30,7 @@
 #include "file.h"
 #include "main.h"
 #include "cc.h"
+#include "master.h"
 
 #define NELEM(a) (sizeof (a) / sizeof((a)[0]))
 #define LEX_EOF ((unsigned char) EOF)
@@ -139,7 +140,9 @@ static keyword_t reswords[] =
 #endif
     {"case", L_CASE, 0},
     {"catch", L_CATCH, 0},
+#ifdef STRUCT_CLASS
     {"class", L_CLASS, 0},
+#endif
 #ifdef COMPAT_32
     {"closure", L_BASIC_TYPE, TYPE_FUNCTION},
 #endif
@@ -184,6 +187,9 @@ static keyword_t reswords[] =
     {"status", L_BASIC_TYPE, TYPE_NUMBER},
 #endif
     {"string", L_BASIC_TYPE, TYPE_STRING},
+#ifdef STRUCT_STRUCT
+    {"struct", L_CLASS, 0},
+#endif
     {"switch", L_SWITCH, 0},
     {"time_expression", L_TIME_EXPRESSION, 0},
     {"varargs", L_TYPE_MODIFIER, FUNC_VARARGS },
@@ -251,7 +257,7 @@ static void yyerrorp (const char *);
 #define LEXER
 #include "preprocess.c"
 
-int lookup_predef(char * name)
+int lookup_predef(const char * name)
 {
     int x;
 
@@ -394,10 +400,11 @@ inc_open (char * buf, char * name, int check_local)
 {
     int i, f;
     char *p;
-
+	const char *tmp;
     if (check_local) {
         merge(name, buf);
-        if ((f = open(buf, O_RDONLY)) != -1)
+        tmp = check_valid_path(buf, master_ob, "include", 0);
+        if (tmp && (f = open(tmp, O_RDONLY)) != -1)
             return f;
     }
     /*
@@ -409,7 +416,8 @@ inc_open (char * buf, char * name, int check_local)
     }
     for (i = 0; i < inc_list_size; i++) {
         sprintf(buf, "%s/%s", inc_list[i], name);
-        if ((f = open(buf, O_RDONLY)) != -1) {
+        tmp = check_valid_path(buf, master_ob, "include", 0);
+        if (tmp && (f = open(tmp, O_RDONLY)) != -1) {
             return f;
         }
     }
@@ -457,16 +465,17 @@ handle_include (char * name, int global)
         }
         return;
     }
-    name = nameptr = string_copy(name, "handle_include");
+    name = string_copy(name, "handle_include");
+    push_malloced_string(name);
     delim = *name++ == '"' ? '"' : '>';
     for (p = name; *p && *p != delim; p++);
     if (!*p) {
-        FREE_MSTR(nameptr);
+        pop_stack();
         include_error("Missing trailing \" or > in #include", global);
         return;
     }
     if (strlen(name) > sizeof(buf) - 100) {
-        FREE_MSTR(nameptr);
+        pop_stack();
         include_error("Include name too long.", global);
         return;
     }
@@ -496,7 +505,7 @@ handle_include (char * name, int global)
         sprintf(buf, "Cannot #include %s", name);
         include_error(buf, global);
     }
-    FREE_MSTR(nameptr);
+    pop_stack();
 }
 
 static int
@@ -1054,7 +1063,16 @@ static void refill_buffer() {
 
             size = correct_read(yyin_desc, p, MAXLINE);
             cur_lbuf->buf_end = p += size;
-            if (size < MAXLINE) { *(last_nl = p) = LEX_EOF; return; }
+            if (size < MAXLINE) {
+            	*(last_nl = p) = LEX_EOF;
+            	if(*(last_nl-1) != '\n'){
+            		if(size +1 > MAXLINE)
+            			yyerror("No newline at end of file.");
+            		*p++ = '\n';
+            		*(last_nl = p) = LEX_EOF;
+            	}
+            	return;
+			}
             while (*--p != '\n');
             if (p == outp - 1) {
                 lexerror("Line too long.");
@@ -1106,7 +1124,14 @@ static void refill_buffer() {
             end = p += size;
             if (flag) cur_lbuf->buf_end = p;
             if (size < MAXLINE) {
-                *(last_nl = p) = LEX_EOF; return;
+            	*(last_nl = p) = LEX_EOF;
+            	if(*(last_nl-1) != '\n'){
+            		if(size +1 > MAXLINE)
+            			yyerror("No newline at end of file.");
+            		*p++ = '\n';
+            		*(last_nl = p) = LEX_EOF;
+            	}
+            	return;
             }
             while (*--p != '\n');
             if (p == outp - 1) {
@@ -2116,7 +2141,6 @@ void add_predefines()
 {
     char save_buf[80];
     int i;
-    long tmp;
     lpc_predef_t *tmpf;
 
     add_predefine("MUDOS", -1, "");
@@ -2188,11 +2212,8 @@ void add_predefines()
         add_predefine(namebuf, -1, mtext);
     }
     sprintf(save_buf, "%ld", sizeof(long));
-    add_predefine("SIZEOFINT", -1, save_buf);
-    tmp = (long)1<<31;
-    if(tmp > 0)
-      tmp = (long)1<<63;
-    sprintf(save_buf, "%ld", tmp-1);
+    add_predefine("SIZEOFINT", -1, save_buf);    
+    sprintf(save_buf, "%ld", LONG_MAX);
     add_predefine("MAX_INT", -1, save_buf);
 }
 

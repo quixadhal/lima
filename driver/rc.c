@@ -49,8 +49,6 @@ static void read_config_file (FILE * file)
     while (1) {
 	if (fgets(str, MAX_LINE_LENGTH * 4, file) == NULL)
 	    break;
-	if (!str)
-	    break;
 	len = strlen(str); /* ACK! */
 	if (len > MAX_LINE_LENGTH) {
 	    fprintf(stderr, "*Error in config file: line too long:\n%s...\n", str);
@@ -200,7 +198,6 @@ void set_defaults (char * filename)
     CONFIG_STR(__LOG_DIR__) = alloc_cstring(tmp, "config file: ld");
     scan_config_line("include directories : %[^\n]", tmp, 1);
     CONFIG_STR(__INCLUDE_DIRS__) = alloc_cstring(tmp, "config file: id");
-    CONFIG_STR(__SAVE_BINARIES_DIR__) = alloc_cstring("", "config file: sbd");
     scan_config_line("master file : %[^\n]", tmp, 1);
     CONFIG_STR(__MASTER_FILE__) = alloc_cstring(tmp, "config file: mf");
     scan_config_line("simulated efun file : %[^\n]", tmp, 0);
@@ -375,6 +372,8 @@ int get_config_item (svalue_t * res, svalue_t * arg)
 	res->type = T_NUMBER;
 	res->u.number = config_int[num - BASE_CONFIG_INT];
     } else {
+    	if(!config_str[num]) //obsolete value, less muds break if we don't renumber!
+    		return 0;
 	res->type = T_STRING;
 	res->subtype = STRING_CONSTANT;
 	res->u.string = config_str[num];

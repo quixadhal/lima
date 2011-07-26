@@ -622,7 +622,11 @@ void f_command (void)
 	buff[sizeof(buff) - 1] = 0;
 
 	if (parse_command(buff, current_object))
-	  rc = save_eval_cost - get_eval();
+#ifndef WIN32
+             rc = save_eval_cost - get_eval();
+#else
+             rc = 1;
+#endif
     }
 
     free_string_svalue(sp);

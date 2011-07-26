@@ -24,6 +24,13 @@
 static int opc_eoper[BASE];
 #endif
 
+
+#ifdef DTRACE
+#include <sys/sdt.h>
+#else
+#define DTRACE_PROBE3(x,y,z,zz,zzz)
+#endif
+
 #ifdef OPCPROF_2D
 /* warning, this is typically 4 * 100 * 100 = 40k */
 static int opc_eoper_2d[BASE+1][BASE+1];
@@ -66,6 +73,18 @@ static char *get_arg (int, int);
 
 #ifdef DEBUG
 int stack_in_use_as_temporary = 0;
+#endif
+
+/*
+ * Macro for extracting global variable indices.
+ */
+
+#if CFG_MAX_GLOBAL_VARIABLES <= 256
+#define READ_GLOBAL_INDEX READ_UCHAR
+#elif CFG_MAX_GLOBAL_VARIABLES <= 65536
+#define READ_GLOBAL_INDEX READ_USHORT
+#else
+#error CFG_MAX_GLOBAL_VARIABLES must not be greater than 65536
 #endif
 
 int inter_sscanf (svalue_t *, svalue_t *, svalue_t *, int);
@@ -200,7 +219,7 @@ void push_object (object_t * ob)
 {
   STACK_INC;
 
-  if (!ob || (ob->flags & O_DESTRUCTED)) {
+  if (!ob || (ob->flags & O_DESTRUCTED) || ob->flags & O_BEING_DESTRUCTED) {
     *sp = const0u;
     return;
   }
@@ -420,7 +439,7 @@ void unlink_string_svalue (svalue_t * s) {
  * Use the free_svalue() define to call this
  */
 #ifdef DEBUG
-INLINE void int_free_svalue (svalue_t * v, char * tag)
+INLINE void int_free_svalue (svalue_t * v, const char * tag)
 #else
      INLINE void int_free_svalue (svalue_t * v)
 #endif
@@ -1209,6 +1228,7 @@ push_control_stack (int frkind)
   csp->pc = pc;
   csp->function_index_offset = function_index_offset;
   csp->variable_index_offset = variable_index_offset;
+  csp->defers = NULL;
 }
 
 /*
@@ -1219,26 +1239,53 @@ void pop_control_stack()
 {
   DEBUG_CHECK(csp == (control_stack - 1),
               "Popped out of the control stack\n");
-#ifdef PROFILE_FUNCTIONS
-  if ((csp->framekind & FRAME_MASK) == FRAME_FUNCTION) {
-    long secs, usecs, dsecs;
-    function_t *cfp = &current_prog->function_table[csp->fr.table_index];
-    int stof = 0;
-
-    get_cpu_times((unsigned long *) &secs, (unsigned long *) &usecs);
-    dsecs = (((secs - csp->entry_secs) * 1000000)
-             + (usecs - csp->entry_usecs));
-    cfp->self += dsecs;
-
-    while((csp-stof) != control_stack){
-      if (((csp-stof-1)->framekind & FRAME_MASK) == FRAME_FUNCTION) {
-	(csp-stof)->prog->function_table[(csp-stof-1)->fr.table_index].children += dsecs;
-	break;
-      }
-      stof++;
-    }
+#ifdef DTRACE
+  if ((csp->framekind & FRAME_MASK) == FRAME_FUNCTION){
+    DTRACE_PROBE3(fluffos, lpc__return, current_object->obname, current_prog->function_table[csp->fr.table_index].funcname, current_prog->filename);
   }
 #endif
+#ifdef PROFILE_FUNCTIONS
+  if ((csp->framekind & FRAME_MASK) == FRAME_FUNCTION) {
+	  long secs, usecs, dsecs;
+	  function_t *cfp = &current_prog->function_table[csp->fr.table_index];
+	  int stof = 0;
+
+	  get_cpu_times((unsigned long *) &secs, (unsigned long *) &usecs);
+	  dsecs = (((secs - csp->entry_secs) * 1000000)
+			  + (usecs - csp->entry_usecs));
+	  cfp->self += dsecs;
+
+	  while((csp-stof) != control_stack){
+		  if (((csp-stof-1)->framekind & FRAME_MASK) == FRAME_FUNCTION) {
+			  function_t *parent = &((csp-stof)->prog->function_table[(csp-stof-1)->fr.table_index]);
+			  if(parent != cfp) //if it's recursion it's not really a child
+				  parent->children += dsecs;
+			  break;
+		  }
+		  stof++;
+	  }
+  }
+#endif
+  struct defer_list *stuff = csp->defers;
+  csp->defers = 0;
+  while(stuff){
+	  function_to_call_t ftc;
+	  memset(&ftc, 0, sizeof ftc);
+	  ftc.f.fp = stuff->func.u.fp;
+	  int s = outoftime;
+	  if(outoftime)
+		  set_eval(max_cost);
+	  save_command_giver(stuff->tp.u.ob);
+	  safe_call_efun_callback(&ftc, 0);
+	  restore_command_giver();
+	  outoftime = s;
+	  free_svalue(&(stuff->func), "pop_stack");
+	  free_svalue(&(stuff->tp), "pop_stack");
+
+	  struct defer_list* old = stuff;
+	  stuff = stuff->next;
+	  FREE(old);
+  }
   current_object = csp->ob;
   current_prog = csp->prog;
   previous_ob = csp->prev_ob;
@@ -1480,6 +1527,8 @@ setup_new_frame (int findex)
     do_trace_call(findex);
   }
 #endif
+   DTRACE_PROBE3(fluffos, lpc__entry, current_object->obname, current_prog->function_table[findex].funcname, current_prog->filename);
+
   return &current_prog->function_table[findex];
 }
 
@@ -1535,6 +1584,8 @@ INLINE function_t *setup_inherited_frame (int findex)
     do_trace_call(findex);
   }
 #endif
+  DTRACE_PROBE3(fluffos, lpc__entry, csp->ob->obname, current_prog->function_table[findex].funcname, current_prog->filename);
+
   return &current_prog->function_table[findex];
 }
 
@@ -1577,11 +1628,12 @@ void setup_fake_frame (funptr_t * fun) {
   csp->fp = fp;
   csp->prog = current_prog;
   csp->pc = pc;
-  pc = (char *)&fake_program;
   csp->function_index_offset = function_index_offset;
   csp->variable_index_offset = variable_index_offset;
-  caller_type = ORIGIN_FUNCTION_POINTER;
   csp->num_local_variables = 0;
+
+  pc = (char *)&fake_program;
+  caller_type = ORIGIN_FUNCTION_POINTER;
   current_prog = &fake_prog;
   previous_ob = current_object;
   current_object = fun->hdr.owner;
@@ -2257,7 +2309,7 @@ eval_instruction (char * p)
 
         /* The optimizer has asserted this won't be used again.  Make
          * it look like a number to avoid double frees. */
-        s->type |= T_FREED;
+        s->type = T_NUMBER;
         break;
       }
     case F_LOCAL:
@@ -2581,7 +2633,7 @@ eval_instruction (char * p)
           STACK_INC;
           sp->type = T_LVALUE;
           if (flags & FOREACH_LEFT_GLOBAL) {
-            sp->u.lvalue = find_value(EXTRACT_UCHAR(pc++) + variable_index_offset);
+              sp->u.lvalue = find_value((int)(READ_GLOBAL_INDEX(pc) + variable_index_offset));
           } else {
             sp->u.lvalue = fp + EXTRACT_UCHAR(pc++);
           }
@@ -2603,7 +2655,7 @@ eval_instruction (char * p)
         if (flags & FOREACH_RIGHT_GLOBAL) {
           STACK_INC;
           sp->type = T_LVALUE;
-          sp->u.lvalue = find_value((EXTRACT_UCHAR(pc++) + variable_index_offset));
+          sp->u.lvalue = find_value((int)(READ_GLOBAL_INDEX(pc) + variable_index_offset));
         } else if (flags & FOREACH_REF) {
           ref_t *ref = make_ref();
           svalue_t *loc = fp + EXTRACT_UCHAR(pc++);
@@ -3044,7 +3096,7 @@ eval_instruction (char * p)
       {
         svalue_t *s;
 
-        s = find_value((EXTRACT_UCHAR(pc++) + variable_index_offset));
+        s = find_value((int) (READ_GLOBAL_INDEX(pc) + variable_index_offset));
 
         /*
          * If variable points to a destructed object, replace it
@@ -3421,7 +3473,7 @@ eval_instruction (char * p)
     case F_GLOBAL_LVALUE:
       STACK_INC;
       sp->type = T_LVALUE;
-      sp->u.lvalue = find_value((EXTRACT_UCHAR(pc++) +
+      sp->u.lvalue = find_value((int) (READ_GLOBAL_INDEX(pc) +
                                        variable_index_offset));
       break;
     case F_INDEX_LVALUE:
@@ -3984,7 +4036,10 @@ void check_co_args2 (unsigned short *types, int num_arg, const char *name, const
   int exptype, i = 0;
   do{
     argc--;
-    exptype = convert_type(types[i++]);
+    if((types[i] & DECL_MODS) == LOCAL_MOD_REF)
+    	exptype = T_REF;
+    else
+    	exptype = convert_type(types[i++]);
     if(exptype == T_ANY)
       continue;
 
@@ -4000,7 +4055,10 @@ void check_co_args2 (unsigned short *types, int num_arg, const char *name, const
         const char *file;
         int line;
         find_line(pc, current_prog, &file, &line);
+        int prsave = pragmas;
+        pragmas &= ~PRAGMA_ERROR_CONTEXT;
         smart_log(file, line, buf, 1);
+        pragmas = prsave;
       } else
         smart_log("driver", 0, buf, 1);
 #else
@@ -4021,8 +4079,11 @@ void check_co_args (int num_arg, const program_t * prog, function_t * fun, int f
     if(current_prog){
       const char *file;
       int line;
+      int prsave = pragmas;
+      pragmas &= ~PRAGMA_ERROR_CONTEXT;
       find_line(pc, current_prog, &file, &line);
       smart_log(file, line, buf, 1);
+      pragmas = prsave;
     } else
       smart_log("driver", 0, buf, 1);
 #else
@@ -4146,8 +4207,8 @@ int apply_low (const char * fun, object_t * ob, int num_arg)
           do_trace_call(findex);
         }
 #endif
-
-        previous_ob = current_object;
+        DTRACE_PROBE3(fluffos, lpc__entry, ob->obname, fun, current_prog->filename);
+	previous_ob = current_object;
         current_object = ob;
         IF_DEBUG(save_csp = csp);
         call_program(current_prog, funp->address);
@@ -4245,6 +4306,7 @@ int apply_low (const char * fun, object_t * ob, int num_arg)
         previous_ob = current_object;
         current_object = ob;
         IF_DEBUG(save_csp = csp);
+        DTRACE_PROBE3(fluffos, lpc__entry, ob->obname, fun, current_prog->filename);
         call_program(current_prog, funp->address);
 
         DEBUG_CHECK(save_csp - 1 != csp,
@@ -4310,7 +4372,6 @@ svalue_t *apply (const char * fun, object_t * ob, int num_arg,
     }
   }
 #endif
-
   IF_DEBUG(expected_sp = sp - num_arg);
   if (apply_low(fun, ob, num_arg) == 0)
     return 0;
@@ -4364,10 +4425,10 @@ void call___INIT (object_t * ob)
   caller_type = ORIGIN_DRIVER;
   csp->num_local_variables = 0;
 
-  setup_new_frame(num_functions - 1 + progp->last_inherited);
   previous_ob = current_object;
 
   current_object = ob;
+  setup_new_frame(num_functions - 1 + progp->last_inherited);
   IF_DEBUG(save_csp = csp);
   call_program(current_prog, cfp->address);
 
@@ -4553,9 +4614,9 @@ void call_direct (object_t * ob, int offset, int origin, int num_arg) {
   caller_type = origin;
   csp->num_local_variables = num_arg;
   current_prog = prog;
-  funp = setup_new_frame(offset);
   previous_ob = current_object;
   current_object = ob;
+  funp = setup_new_frame(offset);
   call_program(current_prog, funp->address);
 }
 
@@ -5759,22 +5820,15 @@ void restore_context (error_context_t * econ) {
   _in_reference_allowed = 0;
 #endif
   /* unwind the command_giver stack to the saved position */
+
+  while(csp > econ->save_csp)
+    pop_control_stack();
+
   while (cgsp != econ->save_cgsp)
     restore_command_giver();
   DEBUG_CHECK(csp < econ->save_csp, "csp is below econ->csp before unwinding.\n");
-  if (csp > econ->save_csp) {
-    /* Unwind the control stack to the saved position */
-#ifdef PROFILE_FUNCTIONS
-    /* PROFILE_FUNCTIONS needs current_prog to be correct in
-       pop_control_stack() */
-    if (csp > econ->save_csp + 1) {
-      csp = econ->save_csp + 1;
-      current_prog = (csp+1)->prog;
-    } else
-#endif
-      csp = econ->save_csp + 1;
-    pop_control_stack();
-  }
+
+
   pop_n_elems(sp - econ->save_sp);
   refp = global_ref_list;
   while (refp) {

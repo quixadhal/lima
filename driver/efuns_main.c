@@ -27,6 +27,7 @@
 #include "efun_protos.h"
 #include "add_action.h"
 #include "eval.h"
+#include "interpret.h"
 
 int call_origin = 0;
 
@@ -588,10 +589,26 @@ void
 f_deep_inventory (void)
 {
     array_t *vec;
+    int args = st_num_arg;
+    if(st_num_arg==2 && sp->type == T_FUNCTION && ((sp-1)->type==T_ARRAY || (sp-1)->type==T_OBJECT) ) {
+        if((sp-1)->type==T_ARRAY)
+            vec = deep_inventory_array((sp-1)->u.arr, 1 , sp->u.fp); 
+        else /*(sp-1)->type==T_OBJECT*/
+            vec = deep_inventory((sp-1)->u.ob, 0 , sp->u.fp);
+    }
+    else if(st_num_arg==1 && (sp->type==T_FUNCTION || sp->type==T_ARRAY || sp->type==T_OBJECT) ) {
+        if(sp->type==T_FUNCTION)
+            vec = deep_inventory(current_object, 0 , sp->u.fp);
+	else if(sp->type==T_ARRAY)
+	    vec = deep_inventory_array(sp->u.arr, 1 , 0);
+	else /*sp->type==T_OBJECT*/
+            vec = deep_inventory(sp->u.ob, 0 , 0);
+    }
+    else
+        vec = &the_null_array;
 
-    vec = deep_inventory(sp->u.ob, 0);
-    free_object(&sp->u.ob, "f_deep_inventory");
-    put_array(vec);
+    pop_n_elems(args);
+    push_refed_array(vec);
 }
 #endif
 
@@ -1146,7 +1163,7 @@ f_in_input (void)
 int
 inherits (program_t * prog, program_t * thep)
 {
-    int j, k = prog->num_inherited;
+    int j, k = prog->num_inherited, l;
     program_t *pg;
 
     for (j = 0; j < k; j++) {
@@ -1154,8 +1171,8 @@ inherits (program_t * prog, program_t * thep)
             return 1;
         if (!strcmp(pg->filename, thep->filename))
             return 2;
-        if (inherits(pg, thep))
-            return 1;
+        if (l=inherits(pg, thep))
+            return l;
     }
     return 0;
 }
@@ -1241,6 +1258,35 @@ f_has_mxp (void)
     }
     free_object(&sp->u.ob, "f_has_mxp");
     put_number(i);
+}
+#endif
+
+#ifdef F_HAS_ZMP
+void f_has_zmp (void)
+{
+	int i=0;
+
+	if (sp->u.ob->interactive)
+	{
+		i = sp->u.ob->interactive->iflags & USING_ZMP;
+		i = !!i; //force 1 or 0
+	}
+	free_object(&sp->u.ob, "f_has_zmp");
+	put_number(i);
+}
+#endif
+
+#ifdef F_HAS_GMCP
+void f_has_gmcp(){
+	int i=0;
+
+	if (sp->u.ob->interactive)
+	{
+		i = sp->u.ob->interactive->iflags & USING_GMCP;
+		i = !!i; //force 1 or 0
+	}
+	free_object(&sp->u.ob, "f_has_zmp");
+	put_number(i);
 }
 #endif
 
@@ -1507,7 +1553,7 @@ f_member_array (void)
 	i = 0;
 
     if (sp->type == T_STRING) {
-        char *res;
+        const char *res;
         if(flag & 2)
           error("member_array: can not search backwards in strings");
         CHECK_TYPES(sp-1, T_NUMBER, 1, F_MEMBER_ARRAY);
@@ -1602,7 +1648,7 @@ f_member_array (void)
             }
             break;
         }
-        if (i == size)
+        if (i >= size)
             i = -1;                     /* Return -1 for failure */
         free_array(v);
         free_svalue(find, "f_member_array");
@@ -2059,7 +2105,7 @@ f_query_ip_name (void)
 void
 f_query_ip_number (void)
 {
-    char *tmp;
+    const char *tmp;
 
     tmp = query_ip_number(st_num_arg ? sp->u.ob : 0);
     if (st_num_arg) free_object(&(sp--)->u.ob, "f_query_ip_number");
@@ -2255,7 +2301,7 @@ f_reg_assoc (void) {
     if (!(arg[2].type == T_ARRAY))
         error("Bad argument 3 to reg_assoc()\n");
 
-    vec = reg_assoc(arg[0].u.string, arg[1].u.arr, arg[2].u.arr, st_num_arg > 3 ? &arg[3] : &const0);
+    vec = reg_assoc(arg, arg[1].u.arr, arg[2].u.arr, st_num_arg > 3 ? &arg[3] : &const0);
 
     if (st_num_arg == 4)
         pop_3_elems();
@@ -2488,7 +2534,8 @@ f_replace_string (void)
                     *dst2++ = *src++;
                 }
             }
-            memcpy(dst2, src, slimit - src);
+            memmove(dst2, src, slimit - src);
+            //memcpy(dst2, src, slimit - src);
             dst2 += (slimit - src);
             *dst2 = 0;
             arg->u.string = extend_string(dst1, dst2 - dst1);
@@ -2650,7 +2697,7 @@ f_resolve (void)
 void
 f_restore_object (void)
 {
-    int flag, tmp_eval;
+    int flag;
 
     flag = (st_num_arg > 1) ? (sp--)->u.number : 0;
 
@@ -2710,18 +2757,38 @@ f_rmdir (void)
 void
 f_save_object (void)
 {
-    int flag, tmp_eval;
+    int flag;
 
-    if (st_num_arg == 2) {
+    if (st_num_arg == 2 ) {
         flag = (sp--)->u.number;
     } else {
         flag = 0;
     }
 
-    flag = save_object(current_object, sp->u.string, flag);
+    if(st_num_arg == 1 && sp->type == T_NUMBER)
+    	flag = sp->u.number;
 
-    free_string_svalue(sp);
-    put_number(flag);
+    if(st_num_arg && sp->type == T_STRING){
+    	flag = save_object(current_object, sp->u.string, flag);
+
+    	free_string_svalue(sp);
+    	put_number(flag);
+    } else {
+    	pop_n_elems(st_num_arg);
+    	char *saved = new_string(MAX_STRING_LENGTH, "save_object_str");
+    	push_malloced_string(saved);
+        int left = MAX_STRING_LENGTH;
+        flag = save_object_str(current_object, flag, saved, left);
+        if(!flag){
+        	pop_stack();
+        	push_undefined();
+        } else {
+        	saved = new_string(strlen(sp->u.string), "save_object_str2");
+        	strcpy(saved, sp->u.string);
+        	pop_stack();
+        	push_malloced_string(saved);
+        }
+    }
 }
 #endif
 
@@ -3157,7 +3224,7 @@ f_strsrch (void)
                 do {
                     if (*pos == c) break;
                 } while (--pos >= big);
-                if (*pos != c) {
+                if (pos < big) {
                     pos = NULL;
                     break;
                 }
@@ -3695,9 +3762,7 @@ f_write_file (void)
 {
     int flags = 0;
 
-    if (st_num_arg == 3) {
-        flags = (sp--)->u.number;
-    }
+    flags = (sp--)->u.number;
     flags = write_file((sp - 1)->u.string, sp->u.string, flags);
     free_string_svalue(sp--);
     free_string_svalue(sp);
@@ -3878,5 +3943,20 @@ f_next_inventory (void)
         sp->u.ob = ob;
     } else
         *sp = const0;
+}
+#endif
+
+#ifdef F_DEFER
+void f_defer(){
+	struct defer_list *newlist = MALLOC(sizeof(struct defer_list));
+	newlist->next = csp->defers;
+	newlist->func = *sp--;
+	if(command_giver){
+		push_object(command_giver);
+		newlist->tp = *sp--;
+	}
+	else
+		newlist->tp = const0;
+	csp->defers = newlist;
 }
 #endif

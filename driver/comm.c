@@ -33,15 +33,40 @@
 #define MSG_NOSIGNAL 0
 #endif
 
+#define TELOPT_MSSP 70
 #define TELOPT_COMPRESS 85
 #define TELOPT_COMPRESS2 86
 #define TELOPT_MXP  91  // mud extension protocol
+#define TELOPT_ZMP  93  // zenith mud protocol
+#define TELOPT_GMCP 201 // something mud communication protocol, how many do we need?
+
+#define MSSP_VAR 1
+#define MSSP_VAL 2
+
+#ifndef MAX
+#define MAX(x,y) (((x)>(y))?(x):(y))
+#endif
+
+#ifndef ENV_FILLER
+#define ENV_FILLER 0x1e
+#endif
+
+#define TELOPT_NEW_ENVIRON 39
+#define NEW_ENV_IS               0
+#define NEW_ENV_SEND             1
+#define NEW_ENV_INFO             2
+#define NEW_ENV_VAR              0
+#define NEW_ENV_VALUE            1
+#define NEW_ENV_ESC              2
+#define NEW_ENV_USERVAR          3
+
 
 static unsigned char telnet_break_response[] = {  28, IAC, WILL, TELOPT_TM };
 static unsigned char telnet_ip_response[]    = { 127, IAC, WILL, TELOPT_TM };
 static unsigned char telnet_abort_response[] = { IAC, DM };
 static unsigned char telnet_do_tm_response[] = { IAC, WILL, TELOPT_TM };
 static unsigned char telnet_do_naws[]        = { IAC, DO, TELOPT_NAWS };
+static unsigned char telnet_dont_naws[]      = { IAC, DONT, TELOPT_NAWS };
 static unsigned char telnet_do_ttype[]       = { IAC, DO, TELOPT_TTYPE };
 static unsigned char telnet_term_query[]     = { IAC, SB, TELOPT_TTYPE, TELQUAL_SEND, IAC, SE };
 static unsigned char telnet_no_echo[]        = { IAC, WONT, TELOPT_ECHO };
@@ -73,14 +98,20 @@ static unsigned char telnet_compress_v1_response[] = { IAC, SB,
 static unsigned char telnet_compress_v2_response[] = { IAC, SB,
                                               TELOPT_COMPRESS2, IAC,
                                               SE };
+
 #endif
 static unsigned char telnet_do_mxp[]     = { IAC, DO, TELOPT_MXP };
 static unsigned char telnet_will_mxp[]     = { IAC, SB, TELOPT_MXP, IAC, SE };
-
-//#ifdef DEBUGG
-//static char *slc_names[] = { SLC_NAMELIST };
-//#endif
-
+static unsigned char telnet_will_mssp[] = { IAC, WILL, TELOPT_MSSP };
+static unsigned char telnet_start_mssp[] = { IAC, SB, TELOPT_MSSP };
+static unsigned char telnet_mssp_value[] = {MSSP_VAR, '%', 's', MSSP_VAL, '%', 's', 0};
+static unsigned char telnet_end_sub[] = {IAC, SE};
+static unsigned char telnet_will_zmp[] = { IAC, WILL, TELOPT_ZMP};
+static unsigned char telnet_start_zmp[] = { IAC, SB, TELOPT_ZMP};
+static unsigned char telnet_do_newenv[]     = { IAC, DO, TELOPT_NEW_ENVIRON };
+static unsigned char telnet_send_uservar[]     = { IAC, SB, TELOPT_NEW_ENVIRON, NEW_ENV_SEND, IAC, SE };
+static unsigned char telnet_do_gmcp[] = {IAC, DO, TELOPT_GMCP};
+static unsigned char telnet_start_gmcp[] = {IAC, SB, TELOPT_GMCP};
 /*
  * local function prototypes.
  */
@@ -209,6 +240,7 @@ void init_user_conn()
 #else
     struct sockaddr_in sin;
 #endif
+    memset(&sin, 0, sizeof(sin));
     socklen_t sin_len;
     int optval;
     int i;
@@ -247,10 +279,11 @@ void init_user_conn()
             /*
              * create socket of proper type.
              */
+        	int sockflags = SOCK_STREAM;
 #ifdef IPV6
-            if ((external_port[i].fd = socket(PF_INET6, SOCK_STREAM, 0)) == -1) {
+            if ((external_port[i].fd = socket(PF_INET6, sockflags, 0)) == -1) {
 #else
-            if ((external_port[i].fd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+            if ((external_port[i].fd = socket(PF_INET, sockflags, 0)) == -1) {
 #endif
                 debug_perror("init_user_conn: socket", 0);
                 exit(1);
@@ -265,7 +298,9 @@ void init_user_conn()
                 socket_perror("init_user_conn: setsockopt", 0);
                 exit(2);
             }
-
+#ifdef FD_CLOEXEC
+            fcntl(external_port[i].fd, F_SETFD, FD_CLOEXEC);
+#endif
             /*
              * fill in socket address information.
              */
@@ -331,10 +366,17 @@ void init_user_conn()
      * register signal handler for SIGPIPE.
      */
 #if defined(SIGPIPE) && defined(SIGNAL_ERROR)
+#ifdef SIG_IGN
+    if (signal(SIGPIPE, SIG_IGN) == SIGNAL_ERROR) {
+            debug_perror("init_user_conn: signal SIGPIPE",0);
+            exit(5);
+        }
+#else
     if (signal(SIGPIPE, sigpipe_handler) == SIGNAL_ERROR) {
         debug_perror("init_user_conn: signal SIGPIPE",0);
         exit(5);
     }
+#endif
 #endif
 }
 
@@ -367,10 +409,12 @@ void init_addr_server (char * hostname, int addr_server_port)
 #else
     struct sockaddr_in server;
 #endif
+#ifndef IPV6
     struct hostent *hp;
+    int addr;
+#endif
     int server_fd;
     int optval;
-    long addr;
 
     if (addr_server_fd >= 0)
         return;
@@ -384,7 +428,11 @@ void init_addr_server (char * hostname, int addr_server_port)
     hints.ai_family = AF_INET6;
     hints.ai_socktype = 0;
     hints.ai_protocol = 0;
+#ifndef AI_V4MAPPED
+    hints.ai_flags = AI_CANONNAME;
+#else
     hints.ai_flags = AI_CANONNAME| AI_V4MAPPED;
+#endif
 
     if(getaddrinfo(hostname, "1234", &hints, &res)){
     	//failed
@@ -554,7 +602,7 @@ void add_message (object_t * who, const char * data, int len)
             if (ip->message_length == MESSAGE_BUF_SIZE)
                 break;
         }
-        if (*cp == '\n' || *cp == -1
+        if ((*cp == '\n' || *cp == -1)
 #ifndef NO_BUFFER_TYPE
             && ip->connection_type != PORT_BINARY
 #endif
@@ -674,10 +722,10 @@ void add_vmessage (object_t *who, const char *format, ...)
     add_message_calls++;
 }                               /* add_message() */
 
-void add_binary_message (object_t * who, unsigned char * data, int len)
+void add_binary_message (object_t * who, const unsigned char * data, int len)
 {
     interactive_t *ip;
-    unsigned char *cp, *end;
+    const unsigned char *cp, *end;
 
     /*
      * if who->interactive is not valid, bail
@@ -785,6 +833,30 @@ int flush_message (interactive_t * ip)
     }
     return 1;
 }                               /* flush_message() */
+
+static int send_mssp_val(mapping_t *map, mapping_node_t *el, void *obp){
+	object_t *ob = (object_t *)obp;
+	if(el->values[0].type == T_STRING && el->values[1].type == T_STRING){
+		char buf[1024];
+		int len = sprintf(buf, (char *)telnet_mssp_value, el->values[0].u.string, el->values[1].u.string);
+		add_binary_message(ob, (unsigned char *)buf, len);
+	} else if (el->values[0].type == T_STRING && el->values[1].type == T_ARRAY && el->values[1].u.arr->size > 0 && el->values[1].u.arr->item[0].type == T_STRING){
+		char buf[10240];
+		int len = sprintf(buf, (char *)telnet_mssp_value, el->values[0].u.string, el->values[1].u.arr->item[0].u.string);
+		add_binary_message(ob, (unsigned char *)buf, len);
+		array_t *ar = el->values[1].u.arr;
+		int i;
+		unsigned char val = MSSP_VAL;
+		for(i=1; i < ar->size; i++){
+			if(ar->item[i].type == T_STRING){
+				add_binary_message(ob, &val, 1);
+				add_binary_message(ob, (const unsigned char *)ar->item[i].u.string, strlen(ar->item[i].u.string));
+			}
+		}
+
+	}
+	return 0;
+}
 
 static void copy_chars (interactive_t * ip, char * from, int num_bytes)
 {
@@ -898,6 +970,13 @@ static void copy_chars (interactive_t * ip, char * from, int num_bytes)
                         apply(APPLY_MXP_ENABLE, ip->ob, 0, ORIGIN_DRIVER);
                         ip->iflags |= USING_MXP;
                         break;
+                    case TELOPT_GMCP:
+                    	apply(APPLY_GMCP_ENABLE, ip->ob, 0, ORIGIN_DRIVER);
+                    	ip->iflags |= USING_GMCP;
+                    	break;
+                    case TELOPT_NEW_ENVIRON :
+                        add_binary_message(ip->ob, telnet_send_uservar, sizeof(telnet_send_uservar));
+                        break;
 
                     default:
                         dont_response[2] = from[i];
@@ -942,18 +1021,80 @@ static void copy_chars (interactive_t * ip, char * from, int num_bytes)
                     case TELOPT_ECHO:
                         /* do nothing, but don't send a wont response */
                         break;
+                    case TELOPT_MSSP:
+                    {
+                    	add_binary_message(ip->ob, telnet_start_mssp, sizeof(telnet_start_mssp));
+                    	svalue_t *res = apply_master_ob(APPLY_GET_MUD_STATS, 0);
+                    	mapping_t *map;
+                    	if(res <= 0 || res->type != T_MAPPING) {
+                    		map = allocate_mapping(0);
+                    		free_svalue(&apply_ret_value, "telnet neg");
+                    		apply_ret_value.type = T_MAPPING;
+                    		apply_ret_value.u.map = map;
+                    	} else
+                    		map = res->u.map;
+                    	//ok, so we have a mapping, first make sure we send the required values
+                    	char *tmp = findstring("NAME");
+                    	if(tmp){
+                    		svalue_t *name = find_string_in_mapping(map, tmp);
+                    		if(!name || name->type != T_STRING)
+                    			tmp = 0;
+                    	}
+                    	if(!tmp){
+                    		char buf[1024];
+                    		int len = sprintf(buf, (char *)telnet_mssp_value, "NAME", MUD_NAME);
+                    		add_binary_message(ip->ob, (unsigned char *)buf, len);
+                    	}
+                    	tmp = findstring("PLAYERS");
+                    	if(tmp){
+                    		svalue_t *players = find_string_in_mapping(map, tmp);
+                    		if(!players || players->type != T_STRING)
+                    			tmp = 0;
+                    	}
+                    	if(!tmp){
+                    		char buf[1024];
+                    		char num[5];
+                    		sprintf(num, "%d", num_user);
+                    		int len = sprintf(buf, (char *)telnet_mssp_value, "PLAYERS", num);
+                    		add_binary_message(ip->ob, (unsigned char *)buf, len);
+                    	}
+                    	tmp = findstring("UPTIME");
+                    	if(tmp){
+                    		svalue_t *upt = find_string_in_mapping(map, tmp);
+                    		if(!upt || upt->type != T_STRING)
+                    			tmp = 0;
+                    	}
+                    	if(!tmp){
+                    		char buf[1024];
+                    		char num[20];
+
+                    		sprintf(num, "%ld", boot_time);
+                    		int len = sprintf(buf, (char *)telnet_mssp_value, "UPTIME", num);
+                    		add_binary_message(ip->ob, (unsigned char *)buf, len);
+                    	}
+                    	//now send the rest
+                    	mapTraverse(map, send_mssp_val, ip->ob);
+                    	add_binary_message(ip->ob, telnet_end_sub, sizeof(telnet_end_sub));
+                    }
 #ifdef HAVE_ZLIB
                     case TELOPT_COMPRESS :
-                      add_binary_message(ip->ob, telnet_compress_v1_response,
-                                  sizeof(telnet_compress_v1_response));
-                      start_compression(ip);
+                      if(!ip->compressed_stream){
+                    	  add_binary_message(ip->ob, telnet_compress_v1_response,
+                    			  sizeof(telnet_compress_v1_response));
+                    	  start_compression(ip);
+                      }
                       break;
                     case TELOPT_COMPRESS2 :
-                      add_binary_message(ip->ob, telnet_compress_v2_response,
-                                  sizeof(telnet_compress_v2_response));
-                      start_compression(ip);
+                      if(!ip->compressed_stream){
+                    	  add_binary_message(ip->ob, telnet_compress_v2_response,
+                    			  sizeof(telnet_compress_v2_response));
+                    	  start_compression(ip);
+                      }
                       break;
 #endif
+                    case TELOPT_ZMP :
+                    	ip->iflags |= USING_ZMP;
+                    	break;
                     default:
                         wont_response[2] = from[i];
                         add_binary_message(ip->ob, wont_response, sizeof(wont_response));
@@ -986,8 +1127,16 @@ static void copy_chars (interactive_t * ip, char * from, int num_bytes)
                     ip->state = TS_SB_IAC;
                     break;
                 }
-                if (ip->sb_pos < SB_SIZE - 1)
+                if (ip->sb_pos < ip->sb_size - 1)
                     ip->sb_buf[ip->sb_pos++] = from[i];
+                else if(ip->sb_size < MAX_STRING_LENGTH){
+                	ip->sb_size*=2;
+                	if(ip->sb_size > MAX_STRING_LENGTH)
+                		ip->sb_size = MAX_STRING_LENGTH;
+                	ip->sb_buf = (char *)REALLOC(ip->sb_buf, ip->sb_size);
+                    if (ip->sb_pos < ip->sb_size - 1)
+                        ip->sb_buf[ip->sb_pos++] = from[i];
+                }
                 break;
 
             case TS_SB_IAC:
@@ -1002,7 +1151,29 @@ static void copy_chars (interactive_t * ip, char * from, int num_bytes)
                     case SE:
                         ip->state = TS_DATA;
                         ip->sb_buf[ip->sb_pos] = 0;
-                        switch (ip->sb_buf[0]) {
+                        switch ((unsigned char)ip->sb_buf[0]) {
+
+                        case TELOPT_NEW_ENVIRON :
+                        {
+                        	    int j, k;
+                        	    char env_buf[BUF_SIZE];
+                                j = 0;
+                                k = 1;
+                                while(ip->sb_buf[k] > -1 && k < (ip->sb_pos - 1)){
+                                    k++;
+                                    if(!(ip->sb_buf[k])) env_buf[j] = ENV_FILLER;
+                                    if(ip->sb_buf[k] == 1) env_buf[j] = 1;
+                                    if((ip->sb_buf[k] > 31)){
+                                        env_buf[j] = ip->sb_buf[k];
+                                    }
+                                    if(env_buf[j]) j++;
+                                }
+                                env_buf[j] = 0;
+                                copy_and_push_string(env_buf);
+                                apply(APPLY_RECEIVE_ENVIRON, ip->ob, 1, ORIGIN_DRIVER);
+                                break;
+
+                        }
                             case TELOPT_LINEMODE:
                                 switch ((unsigned char)ip->sb_buf[1]) {
                                     case LM_MODE:
@@ -1151,7 +1322,34 @@ static void copy_chars (interactive_t * ip, char * from, int num_bytes)
                                     apply(APPLY_TERMINAL_TYPE, ip->ob, 1, ORIGIN_DRIVER);
                                 }
                                 break;
+                            case TELOPT_ZMP:
+                            {
+                            	array_t *arr = allocate_array(max_array_size);
+                            	ip->sb_buf = (char *)REALLOC(ip->sb_buf, MAX(ip->sb_pos + 2, SB_SIZE));
+                            	ip->sb_size = MAX(ip->sb_pos + 2, SB_SIZE);
+                            	ip->sb_buf[ip->sb_pos] = 0;
+                            	copy_and_push_string(ip->sb_buf+1);
+                            	int off=0;
+                            	int aro = 0;
+                            	while(1){
+                            		off += strlen(ip->sb_buf+1+off)+2;
+                            		if(off >= ip->sb_pos-1)
+                            			break;
+                            		arr->item[aro].u.string = string_copy(&ip->sb_buf[off], "ZMP");
+                            		arr->item[aro].type = T_STRING;
+                            		arr->item[aro++].subtype = STRING_MALLOC;
+                            	}
+                            	arr = resize_array(arr, aro);
+                            	push_refed_array(arr);
+                            	apply(APPLY_ZMP, ip->ob, 2, ORIGIN_DRIVER);
 
+                            }
+							break;
+                            case TELOPT_GMCP:
+                            	ip->sb_buf[ip->sb_pos] = 0;
+                            	copy_and_push_string(&ip->sb_buf[1]);
+                            	apply(APPLY_GMCP, ip->ob, 1, ORIGIN_DRIVER);
+                            	break;
                             default:
                                 for (x = 0;  x < ip->sb_pos;  x++)
                                     ip->sb_buf[x] = (ip->sb_buf[x] ? ip->sb_buf[x] : 'I');
@@ -1222,7 +1420,7 @@ static void get_user_data (interactive_t * ip)
             if (ip->text_end < 4)
                 text_space = 4 - ip->text_end;
             else
-                text_space = *(int *)ip->text - ip->text_end + 4;
+                text_space = *(volatile int *)ip->text - ip->text_end + 4;
             break;
 
         default:
@@ -1278,8 +1476,8 @@ static void get_user_data (interactive_t * ip)
 
             if (num_bytes == text_space) {
                 if (ip->text_end == 4) {
-                    *(int *)ip->text = ntohl(*(int *)ip->text);
-                    if (*(int *)ip->text > MAX_TEXT - 5)
+                    *(volatile int *)ip->text = ntohl(*(int *)ip->text);
+                    if (*(volatile int *)ip->text > MAX_TEXT - 5)
                         remove_interactive(ip->ob, 0);
                 } else {
                     svalue_t value;
@@ -1448,6 +1646,7 @@ static char *first_cmd_in_buf (interactive_t * ip)
 /*
  * SIGPIPE handler -- does very little for now.
  */
+#ifndef SIG_IGN
 #ifdef SIGNAL_FUNC_TAKES_INT
 void sigpipe_handler (int sig)
 #else
@@ -1458,7 +1657,7 @@ void sigpipe_handler()
     //don't comment the next line out, i'm pretty sure we'd crash on the next SIGPIPE, they're not worth it
     signal(SIGPIPE, sigpipe_handler);
 }                               /* sigpipe_handler() */
-
+#endif
 /*
  * SIGALRM handler.
  */
@@ -1471,10 +1670,12 @@ void sigalrm_handler()
   outoftime = 1;
 }                               /* sigalrm_handler() */
 
+int max_fd;
+
 INLINE void make_selectmasks()
 {
     int i;
-
+    max_fd = addr_server_fd;
     /*
      * generate readmask and writemask for select() call.
      */
@@ -1491,6 +1692,8 @@ INLINE void make_selectmasks()
     for (i = 0; i < 5; i++) {
         if (!external_port[i].port) continue;
         FD_SET(external_port[i].fd, &readmask);
+        if(external_port[i].fd > max_fd)
+        	max_fd = external_port[i].fd;
     }
     /*
      * set user fds in readmask.
@@ -1503,6 +1706,8 @@ INLINE void make_selectmasks()
          * fd so we can get it.
          */
         FD_SET(all_users[i]->fd, &readmask);
+        if(all_users[i]->fd > max_fd)
+        	max_fd = all_users[i]->fd;
         if (all_users[i]->message_length != 0)
             FD_SET(all_users[i]->fd, &writemask);
     }
@@ -1511,6 +1716,7 @@ INLINE void make_selectmasks()
      */
     if (addr_server_fd >= 0) {
         FD_SET(addr_server_fd, &readmask);
+
     }
 #if defined(PACKAGE_SOCKETS) || defined(PACKAGE_EXTERNAL)
     /*
@@ -1519,10 +1725,16 @@ INLINE void make_selectmasks()
     for (i = 0; i < max_lpc_socks; i++) {
         if (lpc_socks[i].state != STATE_CLOSED) {
             if (lpc_socks[i].state != STATE_FLUSHING &&
-                (lpc_socks[i].flags & S_WACCEPT) == 0)
+                (lpc_socks[i].flags & S_WACCEPT) == 0){
                 FD_SET(lpc_socks[i].fd, &readmask);
-            if (lpc_socks[i].flags & S_BLOCKED)
+                if(lpc_socks[i].fd > max_fd)
+                	max_fd = lpc_socks[i].fd;
+            }
+            if (lpc_socks[i].flags & S_BLOCKED){
                 FD_SET(lpc_socks[i].fd, &writemask);
+                if(lpc_socks[i].fd > max_fd)
+                	max_fd = lpc_socks[i].fd;
+            }
         }
     }
 #endif
@@ -1660,7 +1872,7 @@ static void new_user_handler (int which)
         OS_socket_close(new_socket_fd);
         return;
     }
-#if !(linux) && !(sun) && !defined(MINGW) && !defined(__CYGWIN__)
+#if defined(SO_NOSIGPIPE)
     i = 1;
 
     if (setsockopt(new_socket_fd, 1, SO_NOSIGPIPE, &i, sizeof(i)) == -1)
@@ -1694,6 +1906,8 @@ static void new_user_handler (int which)
     master_ob->interactive->default_err_message.s = 0;
 #endif
     master_ob->interactive->connection_type = external_port[which].kind;
+    master_ob->interactive->sb_buf = (char *)MALLOC(SB_SIZE);
+    master_ob->interactive->sb_size = SB_SIZE;
     master_ob->flags |= O_ONCE_INTERACTIVE;
     /*
      * initialize new user interactive data structure.
@@ -1823,6 +2037,14 @@ static void new_user_handler (int which)
 #endif
         // Ask them if they support mxp.
         add_binary_message(ob, telnet_do_mxp, sizeof(telnet_do_mxp));
+        // And mssp
+        add_binary_message(ob, telnet_will_mssp, sizeof(telnet_will_mssp));
+        // May as well ask for zmp while we're there!
+        add_binary_message(ob, telnet_will_zmp, sizeof(telnet_will_zmp));
+        // Also newenv
+        add_binary_message(ob, telnet_do_newenv, sizeof(telnet_do_newenv));
+        // gmcp *yawn*
+        add_binary_message(ob, telnet_do_gmcp, sizeof(telnet_do_gmcp));
     }
 
     logon(ob);
@@ -1951,7 +2173,7 @@ static void process_input (interactive_t * ip, char * user_command)
 int process_user_command()
 {
     char *user_command;
-    interactive_t *ip;
+    interactive_t *ip=NULL;//for if(ip) below
 
     /*
      * WARNING: get_user_command() sets command_giver via
@@ -2194,6 +2416,7 @@ void remove_interactive (object_t * ob, int dested)
     for (idx = 0; idx < max_users; idx++)
         if (all_users[idx] == ip) break;
     DEBUG_CHECK(idx == max_users, "remove_interactive: could not find and remove user!\n");
+    FREE(ip->sb_buf);
     FREE(ip);
     ob->interactive = 0;
     all_users[idx] = 0;
@@ -2721,7 +2944,7 @@ static void add_ip_entry (long addr, char * name)
     ipcur = (ipcur + 1) % IPSIZE;
 }
 
-char *query_ip_number (object_t * ob)
+const char *query_ip_number (object_t * ob)
 {
     if (ob == 0)
         ob = command_giver;
@@ -2729,7 +2952,7 @@ char *query_ip_number (object_t * ob)
         return 0;
 #ifdef IPV6
     inet_ntop(AF_INET6, &ob->interactive->addr.sin6_addr, ipv6addr, INET6_ADDRSTRLEN);
-        return &ipv6addr;
+        return &ipv6addr[0];
 #else
     return (inet_ntoa(ob->interactive->addr.sin_addr));
 #endif
@@ -2845,20 +3068,20 @@ int outbuf_extend (outbuffer_t * outbuf, int l)
 
     DEBUG_CHECK(l < 0, "Negative length passed to outbuf_extend.\n");
 
-    l = (l > USHRT_MAX ? USHRT_MAX : l);
+    l = (l > MAX_STRING_LENGTH ? MAX_STRING_LENGTH : l);
 
     if (outbuf->buffer) {
         limit = MSTR_SIZE(outbuf->buffer);
         if (outbuf->real_size + l > limit) {
-            if (outbuf->real_size == USHRT_MAX) return 0; /* TRUNCATED */
+	  if (outbuf->real_size == MAX_STRING_LENGTH) return 0; /* TRUNCATED */
 
             /* assume it's going to grow some more */
             limit = (outbuf->real_size + l) * 2;
-            if (limit > USHRT_MAX) {
-                limit = USHRT_MAX;
-                outbuf->buffer = extend_string(outbuf->buffer, USHRT_MAX);
-                return USHRT_MAX - outbuf->real_size;
-            }
+            if (limit > MAX_STRING_LENGTH) {
+                limit = MAX_STRING_LENGTH;
+                outbuf->buffer = extend_string(outbuf->buffer, limit);
+                return limit - outbuf->real_size;
+		}
             outbuf->buffer = extend_string(outbuf->buffer, limit);
         }
     } else {
@@ -3072,6 +3295,32 @@ void f_act_mxp(){
 }
 #endif
 
+#ifdef F_SEND_ZMP
+void f_send_zmp(){
+	add_binary_message(current_object, telnet_start_zmp, sizeof(telnet_start_zmp));
+	add_binary_message(current_object, (const unsigned char *)(sp-1)->u.string, strlen((sp-1)->u.string));
+	int i;
+	unsigned char zero = 0;
+	for(i=0; i<sp->u.arr->size; i++){
+		if(sp->u.arr->item[i].type == T_STRING){
+			add_binary_message(current_object, &zero, 1);
+			add_binary_message(current_object, (const unsigned char *)sp->u.arr->item[i].u.string, strlen(sp->u.arr->item[i].u.string));
+		}
+	}
+	add_binary_message(current_object, &zero, 1);
+	add_binary_message(current_object, telnet_end_sub, sizeof(telnet_end_sub));
+	pop_2_elems();
+}
+#endif
+
+#ifdef F_SEND_GMCP
+void f_send_gmcp(){
+	add_binary_message(current_object, telnet_start_gmcp, sizeof(telnet_start_gmcp));
+	add_binary_message(current_object, (const unsigned char *)(sp->u.string), strlen(sp->u.string));
+	add_binary_message(current_object, telnet_end_sub, sizeof(telnet_end_sub));
+}
+#endif
+
 #ifdef F_REQUEST_TERM_TYPE
 void f_request_term_type(){
   add_binary_message(command_giver, telnet_term_query, sizeof(telnet_term_query));
@@ -3086,6 +3335,13 @@ void f_start_request_term_type(){
 
 #ifdef F_REQUEST_TERM_SIZE
 void f_request_term_size(){
- add_binary_message(command_giver, telnet_do_naws, sizeof(telnet_do_naws));
+  if((st_num_arg == 1) && (sp->u.number == 0))
+    add_binary_message(command_giver, telnet_dont_naws,
+                       sizeof(telnet_dont_naws));
+  else
+    add_binary_message(command_giver, telnet_do_naws, sizeof(telnet_do_naws));
+  
+  if(st_num_arg == 1)
+    sp--;
 }
 #endif
