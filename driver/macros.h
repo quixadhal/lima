@@ -51,7 +51,7 @@
 
    Please refer to options.h for selecting malloc package and wrapper.
 */
-#if (defined(SYSMALLOC) + defined(SMALLOC) + defined(BSDMALLOC) + defined(MMALLOC)) > 1
+#if (defined(SYSMALLOC) + defined(SMALLOC) + defined(BSDMALLOC) + defined(MMALLOC) + defined(GCMALLOC)) > 1
 !Only one malloc package should be defined
 #endif
 
@@ -61,6 +61,10 @@
 
 #if defined(DO_MSTATS) && defined(SYSMALLOC)
 !'DO_MSTATS' not available with 'SYSMALLOC'
+#endif
+
+#if defined(DO_MSTATS) && defined(GCMALLOC)
+!'DO_MSTATS' not available with 'GCMALLOC'
 #endif
 
 #if defined (WRAPPEDMALLOC) && !defined(IN_MALLOC_WRAPPER)
@@ -186,12 +190,12 @@
 #endif
 #endif
 
-#if SIZEOF_FLOAT == 4
-#define COPY_FLOAT(x, y) COPY4(x,y)
-#define LOAD_FLOAT(x, y) LOAD4(x,y)
-#define STORE_FLOAT(x, y) STORE4(x,y)
+#if SIZEOF_FLOAT == 8
+#define COPY_FLOAT(x, y) COPY8(x,y)
+#define LOAD_FLOAT(x, y) LOAD8(x,y)
+#define STORE_FLOAT(x, y) STORE8(x,y)
 #else
-!floats of size other than 4 not implemented
+!floats of size other than 8 not implemented
 #endif
 
 #if SIZEOF_PTR == 4
