@@ -1,12 +1,12 @@
 
-SRC=uids.c db.c compress.c math.c develop.c external.c contrib.c sockets.c async.c dwlib.c 
-OBJ=uids.$(O) db.$(O) compress.$(O) math.$(O) develop.$(O) external.$(O) contrib.$(O) sockets.$(O) async.$(O) dwlib.$(O) 
+SRC=pcre.c develop.c parser.c contrib.c sockets.c 
+OBJ=pcre.$(O) develop.$(O) parser.$(O) contrib.$(O) sockets.$(O) 
 
 .c.$(O):
 	$(CC) $(CFLAGS) -I.. -c $*.c
 
 all: $(OBJ)
-	ar rcu packages.$(A) $(OBJ)
+	$(AR) rcu packages.$(A) $(OBJ)
 	$(RANLIB) packages.$(A)
 
 db.$(O): db.c

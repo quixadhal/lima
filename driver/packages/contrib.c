@@ -1014,7 +1014,7 @@ static char *pluralize (const char * str) {
 	if (!sz) return 0;
 
 	/* if it is of the form 'X of Y', pluralize the 'X' part */
-	if ((p = strstr(str, " of "))) {
+	if ((p = strstr(str, " of ")) || (p = strstr(str, " Of "))) {
 		of_buf = alloc_cstring(p, "pluralize: of");
 		of_len = strlen(of_buf);
 		sz = p - str;
@@ -1025,7 +1025,7 @@ static char *pluralize (const char * str) {
 	 * They can have 'the' so don't remove that
 	 */
 	if (str[0] == 'a' || str[0] == 'A') {
-		if (str[1] == ' ') {
+		if (str[1] == ' ' && sz > 2) {
 			plen = sz - 2;
 			pre = (char *)DXALLOC(plen + 1, TAG_TEMPORARY, "pluralize: pre");
 			strncpy(pre, str + 2, plen);
@@ -1793,7 +1793,7 @@ void f_zonetime (void)
 {
 	const char *timezone, *old_tz;
 	char *retv;
-	long time_val;
+	LPC_INT time_val;
 	int len;
 
 	time_val = sp->u.number;
@@ -1804,6 +1804,7 @@ void f_zonetime (void)
 	old_tz = set_timezone(timezone);
 	retv = ctime((time_t *)&time_val);
 	if(!retv) {
+	  reset_timezone(old_tz);
 	  error("bad argument to zonetime.");
 	  return ;
 	}
@@ -1819,7 +1820,7 @@ void f_zonetime (void)
 void f_is_daylight_savings_time (void)
 {
 	struct tm *t;
-	long time_to_check;
+	LPC_INT time_to_check;
 	const char *timezone;
 	char *old_tz;
 
@@ -1831,9 +1832,10 @@ void f_is_daylight_savings_time (void)
 	old_tz = set_timezone(timezone);
 
 	t = localtime((time_t *)&time_to_check);
-  if (t) {
-  	push_number((t->tm_isdst) > 0);
-  } else push_number(-1);
+	if (t) {
+	  push_number((t->tm_isdst) > 0);
+	} else push_number(-1);
+	reset_timezone(old_tz);
 }
 #endif
 
@@ -2214,7 +2216,7 @@ void f_event (void){
 
 
 #ifdef F_QUERY_NUM
-void number_as_string (char * buf, long n){
+void number_as_string (char * buf, LPC_INT n){
 	const char *low[] =  { "ten", "eleven", "twelve", "thirteen",
 			"fourteen", "fifteen", "sixteen", "seventeen",
 			"eighteen", "nineteen" };
@@ -2244,7 +2246,7 @@ void number_as_string (char * buf, long n){
 void f_query_num (void){
 	char ret[100];
 	int i;
-	long n, limit;
+	LPC_INT n, limit;
 	int changed = 0;
 	char *res;
 
@@ -2671,7 +2673,7 @@ f_abs() {
 
 void
 f_roll_MdN() {
-	long roll = 0;
+	LPC_INT roll = 0;
 
 	if ( (sp - 1)->u.number > 0 && sp->u.number > 0 ) {
 		while( (sp - 1)->u.number-- )
@@ -2880,7 +2882,7 @@ void f_send_nullbyte (void){
 #ifdef F_RESTORE_FROM_STRING
 void f_restore_from_string(){
 	const char *buf;
-	long noclear;
+	LPC_INT noclear;
 
 	buf = (sp-1)->u.string;
 	noclear = sp->u.number;
@@ -2959,22 +2961,29 @@ void f_classes() {
 #endif
 
 #ifdef F_TEST_LOAD
-const char *saved_extra_name;
-object_t *testloadob;
 static void fix_object_names() {
+	const char *saved_extra_name = sp->u.string;
+	object_t *new_ob = find_object2(saved_extra_name);
+	if(new_ob)
+		destruct_object(new_ob);
+
+	object_t *testloadob = (sp-1)->u.ob;
 	if(testloadob)
 		SETOBNAME(testloadob, saved_extra_name);
 }
 
 void f_test_load(){
 	const char *tmp = sp->u.string;
-	object_t *new_ob, *tmp_ob;
+	object_t *new_ob, *tmp_ob, *testloadob;
 	if(testloadob = find_object2(sp->u.string)){
 		tmp = testloadob->obname;
 		SETOBNAME(testloadob, "");
-
+		push_object(testloadob);
+		push_number((long)tmp);
+	} else {
+		push_number(0);
+		push_number((long)tmp);
 	}
-	saved_extra_name = tmp;
 	STACK_INC;
 	sp->type = T_ERROR_HANDLER;
 	sp->u.error_handler = fix_object_names;
@@ -2985,16 +2994,16 @@ void f_test_load(){
 		if(testloadob)
 			SETOBNAME(testloadob, tmp);
 		sp--;
-		pop_stack();
+		pop_3_elems();
 		push_number(0);
 		return;
 	}
 	destruct_object(new_ob);
 	sp--;
-	pop_stack();
+	pop_3_elems();
 	push_number(1);
 	if(testloadob)
-		SETOBNAME(testloadob, saved_extra_name);
+		SETOBNAME(testloadob, tmp);
 }
 
 #endif

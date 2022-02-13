@@ -8,6 +8,7 @@
 #  include <unistd.h>
 #endif
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <setjmp.h>
@@ -28,9 +29,6 @@
 #ifdef INCL_DOS_H
 #  include <dos.h>
 #endif
-#ifdef INCL_SYS_TIMES_H
-#  include <sys/times.h>
-#endif
 #ifdef INCL_USCLKC_H
 #  include <usclkc.h>
 #endif
@@ -49,6 +47,9 @@
 #endif
 #ifdef INCL_LIMITS_H
 #  include <limits.h>
+#endif
+#ifdef INCL_FLOAT_H
+#  include <float.h>
 #endif
 #ifdef INCL_MALLOC_H
 #  include <malloc.h>
