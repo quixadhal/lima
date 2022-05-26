@@ -33,17 +33,18 @@ varargs string translate( string pat, int flag )
 		res += pat[i..i];
 		continue;
 	    }
-	case '.':	
+	case '.':
 	    res += "\\" + pat[i..i];
 	    continue;
 	case	'*':
 	    res += ".*";
 	    continue;
-	case '?':	
+	case '?':
 	    res += ".";
 	    continue;
 	case '[':
-	    j=i;
+	    // j=i;         <= pat[i] == pat[j] == '['
+        j = i + 1
 	    if( j<n && pat[j] == '!' ) j++;
 #ifdef  CARET_AS_NOT
 	    if( j<n && pat[j] == '^' ) j++;
@@ -111,7 +112,7 @@ string* glob( mixed pathname ){
     if( !stringp(pathname) )  return ({});
     if( !has_magic(pathname) ){
 	if( path_exists( pathname ) ){
-	    return ({ pathname });	
+	    return ({ pathname });
 	}
 	else{
 	    return ({});
@@ -126,8 +127,8 @@ string* glob( mixed pathname ){
     else{
 	list = ({ dirname });
     }
+	result = ({});          // <= needed in both cases
     if( !has_magic(basename) ){
-	result = ({});
 	i = sizeof(list);
 	while(i--){
 	    dirname = list[i];
@@ -141,7 +142,6 @@ string* glob( mixed pathname ){
 	}
     }
     else{
-	result = ({});
 	i = sizeof(list);
 	while(i--){
 	    dirname = list[i];
@@ -150,7 +150,7 @@ string* glob( mixed pathname ){
 	    {
 		if( strlen(dirname) == 1 )
 		    dirname = "";
-		else 
+		else
 		    dirname = dirname[0..<2];
 	    }
 	    sublist = glob1( dirname, basename );
